@@ -24,9 +24,7 @@
       /* ── Greeting ── */
       .dash-greeting { display: grid; gap: 6px; }
       .dash-greeting h1 {
-        font-family: "Fraunces","Georgia",serif;
         font-size: clamp(1.9rem, 3vw, 2.6rem);
-        line-height: 1.1;
       }
       .dash-greeting p { font-size: 0.92rem; color: var(--muted); }
 
@@ -58,7 +56,6 @@
         font-weight: 600;
       }
       .dsc-value {
-        font-family: "Fraunces","Georgia",serif;
         font-size: 1.7rem;
         font-weight: 600;
         line-height: 1;
@@ -79,7 +76,6 @@
         gap: 12px;
       }
       .dash-section-title h2 {
-        font-family: "Fraunces","Georgia",serif;
         font-size: 1.4rem;
         font-weight: 600;
       }
@@ -212,7 +208,6 @@
         flex-wrap: wrap;
       }
       .dash-cta-text h3 {
-        font-family: "Fraunces","Georgia",serif;
         font-size: 1.4rem;
         color: #fff;
         font-weight: 600;
@@ -260,6 +255,7 @@
       <nav class="nav">
         <a class="logo" href="index.html">Invest BG</a>
         <div class="nav-links">
+          <a class="nav-link" href="performance.html">Performance</a>
           <a class="nav-link nav-link--active" href="investments.html">Mes investissements</a>
           <span class="nav-link nav-user-name" id="nav-user-name">—</span>
           <button class="button ghost" id="nav-logout">Se déconnecter</button>
@@ -297,15 +293,6 @@
           <div class="inv-row skeleton" style="height:78px; animation-delay:.08s"></div>
           <div class="inv-row skeleton" style="height:78px; animation-delay:.16s"></div>
           <div class="inv-row skeleton" style="height:78px; animation-delay:.24s"></div>
-        </div>
-
-        <!-- CTA -->
-        <div class="dash-cta">
-          <div class="dash-cta-text">
-            <h3>Découvrir de nouvelles opportunités</h3>
-            <p>Nos experts sélectionnent de nouvelles startups chaque mois.</p>
-          </div>
-          <a class="button white" href="index.html#features">Voir les opportunités</a>
         </div>
 
       </div>

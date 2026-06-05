@@ -78,6 +78,13 @@ main, .site-footer { position: relative; z-index: 1; }
   border: 1px solid rgba(31,142,122,0.18);
 }
 
+/* ── Typographie globale ── */
+h1, h2, h3 {
+  font-family: "Fraunces","Georgia",serif;
+  line-height: 1.1;
+  letter-spacing: -.02em;
+}
+
 .logo {
   font-family: "Fraunces","Georgia",serif;
   font-size: 1.2rem;
@@ -122,9 +129,34 @@ main { display: grid; gap: 100px; padding: 8vh 0 10vh; position: relative; }
 .hero {
   max-width: 1380px;
   display: grid;
-  grid-template-columns: minmax(300px, 0.65fr) 1fr;
-  gap: 56px;
+  grid-template-columns: minmax(300px, 0.65fr) auto 1fr;
+  gap: 0;
   align-items: center;
+}
+
+.hero-divider {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 0 36px;
+  align-self: stretch;
+  justify-content: center;
+}
+.hero-divider-line {
+  width: 1px;
+  flex: 1;
+  background: linear-gradient(to bottom, transparent, var(--line) 30%, var(--line) 70%, transparent);
+  max-height: 180px;
+}
+.hero-divider-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .22em;
+  color: var(--muted);
+  writing-mode: vertical-rl;
+  opacity: 0.55;
 }
 
 /* ── Texte (gauche) ── */
@@ -139,7 +171,6 @@ main { display: grid; gap: 100px; padding: 8vh 0 10vh; position: relative; }
 }
 
 .hero h1 {
-  font-family: "Fraunces","Georgia",serif;
   font-size: clamp(2.4rem,3.8vw,3.6rem);
   line-height: 1.08;
 }
@@ -234,20 +265,15 @@ main { display: grid; gap: 100px; padding: 8vh 0 10vh; position: relative; }
 .chart-card {
   position: relative;
   z-index: 2;
-  padding: 24px 24px 0;
-  padding-right: calc(24px + 6vw);
-  margin-right: -6vw;
+  padding: 24px 28px 0;
   border-radius: 22px;
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
   border: 1px solid rgba(255,255,255,0.06);
-  border-right: none;
   background: linear-gradient(145deg, #1e1c19 0%, #252320 100%);
   box-shadow: -40px 32px 80px rgba(0,0,0,0.35), 0 0 0 0 rgba(45,224,188,0);
   display: grid;
   gap: 14px;
   overflow: hidden;
-  animation: float-main 5s ease-in-out infinite, card-glow-dark 4.5s ease-in-out infinite;
+  animation: card-glow-dark 4.5s ease-in-out infinite;
 }
 
 .chart-header {
@@ -405,13 +431,244 @@ main { display: grid; gap: 100px; padding: 8vh 0 10vh; position: relative; }
   animation: live-pulse 2s ease-in-out infinite .5s;
 }
 
+/* ══ Liquidity section ══ */
+.liquidity-section {
+  max-width: 1380px;
+  margin: 0 auto;
+  background: linear-gradient(150deg, #1a1815 0%, #222018 100%);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 28px;
+  padding: 64px 60px;
+  display: grid;
+  gap: 52px;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.28);
+  overflow: hidden;
+  position: relative;
+}
+.liquidity-section::before {
+  content: '';
+  position: absolute;
+  top: -120px; right: -120px;
+  width: 400px; height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(31,142,122,0.12), transparent 70%);
+  pointer-events: none;
+}
+.liq-intro { display: grid; gap: 16px; max-width: 680px; }
+.liq-intro .eyebrow { color: rgba(247,243,238,0.45); }
+.liq-intro h2 {
+  font-size: clamp(2rem,3.5vw,3rem);
+  color: rgba(247,243,238,0.96);
+}
+.liq-intro p {
+  font-size: 1.05rem;
+  color: rgba(247,243,238,0.5);
+  line-height: 1.7;
+}
+.liq-cols {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 24px;
+  align-items: center;
+}
+.liq-card {
+  padding: 32px 30px;
+  border-radius: 20px;
+  display: grid;
+  gap: 20px;
+}
+.liq-card.problem {
+  background: rgba(200,60,50,0.07);
+  border: 1px solid rgba(200,60,50,0.18);
+}
+.liq-card.solution {
+  background: rgba(31,142,122,0.08);
+  border: 1px solid rgba(31,142,122,0.22);
+}
+.liq-card-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  padding: 5px 12px;
+  border-radius: 999px;
+  width: fit-content;
+}
+.liq-card-tag.problem {
+  background: rgba(200,60,50,0.15);
+  color: rgba(240,120,110,0.9);
+  border: 1px solid rgba(200,60,50,0.25);
+}
+.liq-card-tag.solution {
+  background: rgba(45,224,188,0.1);
+  color: #2de0bc;
+  border: 1px solid rgba(45,224,188,0.22);
+}
+.liq-card h3 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: rgba(247,243,238,0.92);
+}
+.liq-card p {
+  font-size: 0.9rem;
+  color: rgba(247,243,238,0.48);
+  line-height: 1.65;
+}
+.liq-points { display: grid; gap: 10px; }
+.liq-point {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+.liq-point.bad  { color: rgba(240,120,110,0.8); }
+.liq-point.good { color: rgba(45,224,188,0.85); }
+.liq-point-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+.liq-vs {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.liq-vs-badge {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: rgba(247,243,238,0.35);
+  letter-spacing: .06em;
+}
+.liq-vs-line {
+  width: 1px; height: 40px;
+  background: rgba(255,255,255,0.08);
+}
+
+.liq-block-group { display: grid; gap: 20px; }
+.liq-block-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  color: rgba(247,243,238,0.3);
+}
+.liq-sep {
+  height: 1px;
+  background: rgba(255,255,255,0.07);
+}
+
+@media (max-width: 860px) {
+  .liquidity-section { padding: 36px 24px; }
+  .liq-cols { grid-template-columns: 1fr; }
+  .liq-vs { flex-direction: row; }
+  .liq-vs-line { width: 40px; height: 1px; }
+}
+
+/* ══ Compare chart card (partagé index + performance) ══ */
+.compare-card {
+  background: linear-gradient(145deg, #1e1c19 0%, #252320 100%);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 24px;
+  padding: 28px 28px 20px;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.28);
+}
+.compare-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.compare-title {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  color: rgba(247,243,238,0.45);
+}
+.compare-sub { font-size: 0.75rem; color: rgba(247,243,238,0.25); margin-top: 4px; }
+.compare-legend { display: flex; gap: 16px; flex-wrap: wrap; }
+.cleg { display: flex; align-items: center; gap: 7px; font-size: 0.78rem; color: rgba(247,243,238,0.65); font-weight: 500; }
+.cleg-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.compare-svg { width: 100%; height: auto; display: block; overflow: visible; }
+.cline { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.cline-pe   { stroke: #2de0bc; stroke-width: 2.5; stroke-dasharray: 800; stroke-dashoffset: 800; animation: draw 2.4s cubic-bezier(.4,0,.2,1) forwards .3s; }
+.cline-cac  { stroke: #f5a06a; stroke-width: 2;   stroke-dasharray: 600; stroke-dashoffset: 600; animation: draw 2.4s cubic-bezier(.4,0,.2,1) forwards .6s; }
+.cline-immo { stroke: #8bb8d4; stroke-width: 2;   stroke-dasharray: 550; stroke-dashoffset: 550; animation: draw 2.4s cubic-bezier(.4,0,.2,1) forwards .9s; }
+.cline-livret { stroke: rgba(247,243,238,0.28); stroke-width: 1.5; stroke-dasharray: 540; stroke-dashoffset: 540; animation: draw 2.4s cubic-bezier(.4,0,.2,1) forwards 1.2s; }
+.carea-pe  { opacity: 0; animation: rise 1s ease forwards 2.5s; }
+.cend-dot  { transform-box: fill-box; transform-origin: center; opacity: 0; transform: scale(0); animation: dot-pop .35s ease forwards; }
+.clabel    { opacity: 0; animation: fade-in .4s ease forwards; }
+
+/* ══ Big blocks ══ */
+.bigblocks {
+  max-width: 1080px;
+  display: grid;
+  gap: 16px;
+}
+.bigblock {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 32px;
+  align-items: start;
+  padding: 44px 48px;
+  border-radius: 22px;
+  background: linear-gradient(145deg, #1a1815 0%, #222018 100%);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.22);
+  transition: transform .22s, box-shadow .22s;
+}
+.bigblock:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 32px 80px rgba(0,0,0,0.32);
+}
+.bigblock--accent {
+  background: linear-gradient(145deg, #182220 0%, #1e2820 100%);
+  border-color: rgba(31,142,122,0.2);
+}
+.bigblock-num {
+  font-family: "Fraunces","Georgia",serif;
+  font-size: 3.8rem;
+  font-weight: 600;
+  line-height: 1;
+  color: rgba(247,243,238,0.08);
+  letter-spacing: -.04em;
+  padding-top: 4px;
+}
+.bigblock--accent .bigblock-num { color: rgba(31,142,122,0.2); }
+.bigblock-body { display: grid; gap: 14px; }
+.bigblock-body h2 {
+  font-size: clamp(1.6rem,2.4vw,2.2rem);
+  color: rgba(247,243,238,0.94);
+}
+.bigblock-body p {
+  font-size: 0.97rem;
+  color: rgba(247,243,238,0.45);
+  line-height: 1.7;
+  max-width: 540px;
+}
+
+@media (max-width: 640px) {
+  .bigblock {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 28px 24px;
+  }
+  .bigblock-num { font-size: 2.4rem; }
+}
+
 /* ══ Features ══ */
 .features { max-width: 1080px; display: grid; gap: 44px; }
 .features-header { display: grid; gap: 12px; }
 .features-header h2 {
-  font-family: "Fraunces","Georgia",serif;
   font-size: clamp(1.9rem,3vw,2.6rem);
-  line-height: 1.1;
   max-width: 520px;
 }
 .features-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; }
@@ -471,7 +728,7 @@ body.auth { padding: 0; }
 }
 .auth-brand .logo { color: var(--bg); position: relative; z-index: 1; }
 .auth-brand-body { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 32px; position: relative; z-index: 1; }
-.auth-brand-body h2 { font-family: "Fraunces","Georgia",serif; font-size: clamp(1.8rem,2.8vw,2.8rem); line-height: 1.1; color: var(--bg); }
+.auth-brand-body h2 { font-size: clamp(1.8rem,2.8vw,2.8rem); color: var(--bg); }
 .auth-brand-points { list-style: none; display: grid; gap: 18px; }
 .auth-brand-points li { display: flex; align-items: flex-start; gap: 12px; font-size: 0.95rem; color: rgba(247,243,238,0.72); line-height: 1.5; }
 .auth-brand-points li svg { flex-shrink: 0; margin-top: 2px; color: var(--accent-strong); }
@@ -485,7 +742,7 @@ body.auth { padding: 0; }
   position: relative; z-index: 1;
 }
 .auth-card { width: min(400px,100%); display: grid; gap: 20px; }
-.auth-card h1 { font-family: "Fraunces","Georgia",serif; font-size: 2.2rem; line-height: 1.1; }
+.auth-card h1 { font-size: 2.2rem; }
 .auth-lead { color: var(--muted); margin-top: -6px; }
 .auth-form { display: grid; gap: 16px; margin-top: 4px; }
 .auth-field { display: grid; gap: 8px; }
@@ -611,6 +868,7 @@ body.auth { padding: 0; }
   .nav-link { display: none; }
   main { padding: 6vh 0 8vh; gap: 60px; }
   .hero { grid-template-columns: 1fr; gap: 36px; }
+  .hero-divider { display: none; }
   .hero h1 { font-size: clamp(2.2rem,10vw,3.2rem); }
   .hero-actions { flex-direction: column; align-items: flex-start; }
   .features-grid { grid-template-columns: 1fr; }
