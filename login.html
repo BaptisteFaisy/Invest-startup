@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Invest BG - Connexion</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="auth">
+    <div class="grain" aria-hidden="true"></div>
+
+    <main class="auth-layout">
+      <!-- Panneau gauche (marque) -->
+      <div class="auth-brand">
+        <a class="logo" href="index.html">Invest BG</a>
+        <div class="auth-brand-body">
+          <h2>Votre capital, investi intelligemment.</h2>
+          <ul class="auth-brand-points">
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Startups auditées et sélectionnées par nos experts</span>
+            </li>
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Rendement moyen de +22% sur 12 mois</span>
+            </li>
+            <li>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Revente des parts facilitée via notre réseau</span>
+            </li>
+          </ul>
+        </div>
+        <p class="auth-brand-note">Rejoignez plus de 200 investisseurs actifs.</p>
+      </div>
+
+      <!-- Panneau droit (formulaire) -->
+      <div class="auth-shell">
+        <div class="auth-card">
+          <h1>Connexion</h1>
+          <p class="auth-lead">Accédez à votre espace investisseur.</p>
+
+          <div id="auth-error" class="auth-alert auth-alert--error" role="alert" hidden></div>
+
+          <form class="auth-form" id="login-form" novalidate>
+            <label class="auth-field">
+              <span>Email</span>
+              <input
+                class="auth-input"
+                type="email"
+                name="email"
+                autocomplete="email"
+                placeholder="vous@exemple.fr"
+                required
+              />
+            </label>
+            <label class="auth-field">
+              <span>Mot de passe</span>
+              <div class="auth-input-wrap">
+                <input
+                  class="auth-input"
+                  type="password"
+                  name="password"
+                  id="login-password"
+                  autocomplete="current-password"
+                  placeholder="••••••••"
+                  required
+                />
+                <button type="button" class="auth-eye" aria-label="Afficher le mot de passe" data-target="login-password">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </label>
+            <button class="button primary" id="submit-btn" type="submit" style="width:100%;justify-content:center;">
+              Se connecter
+            </button>
+          </form>
+
+          <p class="auth-footer">
+            Pas de compte ?
+            <a class="auth-link" href="register.html">Créer un compte</a>
+          </p>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      // ── Afficher / masquer le mot de passe ──────────────────────────────────
+      document.querySelectorAll('.auth-eye').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const inp = document.getElementById(btn.dataset.target);
+          inp.type = inp.type === 'password' ? 'text' : 'password';
+          btn.setAttribute('aria-label', inp.type === 'password' ? 'Afficher' : 'Masquer');
+        });
+      });
+
+      // ── Soumission du formulaire ────────────────────────────────────────────
+      const form      = document.getElementById('login-form');
+      const errEl     = document.getElementById('auth-error');
+      const submitBtn = document.getElementById('submit-btn');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errEl.hidden = true;
+
+        const email    = form.email.value.trim();
+        const password = form.password.value;
+
+        if (!email || !password) {
+          errEl.textContent = 'Email et mot de passe requis';
+          errEl.hidden = false;
+          return;
+        }
+
+        submitBtn.disabled    = true;
+        submitBtn.textContent = 'Connexion…';
+
+        try {
+          const res  = await fetch('/api/auth/login', {
+            method:      'POST',
+            headers:     { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body:        JSON.stringify({ email, password }),
+          });
+          const data = await res.json();
+
+          if (!res.ok) {
+            errEl.textContent = data.error || 'Identifiants incorrects';
+            errEl.hidden = false;
+          } else {
+            window.location.href = 'index.html';
+          }
+        } catch {
+          errEl.textContent = 'Impossible de joindre le serveur';
+          errEl.hidden = false;
+        } finally {
+          submitBtn.disabled    = false;
+          submitBtn.textContent = 'Se connecter';
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Invest Republic - Investissement simple pour particuliers</title>
+    <title>Invest BG - Investir dans des startups</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -14,193 +14,444 @@
   </head>
   <body>
     <div class="grain" aria-hidden="true"></div>
+
     <header class="site-header">
       <nav class="nav">
-        <a class="logo" href="#top">Invest Republic</a>
-        <div class="nav-links">
-          <a href="#avantages">Avantages</a>
-          <a href="#parcours">Parcours</a>
-          <a href="#securite">Securite</a>
+        <a class="logo" href="#top">Invest BG</a>
+        <div class="nav-links" id="nav-links">
+          <a class="nav-link" href="#features">Comment ça marche</a>
+          <a class="button ghost" href="login.html">Se connecter</a>
         </div>
-        <button class="button ghost" type="button">Se connecter</button>
       </nav>
     </header>
 
+    <script>
+      fetch('/api/auth/me', { credentials: 'include' })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (!data?.user) return;
+          const name = data.user.full_name ? data.user.full_name.split(' ')[0] : data.user.email;
+          document.getElementById('nav-links').innerHTML = `
+            <a class="nav-link" href="investments.html">Mes investissements</a>
+            <span class="nav-link nav-user-name">${name}</span>
+            <button class="button ghost" id="nav-logout">Se déconnecter</button>
+          `;
+          document.getElementById('nav-logout').addEventListener('click', async () => {
+            await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+            window.location.reload();
+          });
+        })
+        .catch(() => {});
+    </script>
+
     <main id="top">
       <section class="hero">
-        <div class="hero-text">
-          <p class="eyebrow">Investir simplement, sans jargon.</p>
+
+        <!-- LEFT: texte -->
+        <div class="hero-copy">
+          <div class="eyebrow">Investissement alternatif</div>
           <h1>
-            Votre argent travaille pour vous.
-            <span>Design clair, decisions faciles.</span>
+            Investir dans des startups
+            <span class="text-gradient">pour des particuliers.</span>
           </h1>
           <p class="lead">
-            Une interface lisible pour lancer votre premier plan
-            d'investissement, suivre votre progression, et garder
-            le controle a tout moment.
+            Accompagnement personnalisé pour investir dans des startups
+            auditées et sélectionnées par nos soins.
           </p>
+          <div class="stat-pills">
+            <span class="stat-pill"><strong>+22%</strong>&nbsp;rendement moyen</span>
+            <span class="stat-pill"><strong>10 ans</strong>&nbsp;horizon</span>
+          </div>
           <div class="hero-actions">
-            <button class="button primary" type="button">Commencer maintenant</button>
-            <button class="button secondary" type="button">Voir la demo</button>
-          </div>
-          <div class="hero-meta">
-            <div>
-              <p class="meta-title">A partir de</p>
-              <p class="meta-value">1 EUR</p>
-            </div>
-            <div>
-              <p class="meta-title">Frais clairs</p>
-              <p class="meta-value">0,99 EUR / ordre</p>
-            </div>
-            <div>
-              <p class="meta-title">Temps moyen</p>
-              <p class="meta-value">4 minutes</p>
-            </div>
+            <button class="button primary" type="button">Commencer</button>
+            <p class="note">À partir de 1 000 EUR — sans frais cachés</p>
           </div>
         </div>
-        <div class="hero-card">
-          <div class="card-header">
-            <p class="card-label">Vue portefeuille</p>
-            <p class="card-title">Croissance sereine</p>
+
+        <!-- RIGHT: graphique -->
+        <div class="hero-visual">
+          <div class="chart-glow" aria-hidden="true"></div>
+
+          <div class="particles" aria-hidden="true">
+            <span class="p p1"></span><span class="p p2"></span>
+            <span class="p p3"></span><span class="p p4"></span>
+            <span class="p p5"></span><span class="p p6"></span>
           </div>
-          <div class="chart">
-            <div class="bar" style="--h: 34%"></div>
-            <div class="bar" style="--h: 46%"></div>
-            <div class="bar" style="--h: 62%"></div>
-            <div class="bar" style="--h: 52%"></div>
-            <div class="bar" style="--h: 74%"></div>
-            <div class="bar" style="--h: 88%"></div>
-            <div class="bar" style="--h: 80%"></div>
+
+          <!-- Carte graphique (fond sombre) -->
+          <div class="chart-card"
+            role="img"
+            aria-label="Évolution de 10 000 euros investis sur 10 ans : valeur finale 39 083 euros.">
+
+            <div class="chart-header">
+              <div>
+                <p class="chart-title">Évolution du capital</p>
+                <p class="chart-sub">10 000 € investis · simulation 2015–2024</p>
+              </div>
+              <div class="chart-result-badge">
+                <span class="crb-value">€ 39 083</span>
+                <span class="crb-delta">↑ +293% en 10 ans</span>
+              </div>
+            </div>
+
+            <!--
+              ViewBox 605 × 310
+              ─ Axe Y (x ≤ 50) : labels €10k → €35k
+              ─ Courbe cumulative (y 20 – 200, x 55 – 558)
+              ─ Séparateur y=212
+              ─ Histogramme annuel (baseline y=278, bars vers le haut)
+              ─ Labels années y=296
+            -->
+            <svg class="chart-svg" viewBox="0 0 605 310" fill="none"
+              xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <defs>
+                <linearGradient id="lineGrad" x1="0" y1="0" x2="605" y2="0" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%"   stop-color="#2de0bc"/>
+                  <stop offset="100%" stop-color="#f5a06a"/>
+                </linearGradient>
+                <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="205" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%"   stop-color="rgba(45,224,188,0.28)"/>
+                  <stop offset="100%" stop-color="rgba(45,224,188,0)"/>
+                </linearGradient>
+                <linearGradient id="glowGrad" x1="0" y1="0" x2="605" y2="0" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%"   stop-color="rgba(45,224,188,0.5)"/>
+                  <stop offset="100%" stop-color="rgba(245,160,106,0.5)"/>
+                </linearGradient>
+                <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%"   stop-color="#2de0bc" stop-opacity="0.9"/>
+                  <stop offset="100%" stop-color="#1f8e7a" stop-opacity="0.4"/>
+                </linearGradient>
+                <linearGradient id="barGradNeg" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%"   stop-color="#e05848" stop-opacity="0.4"/>
+                  <stop offset="100%" stop-color="#e05848" stop-opacity="0.85"/>
+                </linearGradient>
+                <filter id="tipShadow" x="-30%" y="-30%" width="160%" height="160%">
+                  <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="rgba(0,0,0,0.4)"/>
+                </filter>
+                <!-- Révèle la zone et la courbe de gauche à droite -->
+                <clipPath id="revealLeft">
+                  <rect x="55" y="0" width="0" height="310">
+                    <animate attributeName="width" from="0" to="550"
+                      dur="2.2s" begin="0.2s" fill="freeze"
+                      calcMode="spline" keyTimes="0;1"
+                      keySplines="0.4 0 0.2 1"/>
+                  </rect>
+                </clipPath>
+              </defs>
+
+              <!-- ── Axe Y ─────────────────────────────────────── -->
+              <line x1="50" y1="15" x2="50" y2="208"
+                stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+
+              <!-- Ticks + labels (€10k à €35k) -->
+              <line x1="46" y1="200" x2="52" y2="200" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+              <text x="43" y="203" text-anchor="end"
+                font-family="Space Grotesk,sans-serif" font-size="8"
+                fill="rgba(247,243,238,0.38)">10k€</text>
+
+              <line x1="46" y1="169" x2="52" y2="169" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+              <text x="43" y="172" text-anchor="end"
+                font-family="Space Grotesk,sans-serif" font-size="8"
+                fill="rgba(247,243,238,0.32)">15k€</text>
+
+              <line x1="46" y1="138" x2="52" y2="138" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+              <text x="43" y="141" text-anchor="end"
+                font-family="Space Grotesk,sans-serif" font-size="8"
+                fill="rgba(247,243,238,0.32)">20k€</text>
+
+              <line x1="46" y1="107" x2="52" y2="107" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+              <text x="43" y="110" text-anchor="end"
+                font-family="Space Grotesk,sans-serif" font-size="8"
+                fill="rgba(247,243,238,0.32)">25k€</text>
+
+              <line x1="46" y1="76" x2="52" y2="76" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+              <text x="43" y="79" text-anchor="end"
+                font-family="Space Grotesk,sans-serif" font-size="8"
+                fill="rgba(247,243,238,0.32)">30k€</text>
+
+              <line x1="46" y1="45" x2="52" y2="45" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+              <text x="43" y="48" text-anchor="end"
+                font-family="Space Grotesk,sans-serif" font-size="8"
+                fill="rgba(247,243,238,0.32)">35k€</text>
+
+              <!-- ── Grilles horizontales ── -->
+              <line x1="50" y1="200" x2="595" y2="200" stroke="rgba(255,255,255,0.09)" stroke-width="1"/>
+              <line x1="50" y1="169" x2="595" y2="169" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+              <line x1="50" y1="138" x2="595" y2="138" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+              <line x1="50" y1="107" x2="595" y2="107" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+              <line x1="50" y1="76"  x2="595" y2="76"  stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+              <line x1="50" y1="45"  x2="595" y2="45"  stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+
+              <!--
+                ── Courbe : 10 000 € composés année par année ──
+                Points (x, y) où y=200 → €10k, y=20 → €39 083
+                Années : 2015(72,195) 2016(126,187) 2017(180,174)
+                         2018(234,176) 2019(288,155) 2020(342,150)
+                         2021(396,115) 2022(450,95)  2023(504,63)
+                         2024(558,20)
+              -->
+
+              <!-- Zone sous la courbe (révélée de gauche à droite) -->
+              <path class="chart-area" clip-path="url(#revealLeft)"
+                style="animation:none; opacity:1;"
+                d="M55 200 C 64 200 67 196 72 195
+                   C 99 192 112 188 126 187
+                   C 152 184 167 175 180 174
+                   C 207 173 223 177 234 176
+                   C 254 175 278 158 288 155
+                   C 311 152 328 151 342 150
+                   C 365 140 380 119 396 115
+                   C 416 106 435 99 450 95
+                   C 473 85 488 71 504 63
+                   C 526 50 543 33 558 20
+                   L558 200 L55 200 Z"
+                fill="url(#areaGrad)"/>
+
+              <!-- Ligne principale (animée) -->
+              <path class="chart-line"
+                d="M55 200 C 64 200 67 196 72 195
+                   C 99 192 112 188 126 187
+                   C 152 184 167 175 180 174
+                   C 207 173 223 177 234 176
+                   C 254 175 278 158 288 155
+                   C 311 152 328 151 342 150
+                   C 365 140 380 119 396 115
+                   C 416 106 435 99 450 95
+                   C 473 85 488 71 504 63
+                   C 526 50 543 33 558 20"
+                stroke="url(#lineGrad)" stroke-width="3"
+                stroke-linecap="round"/>
+
+              <!-- Points de données (apparition décalée) -->
+              <circle class="data-dot dd1" cx="72"  cy="195" r="3.5" fill="#2de0bc"/>
+              <circle class="data-dot dd2" cx="126" cy="187" r="3.5" fill="#2de0bc"/>
+              <circle class="data-dot dd3" cx="180" cy="174" r="3.5" fill="#45d8b0"/>
+              <circle class="data-dot dd4" cx="234" cy="176" r="3.5" fill="#e07070"/>
+              <circle class="data-dot dd5" cx="288" cy="155" r="3.5" fill="#7dd09c"/>
+              <circle class="data-dot dd6" cx="342" cy="150" r="3.5" fill="#9ecb8c"/>
+              <circle class="data-dot dd7" cx="396" cy="115" r="3.5" fill="#bec67c"/>
+              <circle class="data-dot dd8" cx="450" cy="95"  r="3.5" fill="#d8b870"/>
+              <circle class="data-dot dd9" cx="504" cy="63"  r="3.5" fill="#eeaa65"/>
+
+              <!-- Tooltip au sommet -->
+              <g class="chart-tip" transform="translate(408,6)" filter="url(#tipShadow)">
+                <rect width="148" height="54" rx="10"
+                  fill="#1a1816" stroke="rgba(45,224,188,0.22)" stroke-width="1"/>
+                <text x="12" y="20"
+                  font-family="Space Grotesk,sans-serif" font-size="9"
+                  fill="rgba(247,243,238,0.42)" letter-spacing="0.8">10 000 € → 39 083 €</text>
+                <text x="12" y="40"
+                  font-family="Space Grotesk,sans-serif" font-size="16" font-weight="700"
+                  fill="#2de0bc">+293% en 10 ans</text>
+              </g>
+
+              <!-- Point final + anneau pulsant -->
+              <circle class="chart-dot-ring" cx="558" cy="20" r="11"
+                fill="none" stroke="#2de0bc" stroke-width="1.5"/>
+              <circle class="chart-dot" cx="558" cy="20" r="5" fill="#2de0bc"/>
+
+              <!-- ── Séparateur ligne / barres ── -->
+              <line x1="50" y1="212" x2="595" y2="212"
+                stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+
+              <!--
+                ── Histogramme des rendements annuels ──
+                Baseline y=278 · barres vers le haut (positif) ou bas (négatif)
+                Slot width=54px, bar width=34px
+                Positions (x, center):
+                  2015:(55,72)  2016:(109,126) 2017:(163,180) 2018:(217,234)
+                  2019:(271,288) 2020:(325,342) 2021:(379,396) 2022:(433,450)
+                  2023:(487,504) 2024:(541,558)
+              -->
+
+              <!-- 2015 +8% → €10 800 / gain +€800 -->
+              <rect class="bar-col bc1" x="55" y="262" width="34" height="16" rx="3"
+                fill="url(#barGrad)" style="animation-delay:2.0s"/>
+              <text class="bar-pct" x="72" y="252" font-family="Space Grotesk,sans-serif"
+                font-size="7.5" fill="rgba(247,243,238,0.8)" text-anchor="middle"
+                style="animation-delay:2.0s">€10.8k</text>
+              <text class="bar-pct" x="72" y="260" font-family="Space Grotesk,sans-serif"
+                font-size="7" fill="rgba(45,224,188,0.7)" text-anchor="middle"
+                style="animation-delay:2.0s">+€0.8k</text>
+
+              <!-- 2016 +12% → €12 096 / gain +€1 296 -->
+              <rect class="bar-col bc2" x="109" y="255" width="34" height="23" rx="3"
+                fill="url(#barGrad)" style="animation-delay:2.15s"/>
+              <text class="bar-pct" x="126" y="245" font-family="Space Grotesk,sans-serif"
+                font-size="7.5" fill="rgba(247,243,238,0.8)" text-anchor="middle"
+                style="animation-delay:2.15s">€12.1k</text>
+              <text class="bar-pct" x="126" y="253" font-family="Space Grotesk,sans-serif"
+                font-size="7" fill="rgba(45,224,188,0.7)" text-anchor="middle"
+                style="animation-delay:2.15s">+€1.3k</text>
+
+              <!-- 2017 +18% → €14 273 / gain +€2 177 -->
+              <rect class="bar-col bc3" x="163" y="243" width="34" height="35" rx="3"
+                fill="url(#barGrad)" style="animation-delay:2.3s"/>
+              <text class="bar-pct" x="180" y="233" font-family="Space Grotesk,sans-serif"
+                font-size="7.5" fill="rgba(247,243,238,0.8)" text-anchor="middle"
+                style="animation-delay:2.3s">€14.3k</text>
+              <text class="bar-pct" x="180" y="241" font-family="Space Grotesk,sans-serif"
+                font-size="7" fill="rgba(45,224,188,0.7)" text-anchor="middle"
+                style="animation-delay:2.3s">+€2.2k</text>
+
+              <!-- 2018 −3% → €13 845 / gain −€428 -->
+              <rect class="bar-col bar-neg bc4" x="217" y="278" width="34" height="6" rx="2"
+                fill="url(#barGradNeg)" style="animation-delay:2.45s"/>
+              <text class="bar-pct" x="234" y="268" font-family="Space Grotesk,sans-serif"
+                font-size="7.5" fill="rgba(240,90,80,0.9)" text-anchor="middle"
+                style="animation-delay:2.45s">€13.8k</text>
+              <text class="bar-pct" x="234" y="276" font-family="Space Grotesk,sans-serif"
+                font-size="7" fill="rgba(240,90,80,0.75)" text-anchor="middle"
+                style="animation-delay:2.45s">−€0.4k</text>
+
+              <!-- 2019 +24% → €17 168 / gain +€3 323 -->
+              <rect class="bar-col bc5" x="271" y="232" width="34" height="46" rx="3"
+                fill="url(#barGrad)" style="animation-delay:2.6s"/>
+              <text class="bar-pct" x="288" y="222" font-family="Space Grotesk,sans-serif"
+                font-size="7.5" fill="rgba(247,243,238,0.8)" text-anchor="middle"
+                style="animation-delay:2.6s">€17.2k</text>
+              <text class="bar-pct" x="288" y="230" font-family="Space Grotesk,sans-serif"
+                font-size="7" fill="rgba(45,224,188,0.7)" text-anchor="middle"
+                style="animation-delay:2.6s">+€3.3k</text>
+
+              <!-- 2020 +5% → €18 026 / gain +€858 -->
+              <rect class="bar-col bc6" x="325" y="268" width="34" height="10" rx="2"
+                fill="url(#barGrad)" style="animation-delay:2.75s"/>
+              <text class="bar-pct" x="342" y="258" font-family="Space Grotesk,sans-serif"
+                font-size="7.5" fill="rgba(247,243,238,0.8)" text-anchor="middle"
+                style="animation-delay:2.75s">€18.0k</text>
+              <text class="bar-pct" x="342" y="266" font-family="Space Grotesk,sans-serif"
+                font-size="7" fill="rgba(45,224,188,0.7)" text-anchor="middle"
+                style="animation-delay:2.75s">+€0.9k</text>
+
+              <!-- 2021 +31% → €23 614 / gain +€5 588 -->
+              <rect class="bar-col bc7" x="379" y="218" width="34" height="60" rx="3"
+                fill="url(#barGrad)" style="animation-delay:2.9s"/>
+              <text class="bar-pct" x="396" y="208" font-family="Space Grotesk,sans-serif"
+                font-size="7.5" fill="rgba(247,243,238,0.8)" text-anchor="middle"
+                style="animation-delay:2.9s">€23.6k</text>
+              <text class="bar-pct" x="396" y="216" font-family="Space Grotesk,sans-serif"
+                font-size="7" fill="rgba(45,224,188,0.7)" text-anchor="middle"
+                style="animation-delay:2.9s">+€5.6k</text>
+
+              <!-- 2022 +14% → €26 920 / gain +€3 306 -->
+              <rect class="bar-col bc8" x="433" y="251" width="34" height="27" rx="3"
+                fill="url(#barGrad)" style="animation-delay:3.05s"/>
+              <text class="bar-pct" x="450" y="241" font-family="Space Grotesk,sans-serif"
+                font-size="7.5" fill="rgba(247,243,238,0.8)" text-anchor="middle"
+                style="animation-delay:3.05s">€26.9k</text>
+              <text class="bar-pct" x="450" y="249" font-family="Space Grotesk,sans-serif"
+                font-size="7" fill="rgba(45,224,188,0.7)" text-anchor="middle"
+                style="animation-delay:3.05s">+€3.3k</text>
+
+              <!-- 2023 +19% → €32 035 / gain +€5 115 -->
+              <rect class="bar-col bc9" x="487" y="241" width="34" height="37" rx="3"
+                fill="url(#barGrad)" style="animation-delay:3.2s"/>
+              <text class="bar-pct" x="504" y="231" font-family="Space Grotesk,sans-serif"
+                font-size="7.5" fill="rgba(247,243,238,0.8)" text-anchor="middle"
+                style="animation-delay:3.2s">€32.0k</text>
+              <text class="bar-pct" x="504" y="239" font-family="Space Grotesk,sans-serif"
+                font-size="7" fill="rgba(45,224,188,0.7)" text-anchor="middle"
+                style="animation-delay:3.2s">+€5.1k</text>
+
+              <!-- 2024 +22% → €39 083 / gain +€7 048 -->
+              <rect class="bar-col bc10" x="541" y="235" width="34" height="43" rx="3"
+                fill="rgba(245,160,106,0.85)" style="animation-delay:3.35s"/>
+              <text class="bar-pct" x="558" y="225" font-family="Space Grotesk,sans-serif"
+                font-size="7.5" fill="rgba(245,200,140,0.92)" text-anchor="middle"
+                style="animation-delay:3.35s">€39.1k</text>
+              <text class="bar-pct" x="558" y="233" font-family="Space Grotesk,sans-serif"
+                font-size="7" fill="rgba(245,170,110,0.8)" text-anchor="middle"
+                style="animation-delay:3.35s">+€7.0k</text>
+
+              <!-- Ligne de base des barres -->
+              <line x1="50" y1="278" x2="595" y2="278"
+                stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+
+              <!-- Étiquettes des années -->
+              <text x="72"  y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)" text-anchor="middle">2015</text>
+              <text x="126" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)" text-anchor="middle">2016</text>
+              <text x="180" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)" text-anchor="middle">2017</text>
+              <text x="234" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)" text-anchor="middle">2018</text>
+              <text x="288" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)" text-anchor="middle">2019</text>
+              <text x="342" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)" text-anchor="middle">2020</text>
+              <text x="396" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)" text-anchor="middle">2021</text>
+              <text x="450" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)" text-anchor="middle">2022</text>
+              <text x="504" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)" text-anchor="middle">2023</text>
+              <text x="558" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)" text-anchor="middle">2024</text>
+            </svg>
+
+            <div class="chart-stats">
+              <div class="chart-stat">
+                <span class="c-stat-v">+22%</span>
+                <span class="c-stat-l">Rend. moy.</span>
+              </div>
+              <div class="c-divider" aria-hidden="true"></div>
+              <div class="chart-stat">
+                <span class="c-stat-v">10 ans</span>
+                <span class="c-stat-l">Horizon</span>
+              </div>
+              <div class="c-divider" aria-hidden="true"></div>
+              <div class="chart-stat">
+                <span class="c-stat-v">1 000 €</span>
+                <span class="c-stat-l">Ticket min.</span>
+              </div>
+            </div>
           </div>
-          <div class="card-footer">
-            <div class="pill">Diversifie</div>
-            <div class="pill">Stable</div>
-            <div class="pill">Long terme</div>
+
+          <div class="float-badge">
+            <span class="float-badge-dot" aria-hidden="true"></span>
+            Nouvelles opportunités disponibles
           </div>
         </div>
       </section>
 
-      <section class="trust">
-        <p>Plus de 250 000 particuliers font confiance a Invest Republic.</p>
-        <div class="trust-logos">
-          <span>FinData</span>
-          <span>Nordic Bank</span>
-          <span>IndexLab</span>
-          <span>Capitalis</span>
+      <!-- ── Features ── -->
+      <section class="features" id="features">
+        <div class="features-header">
+          <div class="eyebrow">Notre approche</div>
+          <h2>Investir autrement, en toute confiance.</h2>
         </div>
-      </section>
-
-      <section id="avantages" class="features">
-        <div class="section-title">
-          <p class="eyebrow">Pourquoi c'est simple</p>
-          <h2>Des choix evidents, une lecture claire.</h2>
-        </div>
-        <div class="feature-grid">
-          <article class="feature-card">
-            <h3>Plans automatiques</h3>
-            <p>
-              Definissez un montant, une frequence, et laissez le plan
-              s'executer sans stress.
-            </p>
-          </article>
-          <article class="feature-card">
-            <h3>Produits lisibles</h3>
-            <p>
-              Une selection courte, classee par objectif pour rester
-              concentre.
-            </p>
-          </article>
-          <article class="feature-card">
-            <h3>Alertes intelligentes</h3>
-            <p>
-              Recevez une alerte quand vos depenses ou investissements
-              sortent de votre cadre.
-            </p>
-          </article>
-        </div>
-      </section>
-
-      <section id="parcours" class="steps">
-        <div class="section-title">
-          <p class="eyebrow">Demarrer</p>
-          <h2>Un parcours en 3 etapes.</h2>
-        </div>
-        <ol class="step-list">
-          <li>
-            <span class="step-number">01</span>
-            <div>
-              <h3>Definir votre objectif</h3>
-              <p>Maison, retraite, projet pro. Nous adaptons le plan.</p>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
             </div>
-          </li>
-          <li>
-            <span class="step-number">02</span>
-            <div>
-              <h3>Choisir un rythme</h3>
-              <p>Mensuel ou hebdo. Ajustez quand vous voulez.</p>
-            </div>
-          </li>
-          <li>
-            <span class="step-number">03</span>
-            <div>
-              <h3>Suivre votre progression</h3>
-              <p>Un tableau clair, sans surcharge.</p>
-            </div>
-          </li>
-        </ol>
-      </section>
-
-      <section id="securite" class="security">
-        <div class="security-card">
-          <div>
-            <p class="eyebrow">Securite et transparence</p>
-            <h2>Votre argent reste sous controle.</h2>
-            <p>
-              Comptes separes, verification en deux etapes, et
-              informations claires sur chaque operation.
-            </p>
-            <button class="button secondary" type="button">Lire notre charte</button>
+            <h3>Risque maîtrisé</h3>
+            <p>Nous réduisons le risque en proposant la revente des parts via notre réseau d'investisseurs qualifiés.</p>
           </div>
-          <div class="security-list">
-            <div>
-              <h4>Protege</h4>
-              <p>Donnees chiffrees et stockage europeen.</p>
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/>
+              </svg>
             </div>
-            <div>
-              <h4>Reglemente</h4>
-              <p>Partenaires agrees, supervision continue.</p>
-            </div>
-            <div>
-              <h4>Accessible</h4>
-              <p>Support humain, reponse en 2 heures.</p>
-            </div>
+            <h3>Sélection rigoureuse</h3>
+            <p>Chaque startup est auditée et validée par notre équipe avant d'être proposée à nos investisseurs.</p>
           </div>
-        </div>
-      </section>
-
-      <section class="cta">
-        <div class="cta-card">
-          <div>
-            <h2>Prets a investir sans complexite ?</h2>
-            <p>
-              Tout est pense pour que vous puissiez demarrer en douceur
-              et avancer sans stress.
-            </p>
+          <div class="feature-card">
+            <div class="feature-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </div>
+            <h3>Ticket accessible</h3>
+            <p>Commencez dès 1 000 EUR. L'investissement en startups n'est plus réservé aux grandes fortunes.</p>
           </div>
-          <button class="button primary" type="button">Ouvrir un compte</button>
         </div>
       </section>
     </main>
 
     <footer class="site-footer">
-      <div>
-        <p class="logo">Invest Republic</p>
-        <p>Investissement simple, clair, et utile pour tous.</p>
-      </div>
-      <div class="footer-links">
-        <a href="#">Conditions</a>
-        <a href="#">Aide</a>
-        <a href="#">Contact</a>
+      <div class="footer-inner">
+        <a class="logo" href="#top">Invest BG</a>
+        <p class="footer-copy">
+          © 2026 Invest BG · Investissement à risque élevé.
+          Consultez un conseiller financier avant d'investir.
+        </p>
       </div>
     </footer>
   </body>

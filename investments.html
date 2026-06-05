@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Invest BG - Mes investissements</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      /* ── Layout page investissements ── */
+      .dash-main {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 6vh 0 10vh;
+        display: grid;
+        gap: 48px;
+      }
+
+      /* ── Greeting ── */
+      .dash-greeting { display: grid; gap: 6px; }
+      .dash-greeting h1 {
+        font-family: "Fraunces","Georgia",serif;
+        font-size: clamp(1.9rem, 3vw, 2.6rem);
+        line-height: 1.1;
+      }
+      .dash-greeting p { font-size: 0.92rem; color: var(--muted); }
+
+      /* ── Cartes de résumé ── */
+      .dash-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+      }
+      .dash-stat-card {
+        padding: 22px 20px;
+        border-radius: 18px;
+        background: rgba(255,255,255,0.72);
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow-sm);
+        display: grid;
+        gap: 8px;
+        transition: transform .22s, box-shadow .22s;
+      }
+      .dash-stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--shadow);
+      }
+      .dsc-label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .dsc-value {
+        font-family: "Fraunces","Georgia",serif;
+        font-size: 1.7rem;
+        font-weight: 600;
+        line-height: 1;
+        color: var(--text);
+      }
+      .dsc-value.positive { color: var(--accent-strong); }
+      .dsc-value.negative { color: #c0392b; }
+      .dsc-sub {
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+
+      /* ── Section titre ── */
+      .dash-section-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .dash-section-title h2 {
+        font-family: "Fraunces","Georgia",serif;
+        font-size: 1.4rem;
+        font-weight: 600;
+      }
+      .dash-demo-badge {
+        font-size: 0.72rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--muted);
+        padding: 4px 12px;
+        border-radius: 999px;
+        background: rgba(111,106,98,0.1);
+        border: 1px solid var(--line);
+      }
+
+      /* ── Table investissements ── */
+      .inv-table {
+        display: grid;
+        gap: 10px;
+      }
+      .inv-table-head {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 100px 90px;
+        gap: 12px;
+        padding: 0 20px;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .inv-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 100px 90px;
+        gap: 12px;
+        align-items: center;
+        padding: 18px 20px;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.72);
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow-sm);
+        transition: transform .2s, box-shadow .2s, background .2s;
+        animation: fadeUp .45s ease both;
+      }
+      .inv-row:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+        background: rgba(255,255,255,0.92);
+      }
+
+      /* Colonne startup */
+      .inv-startup { display: flex; align-items: center; gap: 14px; min-width: 0; }
+      .inv-logo {
+        width: 42px; height: 42px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 1rem; color: #fff;
+        flex-shrink: 0;
+      }
+      .inv-name { font-weight: 600; font-size: 0.95rem; white-space: nowrap; }
+      .inv-desc {
+        font-size: 0.78rem; color: var(--muted);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        max-width: 200px;
+      }
+
+      /* Secteur */
+      .inv-sector-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: rgba(31,142,122,0.08);
+        color: var(--accent-strong);
+        border: 1px solid rgba(31,142,122,0.18);
+        white-space: nowrap;
+      }
+
+      /* Montants */
+      .inv-amount, .inv-value {
+        font-size: 0.92rem;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      /* Rendement */
+      .inv-return {
+        font-size: 0.92rem;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 8px;
+        text-align: center;
+        justify-self: start;
+      }
+      .inv-return.positive {
+        color: var(--accent-strong);
+        background: rgba(31,142,122,0.1);
+      }
+      .inv-return.negative {
+        color: #c0392b;
+        background: rgba(192,57,43,0.08);
+      }
+
+      /* Statut */
+      .inv-status-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 0.78rem; font-weight: 600;
+        color: var(--accent-strong);
+        padding: 4px 10px; border-radius: 999px;
+        background: rgba(45,224,188,0.1);
+        border: 1px solid rgba(45,224,188,0.22);
+        white-space: nowrap;
+      }
+      .inv-status-dot {
+        width: 6px; height: 6px; border-radius: 50%;
+        background: var(--accent-strong);
+        animation: live-pulse 2s ease-in-out infinite;
+      }
+
+      /* ── CTA bas de page ── */
+      .dash-cta {
+        padding: 36px 40px;
+        border-radius: 22px;
+        background: linear-gradient(135deg, var(--accent-strong), var(--accent));
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        flex-wrap: wrap;
+      }
+      .dash-cta-text h3 {
+        font-family: "Fraunces","Georgia",serif;
+        font-size: 1.4rem;
+        color: #fff;
+        font-weight: 600;
+      }
+      .dash-cta-text p { font-size: 0.9rem; color: rgba(255,255,255,0.78); margin-top: 4px; }
+      .button.white {
+        background: rgba(255,255,255,0.95);
+        color: var(--text);
+        font-weight: 700;
+      }
+      .button.white:hover { background: #fff; }
+
+      /* ── Skeleton loader ── */
+      .skeleton {
+        background: linear-gradient(90deg,
+          rgba(31,29,26,0.06) 25%,
+          rgba(31,29,26,0.12) 50%,
+          rgba(31,29,26,0.06) 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.4s infinite;
+        border-radius: 8px;
+      }
+      @keyframes shimmer { to { background-position: -200% 0; } }
+
+      /* ── Responsive ── */
+      @media (max-width: 900px) {
+        .dash-stats { grid-template-columns: repeat(2, 1fr); }
+        .inv-table-head { display: none; }
+        .inv-row {
+          grid-template-columns: 1fr 1fr;
+          grid-template-rows: auto auto auto;
+        }
+        .inv-startup { grid-column: 1 / -1; }
+      }
+      @media (max-width: 600px) {
+        .dash-stats { grid-template-columns: 1fr 1fr; }
+        .dash-cta { flex-direction: column; align-items: flex-start; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <nav class="nav">
+        <a class="logo" href="index.html">Invest BG</a>
+        <div class="nav-links">
+          <a class="nav-link nav-link--active" href="investments.html">Mes investissements</a>
+          <span class="nav-link nav-user-name" id="nav-user-name">—</span>
+          <button class="button ghost" id="nav-logout">Se déconnecter</button>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <div class="dash-main" id="dash-main">
+
+        <!-- Greeting -->
+        <div class="dash-greeting">
+          <h1>Bonjour, <span id="user-firstname">…</span> 👋</h1>
+          <p id="user-since">Membre depuis —</p>
+        </div>
+
+        <!-- Cartes résumé -->
+        <div class="dash-stats" id="dash-stats">
+          <div class="dash-stat-card skeleton" style="height:100px"></div>
+          <div class="dash-stat-card skeleton" style="height:100px"></div>
+          <div class="dash-stat-card skeleton" style="height:100px"></div>
+          <div class="dash-stat-card skeleton" style="height:100px"></div>
+        </div>
+
+        <!-- Section investissements -->
+        <div>
+          <div class="dash-section-title">
+            <h2>Mes placements</h2>
+            <span class="dash-demo-badge">Données de démonstration</span>
+          </div>
+        </div>
+
+        <div class="inv-table" id="inv-table">
+          <div class="inv-row skeleton" style="height:78px"></div>
+          <div class="inv-row skeleton" style="height:78px; animation-delay:.08s"></div>
+          <div class="inv-row skeleton" style="height:78px; animation-delay:.16s"></div>
+          <div class="inv-row skeleton" style="height:78px; animation-delay:.24s"></div>
+        </div>
+
+        <!-- CTA -->
+        <div class="dash-cta">
+          <div class="dash-cta-text">
+            <h3>Découvrir de nouvelles opportunités</h3>
+            <p>Nos experts sélectionnent de nouvelles startups chaque mois.</p>
+          </div>
+          <a class="button white" href="index.html#features">Voir les opportunités</a>
+        </div>
+
+      </div>
+    </main>
+
+    <script>
+      // ── Formater un montant en euros ──────────────────────────────────────
+      function fmt(n) {
+        return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+      }
+      function fmtDate(iso) {
+        return new Date(iso).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' });
+      }
+
+      // ── Vérifier l'authentification ───────────────────────────────────────
+      async function init() {
+        let user;
+        try {
+          const r = await fetch('/api/auth/me', { credentials: 'include' });
+          if (!r.ok) { window.location.href = 'login.html'; return; }
+          ({ user } = await r.json());
+        } catch {
+          window.location.href = 'login.html';
+          return;
+        }
+
+        // Remplir nom / date
+        const firstname = user.full_name ? user.full_name.split(' ')[0] : user.email.split('@')[0];
+        document.getElementById('user-firstname').textContent  = firstname;
+        document.getElementById('nav-user-name').textContent   = user.full_name || user.email;
+        document.getElementById('user-since').textContent      = 'Membre depuis ' + fmtDate(user.created_at);
+
+        // Déconnexion
+        document.getElementById('nav-logout').addEventListener('click', async () => {
+          await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+          window.location.href = 'login.html';
+        });
+
+        // Charger les investissements
+        const r2 = await fetch('/api/investments', { credentials: 'include' });
+        if (!r2.ok) return;
+        const { investments } = await r2.json();
+        renderStats(investments);
+        renderTable(investments);
+      }
+
+      // ── Cartes de résumé ─────────────────────────────────────────────────
+      function renderStats(inv) {
+        const totalInvested = inv.reduce((s, i) => s + i.invested, 0);
+        const totalCurrent  = inv.reduce((s, i) => s + i.current_value, 0);
+        const totalReturn   = ((totalCurrent - totalInvested) / totalInvested * 100).toFixed(1);
+        const positive      = parseFloat(totalReturn) >= 0;
+
+        document.getElementById('dash-stats').innerHTML = `
+          <div class="dash-stat-card">
+            <span class="dsc-label">Capital investi</span>
+            <span class="dsc-value">${fmt(totalInvested)}</span>
+            <span class="dsc-sub">${inv.length} startup${inv.length > 1 ? 's' : ''}</span>
+          </div>
+          <div class="dash-stat-card">
+            <span class="dsc-label">Valeur actuelle</span>
+            <span class="dsc-value">${fmt(totalCurrent)}</span>
+            <span class="dsc-sub">Estimation au ${new Date().toLocaleDateString('fr-FR')}</span>
+          </div>
+          <div class="dash-stat-card">
+            <span class="dsc-label">Rendement total</span>
+            <span class="dsc-value ${positive ? 'positive' : 'negative'}">${positive ? '+' : ''}${totalReturn}%</span>
+            <span class="dsc-sub">${positive ? '+' : ''}${fmt(totalCurrent - totalInvested)} de gains</span>
+          </div>
+          <div class="dash-stat-card">
+            <span class="dsc-label">Meilleure perf.</span>
+            <span class="dsc-value positive">+${Math.max(...inv.map(i => i.return_pct)).toFixed(0)}%</span>
+            <span class="dsc-sub">${inv.find(i => i.return_pct === Math.max(...inv.map(x => x.return_pct))).name}</span>
+          </div>
+        `;
+      }
+
+      // ── Table des investissements ─────────────────────────────────────────
+      function renderTable(inv) {
+        const head = `
+          <div class="inv-table-head">
+            <span>Startup</span>
+            <span>Secteur</span>
+            <span>Investi → Valeur</span>
+            <span>Rendement</span>
+            <span>Statut</span>
+          </div>`;
+
+        const rows = inv.map((i, idx) => {
+          const positive = i.return_pct >= 0;
+          const initial  = i.name.charAt(0).toUpperCase();
+          return `
+            <div class="inv-row" style="animation-delay:${idx * 0.08}s">
+              <div class="inv-startup">
+                <div class="inv-logo" style="background:${i.color}">${initial}</div>
+                <div>
+                  <p class="inv-name">${i.name}</p>
+                  <p class="inv-desc">${i.description}</p>
+                </div>
+              </div>
+              <span class="inv-sector-badge">${i.sector}</span>
+              <div>
+                <p class="inv-amount">${fmt(i.invested)}</p>
+                <p class="inv-desc">→ ${fmt(i.current_value)}</p>
+              </div>
+              <span class="inv-return ${positive ? 'positive' : 'negative'}">${positive ? '+' : ''}${i.return_pct.toFixed(1)}%</span>
+              <span class="inv-status-badge">
+                <span class="inv-status-dot"></span>${i.status}
+              </span>
+            </div>`;
+        }).join('');
+
+        document.getElementById('inv-table').innerHTML = head + rows;
+      }
+
+      init();
+    </script>
+  </body>
+</html>
