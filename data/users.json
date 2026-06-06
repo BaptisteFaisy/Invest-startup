@@ -12,5 +12,12 @@
     "password": "$2a$10$U3.R8OKMGHOEShi5SBVlRu4WNsiXFElxaHtRgwti4bPmefiXu71EK",
     "full_name": "test",
     "created_at": "2026-06-05T15:13:45.970Z"
+  },
+  {
+    "id": 3,
+    "email": "baptiste.faisy@gmail.com",
+    "password": "",
+    "full_name": "Baptiste Faisy",
+    "created_at": "2026-06-05T20:43:25.058Z"
   }
 ]

@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Libre+Franklin:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
@@ -17,10 +17,11 @@
 
     <header class="site-header">
       <nav class="nav">
-        <a class="logo" href="#top">Invest BG</a>
+        <a class="logo" href="#top"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
         <div class="nav-links" id="nav-links">
           <a class="nav-link" href="performance.html">Performance</a>
-          <a class="nav-link" href="#features">Comment ça marche</a>
+          <a class="nav-link" href="startups.html">Startups</a>
+          <a class="nav-link" href="comment-ca-marche.html">Comment ça marche</a>
           <a class="button ghost" href="login.html">Se connecter</a>
         </div>
       </nav>
@@ -34,6 +35,8 @@
           const name = data.user.full_name ? data.user.full_name.split(' ')[0] : data.user.email;
           document.getElementById('nav-links').innerHTML = `
             <a class="nav-link" href="performance.html">Performance</a>
+            <a class="nav-link" href="startups.html">Startups</a>
+            <a class="nav-link" href="comment-ca-marche.html">Comment ça marche</a>
             <a class="nav-link" href="investments.html">Mes investissements</a>
             <span class="nav-link nav-user-name">${name}</span>
             <button class="button ghost" id="nav-logout">Se déconnecter</button>
@@ -47,29 +50,12 @@
     </script>
 
     <main id="top">
-      <section class="hero" style="grid-template-columns: 1fr;">
+      <section class="hero-simple">
+        <h1 class="hero-simple-title"><span style="white-space:nowrap;">Investissez dans des startup</span><br>à partir de 1 000 €</h1>
+        <a class="button primary" href="startups.html">Investir maintenant</a>
+      </section>
 
-        <!-- LEFT: texte -->
-        <div class="hero-copy">
-          <div class="eyebrow">Spécialiste des startups parisiennes</div>
-          <h1>
-            Les meilleures startups naissantes,
-            <span class="text-gradient">enfin accessibles aux investisseurs privés.</span>
-          </h1>
-          <p class="lead">
-            Invest BG vous donne accès à des opportunités d'investissement dans des startups prometteuses à un stade très précoce — des opportunités qui nécessitent habituellement un réseau solide et une connaissance approfondie du marché pour être identifiées.
-          </p>
-          <div class="stat-pills">
-            <span class="stat-pill"><strong>Sélection rigoureuse</strong>&nbsp;chaque dossier</span>
-            <span class="stat-pill"><strong>Stade précoce</strong>&nbsp;= potentiel maximal</span>
-          </div>
-          <div class="hero-actions">
-            <button class="button primary" type="button">Découvrir les opportunités</button>
-            <p class="note">À partir de 1 000 € — accès normalement réservé aux initiés</p>
-          </div>
-        </div>
-
-        <!-- RIGHT: graphique (supprimé) -->
+        <!-- graphique (supprimé) -->
         <div class="hero-visual" style="display:none">
           <div class="chart-glow" aria-hidden="true"></div>
           <div class="particles" aria-hidden="true">
@@ -106,19 +92,19 @@
               xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <defs>
                 <linearGradient id="lineGrad" x1="0" y1="0" x2="605" y2="0" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%"   stop-color="#2de0bc"/>
-                  <stop offset="100%" stop-color="#f5a06a"/>
+                  <stop offset="0%"   stop-color="#3b82f6"/>
+                  <stop offset="100%" stop-color="#4a90d9"/>
                 </linearGradient>
                 <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="205" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%"   stop-color="rgba(45,224,188,0.28)"/>
-                  <stop offset="100%" stop-color="rgba(45,224,188,0)"/>
+                  <stop offset="0%"   stop-color="rgba(0,82,204,0.28)"/>
+                  <stop offset="100%" stop-color="rgba(59,130,246,0)"/>
                 </linearGradient>
                 <linearGradient id="glowGrad" x1="0" y1="0" x2="605" y2="0" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%"   stop-color="rgba(45,224,188,0.5)"/>
-                  <stop offset="100%" stop-color="rgba(245,160,106,0.5)"/>
+                  <stop offset="0%"   stop-color="rgba(0,82,204,0.5)"/>
+                  <stop offset="100%" stop-color="rgba(74,144,217,0.5)"/>
                 </linearGradient>
                 <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%"   stop-color="#2de0bc" stop-opacity="0.9"/>
+                  <stop offset="0%"   stop-color="#3b82f6" stop-opacity="0.9"/>
                   <stop offset="100%" stop-color="#1f8e7a" stop-opacity="0.4"/>
                 </linearGradient>
                 <linearGradient id="barGradNeg" x1="0" y1="0" x2="0" y2="1">
@@ -147,32 +133,32 @@
               <line x1="46" y1="200" x2="52" y2="200" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
               <text x="43" y="203" text-anchor="end"
                 font-family="Space Grotesk,sans-serif" font-size="8"
-                fill="rgba(247,243,238,0.38)">10k€</text>
+                fill="rgba(255,255,255,0.5)">10k€</text>
 
               <line x1="46" y1="169" x2="52" y2="169" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
               <text x="43" y="172" text-anchor="end"
                 font-family="Space Grotesk,sans-serif" font-size="8"
-                fill="rgba(247,243,238,0.32)">15k€</text>
+                fill="rgba(255,255,255,0.5)">15k€</text>
 
               <line x1="46" y1="138" x2="52" y2="138" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
               <text x="43" y="141" text-anchor="end"
                 font-family="Space Grotesk,sans-serif" font-size="8"
-                fill="rgba(247,243,238,0.32)">20k€</text>
+                fill="rgba(255,255,255,0.5)">20k€</text>
 
               <line x1="46" y1="107" x2="52" y2="107" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
               <text x="43" y="110" text-anchor="end"
                 font-family="Space Grotesk,sans-serif" font-size="8"
-                fill="rgba(247,243,238,0.32)">25k€</text>
+                fill="rgba(255,255,255,0.5)">25k€</text>
 
               <line x1="46" y1="76" x2="52" y2="76" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
               <text x="43" y="79" text-anchor="end"
                 font-family="Space Grotesk,sans-serif" font-size="8"
-                fill="rgba(247,243,238,0.32)">30k€</text>
+                fill="rgba(255,255,255,0.5)">30k€</text>
 
               <line x1="46" y1="45" x2="52" y2="45" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
               <text x="43" y="48" text-anchor="end"
                 font-family="Space Grotesk,sans-serif" font-size="8"
-                fill="rgba(247,243,238,0.32)">35k€</text>
+                fill="rgba(255,255,255,0.5)">35k€</text>
 
               <!-- ── Grilles horizontales ── -->
               <line x1="50" y1="200" x2="595" y2="200" stroke="rgba(255,255,255,0.09)" stroke-width="1"/>
@@ -223,8 +209,8 @@
                 stroke-linecap="round"/>
 
               <!-- Points de données (apparition décalée) -->
-              <circle class="data-dot dd1" cx="72"  cy="195" r="3.5" fill="#2de0bc"/>
-              <circle class="data-dot dd2" cx="126" cy="187" r="3.5" fill="#2de0bc"/>
+              <circle class="data-dot dd1" cx="72"  cy="195" r="3.5" fill="#3b82f6"/>
+              <circle class="data-dot dd2" cx="126" cy="187" r="3.5" fill="#3b82f6"/>
               <circle class="data-dot dd3" cx="180" cy="174" r="3.5" fill="#45d8b0"/>
               <circle class="data-dot dd4" cx="234" cy="176" r="3.5" fill="#e07070"/>
               <circle class="data-dot dd5" cx="288" cy="155" r="3.5" fill="#7dd09c"/>
@@ -236,19 +222,19 @@
               <!-- Tooltip au sommet -->
               <g class="chart-tip" transform="translate(408,6)" filter="url(#tipShadow)">
                 <rect width="148" height="54" rx="10"
-                  fill="#1a1816" stroke="rgba(45,224,188,0.22)" stroke-width="1"/>
+                  fill="#1a1816" stroke="rgba(59,130,246,0.18)" stroke-width="1"/>
                 <text x="12" y="20"
                   font-family="Space Grotesk,sans-serif" font-size="9"
-                  fill="rgba(247,243,238,0.42)" letter-spacing="0.8">10 000 € → 39 083 €</text>
+                  fill="rgba(255,255,255,0.85)" letter-spacing="0.8">10 000 € → 39 083 €</text>
                 <text x="12" y="40"
                   font-family="Space Grotesk,sans-serif" font-size="16" font-weight="700"
-                  fill="#2de0bc">+293% en 10 ans</text>
+                  fill="#3b82f6">+293% en 10 ans</text>
               </g>
 
               <!-- Point final + anneau pulsant -->
               <circle class="chart-dot-ring" cx="558" cy="20" r="11"
-                fill="none" stroke="#2de0bc" stroke-width="1.5"/>
-              <circle class="chart-dot" cx="558" cy="20" r="5" fill="#2de0bc"/>
+                fill="none" stroke="#3b82f6" stroke-width="1.5"/>
+              <circle class="chart-dot" cx="558" cy="20" r="5" fill="#3b82f6"/>
 
               <!-- ── Séparateur ligne / barres ── -->
               <line x1="50" y1="212" x2="595" y2="212"
@@ -268,30 +254,30 @@
               <rect class="bar-col bc1" x="55" y="262" width="34" height="16" rx="3"
                 fill="url(#barGrad)" style="animation-delay:2.0s"/>
               <text class="bar-pct" x="72" y="252" font-family="Space Grotesk,sans-serif"
-                font-size="7.5" fill="rgba(247,243,238,0.8)" text-anchor="middle"
+                font-size="7.5" fill="rgba(255,255,255,0.5)" text-anchor="middle"
                 style="animation-delay:2.0s">€10.8k</text>
               <text class="bar-pct" x="72" y="260" font-family="Space Grotesk,sans-serif"
-                font-size="7" fill="rgba(45,224,188,0.7)" text-anchor="middle"
+                font-size="7" fill="rgba(0,82,204,0.7)" text-anchor="middle"
                 style="animation-delay:2.0s">+€0.8k</text>
 
               <!-- 2016 +12% → €12 096 / gain +€1 296 -->
               <rect class="bar-col bc2" x="109" y="255" width="34" height="23" rx="3"
                 fill="url(#barGrad)" style="animation-delay:2.15s"/>
               <text class="bar-pct" x="126" y="245" font-family="Space Grotesk,sans-serif"
-                font-size="7.5" fill="rgba(247,243,238,0.8)" text-anchor="middle"
+                font-size="7.5" fill="rgba(255,255,255,0.5)" text-anchor="middle"
                 style="animation-delay:2.15s">€12.1k</text>
               <text class="bar-pct" x="126" y="253" font-family="Space Grotesk,sans-serif"
-                font-size="7" fill="rgba(45,224,188,0.7)" text-anchor="middle"
+                font-size="7" fill="rgba(0,82,204,0.7)" text-anchor="middle"
                 style="animation-delay:2.15s">+€1.3k</text>
 
               <!-- 2017 +18% → €14 273 / gain +€2 177 -->
               <rect class="bar-col bc3" x="163" y="243" width="34" height="35" rx="3"
                 fill="url(#barGrad)" style="animation-delay:2.3s"/>
               <text class="bar-pct" x="180" y="233" font-family="Space Grotesk,sans-serif"
-                font-size="7.5" fill="rgba(247,243,238,0.8)" text-anchor="middle"
+                font-size="7.5" fill="rgba(255,255,255,0.5)" text-anchor="middle"
                 style="animation-delay:2.3s">€14.3k</text>
               <text class="bar-pct" x="180" y="241" font-family="Space Grotesk,sans-serif"
-                font-size="7" fill="rgba(45,224,188,0.7)" text-anchor="middle"
+                font-size="7" fill="rgba(0,82,204,0.7)" text-anchor="middle"
                 style="animation-delay:2.3s">+€2.2k</text>
 
               <!-- 2018 −3% → €13 845 / gain −€428 -->
@@ -308,55 +294,55 @@
               <rect class="bar-col bc5" x="271" y="232" width="34" height="46" rx="3"
                 fill="url(#barGrad)" style="animation-delay:2.6s"/>
               <text class="bar-pct" x="288" y="222" font-family="Space Grotesk,sans-serif"
-                font-size="7.5" fill="rgba(247,243,238,0.8)" text-anchor="middle"
+                font-size="7.5" fill="rgba(255,255,255,0.5)" text-anchor="middle"
                 style="animation-delay:2.6s">€17.2k</text>
               <text class="bar-pct" x="288" y="230" font-family="Space Grotesk,sans-serif"
-                font-size="7" fill="rgba(45,224,188,0.7)" text-anchor="middle"
+                font-size="7" fill="rgba(0,82,204,0.7)" text-anchor="middle"
                 style="animation-delay:2.6s">+€3.3k</text>
 
               <!-- 2020 +5% → €18 026 / gain +€858 -->
               <rect class="bar-col bc6" x="325" y="268" width="34" height="10" rx="2"
                 fill="url(#barGrad)" style="animation-delay:2.75s"/>
               <text class="bar-pct" x="342" y="258" font-family="Space Grotesk,sans-serif"
-                font-size="7.5" fill="rgba(247,243,238,0.8)" text-anchor="middle"
+                font-size="7.5" fill="rgba(255,255,255,0.5)" text-anchor="middle"
                 style="animation-delay:2.75s">€18.0k</text>
               <text class="bar-pct" x="342" y="266" font-family="Space Grotesk,sans-serif"
-                font-size="7" fill="rgba(45,224,188,0.7)" text-anchor="middle"
+                font-size="7" fill="rgba(0,82,204,0.7)" text-anchor="middle"
                 style="animation-delay:2.75s">+€0.9k</text>
 
               <!-- 2021 +31% → €23 614 / gain +€5 588 -->
               <rect class="bar-col bc7" x="379" y="218" width="34" height="60" rx="3"
                 fill="url(#barGrad)" style="animation-delay:2.9s"/>
               <text class="bar-pct" x="396" y="208" font-family="Space Grotesk,sans-serif"
-                font-size="7.5" fill="rgba(247,243,238,0.8)" text-anchor="middle"
+                font-size="7.5" fill="rgba(255,255,255,0.5)" text-anchor="middle"
                 style="animation-delay:2.9s">€23.6k</text>
               <text class="bar-pct" x="396" y="216" font-family="Space Grotesk,sans-serif"
-                font-size="7" fill="rgba(45,224,188,0.7)" text-anchor="middle"
+                font-size="7" fill="rgba(0,82,204,0.7)" text-anchor="middle"
                 style="animation-delay:2.9s">+€5.6k</text>
 
               <!-- 2022 +14% → €26 920 / gain +€3 306 -->
               <rect class="bar-col bc8" x="433" y="251" width="34" height="27" rx="3"
                 fill="url(#barGrad)" style="animation-delay:3.05s"/>
               <text class="bar-pct" x="450" y="241" font-family="Space Grotesk,sans-serif"
-                font-size="7.5" fill="rgba(247,243,238,0.8)" text-anchor="middle"
+                font-size="7.5" fill="rgba(255,255,255,0.5)" text-anchor="middle"
                 style="animation-delay:3.05s">€26.9k</text>
               <text class="bar-pct" x="450" y="249" font-family="Space Grotesk,sans-serif"
-                font-size="7" fill="rgba(45,224,188,0.7)" text-anchor="middle"
+                font-size="7" fill="rgba(0,82,204,0.7)" text-anchor="middle"
                 style="animation-delay:3.05s">+€3.3k</text>
 
               <!-- 2023 +19% → €32 035 / gain +€5 115 -->
               <rect class="bar-col bc9" x="487" y="241" width="34" height="37" rx="3"
                 fill="url(#barGrad)" style="animation-delay:3.2s"/>
               <text class="bar-pct" x="504" y="231" font-family="Space Grotesk,sans-serif"
-                font-size="7.5" fill="rgba(247,243,238,0.8)" text-anchor="middle"
+                font-size="7.5" fill="rgba(255,255,255,0.5)" text-anchor="middle"
                 style="animation-delay:3.2s">€32.0k</text>
               <text class="bar-pct" x="504" y="239" font-family="Space Grotesk,sans-serif"
-                font-size="7" fill="rgba(45,224,188,0.7)" text-anchor="middle"
+                font-size="7" fill="rgba(0,82,204,0.7)" text-anchor="middle"
                 style="animation-delay:3.2s">+€5.1k</text>
 
               <!-- 2024 +22% → €39 083 / gain +€7 048 -->
               <rect class="bar-col bc10" x="541" y="235" width="34" height="43" rx="3"
-                fill="rgba(245,160,106,0.85)" style="animation-delay:3.35s"/>
+                fill="rgba(74,144,217,0.85)" style="animation-delay:3.35s"/>
               <text class="bar-pct" x="558" y="225" font-family="Space Grotesk,sans-serif"
                 font-size="7.5" fill="rgba(245,200,140,0.92)" text-anchor="middle"
                 style="animation-delay:3.35s">€39.1k</text>
@@ -369,16 +355,16 @@
                 stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
 
               <!-- Étiquettes des années -->
-              <text x="72"  y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)" text-anchor="middle">2016</text>
-              <text x="126" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)" text-anchor="middle">2017</text>
-              <text x="180" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)" text-anchor="middle">2018</text>
-              <text x="234" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)" text-anchor="middle">2019</text>
-              <text x="288" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)" text-anchor="middle">2020</text>
-              <text x="342" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)" text-anchor="middle">2021</text>
-              <text x="396" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)" text-anchor="middle">2022</text>
-              <text x="450" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)" text-anchor="middle">2023</text>
-              <text x="504" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)" text-anchor="middle">2024</text>
-              <text x="558" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)" text-anchor="middle">2025</text>
+              <text x="72"  y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="middle">2016</text>
+              <text x="126" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="middle">2017</text>
+              <text x="180" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="middle">2018</text>
+              <text x="234" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="middle">2019</text>
+              <text x="288" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="middle">2020</text>
+              <text x="342" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="middle">2021</text>
+              <text x="396" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="middle">2022</text>
+              <text x="450" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="middle">2023</text>
+              <text x="504" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="middle">2024</text>
+              <text x="558" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="middle">2025</text>
             </svg>
 
             <div class="chart-stats">
@@ -400,146 +386,133 @@
           </div>
 
         </div>
-      </section>
 
       <!-- ── Comparatif marché ── -->
       <section style="padding: 0 var(--gutter) 80px;">
         <div style="max-width:1380px; margin:0 auto; display:grid; gap:24px;">
+          <h2 style="font-size:clamp(2rem,4vw,3.2rem); color:#080c14;">Performance</h2>
           <div class="compare-card">
             <div class="compare-header">
               <div>
                 <p class="compare-title">Simulation — 10 000 € investis en 2016</p>
-                <p class="compare-sub">Valeur estimée au 31 décembre de chaque année · 2016 – 2026</p>
+                
               </div>
               <div class="compare-legend">
-                <div class="cleg"><span class="cleg-dot" style="background:#2de0bc"></span>Private Equity</div>
-                <div class="cleg"><span class="cleg-dot" style="background:#f5a06a"></span>MSCI World *</div>
-                <div class="cleg"><span class="cleg-dot" style="background:#8bb8d4"></span>Immobilier</div>
-                <div class="cleg"><span class="cleg-dot" style="background:rgba(247,243,238,0.35)"></span>Livret A</div>
+                <div class="cleg"><span class="cleg-dot" style="background:#3b82f6"></span>Private Equity</div>
+                <div class="cleg"><span class="cleg-dot" style="background:#f59e0b"></span>MSCI World *</div>
+                <div class="cleg"><span class="cleg-dot" style="background:#10b981"></span>Immobilier</div>
+                <div class="cleg"><span class="cleg-dot" style="background:#94a3b8"></span>Livret A</div>
               </div>
             </div>
             <svg class="compare-svg" viewBox="0 0 640 290" fill="none" xmlns="http://www.w3.org/2000/svg">
               <defs>
                 <linearGradient id="peAreaGrad2" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%"   stop-color="rgba(45,224,188,0.22)"/>
-                  <stop offset="100%" stop-color="rgba(45,224,188,0)"/>
+                  <stop offset="0%"   stop-color="rgba(59,130,246,0.18)"/>
+                  <stop offset="100%" stop-color="rgba(59,130,246,0)"/>
                 </linearGradient>
               </defs>
-              <line x1="60" y1="250" x2="590" y2="250" stroke="rgba(255,255,255,0.1)"  stroke-width="1"/>
-              <line x1="60" y1="177" x2="590" y2="177" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-              <line x1="60" y1="103" x2="590" y2="103" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-              <line x1="60" y1="30"  x2="590" y2="30"  stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-              <line x1="60" y1="20"  x2="60"  y2="265" stroke="rgba(255,255,255,0.1)"  stroke-width="1"/>
-              <text x="54" y="253" text-anchor="end" font-size="8.5" fill="rgba(247,243,238,0.38)">10k€</text>
-              <text x="54" y="180" text-anchor="end" font-size="8.5" fill="rgba(247,243,238,0.28)">20k€</text>
-              <text x="54" y="106" text-anchor="end" font-size="8.5" fill="rgba(247,243,238,0.28)">30k€</text>
-              <text x="54" y="33"  text-anchor="end" font-size="8.5" fill="rgba(247,243,238,0.28)">40k€</text>
-              <text x="60"  y="278" text-anchor="middle" font-size="8" fill="rgba(247,243,238,0.3)">2016</text>
-              <text x="112" y="278" text-anchor="middle" font-size="8" fill="rgba(247,243,238,0.3)">2017</text>
-              <text x="164" y="278" text-anchor="middle" font-size="8" fill="rgba(247,243,238,0.3)">2018</text>
-              <text x="216" y="278" text-anchor="middle" font-size="8" fill="rgba(247,243,238,0.3)">2019</text>
-              <text x="268" y="278" text-anchor="middle" font-size="8" fill="rgba(247,243,238,0.3)">2020</text>
-              <text x="320" y="278" text-anchor="middle" font-size="8" fill="rgba(247,243,238,0.3)">2021</text>
-              <text x="372" y="278" text-anchor="middle" font-size="8" fill="rgba(247,243,238,0.3)">2022</text>
-              <text x="424" y="278" text-anchor="middle" font-size="8" fill="rgba(247,243,238,0.3)">2023</text>
-              <text x="476" y="278" text-anchor="middle" font-size="8" fill="rgba(247,243,238,0.3)">2024</text>
-              <text x="528" y="278" text-anchor="middle" font-size="8" fill="rgba(247,243,238,0.3)">2025</text>
-              <text x="580" y="278" text-anchor="middle" font-size="8" fill="rgba(247,243,238,0.3)">2026</text>
+              <line x1="60" y1="250" x2="590" y2="250" stroke="rgba(0,0,0,0.08)"  stroke-width="1"/>
+              <line x1="60" y1="177" x2="590" y2="177" stroke="rgba(0,0,0,0.05)" stroke-width="1"/>
+              <line x1="60" y1="103" x2="590" y2="103" stroke="rgba(0,0,0,0.05)" stroke-width="1"/>
+              <line x1="60" y1="30"  x2="590" y2="30"  stroke="rgba(0,0,0,0.05)" stroke-width="1"/>
+              <line x1="60" y1="20"  x2="60"  y2="265" stroke="rgba(0,0,0,0.08)"  stroke-width="1"/>
+              <text x="54" y="253" text-anchor="end" font-size="8.5" fill="rgba(0,0,0,0.4)">10k€</text>
+              <text x="54" y="180" text-anchor="end" font-size="8.5" fill="rgba(0,0,0,0.4)">20k€</text>
+              <text x="54" y="106" text-anchor="end" font-size="8.5" fill="rgba(0,0,0,0.4)">30k€</text>
+              <text x="54" y="33"  text-anchor="end" font-size="8.5" fill="rgba(0,0,0,0.4)">40k€</text>
+              <text x="60"  y="278" text-anchor="middle" font-size="8" fill="rgba(0,0,0,0.4)">2016</text>
+              <text x="112" y="278" text-anchor="middle" font-size="8" fill="rgba(0,0,0,0.4)">2017</text>
+              <text x="164" y="278" text-anchor="middle" font-size="8" fill="rgba(0,0,0,0.4)">2018</text>
+              <text x="216" y="278" text-anchor="middle" font-size="8" fill="rgba(0,0,0,0.4)">2019</text>
+              <text x="268" y="278" text-anchor="middle" font-size="8" fill="rgba(0,0,0,0.4)">2020</text>
+              <text x="320" y="278" text-anchor="middle" font-size="8" fill="rgba(0,0,0,0.4)">2021</text>
+              <text x="372" y="278" text-anchor="middle" font-size="8" fill="rgba(0,0,0,0.4)">2022</text>
+              <text x="424" y="278" text-anchor="middle" font-size="8" fill="rgba(0,0,0,0.4)">2023</text>
+              <text x="476" y="278" text-anchor="middle" font-size="8" fill="rgba(0,0,0,0.4)">2024</text>
+              <text x="528" y="278" text-anchor="middle" font-size="8" fill="rgba(0,0,0,0.4)">2025</text>
+              <text x="580" y="278" text-anchor="middle" font-size="8" fill="rgba(0,0,0,0.4)">2026</text>
               <polyline class="cline cline-livret" points="60,250 112,248 164,246 216,244 268,241 320,239 372,236 424,233 476,231 528,228 580,225"/>
               <polyline class="cline cline-immo"   points="60,250 112,247 164,244 216,240 268,236 320,232 372,228 424,224 476,219 528,215 580,210"/>
               <polyline class="cline cline-cac"    points="60,250 112,244 164,237 216,229 268,221 320,212 372,203 424,192 476,181 528,168 580,155"/>
               <path class="carea-pe" d="M 60,250 L 112,240 L 164,227 L 216,213 L 268,197 L 320,179 L 372,157 L 424,133 L 476,105 L 528,73 L 580,37 L 580,265 L 60,265 Z" fill="url(#peAreaGrad2)"/>
               <polyline class="cline cline-pe"     points="60,250 112,240 164,227 216,213 268,197 320,179 372,157 424,133 476,105 528,73 580,37"/>
-              <circle class="cend-dot" cx="580" cy="37"  r="5"   fill="#2de0bc"                style="animation-delay:2.8s"/>
-              <circle class="cend-dot" cx="580" cy="155" r="4"   fill="#f5a06a"                style="animation-delay:3.1s"/>
-              <circle class="cend-dot" cx="580" cy="210" r="4"   fill="#8bb8d4"                style="animation-delay:3.3s"/>
-              <circle class="cend-dot" cx="580" cy="225" r="3.5" fill="rgba(247,243,238,0.5)"  style="animation-delay:3.5s"/>
-              <text class="clabel" x="590" y="40"  font-size="9.5" font-weight="700" fill="#2de0bc"                style="animation-delay:2.9s">€ 39 083</text>
-              <text class="clabel" x="590" y="158" font-size="9.5" font-weight="700" fill="#f5a06a"                style="animation-delay:3.2s">€ 23 028</text>
-              <text class="clabel" x="590" y="213" font-size="9.5" font-weight="700" fill="#8bb8d4"                style="animation-delay:3.4s">€ 15 530</text>
-              <text class="clabel" x="590" y="228" font-size="9.5" font-weight="700" fill="rgba(247,243,238,0.45)" style="animation-delay:3.6s">€ 13 439</text>
+              <circle class="cend-dot" cx="580" cy="37"  r="5"   fill="#3b82f6"                style="animation-delay:2.8s"/>
+              <circle class="cend-dot" cx="580" cy="155" r="4"   fill="#f59e0b"                style="animation-delay:3.1s"/>
+              <circle class="cend-dot" cx="580" cy="210" r="4"   fill="#10b981"                style="animation-delay:3.3s"/>
+              <circle class="cend-dot" cx="580" cy="225" r="3.5" fill="rgba(0,0,0,0.4)"  style="animation-delay:3.5s"/>
+              <text class="clabel" x="590" y="40"  font-size="8.5" font-weight="700" fill="#3b82f6"                style="animation-delay:2.9s">€ 39 083</text>
+              <text class="clabel" x="590" y="158" font-size="8.5" font-weight="700" fill="#f59e0b"                style="animation-delay:3.2s">€ 23 028</text>
+              <text class="clabel" x="590" y="213" font-size="8.5" font-weight="700" fill="#10b981"                style="animation-delay:3.4s">€ 15 530</text>
+              <text class="clabel" x="590" y="228" font-size="8.5" font-weight="700" fill="rgba(0,0,0,0.4)" style="animation-delay:3.6s">€ 13 439</text>
             </svg>
           </div>
 
           <!-- Insights -->
-          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px;">
-            <div style="padding:20px 22px; border-radius:16px; background:rgba(45,224,188,0.06); border:1px solid rgba(45,224,188,0.18);">
-              <p style="font-size:1.1rem; font-weight:700; color:var(--accent-strong); margin-bottom:6px;">× 3,9 en 10 ans</p>
-              <p style="font-size:0.85rem; color:var(--muted); line-height:1.6;">Nos sélections Private Equity ont transformé 10 000 € en 39 083 €, soit +14,6 % par an en moyenne.</p>
-            </div>
-            <div style="padding:20px 22px; border-radius:16px; background:rgba(245,160,106,0.06); border:1px solid rgba(245,160,106,0.18);">
-              <p style="font-size:1.1rem; font-weight:700; color:#c0692b; margin-bottom:6px;">+69 % de plus que le MSCI World</p>
-              <p style="font-size:0.85rem; color:var(--muted); line-height:1.6;">Le MSCI World à +8,7 %* aurait produit 23 028 € sur la même période — soit 16 055 € de moins.</p>
-            </div>
-            <div style="padding:20px 22px; border-radius:16px; background:rgba(31,29,26,0.04); border:1px solid var(--line);">
-              <p style="font-size:1.1rem; font-weight:700; color:var(--text); margin-bottom:6px;">× 2,9 vs Livret A</p>
-              <p style="font-size:0.85rem; color:var(--muted); line-height:1.6;">Avec le Livret A à 3 %, les mêmes 10 000 € n'auraient donné que 13 439 € — moins du tiers du résultat.</p>
-            </div>
+          <div style="display:none">
           </div>
 
           <!-- Tableau comparatif -->
           <div style="border-radius:20px; border:1px solid var(--line); overflow:hidden; background:rgba(255,255,255,0.7);">
             <div style="padding:18px 24px; border-bottom:1px solid var(--line); background:rgba(255,255,255,0.9);">
-              <p style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.18em; font-weight:600; color:var(--muted);">Les chiffres en un coup d'œil</p>
+              <p style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.18em; font-weight:600; color:var(--text);">Les chiffres en un coup d'œil</p>
             </div>
             <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
               <thead>
                 <tr style="border-bottom:1px solid var(--line);">
-                  <th style="text-align:left; padding:13px 24px; font-size:0.72rem; text-transform:uppercase; letter-spacing:.14em; color:var(--muted); font-weight:600;">Classe d'actifs</th>
-                  <th style="text-align:right; padding:13px 16px; font-size:0.72rem; text-transform:uppercase; letter-spacing:.14em; color:var(--muted); font-weight:600;">Rendement annuel moyen</th>
-                  <th style="text-align:right; padding:13px 16px; font-size:0.72rem; text-transform:uppercase; letter-spacing:.14em; color:var(--muted); font-weight:600;">€ 10 000 sur 10 ans</th>
-                  <th style="text-align:right; padding:13px 24px 13px 16px; font-size:0.72rem; text-transform:uppercase; letter-spacing:.14em; color:var(--muted); font-weight:600;">Risque estimé</th>
+                  <th style="text-align:left; padding:13px 24px; font-size:0.72rem; text-transform:uppercase; letter-spacing:.14em; color:var(--text); font-weight:600;">Classe d'actifs</th>
+                  <th style="text-align:right; padding:13px 16px; font-size:0.72rem; text-transform:uppercase; letter-spacing:.14em; color:var(--text); font-weight:600;">Rendement annuel moyen</th>
+                  <th style="text-align:right; padding:13px 16px; font-size:0.72rem; text-transform:uppercase; letter-spacing:.14em; color:var(--text); font-weight:600;">€ 10 000 sur 10 ans</th>
+                  <th style="text-align:right; padding:13px 24px 13px 16px; font-size:0.72rem; text-transform:uppercase; letter-spacing:.14em; color:var(--text); font-weight:600;">Risque estimé</th>
                 </tr>
               </thead>
               <tbody>
-                <tr style="background:rgba(45,224,188,0.05); border-bottom:1px solid var(--line);">
+                <tr style="background:rgba(59,130,246,0.05); border-bottom:1px solid var(--line);">
                   <td style="padding:15px 24px; font-weight:700; color:var(--text);">
-                    <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#2de0bc; margin-right:10px; vertical-align:middle;"></span>Private Equity (Invest BG)
+                    <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#3b82f6; margin-right:10px; vertical-align:middle;"></span>Private Equity
                   </td>
                   <td style="padding:15px 16px; text-align:right; font-weight:700; color:var(--accent-strong);">+14,7 %</td>
                   <td style="padding:15px 16px; text-align:right; font-weight:700; color:var(--accent-strong);">€ 39 083</td>
-                  <td style="padding:15px 24px 15px 16px; text-align:right; color:var(--muted);">Élevé</td>
+                  <td style="padding:15px 24px 15px 16px; text-align:right; color:var(--text);">Élevé</td>
                 </tr>
                 <tr style="border-bottom:1px solid var(--line);">
                   <td style="padding:15px 24px; color:var(--text);">
-                    <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#f5a06a; margin-right:10px; vertical-align:middle;"></span>MSCI World (actions mondiales)
+                    <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#f59e0b; margin-right:10px; vertical-align:middle;"></span>MSCI World (actions mondiales)
                   </td>
-                  <td style="padding:15px 16px; text-align:right; color:var(--muted);">+8,7 % *</td>
-                  <td style="padding:15px 16px; text-align:right; color:var(--muted);">€ 23 028</td>
-                  <td style="padding:15px 24px 15px 16px; text-align:right; color:var(--muted);">Élevé</td>
+                  <td style="padding:15px 16px; text-align:right; color:var(--text);">+8,7 % *</td>
+                  <td style="padding:15px 16px; text-align:right; color:var(--text);">€ 23 028</td>
+                  <td style="padding:15px 24px 15px 16px; text-align:right; color:var(--text);">Élevé</td>
                 </tr>
                 <tr style="border-bottom:1px solid var(--line);">
                   <td style="padding:15px 24px; color:var(--text);">
-                    <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#8bb8d4; margin-right:10px; vertical-align:middle;"></span>Immobilier locatif
+                    <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#10b981; margin-right:10px; vertical-align:middle;"></span>Immobilier locatif
                   </td>
-                  <td style="padding:15px 16px; text-align:right; color:var(--muted);">+4,5 %</td>
-                  <td style="padding:15px 16px; text-align:right; color:var(--muted);">€ 15 530</td>
-                  <td style="padding:15px 24px 15px 16px; text-align:right; color:var(--muted);">Modéré</td>
+                  <td style="padding:15px 16px; text-align:right; color:var(--text);">+4,5 %</td>
+                  <td style="padding:15px 16px; text-align:right; color:var(--text);">€ 15 530</td>
+                  <td style="padding:15px 24px 15px 16px; text-align:right; color:var(--text);">Modéré</td>
                 </tr>
                 <tr style="border-bottom:1px solid var(--line);">
                   <td style="padding:15px 24px; color:var(--text);">
                     <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#b0b0b0; margin-right:10px; vertical-align:middle;"></span>Assurance-vie (fonds €)
                   </td>
-                  <td style="padding:15px 16px; text-align:right; color:var(--muted);">+3,5 %</td>
-                  <td style="padding:15px 16px; text-align:right; color:var(--muted);">€ 14 106</td>
-                  <td style="padding:15px 24px 15px 16px; text-align:right; color:var(--muted);">Faible</td>
+                  <td style="padding:15px 16px; text-align:right; color:var(--text);">+3,5 %</td>
+                  <td style="padding:15px 16px; text-align:right; color:var(--text);">€ 14 106</td>
+                  <td style="padding:15px 24px 15px 16px; text-align:right; color:var(--text);">Faible</td>
                 </tr>
                 <tr>
                   <td style="padding:15px 24px; color:var(--text);">
                     <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:rgba(31,29,26,0.25); margin-right:10px; vertical-align:middle;"></span>Livret A
                   </td>
-                  <td style="padding:15px 16px; text-align:right; color:var(--muted);">+3,0 %</td>
-                  <td style="padding:15px 16px; text-align:right; color:var(--muted);">€ 13 439</td>
-                  <td style="padding:15px 24px 15px 16px; text-align:right; color:var(--muted);">Très faible</td>
+                  <td style="padding:15px 16px; text-align:right; color:var(--text);">+3,0 %</td>
+                  <td style="padding:15px 16px; text-align:right; color:var(--text);">€ 13 439</td>
+                  <td style="padding:15px 24px 15px 16px; text-align:right; color:var(--text);">Très faible</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
           <!-- Note légale -->
-          <p style="font-size:0.78rem; color:var(--muted); line-height:1.6; padding:12px 16px; border-radius:10px; border:1px solid var(--line); background:rgba(255,255,255,0.55);">
-            <strong>* +8,7 % par an : rendement annualisé moyen du MSCI World sur 20 ans (avril 2006 – avril 2026), dividendes réinvestis, en euros.</strong>
-            Les performances passées ne préjugent pas des performances futures. Tout investissement comporte un risque de perte en capital.
+          <p style="font-size:0.78rem; color:var(--text); line-height:1.6; padding:12px 16px; border-radius:10px; border:1px solid var(--line); background:rgba(255,255,255,0.55);">
+            <strong>* +8,7 % par an : rendement annualisé moyen du MSCI World sur 20 ans (avril 2006 – avril 2026), dividendes réinvestis, en euros.</strong>
           </p>
         </div>
       </section>
@@ -707,7 +680,7 @@
 
     <footer class="site-footer">
       <div class="footer-inner">
-        <a class="logo" href="#top">Invest BG</a>
+        <a class="logo" href="#top"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
         <p class="footer-copy">
           © 2026 Invest BG · Investissement à risque élevé.
           Consultez un conseiller financier avant d'investir.

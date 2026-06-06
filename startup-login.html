@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Invest BG � Espace Startup</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Libre+Franklin:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .auth-page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 24px;
+      }
+      .auth-box {
+        width: 100%;
+        max-width: 440px;
+        display: grid;
+        gap: 32px;
+      }
+      .auth-header { display: grid; gap: 8px; }
+      .auth-header h1 { font-size: 2rem; }
+      .auth-header p { font-size: 0.9rem; color: var(--muted); line-height: 1.6; }
+      .auth-card {
+        background: rgba(255,255,255,0.82);
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        padding: 36px;
+        box-shadow: var(--shadow);
+        display: grid;
+        gap: 20px;
+      }
+      .tabs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4px;
+        background: rgba(31,29,26,0.06);
+        border-radius: 12px;
+        padding: 4px;
+      }
+      .tab {
+        padding: 9px;
+        border-radius: 9px;
+        border: none;
+        background: transparent;
+        font-family: inherit;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--muted);
+        cursor: pointer;
+        transition: all .18s;
+      }
+      .tab.active {
+        background: #fff;
+        color: var(--text);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      }
+      .field { display: grid; gap: 6px; }
+      .field label { font-size: 0.82rem; font-weight: 600; color: var(--text); }
+      .field input {
+        padding: 11px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.9);
+        font-family: inherit;
+        font-size: 0.92rem;
+        color: var(--text);
+        transition: border-color .18s;
+        outline: none;
+      }
+      .field input:focus { border-color: var(--accent-strong); }
+      .error-msg {
+        font-size: 0.82rem;
+        color: #c0392b;
+        padding: 10px 14px;
+        border-radius: 10px;
+        background: rgba(192,57,43,0.07);
+        border: 1px solid rgba(192,57,43,0.18);
+        display: none;
+      }
+      .startup-badge {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 8px 14px; border-radius: 10px;
+        background: rgba(224,122,79,0.08);
+        border: 1px solid rgba(224,122,79,0.2);
+        font-size: 0.8rem; color: #b85c2a; font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <nav class="nav">
+        <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
+        <div class="nav-links">
+          <a class="nav-link" href="index.html">Accueil</a>
+          <a class="nav-link" href="login.html">Espace investisseur</a>
+        </div>
+      </nav>
+    </header>
+
+    <div class="auth-page">
+      <div class="auth-box">
+        <div class="auth-header">
+          <span class="startup-badge">�xa� Espace Startup</span>
+          <h1>Bienvenue sur votre espace</h1>
+          <p>Publiez vos rapports et documents à destination de vos investisseurs Invest BG.</p>
+        </div>
+
+        <div class="auth-card">
+          <div class="tabs">
+            <button class="tab active" id="tab-login" onclick="showTab('login')">Se connecter</button>
+            <button class="tab" id="tab-register" onclick="showTab('register')">Créer un compte</button>
+          </div>
+
+          <div id="error-msg" class="error-msg"></div>
+
+          <!-- Connexion -->
+          <form id="form-login" onsubmit="handleLogin(event)">
+            <div style="display:grid; gap:16px;">
+              <div class="field">
+                <label for="login-email">Email</label>
+                <input type="email" id="login-email" placeholder="contact@mastartup.fr" required />
+              </div>
+              <div class="field">
+                <label for="login-password">Mot de passe</label>
+                <input type="password" id="login-password" placeholder="⬢⬢⬢⬢⬢⬢⬢⬢" required />
+              </div>
+              <button class="button primary" type="submit" id="btn-login">Se connecter</button>
+            </div>
+          </form>
+
+          <!-- Inscription -->
+          <form id="form-register" style="display:none" onsubmit="handleRegister(event)">
+            <div style="display:grid; gap:16px;">
+              <div class="field">
+                <label for="reg-company">Nom de la startup</label>
+                <input type="text" id="reg-company" placeholder="Ma Startup SAS" required />
+              </div>
+              <div class="field">
+                <label for="reg-email">Email</label>
+                <input type="email" id="reg-email" placeholder="contact@mastartup.fr" required />
+              </div>
+              <div class="field">
+                <label for="reg-password">Mot de passe</label>
+                <input type="password" id="reg-password" placeholder="8 caractères minimum" required />
+              </div>
+              <button class="button primary" type="submit" id="btn-register">Créer mon compte</button>
+            </div>
+          </form>
+        </div>
+
+        <p style="font-size:0.78rem; color:var(--muted); text-align:center; line-height:1.6;">
+          Votre compte sera activé après validation par l'équipe Invest BG.<br>
+          Vos documents ne seront visibles que par les investisseurs dans votre startup.
+        </p>
+      </div>
+    </div>
+
+    <script>
+      function showTab(tab) {
+        document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+        document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+        document.getElementById('form-login').style.display    = tab === 'login'    ? 'block' : 'none';
+        document.getElementById('form-register').style.display = tab === 'register' ? 'block' : 'none';
+        document.getElementById('error-msg').style.display = 'none';
+      }
+
+      function showError(msg) {
+        const el = document.getElementById('error-msg');
+        el.textContent = msg;
+        el.style.display = 'block';
+      }
+
+      async function handleLogin(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btn-login');
+        btn.textContent = 'Connexion⬦'; btn.disabled = true;
+        try {
+          const r = await fetch('/api/startup/login', {
+            method: 'POST', credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email:    document.getElementById('login-email').value,
+              password: document.getElementById('login-password').value,
+            }),
+          });
+          const data = await r.json();
+          if (!r.ok) { showError(data.error); btn.textContent = 'Se connecter'; btn.disabled = false; return; }
+          window.location.href = 'startup-dashboard.html';
+        } catch {
+          showError('Erreur réseau. Veuillez réessayer.');
+          btn.textContent = 'Se connecter'; btn.disabled = false;
+        }
+      }
+
+      async function handleRegister(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btn-register');
+        btn.textContent = 'Création⬦'; btn.disabled = true;
+        try {
+          const r = await fetch('/api/startup/register', {
+            method: 'POST', credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              company_name: document.getElementById('reg-company').value,
+              email:        document.getElementById('reg-email').value,
+              password:     document.getElementById('reg-password').value,
+            }),
+          });
+          const data = await r.json();
+          if (!r.ok) { showError(data.error); btn.textContent = 'Créer mon compte'; btn.disabled = false; return; }
+          window.location.href = 'startup-dashboard.html';
+        } catch {
+          showError('Erreur réseau. Veuillez réessayer.');
+          btn.textContent = 'Créer mon compte'; btn.disabled = false;
+        }
+      }
+
+      // Rediriger si déjà connecté
+      fetch('/api/startup/me', { credentials: 'include' })
+        .then(r => r.ok ? window.location.href = 'startup-dashboard.html' : null)
+        .catch(() => {});
+    </script>
+  </body>
+</html>
+

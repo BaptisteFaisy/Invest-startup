@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Invest BG - Nos Startups</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Libre+Franklin:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      /* ���� Hero ���� */
+      .startup-hero {
+        display: grid;
+        gap: 20px;
+        max-width: 720px;
+        animation: fadeUp .6s ease both;
+      }
+      .startup-hero h1 { font-size: clamp(2.2rem, 4vw, 3.4rem); }
+      .startup-hero .lead { font-size: 1rem; color: var(--muted); line-height: 1.75; }
+
+      /* ���� Filtres ���� */
+      .filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+      .filter-btn {
+        padding: 7px 18px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.65);
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--muted);
+        cursor: pointer;
+        transition: all .18s;
+        font-family: inherit;
+      }
+      .filter-btn:hover, .filter-btn.active {
+        background: var(--text);
+        color: var(--bg);
+        border-color: var(--text);
+      }
+
+      /* ���� Grille startups ���� */
+      .startup-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        align-items: stretch;
+      }
+      @media (max-width: 1000px) { .startup-grid { grid-template-columns: repeat(2, 1fr); } }
+      @media (max-width: 600px)  { .startup-grid { grid-template-columns: 1fr; } }
+
+      /* ���� Carte startup ���� */
+      .startup-card {
+        background: rgba(255,255,255,0.72);
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        padding: 26px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        box-shadow: var(--shadow-sm);
+        transition: transform .22s, box-shadow .22s;
+        animation: fadeUp .5s ease both;
+        cursor: pointer;
+      }
+      .startup-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow);
+      }
+
+      .sc-top { display: flex; align-items: flex-start; gap: 16px; }
+      .sc-logo {
+        width: 52px; height: 52px; border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.3rem; font-weight: 700; color: #fff;
+        flex-shrink: 0;
+      }
+      .sc-meta { display: grid; gap: 4px; min-width: 0; }
+      .sc-name { font-size: 1.05rem; font-weight: 700; color: var(--text); }
+      .sc-tagline { font-size: 0.82rem; color: var(--muted); line-height: 1.4; }
+
+      .sc-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+      .sc-badge {
+        font-size: 0.72rem; font-weight: 600;
+        padding: 4px 11px; border-radius: 999px;
+        letter-spacing: .04em;
+      }
+      .sc-badge.sector {
+        background: rgba(31,142,122,0.08);
+        color: var(--accent-strong);
+        border: 1px solid rgba(31,142,122,0.18);
+      }
+      .sc-badge.stage {
+        background: rgba(224,122,79,0.08);
+        color: #b85c2a;
+        border: 1px solid rgba(224,122,79,0.2);
+      }
+      .sc-badge.open {
+        background: rgba(45,224,188,0.1);
+        color: var(--accent-strong);
+        border: 1px solid rgba(45,224,188,0.25);
+        display: flex; align-items: center; gap: 5px;
+      }
+      .sc-badge.open::before {
+        content: '';
+        width: 6px; height: 6px; border-radius: 50%;
+        background: var(--accent-strong);
+        animation: live-pulse 2s ease-in-out infinite;
+      }
+      .sc-badge.closed {
+        background: rgba(111,106,98,0.08);
+        color: var(--muted);
+        border: 1px solid var(--line);
+      }
+
+      .sc-desc {
+        font-size: 0.88rem;
+        color: var(--muted);
+        line-height: 1.65;
+        flex: 1;
+      }
+
+      .sc-kpis {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1px;
+        background: var(--line);
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+      }
+      .sc-kpi {
+        background: rgba(255,255,255,0.85);
+        padding: 12px 14px;
+        display: grid;
+        gap: 3px;
+      }
+      .sc-kpi strong { font-size: 1rem; font-weight: 700; color: var(--text); }
+      .sc-kpi span { font-size: 0.7rem; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: .1em; }
+
+      .sc-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding-top: 4px;
+        border-top: 1px solid var(--line);
+      }
+      .sc-founders {
+        display: flex; align-items: center; gap: 8px;
+        font-size: 0.8rem; color: var(--muted);
+      }
+      .sc-founder-avatars { display: flex; }
+      .sc-avatar {
+        width: 28px; height: 28px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.68rem; font-weight: 700; color: #fff;
+        border: 2px solid var(--bg);
+        margin-left: -8px;
+      }
+      .sc-avatar:first-child { margin-left: 0; }
+
+      .sc-cta {
+        font-size: 0.82rem; font-weight: 700;
+        color: var(--accent-strong);
+        text-decoration: none;
+        display: flex; align-items: center; gap-4px;
+        transition: gap .15s;
+      }
+      .sc-cta:hover { text-decoration: underline; }
+
+      /* ���� Liens startup ���� */
+      .modal-links { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+      .modal-link {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+        text-decoration: none; border: 1px solid var(--line);
+        background: rgba(255,255,255,0.7); color: var(--text);
+        transition: background .15s, border-color .15s;
+      }
+      .modal-link:hover { background: #fff; border-color: rgba(31,29,26,0.2); }
+      .modal-link svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+      /* ���� Modal détail ���� */
+      .modal-overlay {
+        display: none;
+        position: fixed; inset: 0;
+        background: rgba(10,9,8,0.6);
+        backdrop-filter: blur(6px);
+        z-index: 200;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .modal-overlay.open { display: flex; }
+      .modal {
+        background: var(--bg);
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        padding: 40px 44px;
+        max-width: 680px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        position: relative;
+        box-shadow: 0 40px 100px rgba(0,0,0,0.3);
+        animation: fadeUp .3s ease both;
+      }
+      .modal-close {
+        position: absolute; top: 20px; right: 20px;
+        width: 36px; height: 36px; border-radius: 50%;
+        background: rgba(31,29,26,0.07);
+        border: none; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem; color: var(--muted);
+        transition: background .15s;
+      }
+      .modal-close:hover { background: rgba(31,29,26,0.14); }
+
+      .modal-header { display: flex; align-items: flex-start; gap: 18px; margin-bottom: 28px; }
+      .modal-logo {
+        width: 64px; height: 64px; border-radius: 18px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.6rem; font-weight: 700; color: #fff;
+        flex-shrink: 0;
+      }
+      .modal-title { font-size: 1.6rem; margin-bottom: 6px; }
+      .modal-section { margin-bottom: 24px; }
+      .modal-section h3 {
+        font-size: 0.72rem; text-transform: uppercase; letter-spacing: .18em;
+        color: var(--muted); font-weight: 600; margin-bottom: 10px;
+      }
+      .modal-section p { font-size: 0.92rem; color: var(--text); line-height: 1.7; }
+      .modal-kpis {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr));
+        gap: 12px;
+      }
+      .modal-kpi {
+        padding: 16px 18px; border-radius: 14px;
+        background: rgba(255,255,255,0.7);
+        border: 1px solid var(--line);
+      }
+      .modal-kpi strong { display: block; font-size: 1.2rem; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+      .modal-kpi span { font-size: 0.72rem; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: .1em; }
+
+      .modal-team { display: flex; flex-wrap: wrap; gap: 12px; }
+      .modal-member {
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 14px; border-radius: 12px;
+        background: rgba(255,255,255,0.7);
+        border: 1px solid var(--line);
+      }
+      .modal-member-avatar {
+        width: 34px; height: 34px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.75rem; font-weight: 700; color: #fff;
+      }
+      .modal-member-name { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+      .modal-member-role { font-size: 0.75rem; color: var(--muted); }
+
+      .modal-invest-cta {
+        margin-top: 28px; padding: 20px 24px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, rgba(45,224,188,0.1), rgba(31,142,122,0.06));
+        border: 1px solid rgba(45,224,188,0.25);
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 16px; flex-wrap: wrap;
+      }
+      .modal-invest-cta p { font-size: 0.9rem; color: var(--text); font-weight: 500; }
+
+      @media (max-width: 600px) {
+        .modal { padding: 24px 20px; }
+      }
+
+      /* ���� Lien rapport d'audit ���� */
+      .modal-audit {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 16px; padding: 18px 22px; border-radius: 14px; margin-top: 8px;
+        background: rgba(31,29,26,0.04); border: 1px solid var(--line);
+        text-decoration: none; color: var(--text);
+        transition: background .18s, border-color .18s;
+      }
+      .modal-audit:hover { background: rgba(31,29,26,0.08); border-color: rgba(31,29,26,0.18); }
+      .modal-audit-left { display: flex; align-items: center; gap: 12px; }
+      .modal-audit-icon {
+        width: 36px; height: 36px; border-radius: 10px; background: var(--text);
+        display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      }
+      .modal-audit-icon svg { width: 18px; height: 18px; color: var(--bg); }
+      .modal-audit-label { font-weight: 600; font-size: 0.9rem; }
+      .modal-audit-sub { font-size: 0.76rem; color: var(--muted); margin-top: 2px; }
+      .modal-audit-arrow { font-size: 1.1rem; color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <nav class="nav">
+        <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
+        <div class="nav-links" id="nav-links">
+          <a class="nav-link" href="performance.html">Performance</a>
+          <a class="nav-link nav-link--active" href="startups.html">Startups</a>
+          <a class="nav-link" href="comment-ca-marche.html">Comment ça marche</a>
+          <a class="button ghost" href="login.html">Se connecter</a>
+          <a class="button primary" href="register.html">Commencer</a>
+        </div>
+      </nav>
+    </header>
+
+    <main style="display:grid; gap:40px; padding:6vh 0 10vh;">
+
+      <!-- Hero -->
+      <div class="startup-hero" style="padding:0 var(--gutter);">
+        <div class="eyebrow">Sélection en cours</div>
+        <h1>Des startups <span class="text-gradient">dénichées avant tout le monde.</span></h1>
+        <p class="lead">
+          Chaque opportunité présentée ici a passé notre processus de sélection rigoureux �
+          rencontre des fondateurs, analyse du marché, validation du modèle économique.
+          Moins de 5&nbsp;% des dossiers reçus sont retenus.
+        </p>
+      </div>
+
+      <!-- Grille -->
+      <div style="padding:0 var(--gutter);">
+        <div class="startup-grid" id="startup-grid"></div>
+      </div>
+
+    </main>
+
+    <!-- Modal détail -->
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal" id="modal-content"></div>
+    </div>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
+        <p class="footer-copy">
+          © 2026 Invest BG · Investissement à risque élevé.
+          Consultez un conseiller financier avant d'investir.
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      // ���� Données startups (chargées via API) ������������������������������������������������������������
+      let startupsData = [];
+
+      // ���� Render cards ����������������������������������������������������������������������������������������������������������
+      function renderCards(filter = 'all') {
+        const grid = document.getElementById('startup-grid');
+        const filtered = filter === 'all' ? startupsData : startupsData.filter(s => s.sector === filter);
+        grid.innerHTML = filtered.map((s, i) => `
+          <div class="startup-card" style="animation-delay:${i * 0.07}s;cursor:pointer;" onclick="openModal(${s.id})">
+            <div class="sc-top">
+              ${s.logo_url
+                ? `<img src="${s.logo_url}" alt="${s.name}" style="width:52px;height:52px;border-radius:14px;object-fit:cover;flex-shrink:0;">`
+                : `<div class="sc-logo" style="background:${s.color}">${s.emoji || s.name.charAt(0)}</div>`}
+              <div class="sc-meta">
+                <span class="sc-name">${s.name}</span>
+                <span class="sc-tagline">${s.tagline}</span>
+              </div>
+            </div>
+            <div class="sc-badges">
+              <span class="sc-badge sector">${s.sector}</span>
+              <span class="sc-badge stage">${s.stage}</span>
+              <span class="sc-badge ${s.open ? 'open' : 'closed'}">${s.open ? 'Ouvert aux investisseurs' : 'Tour fermé'}</span>
+            </div>
+            <p class="sc-desc">${s.description.slice(0, 160)}⬦</p>
+            <div class="sc-kpis">
+              ${s.kpis.map(k => `
+                <div class="sc-kpi">
+                  <strong>${k.value}</strong>
+                  <span>${k.label}</span>
+                </div>`).join('')}
+            </div>
+            <div class="sc-footer">
+              <div class="sc-founders">
+                <div class="sc-founder-avatars">
+                  ${s.team.map(m => `<div class="sc-avatar" style="background:${m.color}">${m.name.charAt(0)}</div>`).join('')}
+                </div>
+                <span>${s.team.length} fondateur${s.team.length > 1 ? 's' : ''}</span>
+              </div>
+              <span class="sc-cta">Voir le dossier � </span>
+            </div>
+          </div>`).join('');
+      }
+
+      // ���� Modal ������������������������������������������������������������������������������������������������������������������������
+      function openModal(id) {
+        const s = startupsData.find(x => x.id === id);
+        if (!s) return;
+        const links = [
+          s.website ? `<a class="modal-link" href="${s.website}" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            Site web</a>` : '',
+          s.linkedin ? `<a class="modal-link" href="${s.linkedin}" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+            LinkedIn</a>` : '',
+        ].filter(Boolean).join('');
+
+        document.getElementById('modal-content').innerHTML = `
+          <button class="modal-close" id="modal-close" aria-label="Fermer">�S"</button>
+          <div class="modal-header">
+            ${s.logo_url
+              ? `<img src="${s.logo_url}" alt="${s.name}" style="width:64px;height:64px;border-radius:18px;object-fit:cover;flex-shrink:0;">`
+              : `<div class="modal-logo" style="background:${s.color}">${s.emoji || s.name.charAt(0)}</div>`}
+            <div style="flex:1;">
+              <h2 class="modal-title">${s.name}</h2>
+              <div class="sc-badges" style="margin-top:6px;">
+                <span class="sc-badge sector">${s.sector}</span>
+                <span class="sc-badge stage">${s.stage}</span>
+                <span class="sc-badge ${s.open ? 'open' : 'closed'}">${s.open ? 'Ouvert aux investisseurs' : 'Tour fermé'}</span>
+              </div>
+              ${links ? `<div class="modal-links">${links}</div>` : ''}
+            </div>
+          </div>
+
+          <div class="modal-section">
+            <h3>Le projet</h3>
+            <p>${s.description}</p>
+          </div>
+          ${s.problem ? `<div class="modal-section"><h3>Le problème</h3><p>${s.problem}</p></div>` : ''}
+          ${s.solution ? `<div class="modal-section"><h3>La solution</h3><p>${s.solution}</p></div>` : ''}
+          ${s.market ? `<div class="modal-section"><h3>Le marché</h3><p>${s.market}</p></div>` : ''}
+
+          <div class="modal-section">
+            <h3>Chiffres clés</h3>
+            <div class="modal-kpis">
+              <div class="modal-kpi"><strong>${s.founded || '�'}</strong><span>Fondée en</span></div>
+              <div class="modal-kpi"><strong>${s.employees || '�'}</strong><span>Collaborateurs</span></div>
+              <div class="modal-kpi"><strong>${s.raised || '�'}</strong><span>Levé à ce jour</span></div>
+              ${(s.kpis || []).map(k => `<div class="modal-kpi"><strong>${k.value}</strong><span>${k.label}</span></div>`).join('')}
+            </div>
+          </div>
+
+          ${s.team?.length ? `
+          <div class="modal-section">
+            <h3>L'équipe</h3>
+            <div class="modal-team">
+              ${s.team.map(m => `
+                <div class="modal-member">
+                  ${m.photo
+                    ? `<img src="${m.photo}" alt="${m.name}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;">`
+                    : `<div class="modal-member-avatar" style="background:${m.color}">${m.name.charAt(0)}</div>`}
+                  <div>
+                    <p class="modal-member-name">${m.name}</p>
+                    <p class="modal-member-role">${m.role}</p>
+                  </div>
+                </div>`).join('')}
+            </div>
+          </div>` : ''}
+
+          <a class="modal-audit" href="audit.html?id=${s.id}">
+            <div class="modal-audit-left">
+              <div class="modal-audit-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-8"/>
+                </svg>
+              </div>
+              <div>
+                <p class="modal-audit-label">Rapport d'analyse complet</p>
+                <p class="modal-audit-sub">Financier · Marché · �0quipe · Risques</p>
+              </div>
+            </div>
+            <span class="modal-audit-arrow">� </span>
+          </a>
+
+          ${s.open ? `
+          <div class="modal-invest-cta">
+            <p>Ticket minimum : <strong>${s.ticket}</strong> · Tour ouvert aux investisseurs membres</p>
+            <a class="button primary" href="register.html">Investir dans ${s.name}</a>
+          </div>` : `
+          <div class="modal-invest-cta" style="background:rgba(111,106,98,0.06);border-color:var(--line);">
+            <p>Ce tour est clôturé. <strong>Inscrivez-vous</strong> pour être alerté des prochaines opportunités.</p>
+            <a class="button" href="register.html">�`tre alerté</a>
+          </div>`}
+        `;
+        document.getElementById('modal-overlay').classList.add('open');
+        document.getElementById('modal-close').addEventListener('click', closeModal);
+      }
+
+      function closeModal() {
+        document.getElementById('modal-overlay').classList.remove('open');
+      }
+      document.getElementById('modal-overlay').addEventListener('click', e => {
+        if (e.target === document.getElementById('modal-overlay')) closeModal();
+      });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+      // ���� Nav auth ��������������������������������������������������������������������������������������������������������������������
+      fetch('/api/auth/me', { credentials: 'include' })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (!data?.user) return;
+          const name = data.user.full_name ? data.user.full_name.split(' ')[0] : data.user.email;
+          document.getElementById('nav-links').innerHTML = `
+            <a class="nav-link" href="performance.html">Performance</a>
+            <a class="nav-link nav-link--active" href="startups.html">Startups</a>
+            <a class="nav-link" href="investments.html">Mes investissements</a>
+            <span class="nav-link nav-user-name">${name}</span>
+            <button class="button ghost" id="nav-logout">Se déconnecter</button>
+          `;
+          document.getElementById('nav-logout').addEventListener('click', async () => {
+            await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+            window.location.reload();
+          });
+        }).catch(() => {});
+
+      // Charger depuis l'API puis afficher
+      async function loadStartups() {
+        try {
+          const r = await fetch('/api/startups');
+          const json = await r.json();
+          startupsData = json.startups || [];
+        } catch { startupsData = []; }
+        renderCards();
+
+      }
+      loadStartups();
+    </script>
+    <script src="nav.js"></script>
+  </body>
+</html>
+

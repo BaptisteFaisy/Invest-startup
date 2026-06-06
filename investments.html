@@ -7,12 +7,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Libre+Franklin:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
     <style>
-      /* ── Layout page investissements ── */
+      /* ���� Layout page investissements ���� */
       .dash-main {
         max-width: 1100px;
         margin: 0 auto;
@@ -21,14 +21,14 @@
         gap: 48px;
       }
 
-      /* ── Greeting ── */
+      /* ���� Greeting ���� */
       .dash-greeting { display: grid; gap: 6px; }
       .dash-greeting h1 {
         font-size: clamp(1.9rem, 3vw, 2.6rem);
       }
       .dash-greeting p { font-size: 0.92rem; color: var(--muted); }
 
-      /* ── Cartes de résumé ── */
+      /* ���� Cartes de résumé ���� */
       .dash-stats {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -68,7 +68,7 @@
         color: var(--muted);
       }
 
-      /* ── Section titre ── */
+      /* ���� Section titre ���� */
       .dash-section-title {
         display: flex;
         align-items: center;
@@ -91,7 +91,7 @@
         border: 1px solid var(--line);
       }
 
-      /* ── Table investissements ── */
+      /* ���� Table investissements ���� */
       .inv-table {
         display: grid;
         gap: 10px;
@@ -196,7 +196,7 @@
         animation: live-pulse 2s ease-in-out infinite;
       }
 
-      /* ── CTA bas de page ── */
+      /* ���� CTA bas de page ���� */
       .dash-cta {
         padding: 36px 40px;
         border-radius: 22px;
@@ -220,7 +220,7 @@
       }
       .button.white:hover { background: #fff; }
 
-      /* ── Skeleton loader ── */
+      /* ���� Skeleton loader ���� */
       .skeleton {
         background: linear-gradient(90deg,
           rgba(31,29,26,0.06) 25%,
@@ -232,7 +232,50 @@
       }
       @keyframes shimmer { to { background-position: -200% 0; } }
 
-      /* ── Responsive ── */
+      /* ���� Actualités startups ���� */
+      .news-list { display: grid; gap: 16px; }
+      .news-card {
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.72);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        animation: fadeUp .45s ease both;
+      }
+      .news-card-header {
+        display: flex; align-items: center; gap: 14px;
+        padding: 18px 22px 14px;
+        border-bottom: 1px solid var(--line);
+      }
+      .news-startup-dot {
+        width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+      }
+      .news-startup-name { font-weight: 700; font-size: 0.9rem; color: var(--text); }
+      .news-type-badge {
+        font-size: 0.68rem; font-weight: 600; text-transform: uppercase;
+        letter-spacing: .12em; padding: 3px 9px; border-radius: 999px;
+        background: rgba(31,29,26,0.06); color: var(--muted);
+        border: 1px solid var(--line);
+      }
+      .news-date { font-size: 0.78rem; color: var(--muted); margin-left: auto; }
+      .news-body { padding: 16px 22px; }
+      .news-title { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+      .news-content { font-size: 0.86rem; color: var(--muted); line-height: 1.65; }
+      .news-kpis {
+        display: flex; flex-wrap: wrap; gap: 10px;
+        padding: 14px 22px 18px;
+        border-top: 1px solid var(--line);
+      }
+      .news-kpi {
+        padding: 10px 16px; border-radius: 12px;
+        background: rgba(255,255,255,0.85);
+        border: 1px solid var(--line);
+      }
+      .news-kpi strong { display: block; font-size: 0.95rem; font-weight: 700; color: var(--text); }
+      .news-kpi span { font-size: 0.7rem; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: .1em; }
+      .news-kpi em { font-size: 0.72rem; font-style: normal; color: var(--accent-strong); margin-left: 4px; }
+
+      /* ���� Responsive ���� */
       @media (max-width: 900px) {
         .dash-stats { grid-template-columns: repeat(2, 1fr); }
         .inv-table-head { display: none; }
@@ -253,11 +296,12 @@
 
     <header class="site-header">
       <nav class="nav">
-        <a class="logo" href="index.html">Invest BG</a>
+        <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
         <div class="nav-links">
           <a class="nav-link" href="performance.html">Performance</a>
+          <a class="nav-link" href="startups.html">Startups</a>
           <a class="nav-link nav-link--active" href="investments.html">Mes investissements</a>
-          <span class="nav-link nav-user-name" id="nav-user-name">—</span>
+          <span class="nav-link nav-user-name" id="nav-user-name">�</span>
           <button class="button ghost" id="nav-logout">Se déconnecter</button>
         </div>
       </nav>
@@ -268,8 +312,8 @@
 
         <!-- Greeting -->
         <div class="dash-greeting">
-          <h1>Bonjour, <span id="user-firstname">…</span> 👋</h1>
-          <p id="user-since">Membre depuis —</p>
+          <h1>Bonjour, <span id="user-firstname">⬦</span> �x9</h1>
+          <p id="user-since">Membre depuis �</p>
         </div>
 
         <!-- Cartes résumé -->
@@ -295,11 +339,43 @@
           <div class="inv-row skeleton" style="height:78px; animation-delay:.24s"></div>
         </div>
 
+        <!-- Actualités startups -->
+        <div>
+          <div class="dash-section-title" style="margin-bottom:16px;">
+            <h2>Actualités de mes startups</h2>
+            <span class="dash-demo-badge">Accès investisseurs uniquement</span>
+          </div>
+          <p style="font-size:0.85rem; color:var(--muted); margin-bottom:24px; line-height:1.6;">
+            Rapports mensuels et trimestriels publiés par les startups dans lesquelles vous avez investi.
+          </p>
+        </div>
+
+        <div class="news-list" id="news-list">
+          <div class="inv-row skeleton" style="height:120px"></div>
+          <div class="inv-row skeleton" style="height:120px; animation-delay:.08s"></div>
+        </div>
+
+        <!-- Documents startups -->
+        <div>
+          <div class="dash-section-title" style="margin-bottom:16px;">
+            <h2>Documents publiés par mes startups</h2>
+            <span class="dash-demo-badge">Accès investisseurs uniquement</span>
+          </div>
+          <p style="font-size:0.85rem; color:var(--muted); margin-bottom:24px; line-height:1.6;">
+            PDF, rapports, pitch decks et fichiers partagés directement par les équipes fondatrices.
+          </p>
+        </div>
+
+        <div id="investor-docs">
+          <div class="inv-row skeleton" style="height:68px"></div>
+          <div class="inv-row skeleton" style="height:68px; animation-delay:.08s"></div>
+        </div>
+
       </div>
     </main>
 
     <script>
-      // ── Formater un montant en euros ──────────────────────────────────────
+      // ���� Formater un montant en euros ����������������������������������������������������������������������������
       function fmt(n) {
         return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
       }
@@ -307,7 +383,7 @@
         return new Date(iso).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' });
       }
 
-      // ── Vérifier l'authentification ───────────────────────────────────────
+      // ���� Vérifier l'authentification ������������������������������������������������������������������������������
       async function init() {
         let user;
         try {
@@ -331,15 +407,30 @@
           window.location.href = 'login.html';
         });
 
-        // Charger les investissements
-        const r2 = await fetch('/api/investments', { credentials: 'include' });
+        // Charger les investissements et les news en parallèle
+        const [r2, r3] = await Promise.all([
+          fetch('/api/investments', { credentials: 'include' }),
+          fetch('/api/news',        { credentials: 'include' }),
+        ]);
         if (!r2.ok) return;
         const { investments } = await r2.json();
         renderStats(investments);
         renderTable(investments);
+
+        if (r3.ok) {
+          const { news } = await r3.json();
+          renderNews(news);
+        }
+
+        // Charger les documents
+        const r4 = await fetch('/api/investor/documents', { credentials: 'include' });
+        if (r4.ok) {
+          const { documents } = await r4.json();
+          renderDocs(documents);
+        }
       }
 
-      // ── Cartes de résumé ─────────────────────────────────────────────────
+      // ���� Cartes de résumé ��������������������������������������������������������������������������������������������������
       function renderStats(inv) {
         const totalInvested = inv.reduce((s, i) => s + i.invested, 0);
         const totalCurrent  = inv.reduce((s, i) => s + i.current_value, 0);
@@ -370,13 +461,13 @@
         `;
       }
 
-      // ── Table des investissements ─────────────────────────────────────────
+      // ���� Table des investissements ����������������������������������������������������������������������������������
       function renderTable(inv) {
         const head = `
           <div class="inv-table-head">
             <span>Startup</span>
             <span>Secteur</span>
-            <span>Investi → Valeur</span>
+            <span>Investi �  Valeur</span>
             <span>Rendement</span>
             <span>Statut</span>
           </div>`;
@@ -396,7 +487,7 @@
               <span class="inv-sector-badge">${i.sector}</span>
               <div>
                 <p class="inv-amount">${fmt(i.invested)}</p>
-                <p class="inv-desc">→ ${fmt(i.current_value)}</p>
+                <p class="inv-desc">�  ${fmt(i.current_value)}</p>
               </div>
               <span class="inv-return ${positive ? 'positive' : 'negative'}">${positive ? '+' : ''}${i.return_pct.toFixed(1)}%</span>
               <span class="inv-status-badge">
@@ -408,7 +499,80 @@
         document.getElementById('inv-table').innerHTML = head + rows;
       }
 
+      // ���� Actualités startups ��������������������������������������������������������������������������������������������
+      function renderNews(news) {
+        const el = document.getElementById('news-list');
+        if (!news.length) {
+          el.innerHTML = `<p style="font-size:0.88rem;color:var(--muted);padding:20px 0;">Aucune actualité publiée pour l'instant.</p>`;
+          return;
+        }
+        el.innerHTML = news.map((n, i) => {
+          const date = new Date(n.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+          const kpisHtml = n.kpis.length ? `
+            <div class="news-kpis">
+              ${n.kpis.map(k => `
+                <div class="news-kpi">
+                  <strong>${k.value}${k.delta ? `<em>${k.delta}</em>` : ''}</strong>
+                  <span>${k.label}</span>
+                </div>`).join('')}
+            </div>` : '';
+          return `
+            <div class="news-card" style="animation-delay:${i * 0.08}s">
+              <div class="news-card-header">
+                <span class="news-startup-dot" style="background:${n.startup_color}"></span>
+                <span class="news-startup-name">${n.startup_name}</span>
+                <span class="news-type-badge">${n.type}</span>
+                <span class="news-date">${date}</span>
+              </div>
+              <div class="news-body">
+                <p class="news-title">${n.title}</p>
+                <p class="news-content">${n.content}</p>
+              </div>
+              ${kpisHtml}
+            </div>`;
+        }).join('');
+      }
+
+      // ���� Documents startups ����������������������������������������������������������������������������������������������
+      const DOC_ICONS = {
+        rapport_mensuel:'�x&', rapport_trimestriel:'�x`', rapport_annuel:'�x9',
+        kpis:'�x�', pitch_deck:'�xa�', document:'�x',
+      };
+      const DOC_LABELS = {
+        rapport_mensuel:'Rapport mensuel', rapport_trimestriel:'Rapport trimestriel',
+        rapport_annuel:'Rapport annuel', kpis:'KPIs', pitch_deck:'Pitch deck', document:'Document',
+      };
+
+      function fmt_size(bytes) {
+        if (bytes < 1024) return bytes + ' o';
+        if (bytes < 1024*1024) return (bytes/1024).toFixed(0) + ' Ko';
+        return (bytes/1024/1024).toFixed(1) + ' Mo';
+      }
+
+      function renderDocs(docs) {
+        const el = document.getElementById('investor-docs');
+        if (!docs.length) {
+          el.innerHTML = `<p style="font-size:0.88rem;color:var(--muted);padding:16px 0;">Aucun document publié pour l'instant par vos startups.</p>`;
+          return;
+        }
+        el.innerHTML = docs.map((d, i) => {
+          const date = new Date(d.uploaded_at).toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' });
+          return `
+            <div class="inv-row" style="animation-delay:${i*0.07}s; grid-template-columns:42px 1fr auto auto;">
+              <div style="width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;background:rgba(31,142,122,0.08);border:1px solid rgba(31,142,122,0.15);">${DOC_ICONS[d.type]||'�x'}</div>
+              <div style="min-width:0;">
+                <p style="font-weight:700;font-size:0.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${d.title}</p>
+                <p style="font-size:0.76rem;color:var(--muted);margin-top:2px;">${d.company_name} · ${date} · ${fmt_size(d.size)}</p>
+              </div>
+              <span style="font-size:0.7rem;font-weight:600;padding:3px 10px;border-radius:999px;background:rgba(31,29,26,0.06);border:1px solid var(--line);color:var(--muted);white-space:nowrap;">${DOC_LABELS[d.type]||d.type}</span>
+              <a class="button ghost" href="/api/documents/file/${d.id}" target="_blank" style="font-size:0.8rem;padding:7px 14px;white-space:nowrap;">Télécharger</a>
+            </div>`;
+        }).join('');
+      }
+
       init();
     </script>
+    <script src="nav.js"></script>
   </body>
 </html>
+

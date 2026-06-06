@@ -1,0 +1,107 @@
+[
+  {
+    "id": 1,
+    "startup_id": 1,
+    "startup_name": "TechSaaS",
+    "startup_color": "#2de0bc",
+    "type": "mensuel",
+    "title": "Rapport mensuel — Mai 2026",
+    "date": "2026-05-31",
+    "content": "Mai a été notre meilleur mois depuis le lancement. Nous avons signé 3 nouveaux clients entreprise, dont un groupe de 500 salariés. Notre taux de churn reste à 0,8 % mensuel, bien en dessous de la moyenne du secteur.",
+    "kpis": [
+      { "label": "ARR", "value": "128 k€", "delta": "+12 %" },
+      { "label": "Nouveaux clients", "value": "3", "delta": null },
+      { "label": "Churn", "value": "0,8 %", "delta": null }
+    ]
+  },
+  {
+    "id": 2,
+    "startup_id": 1,
+    "startup_name": "TechSaaS",
+    "startup_color": "#2de0bc",
+    "type": "trimestriel",
+    "title": "Rapport Q1 2026",
+    "date": "2026-04-05",
+    "content": "Le Q1 2026 confirme notre trajectoire de croissance. Nous avons atteint 31 clients actifs (+8 vs Q4 2025), lancé notre module Analytics avancé, et recruté un Head of Sales senior. Notre pipeline commercial est de 380 k€ ARR potentiel.",
+    "kpis": [
+      { "label": "Clients actifs", "value": "31", "delta": "+8 vs Q4" },
+      { "label": "ARR", "value": "114 k€", "delta": "+34 %" },
+      { "label": "Pipeline", "value": "380 k€", "delta": null }
+    ]
+  },
+  {
+    "id": 3,
+    "startup_id": 2,
+    "startup_name": "BiomedX",
+    "startup_color": "#f5a06a",
+    "type": "trimestriel",
+    "title": "Rapport Q1 2026",
+    "date": "2026-04-12",
+    "content": "Excellente nouvelle : notre dispositif médical a obtenu le marquage CE classe IIa en mars. Cela ouvre la commercialisation dans toute l'UE. Nous entamons les démarches de remboursement CPAM pour accélérer l'adoption chez les généralistes.",
+    "kpis": [
+      { "label": "Marquage CE", "value": "Obtenu", "delta": null },
+      { "label": "Médecins pilotes", "value": "47", "delta": "+22" },
+      { "label": "Précision diagnostic", "value": "91 %", "delta": "+2 pts" }
+    ]
+  },
+  {
+    "id": 4,
+    "startup_id": 2,
+    "startup_name": "BiomedX",
+    "startup_color": "#f5a06a",
+    "type": "mensuel",
+    "title": "Rapport mensuel — Avril 2026",
+    "date": "2026-04-30",
+    "content": "Avril marque notre premier mois de facturation post-CE. 12 nouveaux cabinets médicaux ont souscrit à notre abonnement. La NPS ressort à 72, un score exceptionnel pour un outil médical. Nous préparons notre levée de série A pour septembre 2026.",
+    "kpis": [
+      { "label": "Abonnements actifs", "value": "12", "delta": "Premier mois" },
+      { "label": "NPS", "value": "72", "delta": null },
+      { "label": "Série A visée", "value": "Sept. 2026", "delta": null }
+    ]
+  },
+  {
+    "id": 5,
+    "startup_id": 3,
+    "startup_name": "GreenEnergy",
+    "startup_color": "#1f8e7a",
+    "type": "trimestriel",
+    "title": "Rapport Q1 2026",
+    "date": "2026-04-08",
+    "content": "Notre technologie de stockage par batteries solides a passé avec succès les tests de durée de vie 10 000 cycles. Nous avons signé un accord-cadre avec un opérateur éolien normand pour déployer 4 MWh de capacité d'ici fin 2026. La production en série démarrera en juillet.",
+    "kpis": [
+      { "label": "Cycles validés", "value": "10 000", "delta": null },
+      { "label": "Contrat signé", "value": "4 MWh", "delta": null },
+      { "label": "Production série", "value": "Juillet 2026", "delta": null }
+    ]
+  },
+  {
+    "id": 6,
+    "startup_id": 3,
+    "startup_name": "GreenEnergy",
+    "startup_color": "#1f8e7a",
+    "type": "mensuel",
+    "title": "Rapport mensuel — Mai 2026",
+    "date": "2026-05-28",
+    "content": "Les travaux d'installation du premier site normand avancent selon le calendrier. 40 % de la capacité est déjà câblée. Notre équipe R&D a déposé un brevet supplémentaire sur le système de gestion thermique, portant notre portefeuille à 6 brevets actifs.",
+    "kpis": [
+      { "label": "Installation", "value": "40 %", "delta": "En cours" },
+      { "label": "Brevets actifs", "value": "6", "delta": "+1" },
+      { "label": "Livraison prévue", "value": "Août 2026", "delta": null }
+    ]
+  },
+  {
+    "id": 7,
+    "startup_id": 4,
+    "startup_name": "FinFlow",
+    "startup_color": "#e07a4f",
+    "type": "mensuel",
+    "title": "Rapport mensuel — Mai 2026",
+    "date": "2026-05-30",
+    "content": "Mois difficile : nous avons perdu un client clé suite à un rachat par un concurrent. Cela impacte temporairement notre ARR de -18 k€. En parallèle, notre intégration API avec Sage et Pennylane est désormais live et ouvre un nouveau canal d'acquisition important.",
+    "kpis": [
+      { "label": "Impact ARR", "value": "−18 k€", "delta": "Temporaire" },
+      { "label": "Nouvelles intégrations", "value": "Sage + Pennylane", "delta": null },
+      { "label": "Pipeline entrant", "value": "67 k€", "delta": "Via API" }
+    ]
+  }
+]

@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Invest BG � Dashboard Startup</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Libre+Franklin:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .dash-main { max-width: 860px; margin: 0 auto; padding: 6vh 0 10vh; display: grid; gap: 48px; }
+
+      /* Upload zone */
+      .upload-card {
+        background: rgba(255,255,255,0.72);
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        padding: 32px 36px;
+        box-shadow: var(--shadow-sm);
+        display: grid;
+        gap: 22px;
+      }
+      .upload-card h2 { font-size: 1.25rem; }
+      .upload-form { display: grid; gap: 16px; }
+      .field { display: grid; gap: 6px; }
+      .field label { font-size: 0.82rem; font-weight: 600; color: var(--text); }
+      .field input, .field textarea, .field select {
+        padding: 11px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.9);
+        font-family: inherit;
+        font-size: 0.92rem;
+        color: var(--text);
+        outline: none;
+        transition: border-color .18s;
+      }
+      .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--accent-strong); }
+      .field textarea { resize: vertical; min-height: 80px; }
+
+      .drop-zone {
+        border: 2px dashed var(--line);
+        border-radius: 16px;
+        padding: 36px 24px;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color .2s, background .2s;
+        background: rgba(255,255,255,0.4);
+        position: relative;
+      }
+      .drop-zone:hover, .drop-zone.drag-over {
+        border-color: var(--accent-strong);
+        background: rgba(31,142,122,0.04);
+      }
+      .drop-zone input[type="file"] {
+        position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+      }
+      .drop-zone-icon { font-size: 2rem; margin-bottom: 10px; }
+      .drop-zone p { font-size: 0.88rem; color: var(--muted); line-height: 1.5; }
+      .drop-zone strong { color: var(--accent-strong); }
+      .file-selected {
+        display: none;
+        align-items: center; gap: 10px;
+        padding: 10px 14px; border-radius: 10px;
+        background: rgba(31,142,122,0.06);
+        border: 1px solid rgba(31,142,122,0.2);
+        font-size: 0.85rem; color: var(--text);
+      }
+
+      /* Toast */
+      .toast {
+        position: fixed; bottom: 32px; right: 32px;
+        padding: 14px 20px; border-radius: 14px;
+        background: var(--text); color: var(--bg);
+        font-size: 0.88rem; font-weight: 600;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+        transform: translateY(80px); opacity: 0;
+        transition: all .3s cubic-bezier(.4,0,.2,1);
+        z-index: 100;
+      }
+      .toast.show { transform: translateY(0); opacity: 1; }
+      .toast.success { background: var(--accent-strong); }
+      .toast.error   { background: #c0392b; }
+
+      /* Liste documents */
+      .doc-list { display: grid; gap: 12px; }
+      .doc-row {
+        display: flex; align-items: center; gap: 16px;
+        padding: 16px 20px;
+        border-radius: 16px;
+        background: rgba(255,255,255,0.72);
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow-sm);
+        animation: fadeUp .4s ease both;
+      }
+      .doc-icon {
+        width: 42px; height: 42px; border-radius: 11px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.2rem; flex-shrink: 0;
+        background: rgba(31,142,122,0.08);
+        border: 1px solid rgba(31,142,122,0.15);
+      }
+      .doc-meta { flex: 1; min-width: 0; }
+      .doc-title { font-size: 0.92rem; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .doc-sub { font-size: 0.76rem; color: var(--muted); margin-top: 2px; }
+      .doc-type-badge {
+        font-size: 0.7rem; font-weight: 600; padding: 3px 10px; border-radius: 999px;
+        background: rgba(31,29,26,0.06); border: 1px solid var(--line); color: var(--muted);
+        white-space: nowrap;
+      }
+      .doc-actions { display: flex; gap: 8px; }
+      .btn-del {
+        padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(192,57,43,0.2);
+        background: rgba(192,57,43,0.06); color: #c0392b;
+        font-size: 0.78rem; font-weight: 600; cursor: pointer;
+        font-family: inherit; transition: background .15s;
+      }
+      .btn-del:hover { background: rgba(192,57,43,0.12); }
+
+      .empty-state {
+        text-align: center; padding: 48px 24px; color: var(--muted);
+        font-size: 0.88rem; line-height: 1.6;
+        border: 2px dashed var(--line); border-radius: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <nav class="nav">
+        <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
+        <div class="nav-links">
+          <span class="nav-link nav-user-name" id="startup-name">�</span>
+          <span style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.14em; font-weight:600; padding:4px 12px; border-radius:999px; background:rgba(224,122,79,0.1); color:#b85c2a; border:1px solid rgba(224,122,79,0.2);">Startup</span>
+          <button class="button ghost" id="btn-logout">Se déconnecter</button>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <div class="dash-main" style="padding-left:var(--gutter); padding-right:var(--gutter);">
+
+        <!-- Greeting -->
+        <div style="display:grid; gap:6px;">
+          <h1 id="greeting">Bonjour �x9</h1>
+          <p style="font-size:0.9rem; color:var(--muted);">Publiez vos documents � vos investisseurs y auront accès dès l'upload.</p>
+        </div>
+
+        <!-- Upload -->
+        <div class="upload-card">
+          <h2>Publier un document</h2>
+          <form class="upload-form" id="upload-form" onsubmit="handleUpload(event)">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+              <div class="field">
+                <label for="doc-title">Titre du document</label>
+                <input type="text" id="doc-title" placeholder="Rapport mensuel � Juin 2026" required />
+              </div>
+              <div class="field">
+                <label for="doc-type">Type</label>
+                <select id="doc-type">
+                  <option value="rapport_mensuel">Rapport mensuel</option>
+                  <option value="rapport_trimestriel">Rapport trimestriel</option>
+                  <option value="rapport_annuel">Rapport annuel</option>
+                  <option value="kpis">KPIs</option>
+                  <option value="pitch_deck">Pitch deck</option>
+                  <option value="document">Autre document</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label for="doc-desc">Description (optionnel)</label>
+              <textarea id="doc-desc" placeholder="Résumé des points clés, chiffres importants⬦"></textarea>
+            </div>
+            <div class="drop-zone" id="drop-zone">
+              <input type="file" id="file-input" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" />
+              <div class="drop-zone-icon">�x}</div>
+              <p><strong>Cliquez ou glissez</strong> votre fichier ici<br>PDF, Word, Excel, image · 20 Mo max</p>
+            </div>
+            <div class="file-selected" id="file-selected">
+              <span>�x</span>
+              <span id="file-name"></span>
+            </div>
+            <button class="button primary" type="submit" id="btn-upload">Publier le document</button>
+          </form>
+        </div>
+
+        <!-- Documents publiés -->
+        <div>
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+            <h2 style="font-size:1.25rem;">Documents publiés</h2>
+            <span style="font-size:0.78rem; color:var(--muted);" id="doc-count"></span>
+          </div>
+          <div class="doc-list" id="doc-list">
+            <div class="empty-state">Aucun document publié pour l'instant.</div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      const TYPE_LABELS = {
+        rapport_mensuel:      'Rapport mensuel',
+        rapport_trimestriel:  'Rapport trimestriel',
+        rapport_annuel:       'Rapport annuel',
+        kpis:                 'KPIs',
+        pitch_deck:           'Pitch deck',
+        document:             'Document',
+      };
+      const TYPE_ICONS = {
+        rapport_mensuel: '�x&', rapport_trimestriel: '�x`', rapport_annuel: '�x9',
+        kpis: '�x�', pitch_deck: '�xa�', document: '�x',
+      };
+
+      function fmt_size(bytes) {
+        if (bytes < 1024) return bytes + ' o';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' Ko';
+        return (bytes / 1024 / 1024).toFixed(1) + ' Mo';
+      }
+      function fmt_date(iso) {
+        return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+      }
+
+      function showToast(msg, type = 'success') {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = `toast ${type} show`;
+        setTimeout(() => t.classList.remove('show'), 3500);
+      }
+
+      // ���� Auth ������������������������������������������������������������������������������������������������������������������������������
+      async function init() {
+        const r = await fetch('/api/startup/me', { credentials: 'include' });
+        if (!r.ok) { window.location.href = 'startup-login.html'; return; }
+        const { startup } = await r.json();
+        document.getElementById('startup-name').textContent = startup.company_name;
+        document.getElementById('greeting').textContent = `Bonjour, ${startup.company_name} �x9`;
+        loadDocuments();
+      }
+
+      document.getElementById('btn-logout').addEventListener('click', async () => {
+        await fetch('/api/startup/logout', { method: 'POST', credentials: 'include' });
+        window.location.href = 'startup-login.html';
+      });
+
+      // ���� Drop zone ������������������������������������������������������������������������������������������������������������������
+      const dropZone  = document.getElementById('drop-zone');
+      const fileInput = document.getElementById('file-input');
+      const fileSelected = document.getElementById('file-selected');
+
+      fileInput.addEventListener('change', () => updateFilePreview(fileInput.files[0]));
+      dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+      dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+      dropZone.addEventListener('drop', e => {
+        e.preventDefault(); dropZone.classList.remove('drag-over');
+        if (e.dataTransfer.files[0]) {
+          fileInput.files = e.dataTransfer.files;
+          updateFilePreview(e.dataTransfer.files[0]);
+        }
+      });
+
+      function updateFilePreview(file) {
+        if (!file) return;
+        document.getElementById('file-name').textContent = `${file.name} (${fmt_size(file.size)})`;
+        fileSelected.style.display = 'flex';
+      }
+
+      // ���� Upload ������������������������������������������������������������������������������������������������������������������������
+      async function handleUpload(e) {
+        e.preventDefault();
+        if (!fileInput.files[0]) { showToast('Veuillez sélectionner un fichier', 'error'); return; }
+
+        const btn = document.getElementById('btn-upload');
+        btn.textContent = 'Publication⬦'; btn.disabled = true;
+
+        const fd = new FormData();
+        fd.append('document',    fileInput.files[0]);
+        fd.append('title',       document.getElementById('doc-title').value);
+        fd.append('type',        document.getElementById('doc-type').value);
+        fd.append('description', document.getElementById('doc-desc').value);
+
+        try {
+          const r = await fetch('/api/startup/upload', { method: 'POST', credentials: 'include', body: fd });
+          const data = await r.json();
+          if (!r.ok) { showToast(data.error, 'error'); }
+          else {
+            showToast('Document publié avec succès �S');
+            document.getElementById('upload-form').reset();
+            fileSelected.style.display = 'none';
+            loadDocuments();
+          }
+        } catch { showToast('Erreur réseau', 'error'); }
+        btn.textContent = 'Publier le document'; btn.disabled = false;
+      }
+
+      // ���� Liste documents ��������������������������������������������������������������������������������������������������������
+      async function loadDocuments() {
+        const r = await fetch('/api/startup/documents', { credentials: 'include' });
+        if (!r.ok) return;
+        const { documents } = await r.json();
+        const el = document.getElementById('doc-list');
+        document.getElementById('doc-count').textContent = `${documents.length} document${documents.length !== 1 ? 's' : ''}`;
+        if (!documents.length) {
+          el.innerHTML = '<div class="empty-state">Aucun document publié pour l\'instant.<br>Vos investisseurs seront notifiés dès votre premier upload.</div>';
+          return;
+        }
+        el.innerHTML = documents.map((d, i) => `
+          <div class="doc-row" style="animation-delay:${i * 0.06}s">
+            <div class="doc-icon">${TYPE_ICONS[d.type] || '�x'}</div>
+            <div class="doc-meta">
+              <p class="doc-title">${d.title}</p>
+              <p class="doc-sub">${fmt_date(d.uploaded_at)} · ${fmt_size(d.size)}${d.description ? ' · ' + d.description.slice(0, 60) + (d.description.length > 60 ? '⬦' : '') : ''}</p>
+            </div>
+            <span class="doc-type-badge">${TYPE_LABELS[d.type] || d.type}</span>
+            <div class="doc-actions">
+              <a class="button ghost" href="/api/documents/file/${d.id}" target="_blank" style="font-size:0.78rem; padding:6px 12px;">Voir</a>
+              <button class="btn-del" onclick="deleteDoc(${d.id})">Supprimer</button>
+            </div>
+          </div>`).join('');
+      }
+
+      async function deleteDoc(id) {
+        if (!confirm('Supprimer ce document ? Cette action est irréversible.')) return;
+        const r = await fetch(`/api/startup/documents/${id}`, { method: 'DELETE', credentials: 'include' });
+        if (r.ok) { showToast('Document supprimé'); loadDocuments(); }
+        else showToast('Erreur lors de la suppression', 'error');
+      }
+
+      init();
+    </script>
+  </body>
+</html>
+

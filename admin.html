@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin � Invest BG</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Libre+Franklin:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" />
+  <style>
+    .admin-wrap { max-width: 900px; margin: 0 auto; padding: 40px var(--gutter) 80px; }
+    .admin-title { font-family: var(--font-heading); font-size: 2rem; font-weight: 400; margin-bottom: 8px; }
+    .admin-sub { color: var(--muted); margin-bottom: 48px; font-size: 0.9rem; }
+
+    .admin-section { margin-bottom: 56px; }
+    .admin-section h2 { font-family: var(--font-heading); font-size: 1.2rem; font-weight: 400; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-full { grid-column: 1 / -1; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 0.8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    .form-group input, .form-group textarea, .form-group select {
+      padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line);
+      background: rgba(255,255,255,0.7); font-family: inherit; font-size: 0.92rem;
+      color: var(--text); transition: border-color .18s, box-shadow .18s;
+    }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+      outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(224,122,79,0.12);
+    }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+    .form-hint { font-size: 0.78rem; color: var(--muted); }
+
+    .form-actions { display: flex; gap: 12px; margin-top: 24px; align-items: center; }
+    .msg { font-size: 0.88rem; padding: 8px 14px; border-radius: 8px; }
+    .msg.ok { background: rgba(22,163,74,0.1); color: #16a34a; }
+    .msg.err { background: rgba(224,93,58,0.1); color: #e05d3a; }
+
+    /* Startup list */
+    .startup-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line);
+      background: rgba(255,255,255,0.5); margin-bottom: 10px;
+    }
+    .startup-row-logo { width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; color: #fff; flex-shrink: 0; }
+    .startup-row-info { flex: 1; }
+    .startup-row-name { font-weight: 600; font-size: 0.95rem; }
+    .startup-row-meta { font-size: 0.8rem; color: var(--muted); }
+    .startup-row-actions { display: flex; gap: 8px; }
+    .btn-edit { padding: 6px 14px; border-radius: 8px; border: 1px solid var(--line); background: rgba(255,255,255,0.8); font-family: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer; color: var(--text); transition: background .15s; }
+    .btn-edit:hover { background: #fff; }
+    .btn-del { padding: 6px 14px; border-radius: 8px; border: 1px solid rgba(224,93,58,0.3); background: rgba(224,93,58,0.07); font-family: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer; color: #e05d3a; transition: background .15s; }
+    .btn-del:hover { background: rgba(224,93,58,0.14); }
+
+    .badge-open { font-size: 0.72rem; padding: 2px 8px; border-radius: 20px; background: rgba(22,163,74,0.1); color: #16a34a; font-weight: 600; }
+    .badge-closed { font-size: 0.72rem; padding: 2px 8px; border-radius: 20px; background: rgba(111,106,98,0.1); color: var(--muted); font-weight: 600; }
+
+    .team-kpi-group { display: flex; flex-direction: column; gap: 8px; }
+    .team-kpi-row { display: flex; gap: 8px; align-items: center; }
+    .team-kpi-row input { flex: 1; }
+    .btn-add-row { padding: 6px 12px; border-radius: 8px; border: 1px dashed var(--line); background: transparent; font-family: inherit; font-size: 0.82rem; cursor: pointer; color: var(--muted); transition: color .15s, border-color .15s; }
+    .btn-add-row:hover { color: var(--accent); border-color: var(--accent); }
+    .btn-remove-row { padding: 4px 8px; border-radius: 6px; border: none; background: rgba(224,93,58,0.1); color: #e05d3a; cursor: pointer; font-size: 0.82rem; font-weight: 700; flex-shrink: 0; }
+
+    .color-preview { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--line); display: inline-block; vertical-align: middle; }
+    .color-row { display: flex; gap: 8px; align-items: center; }
+    .color-row input[type="color"] { width: 40px; height: 34px; padding: 2px; border-radius: 8px; border: 1px solid var(--line); cursor: pointer; background: transparent; }
+
+    /* ���� Upload image ���� */
+    .img-upload-zone {
+      width: 80px; height: 80px; border-radius: 16px; border: 2px dashed var(--line);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; overflow: hidden; position: relative; flex-shrink: 0;
+      transition: border-color .18s, background .18s;
+      background: rgba(255,255,255,0.6);
+    }
+    .img-upload-zone:hover { border-color: var(--accent); background: rgba(224,122,79,0.04); }
+    .img-upload-zone img { width: 100%; height: 100%; object-fit: cover; display: none; }
+    .img-upload-zone .upload-placeholder { font-size: 1.4rem; color: var(--muted); pointer-events: none; }
+    .img-upload-zone.has-img img { display: block; }
+    .img-upload-zone.has-img .upload-placeholder { display: none; }
+
+    .founder-avatar-upload {
+      width: 36px; height: 36px; border-radius: 50%; border: 2px dashed var(--line);
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+      overflow: hidden; flex-shrink: 0; background: rgba(255,255,255,0.6);
+      transition: border-color .18s;
+    }
+    .founder-avatar-upload:hover { border-color: var(--accent); }
+    .founder-avatar-upload img { width: 100%; height: 100%; object-fit: cover; display: none; }
+    .founder-avatar-upload .fav-placeholder { font-size: 0.9rem; color: var(--muted); pointer-events: none; }
+    .founder-avatar-upload.has-img img { display: block; }
+    .founder-avatar-upload.has-img .fav-placeholder { display: none; }
+
+    .logo-row { display: flex; gap: 16px; align-items: flex-start; }
+    .logo-row-info { display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+    .logo-row-info small { font-size: 0.75rem; color: var(--muted); }
+
+    /* ���� Modale crop ���� */
+    .crop-overlay {
+      display: none; position: fixed; inset: 0; z-index: 999;
+      background: rgba(10,9,8,0.85); backdrop-filter: blur(8px);
+      align-items: center; justify-content: center; padding: 24px;
+    }
+    .crop-overlay.open { display: flex; }
+    .crop-box {
+      background: var(--bg); border-radius: 24px; padding: 32px;
+      max-width: 560px; width: 100%; box-shadow: 0 40px 100px rgba(0,0,0,0.4);
+      display: flex; flex-direction: column; gap: 20px;
+    }
+    .crop-box h3 { font-family: var(--font-heading); font-size: 1.1rem; font-weight: 400; }
+    .crop-box small { color: var(--muted); font-size: 0.78rem; }
+    .crop-img-wrap { max-height: 380px; overflow: hidden; border-radius: 12px; background: #111; }
+    .crop-img-wrap img { display: block; max-width: 100%; }
+    .crop-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .crop-hint { display: flex; gap: 20px; flex-wrap: wrap; }
+    .crop-hint span { font-size: 0.78rem; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
+      <div id="nav-links" class="nav-links">
+        <a class="nav-link" href="startups.html">Startups</a>
+        <span class="nav-link" id="admin-email" style="color:var(--muted);font-size:.85rem;"></span>
+        <button class="button ghost" id="nav-logout">Se déconnecter</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="admin-wrap">
+    <h1 class="admin-title">Espace admin</h1>
+    <p class="admin-sub">Gérer le catalogue de startups visible sur la plateforme.</p>
+
+    <!-- Liste des startups -->
+    <div class="admin-section">
+      <h2>Startups publiées</h2>
+      <div id="startup-list"><p style="color:var(--muted);font-size:.9rem;">Chargement⬦</p></div>
+    </div>
+
+    <!-- Formulaire ajout / édition -->
+    <div class="admin-section">
+      <h2 id="form-title">Ajouter une startup</h2>
+
+      <form id="startup-form">
+        <input type="hidden" id="edit-id" value="" />
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Nom *</label>
+            <input type="text" id="f-name" required placeholder="ex: Lumi" />
+          </div>
+          <div class="form-group">
+            <label>Tagline *</label>
+            <input type="text" id="f-tagline" required placeholder="ex: L'IA qui prédit les ruptures de stock" />
+          </div>
+
+          <div class="form-group">
+            <label>Secteur *</label>
+            <select id="f-sector" required>
+              <option value="SaaS">SaaS</option>
+              <option value="Fintech">Fintech</option>
+              <option value="HealthTech">HealthTech</option>
+              <option value="EdTech">EdTech</option>
+              <option value="CleanTech">CleanTech</option>
+              <option value="DeepTech">DeepTech</option>
+              <option value="Marketplace">Marketplace</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Stade *</label>
+            <select id="f-stage" required>
+              <option value="Pré-seed">Pré-seed</option>
+              <option value="Seed">Seed</option>
+              <option value="Série A">Série A</option>
+              <option value="Série B+">Série B+</option>
+            </select>
+          </div>
+
+          <div class="form-group form-full">
+            <label>Logo de la startup</label>
+            <div class="logo-row">
+              <div class="img-upload-zone" id="logo-zone">
+                <img id="logo-preview-img" src="" alt="logo" />
+                <span class="upload-placeholder">�9</span>
+              </div>
+              <input type="file" id="logo-file" accept="image/*" style="display:none;" />
+              <input type="hidden" id="f-logo-url" value="" />
+              <div class="logo-row-info">
+                <small>Cliquez pour uploader (PNG, JPG · max 5 Mo)</small>
+                <small>Si vide, la couleur + lettre sera utilisée à la place.</small>
+                <div class="color-row" style="margin-top:6px;">
+                  <input type="color" id="f-color" value="#4f46e5" />
+                  <span id="color-preview" style="background:#4f46e5;" class="color-preview"></span>
+                  <span id="color-hex" style="font-size:.85rem;color:var(--muted);">#4f46e5</span>
+                  <input type="text" id="f-emoji" maxlength="2" placeholder="lettre/emoji" style="width:80px;flex:none;" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Fondée en</label>
+            <input type="text" id="f-founded" placeholder="2023" />
+          </div>
+          <div class="form-group">
+            <label>Collaborateurs</label>
+            <input type="text" id="f-employees" placeholder="8" />
+          </div>
+          <div class="form-group">
+            <label>Montant levé</label>
+            <input type="text" id="f-raised" placeholder="480 k��" />
+          </div>
+          <div class="form-group">
+            <label>Ticket minimum</label>
+            <input type="text" id="f-ticket" placeholder="1 000 ��" />
+          </div>
+
+          <div class="form-group">
+            <label>Statut du tour</label>
+            <select id="f-open">
+              <option value="true">Ouvert aux investisseurs</option>
+              <option value="false">Tour fermé</option>
+            </select>
+          </div>
+          <div></div>
+
+          <div class="form-group">
+            <label>Site web</label>
+            <input type="url" id="f-website" placeholder="https://⬦" />
+          </div>
+          <div class="form-group">
+            <label>LinkedIn</label>
+            <input type="url" id="f-linkedin" placeholder="https://linkedin.com/company/⬦" />
+          </div>
+
+          <div class="form-group form-full">
+            <label>Description *</label>
+            <textarea id="f-description" required placeholder="Présentation générale de la startup⬦" rows="3"></textarea>
+          </div>
+          <div class="form-group form-full">
+            <label>Le problème</label>
+            <textarea id="f-problem" placeholder="Quel problème résout-elle ?" rows="2"></textarea>
+          </div>
+          <div class="form-group form-full">
+            <label>La solution</label>
+            <textarea id="f-solution" placeholder="Comment ?" rows="2"></textarea>
+          </div>
+          <div class="form-group form-full">
+            <label>Le marché</label>
+            <textarea id="f-market" placeholder="Taille du marché, opportunité⬦" rows="2"></textarea>
+          </div>
+        </div>
+
+        <!-- �0quipe -->
+        <div class="form-group" style="margin-top:20px;">
+          <label>�0quipe</label>
+          <div class="team-kpi-group" id="team-rows"></div>
+          <button type="button" class="btn-add-row" onclick="addTeamRow()">+ Ajouter un membre</button>
+        </div>
+
+        <!-- KPIs -->
+        <div class="form-group" style="margin-top:20px;">
+          <label>Chiffres clés (KPIs)</label>
+          <div class="team-kpi-group" id="kpi-rows"></div>
+          <button type="button" class="btn-add-row" onclick="addKpiRow()">+ Ajouter un KPI</button>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="button primary" id="submit-btn">Publier la startup</button>
+          <button type="button" class="button ghost" id="cancel-btn" style="display:none;" onclick="resetForm()">Annuler</button>
+          <span id="form-msg" class="msg" style="display:none;"></span>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modale de recadrage (doit être dans le DOM avant le script) -->
+  <div class="crop-overlay" id="crop-overlay">
+    <div class="crop-box">
+      <div>
+        <h3>Recadrer l'image</h3>
+        <small>Déplacez et zoomez pour choisir la zone à conserver.</small>
+      </div>
+      <div class="crop-img-wrap">
+        <img id="crop-img" src="" alt="crop" style="max-width:100%;" />
+      </div>
+      <div class="crop-hint">
+        <span>�x� Glisser pour déplacer</span>
+        <span>�!� Molette pour zoomer</span>
+        <span>�  Coins pour redimensionner</span>
+      </div>
+      <div class="crop-actions">
+        <button type="button" class="button ghost" id="crop-cancel">Annuler</button>
+        <button type="button" class="button primary" id="crop-confirm">Valider le recadrage</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+  <script>
+    // ���� Auth check ����������������������������������������������������������������������������������������������������������������
+    fetch('/api/admin/me', { credentials: 'include' })
+      .then(async r => {
+        if (r.status === 401) { window.location.href = 'login.html'; return; }
+        if (r.status === 403) {
+          document.querySelector('.admin-wrap').innerHTML = `
+            <div style="padding:60px 0;text-align:center;">
+              <p style="font-size:1.1rem;font-weight:600;">Accès refusé</p>
+              <p style="color:var(--muted);margin-top:8px;">Votre compte n'a pas les droits administrateur.</p>
+              <a href="index.html" class="button" style="margin-top:24px;display:inline-flex;">Retour à l'accueil</a>
+            </div>`;
+          return;
+        }
+        if (!r.ok) throw new Error('Erreur serveur ' + r.status);
+        const data = await r.json();
+        document.getElementById('admin-email').textContent = data.email;
+        document.getElementById('nav-logout').addEventListener('click', async () => {
+          await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+          window.location.href = 'login.html';
+        });
+        loadStartups();
+      })
+      .catch(err => {
+        document.querySelector('.admin-wrap').innerHTML = `
+          <div style="padding:60px 0;text-align:center;">
+            <p style="font-size:1.1rem;font-weight:600;color:#e05d3a;">Impossible de contacter le serveur</p>
+            <p style="color:var(--muted);margin-top:8px;">Vérifiez que le serveur est démarré (node server.js).</p>
+            <a href="index.html" class="button" style="margin-top:24px;display:inline-flex;">Retour à l'accueil</a>
+          </div>`;
+      });
+
+    // ���� Couleur live ������������������������������������������������������������������������������������������������������������
+    document.getElementById('f-color').addEventListener('input', e => {
+      document.getElementById('color-preview').style.background = e.target.value;
+      document.getElementById('color-hex').textContent = e.target.value;
+    });
+
+    // ���� Cropper ����������������������������������������������������������������������������������������������������������������������
+    let cropperInstance = null;
+    let cropCallback   = null;
+
+    function openCropper(file, aspectRatio, onConfirm) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.getElementById('crop-img');
+        if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
+        // onload AVANT src pour éviter la race condition sur les data URLs
+        img.onload = () => {
+          cropperInstance = new Cropper(img, {
+            aspectRatio,
+            viewMode: 1,
+            dragMode: 'move',
+            autoCropArea: 0.85,
+            guides: true,
+            center: true,
+            highlight: false,
+            cropBoxMovable: true,
+            cropBoxResizable: true,
+            toggleDragModeOnDblclick: false,
+          });
+        };
+        img.src = e.target.result;
+        document.getElementById('crop-overlay').classList.add('open');
+      };
+      cropCallback = onConfirm;
+      reader.readAsDataURL(file);
+    }
+
+    document.getElementById('crop-confirm').addEventListener('click', () => {
+      if (!cropperInstance) return;
+      cropperInstance.getCroppedCanvas({ width: 400, height: 400, imageSmoothingQuality: 'high' })
+        .toBlob(blob => { const cb = cropCallback; closeCropper(); if (cb) cb(blob); }, 'image/jpeg', 0.92);
+    });
+    document.getElementById('crop-cancel').addEventListener('click', closeCropper);
+
+    function closeCropper() {
+      document.getElementById('crop-overlay').classList.remove('open');
+      if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
+      cropCallback = null;
+    }
+
+    async function uploadBlob(blob, filename = 'image.jpg') {
+      const fd = new FormData();
+      fd.append('image', new File([blob], filename, { type: 'image/jpeg' }));
+      const r = await fetch('/api/admin/upload-image', { method: 'POST', credentials: 'include', body: fd });
+      if (!r.ok) throw new Error('upload failed');
+      return (await r.json()).url;
+    }
+
+    // ���� Upload logo ��������������������������������������������������������������������������������������������������������������
+    document.getElementById('logo-zone').addEventListener('click', () => document.getElementById('logo-file').click());
+    document.getElementById('logo-file').addEventListener('change', function () {
+      if (!this.files[0]) return;
+      const file = this.files[0]; this.value = '';
+      openCropper(file, 1, async blob => {
+        try {
+          const url = await uploadBlob(blob, 'logo.jpg');
+          document.getElementById('f-logo-url').value = url;
+          document.getElementById('logo-preview-img').src = url;
+          document.getElementById('logo-zone').classList.add('has-img');
+        } catch { showMsg('err', 'Erreur upload logo'); }
+      });
+    });
+
+    // ���� �0quipe rows ��������������������������������������������������������������������������������������������������������������
+    function addTeamRow(name = '', role = '', color = '', photo = '') {
+      const container = document.getElementById('team-rows');
+      const row = document.createElement('div');
+      row.className = 'team-kpi-row';
+      row.innerHTML = `
+        <div class="founder-avatar-upload${photo ? ' has-img' : ''}" title="Cliquer pour uploader une photo">
+          <img src="${photo || ''}" alt="" />
+          <span class="fav-placeholder">�9</span>
+        </div>
+        <input type="hidden" class="founder-photo-url" value="${photo}" />
+        <input type="text" placeholder="Nom" value="${name}" style="flex:1.2;" />
+        <input type="text" placeholder="Rôle (ex: CEO · ex-Doctolib)" value="${role}" style="flex:2;" />
+        <input type="color" value="${color || '#4f46e5'}" style="width:36px;height:34px;padding:2px;border-radius:8px;border:1px solid var(--line);cursor:pointer;flex-shrink:0;" />
+        <button type="button" class="btn-remove-row" onclick="this.parentNode.remove()">�</button>
+      `;
+      // Upload photo avec recadrage
+      const zone = row.querySelector('.founder-avatar-upload');
+      zone.addEventListener('click', () => {
+        const fi = document.createElement('input');
+        fi.type = 'file'; fi.accept = 'image/*';
+        fi.onchange = () => {
+          if (!fi.files[0]) return;
+          const file = fi.files[0];
+          openCropper(file, 1, async blob => {
+            try {
+              const url = await uploadBlob(blob, 'founder.jpg');
+              row.querySelector('.founder-photo-url').value = url;
+              zone.querySelector('img').src = url;
+              zone.classList.add('has-img');
+            } catch { /* silently fail */ }
+          });
+        };
+        fi.click();
+      });
+      container.appendChild(row);
+    }
+
+    function getTeamRows() {
+      return [...document.querySelectorAll('#team-rows .team-kpi-row')].map(row => {
+        const inputs = row.querySelectorAll('input[type="text"], input[type="color"]');
+        const photo = row.querySelector('.founder-photo-url')?.value || '';
+        return { name: inputs[0].value.trim(), role: inputs[1].value.trim(), color: inputs[2].value, photo };
+      }).filter(m => m.name);
+    }
+
+    // ���� KPI rows ��������������������������������������������������������������������������������������������������������������������
+    function addKpiRow(value = '', label = '') {
+      const container = document.getElementById('kpi-rows');
+      const row = document.createElement('div');
+      row.className = 'team-kpi-row';
+      row.innerHTML = `
+        <input type="text" placeholder="Valeur (ex: 94 %)" value="${value}" style="flex:1;" />
+        <input type="text" placeholder="Label (ex: Précision IA)" value="${label}" style="flex:2;" />
+        <button type="button" class="btn-remove-row" onclick="this.parentNode.remove()">�</button>
+      `;
+      container.appendChild(row);
+    }
+
+    function getKpiRows() {
+      return [...document.querySelectorAll('#kpi-rows .team-kpi-row')].map(row => {
+        const inputs = row.querySelectorAll('input');
+        return { value: inputs[0].value.trim(), label: inputs[1].value.trim() };
+      }).filter(k => k.value && k.label);
+    }
+
+    // ���� Load & render list ��������������������������������������������������������������������������������������������������
+    let catalog = [];
+    async function loadStartups() {
+      const r = await fetch('/api/startups');
+      const json = await r.json();
+      catalog = json.startups || [];
+      renderList();
+    }
+
+    function renderList() {
+      const el = document.getElementById('startup-list');
+      if (!catalog.length) { el.innerHTML = '<p style="color:var(--muted);font-size:.9rem;">Aucune startup pour l\'instant.</p>'; return; }
+      el.innerHTML = catalog.map(s => `
+        <div class="startup-row">
+          <div class="startup-row-logo" style="background:${s.color}">${s.emoji || s.name.charAt(0)}</div>
+          <div class="startup-row-info">
+            <div class="startup-row-name">${s.name} <span class="${s.open ? 'badge-open' : 'badge-closed'}">${s.open ? 'Ouvert' : 'Fermé'}</span></div>
+            <div class="startup-row-meta">${s.sector} · ${s.stage} · ${s.tagline}</div>
+          </div>
+          <div class="startup-row-actions">
+            <button class="btn-edit" onclick="editStartup(${s.id})">Modifier</button>
+            <button class="btn-del" onclick="deleteStartup(${s.id}, '${s.name.replace(/'/g, "\\'")}')">Supprimer</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ���� Edit ����������������������������������������������������������������������������������������������������������������������������
+    function editStartup(id) {
+      const s = catalog.find(x => x.id === id);
+      if (!s) return;
+      document.getElementById('edit-id').value = s.id;
+      document.getElementById('f-name').value = s.name;
+      document.getElementById('f-tagline').value = s.tagline;
+      document.getElementById('f-sector').value = s.sector;
+      document.getElementById('f-stage').value = s.stage;
+      document.getElementById('f-color').value = s.color;
+      document.getElementById('color-preview').style.background = s.color;
+      document.getElementById('color-hex').textContent = s.color;
+      document.getElementById('f-emoji').value = s.emoji || '';
+      document.getElementById('f-founded').value = s.founded || '';
+      document.getElementById('f-employees').value = s.employees || '';
+      document.getElementById('f-raised').value = s.raised || '';
+      document.getElementById('f-ticket').value = s.ticket || '';
+      document.getElementById('f-open').value = s.open ? 'true' : 'false';
+      document.getElementById('f-website').value = s.website || '';
+      document.getElementById('f-linkedin').value = s.linkedin || '';
+      // Logo
+      const logoUrl = s.logo_url || '';
+      document.getElementById('f-logo-url').value = logoUrl;
+      const logoZone = document.getElementById('logo-zone');
+      if (logoUrl) {
+        document.getElementById('logo-preview-img').src = logoUrl;
+        logoZone.classList.add('has-img');
+      } else {
+        document.getElementById('logo-preview-img').src = '';
+        logoZone.classList.remove('has-img');
+      }
+      document.getElementById('f-description').value = s.description || '';
+      document.getElementById('f-problem').value = s.problem || '';
+      document.getElementById('f-solution').value = s.solution || '';
+      document.getElementById('f-market').value = s.market || '';
+
+      document.getElementById('team-rows').innerHTML = '';
+      (s.team || []).forEach(m => addTeamRow(m.name, m.role, m.color, m.photo || ''));
+
+      document.getElementById('kpi-rows').innerHTML = '';
+      (s.kpis || []).forEach(k => addKpiRow(k.value, k.label));
+
+      document.getElementById('form-title').textContent = 'Modifier � ' + s.name;
+      document.getElementById('submit-btn').textContent = 'Enregistrer les modifications';
+      document.getElementById('cancel-btn').style.display = 'inline-flex';
+      document.getElementById('startup-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function resetForm() {
+      document.getElementById('edit-id').value = '';
+      document.getElementById('startup-form').reset();
+      document.getElementById('team-rows').innerHTML = '';
+      document.getElementById('kpi-rows').innerHTML = '';
+      document.getElementById('form-title').textContent = 'Ajouter une startup';
+      document.getElementById('submit-btn').textContent = 'Publier la startup';
+      document.getElementById('cancel-btn').style.display = 'none';
+      document.getElementById('f-color').value = '#4f46e5';
+      document.getElementById('color-preview').style.background = '#4f46e5';
+      document.getElementById('color-hex').textContent = '#4f46e5';
+      document.getElementById('f-logo-url').value = '';
+      document.getElementById('logo-preview-img').src = '';
+      document.getElementById('logo-zone').classList.remove('has-img');
+      showMsg('', '');
+    }
+
+    // ���� Delete ������������������������������������������������������������������������������������������������������������������������
+    async function deleteStartup(id, name) {
+      if (!confirm(`Supprimer "${name}" du catalogue ?`)) return;
+      const r = await fetch(`/api/admin/startups/${id}`, { method: 'DELETE', credentials: 'include' });
+      if (r.ok) { await loadStartups(); }
+      else { alert('Erreur lors de la suppression.'); }
+    }
+
+    // ���� Submit ������������������������������������������������������������������������������������������������������������������������
+    function showMsg(type, text) {
+      const el = document.getElementById('form-msg');
+      if (!text) { el.style.display = 'none'; return; }
+      el.className = 'msg ' + type;
+      el.textContent = text;
+      el.style.display = 'inline-block';
+    }
+
+    document.getElementById('startup-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const editId = document.getElementById('edit-id').value;
+      const payload = {
+        name: document.getElementById('f-name').value.trim(),
+        tagline: document.getElementById('f-tagline').value.trim(),
+        sector: document.getElementById('f-sector').value,
+        stage: document.getElementById('f-stage').value,
+        color: document.getElementById('f-color').value,
+        emoji: document.getElementById('f-emoji').value.trim() || document.getElementById('f-name').value.trim().charAt(0).toUpperCase(),
+        founded: document.getElementById('f-founded').value.trim(),
+        employees: document.getElementById('f-employees').value.trim(),
+        raised: document.getElementById('f-raised').value.trim(),
+        ticket: document.getElementById('f-ticket').value.trim(),
+        open: document.getElementById('f-open').value === 'true',
+        logo_url: document.getElementById('f-logo-url').value,
+        website: document.getElementById('f-website').value.trim(),
+        linkedin: document.getElementById('f-linkedin').value.trim(),
+        description: document.getElementById('f-description').value.trim(),
+        problem: document.getElementById('f-problem').value.trim(),
+        solution: document.getElementById('f-solution').value.trim(),
+        market: document.getElementById('f-market').value.trim(),
+        team: getTeamRows(),
+        kpis: getKpiRows(),
+      };
+
+      const url = editId ? `/api/admin/startups/${editId}` : '/api/admin/startups';
+      const method = editId ? 'PUT' : 'POST';
+
+      const r = await fetch(url, {
+        method,
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (r.ok) {
+        showMsg('ok', editId ? 'Modifications enregistrées.' : 'Startup publiée avec succès.');
+        resetForm();
+        await loadStartups();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        const json = await r.json().catch(() => ({}));
+        showMsg('err', json.error || 'Une erreur est survenue.');
+      }
+    });
+  </script>
+</body>
+</html>
+

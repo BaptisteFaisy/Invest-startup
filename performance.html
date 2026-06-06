@@ -3,538 +3,31 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Invest BG - Performance</title>
+    <title>LIQUID+ — Performance</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Libre+Franklin:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
-    <style>
-      /* ── Page sections ───────────────────────────────────────────────── */
-      .perf-hero {
-        display: grid;
-        gap: 28px;
-        max-width: 680px;
-        animation: fadeUp .6s ease both;
-      }
-      .perf-hero h1 {
-        font-size: clamp(2.4rem, 4vw, 3.8rem);
-      }
-      .perf-hero .lead { font-size: 1.05rem; color: var(--muted); line-height: 1.7; }
-
-      .perf-kpis {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-      }
-      .perf-kpi {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        padding: 14px 22px;
-        border-radius: 16px;
-        background: rgba(255,255,255,0.72);
-        border: 1px solid var(--line);
-        box-shadow: var(--shadow-sm);
-        animation: fadeUp .6s ease both;
-      }
-      .perf-kpi strong {
-        font-size: 1.55rem;
-        font-weight: 600;
-        color: var(--accent-strong);
-        line-height: 1;
-      }
-      .perf-kpi span { font-size: 0.78rem; color: var(--muted); font-weight: 500; }
-
-      /* ── Carte comparatif (fond sombre) ─────────────────────────────── */
-      .compare-card {
-        background: linear-gradient(145deg, #1e1c19 0%, #252320 100%);
-        border: 1px solid rgba(255,255,255,0.07);
-        border-radius: 24px;
-        padding: 28px 28px 20px;
-        box-shadow: 0 32px 80px rgba(0,0,0,0.28);
-        animation: fadeUp .6s ease both .15s;
-      }
-      .compare-header {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 16px;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
-      }
-      .compare-title {
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: .18em;
-        color: rgba(247,243,238,0.45);
-      }
-      .compare-sub {
-        font-size: 0.75rem;
-        color: rgba(247,243,238,0.25);
-        margin-top: 4px;
-      }
-
-      /* Légende */
-      .compare-legend {
-        display: flex;
-        gap: 16px;
-        flex-wrap: wrap;
-      }
-      .cleg {
-        display: flex;
-        align-items: center;
-        gap: 7px;
-        font-size: 0.78rem;
-        color: rgba(247,243,238,0.65);
-        font-weight: 500;
-      }
-      .cleg-dot {
-        width: 10px; height: 10px; border-radius: 50%;
-        flex-shrink: 0;
-      }
-
-      /* SVG chart */
-      .compare-svg { width: 100%; height: auto; display: block; overflow: visible; }
-
-      .cline {
-        fill: none;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-      }
-      .cline-pe {
-        stroke: #2de0bc;
-        stroke-width: 2.5;
-        stroke-dasharray: 800;
-        stroke-dashoffset: 800;
-        animation: draw 2.4s cubic-bezier(.4,0,.2,1) forwards .3s;
-      }
-      .cline-cac {
-        stroke: #f5a06a;
-        stroke-width: 2;
-        stroke-dasharray: 600;
-        stroke-dashoffset: 600;
-        animation: draw 2.4s cubic-bezier(.4,0,.2,1) forwards .6s;
-      }
-      .cline-immo {
-        stroke: #8bb8d4;
-        stroke-width: 2;
-        stroke-dasharray: 550;
-        stroke-dashoffset: 550;
-        animation: draw 2.4s cubic-bezier(.4,0,.2,1) forwards .9s;
-      }
-      .cline-livret {
-        stroke: rgba(247,243,238,0.28);
-        stroke-width: 1.5;
-        stroke-dasharray: 540;
-        stroke-dashoffset: 540;
-        animation: draw 2.4s cubic-bezier(.4,0,.2,1) forwards 1.2s;
-      }
-
-      .carea-pe {
-        opacity: 0;
-        animation: rise 1s ease forwards 2.5s;
-      }
-
-      .cend-dot {
-        transform-box: fill-box;
-        transform-origin: center;
-        opacity: 0;
-        transform: scale(0);
-        animation: dot-pop .35s ease forwards;
-      }
-
-      .clabel {
-        opacity: 0;
-        animation: fade-in .4s ease forwards;
-      }
-
-      /* ── Avantages ────────────────────────────────────────────────────── */
-      .adv-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 18px;
-      }
-      .adv-card {
-        padding: 28px 26px;
-        border-radius: 20px;
-        border: 1px solid var(--line);
-        background: rgba(255,255,255,0.65);
-        display: grid;
-        gap: 14px;
-        transition: transform .22s, box-shadow .22s, background .22s;
-      }
-      .adv-card:hover {
-        transform: translateY(-4px);
-        box-shadow: var(--shadow);
-        background: rgba(255,255,255,0.9);
-      }
-      .adv-icon {
-        width: 48px; height: 48px; border-radius: 14px;
-        background: linear-gradient(135deg, rgba(31,142,122,.1), rgba(224,122,79,.06));
-        border: 1px solid rgba(31,142,122,.2);
-        display: flex; align-items: center; justify-content: center;
-        color: var(--accent-strong);
-      }
-      .adv-card h3 { font-size: 1rem; font-weight: 700; letter-spacing: -.01em; }
-      .adv-card p  { font-size: 0.9rem; color: var(--muted); line-height: 1.65; }
-
-      /* ── Tableau comparatif ───────────────────────────────────────────── */
-      .comp-table {
-        border-radius: 20px;
-        overflow: hidden;
-        border: 1px solid var(--line);
-        box-shadow: var(--shadow-sm);
-      }
-      .comp-table table {
-        width: 100%;
-        border-collapse: collapse;
-        background: rgba(255,255,255,0.72);
-        font-size: 0.9rem;
-      }
-      .comp-table th {
-        padding: 14px 20px;
-        text-align: left;
-        font-size: 0.72rem;
-        text-transform: uppercase;
-        letter-spacing: .14em;
-        color: var(--muted);
-        font-weight: 600;
-        background: rgba(255,255,255,0.5);
-        border-bottom: 1px solid var(--line);
-      }
-      .comp-table td {
-        padding: 16px 20px;
-        border-bottom: 1px solid rgba(31,29,26,0.06);
-        color: var(--text);
-      }
-      .comp-table tr:last-child td { border-bottom: none; }
-      .comp-table tr.highlight td { background: rgba(31,142,122,0.05); }
-      .comp-table tr.highlight td:first-child { font-weight: 700; color: var(--accent-strong); }
-
-      .return-pill {
-        display: inline-flex; align-items: center;
-        padding: 3px 10px; border-radius: 999px;
-        font-size: 0.8rem; font-weight: 700;
-      }
-      .return-pill.high {
-        background: rgba(31,142,122,.1); color: var(--accent-strong);
-        border: 1px solid rgba(31,142,122,.2);
-      }
-      .return-pill.mid {
-        background: rgba(245,160,106,.1); color: #c0692b;
-        border: 1px solid rgba(245,160,106,.25);
-      }
-      .return-pill.low {
-        background: rgba(111,106,98,.08); color: var(--muted);
-        border: 1px solid var(--line);
-      }
-
-      /* ── CTA ──────────────────────────────────────────────────────────── */
-      .perf-cta {
-        padding: 48px 52px;
-        border-radius: 26px;
-        background: linear-gradient(135deg, var(--accent-strong) 0%, var(--accent) 100%);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 24px;
-        flex-wrap: wrap;
-        animation: fadeUp .6s ease both .2s;
-      }
-      .perf-cta h2 {
-        font-size: clamp(1.5rem, 2.5vw, 2rem);
-        color: #fff;
-        font-weight: 600;
-        max-width: 480px;
-        line-height: 1.2;
-      }
-      .perf-cta p { font-size: 0.9rem; color: rgba(255,255,255,.75); margin-top: 8px; }
-      .button.white {
-        background: rgba(255,255,255,.96);
-        color: var(--text);
-        font-weight: 700;
-        flex-shrink: 0;
-      }
-      .button.white:hover { background: #fff; transform: translateY(-2px); }
-
-      /* ── Risque disclaimer ────────────────────────────────────────────── */
-      .risk-note {
-        font-size: 0.78rem;
-        color: var(--muted);
-        padding: 14px 18px;
-        border-radius: 12px;
-        border: 1px solid var(--line);
-        background: rgba(255,255,255,0.5);
-        line-height: 1.6;
-      }
-
-      /* ── Responsive ──────────────────────────────────────────────────── */
-      @media (max-width: 760px) {
-        .adv-grid { grid-template-columns: 1fr; }
-        .perf-cta { padding: 28px 24px; }
-        .comp-table th:nth-child(3),
-        .comp-table td:nth-child(3) { display: none; }
-      }
-    </style>
   </head>
   <body>
     <div class="grain" aria-hidden="true"></div>
 
     <header class="site-header">
       <nav class="nav">
-        <a class="logo" href="index.html">Invest BG</a>
+        <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
         <div class="nav-links" id="nav-links">
           <a class="nav-link nav-link--active" href="performance.html">Performance</a>
-          <a class="nav-link" href="index.html#features">Comment ça marche</a>
+          <a class="nav-link" href="startups.html">Startups</a>
+          <a class="nav-link" href="comment-ca-marche.html">Comment ça marche</a>
           <a class="button ghost" href="login.html">Se connecter</a>
         </div>
       </nav>
     </header>
 
-    <main>
-      <section style="display:grid; gap:64px; padding:8vh 0 10vh;">
-
-        <!-- ── Hero ─────────────────────────────────────────────────── -->
-        <div class="perf-hero">
-          <div class="eyebrow">Notre track record</div>
-          <h1>
-            Ce que notre sélection
-            <span class="text-gradient">produit concrètement.</span>
-          </h1>
-          <p class="lead">
-            Identifier les bonnes startups au bon moment, c'est ce que nous faisons.
-            Sur les 10 dernières années (2016–2026), notre capacité de sélection
-            dans l'écosystème parisien a généré <strong>+14,6 % par an en moyenne</strong> —
-            soit presque le double du MSCI&nbsp;World et dix fois le Livret&nbsp;A.
-          </p>
-          <div class="perf-kpis">
-            <div class="perf-kpi" style="animation-delay:.05s">
-              <strong>+14,7 %</strong>
-              <span>Rendement annuel moyen (sélection)</span>
-            </div>
-            <div class="perf-kpi" style="animation-delay:.1s">
-              <strong>× 3,9</strong>
-              <span>Capital multiplié en 10 ans</span>
-            </div>
-            <div class="perf-kpi" style="animation-delay:.15s">
-              <strong>&lt; 5 %</strong>
-              <span>Des dossiers analysés sont retenus</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- ── Comparatif chart ──────────────────────────────────────── -->
-        <div class="compare-card">
-          <div class="compare-header">
-            <div>
-              <p class="compare-title">Simulation — 10 000 € investis en 2016</p>
-              <p class="compare-sub">Valeur estimée au 31 décembre de chaque année · 2016 – 2026</p>
-            </div>
-            <div class="compare-legend">
-              <div class="cleg"><span class="cleg-dot" style="background:#2de0bc"></span>Private Equity</div>
-              <div class="cleg"><span class="cleg-dot" style="background:#f5a06a"></span>MSCI World *</div>
-              <div class="cleg"><span class="cleg-dot" style="background:#8bb8d4"></span>Immobilier</div>
-              <div class="cleg"><span class="cleg-dot" style="background:rgba(247,243,238,0.35)"></span>Livret A</div>
-            </div>
-          </div>
-
-          <!--
-            ViewBox 640 × 290
-            Y-axis (x=55): €10k (y=250) → €40k (y=30)
-            X-axis: year 0 (x=60) → year 10 (x=580), step=52
-            y(v) = 265 - (v-8000)/34000 * 250
-
-            PE (14.6% CAGR lisse):       10000→11460→13133→15050→17247→19765→22651→25958→29748→34091→39068
-            MSCI World (8.7% CAGR):      10000→10870→11816→12844→13961→15174→16494→17929→19489→21185→23028
-            Immobilier (4.5%):           10000→10450→10920→11412→11925→12462→13023→13609→14221→14861→15530
-            Livret A (3%):               10000→10300→10609→10927→11255→11593→11940→12299→12668→13048→13439
-
-            Computed y-positions:
-            PE:        250,240,227,213,197,179,157,133,105,73,37
-            MSCIWorld: 250,244,237,229,221,212,203,192,181,168,155
-            Immo:      250,247,244,240,236,232,228,224,219,215,210
-            LivretA:   250,248,246,244,241,239,236,233,231,228,225
-          -->
-          <svg class="compare-svg" viewBox="0 0 640 290" fill="none"
-               xmlns="http://www.w3.org/2000/svg" aria-label="Comparatif de performance sur 10 ans">
-            <defs>
-              <linearGradient id="peAreaGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%"   stop-color="rgba(45,224,188,0.22)"/>
-                <stop offset="100%" stop-color="rgba(45,224,188,0)"/>
-              </linearGradient>
-              <filter id="glow-dot" x="-100%" y="-100%" width="300%" height="300%">
-                <feGaussianBlur stdDeviation="4" result="blur"/>
-                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-              </filter>
-            </defs>
-
-            <!-- Grilles horizontales -->
-            <line x1="60" y1="250" x2="590" y2="250" stroke="rgba(255,255,255,0.1)"  stroke-width="1"/>
-            <line x1="60" y1="177" x2="590" y2="177" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-            <line x1="60" y1="103" x2="590" y2="103" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-            <line x1="60" y1="30"  x2="590" y2="30"  stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-
-            <!-- Axe Y (ligne) -->
-            <line x1="60" y1="20" x2="60" y2="265" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-
-            <!-- Labels axe Y -->
-            <text x="54" y="253" text-anchor="end" font-family="Space Grotesk,sans-serif" font-size="8.5" fill="rgba(247,243,238,0.38)">10k€</text>
-            <text x="54" y="180" text-anchor="end" font-family="Space Grotesk,sans-serif" font-size="8.5" fill="rgba(247,243,238,0.28)">20k€</text>
-            <text x="54" y="106" text-anchor="end" font-family="Space Grotesk,sans-serif" font-size="8.5" fill="rgba(247,243,238,0.28)">30k€</text>
-            <text x="54" y="33"  text-anchor="end" font-family="Space Grotesk,sans-serif" font-size="8.5" fill="rgba(247,243,238,0.28)">40k€</text>
-
-            <!-- Labels axe X -->
-            <text x="60"  y="278" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)">2016</text>
-            <text x="112" y="278" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)">2017</text>
-            <text x="164" y="278" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)">2018</text>
-            <text x="216" y="278" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)">2019</text>
-            <text x="268" y="278" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)">2020</text>
-            <text x="320" y="278" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)">2021</text>
-            <text x="372" y="278" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)">2022</text>
-            <text x="424" y="278" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)">2023</text>
-            <text x="476" y="278" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)">2024</text>
-            <text x="528" y="278" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)">2025</text>
-            <text x="580" y="278" text-anchor="middle" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(247,243,238,0.3)">2026</text>
-
-            <!-- Zone Livret A (fond très subtil) -->
-            <path d="M 60,250 L 112,248 L 164,246 L 216,244 L 268,241 L 320,239 L 372,236 L 424,233 L 476,231 L 528,228 L 580,225 L 580,265 L 60,265 Z"
-              fill="rgba(247,243,238,0.03)"/>
-
-            <!-- Ligne Livret A -->
-            <polyline class="cline cline-livret"
-              points="60,250 112,248 164,246 216,244 268,241 320,239 372,236 424,233 476,231 528,228 580,225"/>
-
-            <!-- Ligne Immobilier -->
-            <polyline class="cline cline-immo"
-              points="60,250 112,247 164,244 216,240 268,236 320,232 372,228 424,224 476,219 528,215 580,210"/>
-
-            <!-- Ligne MSCI World -->
-            <polyline class="cline cline-cac"
-              points="60,250 112,244 164,237 216,229 268,221 320,212 372,203 424,192 476,181 528,168 580,155"/>
-
-            <!-- Zone Private Equity -->
-            <path class="carea-pe"
-              d="M 60,250 L 112,240 L 164,227 L 216,213 L 268,197 L 320,179 L 372,157 L 424,133 L 476,105 L 528,73 L 580,37 L 580,265 L 60,265 Z"
-              fill="url(#peAreaGrad)"/>
-
-            <!-- Ligne Private Equity -->
-            <polyline class="cline cline-pe"
-              points="60,250 112,240 164,227 216,213 268,197 320,179 372,157 424,133 476,105 528,73 580,37"/>
-
-            <!-- Point lumineux qui parcourt la courbe PE -->
-            <circle r="5" fill="#2de0bc" filter="url(#glow-dot)" opacity="0.9">
-              <animateMotion dur="4s" repeatCount="indefinite" begin="2.7s"
-                calcMode="spline"
-                keyPoints="0;1" keyTimes="0;1"
-                keySplines="0.4 0 0.2 1">
-                <mpath href="#pe-path-ref"/>
-              </animateMotion>
-            </circle>
-            <path id="pe-path-ref" d="M 60,250 L 112,240 L 164,227 L 216,213 L 268,197 L 320,179 L 372,157 L 424,133 L 476,105 L 528,73 L 580,37" fill="none" stroke="none"/>
-
-            <!-- Dots finaux -->
-            <circle class="cend-dot" cx="580" cy="36"  r="5" fill="#2de0bc"               style="animation-delay:2.8s"/>
-            <circle class="cend-dot" cx="580" cy="155" r="4" fill="#f5a06a"               style="animation-delay:3.1s"/>
-            <circle class="cend-dot" cx="580" cy="210" r="4" fill="#8bb8d4"               style="animation-delay:3.3s"/>
-            <circle class="cend-dot" cx="580" cy="225" r="3.5" fill="rgba(247,243,238,0.5)" style="animation-delay:3.5s"/>
-
-            <!-- Labels valeurs finales -->
-            <text class="clabel" x="590" y="40"  font-family="Space Grotesk,sans-serif" font-size="9.5" font-weight="700" fill="#2de0bc"               style="animation-delay:2.9s">€ 39 083</text>
-            <text class="clabel" x="590" y="158" font-family="Space Grotesk,sans-serif" font-size="9.5" font-weight="700" fill="#f5a06a"               style="animation-delay:3.2s">€ 23 028</text>
-            <text class="clabel" x="590" y="213" font-family="Space Grotesk,sans-serif" font-size="9.5" font-weight="700" fill="#8bb8d4"               style="animation-delay:3.4s">€ 15 530</text>
-            <text class="clabel" x="590" y="228" font-family="Space Grotesk,sans-serif" font-size="9.5" font-weight="700" fill="rgba(247,243,238,0.45)" style="animation-delay:3.6s">€ 13 439</text>
-          </svg>
-        </div>
-
-        <!-- ── Tableau comparatif ────────────────────────────────────── -->
-        <div style="display:grid; gap:20px;">
-          <h2 style="font-size:1.6rem;">
-            Ce que notre sélection produit face au marché
-          </h2>
-          <div class="comp-table">
-            <table>
-              <thead>
-                <tr>
-                  <th>Classe d'actifs</th>
-                  <th>Rendement annuel moyen</th>
-                  <th>€ 10 000 sur 10 ans</th>
-                  <th>Risque estimé</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr class="highlight">
-                  <td>Private Equity (Invest BG)</td>
-                  <td><span class="return-pill high">+14,7 %</span></td>
-                  <td><strong>€ 39 083</strong></td>
-                  <td>Élevé</td>
-                </tr>
-                <tr>
-                  <td>MSCI World (actions mondiales)</td>
-                  <td><span class="return-pill mid">+8,7 % *</span></td>
-                  <td>€ 23 028</td>
-                  <td>Élevé</td>
-                </tr>
-                <tr>
-                  <td>Immobilier locatif</td>
-                  <td><span class="return-pill mid">+4,5 %</span></td>
-                  <td>€ 15 530</td>
-                  <td>Modéré</td>
-                </tr>
-                <tr>
-                  <td>Assurance-vie (fonds €)</td>
-                  <td><span class="return-pill low">+3,5 %</span></td>
-                  <td>€ 14 106</td>
-                  <td>Faible</td>
-                </tr>
-                <tr>
-                  <td>Livret A</td>
-                  <td><span class="return-pill low">+3,0 %</span></td>
-                  <td>€ 13 439</td>
-                  <td>Très faible</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <p class="risk-note">
-            <strong>* +8,7 % par an : rendement annualisé moyen du MSCI World sur les 20 dernières années (avril 2006 – avril 2026), dividendes réinvestis, en euros.</strong>
-          </p>
-          <p class="risk-note">
-            ⚠️ Les performances passées ne préjugent pas des performances futures.
-            Tout investissement comporte un risque de perte en capital, en particulier dans les startups non cotées.
-            Les rendements affichés sont des moyennes indicatives sur la période 2016–2026 et ne constituent pas un conseil en investissement.
-          </p>
-        </div>
-
-        <!-- ── CTA ────────────────────────────────────────────────────── -->
-        <div class="perf-cta">
-          <div>
-            <h2>Accédez aux pépites avant tout le monde.</h2>
-            <p>Rejoignez notre réseau et investissez dans des startups parisiennes sélectionnées à un stade très précoce — des opportunités normalement réservées aux initiés.</p>
-          </div>
-          <div style="display:flex; gap:12px; flex-wrap:wrap;">
-            <a class="button white" href="register.html">Créer un compte</a>
-            <a class="button" style="background:rgba(255,255,255,0.15); color:#fff; border:1px solid rgba(255,255,255,0.3);" href="login.html">Se connecter</a>
-          </div>
-        </div>
-
-      </section>
-    </main>
-
-    <footer class="site-footer">
-      <div class="footer-inner">
-        <a class="logo" href="index.html">Invest BG</a>
-        <p class="footer-copy">
-          © 2026 Invest BG · Investissement à risque élevé.
-          Consultez un conseiller financier avant d'investir.
-        </p>
-      </div>
-    </footer>
-
     <script>
-      // Mettre à jour le nav si connecté
       fetch('/api/auth/me', { credentials: 'include' })
         .then(r => r.ok ? r.json() : null)
         .then(data => {
@@ -542,8 +35,10 @@
           const name = data.user.full_name ? data.user.full_name.split(' ')[0] : data.user.email;
           document.getElementById('nav-links').innerHTML = `
             <a class="nav-link nav-link--active" href="performance.html">Performance</a>
+            <a class="nav-link" href="startups.html">Startups</a>
+            <a class="nav-link" href="comment-ca-marche.html">Comment ça marche</a>
             <a class="nav-link" href="investments.html">Mes investissements</a>
-            <span class="nav-user-name">${name}</span>
+            <span class="nav-link nav-user-name">${name}</span>
             <button class="button ghost" id="nav-logout">Se déconnecter</button>
           `;
           document.getElementById('nav-logout').addEventListener('click', async () => {
@@ -553,5 +48,16 @@
         })
         .catch(() => {});
     </script>
+
+    <main style="padding: 8vh var(--gutter) 10vh;">
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
+        <p class="footer-copy">© 2026 LIQUID+ · Investissement à risque élevé. Consultez un conseiller financier avant d'investir.</p>
+      </div>
+    </footer>
+    <script src="nav.js"></script>
   </body>
 </html>

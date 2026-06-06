@@ -1,0 +1,296 @@
+[
+  {
+    "id": 1,
+    "name": "Lumi",
+    "tagline": "L'IA qui prédit les ruptures de stock en temps réel",
+    "sector": "SaaS",
+    "stage": "Seed",
+    "color": "#4f46e5",
+    "emoji": "L",
+    "founded": "2023",
+    "employees": "8",
+    "raised": "480 k€",
+    "ticket": "1 000 €",
+    "open": true,
+    "website": "https://example.com",
+    "linkedin": "https://www.linkedin.com/company/example",
+    "description": "Lumi développe une plateforme d'intelligence artificielle permettant aux retailers et distributeurs d'anticiper les ruptures de stock avec une précision de 94 %. Connectée aux ERP existants, elle réduit les pertes liées aux ruptures de 40 % dès le premier trimestre.",
+    "problem": "Les ruptures de stock coûtent 1 000 Md€ par an aux retailers mondiaux. Les outils actuels de prévision sont soit trop complexes, soit trop peu précis pour les PME.",
+    "solution": "Un modèle prédictif entraîné sur des données retail françaises, déployable en 48h sans changement d'infrastructure. SaaS mensuel, sans engagement.",
+    "market": "250 M€ en France, 4 Md€ en Europe. 3 500 clients potentiels identifiés sur Paris seul.",
+    "team": [
+      {
+        "name": "Antoine M.",
+        "role": "CEO · ex-Doctolib",
+        "color": "#4f46e5"
+      },
+      {
+        "name": "Sara K.",
+        "role": "CTO · ex-Google",
+        "color": "#7c3aed"
+      },
+      {
+        "name": "Julien B.",
+        "role": "Head of Sales · ex-Salesforce",
+        "color": "#2563eb"
+      }
+    ],
+    "kpis": [
+      {
+        "value": "94 %",
+        "label": "Précision IA"
+      },
+      {
+        "value": "× 4",
+        "label": "ARR en 6 mois"
+      },
+      {
+        "value": "12",
+        "label": "Clients actifs"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Verdant",
+    "tagline": "Financement carbone pour les PME industrielles",
+    "sector": "CleanTech",
+    "stage": "Pré-seed",
+    "color": "#16a34a",
+    "emoji": "V",
+    "founded": "2024",
+    "employees": "5",
+    "raised": "220 k€",
+    "ticket": "1 000 €",
+    "open": true,
+    "website": "https://example.com",
+    "linkedin": "https://www.linkedin.com/company/example",
+    "description": "Verdant simplifie l'accès aux crédits carbone pour les PME industrielles françaises. En 3 clics, une usine peut valoriser ses réductions d'émissions et les vendre sur les marchés volontaires européens — un processus qui prenait auparavant 18 mois.",
+    "problem": "90 % des crédits carbone volontaires sont captés par les grandes entreprises. Les PME, qui représentent 60 % des émissions industrielles françaises, n'ont pas les ressources pour naviguer la complexité réglementaire.",
+    "solution": "Une plateforme tout-en-un : audit automatisé des émissions, génération des certificats conformes aux standards Gold Standard et Verra, et accès direct aux acheteurs institutionnels.",
+    "market": "Marché européen des crédits carbone volontaires : 5 Md€ en 2024, croissance de +40 %/an.",
+    "team": [
+      {
+        "name": "Camille D.",
+        "role": "CEO · ex-Engie",
+        "color": "#16a34a"
+      },
+      {
+        "name": "Hugo R.",
+        "role": "CTO · ex-BlaBlaCar",
+        "color": "#15803d"
+      }
+    ],
+    "kpis": [
+      {
+        "value": "3 clics",
+        "label": "Pour certifier"
+      },
+      {
+        "value": "18 → 2",
+        "label": "Mois → semaines"
+      },
+      {
+        "value": "40 %/an",
+        "label": "Croissance marché"
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Klar",
+    "tagline": "Le compte bancaire conçu pour les soignants",
+    "sector": "Fintech",
+    "stage": "Seed",
+    "color": "#0891b2",
+    "emoji": "K",
+    "founded": "2023",
+    "employees": "11",
+    "raised": "650 k€",
+    "ticket": "2 000 €",
+    "open": false,
+    "website": "https://example.com",
+    "linkedin": "https://www.linkedin.com/company/example",
+    "description": "Klar est un néobanque verticalisée pour les professionnels de santé libéraux — médecins, kinésithérapeutes, infirmiers. Elle intègre nativement la gestion des remboursements CPAM, la comptabilité BNC et l'optimisation fiscale propre aux professions médicales.",
+    "problem": "Les 700 000 professions de santé libérales en France utilisent en moyenne 4 outils différents pour gérer leur activité financière. Aucune banque ne parle leur langage.",
+    "solution": "Un compte pro avec IBAN dédié, tableau de bord CPAM en temps réel, génération automatique des déclarations 2035, et un conseiller humain spécialisé santé disponible sous 2h.",
+    "market": "700 000 professionnels de santé libéraux en France. ARPU cible : 35 €/mois. TAM : 294 M€.",
+    "team": [
+      {
+        "name": "Nina P.",
+        "role": "CEO · ex-Qonto",
+        "color": "#0891b2"
+      },
+      {
+        "name": "Marc T.",
+        "role": "CPO · ex-Alan",
+        "color": "#0e7490"
+      },
+      {
+        "name": "Elise F.",
+        "role": "Head of Growth · ex-Doctolib",
+        "color": "#155e75"
+      }
+    ],
+    "kpis": [
+      {
+        "value": "2 200",
+        "label": "Comptes ouverts"
+      },
+      {
+        "value": "35 €",
+        "label": "ARPU mensuel"
+      },
+      {
+        "value": "92 %",
+        "label": "Rétention 6 mois"
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "name": "Aesop",
+    "tagline": "Formation en situation réelle par simulation immersive",
+    "sector": "EdTech",
+    "stage": "Pré-seed",
+    "color": "#b45309",
+    "emoji": "A",
+    "founded": "2024",
+    "employees": "6",
+    "raised": "180 k€",
+    "ticket": "1 000 €",
+    "open": true,
+    "website": "https://example.com",
+    "linkedin": "https://www.linkedin.com/company/example",
+    "description": "Aesop crée des simulations ultra-réalistes pour former les managers à des situations difficiles : entretiens de recrutement, gestion de crise, feedback délicat. Les apprenants s'entraînent face à des interlocuteurs IA qui réagissent comme de vrais humains.",
+    "problem": "80 % des managers français n'ont jamais reçu de formation pratique à la communication difficile. Les mises en situation classiques sont rares, coûteuses et peu réalistes.",
+    "solution": "Des modules de 20 minutes accessibles sur navigateur, avec des personnages IA entraînés sur 50 000h de dialogues réels. Feedback instantané et plan de progression personnalisé.",
+    "market": "Marché de la formation professionnelle en France : 32 Md€/an. Segment management : 4 Md€.",
+    "team": [
+      {
+        "name": "Thomas G.",
+        "role": "CEO · ex-McKinsey",
+        "color": "#b45309"
+      },
+      {
+        "name": "Léa M.",
+        "role": "CTO · Chercheure INRIA",
+        "color": "#92400e"
+      }
+    ],
+    "kpis": [
+      {
+        "value": "20 min",
+        "label": "Par session"
+      },
+      {
+        "value": "4,8/5",
+        "label": "Satisfaction apprenants"
+      },
+      {
+        "value": "3 500",
+        "label": "Utilisateurs beta"
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "name": "Prisme",
+    "tagline": "Diagnostic médical assisté par IA pour les généralistes",
+    "sector": "HealthTech",
+    "stage": "Seed",
+    "color": "#7c3aed",
+    "emoji": "P",
+    "founded": "2022",
+    "employees": "14",
+    "raised": "1,1 M€",
+    "ticket": "3 000 €",
+    "open": false,
+    "website": "https://example.com",
+    "linkedin": "https://www.linkedin.com/company/example",
+    "description": "Prisme est un outil d'aide à la décision médicale qui s'intègre directement dans le logiciel du médecin généraliste. En analysant le dossier patient en temps réel, il signale les diagnostics différentiels à ne pas manquer et les interactions médicamenteuses critiques.",
+    "problem": "Les médecins généralistes voient 25 à 35 patients par jour. Sous pression de temps, les erreurs diagnostiques représentent 40 000 hospitalisations évitables par an en France.",
+    "solution": "Un module plug-in compatible avec les 3 principaux logiciels médicaux français (Maiia, Doctolib, Médistory), certifié DM classe IIa, avec des alertes contextuelles non intrusives.",
+    "market": "60 000 généralistes en France. Abonnement 89 €/mois. TAM : 63 M€ France, 800 M€ Europe.",
+    "team": [
+      {
+        "name": "Dr. Paul V.",
+        "role": "CEO · Médecin & PhD IA",
+        "color": "#7c3aed"
+      },
+      {
+        "name": "Inès B.",
+        "role": "CTO · ex-deepmind",
+        "color": "#6d28d9"
+      },
+      {
+        "name": "Romain C.",
+        "role": "Directeur médical",
+        "color": "#5b21b6"
+      }
+    ],
+    "kpis": [
+      {
+        "value": "89 €",
+        "label": "Abonnement mensuel"
+      },
+      {
+        "value": "420",
+        "label": "Médecins partenaires"
+      },
+      {
+        "value": "CE IIa",
+        "label": "Certification obtenue"
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "name": "Offre",
+    "tagline": "La première place de marché B2B pour l'excédent alimentaire",
+    "sector": "SaaS",
+    "stage": "Seed",
+    "color": "#e05d3a",
+    "emoji": "O",
+    "founded": "2023",
+    "employees": "9",
+    "raised": "390 k€",
+    "ticket": "1 000 €",
+    "open": true,
+    "website": "https://example.com",
+    "linkedin": "https://www.linkedin.com/company/example",
+    "description": "Offre connecte les producteurs et grossistes alimentaires ayant des surplus avec des acheteurs professionnels à prix négocié. La plateforme gère logistique, facturation et traçabilité.",
+    "problem": "10 millions de tonnes de nourriture sont jetées chaque année en France dans la chaîne B2B. Les solutions existantes sont soit associatives, soit inadaptées à la réactivité requise.",
+    "solution": "Une marketplace avec matching automatique par géolocalisation et contraintes logistiques, contrats-cadres pré-signés pour les achats récurrents, et API d'intégration avec les ERP des grossistes.",
+    "market": "Gaspillage alimentaire B2B France : 3 Md€ de valeur récupérable. Commission 8 % sur GMV.",
+    "team": [
+      {
+        "name": "Clara S.",
+        "role": "CEO · ex-Too Good To Go",
+        "color": "#e05d3a",
+        "photo": ""
+      },
+      {
+        "name": "Adrien L.",
+        "role": "CTO · ex-Mirakl",
+        "color": "#c2410c",
+        "photo": ""
+      }
+    ],
+    "kpis": [
+      {
+        "value": "340",
+        "label": "Partenaires actifs"
+      },
+      {
+        "value": "8 %",
+        "label": "Commission GMV"
+      },
+      {
+        "value": "2,1 t",
+        "label": "Sauvées / semaine"
+      }
+    ],
+    "logo_url": ""
+  }
+]
