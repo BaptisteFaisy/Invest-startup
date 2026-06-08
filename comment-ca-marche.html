@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
@@ -12,20 +12,43 @@
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body style="background:#000; margin:0;">
     <div class="grain" aria-hidden="true"></div>
 
-    <header class="site-header">
+    <header class="site-header" style="display:none;">
       <nav class="nav">
         <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
         <div class="nav-links" id="nav-links">
-          <a class="nav-link" href="performance.html">Performance</a>
+          <a class="nav-link" href="marche.html">Ressources</a>
           <a class="nav-link" href="startups.html">Startups</a>
           <a class="nav-link nav-link--active" href="comment-ca-marche.html">Comment ça marche</a>
           <a class="button ghost" href="login.html">Se connecter</a>
         </div>
-      </nav>
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button></nav>
     </header>
+    <!-- Menu mobile -->
+    <div class="mobile-menu" id="mobile-menu" role="dialog" aria-label="Navigation">
+      <button class="nav-hamburger open" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><span></span><span></span><span></span></button>
+      <a href="index.html">Accueil</a>
+      <a href="startups.html">Startups</a>
+      <a href="marche.html">Ressources</a>
+      <a href="comment-ca-marche.html">Comment &#xe7;a marche</a>
+      <a href="login.html" style="margin-top:16px; font-size:1.1rem; color:rgba(255,255,255,0.5);">Se connecter</a>
+    </div>
+
+    <script>
+      (function() {
+        var btn   = document.getElementById('nav-hamburger');
+        var menu  = document.getElementById('mobile-menu');
+        var close = document.getElementById('mobile-close');
+        if (!btn || !menu) return;
+        function openMenu()  { menu.classList.add('open');  btn.classList.add('open');  btn.setAttribute('aria-expanded','true');  document.body.style.overflow='hidden'; }
+        function closeMenu() { menu.classList.remove('open'); btn.classList.remove('open'); btn.setAttribute('aria-expanded','false'); document.body.style.overflow=''; }
+        btn.addEventListener('click', openMenu);
+        if (close) close.addEventListener('click', closeMenu);
+        menu.addEventListener('click', function(e) { if (e.target.tagName === 'A') closeMenu(); });
+      })();
+    </script>
 
     <script>
       fetch('/api/auth/me', { credentials: 'include' })
@@ -34,9 +57,9 @@
           if (!data?.user) return;
           const name = data.user.full_name ? data.user.full_name.split(' ')[0] : data.user.email;
           document.getElementById('nav-links').innerHTML = `
-            <a class="nav-link" href="performance.html">Performance</a>
+            <a class="nav-link" href="marche.html">Ressources</a>
             <a class="nav-link" href="startups.html">Startups</a>
-            <a class="nav-link nav-link--active" href="comment-ca-marche.html">Comment ça marche</a>
+              <a class="nav-link nav-link--active" href="comment-ca-marche.html">Comment ça marche</a>
             <a class="nav-link" href="investments.html">Mes investissements</a>
             <span class="nav-link nav-user-name">${name}</span>
             <button class="button ghost" id="nav-logout">Se déconnecter</button>
@@ -49,154 +72,23 @@
         .catch(() => {});
     </script>
 
-    <main>
-      <div style="padding: 6vh var(--gutter) 0;">
-        <h1 style="font-size:clamp(2rem,4vw,3.2rem); margin-bottom: 48px;">Comment ça marche</h1>
+    <main style="display:flex; align-items:center; justify-content:center; min-height:100vh; background:#000; padding:40px 24px;">
+      <div style="background:#fff; border-radius:24px; padding:56px 48px; max-width:520px; width:100%; box-shadow:0 24px 60px rgba(0,0,0,0.5); display:grid; gap:28px; text-align:center;">
+        <a href="index.html" style="display:flex; align-items:center; justify-content:center; gap:12px; text-decoration:none;">
+          <img src="/ressourcegraphique/Goutte%20blanche.png" alt="" style="height:44px; width:auto; filter:invert(1);">
+          <span style="font-family:Archivo,sans-serif; font-weight:600; font-size:1.7rem; text-transform:uppercase; letter-spacing:.1em; color:#080c14;">LIQUID+</span>
+        </a>
+        <div style="display:grid; gap:16px;">
+          <h2 style="font-size:1.8rem; font-weight:700; color:#080c14; margin:0;">Page en cours de construction</h2>
+          <p style="font-size:1.1rem; color:#5e5e6a; line-height:1.65; margin:0;">Cette page est en cours de construction. Revenez bient&#244;t.</p>
+        </div>
+        <a href="index.html" style="background:#000; color:#fff; border-radius:12px; padding:16px 28px; font-size:1.05rem; font-weight:700; text-decoration:none; display:block;">Retour &#224; l'accueil</a>
       </div>
-      <section class="liquidity-section" id="features">
-        <div class="liq-intro">
-          <div class="eyebrow">Notre approche</div>
-          <h2>Notre expertise de sélection est ce qui fait toute la différence.</h2>
-        </div>
-
-        <!-- 01 -->
-        <div class="liq-block-group">
-          <div class="liq-block-label">01 — Accès</div>
-          <div class="liq-cols">
-            <div class="liq-card problem">
-              <div class="liq-card-tag problem"><span>✕</span> Le problème</div>
-              <h3>Un accès réservé aux initiés.</h3>
-              <p>Les meilleures startups à un stade précoce ne cherchent pas d'investisseurs sur des plateformes publiques. Elles lèvent dans leur cercle proche — et seuls ceux qui ont le bon réseau y entrent.</p>
-              <div class="liq-points">
-                <div class="liq-point bad"><span class="liq-point-icon">✕</span>Opacité totale : les tours précoces ne sont jamais annoncés</div>
-                <div class="liq-point bad"><span class="liq-point-icon">✕</span>Réseau indispensable pour être dans la boucle</div>
-                <div class="liq-point bad"><span class="liq-point-icon">✕</span>Les particuliers arrivent toujours trop tard, ou pas du tout</div>
-              </div>
-            </div>
-            <div class="liq-vs">
-              <div class="liq-vs-line"></div>
-              <div class="liq-vs-badge">VS</div>
-              <div class="liq-vs-line"></div>
-            </div>
-            <div class="liq-card solution">
-              <div class="liq-card-tag solution"><span>✓</span> La solution Invest BG</div>
-              <h3>Notre réseau vous ouvre les portes.</h3>
-              <p>Implantés au cœur de l'écosystème parisien, nous identifions les pépites avant qu'elles ne soient connues du grand public — et nous vous donnons accès à ces tours avant qu'ils ne se ferment.</p>
-              <div class="liq-points">
-                <div class="liq-point good"><span class="liq-point-icon">✓</span>Flux de dealflow exclusif via notre réseau d'entrepreneurs</div>
-                <div class="liq-point good"><span class="liq-point-icon">✓</span>Accès aux tours de seed et pré-seed dès leur ouverture</div>
-                <div class="liq-point good"><span class="liq-point-icon">✓</span>Des opportunités que vous ne trouverez nulle part ailleurs</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Séparateur -->
-        <div class="liq-sep"></div>
-
-        <!-- 02 -->
-        <div class="liq-block-group">
-          <div class="liq-block-label">02 — Liquidité</div>
-          <div class="liq-cols">
-            <div class="liq-card problem">
-              <div class="liq-card-tag problem"><span>✕</span> Le problème</div>
-              <h3>Un capital immobilisé, sans issue.</h3>
-              <p>Investir dans une startup, c'est accepter de ne plus voir son argent pendant des années — et espérer qu'une acquisition ou une IPO survienne un jour.</p>
-              <div class="liq-points">
-                <div class="liq-point bad"><span class="liq-point-icon">✕</span>Capital bloqué 7 à 10 ans minimum</div>
-                <div class="liq-point bad"><span class="liq-point-icon">✕</span>Aucun marché secondaire accessible aux particuliers</div>
-                <div class="liq-point bad"><span class="liq-point-icon">✕</span>Sortie dépendante d'un événement incertain (IPO, rachat)</div>
-              </div>
-            </div>
-            <div class="liq-vs">
-              <div class="liq-vs-line"></div>
-              <div class="liq-vs-badge">VS</div>
-              <div class="liq-vs-line"></div>
-            </div>
-            <div class="liq-card solution">
-              <div class="liq-card-tag solution"><span>✓</span> La solution Invest BG</div>
-              <h3>Vendez vos parts quand vous le décidez.</h3>
-              <p>Grâce à notre réseau exclusif d'investisseurs qualifiés, vous pouvez céder vos participations à tout moment — sans attendre une cotation en bourse.</p>
-              <div class="liq-points">
-                <div class="liq-point good"><span class="liq-point-icon">✓</span>Marché secondaire privé entre membres du réseau</div>
-                <div class="liq-point good"><span class="liq-point-icon">✓</span>Mise en relation rapide avec acheteurs pré-qualifiés</div>
-                <div class="liq-point good"><span class="liq-point-icon">✓</span>Liquidité partielle ou totale, selon votre besoin</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Séparateur -->
-        <div class="liq-sep"></div>
-
-        <!-- 03 -->
-        <div class="liq-block-group">
-          <div class="liq-block-label">03 — Sélection</div>
-          <div class="liq-cols">
-            <div class="liq-card problem">
-              <div class="liq-card-tag problem"><span>✕</span> Le problème</div>
-              <h3>Sans expertise, impossible d'identifier les vraies pépites.</h3>
-              <p>À un stade précoce, rien n'est évident. Évaluer une startup naissante demande une connaissance approfondie du marché, des fondateurs et de la dynamique locale — ce que la plupart des investisseurs n'ont pas.</p>
-              <div class="liq-points">
-                <div class="liq-point bad"><span class="liq-point-icon">✕</span>Marché opaque : des centaines de projets, peu d'élus</div>
-                <div class="liq-point bad"><span class="liq-point-icon">✕</span>Impossible d'évaluer une équipe sans la connaître</div>
-                <div class="liq-point bad"><span class="liq-point-icon">✕</span>La majorité des startups échouent dans les 3 premières années</div>
-              </div>
-            </div>
-            <div class="liq-vs">
-              <div class="liq-vs-line"></div>
-              <div class="liq-vs-badge">VS</div>
-              <div class="liq-vs-line"></div>
-            </div>
-            <div class="liq-card solution">
-              <div class="liq-card-tag solution"><span>✓</span> La solution Invest BG</div>
-              <h3>Une capacité de sélection construite sur le terrain.</h3>
-              <p>Nous suivons l'écosystème parisien au quotidien. Notre analyse va bien au-delà du pitch deck : nous rencontrons les fondateurs, étudions le marché en profondeur, et ne retenons que les projets en lesquels nous avons une conviction réelle.</p>
-              <div class="liq-points">
-                <div class="liq-point good"><span class="liq-point-icon">✓</span>Connaissance intime du marché des startups parisiennes</div>
-                <div class="liq-point good"><span class="liq-point-icon">✓</span>Rencontre systématique des équipes fondatrices</div>
-                <div class="liq-point good"><span class="liq-point-icon">✓</span>Moins de 5 % des dossiers analysés sont retenus</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Séparateur -->
-        <div class="liq-sep"></div>
-
-        <!-- 03 -->
-        <div class="liq-block-group">
-          <div class="liq-block-label">04 — Accessibilité</div>
-          <div class="liq-cols">
-            <div class="liq-card problem">
-              <div class="liq-card-tag problem"><span>✕</span> Le problème</div>
-              <h3>Un ticket d'entrée hors de portée.</h3>
-              <p>Même quand un particulier a le réseau pour accéder à une levée précoce, les montants minimum exigés le bloquent systématiquement. Ce type d'investissement reste structurellement réservé à une élite.</p>
-              <div class="liq-points">
-                <div class="liq-point bad"><span class="liq-point-icon">✕</span>Tickets minimum de 50 000 € à 250 000 €</div>
-                <div class="liq-point bad"><span class="liq-point-icon">✕</span>Réservé aux business angels et family offices</div>
-                <div class="liq-point bad"><span class="liq-point-icon">✕</span>Inaccessible sans capital et sans réseau simultanément</div>
-              </div>
-            </div>
-            <div class="liq-vs">
-              <div class="liq-vs-line"></div>
-              <div class="liq-vs-badge">VS</div>
-              <div class="liq-vs-line"></div>
-            </div>
-            <div class="liq-card solution">
-              <div class="liq-card-tag solution"><span>✓</span> La solution Invest BG</div>
-              <h3>Dès 1 000 €, vous investissez comme un initié.</h3>
-              <p>Nous regroupons plusieurs investisseurs pour entrer ensemble dans des tours auxquels vous n'auriez jamais eu accès seul. Vous bénéficiez de notre réseau, de notre sélection et de notre force de frappe collective.</p>
-              <div class="liq-points">
-                <div class="liq-point good"><span class="liq-point-icon">✓</span>Ticket d'entrée à partir de 1 000 €</div>
-                <div class="liq-point good"><span class="liq-point-icon">✓</span>Investissement groupé dans des tours normalement fermés</div>
-                <div class="liq-point good"><span class="liq-point-icon">✓</s
     </main>
 
-    <footer class="site-footer">
+                <footer class="site-footer" style="display:none;">
       <div class="footer-inner">
         <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
-        <p class="footer-copy">© 2026 LIQUID+ · Investissement à risque élevé. Consultez un conseiller financier avant d'investir.</p>
       </div>
     </footer>
     <script src="nav.js"></script>

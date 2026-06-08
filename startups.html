@@ -1,9 +1,9 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Invest BG - Nos Startups</title>
+    <title>LIQUID+ - Nos Startups</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -12,6 +12,7 @@
     />
     <link rel="stylesheet" href="styles.css" />
     <style>
+      body { background: #000; margin: 0; }
       /* ���� Hero ���� */
       .startup-hero {
         display: grid;
@@ -300,37 +301,68 @@
       .modal-audit-arrow { font-size: 1.1rem; color: var(--muted); }
     </style>
   </head>
-  <body>
+  <body id="startups-body">
     <div class="grain" aria-hidden="true"></div>
 
-    <header class="site-header">
+    <header class="site-header" id="startups-header" style="display:none;">
       <nav class="nav">
         <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
         <div class="nav-links" id="nav-links">
-          <a class="nav-link" href="performance.html">Performance</a>
+          <a class="nav-link" href="marche.html">Ressources</a>
           <a class="nav-link nav-link--active" href="startups.html">Startups</a>
           <a class="nav-link" href="comment-ca-marche.html">Comment ça marche</a>
           <a class="button ghost" href="login.html">Se connecter</a>
-          <a class="button primary" href="register.html">Commencer</a>
         </div>
-      </nav>
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button></nav>
     </header>
+    <!-- Menu mobile -->
+    <div class="mobile-menu" id="mobile-menu" role="dialog" aria-label="Navigation">
+      <button class="nav-hamburger open" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><span></span><span></span><span></span></button>
+      <a href="index.html">Accueil</a>
+      <a href="startups.html">Startups</a>
+      <a href="marche.html">Ressources</a>
+      <a href="comment-ca-marche.html">Comment &#xe7;a marche</a>
+      <a href="login.html" style="margin-top:16px; font-size:1.1rem; color:rgba(255,255,255,0.5);">Se connecter</a>
+    </div>
 
-    <main style="display:grid; gap:40px; padding:6vh 0 10vh;">
+    <script>
+      (function() {
+        var btn   = document.getElementById('nav-hamburger');
+        var menu  = document.getElementById('mobile-menu');
+        var close = document.getElementById('mobile-close');
+        if (!btn || !menu) return;
+        function openMenu()  { menu.classList.add('open');  btn.classList.add('open');  btn.setAttribute('aria-expanded','true');  document.body.style.overflow='hidden'; }
+        function closeMenu() { menu.classList.remove('open'); btn.classList.remove('open'); btn.setAttribute('aria-expanded','false'); document.body.style.overflow=''; }
+        btn.addEventListener('click', openMenu);
+        if (close) close.addEventListener('click', closeMenu);
+        menu.addEventListener('click', function(e) { if (e.target.tagName === 'A') closeMenu(); });
+      })();
+    </script>
 
-      <!-- Hero -->
-      <div class="startup-hero" style="padding:0 var(--gutter);">
-        <div class="eyebrow">Sélection en cours</div>
-        <h1>Des startups <span class="text-gradient">dénichées avant tout le monde.</span></h1>
-        <p class="lead">
-          Chaque opportunité présentée ici a passé notre processus de sélection rigoureux �
-          rencontre des fondateurs, analyse du marché, validation du modèle économique.
-          Moins de 5&nbsp;% des dossiers reçus sont retenus.
-        </p>
+    <!-- État vide (défaut) — toute la page noire -->
+    <main id="startups-main" style="display:flex; align-items:center; justify-content:center; min-height:100vh; background:#000; padding:40px 24px;">
+
+      <div id="empty-state" style="background:#fff; border-radius:24px; padding:56px 48px; max-width:520px; width:100%; box-shadow:0 24px 60px rgba(0,0,0,0.5); display:grid; gap:28px; text-align:center;">
+        <a href="index.html" style="display:flex; align-items:center; justify-content:center; gap:12px; text-decoration:none;">
+          <img src="/ressourcegraphique/Goutte%20blanche.png" alt="" style="height:44px; width:auto; filter:invert(1);">
+          <span style="font-family:Archivo,sans-serif; font-weight:600; font-size:1.7rem; text-transform:uppercase; letter-spacing:.1em; color:#080c14;">LIQUID+</span>
+        </a>
+        <div style="display:grid; gap:16px;">
+          <h2 style="font-size:1.8rem; font-weight:700; color:#080c14; margin:0;">Pas encore de startups</h2>
+          <p style="font-size:1.1rem; color:#5e5e6a; line-height:1.65; margin:0;">Nous n'avons pas encore trouv&#233; de startups suffisamment qualitatives pour vous les proposer. Revenez bient&#244;t.</p>
+        </div>
+        <a href="index.html" style="background:#000; color:#fff; border-radius:12px; padding:16px 28px; font-size:1.05rem; font-weight:700; text-decoration:none; display:block;">Retour &#224; l'accueil</a>
       </div>
 
-      <!-- Grille -->
-      <div style="padding:0 var(--gutter);">
+      <!-- Hero (cach&#233; par d&#233;faut, affich&#233; par JS) -->
+      <div class="startup-hero" id="startup-hero" style="display:none; padding:0 var(--gutter);">
+        <div class="eyebrow">S&#233;lection en cours</div>
+        <h1>Des startups <span class="text-gradient">d&#233;nich&#233;es avant tout le monde.</span></h1>
+        <p class="lead">Chaque opportunit&#233; pr&#233;sent&#233;e ici a pass&#233; notre processus de s&#233;lection rigoureux.</p>
+      </div>
+
+      <!-- Grille (cach&#233;e par d&#233;faut, affich&#233;e par JS) -->
+      <div id="startup-grid-wrap" style="display:none; padding:0 var(--gutter); width:100%;">
         <div class="startup-grid" id="startup-grid"></div>
       </div>
 
@@ -341,13 +373,9 @@
       <div class="modal" id="modal-content"></div>
     </div>
 
-    <footer class="site-footer">
+    <footer class="site-footer" id="startups-footer" style="display:none;">
       <div class="footer-inner">
         <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
-        <p class="footer-copy">
-          © 2026 Invest BG · Investissement à risque élevé.
-          Consultez un conseiller financier avant d'investir.
-        </p>
       </div>
     </footer>
 
@@ -359,6 +387,19 @@
       function renderCards(filter = 'all') {
         const grid = document.getElementById('startup-grid');
         const filtered = filter === 'all' ? startupsData : startupsData.filter(s => s.sector === filter);
+
+        if (filtered.length === 0) return; // HTML par défaut = état vide noir
+
+        // Des startups existent : switcher vers la vue normale
+        const main = document.getElementById('startups-main');
+        main.style.cssText = 'display:grid; gap:40px; padding:6vh 0 10vh;';
+        const emptyState = document.getElementById('empty-state');
+        if (emptyState) emptyState.style.display = 'none';
+        document.getElementById('startup-hero').style.display = '';
+        document.getElementById('startup-grid-wrap').style.display = '';
+        document.getElementById('startups-header').style.display = '';
+        document.getElementById('startups-footer').style.display = '';
+
         grid.innerHTML = filtered.map((s, i) => `
           <div class="startup-card" style="animation-delay:${i * 0.07}s;cursor:pointer;" onclick="openModal(${s.id})">
             <div class="sc-top">
@@ -504,8 +545,9 @@
           if (!data?.user) return;
           const name = data.user.full_name ? data.user.full_name.split(' ')[0] : data.user.email;
           document.getElementById('nav-links').innerHTML = `
-            <a class="nav-link" href="performance.html">Performance</a>
+            <a class="nav-link" href="marche.html">Ressources</a>
             <a class="nav-link nav-link--active" href="startups.html">Startups</a>
+              <a class="nav-link" href="comment-ca-marche.html">Comment ça marche</a>
             <a class="nav-link" href="investments.html">Mes investissements</a>
             <span class="nav-link nav-user-name">${name}</span>
             <button class="button ghost" id="nav-logout">Se déconnecter</button>

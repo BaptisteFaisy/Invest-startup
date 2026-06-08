@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Startup � Invest BG</title>
+  <title>Startup � LIQUID+</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Libre+Franklin:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -139,7 +139,7 @@
     <div class="nav-inner">
       <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
       <div id="nav-links" class="nav-links">
-        <a class="nav-link" href="performance.html">Performance</a>
+        <a class="nav-link" href="marche.html">Ressources</a>
         <a class="nav-link nav-link--active" href="startups.html">Startups</a>
         <a class="nav-link" href="login.html">Se connecter</a>
         <a class="button primary" href="register.html">Rejoindre</a>
@@ -166,7 +166,7 @@
         const s = startups.find(x => x.id === startupId);
         if (!s) { window.location.href = 'startups.html'; return; }
 
-        document.title = `${s.name} � Invest BG`;
+        document.title = `${s.name} � LIQUID+`;
         renderPage(s);
       })
       .catch(() => {
@@ -311,7 +311,7 @@
         if (!data?.user) return;
         const name = data.user.full_name ? data.user.full_name.split(' ')[0] : data.user.email;
         document.getElementById('nav-links').innerHTML = `
-          <a class="nav-link" href="performance.html">Performance</a>
+          <a class="nav-link" href="marche.html">Ressources</a>
           <a class="nav-link nav-link--active" href="startups.html">Startups</a>
           <a class="nav-link" href="investments.html">Mes investissements</a>
           <span class="nav-link nav-user-name">${name}</span>

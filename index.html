@@ -1,9 +1,9 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Invest BG - Investir dans des startups</title>
+    <title>LIQUID+ - Investir dans des startups</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -11,6 +11,8 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
+    <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
+    <script src="https://assets.calendly.com/assets/external/widget.js" type="text/javascript" async></script>
   </head>
   <body>
     <div class="grain" aria-hidden="true"></div>
@@ -19,13 +21,36 @@
       <nav class="nav">
         <a class="logo" href="#top"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
         <div class="nav-links" id="nav-links">
-          <a class="nav-link" href="performance.html">Performance</a>
+          <a class="nav-link" href="marche.html">Ressources</a>
           <a class="nav-link" href="startups.html">Startups</a>
           <a class="nav-link" href="comment-ca-marche.html">Comment ça marche</a>
           <a class="button ghost" href="login.html">Se connecter</a>
         </div>
-      </nav>
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button></nav>
     </header>
+    <!-- Menu mobile -->
+    <div class="mobile-menu" id="mobile-menu" role="dialog" aria-label="Navigation">
+      <button class="nav-hamburger open" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><span></span><span></span><span></span></button>
+      <a href="index.html">Accueil</a>
+      <a href="startups.html">Startups</a>
+      <a href="marche.html">Ressources</a>
+      <a href="comment-ca-marche.html">Comment &#xe7;a marche</a>
+      <a href="login.html" style="margin-top:16px; font-size:1.1rem; color:rgba(255,255,255,0.5);">Se connecter</a>
+    </div>
+
+    <script>
+      (function() {
+        var btn   = document.getElementById('nav-hamburger');
+        var menu  = document.getElementById('mobile-menu');
+        var close = document.getElementById('mobile-close');
+        if (!btn || !menu) return;
+        function openMenu()  { menu.classList.add('open');  btn.classList.add('open');  btn.setAttribute('aria-expanded','true');  document.body.style.overflow='hidden'; }
+        function closeMenu() { menu.classList.remove('open'); btn.classList.remove('open'); btn.setAttribute('aria-expanded','false'); document.body.style.overflow=''; }
+        btn.addEventListener('click', openMenu);
+        if (close) close.addEventListener('click', closeMenu);
+        menu.addEventListener('click', function(e) { if (e.target.tagName === 'A') closeMenu(); });
+      })();
+    </script>
 
     <script>
       fetch('/api/auth/me', { credentials: 'include' })
@@ -34,9 +59,9 @@
           if (!data?.user) return;
           const name = data.user.full_name ? data.user.full_name.split(' ')[0] : data.user.email;
           document.getElementById('nav-links').innerHTML = `
-            <a class="nav-link" href="performance.html">Performance</a>
+            <a class="nav-link" href="marche.html">Ressources</a>
             <a class="nav-link" href="startups.html">Startups</a>
-            <a class="nav-link" href="comment-ca-marche.html">Comment ça marche</a>
+              <a class="nav-link" href="comment-ca-marche.html">Comment ça marche</a>
             <a class="nav-link" href="investments.html">Mes investissements</a>
             <span class="nav-link nav-user-name">${name}</span>
             <button class="button ghost" id="nav-logout">Se déconnecter</button>
@@ -51,7 +76,7 @@
 
     <main id="top">
       <section class="hero-simple">
-        <h1 class="hero-simple-title"><span style="white-space:nowrap;">Investissez dans des startup</span><br>à partir de 1 000 €</h1>
+        <h1 class="hero-simple-title">Investissez dans des startup<br>à partir de 1 000 €</h1>
         <a class="button primary" href="startups.html">Investir maintenant</a>
       </section>
 
@@ -394,11 +419,10 @@
           <div class="compare-card">
             <div class="compare-header">
               <div>
-                <p class="compare-title">Simulation — 10 000 € investis en 2016</p>
-                
+                <p class="compare-title">Simulation — 10 000 € investis en 2013</p>
               </div>
               <div class="compare-legend">
-                <div class="cleg"><span class="cleg-dot" style="background:#3b82f6"></span>Private Equity</div>
+                <div class="cleg"><span class="cleg-dot" style="background:#3b82f6"></span>Startups **</div>
                 <div class="cleg"><span class="cleg-dot" style="background:#f59e0b"></span>MSCI World *</div>
                 <div class="cleg"><span class="cleg-dot" style="background:#10b981"></span>Immobilier</div>
                 <div class="cleg"><span class="cleg-dot" style="background:#94a3b8"></span>Livret A</div>
@@ -416,62 +440,55 @@
               <line x1="60" y1="103" x2="590" y2="103" stroke="rgba(0,0,0,0.05)" stroke-width="1"/>
               <line x1="60" y1="30"  x2="590" y2="30"  stroke="rgba(0,0,0,0.05)" stroke-width="1"/>
               <line x1="60" y1="20"  x2="60"  y2="265" stroke="rgba(0,0,0,0.08)"  stroke-width="1"/>
-              <text x="54" y="253" text-anchor="end" font-size="8.5" fill="rgba(0,0,0,0.4)">10k€</text>
-              <text x="54" y="180" text-anchor="end" font-size="8.5" fill="rgba(0,0,0,0.4)">20k€</text>
-              <text x="54" y="106" text-anchor="end" font-size="8.5" fill="rgba(0,0,0,0.4)">30k€</text>
-              <text x="54" y="33"  text-anchor="end" font-size="8.5" fill="rgba(0,0,0,0.4)">40k€</text>
-              <text x="60"  y="278" text-anchor="middle" font-size="8" fill="rgba(0,0,0,0.4)">2016</text>
-              <text x="112" y="278" text-anchor="middle" font-size="8" fill="rgba(0,0,0,0.4)">2017</text>
-              <text x="164" y="278" text-anchor="middle" font-size="8" fill="rgba(0,0,0,0.4)">2018</text>
-              <text x="216" y="278" text-anchor="middle" font-size="8" fill="rgba(0,0,0,0.4)">2019</text>
-              <text x="268" y="278" text-anchor="middle" font-size="8" fill="rgba(0,0,0,0.4)">2020</text>
-              <text x="320" y="278" text-anchor="middle" font-size="8" fill="rgba(0,0,0,0.4)">2021</text>
-              <text x="372" y="278" text-anchor="middle" font-size="8" fill="rgba(0,0,0,0.4)">2022</text>
-              <text x="424" y="278" text-anchor="middle" font-size="8" fill="rgba(0,0,0,0.4)">2023</text>
-              <text x="476" y="278" text-anchor="middle" font-size="8" fill="rgba(0,0,0,0.4)">2024</text>
-              <text x="528" y="278" text-anchor="middle" font-size="8" fill="rgba(0,0,0,0.4)">2025</text>
-              <text x="580" y="278" text-anchor="middle" font-size="8" fill="rgba(0,0,0,0.4)">2026</text>
-              <polyline class="cline cline-livret" points="60,250 112,248 164,246 216,244 268,241 320,239 372,236 424,233 476,231 528,228 580,225"/>
-              <polyline class="cline cline-immo"   points="60,250 112,247 164,244 216,240 268,236 320,232 372,228 424,224 476,219 528,215 580,210"/>
-              <polyline class="cline cline-cac"    points="60,250 112,244 164,237 216,229 268,221 320,212 372,203 424,192 476,181 528,168 580,155"/>
-              <path class="carea-pe" d="M 60,250 L 112,240 L 164,227 L 216,213 L 268,197 L 320,179 L 372,157 L 424,133 L 476,105 L 528,73 L 580,37 L 580,265 L 60,265 Z" fill="url(#peAreaGrad2)"/>
-              <polyline class="cline cline-pe"     points="60,250 112,240 164,227 216,213 268,197 320,179 372,157 424,133 476,105 528,73 580,37"/>
-              <circle class="cend-dot" cx="580" cy="37"  r="5"   fill="#3b82f6"                style="animation-delay:2.8s"/>
-              <circle class="cend-dot" cx="580" cy="155" r="4"   fill="#f59e0b"                style="animation-delay:3.1s"/>
-              <circle class="cend-dot" cx="580" cy="210" r="4"   fill="#10b981"                style="animation-delay:3.3s"/>
-              <circle class="cend-dot" cx="580" cy="225" r="3.5" fill="rgba(0,0,0,0.4)"  style="animation-delay:3.5s"/>
-              <text class="clabel" x="590" y="40"  font-size="8.5" font-weight="700" fill="#3b82f6"                style="animation-delay:2.9s">€ 39 083</text>
-              <text class="clabel" x="590" y="158" font-size="8.5" font-weight="700" fill="#f59e0b"                style="animation-delay:3.2s">€ 23 028</text>
-              <text class="clabel" x="590" y="213" font-size="8.5" font-weight="700" fill="#10b981"                style="animation-delay:3.4s">€ 15 530</text>
-              <text class="clabel" x="590" y="228" font-size="8.5" font-weight="700" fill="rgba(0,0,0,0.4)" style="animation-delay:3.6s">€ 13 439</text>
+              <text x="54" y="253" text-anchor="end" font-size="8.5" fill="#080c14">10k€</text>
+              <text x="54" y="180" text-anchor="end" font-size="8.5" fill="#080c14">40k€</text>
+              <text x="54" y="106" text-anchor="end" font-size="8.5" fill="#080c14">70k€</text>
+              <text x="54" y="33"  text-anchor="end" font-size="8.5" fill="#080c14">100k€</text>
+              <text x="60"  y="278" text-anchor="middle" font-size="8" fill="#080c14">2013</text>
+              <text x="112" y="278" text-anchor="middle" font-size="8" fill="#080c14">2014</text>
+              <text x="164" y="278" text-anchor="middle" font-size="8" fill="#080c14">2015</text>
+              <text x="216" y="278" text-anchor="middle" font-size="8" fill="#080c14">2016</text>
+              <text x="268" y="278" text-anchor="middle" font-size="8" fill="#080c14">2017</text>
+              <text x="320" y="278" text-anchor="middle" font-size="8" fill="#080c14">2018</text>
+              <text x="372" y="278" text-anchor="middle" font-size="8" fill="#080c14">2019</text>
+              <text x="424" y="278" text-anchor="middle" font-size="8" fill="#080c14">2020</text>
+              <text x="476" y="278" text-anchor="middle" font-size="8" fill="#080c14">2021</text>
+              <text x="528" y="278" text-anchor="middle" font-size="8" fill="#080c14">2022</text>
+              <text x="580" y="278" text-anchor="middle" font-size="8" fill="#080c14">2023</text>
+              <polyline class="cline cline-livret" points="60,250 112,249 164,249 216,248 268,247 320,246 372,245 424,244 476,244 528,243 580,242"/>
+              <polyline class="cline cline-immo"   points="60,250 112,249 164,248 216,247 268,245 320,244 372,243 424,241 476,240 528,238 580,237"/>
+              <polyline class="cline cline-cac"    points="60,250 112,248 164,246 216,243 268,240 320,237 372,234 424,231 476,227 528,223 580,218"/>
+              <path class="carea-pe" d="M 60,250 L 112,244 L 164,235 L 216,225 L 268,212 L 320,195 L 372,174 L 424,148 L 476,114 L 528,72 L 580,18 L 580,265 L 60,265 Z" fill="url(#peAreaGrad2)"/>
+              <polyline class="cline cline-pe"     points="60,250 112,244 164,235 216,225 268,212 320,195 372,174 424,148 476,114 528,72 580,18"/>
+              <circle class="cend-dot" cx="580" cy="18"  r="5"   fill="#3b82f6" style="animation-delay:2.8s"/>
+              <circle class="cend-dot" cx="580" cy="218" r="4"   fill="#f59e0b" style="animation-delay:3.1s"/>
+              <circle class="cend-dot" cx="580" cy="237" r="4"   fill="#10b981" style="animation-delay:3.3s"/>
+              <circle class="cend-dot" cx="580" cy="242" r="3.5" fill="#94a3b8" style="animation-delay:3.5s"/>
+              <text class="clabel" x="590" y="21"  font-size="8.5" font-weight="700" fill="#3b82f6" style="animation-delay:2.9s">€ 104 931</text>
+              <text class="clabel" x="590" y="221" font-size="8.5" font-weight="700" fill="#f59e0b" style="animation-delay:3.2s">€ 23 024</text>
+              <text class="clabel" x="590" y="237" font-size="8.5" font-weight="700" fill="#10b981" style="animation-delay:3.4s">€ 15 530</text>
+              <text class="clabel" x="590" y="250" font-size="8.5" font-weight="700" fill="#94a3b8" style="animation-delay:3.6s">€ 13 439</text>
             </svg>
           </div>
 
-          <!-- Insights -->
-          <div style="display:none">
-          </div>
-
           <!-- Tableau comparatif -->
-          <div style="border-radius:20px; border:1px solid var(--line); overflow:hidden; background:rgba(255,255,255,0.7);">
-            <div style="padding:18px 24px; border-bottom:1px solid var(--line); background:rgba(255,255,255,0.9);">
-              <p style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.18em; font-weight:600; color:var(--text);">Les chiffres en un coup d'œil</p>
-            </div>
-            <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
+          <div style="border-radius:20px; border:1px solid var(--line); overflow-x:auto; background:rgba(255,255,255,0.7);">
+            <table id="perf-table" style="width:100%; border-collapse:collapse; font-size:1rem; min-width:480px;">
               <thead>
                 <tr style="border-bottom:1px solid var(--line);">
                   <th style="text-align:left; padding:13px 24px; font-size:0.72rem; text-transform:uppercase; letter-spacing:.14em; color:var(--text); font-weight:600;">Classe d'actifs</th>
                   <th style="text-align:right; padding:13px 16px; font-size:0.72rem; text-transform:uppercase; letter-spacing:.14em; color:var(--text); font-weight:600;">Rendement annuel moyen</th>
-                  <th style="text-align:right; padding:13px 16px; font-size:0.72rem; text-transform:uppercase; letter-spacing:.14em; color:var(--text); font-weight:600;">€ 10 000 sur 10 ans</th>
-                  <th style="text-align:right; padding:13px 24px 13px 16px; font-size:0.72rem; text-transform:uppercase; letter-spacing:.14em; color:var(--text); font-weight:600;">Risque estimé</th>
+                  <th style="text-align:right; padding:13px 16px; font-size:0.72rem; text-transform:uppercase; letter-spacing:.14em; color:var(--text); font-weight:600;">€ 10 000</th>
+                  <th style="text-align:right; padding:13px 24px 13px 16px; font-size:0.72rem; text-transform:uppercase; letter-spacing:.14em; color:var(--text); font-weight:600;">Risque</th>
                 </tr>
               </thead>
               <tbody>
                 <tr style="background:rgba(59,130,246,0.05); border-bottom:1px solid var(--line);">
                   <td style="padding:15px 24px; font-weight:700; color:var(--text);">
-                    <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#3b82f6; margin-right:10px; vertical-align:middle;"></span>Private Equity
+                    <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#3b82f6; margin-right:10px; vertical-align:middle;"></span>Startups
                   </td>
-                  <td style="padding:15px 16px; text-align:right; font-weight:700; color:var(--accent-strong);">+14,7 %</td>
-                  <td style="padding:15px 16px; text-align:right; font-weight:700; color:var(--accent-strong);">€ 39 083</td>
+                  <td style="padding:15px 16px; text-align:right; font-weight:700; color:var(--accent-strong);">+26,5 % **</td>
+                  <td style="padding:15px 16px; text-align:right; font-weight:700; color:var(--accent-strong);">€ 104 931</td>
                   <td style="padding:15px 24px 15px 16px; text-align:right; color:var(--text);">Élevé</td>
                 </tr>
                 <tr style="border-bottom:1px solid var(--line);">
@@ -479,7 +496,7 @@
                     <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#f59e0b; margin-right:10px; vertical-align:middle;"></span>MSCI World (actions mondiales)
                   </td>
                   <td style="padding:15px 16px; text-align:right; color:var(--text);">+8,7 % *</td>
-                  <td style="padding:15px 16px; text-align:right; color:var(--text);">€ 23 028</td>
+                  <td style="padding:15px 16px; text-align:right; color:var(--text);">€ 23 024</td>
                   <td style="padding:15px 24px 15px 16px; text-align:right; color:var(--text);">Élevé</td>
                 </tr>
                 <tr style="border-bottom:1px solid var(--line);">
@@ -490,17 +507,9 @@
                   <td style="padding:15px 16px; text-align:right; color:var(--text);">€ 15 530</td>
                   <td style="padding:15px 24px 15px 16px; text-align:right; color:var(--text);">Modéré</td>
                 </tr>
-                <tr style="border-bottom:1px solid var(--line);">
-                  <td style="padding:15px 24px; color:var(--text);">
-                    <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#b0b0b0; margin-right:10px; vertical-align:middle;"></span>Assurance-vie (fonds €)
-                  </td>
-                  <td style="padding:15px 16px; text-align:right; color:var(--text);">+3,5 %</td>
-                  <td style="padding:15px 16px; text-align:right; color:var(--text);">€ 14 106</td>
-                  <td style="padding:15px 24px 15px 16px; text-align:right; color:var(--text);">Faible</td>
-                </tr>
                 <tr>
                   <td style="padding:15px 24px; color:var(--text);">
-                    <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:rgba(31,29,26,0.25); margin-right:10px; vertical-align:middle;"></span>Livret A
+                    <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#94a3b8; margin-right:10px; vertical-align:middle;"></span>Livret A
                   </td>
                   <td style="padding:15px 16px; text-align:right; color:var(--text);">+3,0 %</td>
                   <td style="padding:15px 16px; text-align:right; color:var(--text);">€ 13 439</td>
@@ -510,158 +519,648 @@
             </table>
           </div>
 
-          <!-- Note légale -->
-          <p style="font-size:0.78rem; color:var(--text); line-height:1.6; padding:12px 16px; border-radius:10px; border:1px solid var(--line); background:rgba(255,255,255,0.55);">
-            <strong>* +8,7 % par an : rendement annualisé moyen du MSCI World sur 20 ans (avril 2006 – avril 2026), dividendes réinvestis, en euros.</strong>
+          <!-- Notes -->
+          <div style="font-size:0.78rem; color:var(--muted); line-height:1.7; padding:12px 16px; border-radius:10px; border:1px solid var(--line); background:rgba(255,255,255,0.55); display:grid; gap:4px;">
+            <p>* +8,7 % par an : rendement annualisé moyen du MSCI World sur 20 ans (avril 2006 – avril 2026), dividendes réinvestis, en euros.</p>
+            <p>** +26,5 % par an : rendement annualisé moyen mesuré sur le portefeuille AngelList (2013–2023), après frais de 20 % sur les performances.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Frais ── -->
+      <section style="padding: 0 var(--gutter) 0;">
+        <div style="max-width:1380px; margin:0 auto; display:grid; gap:28px;">
+
+          <div style="display:flex; align-items:baseline; gap:16px; flex-wrap:wrap;">
+            <h2 style="font-size:clamp(2rem,4vw,3.2rem); color:#080c14; margin:0;">Frais</h2>
+            <span style="font-size:0.82rem; font-weight:600; color:#16a34a; background:#dcfce7; border-radius:20px; padding:4px 12px; white-space:nowrap;">La plateforme avec le moins de frais au monde</span>
+            <span style="font-size:0.82rem; font-weight:600; color:#080c14; background:rgba(0,0,0,0.05); border-radius:20px; padding:4px 12px;">0 frais cachés</span>
+          </div>
+
+          <div style="border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,0.7); padding:36px 40px; display:grid; gap:36px;">
+
+            <!-- Slider montant -->
+            <div style="display:grid; gap:14px;">
+              <div style="display:flex; align-items:center; justify-content:space-between;">
+                <label for="fc-slider" style="font-size:0.78rem; text-transform:uppercase; letter-spacing:.12em; font-weight:600; color:var(--muted);">Montant investi</label>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span style="font-size:0.78rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.1em;">Espérance de rendement</span>
+                  <div style="display:flex;align-items:center;gap:2px;border-bottom:2px solid #080c14;padding-bottom:2px;">
+                    <input id="fc-return-input" type="number" min="1" max="200" step="1" value="20"
+                      style="width:42px;border:none;outline:none;font-size:0.9rem;font-weight:700;color:#080c14;text-align:right;background:transparent;-moz-appearance:textfield;appearance:textfield;">
+                    <span style="font-size:0.9rem;font-weight:700;color:#080c14;">%</span>
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex; align-items:center; gap:20px;">
+                <input id="fc-slider" type="range" min="1000" max="10000000" step="1000" value="50000"
+                  style="flex:1; height:6px; border-radius:4px; accent-color:#080c14; cursor:pointer; outline:none;">
+                <div style="display:flex; align-items:center; gap:6px; border-bottom:2px solid #080c14; padding-bottom:2px;">
+                  <input id="fc-amount-input" type="number" min="1000" max="10000000" step="1000" value="50000"
+                    style="font-size:1.4rem; font-weight:800; color:#080c14; border:none; background:transparent; width:130px; text-align:right; outline:none; -moz-appearance:textfield; appearance:textfield;">
+                  <span style="font-size:1.1rem; font-weight:700; color:#080c14;">&#8364;</span>
+                </div>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--muted);">
+                <span>1 000 &#8364;</span>
+              </div>
+            </div>
+
+            <!-- Sélection des concurrents + horizon -->
+            <div style="display:flex; gap:32px; flex-wrap:wrap; align-items:flex-start;">
+              <div style="display:grid; gap:10px; position:relative;">
+                <p style="font-size:0.78rem; text-transform:uppercase; letter-spacing:.12em; font-weight:600; color:var(--muted); margin:0;">Comparer avec</p>
+                <div style="position:relative;">
+                  <input id="fc-search" type="text" placeholder="Rechercher un concurrent…" autocomplete="off"
+                    style="padding:8px 36px 8px 14px;border-radius:10px;border:2px solid var(--line);font-size:0.9rem;font-weight:600;color:#080c14;background:white;outline:none;width:220px;box-sizing:border-box;transition:border-color .15s;">
+                  <svg style="position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <div id="fc-suggestions" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:white;border:2px solid var(--line);border-radius:10px;overflow:hidden;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,0.1);"></div>
+                </div>
+                <div id="fc-chips" style="display:flex;gap:6px;flex-wrap:wrap;min-height:0;"></div>
+              </div>
+              <div style="display:grid; gap:10px;">
+                <p style="font-size:0.78rem; text-transform:uppercase; letter-spacing:.12em; font-weight:600; color:var(--muted); margin:0;">Horizon</p>
+                <div style="display:flex; gap:0; border:2px solid var(--line); border-radius:10px; overflow:hidden;">
+                  <button id="fc-btn-5" onclick="fcSetYears(5)" style="padding:8px 20px;border:none;font-size:0.85rem;font-weight:700;cursor:pointer;background:#080c14;color:white;transition:all .15s;">5 ans</button>
+                  <button id="fc-btn-10" onclick="fcSetYears(10)" style="padding:8px 20px;border:none;font-size:0.85rem;font-weight:600;cursor:pointer;background:white;color:var(--muted);transition:all .15s;">10 ans</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Graphique barres style Rapidité -->
+            <div style="display:grid; gap:20px;">
+              <p id="fc-chart-title" style="font-size:0.78rem; text-transform:uppercase; letter-spacing:.12em; font-weight:600; color:var(--muted); margin:0;">Frais totaux en 5 ans</p>
+              <div id="fc-bars" style="display:flex; gap:24px; align-items:flex-end;"></div>
+            </div>
+
+            <!-- Tableau comparatif -->
+            <div style="overflow-x:auto;">
+              <table style="width:100%; border-collapse:separate; border-spacing:0; min-width:520px;">
+                <thead id="fc-thead"><tr></tr></thead>
+                <tbody id="fc-result-body"></tbody>
+              </table>
+            </div>
+
+            <!-- Tableau frais d'entrée LIQUID+ -->
+            <div style="margin-top:36px;">
+              <p style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.14em; font-weight:600; color:var(--muted); margin:0 0 14px;">Barème des frais LIQUID+</p>
+              <div style="overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse; min-width:340px; font-size:1rem;">
+                  <thead>
+                    <tr style="border-bottom:2px solid var(--line);">
+                      <th style="padding:10px 16px; text-align:left; font-weight:700; color:#080c14;">Montant investi</th>
+                      <th style="padding:10px 16px; text-align:right; font-weight:700; color:#080c14;">Frais d'entrée</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style="border-bottom:1px solid var(--line);">
+                      <td style="padding:10px 16px; color:var(--text);">1 000 € – 5 000 €</td>
+                      <td style="padding:10px 16px; text-align:right; font-weight:700; color:#080c14;">10 %</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid var(--line); background:rgba(0,0,0,0.02);">
+                      <td style="padding:10px 16px; color:var(--text);">5 000 € – 10 000 €</td>
+                      <td style="padding:10px 16px; text-align:right; font-weight:700; color:#080c14;">9 %</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid var(--line);">
+                      <td style="padding:10px 16px; color:var(--text);">10 000 € – 30 000 €</td>
+                      <td style="padding:10px 16px; text-align:right; font-weight:700; color:#080c14;">8 %</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid var(--line); background:rgba(0,0,0,0.02);">
+                      <td style="padding:10px 16px; color:var(--text);">30 000 € – 100 000 €</td>
+                      <td style="padding:10px 16px; text-align:right; font-weight:700; color:#080c14;">7 %</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid var(--line);">
+                      <td style="padding:10px 16px; color:var(--text);">100 000 € – 300 000 €</td>
+                      <td style="padding:10px 16px; text-align:right; font-weight:700; color:#080c14;">6 %</td>
+                    </tr>
+                    <tr>
+                      <td style="padding:10px 16px; color:var(--text);">300 000 € et plus</td>
+                      <td style="padding:10px 16px; text-align:right; font-weight:700; color:#080c14;">5 %</td>
+                    </tr>
+                    <tr style="border-top:2px solid var(--line);">
+                      <td style="padding:10px 16px; color:var(--text);">Frais de performance (si x10)</td>
+                      <td style="padding:10px 16px; text-align:right; font-weight:700; color:#080c14;">3 % des gains</td>
+                    </tr>
+                    <tr style="border-top:2px solid var(--line); background:rgba(22,163,74,0.06);">
+                      <td style="padding:10px 16px; font-weight:700; color:#16a34a;">Frais cachés</td>
+                      <td style="padding:10px 16px; text-align:right; font-weight:800; color:#16a34a;">0 %</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <script>
+      (function () {
+        /* ── LIQUID+ frais d'entrée dégressifs ── */
+        function liquidEntryPct(amount) {
+          if (amount <=   5000) return 10.0;
+          if (amount <=  10000) return  9.0;
+          if (amount <=  30000) return  8.0;
+          if (amount <= 100000) return  7.0;
+          if (amount <= 300000) return  6.0;
+          return 5.0;
+        }
+
+        /* ── Altaroc frais de gestion dégressifs ── */
+        function altarocMgmtPct(amount) {
+          if (amount <   500000) return 2.50;
+          if (amount <  1000000) return 2.25;
+          if (amount <  2000000) return 2.00;
+          if (amount <  3000000) return 1.80;
+          if (amount < 10000000) return 1.65;
+          return 1.50;
+        }
+
+        /* ── Anaxago frais de gestion par année ── */
+        function anaxagoMgmtByYear(amount, year) {
+          if (amount < 30000) {
+            if (year === 1) return 4.5;
+            if (year <= 5)  return 2.0;
+          } else {
+            if (year === 1) return 3.5;
+            if (year <= 5)  return 1.0;
+          }
+          return 0;
+        }
+        function anaxagoMgmtLabel(amount) {
+          return amount < 30000
+            ? '4,5 % la 1ère année, puis 2 % / an'
+            : '3,5 % la 1ère année, puis 1 % / an';
+        }
+
+        /* ── Blast Club frais de structuration (one-time) ── */
+        function blastEntryFee(amount) {
+          if (amount <=  10000) return 1500 + amount * 0.05;
+          if (amount <=  25000) return 2000 + amount * 0.05;
+          if (amount <=  50000) return 3000 + amount * 0.04;
+          if (amount <= 100000) return 5000 + amount * 0.04;
+          return 10000 + amount * 0.03;
+        }
+        function blastEntryLabel(amount) {
+          if (amount <=  10000) return '1 500 € + 5 %';
+          if (amount <=  25000) return '2 000 € + 5 %';
+          if (amount <=  50000) return '3 000 € + 4 %';
+          if (amount <= 100000) return '5 000 € + 4 %';
+          return '10 000 € + 3 %';
+        }
+
+        /* ── Blast Club frais de gestion : an 1 → 1 % seulement, an 2+ → fixe + 1 % ── */
+        function blastMgmtAbs(amount, capital, year) {
+          if (year === 1) return capital * 0.01;
+          var fixed;
+          if (amount <=  10000) fixed = 1500;
+          else if (amount <=  25000) fixed = 2000;
+          else if (amount <=  50000) fixed = 3000;
+          else if (amount <= 100000) fixed = 5000;
+          else fixed = 10000;
+          return fixed + capital * 0.01;
+        }
+        function blastMgmtLabel(amount) {
+          var s;
+          if (amount <=  10000) s = '1 500 €';
+          else if (amount <=  25000) s = '2 000 €';
+          else if (amount <=  50000) s = '3 000 €';
+          else if (amount <= 100000) s = '5 000 €';
+          else s = '10 000 €';
+          return '1 % la 1ère année, puis ' + s + ' + 1 % / an';
+        }
+
+        function liquidPerfFee(capitalAfterEntry, finalCapital, amount) {
+          if (finalCapital < amount * 10) return 0;
+          return Math.max(0, finalCapital - amount) * 0.03;
+        }
+        function liquidPerfLabel(capitalAfterEntry, finalCapital, amount) {
+          if (finalCapital < amount * 10) return 'Aucun (< x10)';
+          return '3 % des gains (x10 atteint)';
+        }
+        var COMPANIES = [
+          { name: 'LIQUID+',    entryFn: liquidEntryPct, entryAbsFn: null,          entryLbl: null,           entry: null, mgmtFn: null,           mgmtByYear: null,              mgmtAbsFn: null,         mgmtLbl: null,             mgmt: 0,    perf: null, perfFn: liquidPerfFee, perfLbl: liquidPerfLabel, minAmount: 1000,   minYears: 5  },
+          { name: 'Altaroc',    entryFn: null,            entryAbsFn: null,          entryLbl: null,           entry: 5,   mgmtFn: altarocMgmtPct,  mgmtByYear: null,              mgmtAbsFn: null,         mgmtLbl: null,             mgmt: null, perf: 20, minAmount: 100000, minYears: 10 },
+          { name: 'Anaxago',    entryFn: null,            entryAbsFn: null,          entryLbl: null,           entry: 2.5, mgmtFn: null,            mgmtByYear: anaxagoMgmtByYear, mgmtAbsFn: null,         mgmtLbl: anaxagoMgmtLabel, mgmt: null, perf: 10, minAmount: 1000,   minYears: 5  },
+          { name: 'Blast Club', entryFn: null,            entryAbsFn: blastEntryFee, entryLbl: blastEntryLabel, entry: null, mgmtFn: null,          mgmtByYear: null,              mgmtAbsFn: blastMgmtAbs, mgmtLbl: blastMgmtLabel,   mgmt: null, perf: 20, minAmount: 1000,   minYears: 5  }
+        ];
+        var RETURN     = 0.20;
+        var COLORS     = ['#080c14', '#8b5cf6', '#0ea5e9', '#ec4899'];
+        var selectedCos = [1];
+        var years      = 5;
+
+        function minRequiredYears() {
+          return selectedCos.reduce(function (mx, i) { return Math.max(mx, COMPANIES[i].minYears); }, 5);
+        }
+
+        function syncHorizonButtons() {
+          var minY = minRequiredYears();
+          var btn5  = document.getElementById('fc-btn-5');
+          var btn10 = document.getElementById('fc-btn-10');
+          if (!btn5 || !btn10) return;
+          var locked = minY > 5;
+          btn5.disabled        = locked;
+          btn5.style.opacity   = locked ? '0.35' : '1';
+          btn5.style.cursor    = locked ? 'not-allowed' : 'pointer';
+          btn5.style.background  = (!locked && years === 5) ? '#080c14' : 'white';
+          btn5.style.color       = (!locked && years === 5) ? 'white'   : 'var(--muted)';
+          btn10.style.background = years === 10 ? '#080c14' : 'white';
+          btn10.style.color      = years === 10 ? 'white'   : 'var(--muted)';
+        }
+
+        window.fcSetYears = function (n) {
+          var minY = minRequiredYears();
+          if (n < minY) n = minY;
+          years = n;
+          syncHorizonButtons();
+          update();
+        };
+
+        function initReturnInput() {
+          var inp = document.getElementById('fc-return-input');
+          if (!inp) return;
+          inp.addEventListener('input', function () {
+            var v = parseFloat(this.value);
+            if (!isNaN(v) && v > 0) { RETURN = v / 100; update(); }
+          });
+          inp.addEventListener('blur', function () {
+            var v = Math.min(200, Math.max(1, parseFloat(this.value) || 20));
+            this.value = v;
+            RETURN = v / 100;
+            update();
+          });
+        }
+
+        function fmt(n) {
+          return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+        }
+        function fmtAmt(n) {
+          if (n >= 1000000) return (n / 1000000).toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' M€';
+          if (n >= 1000)    return (n / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 0 }) + ' k€';
+          return n + ' €';
+        }
+
+        function getEntryPct(co, amount) {
+          return co.entryFn ? co.entryFn(amount) : co.entry;
+        }
+        function getMgmtPct(co, amount) {
+          return co.mgmtFn ? co.mgmtFn(amount) : co.mgmt;
+        }
+
+        function calc(co, amount, yrs) {
+          var entryFee = co.entryAbsFn
+            ? co.entryAbsFn(amount)
+            : amount * (getEntryPct(co, amount) / 100);
+          var entryDisplay = co.entryLbl
+            ? co.entryLbl(amount)
+            : (getEntryPct(co, amount)) + ' %';
+
+          var capital           = amount - entryFee;
+          var capitalAfterEntry = capital;
+          var totalMgmt = 0, totalPerf = 0;
+          for (var y = 0; y < yrs; y++) {
+            var gain = capital * RETURN;
+            var mg;
+            if (co.mgmtAbsFn)       mg = co.mgmtAbsFn(amount, capital, y + 1);
+            else if (co.mgmtByYear)  mg = capital * (co.mgmtByYear(amount, y + 1) / 100);
+            else                     mg = capital * (getMgmtPct(co, amount) / 100);
+            totalMgmt += mg;
+            capital   += gain - mg;
+          }
+          /* frais de performance appliques a la sortie sur les gains totaux */
+          var perfDisplay;
+          if (co.perfFn) {
+            totalPerf   = co.perfFn(capitalAfterEntry, capital, amount);
+            perfDisplay = co.perfLbl ? co.perfLbl(capitalAfterEntry, capital, amount) : '---';
+          } else {
+            var exitGains = Math.max(0, capital - capitalAfterEntry);
+            totalPerf   = exitGains * (co.perf / 100);
+            perfDisplay = co.perf + ' % a la sortie';
+          }
+          var mgmtDisplay = co.mgmtLbl
+            ? co.mgmtLbl(amount)
+            : (getMgmtPct(co, amount) + ' % / an');
+          return {
+            entryDisplay: entryDisplay,
+            mgmtDisplay:  mgmtDisplay,
+            perfDisplay:  perfDisplay,
+            entryFee:     entryFee,
+            totalMgmt:    totalMgmt,
+            totalPerf:    totalPerf,
+            total:        entryFee + totalMgmt + totalPerf
+          };
+        }
+
+        function buildSelect() {
+          var inp     = document.getElementById('fc-search');
+          var list    = document.getElementById('fc-suggestions');
+          var chipsEl = document.getElementById('fc-chips');
+          if (!inp || !list || !chipsEl) return;
+
+          function renderChips() {
+            chipsEl.innerHTML = selectedCos.map(function (i) {
+              return '<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px 4px 12px;border-radius:20px;font-size:0.82rem;font-weight:700;color:white;background:' + COLORS[i] + ';cursor:default;">'
+                + COMPANIES[i].name
+                + '<span data-remove="' + i + '" style="cursor:pointer;font-size:0.85em;opacity:0.8;" title="Retirer">&#x2715;</span>'
+                + '</span>';
+            }).join('');
+            chipsEl.querySelectorAll('[data-remove]').forEach(function (el) {
+              el.addEventListener('mousedown', function (e) {
+                e.preventDefault();
+                var idx = parseInt(this.dataset.remove, 10);
+                selectedCos = selectedCos.filter(function (x) { return x !== idx; });
+                renderChips();
+                renderSuggestions(inp.value);
+                syncHorizonButtons();
+                update();
+              });
+            });
+          }
+
+          function renderSuggestions(filter) {
+            var items = COMPANIES.slice(1).filter(function (co) {
+              return co.name.toLowerCase().indexOf((filter || '').toLowerCase()) !== -1;
+            });
+            if (items.length === 0) { list.style.display = 'none'; return; }
+            var full = selectedCos.length >= 3;
+            list.innerHTML = items.map(function (co) {
+              var i        = COMPANIES.indexOf(co);
+              var selected = selectedCos.indexOf(i) !== -1;
+              var disabled = full && !selected;
+              return '<div data-idx="' + i + '" style="padding:10px 14px;font-size:1rem;font-weight:' + (selected ? '700' : '500')
+                + ';color:' + (disabled ? '#bbb' : (selected ? COLORS[i] : '#080c14'))
+                + ';background:' + (selected ? 'rgba(0,0,0,0.04)' : 'white')
+                + ';cursor:' + (disabled ? 'not-allowed' : 'pointer') + ';border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;">'
+                + co.name
+                + (selected ? '<span style="font-size:0.75rem;color:var(--muted);">&#x2715;</span>' : '')
+                + (!selected && disabled ? '<span style="font-size:0.72rem;color:#bbb;">max 3</span>' : '')
+                + '</div>';
+            }).join('');
+            list.style.display = 'block';
+
+            list.querySelectorAll('div').forEach(function (el) {
+              el.addEventListener('mousedown', function (e) {
+                e.preventDefault();
+                var j   = parseInt(this.dataset.idx, 10);
+                var pos = selectedCos.indexOf(j);
+                if (pos !== -1) {
+                  selectedCos.splice(pos, 1);
+                } else if (selectedCos.length < 3) {
+                  selectedCos.push(j);
+                  var minY = minRequiredYears();
+                  if (years < minY) years = minY;
+                }
+                inp.value = '';
+                list.style.display = 'none';
+                renderChips();
+                syncHorizonButtons();
+                update();
+              });
+            });
+          }
+
+          inp.addEventListener('focus', function () {
+            inp.style.borderColor = '#080c14';
+            renderSuggestions(this.value);
+          });
+          inp.addEventListener('input', function () { renderSuggestions(this.value); });
+          inp.addEventListener('blur', function () {
+            setTimeout(function () { list.style.display = 'none'; }, 150);
+            inp.style.borderColor = '';
+          });
+
+          renderChips();
+        }
+
+        function drawBars(visRes, visCos, visCols, amount) {
+          var maxTotal = 1;
+          visRes.forEach(function (r) { if (r && r.total > maxTotal) maxTotal = r.total; });
+          var barH = 180;
+
+          return visCos.map(function (co, i) {
+            var r        = visRes[i];
+            var isLiquid = co.name === 'LIQUID+';
+            var color    = isLiquid ? '#080c14' : visCols[i];
+
+            if (amount < co.minAmount) {
+              return '<div style="flex:1; display:grid; gap:16px;">'
+                + '<div style="display:flex; align-items:center; justify-content:center; height:' + barH + 'px;">'
+                + '<span style="font-size:0.78rem; color:var(--muted); text-align:center; padding:8px; border:1px dashed var(--line); border-radius:10px;">Minimum ' + fmtAmt(co.minAmount) + '</span>'
+                + '</div>'
+                + '<div style="height:2px; background:rgba(0,0,0,0.12); border-radius:2px;"></div>'
+                + '<p style="font-size:0.78rem; text-transform:uppercase; letter-spacing:.1em; font-weight:600; color:var(--muted); margin:0; text-align:center;">' + co.name + '</p>'
+                + '</div>';
+            }
+
+            var h = Math.max(8, Math.round((r.total / maxTotal) * barH));
+            return '<div style="flex:1; display:grid; gap:16px;">'
+              + '<div style="display:flex; align-items:flex-end; height:' + barH + 'px;">'
+              + '<div style="width:100%; display:flex; flex-direction:column; align-items:center; gap:8px; justify-content:flex-end;">'
+              + '<span style="font-size:0.82rem; font-weight:700; color:' + color + '; white-space:nowrap;">' + fmt(r.total) + '</span>'
+              + '<div style="width:100%; height:' + h + 'px; background:' + color + '; border-radius:6px 6px 0 0;"></div>'
+              + '</div>'
+              + '</div>'
+              + '<div style="height:2px; background:rgba(0,0,0,0.12); border-radius:2px;"></div>'
+              + '<p style="font-size:0.78rem; text-transform:uppercase; letter-spacing:.1em; font-weight:' + (isLiquid ? '700' : '600') + '; color:' + (isLiquid ? '#080c14' : 'var(--muted)') + '; margin:0; text-align:center;">' + co.name + '</p>'
+              + '</div>';
+          }).join('');
+        }
+
+        function update() {
+          var amount = parseInt(document.getElementById('fc-slider').value, 10) || 50000;
+          var inputEl = document.getElementById('fc-amount-input');
+          if (document.activeElement !== inputEl) inputEl.value = amount;
+          document.getElementById('fc-chart-title').textContent = 'Frais totaux en ' + years + ' ans';
+
+          var visIdx  = [0].concat(selectedCos);
+          var visCos  = visIdx.map(function (i) { return COMPANIES[i]; });
+          var visCols = visIdx.map(function (i) { return COLORS[i]; });
+          var visRes  = visCos.map(function (co) {
+            if (amount < co.minAmount) return null;
+            return calc(co, amount, Math.max(years, co.minYears));
+          });
+
+          document.getElementById('fc-bars').innerHTML = drawBars(visRes, visCos, visCols, amount);
+
+          /* En-têtes */
+          document.querySelector('#fc-thead tr').innerHTML =
+            '<th style="text-align:left;padding:10px 16px;font-size:0.78rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600;border-bottom:2px solid var(--line);">Type de frais</th>'
+            + visCos.map(function (co, i) {
+                var col = co.name === 'LIQUID+' ? '#080c14' : visCols[i];
+                return '<th style="padding:10px 16px;font-size:1rem;font-weight:600;color:' + col + ';border-bottom:2px solid ' + col + ';text-align:right;">' + co.name + '</th>';
+              }).join('');
+
+          var rows = '';
+
+          rows += '<tr style="border-bottom:1px solid var(--line);">'
+            + '<td style="padding:11px 16px;font-size:1rem;color:var(--muted);">Frais d\'entrée</td>'
+            + visCos.map(function (co, i) {
+                if (visRes[i] === null) return '<td style="padding:11px 16px;text-align:right;font-size:1rem;color:var(--muted);">—</td>';
+                return '<td style="padding:11px 16px;text-align:right;font-size:1rem;font-weight:500;color:var(--text);">' + visRes[i].entryDisplay + '</td>';
+              }).join('')
+            + '</tr>';
+
+          rows += '<tr style="border-bottom:1px solid var(--line);">'
+            + '<td style="padding:11px 16px;font-size:1rem;color:var(--muted);">Frais de gestion annuels</td>'
+            + visCos.map(function (co, i) {
+                if (visRes[i] === null) return '<td style="padding:11px 16px;text-align:right;font-size:1rem;color:var(--muted);">—</td>';
+                return '<td style="padding:11px 16px;text-align:right;font-size:1rem;font-weight:500;color:var(--text);">' + visRes[i].mgmtDisplay + '</td>';
+              }).join('')
+            + '</tr>';
+
+          rows += '<tr style="border-bottom:2px solid var(--line);">'
+            + '<td style="padding:11px 16px;font-size:1rem;color:var(--muted);">Frais de performance</td>'
+            + visCos.map(function (co, i) {
+                if (visRes[i] === null) return '<td style="padding:11px 16px;text-align:right;font-size:1rem;color:var(--muted);">&#x2014;</td>';
+                return '<td style="padding:11px 16px;text-align:right;font-size:1rem;font-weight:500;color:var(--text);">'
+                  + visRes[i].perfDisplay
+                  + '<br><span style="font-size:0.78rem;color:var(--muted);font-weight:400;">' + fmt(visRes[i].totalPerf) + '</span>'
+                  + '</td>';
+              }).join('')
+            + '</tr>';
+
+          rows += '<tr style="background:rgba(8,12,20,0.03); border-bottom:1px solid var(--line);">'
+            + '<td style="padding:14px 16px;font-size:1rem;font-weight:700;color:#080c14;">Total frais calculés sur ' + years + ' ans</td>'
+            + visRes.map(function (r, i) {
+                if (r === null) return '<td style="padding:14px 16px;text-align:right;font-size:1rem;color:var(--muted);">—</td>';
+                var col = visCos[i].name === 'LIQUID+' ? '#080c14' : visCols[i];
+                return '<td style="padding:14px 16px;text-align:right;font-size:1.1rem;font-weight:800;color:' + col + ';">' + fmt(r.total) + '</td>';
+              }).join('')
+            + '</tr>';
+
+          var liquidRes = visRes[0];
+          rows += '<tr style="background:rgba(22,163,74,0.06); border-bottom:1px solid rgba(22,163,74,0.15);">'
+            + '<td style="padding:12px 16px;font-size:1rem;font-weight:700;color:#16a34a;">▲ Économies réalisées avec LIQUID+</td>'
+            + visRes.map(function (r, i) {
+                if (visCos[i].name === 'LIQUID+') return '<td style="padding:12px 16px;text-align:right;font-size:1rem;color:var(--muted);">Référence</td>';
+                if (r === null || liquidRes === null) return '<td style="padding:12px 16px;text-align:right;font-size:1rem;color:var(--muted);">—</td>';
+                var saving = r.total - liquidRes.total;
+                return '<td style="padding:12px 16px;text-align:right;font-size:1.1rem;font-weight:800;color:#16a34a;">+ ' + fmt(saving) + '</td>';
+              }).join('')
+            + '</tr>';
+
+          rows += '<tr style="background:rgba(22,163,74,0.03);">'
+            + '<td style="padding:10px 16px;font-size:1rem;font-weight:600;color:#16a34a;">Soit LIQUID+ est moins cher de</td>'
+            + visRes.map(function (r, i) {
+                if (visCos[i].name === 'LIQUID+') return '<td style="padding:10px 16px;text-align:right;font-size:1rem;color:var(--muted);">—</td>';
+                if (r === null || liquidRes === null || liquidRes.total === 0) return '<td style="padding:10px 16px;text-align:right;font-size:1rem;color:var(--muted);">—</td>';
+                var times = (r.total / liquidRes.total).toFixed(1);
+                return '<td style="padding:10px 16px;text-align:right;font-size:1.05rem;font-weight:700;color:#16a34a;">' + times + 'x moins cher</td>';
+              }).join('')
+            + '</tr>';
+
+          document.getElementById('fc-result-body').innerHTML = rows;
+        }
+
+        document.getElementById('fc-slider').addEventListener('input', update);
+
+        document.getElementById('fc-amount-input').addEventListener('input', function () {
+          var v = parseInt(this.value, 10);
+          if (!isNaN(v) && v >= 1000) {
+            document.getElementById('fc-slider').value = Math.min(10000000, v);
+            update();
+          }
+        });
+        document.getElementById('fc-amount-input').addEventListener('blur', function () {
+          var v = Math.min(10000000, Math.max(1000, parseInt(this.value, 10) || 1000));
+          this.value = v;
+          document.getElementById('fc-slider').value = v;
+          update();
+        });
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', function () { buildSelect(); initReturnInput(); update(); });
+        } else {
+          buildSelect(); initReturnInput();
+          update();
+        }
+      })();
+      </script>
+
+      <!-- ── Rapidité ── -->
+      <section style="padding: 0 var(--gutter) 0;">
+        <div style="max-width:1380px; margin:0 auto; display:grid; gap:28px;">
+          <h2 style="font-size:clamp(2rem,4vw,3.2rem); color:#080c14;">Rapidité</h2>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:20px;">
+
+            <!-- Stat 1 : Temps de réponse -->
+            <div style="border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,0.7); padding:36px 32px; display:grid; gap:12px;">
+              <p style="font-size:0.85rem; text-transform:uppercase; letter-spacing:.14em; font-weight:600; color:var(--muted); margin:0;">Temps de réponse</p>
+              <p style="font-size:clamp(2.8rem,5vw,4rem); font-weight:800; color:#080c14; margin:0; line-height:1;">&lt;&nbsp;4&nbsp;h</p>
+              <p style="font-size:1.05rem; color:var(--muted); margin:0; line-height:1.6;">En jours ouvrés, hors week-ends et jours fériés.</p>
+            </div>
+
+            <!-- Stat 2 : Informations -->
+            <div style="border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,0.7); padding:36px 32px; display:grid; gap:12px;">
+              <p style="font-size:0.85rem; text-transform:uppercase; letter-spacing:.14em; font-weight:600; color:var(--muted); margin:0;">Temps pour trouver les informations</p>
+              <p style="font-size:clamp(2.8rem,5vw,4rem); font-weight:800; color:#080c14; margin:0; line-height:1;">&lt;&nbsp;10&nbsp;min</p>
+              <p style="font-size:1.05rem; color:var(--muted); margin:0; line-height:1.6;">Toutes les données clés centralisées sur la fiche startup.</p>
+            </div>
+
+            <!-- Stat 3 : Contrats -->
+            <div style="border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,0.7); padding:36px 32px; display:grid; gap:12px;">
+              <p style="font-size:0.85rem; text-transform:uppercase; letter-spacing:.14em; font-weight:600; color:var(--muted); margin:0;">Délai contrat &amp; investissement</p>
+              <p style="font-size:clamp(2.8rem,5vw,4rem); font-weight:800; color:#080c14; margin:0; line-height:1;">24&nbsp;h*</p>
+              <p style="font-size:1.05rem; color:var(--muted); margin:0; line-height:1.6;">De la signature à la confirmation, tout géré en ligne.</p>
+            </div>
+
+          </div>
+          <!-- Note -->
+          <p style="font-size:0.78rem; color:var(--muted); line-height:1.6; padding:12px 16px; border-radius:10px; border:1px solid var(--line); background:rgba(255,255,255,0.55);">
+            * Délai selon la réactivité de la startup.
           </p>
         </div>
       </section>
 
-      <!-- ── Features ── -->
-      <!-- ── Problèmes / Solutions ── -->
-      <section class="liquidity-section" id="features">
-        <div class="liq-intro">
-          <div class="eyebrow">Notre approche</div>
-          <h2>Notre expertise de sélection est ce qui fait toute la différence.</h2>
-        </div>
-
-        <!-- 01 -->
-        <div class="liq-block-group">
-          <div class="liq-block-label">01 — Accès</div>
-          <div class="liq-cols">
-            <div class="liq-card problem">
-              <div class="liq-card-tag problem"><span>✕</span> Le problème</div>
-              <h3>Un accès réservé aux initiés.</h3>
-              <p>Les meilleures startups à un stade précoce ne cherchent pas d'investisseurs sur des plateformes publiques. Elles lèvent dans leur cercle proche — et seuls ceux qui ont le bon réseau y entrent.</p>
-              <div class="liq-points">
-                <div class="liq-point bad"><span class="liq-point-icon">✕</span>Opacité totale : les tours précoces ne sont jamais annoncés</div>
-                <div class="liq-point bad"><span class="liq-point-icon">✕</span>Réseau indispensable pour être dans la boucle</div>
-                <div class="liq-point bad"><span class="liq-point-icon">✕</span>Les particuliers arrivent toujours trop tard, ou pas du tout</div>
-              </div>
+      <!-- ── Liquidité ── -->
+      <section style="padding: 0 var(--gutter) 0;">
+        <div style="max-width:1380px; margin:0 auto; display:grid; gap:28px;">
+          <h2 style="font-size:clamp(2rem,4vw,3.2rem); color:#080c14;">Liquidité</h2>
+          <div style="border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,0.7); padding:48px 40px; display:grid; gap:20px;">
+            <div style="display:flex; align-items:center; gap:14px;">
+              <span style="font-size:0.78rem; text-transform:uppercase; letter-spacing:.14em; font-weight:600; color:var(--muted); background:rgba(0,0,0,0.05); border-radius:20px; padding:4px 12px; white-space:nowrap;">En développement</span>
             </div>
-            <div class="liq-vs">
-              <div class="liq-vs-line"></div>
-              <div class="liq-vs-badge">VS</div>
-              <div class="liq-vs-line"></div>
-            </div>
-            <div class="liq-card solution">
-              <div class="liq-card-tag solution"><span>✓</span> La solution Invest BG</div>
-              <h3>Notre réseau vous ouvre les portes.</h3>
-              <p>Implantés au cœur de l'écosystème parisien, nous identifions les pépites avant qu'elles ne soient connues du grand public — et nous vous donnons accès à ces tours avant qu'ils ne se ferment.</p>
-              <div class="liq-points">
-                <div class="liq-point good"><span class="liq-point-icon">✓</span>Flux de dealflow exclusif via notre réseau d'entrepreneurs</div>
-                <div class="liq-point good"><span class="liq-point-icon">✓</span>Accès aux tours de seed et pré-seed dès leur ouverture</div>
-                <div class="liq-point good"><span class="liq-point-icon">✓</span>Des opportunités que vous ne trouverez nulle part ailleurs</div>
-              </div>
-            </div>
+            <p style="font-size:clamp(1.3rem,2vw,1.6rem); font-weight:700; color:#080c14; line-height:1.4; margin:0; max-width:820px;">
+              Nous développons une solution pour ajouter de la liquidité dans l'écosystème du capital-risque.
+            </p>
+            <p style="font-size:1.05rem; color:var(--muted); line-height:1.7; margin:0; max-width:680px;">
+              À terme, cette fonctionnalité deviendra l'un de nos éléments différenciants majeurs.
+            </p>
           </div>
         </div>
+      </section>
 
-        <!-- Séparateur -->
-        <div class="liq-sep"></div>
+      <!-- ── Sélectivité ── -->
+      <section style="padding: 0 var(--gutter) 0;">
+        <div style="max-width:1380px; margin:0 auto; display:grid; gap:28px;">
+          <h2 style="font-size:clamp(2rem,4vw,3.2rem); color:#080c14;">Sélectivité des startups</h2>
+          <div style="border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,0.7); padding:48px 40px; display:grid; gap:40px;">
 
-        <!-- 02 -->
-        <div class="liq-block-group">
-          <div class="liq-block-label">02 — Liquidité</div>
-          <div class="liq-cols">
-            <div class="liq-card problem">
-              <div class="liq-card-tag problem"><span>✕</span> Le problème</div>
-              <h3>Un capital immobilisé, sans issue.</h3>
-              <p>Investir dans une startup, c'est accepter de ne plus voir son argent pendant des années — et espérer qu'une acquisition ou une IPO survienne un jour.</p>
-              <div class="liq-points">
-                <div class="liq-point bad"><span class="liq-point-icon">✕</span>Capital bloqué 7 à 10 ans minimum</div>
-                <div class="liq-point bad"><span class="liq-point-icon">✕</span>Aucun marché secondaire accessible aux particuliers</div>
-                <div class="liq-point bad"><span class="liq-point-icon">✕</span>Sortie dépendante d'un événement incertain (IPO, rachat)</div>
+            <!-- Stat principale -->
+            <div style="display:flex; align-items:center; gap:32px; flex-wrap:wrap;">
+              <div style="display:grid; gap:8px; flex-shrink:0;">
+                <p style="font-size:clamp(4rem,8vw,7rem); font-weight:800; color:#080c14; margin:0; line-height:1;">~&nbsp;1&nbsp;%</p>
+                <p style="font-size:0.85rem; text-transform:uppercase; letter-spacing:.14em; font-weight:600; color:var(--muted); margin:0;">des startups rencontrées sélectionnées</p>
               </div>
+              <div style="width:1px; height:80px; background:var(--line); flex-shrink:0; display:none;"></div>
             </div>
-            <div class="liq-vs">
-              <div class="liq-vs-line"></div>
-              <div class="liq-vs-badge">VS</div>
-              <div class="liq-vs-line"></div>
-            </div>
-            <div class="liq-card solution">
-              <div class="liq-card-tag solution"><span>✓</span> La solution Invest BG</div>
-              <h3>Vendez vos parts quand vous le décidez.</h3>
-              <p>Grâce à notre réseau exclusif d'investisseurs qualifiés, vous pouvez céder vos participations à tout moment — sans attendre une cotation en bourse.</p>
-              <div class="liq-points">
-                <div class="liq-point good"><span class="liq-point-icon">✓</span>Marché secondaire privé entre membres du réseau</div>
-                <div class="liq-point good"><span class="liq-point-icon">✓</span>Mise en relation rapide avec acheteurs pré-qualifiés</div>
-                <div class="liq-point good"><span class="liq-point-icon">✓</span>Liquidité partielle ou totale, selon votre besoin</div>
+
+            <!-- Texte + bouton -->
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:32px; flex-wrap:wrap;">
+              <div style="display:grid; gap:20px; max-width:620px;">
+                <p style="font-size:clamp(1.3rem,2vw,1.6rem); font-weight:600; color:#080c14; line-height:1.5; margin:0;">
+                  Nous rencontrons en personne chaque fondateur avant toute décision d'investissement.
+                </p>
+                <div style="display:flex; align-items:flex-start; gap:14px;">
+                  <span style="width:8px; height:8px; border-radius:50%; background:#080c14; flex-shrink:0; margin-top:7px;"></span>
+                  <p style="font-size:1.05rem; color:var(--muted); margin:0; line-height:1.6;">Chaque dossier est analysé en profondeur : équipe, marché, traction, modèle économique.</p>
+                </div>
               </div>
+              <a class="button primary" href="startups.html" style="white-space:nowrap; flex-shrink:0;">Découvrir les startups →</a>
             </div>
+
           </div>
         </div>
-
-        <!-- Séparateur -->
-        <div class="liq-sep"></div>
-
-        <!-- 03 -->
-        <div class="liq-block-group">
-          <div class="liq-block-label">03 — Sélection</div>
-          <div class="liq-cols">
-            <div class="liq-card problem">
-              <div class="liq-card-tag problem"><span>✕</span> Le problème</div>
-              <h3>Sans expertise, impossible d'identifier les vraies pépites.</h3>
-              <p>À un stade précoce, rien n'est évident. Évaluer une startup naissante demande une connaissance approfondie du marché, des fondateurs et de la dynamique locale — ce que la plupart des investisseurs n'ont pas.</p>
-              <div class="liq-points">
-                <div class="liq-point bad"><span class="liq-point-icon">✕</span>Marché opaque : des centaines de projets, peu d'élus</div>
-                <div class="liq-point bad"><span class="liq-point-icon">✕</span>Impossible d'évaluer une équipe sans la connaître</div>
-                <div class="liq-point bad"><span class="liq-point-icon">✕</span>La majorité des startups échouent dans les 3 premières années</div>
-              </div>
-            </div>
-            <div class="liq-vs">
-              <div class="liq-vs-line"></div>
-              <div class="liq-vs-badge">VS</div>
-              <div class="liq-vs-line"></div>
-            </div>
-            <div class="liq-card solution">
-              <div class="liq-card-tag solution"><span>✓</span> La solution Invest BG</div>
-              <h3>Une capacité de sélection construite sur le terrain.</h3>
-              <p>Nous suivons l'écosystème parisien au quotidien. Notre analyse va bien au-delà du pitch deck : nous rencontrons les fondateurs, étudions le marché en profondeur, et ne retenons que les projets en lesquels nous avons une conviction réelle.</p>
-              <div class="liq-points">
-                <div class="liq-point good"><span class="liq-point-icon">✓</span>Connaissance intime du marché des startups parisiennes</div>
-                <div class="liq-point good"><span class="liq-point-icon">✓</span>Rencontre systématique des équipes fondatrices</div>
-                <div class="liq-point good"><span class="liq-point-icon">✓</span>Moins de 5 % des dossiers analysés sont retenus</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Séparateur -->
-        <div class="liq-sep"></div>
-
-        <!-- 03 -->
-        <div class="liq-block-group">
-          <div class="liq-block-label">04 — Accessibilité</div>
-          <div class="liq-cols">
-            <div class="liq-card problem">
-              <div class="liq-card-tag problem"><span>✕</span> Le problème</div>
-              <h3>Un ticket d'entrée hors de portée.</h3>
-              <p>Même quand un particulier a le réseau pour accéder à une levée précoce, les montants minimum exigés le bloquent systématiquement. Ce type d'investissement reste structurellement réservé à une élite.</p>
-              <div class="liq-points">
-                <div class="liq-point bad"><span class="liq-point-icon">✕</span>Tickets minimum de 50 000 € à 250 000 €</div>
-                <div class="liq-point bad"><span class="liq-point-icon">✕</span>Réservé aux business angels et family offices</div>
-                <div class="liq-point bad"><span class="liq-point-icon">✕</span>Inaccessible sans capital et sans réseau simultanément</div>
-              </div>
-            </div>
-            <div class="liq-vs">
-              <div class="liq-vs-line"></div>
-              <div class="liq-vs-badge">VS</div>
-              <div class="liq-vs-line"></div>
-            </div>
-            <div class="liq-card solution">
-              <div class="liq-card-tag solution"><span>✓</span> La solution Invest BG</div>
-              <h3>Dès 1 000 €, vous investissez comme un initié.</h3>
-              <p>Nous regroupons plusieurs investisseurs pour entrer ensemble dans des tours auxquels vous n'auriez jamais eu accès seul. Vous bénéficiez de notre réseau, de notre sélection et de notre force de frappe collective.</p>
-              <div class="liq-points">
-                <div class="liq-point good"><span class="liq-point-icon">✓</span>Ticket d'entrée à partir de 1 000 €</div>
-                <div class="liq-point good"><span class="liq-point-icon">✓</span>Investissement groupé dans des tours normalement fermés</div>
-                <div class="liq-point good"><span class="liq-point-icon">✓</span>Accès aux mêmes pépites que les meilleurs business angels</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
       </section>
 
       <!-- ── CTA Startups ── -->
@@ -670,21 +1169,87 @@
           <div style="display:grid; gap:8px;">
             <p style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.18em; font-weight:600; color:var(--muted);">Pour les startups</p>
             <h2 style="font-size:clamp(1.3rem,2.2vw,1.7rem); margin:0;">Vous êtes une startup à la recherche de financement&nbsp;?</h2>
-            <p style="font-size:0.9rem; color:var(--muted); line-height:1.6; max-width:520px;">Soumettez votre dossier à notre équipe. Nous analysons chaque candidature et revenons vers vous sous 72&nbsp;h.</p>
+            <p style="font-size:1.05rem; color:var(--muted); line-height:1.6; max-width:520px;">Soumettez votre dossier à notre équipe. Nous analysons chaque candidature et revenons vers vous sous 72&nbsp;h.</p>
           </div>
-          <a class="button primary" href="mailto:bg.fsg.invest@gmail.com?subject=Candidature startup" style="white-space:nowrap; flex-shrink:0;">Candidater →</a>
+          <a class="button primary" href="mailto:liquidplus.contact@gmail.com?subject=Candidature startup" style="white-space:nowrap; flex-shrink:0;">Candidater →</a>
         </div>
       </div>
 
+      <!-- ── Nous contacter ── -->
+      <section style="padding: 0 var(--gutter) 0;">
+        <div style="max-width:1380px; margin:0 auto; display:grid; gap:28px;">
+          <h2 style="font-size:clamp(2rem,4vw,3.2rem); color:#080c14;">Nous contacter</h2>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+
+            <!-- Colonne gauche : Calendly + Email -->
+            <div style="display:grid; gap:20px;">
+
+              <div style="border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,0.7); overflow:hidden;">
+                <div class="calendly-inline-widget" data-url="https://calendly.com/liquidplus-contact/30min?hide_gdpr_banner=1" style="min-width:280px; height:660px;"></div>
+              </div>
+
+              <div style="border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,0.7); padding:28px 32px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+                <div style="display:grid; gap:4px;">
+                  <p style="font-size:0.78rem; text-transform:uppercase; letter-spacing:.14em; font-weight:600; color:var(--muted); margin:0;">Email</p>
+                  <a href="mailto:liquidplus.contact@gmail.com" style="font-size:1.1rem; font-weight:700; color:#080c14; text-decoration:none;">liquidplus.contact@gmail.com</a>
+                </div>
+                <a href="mailto:liquidplus.contact@gmail.com" style="display:inline-flex; align-items:center; gap:8px; border:2px solid #080c14; border-radius:10px; padding:10px 18px; font-size:0.88rem; font-weight:700; color:#080c14; text-decoration:none; white-space:nowrap;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
+                  Écrire
+                </a>
+              </div>
+
+            </div>
+
+            <!-- Colonne droite : WhatsApp × 2 + LinkedIn -->
+            <div style="display:grid; gap:20px;">
+
+              <div style="border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,0.7); padding:28px 32px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+                <div style="display:grid; gap:4px;">
+                  <p style="font-size:0.78rem; text-transform:uppercase; letter-spacing:.14em; font-weight:600; color:var(--muted); margin:0;">WhatsApp</p>
+                  <span style="font-size:1.1rem; font-weight:700; color:#080c14;">+33 6 48 17 63 23</span>
+                </div>
+                <a href="https://wa.me/33648176323" target="_blank" rel="noopener"
+                  style="display:inline-flex; align-items:center; gap:8px; background:#25D366; color:#fff; border-radius:10px; padding:10px 18px; font-size:0.88rem; font-weight:700; text-decoration:none; white-space:nowrap;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.122 1.522 5.858L0 24l6.335-1.498A11.93 11.93 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.794 9.794 0 01-5.001-1.373l-.359-.214-3.72.879.936-3.617-.234-.372A9.787 9.787 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182S21.818 6.578 21.818 12 17.422 21.818 12 21.818z"/></svg>
+                  Message
+                </a>
+              </div>
+
+              <div style="border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,0.7); padding:28px 32px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+                <div style="display:grid; gap:4px;">
+                  <p style="font-size:0.78rem; text-transform:uppercase; letter-spacing:.14em; font-weight:600; color:var(--muted); margin:0;">WhatsApp</p>
+                  <span style="font-size:1.1rem; font-weight:700; color:#080c14;">+33 7 69 66 45 31</span>
+                </div>
+                <a href="https://wa.me/33769664531" target="_blank" rel="noopener"
+                  style="display:inline-flex; align-items:center; gap:8px; background:#25D366; color:#fff; border-radius:10px; padding:10px 18px; font-size:0.88rem; font-weight:700; text-decoration:none; white-space:nowrap;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.122 1.522 5.858L0 24l6.335-1.498A11.93 11.93 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.794 9.794 0 01-5.001-1.373l-.359-.214-3.72.879.936-3.617-.234-.372A9.787 9.787 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182S21.818 6.578 21.818 12 17.422 21.818 12 21.818z"/></svg>
+                  Message
+                </a>
+              </div>
+
+              <div style="border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,0.7); padding:28px 32px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+                <div style="display:grid; gap:4px;">
+                  <p style="font-size:0.78rem; text-transform:uppercase; letter-spacing:.14em; font-weight:600; color:var(--muted); margin:0;">LinkedIn</p>
+                  <a href="https://www.linkedin.com/company/liquidplus" target="_blank" rel="noopener" style="font-size:1.05rem; font-weight:700; color:#080c14; text-decoration:none;">linkedin.com/company/liquidplus</a>
+                </div>
+                <a href="https://www.linkedin.com/company/liquidplus" target="_blank" rel="noopener"
+                  style="display:inline-flex; align-items:center; gap:8px; background:#0A66C2; color:#fff; border-radius:10px; padding:10px 18px; font-size:0.88rem; font-weight:700; text-decoration:none; white-space:nowrap;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                  Suivre
+                </a>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
     </main>
 
-    <footer class="site-footer">
+                <footer class="site-footer">
       <div class="footer-inner">
-        <a class="logo" href="#top"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
-        <p class="footer-copy">
-          © 2026 Invest BG · Investissement à risque élevé.
-          Consultez un conseiller financier avant d'investir.
-        </p>
+        <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
       </div>
     </footer>
   </body>

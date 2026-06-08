@@ -1,9 +1,9 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>LIQUID+ — Mes investissements</title>
+    <title>LIQUID+ — Marché</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -19,23 +19,21 @@
       <nav class="nav">
         <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
         <div class="nav-links" id="nav-links">
-          <a class="nav-link" href="marche.html">Ressources</a>
+          <a class="nav-link nav-link--active" href="marche.html">Ressources</a>
           <a class="nav-link" href="startups.html">Startups</a>
           <a class="nav-link" href="comment-ca-marche.html">Comment ça marche</a>
-          <a class="nav-link nav-link--active" href="investments.html">Mes investissements</a>
           <a class="button ghost" href="login.html">Se connecter</a>
         </div>
-        <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
-      </nav>
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button></nav>
     </header>
-
+    <!-- Menu mobile -->
     <div class="mobile-menu" id="mobile-menu" role="dialog" aria-label="Navigation">
       <button class="nav-hamburger open" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><span></span><span></span><span></span></button>
       <a href="index.html">Accueil</a>
       <a href="startups.html">Startups</a>
       <a href="marche.html">Ressources</a>
-      <a href="comment-ca-marche.html">Comment ça marche</a>
-      <a href="investments.html">Mes investissements</a>
+      <a href="comment-ca-marche.html">Comment &#xe7;a marche</a>
+      <a href="login.html" style="margin-top:16px; font-size:1.1rem; color:rgba(255,255,255,0.5);">Se connecter</a>
     </div>
 
     <script>
@@ -52,6 +50,28 @@
       })();
     </script>
 
+    <script>
+      fetch('/api/auth/me', { credentials: 'include' })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (!data?.user) return;
+          const name = data.user.full_name ? data.user.full_name.split(' ')[0] : data.user.email;
+          document.getElementById('nav-links').innerHTML = `
+            <a class="nav-link nav-link--active" href="marche.html">Ressources</a>
+            <a class="nav-link" href="startups.html">Startups</a>
+              <a class="nav-link" href="comment-ca-marche.html">Comment ça marche</a>
+            <a class="nav-link" href="investments.html">Mes investissements</a>
+            <span class="nav-link nav-user-name">${name}</span>
+            <button class="button ghost" id="nav-logout">Se déconnecter</button>
+          `;
+          document.getElementById('nav-logout').addEventListener('click', async () => {
+            await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+            window.location.reload();
+          });
+        })
+        .catch(() => {});
+    </script>
+
     <main style="display:flex; align-items:center; justify-content:center; min-height:100vh; background:#000; padding:40px 24px;">
       <div style="background:#fff; border-radius:24px; padding:56px 48px; max-width:520px; width:100%; box-shadow:0 24px 60px rgba(0,0,0,0.5); display:grid; gap:28px; text-align:center;">
         <a href="index.html" style="display:flex; align-items:center; justify-content:center; gap:12px; text-decoration:none;">
@@ -63,13 +83,13 @@
           <p style="font-size:1.1rem; color:#5e5e6a; line-height:1.65; margin:0;">Cette page est en cours de construction. Revenez bient&#244;t.</p>
         </div>
         <a href="index.html" style="background:#000; color:#fff; border-radius:12px; padding:16px 28px; font-size:1.05rem; font-weight:700; text-decoration:none; display:block;">Retour &#224; l'accueil</a>
-      </div>
-    </main>
+      </div>    </main>
 
-    <footer class="site-footer" style="display:none;">
+                <footer class="site-footer" style="display:none;">
       <div class="footer-inner">
         <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
       </div>
     </footer>
+    <script src="nav.js"></script>
   </body>
 </html>
