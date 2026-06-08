@@ -12,8 +12,6 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { overflow-x: hidden; max-width: 100%; }
-
 body {
   font-family: "Libre Franklin","Helvetica Neue",sans-serif;
   color: var(--text);
@@ -23,6 +21,7 @@ body {
   min-height: 100vh;
   line-height: 1.6;
   padding: 0 6vw;
+  overflow-x: clip;
 }
 
 .grain {
@@ -995,8 +994,8 @@ body.auth { padding: 0; }
 
 @media (max-width: 720px) {
   /* ── Layout général ── */
-  html, body { overflow-x: hidden !important; max-width: 100vw !important; }
   body { padding: 0 4vw; }
+  .site-header { margin: 0 -4vw; padding: 0 4vw; }
   .nav { padding: 12px 0; }
   .logo-icon { height: 36px; }
   .logo-wordmark { font-size: 1.2rem; }
@@ -1059,6 +1058,11 @@ body.auth { padding: 0; }
 
   /* ── Sélectivité : stat ~1% ── */
   [style*="font-size:clamp(4rem"] { font-size: clamp(3rem, 13vw, 4.5rem) !important; }
+
+  /* ── Labels uppercase avec letter-spacing → réduire spacing sur mobile ── */
+  [style*="letter-spacing:.14em"][style*="text-transform:uppercase"] {
+    letter-spacing: .04em !important;
+  }
 
   /* ── Sélectivité : grand texte (clamp 1.3rem) ── */
   [style*="font-size:clamp(1.3rem"] { font-size: clamp(1.1rem, 5vw, 1.4rem) !important; }
