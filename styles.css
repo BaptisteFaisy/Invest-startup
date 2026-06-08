@@ -930,6 +930,11 @@ body.auth { padding: 0; }
   100% { opacity: 0; transform: translate(12px,-85px) scale(0.2); }
 }
 
+/* ══ Zoom global desktop (conçu sur 4K) ══ */
+@media (min-width: 721px) {
+  html { zoom: 0.8; }
+}
+
 /* ══ Responsive ══ */
 @media (max-width: 900px) {
   .chart-card {
