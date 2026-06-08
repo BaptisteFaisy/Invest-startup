@@ -1052,7 +1052,10 @@
           document.getElementById('fc-result-body').innerHTML = rows;
         }
 
-        document.getElementById('fc-slider').addEventListener('input', update);
+        var fcSlider = document.getElementById('fc-slider');
+        fcSlider.addEventListener('input', update);
+        fcSlider.addEventListener('change', function() { this.blur(); });
+        fcSlider.addEventListener('touchend', function() { this.blur(); });
 
         document.getElementById('fc-amount-input').addEventListener('input', function () {
           var v = parseInt(this.value, 10);
