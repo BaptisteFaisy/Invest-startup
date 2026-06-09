@@ -7,6 +7,7 @@ const cookieParser     = require('cookie-parser');
 const bcrypt           = require('bcryptjs');
 const jwt              = require('jsonwebtoken');
 const speakeasy        = require('speakeasy');
+const QRCode           = require('qrcode');
 const multer           = require('multer');
 const { MongoClient }  = require('mongodb');
 
@@ -236,9 +237,10 @@ app.post('/api/auth/2fa/setup', requireAuth, async (req, res) => {
   try {
     const user = await col('users').findOne({ id: req.user.id });
     if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
-    const secretObj = speakeasy.generateSecret({ length: 20, name: encodeURIComponent('LIQUID+:' + user.email), issuer: 'LIQUID+' });
+    const secretObj = speakeasy.generateSecret({ length: 20, name: 'LIQUID+:' + user.email, issuer: 'LIQUID+' });
     totpSetupStore.set(user.id, secretObj.base32);
-    res.json({ success: true, otpauth: secretObj.otpauth_url, secret: secretObj.base32 });
+    const qrDataUrl = await QRCode.toDataURL(secretObj.otpauth_url, { width: 220, margin: 1, color: { dark: '#f4f2ee', light: '#111318' } });
+    res.json({ success: true, otpauth: secretObj.otpauth_url, secret: secretObj.base32, qr: qrDataUrl });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -343,16 +343,16 @@
     <!-- État vide (défaut) — toute la page noire -->
     <main id="startups-main" style="display:flex; align-items:center; justify-content:center; min-height:100vh; background:#000; padding:40px 24px;">
 
-      <div id="empty-state" style="background:#fff; border-radius:24px; padding:56px 48px; max-width:520px; width:100%; box-shadow:0 24px 60px rgba(0,0,0,0.5); display:grid; gap:28px; text-align:center;">
-        <a href="index.html" style="display:flex; align-items:center; justify-content:center; gap:12px; text-decoration:none;">
-          <img src="/ressourcegraphique/Goutte%20blanche.png" alt="" style="height:44px; width:auto; filter:invert(1);">
-          <span style="font-family:Archivo,sans-serif; font-weight:600; font-size:1.7rem; text-transform:uppercase; letter-spacing:.1em; color:#080c14;">LIQUID+</span>
+      <div id="empty-state" style="display:flex; flex-direction:column; align-items:center; gap:40px;">
+        <a href="index.html" style="display:flex; align-items:center; gap:10px; text-decoration:none; opacity:0.5; transition:opacity .2s;" onmouseover="this.style.opacity='.9'" onmouseout="this.style.opacity='.5'">
+          <img src="/ressourcegraphique/Goutte%20blanche.png" alt="" style="height:28px; width:auto;">
+          <span style="font-family:Archivo,sans-serif; font-weight:700; font-size:1rem; text-transform:uppercase; letter-spacing:.18em; color:#f4f2ee;">LIQUID+</span>
         </a>
-        <div style="display:grid; gap:16px;">
-          <h2 style="font-size:1.8rem; font-weight:700; color:#080c14; margin:0;">Pas encore de startups</h2>
-          <p style="font-size:1.1rem; color:#5e5e6a; line-height:1.65; margin:0;">Nous n'avons pas encore trouv&#233; de startups suffisamment qualitatives pour vous les proposer. Revenez bient&#244;t.</p>
+        <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.07); border-radius:24px; padding:44px 48px; max-width:320px; width:100%; display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center;">
+          <span style="font-size:2.2rem; line-height:1; margin-bottom:4px;">🚧</span>
+          <h2 style="font-size:1.1rem; font-weight:800; color:#f4f2ee; margin:0; letter-spacing:-.01em;">Bientôt disponible</h2>
+          <p style="font-size:0.88rem; color:rgba(255,255,255,0.35); line-height:1.65; margin:0;">Les startups sélectionnées par<br>LIQUID+ arrivent prochainement.</p>
         </div>
-        <a href="index.html" style="background:#000; color:#fff; border-radius:12px; padding:16px 28px; font-size:1.05rem; font-weight:700; text-decoration:none; display:block;">Retour &#224; l'accueil</a>
       </div>
 
       <!-- Hero (cach&#233; par d&#233;faut, affich&#233; par JS) -->
