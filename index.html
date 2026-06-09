@@ -10,6 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Libre+Franklin:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <link rel="icon" type="image/png" href="/ressourcegraphique/Goutte%20blanche.png" />
     <link rel="stylesheet" href="styles.css" />
     <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
     <script src="https://assets.calendly.com/assets/external/widget.js" type="text/javascript" async></script>
@@ -650,6 +651,11 @@
               </div>
             </div>
 
+            <!-- Note Fundora -->
+            <p style="font-size:0.78rem; color:var(--muted); line-height:1.6; padding:10px 14px; border-radius:10px; border:1px solid var(--line); background:rgba(255,255,255,0.55);">
+              * Le calcul des frais de Fundora n'est pas significatif : les frais des sociétés sous-jacentes ne sont pas pris en compte dans cette simulation.
+            </p>
+
           </div>
         </div>
       </section>
@@ -730,6 +736,13 @@
           return '1 % la 1ère année, puis ' + s + ' + 1 % / an';
         }
 
+        /* ── Fundora frais d'entrée dégressifs ── */
+        function fundoraEntryPct(amount) {
+          if (amount < 30000)  return 20.0;
+          if (amount < 100000) return 17.5;
+          return 14.0;
+        }
+
         function liquidPerfFee(capitalAfterEntry, finalCapital, amount) {
           if (finalCapital < amount * 10) return 0;
           return Math.max(0, finalCapital - amount) * 0.03;
@@ -742,10 +755,11 @@
           { name: 'LIQUID+',    entryFn: liquidEntryPct, entryAbsFn: null,          entryLbl: null,           entry: null, mgmtFn: null,           mgmtByYear: null,              mgmtAbsFn: null,         mgmtLbl: null,             mgmt: 0,    perf: null, perfFn: liquidPerfFee, perfLbl: liquidPerfLabel, minAmount: 1000,   minYears: 5  },
           { name: 'Altaroc',    entryFn: null,            entryAbsFn: null,          entryLbl: null,           entry: 5,   mgmtFn: altarocMgmtPct,  mgmtByYear: null,              mgmtAbsFn: null,         mgmtLbl: null,             mgmt: null, perf: 20, minAmount: 100000, minYears: 10 },
           { name: 'Anaxago',    entryFn: null,            entryAbsFn: null,          entryLbl: null,           entry: 2.5, mgmtFn: null,            mgmtByYear: anaxagoMgmtByYear, mgmtAbsFn: null,         mgmtLbl: anaxagoMgmtLabel, mgmt: null, perf: 10, minAmount: 1000,   minYears: 5  },
-          { name: 'Blast Club', entryFn: null,            entryAbsFn: blastEntryFee, entryLbl: blastEntryLabel, entry: null, mgmtFn: null,          mgmtByYear: null,              mgmtAbsFn: blastMgmtAbs, mgmtLbl: blastMgmtLabel,   mgmt: null, perf: 20, minAmount: 1000,   minYears: 5  }
+          { name: 'Blast Club', entryFn: null,            entryAbsFn: blastEntryFee, entryLbl: blastEntryLabel, entry: null, mgmtFn: null,          mgmtByYear: null,              mgmtAbsFn: blastMgmtAbs, mgmtLbl: blastMgmtLabel,   mgmt: null, perf: 20, minAmount: 1000,   minYears: 5  },
+          { name: 'Fundora *',  entryFn: fundoraEntryPct,  entryAbsFn: null,          entryLbl: null,            entry: null, mgmtFn: null,          mgmtByYear: null,              mgmtAbsFn: null,         mgmtLbl: null,             mgmt: 0,    perf: 0,  minAmount: 100,    minYears: 5  }
         ];
         var RETURN     = 0.20;
-        var COLORS     = ['#080c14', '#8b5cf6', '#0ea5e9', '#ec4899'];
+        var COLORS     = ['#080c14', '#8b5cf6', '#0ea5e9', '#ec4899', '#f97316'];
         var selectedCos = [1];
         var years      = 5;
 
@@ -1016,6 +1030,27 @@
                   + visRes[i].perfDisplay
                   + '<br><span style="font-size:0.78rem;color:var(--muted);font-weight:400;">' + fmt(visRes[i].totalPerf) + '</span>'
                   + '</td>';
+              }).join('')
+            + '</tr>';
+
+          rows += '<tr style="border-bottom:1px solid var(--line);">'
+            + '<td style="padding:11px 16px;font-size:1rem;color:var(--muted);">Frais d\'entrée du sous-jacent</td>'
+            + visCos.map(function () {
+                return '<td style="padding:11px 16px;text-align:right;font-size:1rem;font-weight:500;color:var(--text);">0 %</td>';
+              }).join('')
+            + '</tr>';
+
+          rows += '<tr style="border-bottom:1px solid var(--line);">'
+            + '<td style="padding:11px 16px;font-size:1rem;color:var(--muted);">Frais de gestion annuels du sous-jacent</td>'
+            + visCos.map(function () {
+                return '<td style="padding:11px 16px;text-align:right;font-size:1rem;font-weight:500;color:var(--text);">0 %</td>';
+              }).join('')
+            + '</tr>';
+
+          rows += '<tr style="border-bottom:2px solid var(--line);">'
+            + '<td style="padding:11px 16px;font-size:1rem;color:var(--muted);">Frais de performance du sous-jacent</td>'
+            + visCos.map(function () {
+                return '<td style="padding:11px 16px;text-align:right;font-size:1rem;font-weight:500;color:var(--text);">0 %</td>';
               }).join('')
             + '</tr>';
 

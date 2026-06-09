@@ -930,9 +930,15 @@ body.auth { padding: 0; }
   100% { opacity: 0; transform: translate(12px,-85px) scale(0.2); }
 }
 
-/* ══ Zoom global desktop (conçu sur 4K) ══ */
-@media (min-width: 721px) {
-  html { zoom: 0.8; }
+/* ══ Zoom adaptatif : même rendu sur 1080p et 4K ══ */
+@media (min-width: 721px) and (max-width: 2000px) {
+  html { zoom: 0.8; }          /* 1080p standard */
+}
+@media (min-width: 2001px) and (max-width: 3000px) {
+  html { zoom: 1.07; }         /* 4K à 150% OS scaling (~2560px CSS) */
+}
+@media (min-width: 3001px) {
+  html { zoom: 1.6; }          /* 4K à 100% OS scaling (~3840px CSS) */
 }
 
 /* ══ Responsive ══ */
