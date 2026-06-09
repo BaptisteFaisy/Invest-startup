@@ -317,7 +317,9 @@
 
           document.getElementById('secret-display').textContent = data.secret;
           document.getElementById('setup-flow').classList.add('open');
-          generateQR(data.otpauth);
+          const img = document.getElementById('qr-img');
+          img.src = data.qr;
+          img.style.display = 'block';
           document.getElementById('totp-confirm-input').focus();
         } catch {
           alert('Impossible de joindre le serveur');
@@ -367,19 +369,6 @@
         }
       });
 
-      // ── Génération QR code client-side ────────────────────────────────────────
-      function generateQR(otpauth) {
-        if (window.QRCode) { renderQR(otpauth); return; }
-        const s = document.createElement('script');
-        s.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
-        s.onload = () => renderQR(otpauth);
-        document.head.appendChild(s);
-      }
-      function renderQR(otpauth) {
-        QRCode.toDataURL(otpauth, { width: 280, margin: 3, color: { dark: '#080c14', light: '#ffffff' } }, function(err, url) {
-          if (!err) { const img = document.getElementById('qr-img'); img.src = url; img.style.display = 'block'; }
-        });
-      }
 
       // ── Formatage code ────────────────────────────────────────────────────────
       document.getElementById('totp-confirm-input').addEventListener('input', function () {
