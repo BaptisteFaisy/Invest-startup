@@ -1008,7 +1008,7 @@
           var rows = '';
 
           rows += '<tr style="border-bottom:1px solid var(--line);">'
-            + '<td style="padding:11px 16px;font-size:1rem;color:var(--muted);">Frais d\'entrée</td>'
+            + '<td style="padding:11px 16px;font-size:1rem;color:var(--muted);">Frais payé à l\'entrée</td>'
             + visCos.map(function (co, i) {
                 if (visRes[i] === null) return '<td style="padding:11px 16px;text-align:right;font-size:1rem;color:var(--muted);">—</td>';
                 return '<td style="padding:11px 16px;text-align:right;font-size:1rem;font-weight:500;color:var(--text);">' + visRes[i].entryDisplay + '</td>';
@@ -1016,7 +1016,7 @@
             + '</tr>';
 
           rows += '<tr style="border-bottom:1px solid var(--line);">'
-            + '<td style="padding:11px 16px;font-size:1rem;color:var(--muted);">Frais de gestion annuels</td>'
+            + '<td style="padding:11px 16px;font-size:1rem;color:var(--muted);">Frais annuels</td>'
             + visCos.map(function (co, i) {
                 if (visRes[i] === null) return '<td style="padding:11px 16px;text-align:right;font-size:1rem;color:var(--muted);">—</td>';
                 return '<td style="padding:11px 16px;text-align:right;font-size:1rem;font-weight:500;color:var(--text);">' + visRes[i].mgmtDisplay + '</td>';
@@ -1035,14 +1035,14 @@
             + '</tr>';
 
           rows += '<tr style="border-bottom:1px solid var(--line);">'
-            + '<td style="padding:11px 16px;font-size:1rem;color:var(--muted);">Frais d\'entrée du sous-jacent</td>'
+            + '<td style="padding:11px 16px;font-size:1rem;color:var(--muted);">Frais payé à l\'entrée du sous-jacent</td>'
             + visCos.map(function () {
                 return '<td style="padding:11px 16px;text-align:right;font-size:1rem;font-weight:500;color:var(--text);">0 %</td>';
               }).join('')
             + '</tr>';
 
           rows += '<tr style="border-bottom:1px solid var(--line);">'
-            + '<td style="padding:11px 16px;font-size:1rem;color:var(--muted);">Frais de gestion annuels du sous-jacent</td>'
+            + '<td style="padding:11px 16px;font-size:1rem;color:var(--muted);">Frais annuels du sous-jacent</td>'
             + visCos.map(function () {
                 return '<td style="padding:11px 16px;text-align:right;font-size:1rem;font-weight:500;color:var(--text);">0 %</td>';
               }).join('')
