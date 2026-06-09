@@ -140,10 +140,12 @@ function setAuthCookie(res, user) {
     sameSite: 'lax',
     maxAge:   7 * 24 * 60 * 60 * 1000,
   });
+  return token;
 }
 
 function requireAuth(req, res, next) {
-  const token = req.cookies.auth_token;
+  const token = req.cookies.auth_token
+    || (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.slice(7) : null);
   if (!token) return res.status(401).json({ error: 'Non authentifié' });
   try {
     req.user = jwt.verify(token, JWT_SECRET);
@@ -206,8 +208,8 @@ app.post('/api/auth/register', async (req, res) => {
   const hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
   const user = createUser({ email: emailClean, password: hash, full_name: full_name?.trim() });
 
-  setAuthCookie(res, user);
-  res.status(201).json({ success: true, user: { id: user.id, email: user.email, full_name: user.full_name } });
+  const token = setAuthCookie(res, user);
+  res.status(201).json({ success: true, token, user: { id: user.id, email: user.email, name: user.full_name } });
 });
 
 // ─── POST /api/auth/login ────────────────────────────────────────────────────
@@ -230,8 +232,8 @@ app.post('/api/auth/login', async (req, res) => {
 
   // Pas de 2FA configuré → connexion directe
   if (!user.twofa_method) {
-    setAuthCookie(res, user);
-    return res.json({ success: true, user: { id: user.id, email: user.email, full_name: user.full_name } });
+    const token = setAuthCookie(res, user);
+    return res.json({ success: true, token, user: { id: user.id, email: user.email, name: user.full_name } });
   }
 
   const tempToken = jwt.sign(
@@ -325,7 +327,7 @@ app.get('/api/auth/me', requireAuth, (req, res) => {
   const all  = readUsers();
   const user = all.find(u => u.id === req.user.id);
   if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
-  res.json({ user: { id: user.id, email: user.email, full_name: user.full_name, created_at: user.created_at } });
+  res.json({ user: { id: user.id, email: user.email, name: user.full_name, created_at: user.created_at } });
 });
 
 // ─── PUT /api/auth/profile — modifier nom et email ───────────────────────────
