@@ -258,13 +258,18 @@ app.get('/api/auth/2fa/status', requireAuth, (req, res) => {
 
 // ─── POST /api/auth/2fa/setup — démarrer la config TOTP (utilisateur connecté) ─
 app.post('/api/auth/2fa/setup', requireAuth, (req, res) => {
-  const user = readUsers().find(u => u.id === req.user.id);
-  if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
+  try {
+    const user = readUsers().find(u => u.id === req.user.id);
+    if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
 
-  const secret  = authenticator.generateSecret();
-  totpSetupStore.set(user.id, secret);
-  const otpauth = authenticator.keyuri(user.email, 'LIQUID+', secret);
-  res.json({ success: true, otpauth, secret });
+    const secret  = authenticator.generateSecret();
+    totpSetupStore.set(user.id, secret);
+    const otpauth = authenticator.keyuri(user.email, 'LIQUID+', secret);
+    res.json({ success: true, otpauth, secret });
+  } catch (err) {
+    console.error('2FA setup error:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ─── POST /api/auth/2fa/confirm — activer le 2FA après scan QR ───────────────
