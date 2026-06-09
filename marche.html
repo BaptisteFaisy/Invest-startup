@@ -390,6 +390,150 @@
               <text x="533" y="80" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">×10 pertes</text>
             </svg>
           </div>
+
+          <!-- Loi de puissance vs distribution normale -->
+          <div class="card" style="margin-top:14px;">
+            <div class="card-lbl">Loi de puissance vs distribution normale — pourquoi les stats classiques ne s'appliquent pas</div>
+            <!-- ViewBox 660×200 · 2 panels · séparateur x=330
+                 Gauche: courbe gaussienne centrée x=160 · Droite: power law pic x=382 queue droite -->
+            <svg viewBox="0 0 660 200" xmlns="http://www.w3.org/2000/svg">
+              <!-- Séparateur panels -->
+              <line x1="330" y1="8" x2="330" y2="192" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+              <!-- Baselines -->
+              <line x1="10"  y1="170" x2="310" y2="170" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+              <line x1="350" y1="170" x2="650" y2="170" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+              <!-- Courbe normale (gauche) — zone remplie -->
+              <path d="M10,170 C40,170 70,162 85,140 C100,118 130,60 155,40 C180,60 210,118 225,140 C240,162 270,170 310,170 Z"
+                fill="rgba(107,114,128,.12)"/>
+              <path d="M10,170 C40,170 70,162 85,140 C100,118 130,60 155,40 C180,60 210,118 225,140 C240,162 270,170 310,170"
+                fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/>
+              <!-- Ligne médiane = moyenne (normale) -->
+              <line x1="155" y1="40" x2="155" y2="170" stroke="rgba(107,114,128,.35)" stroke-width="1" stroke-dasharray="3,3"/>
+              <text x="155" y="186" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="9.5" font-family="Archivo,sans-serif">médiane = moyenne</text>
+              <!-- Loi de puissance (droite) — zone remplie -->
+              <path d="M350,170 L368,168 C370,148 376,95 382,50 C388,82 397,118 410,138 C428,157 455,164 495,167 C535,169 595,170 650,170 Z"
+                fill="rgba(59,130,246,.12)"/>
+              <path d="M350,170 L368,168 C370,148 376,95 382,50 C388,82 397,118 410,138 C428,157 455,164 495,167 C535,169 595,170 650,170"
+                fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"/>
+              <!-- Pic (médiane) loi puissance -->
+              <line x1="382" y1="50" x2="382" y2="170" stroke="rgba(59,130,246,.25)" stroke-width="1" stroke-dasharray="3,3"/>
+              <text x="382" y="186" text-anchor="middle" fill="rgba(59,130,246,.6)" font-size="9.5" font-family="Archivo,sans-serif">médiane &lt; 1×</text>
+              <!-- Queue épaisse annotation -->
+              <text x="540" y="158" fill="rgba(59,130,246,.55)" font-size="9.5" font-family="Archivo,sans-serif">queue épaisse</text>
+              <path d="M536,155 L505,152" fill="none" stroke="rgba(59,130,246,.3)" stroke-width="1"/>
+              <!-- Jackpot label -->
+              <text x="382" y="42" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700" font-family="Archivo,sans-serif">jackpots ×50+</text>
+              <!-- Titres -->
+              <text x="160" y="18" text-anchor="middle" fill="rgba(255,255,255,.55)" font-size="12" font-weight="700" font-family="Archivo,sans-serif">Distribution normale</text>
+              <text x="160" y="31" text-anchor="middle" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">(actions cotées)</text>
+              <text x="500" y="18" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="700" font-family="Archivo,sans-serif">Loi de puissance</text>
+              <text x="500" y="31" text-anchor="middle" fill="rgba(59,130,246,.5)" font-size="10" font-family="Archivo,sans-serif">(startups seed)</text>
+            </svg>
+            <div class="card-src">Concept fondamental — Taleb (2007), Gregson et al. (2017)</div>
+          </div>
+
+          <!-- Simulation Gregson : taille de portefeuille -->
+          <div class="g2" style="margin-top:14px;">
+            <div class="card">
+              <div class="card-lbl">Simulation Gregson — probabilité de profit selon le nombre d'investissements</div>
+              <!-- ViewBox 600×240
+                   X: 0→50 inv, x=60+n*10, Y: 40→80%, y=220-(pct-40)*4.44
+                   N=1→46%→y193, N=5→52%→y167, N=10→60%→y131, N=15→66%→y104
+                   N=20→70%→y87, N=30→75%→y64, N=50→80%→y42 -->
+              <svg viewBox="0 0 600 240" xmlns="http://www.w3.org/2000/svg">
+                <!-- Grid -->
+                <line x1="60" y1="220" x2="560" y2="220" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+                <line x1="60" y1="170" x2="560" y2="170" stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
+                <line x1="60" y1="120" x2="560" y2="120" stroke="rgba(255,255,255,.07)" stroke-width="1" stroke-dasharray="5,4"/>
+                <line x1="60" y1="70"  x2="560" y2="70"  stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
+                <line x1="60" y1="20"  x2="560" y2="20"  stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
+                <!-- Y labels -->
+                <text x="54" y="224" text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">40%</text>
+                <text x="54" y="174" text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">50%</text>
+                <text x="54" y="124" text-anchor="end" fill="rgba(255,255,255,.25)" font-size="10" font-family="Archivo,sans-serif">60%</text>
+                <text x="54" y="74"  text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">70%</text>
+                <text x="54" y="24"  text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">80%</text>
+                <!-- Ligne 50% (seuil de rentabilité) -->
+                <line x1="60" y1="170" x2="560" y2="170" stroke="rgba(255,255,255,.16)" stroke-width="1.5" stroke-dasharray="6,4"/>
+                <text x="563" y="173" fill="rgba(255,255,255,.3)" font-size="9.5" font-family="Archivo,sans-serif">50%</text>
+                <!-- Zone sous courbe -->
+                <path d="M70,193 L110,167 L160,131 L210,104 L260,87 L360,64 L560,42 L560,220 L70,220 Z"
+                  fill="rgba(59,130,246,.07)"/>
+                <!-- Courbe simulation -->
+                <polyline points="70,193 110,167 160,131 210,104 260,87 360,64 560,42"
+                  fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- Points clés -->
+                <circle cx="70"  cy="193" r="4" fill="#3b82f6" fill-opacity=".7"/>
+                <circle cx="110" cy="167" r="4" fill="#3b82f6" fill-opacity=".8"/>
+                <circle cx="160" cy="131" r="4" fill="#60a5fa"/>
+                <circle cx="260" cy="87"  r="6" fill="#10b981"/>
+                <circle cx="560" cy="42"  r="4" fill="#3b82f6" fill-opacity=".8"/>
+                <!-- Ligne verticale N=20 (recommandé) -->
+                <line x1="260" y1="20" x2="260" y2="220" stroke="rgba(16,185,129,.35)" stroke-width="1.5" stroke-dasharray="4,3"/>
+                <text x="260" y="14" text-anchor="middle" fill="#34d399" font-size="9.5" font-weight="700" font-family="Archivo,sans-serif">20 inv.</text>
+                <text x="270" y="83" fill="#34d399" font-size="12" font-weight="700" font-family="Archivo,sans-serif">70%</text>
+                <!-- X labels -->
+                <text x="70"  y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">1</text>
+                <text x="160" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">10</text>
+                <text x="260" y="235" text-anchor="middle" fill="rgba(16,185,129,.7)" font-size="10" font-family="Archivo,sans-serif">20</text>
+                <text x="360" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">30</text>
+                <text x="560" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">50</text>
+                <text x="310" y="12" text-anchor="middle" fill="rgba(255,255,255,.14)" font-size="9.5" font-family="Archivo,sans-serif">nombre d'investissements</text>
+              </svg>
+              <div class="card-src">Gregson, Mann &amp; Harrison (2017) — simulation Monte Carlo, 10 000 portefeuilles</div>
+            </div>
+
+            <!-- Médiane vs espérance selon portefeuille -->
+            <div class="card">
+              <div class="card-lbl">Médiane vs espérance — l'asymétrie de la distribution</div>
+              <!-- ViewBox 560×240
+                   2 lignes : espérance (constante ~1.7×) et médiane (croît avec N)
+                   Y: 0→2× → y=220-val*100
+                   Espérance const. y=220-1.7*100=50
+                   Médiane N=1:0.5→y170, N=5:0.9→y130, N=10:1.2→y100,
+                   N=20:1.45→y75, N=30:1.55→y65, N=50:1.62→y58
+                   X: 60+n*10 -->
+              <svg viewBox="0 0 560 240" xmlns="http://www.w3.org/2000/svg">
+                <!-- Grid -->
+                <line x1="50" y1="220" x2="530" y2="220" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+                <line x1="50" y1="170" x2="530" y2="170" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="3,4"/>
+                <line x1="50" y1="120" x2="530" y2="120" stroke="rgba(255,255,255,.07)" stroke-width="1" stroke-dasharray="5,4"/>
+                <line x1="50" y1="70"  x2="530" y2="70"  stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="3,4"/>
+                <line x1="50" y1="20"  x2="530" y2="20"  stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
+                <!-- Y labels (×) -->
+                <text x="44" y="224" text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">0×</text>
+                <text x="44" y="174" text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">0.5×</text>
+                <text x="44" y="124" text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">1.0×</text>
+                <text x="44" y="74"  text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">1.5×</text>
+                <text x="44" y="24"  text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">2.0×</text>
+                <!-- Baseline 1× -->
+                <line x1="50" y1="120" x2="530" y2="120" stroke="rgba(255,255,255,.16)" stroke-width="1.5" stroke-dasharray="6,4"/>
+                <!-- Zone entre médiane et espérance -->
+                <path d="M60,170 L100,130 L150,100 L250,75 L350,65 L530,58 L530,50 L50,50 Z"
+                  fill="rgba(59,130,246,.07)"/>
+                <!-- Ligne espérance (constante) -->
+                <line x1="50" y1="50" x2="530" y2="50" stroke="#10b981" stroke-width="2" stroke-dasharray="6,3"/>
+                <text x="534" y="53" fill="#34d399" font-size="10.5" font-weight="700" font-family="Archivo,sans-serif">Esp.</text>
+                <text x="534" y="64" fill="rgba(16,185,129,.6)" font-size="9.5" font-family="Archivo,sans-serif">~1.7×</text>
+                <!-- Courbe médiane (croît) -->
+                <polyline points="60,170 100,130 150,100 250,75 350,65 530,58"
+                  fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <text x="534" y="61" fill="#60a5fa" font-size="10.5" font-weight="700" font-family="Archivo,sans-serif">Méd.</text>
+                <!-- Annotation écart at N=1 -->
+                <circle cx="60" cy="170" r="4" fill="#ef4444" fill-opacity=".8"/>
+                <text x="64" y="175" fill="#f87171" font-size="9.5" font-family="Archivo,sans-serif">1 inv : médiane = 0.5×</text>
+                <!-- Annotation convergence -->
+                <text x="360" y="55" fill="rgba(59,130,246,.6)" font-size="9.5" font-family="Archivo,sans-serif">convergence</text>
+                <!-- X labels -->
+                <text x="60"  y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">1</text>
+                <text x="150" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">10</text>
+                <text x="250" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">20</text>
+                <text x="350" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">30</text>
+                <text x="530" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">50</text>
+              </svg>
+              <div class="card-src">Gregson, Mann &amp; Harrison (2017) — espérance vs médiane par taille de portefeuille</div>
+            </div>
+          </div>
         </section>
 
         <hr class="div"/>
@@ -535,6 +679,47 @@
             </svg>
           </div>
 
+          <!-- Définitions DPI / RVPI / TVPI -->
+          <div class="card" style="margin-bottom:14px;">
+            <div class="card-lbl">Définitions — les 3 métriques de performance d'un fonds</div>
+            <!-- ViewBox 640×150 · 3 panneaux (DPI x=10-200, RVPI x=220-410, TVPI x=430-630)
+                 Chaque panneau: titre + formule + exemple + barre illustrative -->
+            <svg viewBox="0 0 640 150" xmlns="http://www.w3.org/2000/svg">
+              <!-- Panel DPI -->
+              <rect x="10" y="10" width="190" height="132" fill="rgba(59,130,246,.07)" stroke="rgba(59,130,246,.18)" stroke-width="1" rx="8"/>
+              <text x="105" y="34" text-anchor="middle" fill="#60a5fa" font-size="15" font-weight="700" font-family="Archivo,sans-serif">DPI</text>
+              <text x="105" y="50" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="9.5" font-family="Archivo,sans-serif">Distributions / Investi</text>
+              <text x="105" y="64" text-anchor="middle" fill="rgba(255,255,255,.28)" font-size="9" font-family="Archivo,sans-serif">Cash réellement retourné</text>
+              <!-- Barre DPI exemple: 0.6× réalisé sur 1× possible -->
+              <rect x="20" y="76" width="170" height="14" fill="rgba(255,255,255,.08)" rx="4"/>
+              <rect x="20" y="76" width="102" height="14" fill="rgba(59,130,246,.5)" rx="4"/>
+              <text x="125" y="87" fill="#60a5fa" font-size="10" font-weight="700" font-family="Archivo,sans-serif">0.6×</text>
+              <text x="105" y="108" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="9.5" font-family="Archivo,sans-serif">ex. an 7 : 60% remboursé</text>
+              <text x="105" y="123" text-anchor="middle" fill="rgba(255,255,255,.22)" font-size="9" font-family="Archivo,sans-serif">DPI &lt; 1 = pas encore rentable</text>
+              <!-- Panel RVPI -->
+              <rect x="225" y="10" width="190" height="132" fill="rgba(245,158,11,.07)" stroke="rgba(245,158,11,.18)" stroke-width="1" rx="8"/>
+              <text x="320" y="34" text-anchor="middle" fill="#fbbf24" font-size="15" font-weight="700" font-family="Archivo,sans-serif">RVPI</text>
+              <text x="320" y="50" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="9.5" font-family="Archivo,sans-serif">Val. résiduelle / Investi</text>
+              <text x="320" y="64" text-anchor="middle" fill="rgba(255,255,255,.28)" font-size="9" font-family="Archivo,sans-serif">Valeur encore en portefeuille</text>
+              <rect x="235" y="76" width="170" height="14" fill="rgba(255,255,255,.08)" rx="4"/>
+              <rect x="235" y="76" width="136" height="14" fill="rgba(245,158,11,.45)" rx="4"/>
+              <text x="374" y="87" fill="#fbbf24" font-size="10" font-weight="700" font-family="Archivo,sans-serif">0.8×</text>
+              <text x="320" y="108" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="9.5" font-family="Archivo,sans-serif">ex. an 7 : 80% encore latent</text>
+              <text x="320" y="123" text-anchor="middle" fill="rgba(255,255,255,.22)" font-size="9" font-family="Archivo,sans-serif">RVPI baisse avec les sorties</text>
+              <!-- Panel TVPI -->
+              <rect x="440" y="10" width="190" height="132" fill="rgba(16,185,129,.07)" stroke="rgba(16,185,129,.18)" stroke-width="1" rx="8"/>
+              <text x="535" y="34" text-anchor="middle" fill="#34d399" font-size="15" font-weight="700" font-family="Archivo,sans-serif">TVPI</text>
+              <text x="535" y="50" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="9.5" font-family="Archivo,sans-serif">DPI + RVPI</text>
+              <text x="535" y="64" text-anchor="middle" fill="rgba(255,255,255,.28)" font-size="9" font-family="Archivo,sans-serif">Performance totale (réalisée+latente)</text>
+              <rect x="450" y="76" width="170" height="14" fill="rgba(255,255,255,.08)" rx="4"/>
+              <!-- DPI 0.6 + RVPI 0.8 = TVPI 1.4 · 0.6/1.4=43%, 0.8/1.4=57% -->
+              <rect x="450" y="76" width="73" height="14" fill="rgba(59,130,246,.5)" rx="4" style="border-radius:4px 0 0 4px;"/>
+              <rect x="523" y="76" width="97" height="14" fill="rgba(245,158,11,.5)" rx="4" style="border-radius:0 4px 4px 0;"/>
+              <text x="535" y="108" text-anchor="middle" fill="#34d399" font-size="13" font-weight="700" font-family="Archivo,sans-serif">1.4×</text>
+              <text x="535" y="123" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="9.5" font-family="Archivo,sans-serif">0.6 DPI + 0.8 RVPI = 1.4×</text>
+            </svg>
+          </div>
+
           <!-- V12 : DPI vs RVPI vs TVPI -->
           <div class="card" style="margin-top:14px;">
             <div class="card-lbl">Évolution DPI / RVPI / TVPI sur la durée de vie du fonds</div>
@@ -675,6 +860,58 @@
               <div class="card-src">Korteweg &amp; Nagel (2016) — IRR nets de frais sur fonds seed/early stage</div>
             </div>
           </div>
+
+          <!-- Impact des frais 2+20 : Brut vs Net -->
+          <div class="card" style="margin-top:14px;">
+            <div class="card-lbl">Structure de frais 2+20 — impact sur l'IRR net LP</div>
+            <!-- ViewBox 620×200 · waterfall horizontal
+                 Scale: 1% = 9px · x_start=150
+                 Brut 20% → end=150+180=330
+                 −Frais gestion 2.5% → 22.5px (from 330 to 307.5)
+                 −Carried interest 4% → 36px (from 307.5 to 271.5)
+                 Net LP 13.5% → 150+121.5=271.5 ✓ -->
+            <svg viewBox="0 0 620 200" xmlns="http://www.w3.org/2000/svg">
+              <!-- Axis -->
+              <line x1="148" y1="20" x2="148" y2="180" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+              <!-- Row 1: IRR brut fonds -->
+              <text x="142" y="52" text-anchor="end" fill="rgba(255,255,255,.6)" font-size="11" font-family="Archivo,sans-serif">IRR brut fonds</text>
+              <text x="142" y="65" text-anchor="end" fill="rgba(255,255,255,.22)" font-size="9.5" font-family="Archivo,sans-serif">avant frais</text>
+              <rect x="150" y="36" width="180" height="36" fill="rgba(16,185,129,.45)" rx="5"/>
+              <text x="335" y="57" fill="#34d399" font-size="13" font-weight="700" font-family="Archivo,sans-serif">+20 %</text>
+              <!-- Connector -->
+              <path d="M330,54 L330,102" stroke="rgba(255,255,255,.1)" stroke-width="1" stroke-dasharray="3,3" fill="none"/>
+              <!-- Row 2: Frais de gestion -->
+              <text x="142" y="107" text-anchor="end" fill="rgba(239,68,68,.7)" font-size="11" font-family="Archivo,sans-serif">− Frais gestion</text>
+              <text x="142" y="120" text-anchor="end" fill="rgba(239,68,68,.4)" font-size="9.5" font-family="Archivo,sans-serif">2 % /an × 10 ans</text>
+              <rect x="307" y="90" width="23" height="36" fill="rgba(239,68,68,.45)" rx="5"/>
+              <text x="335" y="112" fill="#f87171" font-size="11" font-weight="700" font-family="Archivo,sans-serif">−2.5 %</text>
+              <!-- Connector -->
+              <path d="M307,108 L307,152" stroke="rgba(255,255,255,.1)" stroke-width="1" stroke-dasharray="3,3" fill="none"/>
+              <!-- Row 3: Carried interest -->
+              <text x="142" y="158" text-anchor="end" fill="rgba(245,158,11,.7)" font-size="11" font-family="Archivo,sans-serif">− Carried interest</text>
+              <text x="142" y="171" text-anchor="end" fill="rgba(245,158,11,.4)" font-size="9.5" font-family="Archivo,sans-serif">20 % des profits</text>
+              <rect x="271" y="140" width="36" height="36" fill="rgba(245,158,11,.45)" rx="5"/>
+              <text x="312" y="162" fill="#fbbf24" font-size="11" font-weight="700" font-family="Archivo,sans-serif">−4 %</text>
+              <!-- Result arrow -->
+              <path d="M338,90 L370,90 L370,56" stroke="rgba(255,255,255,.1)" stroke-width="1" fill="none"/>
+              <!-- Row 4 result (inside first bar, annotated) -->
+              <rect x="150" y="36" width="121" height="36" fill="rgba(59,130,246,.6)" rx="5" style="border-radius:5px 0 0 5px;"/>
+              <text x="150" y="52" fill="transparent" font-size="1">.</text>
+              <text x="213" y="52" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="Archivo,sans-serif">Net LP</text>
+              <text x="213" y="65" text-anchor="middle" fill="rgba(255,255,255,.8)" font-size="11" font-family="Archivo,sans-serif">+13.5 %</text>
+              <!-- Separator inside bar -->
+              <line x1="271" y1="36" x2="271" y2="72" stroke="rgba(245,158,11,.6)" stroke-width="1.5"/>
+              <line x1="307" y1="36" x2="307" y2="72" stroke="rgba(239,68,68,.6)" stroke-width="1.5"/>
+              <!-- Légende en dessous -->
+              <rect x="150" y="184" width="14" height="8" rx="2" fill="rgba(59,130,246,.6)"/>
+              <text x="168" y="192" fill="rgba(255,255,255,.4)" font-size="9.5" font-family="Archivo,sans-serif">Net LP (13.5%)</text>
+              <rect x="270" y="184" width="14" height="8" rx="2" fill="rgba(245,158,11,.45)"/>
+              <text x="288" y="192" fill="rgba(255,255,255,.4)" font-size="9.5" font-family="Archivo,sans-serif">Carry (4%)</text>
+              <rect x="360" y="184" width="14" height="8" rx="2" fill="rgba(239,68,68,.45)"/>
+              <text x="378" y="192" fill="rgba(255,255,255,.4)" font-size="9.5" font-family="Archivo,sans-serif">Frais gestion (2.5%)</text>
+            </svg>
+            <div class="card-src">Structure standard fonds VC — frais = 2%/an, carried interest = 20% des profits au-dessus du hurdle rate</div>
+          </div>
         </section>
 
         <hr class="div"/>
@@ -809,6 +1046,114 @@
               <text x="50" y="207" fill="rgba(255,255,255,.18)" font-size="10" font-family="Archivo,sans-serif">La taille des cercles représente le ticket minimum d'investissement typique</text>
             </svg>
             <div class="card-src">Cambridge Associates (2024) — données indicatives, rendements nets médians</div>
+          </div>
+
+          <!-- PME + ILP visuals -->
+          <div class="g2" style="margin-bottom:14px;">
+            <!-- PME : Public Market Equivalent -->
+            <div class="card">
+              <div class="card-lbl">PME — Public Market Equivalent (vs S&amp;P 500)</div>
+              <!-- ViewBox 560×190
+                   Axe horizontal PME 0→2.5, x=40+PME*192
+                   PME=0: x=40, PME=1: x=232, PME=2.5: x=520
+                   Zone rouge (underperform) x=40→232
+                   Zone verte (outperform) x=232→520
+                   Data points: Q4=0.72→x178, Méd=1.10→x251, Q1=1.55→x338, Seed Q1=1.80→x386 -->
+              <svg viewBox="0 0 560 190" xmlns="http://www.w3.org/2000/svg">
+                <!-- Zones colorées -->
+                <rect x="40" y="64" width="192" height="32" fill="rgba(239,68,68,.2)" rx="4" style="border-radius:4px 0 0 4px;"/>
+                <rect x="232" y="64" width="288" height="32" fill="rgba(16,185,129,.18)" rx="4" style="border-radius:0 4px 4px 0;"/>
+                <!-- PME = 1 ligne -->
+                <line x1="232" y1="50" x2="232" y2="110" stroke="rgba(255,255,255,.35)" stroke-width="2"/>
+                <text x="232" y="44" text-anchor="middle" fill="rgba(255,255,255,.55)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">PME = 1.0</text>
+                <text x="136" y="84" text-anchor="middle" fill="rgba(239,68,68,.7)" font-size="10.5" font-weight="600" font-family="Archivo,sans-serif">Sous S&amp;P 500</text>
+                <text x="376" y="84" text-anchor="middle" fill="rgba(16,185,129,.7)" font-size="10.5" font-weight="600" font-family="Archivo,sans-serif">Au-dessus S&amp;P 500</text>
+                <!-- Axe -->
+                <line x1="40" y1="110" x2="520" y2="110" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+                <!-- Data points -->
+                <!-- Q4 0.72 → x=40+0.72*192=178 -->
+                <line x1="178" y1="110" x2="178" y2="126" stroke="#ef4444" stroke-width="2"/>
+                <circle cx="178" cy="128" r="5" fill="#ef4444" fill-opacity=".8"/>
+                <text x="178" y="144" text-anchor="middle" fill="#f87171" font-size="9.5" font-family="Archivo,sans-serif">Q4 VC</text>
+                <text x="178" y="155" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="9" font-family="Archivo,sans-serif">PME 0.72</text>
+                <!-- Médiane 1.10 → x=40+1.10*192=251 -->
+                <line x1="251" y1="110" x2="251" y2="126" stroke="rgba(255,255,255,.5)" stroke-width="2"/>
+                <circle cx="251" cy="128" r="5" fill="rgba(255,255,255,.6)"/>
+                <text x="251" y="144" text-anchor="middle" fill="rgba(255,255,255,.55)" font-size="9.5" font-family="Archivo,sans-serif">Méd. VC</text>
+                <text x="251" y="155" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="9" font-family="Archivo,sans-serif">PME 1.10</text>
+                <!-- Q1 1.55 → x=40+1.55*192=338 -->
+                <line x1="338" y1="110" x2="338" y2="126" stroke="#60a5fa" stroke-width="2"/>
+                <circle cx="338" cy="128" r="5" fill="#60a5fa"/>
+                <text x="338" y="144" text-anchor="middle" fill="#93c5fd" font-size="9.5" font-family="Archivo,sans-serif">Q1 VC</text>
+                <text x="338" y="155" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="9" font-family="Archivo,sans-serif">PME 1.55</text>
+                <!-- Seed Q1 1.80 → x=40+1.80*192=386 -->
+                <line x1="386" y1="110" x2="386" y2="126" stroke="#10b981" stroke-width="2.5"/>
+                <circle cx="386" cy="128" r="6" fill="#10b981"/>
+                <text x="386" y="144" text-anchor="middle" fill="#34d399" font-size="9.5" font-weight="700" font-family="Archivo,sans-serif">Seed Q1</text>
+                <text x="386" y="155" text-anchor="middle" fill="rgba(16,185,129,.6)" font-size="9" font-family="Archivo,sans-serif">PME 1.80</text>
+                <!-- X scale labels -->
+                <text x="40"  y="172" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">0</text>
+                <text x="232" y="172" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10" font-family="Archivo,sans-serif">1.0</text>
+                <text x="424" y="172" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">2.0</text>
+                <text x="520" y="172" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">2.5</text>
+                <!-- Explication -->
+                <text x="280" y="188" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">PME = ratio investissement VC / même cash dans le S&amp;P 500</text>
+              </svg>
+              <div class="card-src">Kaplan &amp; Schoar (2005) — méthodologie PME, données Cambridge Associates (2024)</div>
+            </div>
+
+            <!-- Prime d'illiquidité (ILP) -->
+            <div class="card">
+              <div class="card-lbl">Prime d'illiquidité — décomposition du rendement par classe d'actif</div>
+              <!-- ViewBox 560×220
+                   4 classes, barres horizontales empilées
+                   Scale: 20.5%=389.5px → 19px/% · x_start=170
+                   rf(gris) | Prime risque(bleu) | ILP(turquoise) | Alpha(vert)
+                   Livret A: rf=2.5% → 47.5px → end=217.5
+                   S&P: rf+prime=6.5% → 123.5px → end=293.5
+                   Immo: rf+risque+ILP=7.5% → 142.5px → end=312.5
+                   VC seed: rf+risque+ILP+alpha=20.5% → 389.5px → end=559.5≈560 ✓ -->
+              <svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg">
+                <!-- Axis -->
+                <line x1="168" y1="14" x2="168" y2="200" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+                <!-- Livret A (y=25-55) -->
+                <text x="162" y="44" text-anchor="end" fill="rgba(255,255,255,.45)" font-size="11" font-family="Archivo,sans-serif">Livret A</text>
+                <rect x="170" y="26" width="47" height="28" fill="rgba(107,114,128,.5)" rx="4"/>
+                <text x="222" y="44" fill="rgba(255,255,255,.45)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">+2.5 %</text>
+                <!-- S&P 500 (y=68-98) -->
+                <text x="162" y="87" text-anchor="end" fill="rgba(255,255,255,.5)" font-size="11" font-family="Archivo,sans-serif">S&amp;P 500</text>
+                <rect x="170" y="68" width="47" height="28" fill="rgba(107,114,128,.5)" rx="4" style="border-radius:4px 0 0 4px;"/>
+                <rect x="217" y="68" width="76" height="28" fill="rgba(59,130,246,.5)" rx="0" style="border-radius:0 4px 4px 0;"/>
+                <text x="298" y="87" fill="#93c5fd" font-size="11" font-weight="700" font-family="Archivo,sans-serif">+6.5 %</text>
+                <!-- Immobilier (y=110-140) -->
+                <text x="162" y="129" text-anchor="end" fill="rgba(255,255,255,.5)" font-size="11" font-family="Archivo,sans-serif">Immobilier</text>
+                <rect x="170" y="110" width="47" height="28" fill="rgba(107,114,128,.5)" rx="4" style="border-radius:4px 0 0 4px;"/>
+                <rect x="217" y="110" width="57" height="28" fill="rgba(59,130,246,.4)" rx="0"/>
+                <rect x="274" y="110" width="38" height="28" fill="rgba(20,184,166,.5)" rx="0" style="border-radius:0 4px 4px 0;"/>
+                <text x="317" y="129" fill="rgba(255,255,255,.6)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">+7.5 %</text>
+                <!-- VC seed (y=152-182) -->
+                <text x="162" y="170" text-anchor="end" fill="#60a5fa" font-size="11" font-weight="700" font-family="Archivo,sans-serif">VC seed</text>
+                <rect x="170" y="152" width="47" height="28" fill="rgba(107,114,128,.5)" rx="4" style="border-radius:4px 0 0 4px;"/>
+                <rect x="217" y="152" width="95" height="28" fill="rgba(59,130,246,.5)" rx="0"/>
+                <rect x="312" y="152" width="95" height="28" fill="rgba(20,184,166,.55)" rx="0"/>
+                <rect x="407" y="152" width="152" height="28" fill="rgba(16,185,129,.6)" rx="0" style="border-radius:0 4px 4px 0;"/>
+                <text x="530" y="170" fill="#34d399" font-size="12" font-weight="700" font-family="Archivo,sans-serif">+20 %</text>
+                <!-- ILP label -->
+                <text x="359" y="148" text-anchor="middle" fill="rgba(20,184,166,.7)" font-size="9.5" font-family="Archivo,sans-serif">ILP</text>
+                <!-- Alpha label -->
+                <text x="483" y="170" text-anchor="middle" fill="#fff" font-size="10" font-weight="600" font-family="Archivo,sans-serif">Alpha</text>
+                <!-- Légende -->
+                <rect x="170" y="196" width="10" height="8" rx="2" fill="rgba(107,114,128,.5)"/>
+                <text x="184" y="204" fill="rgba(255,255,255,.35)" font-size="9.5" font-family="Archivo,sans-serif">rf</text>
+                <rect x="204" y="196" width="10" height="8" rx="2" fill="rgba(59,130,246,.5)"/>
+                <text x="218" y="204" fill="rgba(255,255,255,.35)" font-size="9.5" font-family="Archivo,sans-serif">Prime risque</text>
+                <rect x="294" y="196" width="10" height="8" rx="2" fill="rgba(20,184,166,.55)"/>
+                <text x="308" y="204" fill="rgba(255,255,255,.35)" font-size="9.5" font-family="Archivo,sans-serif">ILP (illiquidité)</text>
+                <rect x="396" y="196" width="10" height="8" rx="2" fill="rgba(16,185,129,.6)"/>
+                <text x="410" y="204" fill="rgba(255,255,255,.35)" font-size="9.5" font-family="Archivo,sans-serif">Alpha pur</text>
+              </svg>
+              <div class="card-src">Korteweg &amp; Nagel (2016) — décomposition rf + β·MKT + SMB + ILP + α</div>
+            </div>
           </div>
 
           <!-- V18 + V19 : IRR histogram + Factor model decomposition -->
@@ -1134,6 +1479,39 @@
             </div>
           </div>
 
+          <!-- LP economics waterfall -->
+          <div class="card" style="margin-bottom:14px;">
+            <div class="card-lbl">Économique LP — qui reçoit quoi sur 10 000 € investis (top quartile, 10 ans)</div>
+            <!-- ViewBox 620×100
+                 Barre unique de x=20 à x=600 (580px = 100%)
+                 LP reçoit 80% → 464px, GP carry 12.9% → 75px, frais 7.1% → 41px -->
+            <svg viewBox="0 0 620 100" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="lp1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#3b82f6" stop-opacity=".7"/><stop offset="100%" stop-color="#10b981" stop-opacity=".65"/></linearGradient>
+              </defs>
+              <!-- Barre LP (80%) -->
+              <rect x="20" y="20" width="464" height="44" fill="url(#lp1)" rx="6" style="border-radius:6px 0 0 6px;"/>
+              <text x="252" y="39" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="Archivo,sans-serif">Investisseur LP</text>
+              <text x="252" y="55" text-anchor="middle" fill="rgba(255,255,255,.8)" font-size="11" font-family="Archivo,sans-serif">22 400 € · 80 %</text>
+              <!-- Séparateur -->
+              <line x1="484" y1="20" x2="484" y2="64" stroke="rgba(0,0,0,.3)" stroke-width="1.5"/>
+              <!-- Barre GP carry (12.9%) -->
+              <rect x="484" y="20" width="75" height="44" fill="rgba(245,158,11,.55)" rx="0"/>
+              <text x="521" y="39" text-anchor="middle" fill="#fff" font-size="10" font-weight="600" font-family="Archivo,sans-serif">GP Carry</text>
+              <text x="521" y="53" text-anchor="middle" fill="rgba(255,255,255,.8)" font-size="9.5" font-family="Archivo,sans-serif">3 600 € · 13 %</text>
+              <!-- Séparateur -->
+              <line x1="559" y1="20" x2="559" y2="64" stroke="rgba(0,0,0,.3)" stroke-width="1.5"/>
+              <!-- Frais gestion (7.1%) -->
+              <rect x="559" y="20" width="41" height="44" fill="rgba(107,114,128,.45)" rx="6" style="border-radius:0 6px 6px 0;"/>
+              <text x="579" y="39" text-anchor="middle" fill="rgba(255,255,255,.7)" font-size="9.5" font-weight="600" font-family="Archivo,sans-serif">Frais</text>
+              <text x="579" y="52" text-anchor="middle" fill="rgba(255,255,255,.6)" font-size="9" font-family="Archivo,sans-serif">2 000 €</text>
+              <!-- Source info -->
+              <text x="20" y="84" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">Hypothèse : IRR brut 20% · frais 2%/an · carry 20% · portfeuille brut 28 000€ sur 10 000€ investis</text>
+              <!-- Labels above -->
+              <text x="252" y="14" text-anchor="middle" fill="rgba(255,255,255,.25)" font-size="9.5" font-family="Archivo,sans-serif">Retour total : 28 000 € (×2.8)</text>
+            </svg>
+          </div>
+
           <!-- V27 : Funnel de sélection LIQUID+ (0.1%) -->
           <div class="card">
             <div class="card-lbl">De la candidature à l'investissement — processus de sélection LIQUID+</div>
@@ -1209,6 +1587,102 @@
         <section class="sec">
           <h2 class="sec-h">Données de marché</h2>
           <p class="sec-p">Performance par millésime, répartition sectorielle et concentration de portefeuille.</p>
+
+          <!-- Courbe de diversification -->
+          <div class="g2" style="margin-bottom:14px;">
+            <div class="card">
+              <div class="card-lbl">Courbe de diversification — réduction du risque avec le nombre d'investissements</div>
+              <!-- ViewBox 600×240
+                   X: 0→50 inv, x=60+n*10 · Y: risque 0→100%, y=220-pct*2
+                   N=1:100%→y20, N=2:71%→y78, N=5:45%→y130, N=10:32%→y156,
+                   N=20:22%→y176, N=30:18%→y184, N=50:14%→y192
+                   Bande de confiance supérieure (médiane+écart) et inférieure -->
+              <svg viewBox="0 0 600 240" xmlns="http://www.w3.org/2000/svg">
+                <!-- Grid -->
+                <line x1="60" y1="220" x2="560" y2="220" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+                <line x1="60" y1="170" x2="560" y2="170" stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
+                <line x1="60" y1="120" x2="560" y2="120" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="5,4"/>
+                <line x1="60" y1="70"  x2="560" y2="70"  stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
+                <line x1="60" y1="20"  x2="560" y2="20"  stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
+                <!-- Y labels -->
+                <text x="54" y="224" text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">0%</text>
+                <text x="54" y="174" text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">25%</text>
+                <text x="54" y="124" text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">50%</text>
+                <text x="54" y="74"  text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">75%</text>
+                <text x="54" y="24"  text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">100%</text>
+                <!-- Zone sous courbe -->
+                <path d="M70,20 C74,40 77,65 80,78 C88,104 100,118 110,130 C130,145 145,152 160,156 C200,162 230,170 260,176 C300,179 330,182 360,184 C430,187 490,190 560,192 L560,220 L70,220 Z"
+                  fill="rgba(59,130,246,.07)"/>
+                <!-- Courbe principale -->
+                <path d="M70,20 C74,40 77,65 80,78 C88,104 100,118 110,130 C130,145 145,152 160,156 C200,162 230,170 260,176 C300,179 330,182 360,184 C430,187 490,190 560,192"
+                  fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round"/>
+                <!-- Points clés -->
+                <circle cx="70"  cy="20"  r="4" fill="#ef4444" fill-opacity=".8"/>
+                <circle cx="160" cy="156" r="4" fill="#3b82f6"/>
+                <circle cx="260" cy="176" r="5" fill="#10b981"/>
+                <circle cx="560" cy="192" r="4" fill="#3b82f6" fill-opacity=".7"/>
+                <!-- Ligne minimum théorique -->
+                <line x1="60" y1="192" x2="560" y2="192" stroke="rgba(16,185,129,.25)" stroke-width="1" stroke-dasharray="4,3"/>
+                <text x="564" y="195" fill="rgba(16,185,129,.5)" font-size="9.5" font-family="Archivo,sans-serif">min</text>
+                <!-- Annotation N=1 -->
+                <text x="74" y="14" fill="#f87171" font-size="9.5" font-weight="600" font-family="Archivo,sans-serif">1 deal : risque max</text>
+                <!-- Annotation zone recommandée -->
+                <line x1="260" y1="20" x2="260" y2="220" stroke="rgba(16,185,129,.3)" stroke-width="1.5" stroke-dasharray="4,3"/>
+                <text x="260" y="14" text-anchor="middle" fill="#34d399" font-size="9.5" font-weight="700" font-family="Archivo,sans-serif">20+</text>
+                <text x="265" y="172" fill="rgba(16,185,129,.7)" font-size="9.5" font-family="Archivo,sans-serif">−78%</text>
+                <text x="265" y="183" fill="rgba(16,185,129,.5)" font-size="9.5" font-family="Archivo,sans-serif">de risque</text>
+                <!-- X labels -->
+                <text x="70"  y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">1</text>
+                <text x="160" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">10</text>
+                <text x="260" y="235" text-anchor="middle" fill="rgba(16,185,129,.7)" font-size="10" font-family="Archivo,sans-serif">20</text>
+                <text x="360" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">30</text>
+                <text x="560" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">50</text>
+                <text x="310" y="12" text-anchor="middle" fill="rgba(255,255,255,.14)" font-size="9.5" font-family="Archivo,sans-serif">nombre d'investissements</text>
+              </svg>
+              <div class="card-src">Théorie de la diversification — Markowitz (1952), calibré sur données VC seed</div>
+            </div>
+
+            <!-- Rendement ajusté au risque: Sharpe par classe -->
+            <div class="card">
+              <div class="card-lbl">Ratio de Sharpe — rendement ajusté au risque par classe d'actif</div>
+              <!-- ViewBox 560×240
+                   Sharpe = (rendement - rf) / volatilité
+                   Livret A: 0.4 · Immo: 0.6 · S&P: 0.8 · VC seed diversifié: 0.9–1.1
+                   Barres horizontales, max 1.2 → 420px → 350px/1.2 = 291.7px par unité
+                   x_start=150
+                   Livret 0.4: w=0.4*350=140 → end=290
+                   Immo 0.6: w=210 → end=360
+                   S&P 0.8: w=280 → end=430
+                   Seed div. 1.05: w=367.5 → end=517.5
+                   ViewBox scale: 1.2 → 420px → 350px/unité -->
+              <svg viewBox="0 0 560 240" xmlns="http://www.w3.org/2000/svg">
+                <line x1="148" y1="14" x2="148" y2="220" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+                <!-- Y: 4 assets, spacing 50px, centers: 50, 100, 150, 200 -->
+                <!-- Livret A: Sharpe 0.4 → w=0.4*350=140 -->
+                <text x="142" y="57" text-anchor="end" fill="rgba(255,255,255,.4)" font-size="11" font-family="Archivo,sans-serif">Livret A</text>
+                <rect x="150" y="36" width="140" height="32" fill="rgba(107,114,128,.4)" rx="5"/>
+                <text x="296" y="56" fill="rgba(255,255,255,.5)" font-size="12" font-weight="700" font-family="Archivo,sans-serif">0.4</text>
+                <!-- Immo: Sharpe 0.6 → w=210 -->
+                <text x="142" y="107" text-anchor="end" fill="rgba(255,255,255,.5)" font-size="11" font-family="Archivo,sans-serif">Immobilier</text>
+                <rect x="150" y="86" width="210" height="32" fill="rgba(245,158,11,.35)" rx="5"/>
+                <text x="366" y="106" fill="#fbbf24" font-size="12" font-weight="700" font-family="Archivo,sans-serif">0.6</text>
+                <!-- S&P: Sharpe 0.8 → w=280 -->
+                <text x="142" y="157" text-anchor="end" fill="rgba(255,255,255,.55)" font-size="11" font-family="Archivo,sans-serif">S&amp;P 500</text>
+                <rect x="150" y="136" width="280" height="32" fill="rgba(59,130,246,.4)" rx="5"/>
+                <text x="436" y="156" fill="#93c5fd" font-size="12" font-weight="700" font-family="Archivo,sans-serif">0.8</text>
+                <!-- VC seed div: Sharpe 1.05 → w=367.5 -->
+                <text x="142" y="207" text-anchor="end" fill="#60a5fa" font-size="11" font-weight="700" font-family="Archivo,sans-serif">Seed div.</text>
+                <rect x="150" y="186" width="368" height="32" fill="rgba(16,185,129,.5)" rx="5"/>
+                <!-- Badge LIQUID+ -->
+                <rect x="154" y="194" width="60" height="16" rx="3" fill="rgba(255,255,255,.2)"/>
+                <text x="184" y="205" text-anchor="middle" fill="#fff" font-size="8.5" font-weight="700" font-family="Archivo,sans-serif">LIQUID+</text>
+                <text x="524" y="206" fill="#34d399" font-size="12" font-weight="700" font-family="Archivo,sans-serif">1.05</text>
+                <!-- Note -->
+                <text x="280" y="232" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">Sharpe = (rendement moyen − taux sans risque) ÷ volatilité</text>
+              </svg>
+              <div class="card-src">Données indicatives — calibré sur Korteweg &amp; Nagel (2016) et Cambridge Associates (2024)</div>
+            </div>
+          </div>
 
           <!-- V28 : Heatmap millésimes -->
           <div class="card" style="margin-bottom:14px;">
