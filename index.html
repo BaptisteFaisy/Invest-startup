@@ -62,15 +62,35 @@
           document.getElementById('nav-links').innerHTML = `
             <a class="nav-link" href="marche.html">Ressources</a>
             <a class="nav-link" href="startups.html">Startups</a>
-              <a class="nav-link" href="comment-ca-marche.html">Comment ça marche</a>
+            <a class="nav-link" href="comment-ca-marche.html">Comment ça marche</a>
             <a class="nav-link" href="investments.html">Mes investissements</a>
             <a class="nav-link" href="settings.html">Paramètres</a>
             <span class="nav-link nav-user-name">${name}</span>
             <button class="button ghost" id="nav-logout">Se déconnecter</button>
           `;
+          document.getElementById('mobile-menu').innerHTML = `
+            <button class="nav-hamburger open" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><span></span><span></span><span></span></button>
+            <a href="index.html">Accueil</a>
+            <a href="startups.html">Startups</a>
+            <a href="marche.html">Ressources</a>
+            <a href="comment-ca-marche.html">Comment ça marche</a>
+            <a href="investments.html">Mes investissements</a>
+            <a href="settings.html">Paramètres</a>
+            <button id="mobile-logout" style="margin-top:16px;font-size:1.1rem;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer;font-family:inherit;">Se déconnecter</button>
+          `;
           document.getElementById('nav-logout').addEventListener('click', async () => {
             await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
             window.location.reload();
+          });
+          document.getElementById('mobile-logout').addEventListener('click', async () => {
+            await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+            window.location.reload();
+          });
+          document.getElementById('mobile-close').addEventListener('click', () => {
+            document.getElementById('mobile-menu').classList.remove('open');
+            document.getElementById('nav-hamburger').classList.remove('open');
+            document.getElementById('nav-hamburger').setAttribute('aria-expanded','false');
+            document.body.style.overflow='';
           });
         })
         .catch(() => {});
