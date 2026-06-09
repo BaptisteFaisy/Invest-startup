@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>LIQUID+ — Comment fonctionne l'investissement startup ?</title>
-    <meta name="description" content="Comprendre les rendements du capital-risque en quelques graphiques clairs. Ce que la recherche dit sur l'investissement dans les startups." />
+    <title>LIQUID+ — Investir dans des startups seed : ce que les chiffres disent</title>
+    <meta name="description" content="Comprendre l'investissement en startup seed en quelques graphiques clairs. Distribution des rendements, patience requise, comparaison avec la bourse." />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://www.liquidplus.fr/marche.html" />
     <meta property="og:type" content="article" />
     <meta property="og:url" content="https://www.liquidplus.fr/marche.html" />
-    <meta property="og:title" content="LIQUID+ — Comment fonctionne l'investissement startup ?" />
-    <meta property="og:description" content="Ce que la recherche dit sur les rendements du capital-risque, expliqué simplement." />
+    <meta property="og:title" content="LIQUID+ — Investir dans des startups seed" />
+    <meta property="og:description" content="Ce que la recherche dit sur les rendements du capital-risque seed, expliqué simplement." />
     <meta property="og:image" content="https://www.liquidplus.fr/ressourcegraphique/Goutte%20blanche.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -21,129 +21,64 @@
       *, *::before, *::after { box-sizing: border-box; margin: 0; }
       body { background: #000; color: #fff; font-family: 'Archivo', sans-serif; }
 
-      .page-wrap { max-width: 860px; margin: 0 auto; padding: 0 24px 100px; }
+      .wrap { max-width: 820px; margin: 0 auto; padding: 0 24px 100px; }
 
-      /* Hero */
-      .hero {
-        padding: 130px 24px 70px;
-        max-width: 860px;
-        margin: 0 auto;
-      }
-      .hero-tag {
+      .hero { padding: 130px 24px 64px; max-width: 820px; margin: 0 auto; }
+      .tag {
         display: inline-block;
-        background: rgba(59,130,246,0.12);
-        border: 1px solid rgba(59,130,246,0.25);
+        background: rgba(59,130,246,0.1);
+        border: 1px solid rgba(59,130,246,0.22);
         color: #60a5fa;
-        font-size: .78rem;
-        font-weight: 600;
-        letter-spacing: .1em;
-        text-transform: uppercase;
-        padding: 6px 14px;
-        border-radius: 99px;
-        margin-bottom: 28px;
+        font-size: .75rem; font-weight: 700;
+        letter-spacing: .1em; text-transform: uppercase;
+        padding: 5px 13px; border-radius: 99px; margin-bottom: 26px;
       }
-      .hero-title {
-        font-size: clamp(2.2rem, 5vw, 3.6rem);
-        font-weight: 700;
-        line-height: 1.1;
-        letter-spacing: -.025em;
-        margin-bottom: 22px;
+      .h1 {
+        font-size: clamp(2rem, 5vw, 3.4rem);
+        font-weight: 700; line-height: 1.1; letter-spacing: -.025em;
+        margin-bottom: 18px;
       }
-      .hero-title em { color: #60a5fa; font-style: normal; }
-      .hero-sub {
-        font-size: 1.15rem;
-        color: rgba(255,255,255,0.5);
-        line-height: 1.75;
-        max-width: 580px;
-      }
+      .h1 em { color: #60a5fa; font-style: normal; }
+      .lead { font-size: 1.1rem; color: rgba(255,255,255,0.48); line-height: 1.78; max-width: 560px; }
 
-      /* Section */
-      .section { margin-bottom: 80px; }
-      .section-num {
-        font-size: .72rem;
-        font-weight: 700;
-        letter-spacing: .14em;
-        text-transform: uppercase;
-        color: rgba(255,255,255,0.25);
-        margin-bottom: 10px;
-      }
-      .section-title {
-        font-size: clamp(1.5rem, 3vw, 2.1rem);
-        font-weight: 700;
-        letter-spacing: -.015em;
-        margin-bottom: 14px;
-        line-height: 1.2;
-      }
-      .section-text {
-        font-size: 1.05rem;
-        color: rgba(255,255,255,0.55);
-        line-height: 1.8;
-        max-width: 640px;
-        margin-bottom: 32px;
-      }
-      .section-text strong { color: rgba(255,255,255,0.9); }
+      /* Sections */
+      .sec { margin-bottom: 80px; }
+      .sec-n { font-size: .7rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,0.22); margin-bottom: 10px; }
+      .sec-h { font-size: clamp(1.45rem, 3vw, 2rem); font-weight: 700; letter-spacing: -.015em; line-height: 1.2; margin-bottom: 14px; }
+      .sec-p { font-size: 1rem; color: rgba(255,255,255,0.5); line-height: 1.8; max-width: 620px; margin-bottom: 28px; }
+      .sec-p strong { color: rgba(255,255,255,0.88); }
 
-      /* Chart card */
-      .card {
-        background: #0c1120;
-        border: 1px solid rgba(255,255,255,0.07);
-        border-radius: 20px;
-        padding: 32px;
-        margin-bottom: 20px;
-        overflow: hidden;
-      }
+      /* Card */
+      .card { background: #0c1120; border: 1px solid rgba(255,255,255,0.07); border-radius: 18px; padding: 28px 24px; margin-bottom: 18px; overflow: hidden; }
       .card svg { width: 100%; height: auto; display: block; }
-      .card-label {
-        font-size: .82rem;
-        font-weight: 600;
-        color: rgba(255,255,255,0.35);
-        margin-bottom: 22px;
-        letter-spacing: .02em;
-      }
-      .card-note {
-        font-size: .78rem;
-        color: rgba(255,255,255,0.22);
-        margin-top: 14px;
-        font-style: italic;
-      }
+      .card-lbl { font-size: .8rem; font-weight: 600; color: rgba(255,255,255,0.3); margin-bottom: 20px; letter-spacing: .02em; }
+      .card-src { font-size: .74rem; color: rgba(255,255,255,0.18); margin-top: 12px; font-style: italic; }
 
-      /* Big insight */
-      .insight {
-        background: rgba(59,130,246,0.07);
-        border: 1px solid rgba(59,130,246,0.18);
-        border-radius: 16px;
-        padding: 24px 28px;
-        margin: 28px 0;
-        font-size: 1rem;
-        line-height: 1.75;
-        color: rgba(255,255,255,0.75);
-      }
+      /* Insight */
+      .insight { background: rgba(59,130,246,0.07); border: 1px solid rgba(59,130,246,0.16); border-radius: 14px; padding: 22px 26px; margin: 24px 0; font-size: .97rem; line-height: 1.75; color: rgba(255,255,255,0.7); }
       .insight strong { color: #fff; }
 
-      /* Stats row */
-      .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin: 28px 0; }
-      .stat {
-        background: #0c1120;
-        border: 1px solid rgba(255,255,255,0.07);
-        border-radius: 14px;
-        padding: 22px 18px;
-        text-align: center;
+      /* Stats */
+      .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 12px; margin: 24px 0; }
+      .stat { background: #0c1120; border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 20px 16px; text-align: center; }
+      .stat-n { font-size: 2.1rem; font-weight: 700; letter-spacing: -.03em; line-height: 1; margin-bottom: 7px; }
+      .stat-d { font-size: .8rem; color: rgba(255,255,255,0.4); line-height: 1.45; }
+
+      /* Rules — pure HTML */
+      .rules { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 28px; }
+      .rule { background: #0c1120; border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 28px 24px; }
+      .rule-num { font-size: 2rem; font-weight: 700; letter-spacing: -.03em; line-height: 1; margin-bottom: 14px; }
+      .rule-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
+      .rule-text { font-size: .9rem; color: rgba(255,255,255,0.45); line-height: 1.65; }
+
+      hr.div { border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 72px 0; }
+
+      @media(max-width: 580px) {
+        .hero { padding: 100px 0 48px; }
+        .card { padding: 18px 12px; }
+        .rules { grid-template-columns: 1fr; }
+        .stat-n { font-size: 1.7rem; }
       }
-      .stat-n { font-size: 2.2rem; font-weight: 700; letter-spacing: -.03em; line-height: 1; margin-bottom: 8px; }
-      .stat-d { font-size: .83rem; color: rgba(255,255,255,0.45); line-height: 1.45; }
-
-      /* Legend */
-      .legend { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 14px; }
-      .legend-item { display: flex; align-items: center; gap: 8px; font-size: .82rem; color: rgba(255,255,255,0.5); }
-      .leg-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-      .leg-line { width: 22px; height: 3px; border-radius: 2px; flex-shrink: 0; }
-
-      /* Divider */
-      .div { border: none; border-top: 1px solid rgba(255,255,255,0.06); margin: 72px 0; }
-
-      /* Two col */
-      .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-      @media(max-width:600px) { .two { grid-template-columns: 1fr; } .hero { padding: 100px 0 50px; } .card { padding: 20px 14px; } }
     </style>
   </head>
   <body>
@@ -229,421 +164,453 @@
         }).catch(() => {});
     </script>
 
-    <main style="display:block; padding:0;">
-      <!-- HERO -->
+    <main style="display:block;padding:0;">
+
       <div class="hero">
-        <span class="hero-tag">Ressources</span>
-        <h1 class="hero-title">Investir dans des startups :<br><em>ce que les chiffres disent</em></h1>
-        <p class="hero-sub">L'investissement dans les startups est très différent de la bourse. Voici les grandes règles du jeu, expliquées en graphiques.</p>
+        <span class="tag">Ressources</span>
+        <h1 class="h1">Investir en <em>startup seed</em> :<br>ce que les chiffres disent</h1>
+        <p class="lead">LIQUID+ vous donne accès aux startups dès leur tout début — le stade seed. Voici ce que la recherche académique dit sur ce type d'investissement, expliqué simplement.</p>
       </div>
 
-      <div class="page-wrap">
+      <div class="wrap">
 
-        <!-- ===== SECTION 1 : POWER LAW ===== -->
-        <section class="section">
-          <div class="section-num">01</div>
-          <h2 class="section-title">La majorité échoue.<br>Quelques-unes changent tout.</h2>
-          <p class="section-text">
-            Sur 100 startups financées, plus de la moitié ne rembourse pas l'argent investi. Mais les quelques startups qui réussissent vraiment rapportent tellement qu'elles compensent <strong>toutes les pertes</strong> — et génèrent un rendement global positif. C'est ce qu'on appelle la "loi de puissance".
+        <!-- ======================================================= -->
+        <!-- 01 · LA LOI DE PUISSANCE                                -->
+        <!-- ======================================================= -->
+        <section class="sec">
+          <div class="sec-n">01</div>
+          <h2 class="sec-h">La majorité échoue.<br>Quelques-unes changent tout.</h2>
+          <p class="sec-p">
+            Sur 100 startups financées au stade seed, plus de la moitié ne rembourse pas l'argent investi. Mais les quelques startups qui réussissent vraiment rapportent tellement qu'elles compensent <strong>toutes les pertes</strong> — et génèrent un profit global. C'est pour ça qu'il faut investir dans <strong>plusieurs startups</strong>, pas une seule.
           </p>
 
           <div class="card">
-            <div class="card-label">Que devient votre argent pour 100 investissements dans des startups ?</div>
-            <svg viewBox="0 0 720 380" xmlns="http://www.w3.org/2000/svg">
+            <div class="card-lbl">Sur 100 investissements en startup seed, que se passe-t-il ?</div>
+            <!--
+              ViewBox 760 × 340
+              5 bars, centres à x = 100, 220, 340, 460, 620
+              Largeur de barre : 100px
+              Axe Y : y=280 = 0%, y=60 = 40% → 220px pour 40% → 5.5px/%
+              Heights:
+                32% → h=176, top=104
+                22% → h=121, top=159
+                19% → h=104.5≈105, top=175
+                22% → h=121, top=159
+                 5% → h=27.5≈28, top=252
+              Labels valeur (à 14px au-dessus du top):
+                32 → y=90
+                22 → y=145
+                19 → y=161
+                22 → y=145
+                 5 → y=238
+              Labels X (y=298 ligne 1, y=313 ligne 2)
+            -->
+            <svg viewBox="0 0 760 340" xmlns="http://www.w3.org/2000/svg">
               <defs>
-                <linearGradient id="g-red" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#ef4444" stop-opacity=".9"/>
+                <linearGradient id="gr" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#ef4444" stop-opacity=".85"/>
                   <stop offset="100%" stop-color="#ef4444" stop-opacity=".3"/>
                 </linearGradient>
-                <linearGradient id="g-yellow" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#f59e0b" stop-opacity=".9"/>
+                <linearGradient id="gy" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#f59e0b" stop-opacity=".85"/>
                   <stop offset="100%" stop-color="#f59e0b" stop-opacity=".3"/>
                 </linearGradient>
-                <linearGradient id="g-green" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#10b981" stop-opacity=".9"/>
+                <linearGradient id="gg" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#10b981" stop-opacity=".85"/>
                   <stop offset="100%" stop-color="#10b981" stop-opacity=".3"/>
                 </linearGradient>
-                <linearGradient id="g-blue" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id="gb" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stop-color="#3b82f6" stop-opacity=".9"/>
-                  <stop offset="100%" stop-color="#3b82f6" stop-opacity=".3"/>
+                  <stop offset="100%" stop-color="#3b82f6" stop-opacity=".35"/>
                 </linearGradient>
               </defs>
 
-              <!-- Axes -->
-              <line x1="60" y1="300" x2="700" y2="300" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-              <line x1="60" y1="60" x2="60" y2="300" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+              <!-- Axis -->
+              <line x1="50" y1="280" x2="710" y2="280" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+              <!-- Guides -->
+              <line x1="50" y1="225" x2="710" y2="225" stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="3,4"/>
+              <line x1="50" y1="170" x2="710" y2="170" stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="3,4"/>
+              <line x1="50" y1="115" x2="710" y2="115" stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="3,4"/>
+              <!-- Y labels -->
+              <text x="42" y="284" text-anchor="end" fill="rgba(255,255,255,0.22)" font-size="11" font-family="Archivo,sans-serif">0</text>
+              <text x="42" y="229" text-anchor="end" fill="rgba(255,255,255,0.22)" font-size="11" font-family="Archivo,sans-serif">10</text>
+              <text x="42" y="174" text-anchor="end" fill="rgba(255,255,255,0.22)" font-size="11" font-family="Archivo,sans-serif">20</text>
+              <text x="42" y="119" text-anchor="end" fill="rgba(255,255,255,0.22)" font-size="11" font-family="Archivo,sans-serif">30</text>
+              <text x="18" y="185" text-anchor="middle" fill="rgba(255,255,255,0.2)" font-size="11" font-family="Archivo,sans-serif" transform="rotate(-90,18,185)">startups / 100</text>
 
-              <!-- Y guides -->
-              <line x1="60" y1="220" x2="700" y2="220" stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="4,4"/>
-              <line x1="60" y1="140" x2="700" y2="140" stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="4,4"/>
-              <text x="50" y="304" text-anchor="end" fill="rgba(255,255,255,0.25)" font-size="12" font-family="Archivo,sans-serif">0</text>
-              <text x="50" y="224" text-anchor="end" fill="rgba(255,255,255,0.25)" font-size="12" font-family="Archivo,sans-serif">20</text>
-              <text x="50" y="144" text-anchor="end" fill="rgba(255,255,255,0.25)" font-size="12" font-family="Archivo,sans-serif">40</text>
-              <text x="14" y="185" text-anchor="middle" fill="rgba(255,255,255,0.2)" font-size="11" font-family="Archivo,sans-serif" transform="rotate(-90,14,185)">startups sur 100</text>
+              <!-- Bar 1 : 32 startups perdent tout → rouge -->
+              <rect x="50" y="104" width="100" height="176" fill="url(#gr)" rx="7"/>
+              <text x="100" y="91" text-anchor="middle" fill="#f87171" font-size="20" font-weight="700" font-family="Archivo,sans-serif">32</text>
+              <text x="100" y="297" text-anchor="middle" fill="rgba(255,255,255,0.42)" font-size="11.5" font-family="Archivo,sans-serif">Perd tout</text>
+              <text x="100" y="312" text-anchor="middle" fill="rgba(255,255,255,0.22)" font-size="10" font-family="Archivo,sans-serif">&lt; 50% récupéré</text>
 
-              <!-- Bar 1: Perd tout (0-0.5x) → 32 startups → h=128 -->
-              <rect x="80" y="172" width="110" height="128" fill="url(#g-red)" rx="8"/>
-              <text x="135" y="162" text-anchor="middle" fill="#ef4444" font-size="18" font-weight="700" font-family="Archivo,sans-serif">32</text>
-              <text x="135" y="326" text-anchor="middle" fill="rgba(255,255,255,0.45)" font-size="12" font-family="Archivo,sans-serif">Perd tout</text>
-              <text x="135" y="341" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="10.5" font-family="Archivo,sans-serif">(– de 50% récupéré)</text>
+              <!-- Bar 2 : 22 perdent un peu → rouge clair -->
+              <rect x="170" y="159" width="100" height="121" fill="url(#gr)" rx="7" opacity=".7"/>
+              <text x="220" y="146" text-anchor="middle" fill="#f87171" font-size="20" font-weight="700" font-family="Archivo,sans-serif">22</text>
+              <text x="220" y="297" text-anchor="middle" fill="rgba(255,255,255,0.42)" font-size="11.5" font-family="Archivo,sans-serif">Perd un peu</text>
+              <text x="220" y="312" text-anchor="middle" fill="rgba(255,255,255,0.22)" font-size="10" font-family="Archivo,sans-serif">50–100% récupéré</text>
 
-              <!-- Bar 2: Perd un peu (0.5-1x) → 22 → h=88 -->
-              <rect x="210" y="212" width="110" height="88" fill="url(#g-red)" rx="8"/>
-              <text x="265" y="202" text-anchor="middle" fill="#ef4444" font-size="18" font-weight="700" font-family="Archivo,sans-serif">22</text>
-              <text x="265" y="326" text-anchor="middle" fill="rgba(255,255,255,0.45)" font-size="12" font-family="Archivo,sans-serif">Perd un peu</text>
-              <text x="265" y="341" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="10.5" font-family="Archivo,sans-serif">(récupère 50–100%)</text>
+              <!-- Bar 3 : 19 à l'équilibre → jaune -->
+              <rect x="290" y="175" width="100" height="105" fill="url(#gy)" rx="7"/>
+              <text x="340" y="162" text-anchor="middle" fill="#fbbf24" font-size="20" font-weight="700" font-family="Archivo,sans-serif">19</text>
+              <text x="340" y="297" text-anchor="middle" fill="rgba(255,255,255,0.42)" font-size="11.5" font-family="Archivo,sans-serif">À l'équilibre</text>
+              <text x="340" y="312" text-anchor="middle" fill="rgba(255,255,255,0.22)" font-size="10" font-family="Archivo,sans-serif">×1 à ×2</text>
 
-              <!-- Bar 3: À l'équilibre (1-2x) → 19 → h=76 -->
-              <rect x="340" y="224" width="110" height="76" fill="url(#g-yellow)" rx="8"/>
-              <text x="395" y="214" text-anchor="middle" fill="#f59e0b" font-size="18" font-weight="700" font-family="Archivo,sans-serif">19</text>
-              <text x="395" y="326" text-anchor="middle" fill="rgba(255,255,255,0.45)" font-size="12" font-family="Archivo,sans-serif">À l'équilibre</text>
-              <text x="395" y="341" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="10.5" font-family="Archivo,sans-serif">(×1 à ×2)</text>
+              <!-- Bar 4 : 22 gagnent bien → vert -->
+              <rect x="410" y="159" width="100" height="121" fill="url(#gg)" rx="7"/>
+              <text x="460" y="146" text-anchor="middle" fill="#34d399" font-size="20" font-weight="700" font-family="Archivo,sans-serif">22</text>
+              <text x="460" y="297" text-anchor="middle" fill="rgba(255,255,255,0.42)" font-size="11.5" font-family="Archivo,sans-serif">Gagne bien</text>
+              <text x="460" y="312" text-anchor="middle" fill="rgba(255,255,255,0.22)" font-size="10" font-family="Archivo,sans-serif">×2 à ×10</text>
 
-              <!-- Bar 4: Gagne bien (2-10x) → 22 → h=88 -->
-              <rect x="470" y="212" width="110" height="88" fill="url(#g-green)" rx="8"/>
-              <text x="525" y="202" text-anchor="middle" fill="#10b981" font-size="18" font-weight="700" font-family="Archivo,sans-serif">22</text>
-              <text x="525" y="326" text-anchor="middle" fill="rgba(255,255,255,0.45)" font-size="12" font-family="Archivo,sans-serif">Gagne bien</text>
-              <text x="525" y="341" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="10.5" font-family="Archivo,sans-serif">(×2 à ×10)</text>
+              <!-- Bar 5 : 5 jackpot → bleu (petite barre, label au-dessus avec espace) -->
+              <rect x="570" y="252" width="100" height="28" fill="url(#gb)" rx="7"/>
+              <text x="620" y="238" text-anchor="middle" fill="#60a5fa" font-size="20" font-weight="700" font-family="Archivo,sans-serif">5</text>
+              <text x="620" y="297" text-anchor="middle" fill="rgba(255,255,255,0.42)" font-size="11.5" font-family="Archivo,sans-serif">Jackpot</text>
+              <text x="620" y="312" text-anchor="middle" fill="rgba(255,255,255,0.22)" font-size="10" font-family="Archivo,sans-serif">×10 ou plus</text>
 
-              <!-- Bar 5: Jackpot (>10x) → 5 → h=20 -->
-              <rect x="600" y="280" width="80" height="20" fill="url(#g-blue)" rx="6"/>
-              <text x="640" y="268" text-anchor="middle" fill="#60a5fa" font-size="18" font-weight="700" font-family="Archivo,sans-serif">5</text>
-              <text x="640" y="326" text-anchor="middle" fill="rgba(255,255,255,0.45)" font-size="12" font-family="Archivo,sans-serif">Jackpot</text>
-              <text x="640" y="341" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="10.5" font-family="Archivo,sans-serif">(×10 ou plus)</text>
-
-              <!-- Annotation arrow for bar 5 -->
-              <line x1="640" y1="264" x2="640" y2="240" stroke="rgba(59,130,246,0.5)" stroke-width="1.5"/>
-              <text x="648" y="230" fill="#60a5fa" font-size="11" font-family="Archivo,sans-serif" font-weight="600">Ces 5 paient</text>
-              <text x="648" y="243" fill="#60a5fa" font-size="11" font-family="Archivo,sans-serif" font-weight="600">pour les 54</text>
+              <!-- Accolade annotation for bar 5 -->
+              <line x1="620" y1="218" x2="620" y2="196" stroke="rgba(96,165,250,0.4)" stroke-width="1.5"/>
+              <text x="620" y="184" text-anchor="middle" fill="#60a5fa" font-size="10.5" font-weight="600" font-family="Archivo,sans-serif">Ces 5 paient</text>
+              <text x="620" y="198" text-anchor="middle" fill="#60a5fa" font-size="10.5" font-weight="600" font-family="Archivo,sans-serif">pour les 54</text>
             </svg>
-            <div class="card-note">Source : Gregson, Mann &amp; Harrison (2017) — analyse de 4 200 investissements VC</div>
+            <div class="card-src">Source : Gregson, Mann &amp; Harrison (2017) — analyse de 4 200 investissements VC seed</div>
           </div>
 
           <div class="insight">
-            <strong>À retenir :</strong> 54 startups sur 100 perdent de l'argent. Mais les 5 vraies réussites rapportent tellement (×10, ×50, voire ×100) qu'elles compensent tout et génèrent du profit. C'est pourquoi il faut <strong>investir dans beaucoup de startups</strong>, pas juste une ou deux.
+            <strong>À retenir :</strong> 54 startups sur 100 perdent de l'argent. Mais les 5 vraies réussites peuvent rapporter ×10, ×50 ou même ×100 — et elles compensent toutes les pertes. C'est pourquoi diversifier son portefeuille est la règle n°1.
           </div>
 
           <div class="stats">
             <div class="stat">
               <div class="stat-n" style="color:#ef4444">54%</div>
-              <div class="stat-d">des startups ne remboursent pas l'investissement de départ</div>
+              <div class="stat-d">des startups seed ne remboursent pas l'investissement</div>
             </div>
             <div class="stat">
               <div class="stat-n" style="color:#10b981">×2.5</div>
-              <div class="stat-d">multiplication moyenne du capital sur un portefeuille diversifié</div>
+              <div class="stat-d">multiplication moyenne sur un portefeuille diversifié de startups seed</div>
             </div>
             <div class="stat">
               <div class="stat-n" style="color:#60a5fa">5%</div>
-              <div class="stat-d">des investissements génèrent la moitié des gains totaux</div>
+              <div class="stat-d">des investissements seed génèrent la moitié de tous les gains</div>
             </div>
           </div>
         </section>
 
         <hr class="div"/>
 
-        <!-- ===== SECTION 2 : J-CURVE ===== -->
-        <section class="section">
-          <div class="section-num">02</div>
-          <h2 class="section-title">Il faut attendre.<br>Les gains arrivent après plusieurs années.</h2>
-          <p class="section-text">
-            Quand on investit dans une startup, l'argent est bloqué pendant des années. Au début, la valeur semble baisser (frais, premières dépenses). Les <strong>gains n'apparaissent qu'après 5 à 10 ans</strong>, quand la startup est rachetée ou entre en bourse.
+        <!-- ======================================================= -->
+        <!-- 02 · LA J-CURVE                                         -->
+        <!-- ======================================================= -->
+        <section class="sec">
+          <div class="sec-n">02</div>
+          <h2 class="sec-h">Il faut être patient.<br>Les gains arrivent après plusieurs années.</h2>
+          <p class="sec-p">
+            Au stade seed, les startups ont besoin de plusieurs années pour trouver leur modèle, recruter et grandir. L'argent est bloqué, et la valeur peut sembler baisser au début. Les <strong>premiers remboursements arrivent rarement avant 5 ans</strong>.
           </p>
 
           <div class="card">
-            <div class="card-label">Évolution de la valeur d'un investissement de 1 000 € dans une startup (simulation)</div>
-            <svg viewBox="0 0 720 340" xmlns="http://www.w3.org/2000/svg">
-              <!-- Zone de gain -->
-              <rect x="400" y="30" width="300" height="260" fill="rgba(16,185,129,0.04)" rx="0"/>
-              <!-- Zone de perte -->
-              <rect x="60" y="30" width="340" height="260" fill="rgba(239,68,68,0.04)" rx="0"/>
+            <div class="card-lbl">Évolution simulée de 1 000 € investis dans une startup seed</div>
+            <!--
+              ViewBox 720 × 300
+              X : années 0→12, de x=70 à x=670 → 600px / 12 ans = 50px/an
+              Y : de y=50 (max 2800€) à y=250 (=1000€ mise initiale) à y=270 (min ~750€)
+              Axe du 0€ à y=290, ligne 1000€ à y=215
+              Scale: y=290 = 0€, y=50 = 3000€ → 240px / 3000€ → 0.08px/€
+              1000€ → y = 290 - 1000*0.08 = 290-80 = 210
+              750€  → y = 290 - 750*0.08  = 290-60 = 230
+              2700€ → y = 290 - 2700*0.08 = 290-216 = 74
+              Points de la courbe (an, €, x, y):
+                0  → 1000 → x=70,  y=210
+                1  → 870  → x=120, y=220
+                2  → 780  → x=170, y=228
+                3  → 750  → x=220, y=230   ← creux
+                4  → 790  → x=270, y=227
+                5  → 880  → x=320, y=220
+                6  → 1020 → x=370, y=208
+                7  → 1200 → x=420, y=194
+                8  → 1500 → x=470, y=170
+                9  → 1900 → x=520, y=138
+                10 → 2300 → x=570, y=106
+                11 → 2600 → x=620, y=82
+                12 → 2700 → x=670, y=74
+            -->
+            <svg viewBox="0 0 720 300" xmlns="http://www.w3.org/2000/svg">
+              <!-- Fill gain area above 1000€ line -->
+              <path d="M370,208 L420,194 L470,170 L520,138 L570,106 L620,82 L670,74 L670,210 L370,210 Z"
+                fill="rgba(16,185,129,0.08)"/>
+
+              <!-- Fill loss area below 1000€ line -->
+              <path d="M70,210 L120,220 L170,228 L220,230 L270,227 L320,220 L370,208 L370,210 L320,210 L270,210 L220,210 L170,210 L120,210 L70,210 Z"
+                fill="rgba(239,68,68,0.06)"/>
+
+              <!-- 1000€ baseline -->
+              <line x1="70" y1="210" x2="670" y2="210" stroke="rgba(255,255,255,0.14)" stroke-width="1.5" stroke-dasharray="6,4"/>
 
               <!-- Axes -->
-              <line x1="60" y1="170" x2="700" y2="170" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" stroke-dasharray="6,4"/>
-              <line x1="60" y1="30" x2="60" y2="290" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-              <line x1="60" y1="290" x2="700" y2="290" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+              <line x1="70" y1="40" x2="70" y2="260" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+              <line x1="70" y1="260" x2="670" y2="260" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
 
-              <!-- Y axis labels -->
-              <text x="50" y="174" text-anchor="end" fill="rgba(255,255,255,0.45)" font-size="12" font-weight="600" font-family="Archivo,sans-serif">1 000 €</text>
-              <text x="50" y="85" text-anchor="end" fill="rgba(255,255,255,0.3)" font-size="11" font-family="Archivo,sans-serif">2 500 €</text>
-              <text x="50" y="250" text-anchor="end" fill="rgba(255,255,255,0.3)" font-size="11" font-family="Archivo,sans-serif">700 €</text>
-
-              <!-- X axis years: 0,2,4,6,8,10,12 → x = 60 + year*(640/12) = 60 + year*53.3 -->
-              <text x="60" y="310" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="12" font-family="Archivo,sans-serif">Année 0</text>
-              <text x="167" y="310" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="12" font-family="Archivo,sans-serif">2</text>
-              <text x="273" y="310" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="12" font-family="Archivo,sans-serif">4</text>
-              <text x="380" y="310" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="12" font-family="Archivo,sans-serif">6</text>
-              <text x="487" y="310" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="12" font-family="Archivo,sans-serif">8</text>
-              <text x="593" y="310" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="12" font-family="Archivo,sans-serif">10</text>
-              <text x="700" y="310" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="12" font-family="Archivo,sans-serif">12 ans</text>
-
-              <!-- Phase labels -->
-              <text x="200" y="48" text-anchor="middle" fill="rgba(239,68,68,0.6)" font-size="11.5" font-weight="600" font-family="Archivo,sans-serif">Phase d'attente</text>
-              <text x="560" y="48" text-anchor="middle" fill="rgba(16,185,129,0.7)" font-size="11.5" font-weight="600" font-family="Archivo,sans-serif">Phase de gains</text>
-
-              <!-- Vertical separator -->
-              <line x1="400" y1="30" x2="400" y2="290" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
-              <text x="400" y="330" text-anchor="middle" fill="rgba(255,255,255,0.2)" font-size="10.5" font-family="Archivo,sans-serif">Point de retournement</text>
-
-              <!-- The J-curve: starts at 1000€ (y=170), dips, then rises -->
-              <!-- Curve points: year→x, value€→y mapping: y = 170 - (val-1000)*0.085 -->
-              <!-- 0: 1000→170, 1: 850→182.75, 2: 780→189.3, 3: 750→191.5, 4: 780→189.3, -->
-              <!-- 5: 860→181.9, 6: 980→171.3, 7: 1150→155.75, 8: 1400→133.5 -->
-              <!-- 9: 1750→103.25, 10: 2200→63.5, 11: 2500→36.25, 12: 2700→19.5 -->
-              <!-- x = 60 + year*53.3 -->
-              <path d="M60,170 C90,175 120,182 167,189 C200,193 233,193 273,192 C313,191 340,187 380,181 C400,175 427,171 460,162 C487,152 513,138 540,119 C567,100 593,74 620,58 C650,40 680,32 700,28"
+              <!-- The curve -->
+              <path d="M70,210 C95,213 112,218 140,222 C158,225 185,229 220,230 C255,231 285,228 320,222 C345,217 358,213 370,208 C395,201 415,196 440,189 C460,183 475,175 500,163 C525,149 545,132 570,112 C595,92 630,80 660,76"
                 fill="none" stroke="#60a5fa" stroke-width="3" stroke-linecap="round"/>
 
-              <!-- Fill area above baseline (gains zone) -->
-              <path d="M380,181 C400,175 427,171 460,162 C487,152 513,138 540,119 C567,100 593,74 620,58 C650,40 680,32 700,28 L700,170 L380,170 Z"
-                fill="rgba(16,185,129,0.1)"/>
+              <!-- Key dots -->
+              <circle cx="70" cy="210" r="5" fill="#60a5fa"/>
+              <circle cx="220" cy="230" r="5" fill="#ef4444" opacity=".8"/>
+              <circle cx="370" cy="208" r="5" fill="#f59e0b" opacity=".8"/>
+              <circle cx="660" cy="76" r="6" fill="#10b981"/>
 
-              <!-- Dots at key points -->
-              <circle cx="60" cy="170" r="5" fill="#60a5fa"/>
-              <circle cx="273" cy="192" r="5" fill="#ef4444" opacity="0.8"/>
-              <circle cx="700" cy="28" r="6" fill="#10b981"/>
+              <!-- Y labels (left) -->
+              <text x="60" y="214" text-anchor="end" fill="rgba(255,255,255,0.4)" font-size="11" font-family="Archivo,sans-serif">1 000 €</text>
+              <text x="60" y="234" text-anchor="end" fill="rgba(255,255,255,0.25)" font-size="10.5" font-family="Archivo,sans-serif">750 €</text>
+              <text x="60" y="80" text-anchor="end" fill="rgba(255,255,255,0.25)" font-size="10.5" font-family="Archivo,sans-serif">2 700 €</text>
 
-              <!-- Annotations -->
-              <text x="80" y="162" fill="rgba(255,255,255,0.6)" font-size="11" font-family="Archivo,sans-serif">1 000 €</text>
-              <line x1="273" y1="192" x2="273" y2="215" stroke="rgba(239,68,68,0.4)" stroke-width="1"/>
-              <text x="273" y="226" text-anchor="middle" fill="rgba(239,68,68,0.7)" font-size="10.5" font-family="Archivo,sans-serif">Point bas</text>
-              <text x="273" y="237" text-anchor="middle" fill="rgba(239,68,68,0.5)" font-size="10" font-family="Archivo,sans-serif">(~750 €)</text>
-              <text x="706" y="22" fill="#10b981" font-size="12" font-weight="700" font-family="Archivo,sans-serif">2 700 €</text>
+              <!-- Annotation: creux -->
+              <line x1="220" y1="238" x2="220" y2="252" stroke="rgba(239,68,68,0.35)" stroke-width="1"/>
+              <text x="220" y="264" text-anchor="middle" fill="rgba(239,68,68,0.6)" font-size="10.5" font-family="Archivo,sans-serif">Point bas (an 3)</text>
+
+              <!-- Annotation: retournement -->
+              <line x1="370" y1="202" x2="370" y2="188" stroke="rgba(245,158,11,0.35)" stroke-width="1"/>
+              <text x="370" y="180" text-anchor="middle" fill="rgba(245,158,11,0.6)" font-size="10.5" font-family="Archivo,sans-serif">Retournement (an 6)</text>
+
+              <!-- Annotation: fin -->
+              <text x="667" y="64" text-anchor="end" fill="#34d399" font-size="13" font-weight="700" font-family="Archivo,sans-serif">2 700 €</text>
+              <text x="667" y="78" text-anchor="end" fill="rgba(16,185,129,0.6)" font-size="10" font-family="Archivo,sans-serif">+170% en 12 ans</text>
+
+              <!-- X labels -->
+              <text x="70" y="278" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="10.5" font-family="Archivo,sans-serif">An 0</text>
+              <text x="220" y="278" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="10.5" font-family="Archivo,sans-serif">An 3</text>
+              <text x="370" y="278" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="10.5" font-family="Archivo,sans-serif">An 6</text>
+              <text x="520" y="278" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="10.5" font-family="Archivo,sans-serif">An 9</text>
+              <text x="670" y="278" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="10.5" font-family="Archivo,sans-serif">An 12</text>
+
+              <!-- Phase labels -->
+              <text x="185" y="52" text-anchor="middle" fill="rgba(239,68,68,0.5)" font-size="11" font-weight="600" font-family="Archivo,sans-serif">Phase d'attente</text>
+              <text x="530" y="52" text-anchor="middle" fill="rgba(16,185,129,0.6)" font-size="11" font-weight="600" font-family="Archivo,sans-serif">Phase de gains</text>
+              <line x1="370" y1="58" x2="370" y2="68" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
             </svg>
-            <div class="card-note">Simulation d'un investissement moyen dans un portefeuille VC diversifié — les chiffres réels varient selon les startups</div>
+            <div class="card-src">Simulation d'un investissement seed moyen — les chiffres réels varient selon les startups</div>
           </div>
 
           <div class="insight">
-            <strong>À retenir :</strong> Ne paniquez pas si la valeur semble baisser les premières années — c'est normal. L'investissement startup demande de la <strong>patience</strong>. La plupart des grandes réussites prennent 7 à 10 ans pour se concrétiser.
+            <strong>À retenir :</strong> Ne paniquez pas si la valeur semble baisser les premières années — c'est normal pour une startup au stade seed. La patience est indispensable : la plupart des grandes réussites prennent <strong>7 à 10 ans</strong> pour se concrétiser.
           </div>
         </section>
 
         <hr class="div"/>
 
-        <!-- ===== SECTION 3 : BOURSE ===== -->
-        <section class="section">
-          <div class="section-num">03</div>
-          <h2 class="section-title">Mieux que la bourse ?<br>Oui — mais pas pour tout le monde.</h2>
-          <p class="section-text">
-            Sur le long terme, les meilleurs fonds d'investissement startup <strong>surperforment la bourse</strong>. Mais tout dépend de l'accès aux bonnes startups. Un portefeuille mal diversifié peut facilement faire moins bien que le S&P 500.
+        <!-- ======================================================= -->
+        <!-- 03 · COMPARAISON BOURSE                                 -->
+        <!-- ======================================================= -->
+        <section class="sec">
+          <div class="sec-n">03</div>
+          <h2 class="sec-h">Mieux que la bourse ?<br>Oui — si vous êtes bien diversifié.</h2>
+          <p class="sec-p">
+            Historiquement, un portefeuille de startups seed bien diversifié <strong>surperforme la bourse</strong> sur 10 ans. Mais la clé, c'est la diversification : un seul investissement seed peut tout perdre, là où un panier de 20 startups sera beaucoup plus stable.
           </p>
 
           <div class="card">
-            <div class="card-label">Comparaison : 10 000 € investis pendant 10 ans</div>
-            <svg viewBox="0 0 720 360" xmlns="http://www.w3.org/2000/svg">
+            <div class="card-lbl">10 000 € investis pendant 10 ans — résultat final selon la stratégie</div>
+            <!--
+              ViewBox 680 × 320
+              4 barres, centres à x = 100, 235, 370, 505, (680 pour note)
+              Largeur : 100px
+              Axe Y : y=270 = 0€, y=50 = 42000€ → 220px / 42000 → 0.00524px/€
+              10000€ → y = 270 - 10000*0.00524 = 270-52.4 = 217.6 ≈ 218
+              11800€ → y = 270 - 11800*0.00524 = 270-61.8 = 208 (livret A)
+              26000€ → y = 270 - 26000*0.00524 = 270-136.2 = 134 (S&P)
+              24000€ → y = 270 - 24000*0.00524 = 270-125.8 = 144 (seed moyen)
+              40000€ → y = 270 - 40000*0.00524 = 270-209.6 = 60 (seed top)
+              Hauteurs:
+                11800 → h=270-208=62, top=208
+                26000 → h=270-134=136, top=134
+                24000 → h=270-144=126, top=144
+                40000 → h=270-60=210, top=60 → trop haut, montrer flèche
+              Scale: 220px / 42000€ → px/€ = 0.00524
+              Let me use simpler scale:
+              y=260 = 0, y=40 = 40000 → 220px / 40000 = 0.0055px/€
+              11800 → h=65, top=195
+              26000 → h=143, top=117
+              24000 → h=132, top=128
+              40000 → h=220, top=40 → flèche above
+            -->
+            <svg viewBox="0 0 640 320" xmlns="http://www.w3.org/2000/svg">
               <!-- Grid -->
-              <line x1="80" y1="300" x2="680" y2="300" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
-              <line x1="80" y1="220" x2="680" y2="220" stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="3,4"/>
-              <line x1="80" y1="140" x2="680" y2="140" stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="3,4"/>
-              <line x1="80" y1="60" x2="680" y2="60" stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="3,4"/>
+              <line x1="50" y1="260" x2="610" y2="260" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+              <line x1="50" y1="205" x2="610" y2="205" stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="3,4"/>
+              <line x1="50" y1="150" x2="610" y2="150" stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="3,4"/>
+              <line x1="50" y1="95" x2="610" y2="95" stroke="rgba(255,255,255,0.04)" stroke-width="1" stroke-dasharray="3,4"/>
+              <!-- Y labels -->
+              <text x="42" y="264" text-anchor="end" fill="rgba(255,255,255,0.22)" font-size="10.5" font-family="Archivo,sans-serif">0 €</text>
+              <text x="42" y="209" text-anchor="end" fill="rgba(255,255,255,0.22)" font-size="10.5" font-family="Archivo,sans-serif">10 k€</text>
+              <text x="42" y="154" text-anchor="end" fill="rgba(255,255,255,0.22)" font-size="10.5" font-family="Archivo,sans-serif">20 k€</text>
+              <text x="42" y="99" text-anchor="end" fill="rgba(255,255,255,0.22)" font-size="10.5" font-family="Archivo,sans-serif">30 k€</text>
 
-              <text x="70" y="304" text-anchor="end" fill="rgba(255,255,255,0.25)" font-size="11" font-family="Archivo,sans-serif">0</text>
-              <text x="70" y="224" text-anchor="end" fill="rgba(255,255,255,0.25)" font-size="11" font-family="Archivo,sans-serif">10k€</text>
-              <text x="70" y="144" text-anchor="end" fill="rgba(255,255,255,0.25)" font-size="11" font-family="Archivo,sans-serif">20k€</text>
-              <text x="70" y="64" text-anchor="end" fill="rgba(255,255,255,0.25)" font-size="11" font-family="Archivo,sans-serif">30k€</text>
+              <!-- Mise initiale ligne -->
+              <line x1="50" y1="205" x2="610" y2="205" stroke="rgba(255,255,255,0.18)" stroke-width="1.5" stroke-dasharray="6,3"/>
+              <text x="615" y="202" fill="rgba(255,255,255,0.32)" font-size="9.5" font-family="Archivo,sans-serif">Mise</text>
+              <text x="615" y="213" fill="rgba(255,255,255,0.32)" font-size="9.5" font-family="Archivo,sans-serif">initiale</text>
 
-              <!-- Bars: width=100, gap=40 -->
-              <!-- Livret A: 1 800€ profit → total 11 800 → h = 11800/30000*240 = 94.4 → y=300-94=206 -->
-              <rect x="100" y="206" width="100" height="94" fill="rgba(107,114,128,0.5)" rx="8"/>
-              <text x="150" y="196" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="15" font-weight="700" font-family="Archivo,sans-serif">11 800 €</text>
-              <text x="150" y="320" text-anchor="middle" fill="rgba(255,255,255,0.45)" font-size="12" font-family="Archivo,sans-serif">Livret A</text>
-              <text x="150" y="335" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="10.5" font-family="Archivo,sans-serif">+18% en 10 ans</text>
+              <!-- Bar 1: Livret A → 11 800€ → h=65, top=195 -->
+              <rect x="55" y="195" width="100" height="65" fill="rgba(107,114,128,0.45)" rx="7"/>
+              <text x="105" y="182" text-anchor="middle" fill="rgba(255,255,255,0.6)" font-size="14" font-weight="700" font-family="Archivo,sans-serif">11 800 €</text>
+              <text x="105" y="278" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="11.5" font-family="Archivo,sans-serif">Livret A</text>
+              <text x="105" y="292" text-anchor="middle" fill="rgba(255,255,255,0.22)" font-size="10" font-family="Archivo,sans-serif">+18% en 10 ans</text>
 
-              <!-- S&P 500: +160% → 26 000 → h=208 → y=92 -->
-              <rect x="240" y="92" width="100" height="208" fill="rgba(59,130,246,0.5)" rx="8"/>
-              <text x="290" y="82" text-anchor="middle" fill="#93c5fd" font-size="15" font-weight="700" font-family="Archivo,sans-serif">26 000 €</text>
-              <text x="290" y="320" text-anchor="middle" fill="rgba(255,255,255,0.45)" font-size="12" font-family="Archivo,sans-serif">S&amp;P 500</text>
-              <text x="290" y="335" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="10.5" font-family="Archivo,sans-serif">+160% en 10 ans</text>
+              <!-- Bar 2: S&P 500 → 26 000€ → h=143, top=117 -->
+              <rect x="185" y="117" width="100" height="143" fill="rgba(59,130,246,0.45)" rx="7"/>
+              <text x="235" y="104" text-anchor="middle" fill="#93c5fd" font-size="14" font-weight="700" font-family="Archivo,sans-serif">26 000 €</text>
+              <text x="235" y="278" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="11.5" font-family="Archivo,sans-serif">S&amp;P 500</text>
+              <text x="235" y="292" text-anchor="middle" fill="rgba(255,255,255,0.22)" font-size="10" font-family="Archivo,sans-serif">+160% en 10 ans</text>
 
-              <!-- VC médian: +140% → 24 000 → h=192 → y=108 -->
-              <rect x="380" y="108" width="100" height="192" fill="rgba(245,158,11,0.45)" rx="8"/>
-              <text x="430" y="98" text-anchor="middle" fill="#fde68a" font-size="15" font-weight="700" font-family="Archivo,sans-serif">24 000 €</text>
-              <text x="430" y="320" text-anchor="middle" fill="rgba(255,255,255,0.45)" font-size="12" font-family="Archivo,sans-serif">Startup (moyen)</text>
-              <text x="430" y="335" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="10.5" font-family="Archivo,sans-serif">+140% en 10 ans</text>
+              <!-- Bar 3: Seed diversifié moyen → 32 000€ → h=176, top=84 -->
+              <rect x="315" y="84" width="100" height="176" fill="rgba(245,158,11,0.45)" rx="7"/>
+              <text x="365" y="71" text-anchor="middle" fill="#fde68a" font-size="14" font-weight="700" font-family="Archivo,sans-serif">32 000 €</text>
+              <text x="365" y="278" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="11.5" font-family="Archivo,sans-serif">Seed diversifié</text>
+              <text x="365" y="292" text-anchor="middle" fill="rgba(255,255,255,0.22)" font-size="10" font-family="Archivo,sans-serif">+220% en 10 ans</text>
 
-              <!-- VC top: +300% → 40 000 → capped at 30k for scale → h=240 → y=60 -->
-              <rect x="520" y="60" width="100" height="240" fill="rgba(16,185,129,0.55)" rx="8"/>
-              <!-- Arrow above showing it goes higher -->
-              <path d="M570,52 L570,38 M562,44 L570,36 L578,44" fill="none" stroke="#10b981" stroke-width="2" stroke-linejoin="round"/>
-              <text x="570" y="28" text-anchor="middle" fill="#6ee7b7" font-size="15" font-weight="700" font-family="Archivo,sans-serif">40 000 €+</text>
-              <text x="570" y="320" text-anchor="middle" fill="rgba(255,255,255,0.45)" font-size="12" font-family="Archivo,sans-serif">Startup (top)</text>
-              <text x="570" y="335" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="10.5" font-family="Archivo,sans-serif">+300%+ en 10 ans</text>
-
-              <!-- Starting investment line -->
-              <line x1="80" y1="220" x2="680" y2="220" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" stroke-dasharray="6,3"/>
-              <text x="686" y="217" fill="rgba(255,255,255,0.35)" font-size="10" font-family="Archivo,sans-serif">Mise</text>
-              <text x="686" y="228" fill="rgba(255,255,255,0.35)" font-size="10" font-family="Archivo,sans-serif">initiale</text>
+              <!-- Bar 4: Seed top quartile → 50 000€ → tronqué avec flèche -->
+              <!-- On montre jusqu'à y=40, soit 30k, et on met une flèche + label au-dessus -->
+              <rect x="445" y="40" width="100" height="220" fill="rgba(16,185,129,0.45)" rx="7"/>
+              <!-- Flèche montant au-dessus -->
+              <path d="M495,32 L495,16 M487,24 L495,14 L503,24" fill="none" stroke="#34d399" stroke-width="2" stroke-linejoin="round"/>
+              <text x="495" y="8" text-anchor="middle" fill="#34d399" font-size="14" font-weight="700" font-family="Archivo,sans-serif">50 000 €+</text>
+              <text x="495" y="278" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="11.5" font-family="Archivo,sans-serif">Seed top quartile</text>
+              <text x="495" y="292" text-anchor="middle" fill="rgba(255,255,255,0.22)" font-size="10" font-family="Archivo,sans-serif">+400%+ en 10 ans</text>
             </svg>
-            <div class="card-note">Rendements médians historiques 2000–2023. Le "Startup moyen" suppose un portefeuille diversifié. Source : Cambridge Associates, Korteweg &amp; Nagel (2016)</div>
+            <div class="card-src">Rendements médians historiques 2000–2023 — "Seed diversifié" suppose un portefeuille de 15+ startups. Source : Korteweg &amp; Nagel (2016), Cambridge Associates</div>
           </div>
 
           <div class="insight">
-            <strong>À retenir :</strong> Un portefeuille startup bien diversifié peut battre la bourse sur 10 ans. Mais le résultat dépend beaucoup de <strong>quelles startups</strong> vous choisissez. C'est pour ça que la sélection et la diversification sont essentielles.
+            <strong>À retenir :</strong> Un seul investissement seed peut tout perdre. Mais un <strong>portefeuille diversifié de startups seed</strong> bat historiquement la bourse sur 10 ans. C'est le principe de LIQUID+ : vous permettre d'accéder à plusieurs startups pour répartir le risque.
           </div>
         </section>
 
         <hr class="div"/>
 
-        <!-- ===== SECTION 4 : RISK-RETURN ===== -->
-        <section class="section">
-          <div class="section-num">04</div>
-          <h2 class="section-title">Plus c'est risqué,<br>plus le gain potentiel est grand.</h2>
-          <p class="section-text">
-            Toutes les startups ne se ressemblent pas. Une startup à ses tout débuts (stade "seed") est beaucoup plus risquée — mais peut rapporter ×50. Une startup plus mature est moins risquée, mais le gain potentiel est plus limité.
+        <!-- ======================================================= -->
+        <!-- 04 · POURQUOI LE SEED                                   -->
+        <!-- ======================================================= -->
+        <section class="sec">
+          <div class="sec-n">04</div>
+          <h2 class="sec-h">Pourquoi le stade seed<br>est le plus intéressant ?</h2>
+          <p class="sec-p">
+            Plus on investit tôt dans une startup, plus le potentiel de gain est élevé — et plus le risque est grand. Le stade seed est le <strong>tout début</strong> : la startup vient de naître, la valorisation est très basse, et les multiples possibles sont les plus hauts.
           </p>
 
           <div class="card">
-            <div class="card-label">Risque vs Gain potentiel selon le stade de la startup</div>
-            <svg viewBox="0 0 720 380" xmlns="http://www.w3.org/2000/svg">
-              <!-- Axes -->
-              <line x1="80" y1="40" x2="80" y2="320" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
-              <line x1="80" y1="320" x2="680" y2="320" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+            <div class="card-lbl">Stade d'entrée → impact sur le multiple potentiel</div>
+            <!--
+              Horizontal bar chart — plus facile à lire et moins de risque de chevauchement
+              ViewBox 640 × 260
+              4 lignes (stades) :
+              Seed     : ×50 possible → barre longue
+              Série A  : ×15 possible
+              Série B  : ×6  possible
+              Coté (IPO): ×2  possible
 
-              <!-- Axis labels -->
-              <text x="380" y="356" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="13" font-family="Archivo,sans-serif">Risque (probabilité de tout perdre)</text>
-              <text x="14" y="180" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="13" font-family="Archivo,sans-serif" transform="rotate(-90,14,180)">Gain potentiel</text>
+              Axe X : x=160 (label) → x=600 (max barre)
+              Barre max = 440px pour ×50
+              Échelle : 440/50 = 8.8px/×
+              Heights : 40px, gap : 18px
+              y positions : 40, 98, 156, 214
 
-              <!-- Arrow tips -->
-              <path d="M680,316 L692,320 L680,324" fill="rgba(255,255,255,0.15)"/>
-              <path d="M76,40 L80,28 L84,40" fill="rgba(255,255,255,0.15)"/>
+              Seed     : ×50 → w=440, fill
+              Série A  : ×15 → w=132
+              Série B  : ×6  → w=52.8≈53
+              Bourse   : ×2  → w=17.6≈18
 
-              <!-- Frontier curve -->
-              <path d="M100,300 C140,270 200,230 270,190 C340,150 430,110 540,80 C610,62 660,55 680,50"
-                fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2" stroke-dasharray="8,4"/>
+              Labels valeur : à droite de la barre + 12px
+            -->
+            <svg viewBox="0 0 640 260" xmlns="http://www.w3.org/2000/svg">
+              <!-- Stade labels -->
+              <text x="150" y="66" text-anchor="end" fill="rgba(255,255,255,0.7)" font-size="13" font-weight="600" font-family="Archivo,sans-serif">Seed</text>
+              <text x="150" y="124" text-anchor="end" fill="rgba(255,255,255,0.55)" font-size="13" font-family="Archivo,sans-serif">Série A</text>
+              <text x="150" y="182" text-anchor="end" fill="rgba(255,255,255,0.45)" font-size="13" font-family="Archivo,sans-serif">Série B</text>
+              <text x="150" y="240" text-anchor="end" fill="rgba(255,255,255,0.35)" font-size="13" font-family="Archivo,sans-serif">Bourse</text>
 
-              <!-- Bubbles: (cx, cy, r, color, label, sublabel) -->
-              <!-- Obligations/Livret: low risk, low gain → (110, 300, 16) -->
-              <circle cx="110" cy="300" r="16" fill="rgba(107,114,128,0.25)" stroke="#6b7280" stroke-width="1.5"/>
-              <text x="110" y="278" text-anchor="middle" fill="rgba(255,255,255,0.45)" font-size="10.5" font-family="Archivo,sans-serif">Livret A</text>
-              <text x="110" y="288" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="9.5" font-family="Archivo,sans-serif">~3% / an</text>
+              <!-- Sublabels (valorisation) -->
+              <text x="150" y="80" text-anchor="end" fill="rgba(255,255,255,0.28)" font-size="10.5" font-family="Archivo,sans-serif">~1–3 M€ de valorisation</text>
+              <text x="150" y="138" text-anchor="end" fill="rgba(255,255,255,0.28)" font-size="10.5" font-family="Archivo,sans-serif">~10–30 M€</text>
+              <text x="150" y="196" text-anchor="end" fill="rgba(255,255,255,0.28)" font-size="10.5" font-family="Archivo,sans-serif">~50–150 M€</text>
+              <text x="150" y="254" text-anchor="end" fill="rgba(255,255,255,0.28)" font-size="10.5" font-family="Archivo,sans-serif">Marché public</text>
 
-              <!-- Bourse: medium risk, medium gain → (210, 235) -->
-              <circle cx="210" cy="240" r="24" fill="rgba(59,130,246,0.2)" stroke="#3b82f6" stroke-width="2"/>
-              <text x="210" y="232" text-anchor="middle" fill="#93c5fd" font-size="11" font-weight="600" font-family="Archivo,sans-serif">Bourse</text>
-              <text x="210" y="244" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="9.5" font-family="Archivo,sans-serif">S&amp;P 500</text>
+              <!-- Grid vertical -->
+              <line x1="160" y1="20" x2="160" y2="250" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
 
-              <!-- Startup late stage → (330, 185) -->
-              <circle cx="335" cy="185" r="30" fill="rgba(245,158,11,0.18)" stroke="#f59e0b" stroke-width="2"/>
-              <text x="335" y="178" text-anchor="middle" fill="#fde68a" font-size="11" font-weight="600" font-family="Archivo,sans-serif">Startup</text>
-              <text x="335" y="190" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="9.5" font-family="Archivo,sans-serif">Phase C+</text>
+              <!-- Bar 1: Seed → ×50 → w=440 -->
+              <rect x="160" y="45" width="440" height="36" fill="rgba(59,130,246,0.55)" rx="6"/>
+              <!-- LIQUID+ badge inside bar -->
+              <rect x="163" y="52" width="78" height="22" rx="4" fill="rgba(255,255,255,0.15)"/>
+              <text x="202" y="67" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" font-family="Archivo,sans-serif">LIQUID+</text>
+              <text x="608" y="68" fill="#60a5fa" font-size="14" font-weight="700" font-family="Archivo,sans-serif">jusqu'à ×50</text>
 
-              <!-- Startup series A → (470, 125) -->
-              <circle cx="475" cy="128" r="35" fill="rgba(139,92,246,0.18)" stroke="#8b5cf6" stroke-width="2"/>
-              <text x="475" y="121" text-anchor="middle" fill="#c4b5fd" font-size="11.5" font-weight="600" font-family="Archivo,sans-serif">Startup</text>
-              <text x="475" y="134" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="9.5" font-family="Archivo,sans-serif">Série A / B</text>
+              <!-- Bar 2: Série A → ×15 → w=132 -->
+              <rect x="160" y="103" width="132" height="36" fill="rgba(59,130,246,0.28)" rx="6"/>
+              <text x="300" y="126" fill="rgba(255,255,255,0.55)" font-size="13.5" font-weight="600" font-family="Archivo,sans-serif">jusqu'à ×15</text>
 
-              <!-- Seed → (610, 75) -->
-              <circle cx="610" cy="78" r="42" fill="rgba(239,68,68,0.15)" stroke="#ef4444" stroke-width="2"/>
-              <text x="610" y="70" text-anchor="middle" fill="#fca5a5" font-size="12" font-weight="700" font-family="Archivo,sans-serif">Startup</text>
-              <text x="610" y="83" text-anchor="middle" fill="#fca5a5" font-size="12" font-weight="700" font-family="Archivo,sans-serif">Seed</text>
-              <text x="610" y="98" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="9.5" font-family="Archivo,sans-serif">Très tôt</text>
+              <!-- Bar 3: Série B → ×6 → w=53 -->
+              <rect x="160" y="161" width="53" height="36" fill="rgba(59,130,246,0.16)" rx="6"/>
+              <text x="221" y="184" fill="rgba(255,255,255,0.45)" font-size="13.5" font-weight="600" font-family="Archivo,sans-serif">jusqu'à ×6</text>
 
-              <!-- X axis labels -->
-              <text x="110" y="338" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="11" font-family="Archivo,sans-serif">Faible</text>
-              <text x="380" y="338" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="11" font-family="Archivo,sans-serif">Moyen</text>
-              <text x="640" y="338" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="11" font-family="Archivo,sans-serif">Élevé</text>
-
-              <!-- Y axis labels -->
-              <text x="66" y="316" text-anchor="end" fill="rgba(255,255,255,0.25)" font-size="11" font-family="Archivo,sans-serif">Faible</text>
-              <text x="66" y="180" text-anchor="end" fill="rgba(255,255,255,0.25)" font-size="11" font-family="Archivo,sans-serif">Moyen</text>
-              <text x="66" y="56" text-anchor="end" fill="rgba(255,255,255,0.25)" font-size="11" font-family="Archivo,sans-serif">Élevé</text>
-
-              <!-- Note: bubble size = ticket size -->
-              <text x="400" y="360" text-anchor="middle" fill="rgba(255,255,255,0.18)" font-size="10" font-family="Archivo,sans-serif">La taille des cercles représente le montant minimum d'investissement typique</text>
+              <!-- Bar 4: Bourse → ×2 → w=18 -->
+              <rect x="160" y="219" width="18" height="36" fill="rgba(107,114,128,0.3)" rx="4"/>
+              <text x="186" y="242" fill="rgba(255,255,255,0.35)" font-size="13.5" font-family="Archivo,sans-serif">jusqu'à ×2</text>
             </svg>
-            <div class="card-note">Rendements et risques médians historiques — chiffres indicatifs basés sur les données Cambridge Associates (2024)</div>
+            <div class="card-src">Multiples illustratifs basés sur les données historiques du capital-risque seed américain et européen (2000–2020)</div>
           </div>
 
           <div class="insight">
-            <strong>À retenir :</strong> LIQUID+ vous donne accès à des startups en phase de croissance — un <strong>bon équilibre</strong> entre risque et potentiel de gain. Assez tôt pour des multiples attractifs, assez matures pour avoir validé leur modèle.
+            <strong>LIQUID+ se concentre uniquement sur le stade seed</strong>, là où les multiples potentiels sont les plus élevés. En contrepartie, le risque est réel : c'est pourquoi nous sélectionnons rigoureusement chaque startup et vous encourageons à investir dans plusieurs d'entre elles.
           </div>
         </section>
 
         <hr class="div"/>
 
-        <!-- ===== SECTION 5 : KEY RULES ===== -->
-        <section class="section">
-          <div class="section-num">05</div>
-          <h2 class="section-title">Les 4 règles d'or<br>de l'investissement startup</h2>
+        <!-- ======================================================= -->
+        <!-- 05 · LES 4 RÈGLES D'OR                                  -->
+        <!-- ======================================================= -->
+        <section class="sec">
+          <div class="sec-n">05</div>
+          <h2 class="sec-h">Les 4 règles d'or<br>pour investir en seed</h2>
 
-          <div class="card" style="padding: 36px;">
-            <svg viewBox="0 0 680 400" xmlns="http://www.w3.org/2000/svg">
-              <!-- Rule 1 -->
-              <rect x="0" y="0" width="320" height="180" rx="14" fill="rgba(59,130,246,0.06)" stroke="rgba(59,130,246,0.15)" stroke-width="1"/>
-              <circle cx="36" cy="36" r="20" fill="rgba(59,130,246,0.15)"/>
-              <text x="36" y="42" text-anchor="middle" fill="#60a5fa" font-size="16" font-weight="700" font-family="Archivo,sans-serif">1</text>
-              <text x="70" y="28" fill="#fff" font-size="14" font-weight="700" font-family="Archivo,sans-serif">Diversifier</text>
-              <text x="70" y="44" fill="rgba(255,255,255,0.4)" font-size="11.5" font-family="Archivo,sans-serif">Ne pas mettre tous ses œufs</text>
-              <text x="70" y="58" fill="rgba(255,255,255,0.4)" font-size="11.5" font-family="Archivo,sans-serif">dans le même panier</text>
-              <!-- Mini chart -->
-              <rect x="20" y="80" width="30" height="80" fill="rgba(239,68,68,0.5)" rx="3"/>
-              <rect x="60" y="60" width="30" height="100" fill="rgba(239,68,68,0.5)" rx="3"/>
-              <rect x="100" y="100" width="30" height="60" fill="rgba(245,158,11,0.5)" rx="3"/>
-              <rect x="140" y="50" width="30" height="110" fill="rgba(16,185,129,0.6)" rx="3"/>
-              <rect x="180" y="30" width="30" height="130" fill="rgba(59,130,246,0.6)" rx="3"/>
-              <rect x="220" y="90" width="30" height="70" fill="rgba(245,158,11,0.5)" rx="3"/>
-              <text x="280" y="108" fill="rgba(255,255,255,0.5)" font-size="11" font-family="Archivo,sans-serif">Idéal :</text>
-              <text x="280" y="122" fill="#60a5fa" font-size="16" font-weight="700" font-family="Archivo,sans-serif">10+</text>
-              <text x="280" y="138" fill="rgba(255,255,255,0.35)" font-size="11" font-family="Archivo,sans-serif">startups</text>
-
-              <!-- Rule 2 -->
-              <rect x="340" y="0" width="340" height="180" rx="14" fill="rgba(16,185,129,0.06)" stroke="rgba(16,185,129,0.15)" stroke-width="1"/>
-              <circle cx="376" cy="36" r="20" fill="rgba(16,185,129,0.15)"/>
-              <text x="376" y="42" text-anchor="middle" fill="#34d399" font-size="16" font-weight="700" font-family="Archivo,sans-serif">2</text>
-              <text x="410" y="28" fill="#fff" font-size="14" font-weight="700" font-family="Archivo,sans-serif">Être patient</text>
-              <text x="410" y="44" fill="rgba(255,255,255,0.4)" font-size="11.5" font-family="Archivo,sans-serif">Les gains arrivent après</text>
-              <text x="410" y="58" fill="rgba(255,255,255,0.4)" font-size="11.5" font-family="Archivo,sans-serif">7 à 10 ans en moyenne</text>
-              <!-- Clock visual -->
-              <circle cx="500" cy="120" r="46" fill="none" stroke="rgba(16,185,129,0.2)" stroke-width="2"/>
-              <circle cx="500" cy="120" r="38" fill="none" stroke="rgba(16,185,129,0.15)" stroke-width="1"/>
-              <line x1="500" y1="120" x2="500" y2="86" stroke="#34d399" stroke-width="2.5" stroke-linecap="round"/>
-              <line x1="500" y1="120" x2="524" y2="130" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"/>
-              <circle cx="500" cy="120" r="3" fill="#34d399"/>
-              <text x="500" y="178" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="10.5" font-family="Archivo,sans-serif">7–10 ans</text>
-
-              <!-- Rule 3 -->
-              <rect x="0" y="205" width="320" height="180" rx="14" fill="rgba(245,158,11,0.06)" stroke="rgba(245,158,11,0.15)" stroke-width="1"/>
-              <circle cx="36" cy="241" r="20" fill="rgba(245,158,11,0.15)"/>
-              <text x="36" y="247" text-anchor="middle" fill="#fbbf24" font-size="16" font-weight="700" font-family="Archivo,sans-serif">3</text>
-              <text x="70" y="233" fill="#fff" font-size="14" font-weight="700" font-family="Archivo,sans-serif">N'investir que ce qu'on peut perdre</text>
-              <text x="70" y="249" fill="rgba(255,255,255,0.4)" font-size="11.5" font-family="Archivo,sans-serif">Maximum 5–10% de son</text>
-              <text x="70" y="263" fill="rgba(255,255,255,0.4)" font-size="11.5" font-family="Archivo,sans-serif">épargne totale conseillé</text>
-              <!-- Progress bar visual -->
-              <rect x="20" y="305" width="280" height="14" rx="7" fill="rgba(255,255,255,0.06)"/>
-              <rect x="20" y="305" width="28" height="14" rx="7" fill="#fbbf24" opacity="0.8"/>
-              <text x="52" y="316" fill="#fbbf24" font-size="11" font-weight="600" font-family="Archivo,sans-serif">10%</text>
-              <text x="160" y="340" text-anchor="middle" fill="rgba(255,255,255,0.25)" font-size="10.5" font-family="Archivo,sans-serif">de votre épargne totale</text>
-
-              <!-- Rule 4 -->
-              <rect x="340" y="205" width="340" height="180" rx="14" fill="rgba(139,92,246,0.06)" stroke="rgba(139,92,246,0.15)" stroke-width="1"/>
-              <circle cx="376" cy="241" r="20" fill="rgba(139,92,246,0.15)"/>
-              <text x="376" y="247" text-anchor="middle" fill="#a78bfa" font-size="16" font-weight="700" font-family="Archivo,sans-serif">4</text>
-              <text x="410" y="233" fill="#fff" font-size="14" font-weight="700" font-family="Archivo,sans-serif">Choisir les bonnes startups</text>
-              <text x="410" y="249" fill="rgba(255,255,255,0.4)" font-size="11.5" font-family="Archivo,sans-serif">Équipe, marché, modèle</text>
-              <text x="410" y="263" fill="rgba(255,255,255,0.4)" font-size="11.5" font-family="Archivo,sans-serif">économique — dans cet ordre</text>
-              <!-- Podium visual -->
-              <rect x="363" y="330" width="40" height="40" fill="rgba(139,92,246,0.35)" rx="3"/>
-              <rect x="413" y="310" width="40" height="60" fill="rgba(139,92,246,0.55)" rx="3"/>
-              <rect x="463" y="340" width="40" height="30" fill="rgba(139,92,246,0.25)" rx="3"/>
-              <text x="383" y="322" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="10" font-family="Archivo,sans-serif">Modèle</text>
-              <text x="433" y="302" text-anchor="middle" fill="#fff" font-size="10" font-weight="600" font-family="Archivo,sans-serif">Équipe</text>
-              <text x="483" y="332" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="10" font-family="Archivo,sans-serif">Marché</text>
-            </svg>
+          <div class="rules">
+            <div class="rule">
+              <div class="rule-num" style="color:#60a5fa">1</div>
+              <div class="rule-title">Diversifier : investir dans au moins 10 startups</div>
+              <div class="rule-text">Un seul investissement seed est un pari. Dix investissements, c'est une stratégie. La loi de puissance fait le reste : une seule réussite peut couvrir toutes les pertes.</div>
+            </div>
+            <div class="rule">
+              <div class="rule-num" style="color:#34d399">2</div>
+              <div class="rule-title">Être patient : bloquer son argent 7 à 10 ans</div>
+              <div class="rule-text">Le stade seed demande le plus de temps. N'investissez que de l'argent dont vous n'avez pas besoin à court terme. La patience est votre principal avantage.</div>
+            </div>
+            <div class="rule">
+              <div class="rule-num" style="color:#fbbf24">3</div>
+              <div class="rule-title">Limiter sa mise à 5–10% de son épargne</div>
+              <div class="rule-text">L'investissement seed est risqué. Ne mettez jamais plus de 5 à 10% de votre épargne totale dans des startups — le reste doit rester dans des placements plus sûrs.</div>
+            </div>
+            <div class="rule">
+              <div class="rule-num" style="color:#c4b5fd">4</div>
+              <div class="rule-title">Miser sur l'équipe avant le produit</div>
+              <div class="rule-text">Au stade seed, le produit va évoluer. Ce qui ne change pas, c'est la qualité de l'équipe fondatrice. C'est le premier critère de sélection de LIQUID+.</div>
+            </div>
           </div>
         </section>
 
         <hr class="div"/>
 
         <!-- CTA -->
-        <section class="section" style="text-align:center; padding:20px 0 0;">
-          <h2 class="section-title" style="max-width:500px; margin:0 auto 16px;">Prêt à investir<br>dans la prochaine grande startup ?</h2>
-          <p class="section-text" style="margin:0 auto 36px;">Découvrez les startups disponibles sur LIQUID+ et commencez à construire votre portefeuille.</p>
-          <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
-            <a href="startups.html" style="background:#fff; color:#080c14; border-radius:12px; padding:16px 32px; font-size:1rem; font-weight:700; text-decoration:none; display:inline-block;">Voir les startups</a>
-            <a href="comment-ca-marche.html" style="background:transparent; color:#fff; border:1px solid rgba(255,255,255,0.2); border-radius:12px; padding:16px 32px; font-size:1rem; font-weight:600; text-decoration:none; display:inline-block;">Comment ça marche</a>
+        <section class="sec" style="text-align:center; margin-bottom:0;">
+          <h2 class="sec-h" style="max-width:480px; margin:0 auto 14px;">Prêt à investir dans<br>les startups de demain ?</h2>
+          <p class="sec-p" style="margin:0 auto 32px; text-align:center;">Découvrez les startups seed disponibles sur LIQUID+ et commencez à construire votre portefeuille.</p>
+          <div style="display:flex; gap:14px; justify-content:center; flex-wrap:wrap;">
+            <a href="startups.html" style="background:#fff; color:#080c14; border-radius:12px; padding:15px 30px; font-size:.97rem; font-weight:700; text-decoration:none; display:inline-block;">Voir les startups</a>
+            <a href="comment-ca-marche.html" style="background:transparent; color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.18); border-radius:12px; padding:15px 30px; font-size:.97rem; font-weight:600; text-decoration:none; display:inline-block;">Comment ça marche</a>
           </div>
-          <div style="margin-top:36px; font-size:.8rem; color:rgba(255,255,255,0.2); line-height:1.6;">
+          <p style="margin-top:32px; font-size:.75rem; color:rgba(255,255,255,0.18); line-height:1.6;">
             Sources : Korteweg &amp; Nagel (2016) — <em>Risk-Adjusting the Returns to Venture Capital</em> · Gregson, Mann &amp; Harrison (2017) · Cambridge Associates Global VC Index (2024)
-          </div>
+          </p>
         </section>
 
       </div>
