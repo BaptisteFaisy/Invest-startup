@@ -92,7 +92,7 @@
               <div class="setup-flow" id="setup-flow">
                 <p style="font-size:.88rem;color:var(--muted);margin:0 0 16px">Scannez ce QR code avec Google Authenticator (ou Authy), puis entrez le code pour confirmer.</p>
                 <div class="qr-wrap">
-                  <canvas id="qr-canvas"></canvas>
+                  <img id="qr-img" style="width:280px;height:280px;border-radius:10px;border:1px solid rgba(0,0,0,0.08);display:none;" alt="QR Code 2FA" />
                   <p class="setup-hint">Vous ne pouvez pas scanner ? Entrez ce code manuellement :</p>
                   <div class="secret-box" id="secret-display"></div>
                 </div>
@@ -243,8 +243,8 @@
         document.head.appendChild(s);
       }
       function renderQR(otpauth) {
-        QRCode.toCanvas(document.getElementById('qr-canvas'), otpauth, {
-          width: 280, margin: 3, color: { dark: '#080c14', light: '#ffffff' },
+        QRCode.toDataURL(otpauth, { width: 280, margin: 3, color: { dark: '#080c14', light: '#ffffff' } }, function(err, url) {
+          if (!err) { const img = document.getElementById('qr-img'); img.src = url; img.style.display = 'block'; }
         });
       }
 
