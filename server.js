@@ -6,7 +6,7 @@ const https          = require('https');
 const cookieParser   = require('cookie-parser');
 const bcrypt         = require('bcryptjs');
 const jwt            = require('jsonwebtoken');
-const { authenticator } = require('otplib');
+const speakeasy = require('speakeasy');
 const multer       = require('multer');
 
 const app  = express();
@@ -262,9 +262,10 @@ app.post('/api/auth/2fa/setup', requireAuth, (req, res) => {
     const user = readUsers().find(u => u.id === req.user.id);
     if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
 
-    const secret  = authenticator.generateSecret();
+    const secretObj = speakeasy.generateSecret({ length: 20, name: encodeURIComponent('LIQUID+:' + user.email), issuer: 'LIQUID+' });
+    const secret    = secretObj.base32;
     totpSetupStore.set(user.id, secret);
-    const otpauth = authenticator.keyuri(user.email, 'LIQUID+', secret);
+    const otpauth   = secretObj.otpauth_url;
     res.json({ success: true, otpauth, secret });
   } catch (err) {
     console.error('2FA setup error:', err);
@@ -278,7 +279,7 @@ app.post('/api/auth/2fa/confirm', requireAuth, (req, res) => {
   const secret    = totpSetupStore.get(req.user.id);
   if (!secret) return res.status(400).json({ error: 'Session expirée, recommencez la configuration' });
 
-  if (!authenticator.verify({ token: (code || '').replace(/\s/g, ''), secret }))
+  if (!speakeasy.totp.verify({ secret, encoding: 'base32', token: (code || '').replace(/\s/g, ''), window: 1 }))
     return res.status(400).json({ error: 'Code incorrect — vérifiez l\'heure de votre téléphone' });
 
   const users   = readUsers();
@@ -313,7 +314,7 @@ app.post('/api/auth/2fa/verify', (req, res) => {
   const user = findByEmail(payload.email);
   if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
 
-  if (!authenticator.verify({ token: (code || '').replace(/\s/g, ''), secret: user.totp_secret }))
+  if (!speakeasy.totp.verify({ secret: user.totp_secret, encoding: 'base32', token: (code || '').replace(/\s/g, ''), window: 1 }))
     return res.status(400).json({ error: 'Code incorrect' });
 
   setAuthCookie(res, user);
