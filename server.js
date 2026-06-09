@@ -124,6 +124,10 @@ function createUser({ email, password, full_name }) {
 // ─── Middleware ──────────────────────────────────────────────────────────────
 app.use(express.json());
 app.use(cookieParser());
+app.use((req, res, next) => {
+  if (req.headers['x-forwarded-proto'] === 'http') return res.redirect(301, 'https://' + req.headers.host + req.url);
+  next();
+});
 app.use('/uploads/public', express.static(PUBLIC_IMG_DIR));
 app.use(express.static(__dirname));   // sert index.html, login.html, styles.css…
 
@@ -558,11 +562,13 @@ function httpsGet(hostname, path, token) {
 // ─── GET /auth/google ─────────────────────────────────────────────────────────
 app.get('/auth/google', (req, res) => {
   if (!GOOGLE_CLIENT_ID) return res.status(503).send('Google OAuth non configuré. Ajoutez GOOGLE_CLIENT_ID et GOOGLE_CLIENT_SECRET dans vos variables d\'environnement.');
+  const fromApp = req.query.from === 'app';
   const params = new URLSearchParams({
     client_id:     GOOGLE_CLIENT_ID,
     redirect_uri:  `${BASE_URL}/auth/google/callback`,
     response_type: 'code',
     scope:         'openid email profile',
+    state:         fromApp ? 'from_app' : 'from_web',
     access_type:   'online',
     prompt:        'select_account',
   });
@@ -571,8 +577,13 @@ app.get('/auth/google', (req, res) => {
 
 // ─── GET /auth/google/callback ────────────────────────────────────────────────
 app.get('/auth/google/callback', async (req, res) => {
-  const { code, error } = req.query;
-  if (error || !code) return res.redirect('/login.html?error=google_cancelled');
+  const { code, error, state } = req.query;
+  const fromApp = state === 'from_app';
+  if (error || !code) {
+    return fromApp
+      ? res.redirect('liquidplus://auth?error=google_cancelled')
+      : res.redirect('/login.html?error=google_cancelled');
+  }
 
   try {
     // 1. Échanger le code contre un access token
@@ -605,10 +616,16 @@ app.get('/auth/google/callback', async (req, res) => {
 
     // 4. Émettre le cookie JWT et rediriger
     setAuthCookie(res, user);
+    if (fromApp) {
+      const appToken = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+      return res.redirect(`liquidplus://auth?token=${encodeURIComponent(appToken)}`);
+    }
     res.redirect('/index.html');
   } catch (err) {
     console.error('Google OAuth error:', err.message);
-    res.redirect('/login.html?error=google_failed');
+    fromApp
+      ? res.redirect('liquidplus://auth?error=google_failed')
+      : res.redirect('/login.html?error=google_failed');
   }
 });
 
