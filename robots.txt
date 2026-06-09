@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /settings.html
+Disallow: /login.html
+Disallow: /register.html
+Disallow: /admin.html
+Disallow: /startup-dashboard.html
+Disallow: /startup-login.html
+
+Sitemap: https://www.liquidplus.fr/sitemap.xml
