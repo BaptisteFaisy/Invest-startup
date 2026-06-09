@@ -274,6 +274,122 @@
               <text x="170" y="226" text-anchor="middle" fill="rgba(255,255,255,.28)" font-size="11" font-family="Archivo,sans-serif">→ Le jackpot seul rembourse les 11 pertes et génère du profit</text>
             </svg>
           </div>
+
+          <!-- V6+V7 : Lorenz curve + Exit type donut -->
+          <div class="g2" style="margin-top:14px;">
+            <!-- Courbe de Lorenz -->
+            <div class="card">
+              <div class="card-lbl">Concentration de valeur — courbe de Lorenz</div>
+              <!-- ViewBox 340×280 · axes: x 40→320, y 20→260
+                   x=40+pct*2.8 · y=260-pct*2.4
+                   (0,0)→(40,260) (20,1)→(96,258) (40,5)→(152,248)
+                   (60,14)→(208,227) (80,34)→(264,178) (100,100)→(320,20) -->
+              <svg viewBox="0 0 340 280" xmlns="http://www.w3.org/2000/svg">
+                <!-- Axis guides -->
+                <line x1="40" y1="20" x2="40" y2="260" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
+                <line x1="40" y1="260" x2="320" y2="260" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
+                <line x1="40" y1="140" x2="320" y2="140" stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
+                <line x1="180" y1="20" x2="180" y2="260" stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
+                <!-- Ligne d'égalité parfaite -->
+                <line x1="40" y1="260" x2="320" y2="20" stroke="rgba(255,255,255,.18)" stroke-width="1.5" stroke-dasharray="5,4"/>
+                <text x="300" y="16" text-anchor="end" fill="rgba(255,255,255,.25)" font-size="9.5" font-family="Archivo,sans-serif">Égalité</text>
+                <!-- Zone de concentration (entre les deux courbes) -->
+                <path d="M40,260 L96,258 L152,248 L208,227 L264,178 L320,20 L40,260 Z" fill="rgba(59,130,246,.06)"/>
+                <!-- Courbe de Lorenz (données VC seed) -->
+                <polyline points="40,260 96,258 152,248 208,227 264,178 320,20"
+                  fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+                <!-- Points -->
+                <circle cx="264" cy="178" r="4" fill="#60a5fa"/>
+                <circle cx="320" cy="20" r="4" fill="#10b981"/>
+                <!-- Annotation Gini -->
+                <text x="160" y="218" text-anchor="middle" fill="rgba(59,130,246,.7)" font-size="12" font-weight="700" font-family="Archivo,sans-serif">Gini ≈ 0.72</text>
+                <!-- Y labels -->
+                <text x="35" y="24" text-anchor="end" fill="rgba(255,255,255,.25)" font-size="10" font-family="Archivo,sans-serif">100%</text>
+                <text x="35" y="144" text-anchor="end" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">50%</text>
+                <text x="35" y="264" text-anchor="end" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">0%</text>
+                <!-- X labels -->
+                <text x="40" y="276" text-anchor="middle" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">0%</text>
+                <text x="180" y="276" text-anchor="middle" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">50%</text>
+                <text x="320" y="276" text-anchor="middle" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">100%</text>
+                <!-- Axis titles -->
+                <text x="180" y="16" text-anchor="middle" fill="rgba(255,255,255,.18)" font-size="9" font-family="Archivo,sans-serif">% valeur créée</text>
+                <text x="328" y="276" text-anchor="middle" fill="rgba(255,255,255,.18)" font-size="9" font-family="Archivo,sans-serif">% startups</text>
+                <!-- Annotation key point -->
+                <text x="270" y="170" fill="rgba(96,165,250,.8)" font-size="9.5" font-family="Archivo,sans-serif">20% génèrent</text>
+                <text x="270" y="181" fill="rgba(96,165,250,.8)" font-size="9.5" font-family="Archivo,sans-serif">66% de la valeur</text>
+              </svg>
+              <div class="card-src">Gregson, Mann &amp; Harrison (2017)</div>
+            </div>
+
+            <!-- Donut types de sorties -->
+            <div class="card">
+              <div class="card-lbl">Types de sorties — sur les startups qui remboursent</div>
+              <!-- ViewBox 260×225 · centre 120,105 r=70 circ=439.8
+                   Perte/writeoff 56% → arc=246.3 offset=110 (12h)
+                   Acquisition 35% → arc=153.9 offset=-136.3
+                   IPO 9% → arc=39.6 offset=-290.2 -->
+              <svg viewBox="0 0 260 225" xmlns="http://www.w3.org/2000/svg">
+                <!-- Anneau writeoff 56% -->
+                <circle cx="120" cy="100" r="70" fill="none" stroke="#ef4444" stroke-width="30" stroke-opacity=".7"
+                  stroke-dasharray="246.3 193.5" stroke-dashoffset="110" transform="rotate(0 120 100)"/>
+                <!-- Anneau acquisition 35% -->
+                <circle cx="120" cy="100" r="70" fill="none" stroke="#60a5fa" stroke-width="30" stroke-opacity=".75"
+                  stroke-dasharray="153.9 285.9" stroke-dashoffset="-136.3" transform="rotate(0 120 100)"/>
+                <!-- Anneau IPO 9% -->
+                <circle cx="120" cy="100" r="70" fill="none" stroke="#fbbf24" stroke-width="30" stroke-opacity=".8"
+                  stroke-dasharray="39.6 400.2" stroke-dashoffset="-290.2" transform="rotate(0 120 100)"/>
+                <!-- Centre -->
+                <text x="120" y="96" text-anchor="middle" fill="#fff" font-size="14" font-weight="700" font-family="Archivo,sans-serif">Sorties</text>
+                <text x="120" y="112" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10" font-family="Archivo,sans-serif">sur exitées</text>
+                <!-- Légende -->
+                <rect x="16" y="178" width="10" height="10" rx="2" fill="#ef4444" fill-opacity=".7"/>
+                <text x="30" y="188" fill="rgba(255,255,255,.55)" font-size="11" font-family="Archivo,sans-serif">56 % writeoff</text>
+                <rect x="16" y="194" width="10" height="10" rx="2" fill="#60a5fa" fill-opacity=".75"/>
+                <text x="30" y="204" fill="rgba(255,255,255,.55)" font-size="11" font-family="Archivo,sans-serif">35 % acquisition</text>
+                <rect x="16" y="210" width="10" height="10" rx="2" fill="#fbbf24" fill-opacity=".8"/>
+                <text x="30" y="220" fill="rgba(255,255,255,.55)" font-size="11" font-family="Archivo,sans-serif">9 % IPO</text>
+              </svg>
+              <div class="card-src">Venture-backed exits dataset, Cambridge Associates (2024)</div>
+            </div>
+          </div>
+
+          <!-- V8 : Concentration de valeur en portefeuille -->
+          <div class="card" style="margin-top:14px;">
+            <div class="card-lbl">Distribution de valeur dans un portefeuille de 20 startups</div>
+            <!-- ViewBox 580×90 · barre unique y=22→62 (h=40)
+                 x=20→560 = 540px total
+                 1 jackpot 55% → 297px : x=20→317
+                 3 bons exits 30% → 162px : x=317→479
+                 6 modérés 10% → 54px : x=479→533
+                 10 pertes 5% → 27px : x=533→560 -->
+            <svg viewBox="0 0 580 90" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="cv1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#3b82f6" stop-opacity=".9"/><stop offset="100%" stop-color="#2563eb" stop-opacity=".7"/></linearGradient>
+                <linearGradient id="cv2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#60a5fa" stop-opacity=".6"/><stop offset="100%" stop-color="#93c5fd" stop-opacity=".45"/></linearGradient>
+              </defs>
+              <!-- Segments -->
+              <rect x="20" y="22" width="297" height="40" fill="url(#cv1)" rx="7" style="border-radius:7px 0 0 7px;"/>
+              <rect x="317" y="22" width="162" height="40" fill="url(#cv2)" rx="0"/>
+              <rect x="479" y="22" width="54" height="40" fill="rgba(107,114,128,.4)" rx="0"/>
+              <rect x="533" y="22" width="27" height="40" fill="rgba(239,68,68,.5)" rx="7" style="border-radius:0 7px 7px 0;"/>
+              <!-- Séparateurs -->
+              <line x1="317" y1="22" x2="317" y2="62" stroke="rgba(0,0,0,.3)" stroke-width="1"/>
+              <line x1="479" y1="22" x2="479" y2="62" stroke="rgba(0,0,0,.3)" stroke-width="1"/>
+              <line x1="533" y1="22" x2="533" y2="62" stroke="rgba(0,0,0,.3)" stroke-width="1"/>
+              <!-- Labels in segments -->
+              <text x="168" y="39" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="Archivo,sans-serif">×1 jackpot</text>
+              <text x="168" y="55" text-anchor="middle" fill="rgba(255,255,255,.75)" font-size="11" font-family="Archivo,sans-serif">55 % de la valeur</text>
+              <text x="398" y="39" text-anchor="middle" fill="#fff" font-size="11" font-weight="600" font-family="Archivo,sans-serif">×3 bons exits</text>
+              <text x="398" y="53" text-anchor="middle" fill="rgba(255,255,255,.7)" font-size="10" font-family="Archivo,sans-serif">30 %</text>
+              <text x="506" y="44" text-anchor="middle" fill="rgba(255,255,255,.7)" font-size="10" font-family="Archivo,sans-serif">10 %</text>
+              <text x="547" y="44" text-anchor="middle" fill="rgba(255,255,255,.6)" font-size="10" font-family="Archivo,sans-serif">5 %</text>
+              <!-- Labels below -->
+              <text x="20" y="80" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">×1 jackpot</text>
+              <text x="317" y="80" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">×3 bons exits</text>
+              <text x="479" y="80" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">×6 mod.</text>
+              <text x="533" y="80" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">×10 pertes</text>
+            </svg>
+          </div>
         </section>
 
         <hr class="div"/>
@@ -418,6 +534,147 @@
               <text x="640" y="75" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10.5" font-family="Archivo,sans-serif">An 12</text>
             </svg>
           </div>
+
+          <!-- V12 : DPI vs RVPI vs TVPI -->
+          <div class="card" style="margin-top:14px;">
+            <div class="card-lbl">Évolution DPI / RVPI / TVPI sur la durée de vie du fonds</div>
+            <!-- ViewBox 600×240
+                 X: an 1→12, x=40+yr*45 → x1=85 x12=580
+                 Y: 0→2.0x, y=220-val*100 → 1.0x=y120 2.0x=y20
+                 DPI (bleu) croît lentement puis s'accélère
+                 RVPI (or) pic an6 puis décroit
+                 TVPI (vert) = somme -->
+            <svg viewBox="0 0 600 240" xmlns="http://www.w3.org/2000/svg">
+              <!-- Grid -->
+              <line x1="40" y1="220" x2="580" y2="220" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+              <line x1="40" y1="170" x2="580" y2="170" stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
+              <line x1="40" y1="120" x2="580" y2="120" stroke="rgba(255,255,255,.07)" stroke-width="1" stroke-dasharray="5,4"/>
+              <line x1="40" y1="70" x2="580" y2="70" stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
+              <line x1="40" y1="20" x2="580" y2="20" stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
+              <!-- Y labels -->
+              <text x="34" y="224" text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">0×</text>
+              <text x="34" y="124" text-anchor="end" fill="rgba(255,255,255,.25)" font-size="10" font-family="Archivo,sans-serif">1.0×</text>
+              <text x="34" y="24" text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">2.0×</text>
+              <!-- X labels -->
+              <text x="85" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">1</text>
+              <text x="220" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">4</text>
+              <text x="355" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">7</text>
+              <text x="490" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">10</text>
+              <text x="580" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">12 ans</text>
+              <!-- TVPI (vert) -->
+              <polyline points="85,190 130,176 175,159 220,138 265,116 310,93 355,78 400,68 445,59 490,51 535,45 580,38"
+                fill="none" stroke="#10b981" stroke-width="2" stroke-opacity=".7" stroke-linecap="round" stroke-linejoin="round"/>
+              <!-- RVPI (or) -->
+              <polyline points="85,192 130,180 175,166 220,152 265,140 310,133 355,140 400,153 445,169 490,186 535,202 580,213"
+                fill="none" stroke="#f59e0b" stroke-width="2" stroke-opacity=".8" stroke-linecap="round" stroke-linejoin="round"/>
+              <!-- DPI (bleu) -->
+              <polyline points="85,218 130,216 175,213 220,206 265,196 310,180 355,158 400,135 445,110 490,85 535,63 580,45"
+                fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <!-- Labels fin de courbes -->
+              <text x="584" y="42" fill="#10b981" font-size="10.5" font-weight="700" font-family="Archivo,sans-serif">TVPI</text>
+              <text x="584" y="49" fill="rgba(16,185,129,.6)" font-size="9" font-family="Archivo,sans-serif">1.82×</text>
+              <text x="584" y="63" fill="#f59e0b" font-size="10.5" font-weight="700" font-family="Archivo,sans-serif">RVPI</text>
+              <text x="584" y="49" fill="rgba(245,158,11,.6)" font-size="9" font-family="Archivo,sans-serif"></text>
+              <text x="584" y="110" fill="#60a5fa" font-size="10.5" font-weight="700" font-family="Archivo,sans-serif">DPI</text>
+              <!-- Annotation pic RVPI -->
+              <circle cx="310" cy="133" r="4" fill="#f59e0b" fill-opacity=".8"/>
+              <text x="310" y="126" text-anchor="middle" fill="rgba(245,158,11,.7)" font-size="9.5" font-family="Archivo,sans-serif">pic RVPI an 6</text>
+            </svg>
+            <div class="card-src">Métriques LP standard — simulation fonds seed 2010–2022, Preqin</div>
+          </div>
+
+          <!-- V13 + V14 : Kaplan-Meier + IRR Quartiles -->
+          <div class="g2" style="margin-top:14px;">
+            <!-- Kaplan-Meier survival curve -->
+            <div class="card">
+              <div class="card-lbl">Taux de survie des startups seed — courbe de Kaplan-Meier</div>
+              <!-- ViewBox 640×240
+                   X: an 0→10, x=40+yr*60 → x0=40 x10=640
+                   Y: 0→100%, y=220-pct*2 → 100%=y20 0%=y220
+                   Step function: horizontal puis vertical -->
+              <svg viewBox="0 0 640 240" xmlns="http://www.w3.org/2000/svg">
+                <!-- Zone de survie -->
+                <path d="M40,20 H100 V60 H160 V80 H220 V100 H280 V116 H340 V132 H400 V144 H460 V154 H520 V162 H580 V168 H640 V172 L640,220 L40,220 Z"
+                  fill="rgba(59,130,246,.06)"/>
+                <!-- Grid -->
+                <line x1="40" y1="220" x2="640" y2="220" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+                <line x1="40" y1="120" x2="640" y2="120" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="3,4"/>
+                <line x1="40" y1="20" x2="640" y2="20" stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
+                <!-- Kaplan-Meier step function -->
+                <path d="M40,20 H100 V60 H160 V80 H220 V100 H280 V116 H340 V132 H400 V144 H460 V154 H520 V162 H580 V168 H640 V172"
+                  fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="square"/>
+                <!-- Annotation points -->
+                <circle cx="100" cy="60" r="3.5" fill="#3b82f6"/>
+                <circle cx="400" cy="144" r="3.5" fill="#3b82f6"/>
+                <circle cx="640" cy="172" r="3.5" fill="#3b82f6"/>
+                <!-- Y labels -->
+                <text x="34" y="24" text-anchor="end" fill="rgba(255,255,255,.25)" font-size="10" font-family="Archivo,sans-serif">100%</text>
+                <text x="34" y="124" text-anchor="end" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">50%</text>
+                <text x="34" y="224" text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">0%</text>
+                <!-- X labels -->
+                <text x="40" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">0</text>
+                <text x="220" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">3</text>
+                <text x="400" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">6</text>
+                <text x="580" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">9</text>
+                <text x="630" y="235" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">10 ans</text>
+                <!-- Annotation -->
+                <text x="100" y="50" fill="rgba(255,255,255,.4)" font-size="9.5" font-family="Archivo,sans-serif">80 % an 1</text>
+                <text x="480" y="140" fill="rgba(255,255,255,.4)" font-size="9.5" font-family="Archivo,sans-serif">38 % an 6</text>
+                <text x="580" y="162" text-anchor="end" fill="rgba(59,130,246,.7)" font-size="9.5" font-weight="600" font-family="Archivo,sans-serif">24 % an 10</text>
+              </svg>
+              <div class="card-src">Kaplan &amp; Meier estimator — données VC seed européen, Beauhurst (2023)</div>
+            </div>
+
+            <!-- IRR quartile ranges -->
+            <div class="card">
+              <div class="card-lbl">Plages d'IRR net par quartile de fonds seed</div>
+              <!-- ViewBox 580×240
+                   X: −50% à +65%, 520px → 4.52px/%
+                   x_zero = 60+50*4.52 = 286
+                   Q1 range [15%,55%] médiane 30%
+                   Q2 range [5%,22%] médiane 13%
+                   Q3 range [−5%,12%] médiane 3%
+                   Q4 range [−42%,−4%] médiane −18% -->
+              <svg viewBox="0 0 580 240" xmlns="http://www.w3.org/2000/svg">
+                <!-- Zero line -->
+                <line x1="286" y1="18" x2="286" y2="225" stroke="rgba(255,255,255,.2)" stroke-width="1.5"/>
+                <text x="286" y="14" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10" font-family="Archivo,sans-serif">0%</text>
+                <!-- X scale labels -->
+                <text x="60" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">−50%</text>
+                <text x="286" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">0%</text>
+                <text x="520" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">+50%</text>
+                <!-- Q1 (top 25%) y=35 -->
+                <text x="52" y="42" text-anchor="end" fill="rgba(16,185,129,.8)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">Q1</text>
+                <rect x="354" y="22" width="181" height="26" fill="rgba(16,185,129,.2)" rx="5"/>
+                <line x1="422" y1="22" x2="422" y2="48" stroke="#10b981" stroke-width="2.5"/>
+                <text x="356" y="19" fill="rgba(16,185,129,.6)" font-size="9.5" font-family="Archivo,sans-serif">+15%</text>
+                <text x="537" y="19" fill="rgba(16,185,129,.6)" font-size="9.5" font-family="Archivo,sans-serif">+55%</text>
+                <text x="422" y="42" text-anchor="middle" fill="#34d399" font-size="11" font-weight="700" font-family="Archivo,sans-serif">+30%</text>
+                <!-- Q2 y=88 -->
+                <text x="52" y="95" text-anchor="end" fill="rgba(96,165,250,.8)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">Q2</text>
+                <rect x="309" y="75" width="75" height="26" fill="rgba(59,130,246,.2)" rx="5"/>
+                <line x1="345" y1="75" x2="345" y2="101" stroke="#3b82f6" stroke-width="2.5"/>
+                <text x="311" y="72" fill="rgba(59,130,246,.6)" font-size="9.5" font-family="Archivo,sans-serif">+5%</text>
+                <text x="370" y="72" fill="rgba(59,130,246,.6)" font-size="9.5" font-family="Archivo,sans-serif">+22%</text>
+                <text x="345" y="95" text-anchor="middle" fill="#93c5fd" font-size="11" font-weight="700" font-family="Archivo,sans-serif">+13%</text>
+                <!-- Q3 y=140 -->
+                <text x="52" y="148" text-anchor="end" fill="rgba(245,158,11,.8)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">Q3</text>
+                <rect x="263" y="128" width="77" height="26" fill="rgba(245,158,11,.2)" rx="5"/>
+                <line x1="300" y1="128" x2="300" y2="154" stroke="#f59e0b" stroke-width="2.5"/>
+                <text x="240" y="125" fill="rgba(245,158,11,.6)" font-size="9.5" font-family="Archivo,sans-serif">−5%</text>
+                <text x="327" y="125" fill="rgba(245,158,11,.6)" font-size="9.5" font-family="Archivo,sans-serif">+12%</text>
+                <text x="300" y="148" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="700" font-family="Archivo,sans-serif">+3%</text>
+                <!-- Q4 y=194 -->
+                <text x="52" y="202" text-anchor="end" fill="rgba(239,68,68,.8)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">Q4</text>
+                <rect x="96" y="181" width="190" height="26" fill="rgba(239,68,68,.18)" rx="5"/>
+                <line x1="205" y1="181" x2="205" y2="207" stroke="#ef4444" stroke-width="2.5"/>
+                <text x="82" y="178" fill="rgba(239,68,68,.6)" font-size="9.5" font-family="Archivo,sans-serif">−42%</text>
+                <text x="270" y="178" fill="rgba(239,68,68,.6)" font-size="9.5" font-family="Archivo,sans-serif">−4%</text>
+                <text x="205" y="202" text-anchor="middle" fill="#f87171" font-size="11" font-weight="700" font-family="Archivo,sans-serif">−18%</text>
+              </svg>
+              <div class="card-src">Korteweg &amp; Nagel (2016) — IRR nets de frais sur fonds seed/early stage</div>
+            </div>
+          </div>
         </section>
 
         <hr class="div"/>
@@ -553,6 +810,111 @@
             </svg>
             <div class="card-src">Cambridge Associates (2024) — données indicatives, rendements nets médians</div>
           </div>
+
+          <!-- V18 + V19 : IRR histogram + Factor model decomposition -->
+          <div class="g2" style="margin-top:14px;">
+            <!-- Distribution des IRR nets (histogramme horizontal) -->
+            <div class="card">
+              <div class="card-lbl">Distribution des IRR nets — fonds seed &amp; early stage</div>
+              <!-- ViewBox 560×256
+                   7 buckets IRR, barres horizontales
+                   labels x=0→145 bars x=150→530 (380px max)
+                   Max bucket 20% → 380px → 19px/%
+                   Row h=26px gap=6px, y_top: 22,54,86,118,150,182,214 -->
+              <svg viewBox="0 0 560 256" xmlns="http://www.w3.org/2000/svg">
+                <!-- Axis -->
+                <line x1="148" y1="16" x2="148" y2="246" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+                <!-- Row &lt;−10% (20%) -->
+                <text x="142" y="39" text-anchor="end" fill="rgba(239,68,68,.7)" font-size="11" font-family="Archivo,sans-serif">&lt; −10 %</text>
+                <rect x="150" y="22" width="380" height="26" fill="rgba(239,68,68,.45)" rx="5"/>
+                <text x="536" y="39" fill="rgba(239,68,68,.8)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">20 %</text>
+                <!-- Row −10 à 0% (14%) -->
+                <text x="142" y="71" text-anchor="end" fill="rgba(239,68,68,.5)" font-size="11" font-family="Archivo,sans-serif">−10–0 %</text>
+                <rect x="150" y="54" width="266" height="26" fill="rgba(239,68,68,.28)" rx="5"/>
+                <text x="422" y="71" fill="rgba(239,68,68,.65)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">14 %</text>
+                <!-- Row 0–10% (13%) -->
+                <text x="142" y="103" text-anchor="end" fill="rgba(245,158,11,.7)" font-size="11" font-family="Archivo,sans-serif">0–10 %</text>
+                <rect x="150" y="86" width="247" height="26" fill="rgba(245,158,11,.3)" rx="5"/>
+                <text x="403" y="103" fill="rgba(245,158,11,.8)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">13 %</text>
+                <!-- Row 10–20% (20%) — best zone -->
+                <text x="142" y="135" text-anchor="end" fill="rgba(16,185,129,.7)" font-size="11" font-family="Archivo,sans-serif">10–20 %</text>
+                <rect x="150" y="118" width="380" height="26" fill="rgba(16,185,129,.35)" rx="5"/>
+                <text x="536" y="135" fill="rgba(16,185,129,.9)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">20 %</text>
+                <!-- Row 20–30% (16%) -->
+                <text x="142" y="167" text-anchor="end" fill="rgba(16,185,129,.8)" font-size="11" font-family="Archivo,sans-serif">20–30 %</text>
+                <rect x="150" y="150" width="304" height="26" fill="rgba(16,185,129,.45)" rx="5"/>
+                <text x="460" y="167" fill="#34d399" font-size="11" font-weight="700" font-family="Archivo,sans-serif">16 %</text>
+                <!-- Row 30–50% (11%) -->
+                <text x="142" y="199" text-anchor="end" fill="rgba(52,211,153,.9)" font-size="11" font-family="Archivo,sans-serif">30–50 %</text>
+                <rect x="150" y="182" width="209" height="26" fill="rgba(52,211,153,.5)" rx="5"/>
+                <text x="365" y="199" fill="#34d399" font-size="11" font-weight="700" font-family="Archivo,sans-serif">11 %</text>
+                <!-- Row >50% (6%) -->
+                <text x="142" y="231" text-anchor="end" fill="rgba(52,211,153,.9)" font-size="11" font-family="Archivo,sans-serif">&gt; 50 %</text>
+                <rect x="150" y="214" width="114" height="26" fill="rgba(52,211,153,.65)" rx="5"/>
+                <text x="270" y="231" fill="#10b981" font-size="11" font-weight="700" font-family="Archivo,sans-serif">6 %</text>
+              </svg>
+              <div class="card-src">Korteweg &amp; Nagel (2016) — 4 500 fonds VC nord-américains 1987–2012</div>
+            </div>
+
+            <!-- Décomposition factorielle de l'alpha -->
+            <div class="card">
+              <div class="card-lbl">Décomposition de la performance — modèle factoriel</div>
+              <!-- ViewBox 560×200
+                   2 barres horizontales empilées
+                   Scale: 30% max → 390px → 13px/%
+                   x_start=100 · segments: rf(gris) MKT(bleu) SMB(violet) ILP(turquoise) alpha(vert)
+                   Top quartile: rf=2 MKT=4 SMB=2 ILP=4 alpha=18 → total=30%
+                   Médiane: rf=2 MKT=4 SMB=2 ILP=2 alpha=4 → total=14%
+                   Bar Top: y1=46 y2=82 (h=36) · Médiane: y1=116 y2=152 (h=36) -->
+              <svg viewBox="0 0 560 200" xmlns="http://www.w3.org/2000/svg">
+                <!-- Labels barres -->
+                <text x="96" y="68" text-anchor="end" fill="rgba(16,185,129,.9)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">Top Q1</text>
+                <text x="96" y="138" text-anchor="end" fill="rgba(255,255,255,.45)" font-size="11" font-family="Archivo,sans-serif">Médiane</text>
+                <!-- Top quartile bar (y=46→82) -->
+                <!-- rf 2% → w=26 -->
+                <rect x="100" y="46" width="26" height="36" fill="rgba(107,114,128,.5)" rx="3" style="border-radius:3px 0 0 3px;"/>
+                <!-- MKT 4% → w=52 -->
+                <rect x="126" y="46" width="52" height="36" fill="rgba(59,130,246,.5)" rx="0"/>
+                <!-- SMB 2% → w=26 -->
+                <rect x="178" y="46" width="26" height="36" fill="rgba(139,92,246,.5)" rx="0"/>
+                <!-- ILP 4% → w=52 -->
+                <rect x="204" y="46" width="52" height="36" fill="rgba(20,184,166,.5)" rx="0"/>
+                <!-- alpha 18% → w=234 -->
+                <rect x="256" y="46" width="234" height="36" fill="rgba(16,185,129,.65)" rx="3" style="border-radius:0 3px 3px 0;"/>
+                <!-- IRR label -->
+                <text x="494" y="58" fill="#34d399" font-size="11" font-weight="700" font-family="Archivo,sans-serif">IRR</text>
+                <text x="494" y="72" fill="#34d399" font-size="13" font-weight="700" font-family="Archivo,sans-serif">+30%</text>
+                <!-- Alpha label inside -->
+                <text x="373" y="69" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Archivo,sans-serif">α = +18 %</text>
+                <!-- Median bar (y=116→152) -->
+                <!-- rf 2% -->
+                <rect x="100" y="116" width="26" height="36" fill="rgba(107,114,128,.4)" rx="3" style="border-radius:3px 0 0 3px;"/>
+                <!-- MKT 4% -->
+                <rect x="126" y="116" width="52" height="36" fill="rgba(59,130,246,.35)" rx="0"/>
+                <!-- SMB 2% -->
+                <rect x="178" y="116" width="26" height="36" fill="rgba(139,92,246,.35)" rx="0"/>
+                <!-- ILP 2% → w=26 -->
+                <rect x="204" y="116" width="26" height="36" fill="rgba(20,184,166,.35)" rx="0"/>
+                <!-- alpha 4% → w=52 -->
+                <rect x="230" y="116" width="52" height="36" fill="rgba(16,185,129,.4)" rx="3" style="border-radius:0 3px 3px 0;"/>
+                <!-- IRR label -->
+                <text x="290" y="128" fill="rgba(255,255,255,.5)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">IRR +14%</text>
+                <text x="290" y="144" fill="rgba(16,185,129,.55)" font-size="10" font-family="Archivo,sans-serif">α = +4 %</text>
+                <!-- Légende factors -->
+                <rect x="100" y="170" width="10" height="10" rx="2" fill="rgba(107,114,128,.6)"/>
+                <text x="114" y="180" fill="rgba(255,255,255,.35)" font-size="9.5" font-family="Archivo,sans-serif">rf</text>
+                <rect x="128" y="170" width="10" height="10" rx="2" fill="rgba(59,130,246,.5)"/>
+                <text x="142" y="180" fill="rgba(255,255,255,.35)" font-size="9.5" font-family="Archivo,sans-serif">Marché</text>
+                <rect x="192" y="170" width="10" height="10" rx="2" fill="rgba(139,92,246,.5)"/>
+                <text x="206" y="180" fill="rgba(255,255,255,.35)" font-size="9.5" font-family="Archivo,sans-serif">SMB</text>
+                <rect x="250" y="170" width="10" height="10" rx="2" fill="rgba(20,184,166,.5)"/>
+                <text x="264" y="180" fill="rgba(255,255,255,.35)" font-size="9.5" font-family="Archivo,sans-serif">ILP</text>
+                <rect x="308" y="170" width="10" height="10" rx="2" fill="rgba(16,185,129,.65)"/>
+                <text x="322" y="180" fill="rgba(255,255,255,.35)" font-size="9.5" font-family="Archivo,sans-serif">Alpha pur</text>
+              </svg>
+              <div class="card-src">Korteweg &amp; Nagel (2016) — modèle rf+β·MKT+SMB+ILP+α</div>
+            </div>
+          </div>
         </section>
 
         <hr class="div"/>
@@ -605,41 +967,205 @@
             <div class="card-src">Multiples illustratifs — données historiques VC seed américain et européen 2000–2022</div>
           </div>
 
-          <!-- VISUEL 13 : Funnel de sélection -->
+          <!-- V20 + V21 : Step-up valorisation + histogramme sorties -->
+          <div class="g2" style="margin-bottom:14px;">
+            <!-- Step-up valorisation échelle log -->
+            <div class="card">
+              <div class="card-lbl">Step-up de valorisation par stade (échelle log)</div>
+              <!-- ViewBox 540×240
+                   5 stades: x=60,165,270,375,480
+                   Log10 scale: 1M→0, 5M→0.699, 20M→1.301, 80M→1.903, 200M→2.301
+                   y=220-log*78.2 → 1M=220, 5M=165, 20M=118, 80M=71, 200M=40 -->
+              <svg viewBox="0 0 540 240" xmlns="http://www.w3.org/2000/svg">
+                <!-- Grid log lines -->
+                <line x1="50" y1="220" x2="500" y2="220" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+                <line x1="50" y1="165" x2="500" y2="165" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="3,4"/>
+                <line x1="50" y1="118" x2="500" y2="118" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="3,4"/>
+                <line x1="50" y1="71" x2="500" y2="71" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="3,4"/>
+                <line x1="50" y1="40" x2="500" y2="40" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="3,4"/>
+                <!-- Y log labels -->
+                <text x="44" y="224" text-anchor="end" fill="rgba(255,255,255,.25)" font-size="10" font-family="Archivo,sans-serif">1M</text>
+                <text x="44" y="169" text-anchor="end" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">5M</text>
+                <text x="44" y="122" text-anchor="end" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">20M</text>
+                <text x="44" y="75" text-anchor="end" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">80M</text>
+                <text x="44" y="44" text-anchor="end" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">200M€</text>
+                <!-- Line -->
+                <polyline points="60,220 165,165 270,118 375,71 480,40"
+                  fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- Points -->
+                <circle cx="60"  cy="220" r="5" fill="#3b82f6"/>
+                <circle cx="165" cy="165" r="5" fill="#3b82f6"/>
+                <circle cx="270" cy="118" r="5" fill="#60a5fa"/>
+                <circle cx="375" cy="71"  r="5" fill="#60a5fa"/>
+                <circle cx="480" cy="40"  r="6" fill="#10b981"/>
+                <!-- Step-up labels -->
+                <text x="112" y="182" text-anchor="middle" fill="#fbbf24" font-size="12" font-weight="700" font-family="Archivo,sans-serif">×5</text>
+                <text x="217" y="130" text-anchor="middle" fill="#fbbf24" font-size="12" font-weight="700" font-family="Archivo,sans-serif">×4</text>
+                <text x="322" y="84" text-anchor="middle" fill="#fbbf24" font-size="12" font-weight="700" font-family="Archivo,sans-serif">×4</text>
+                <text x="427" y="48" text-anchor="middle" fill="#34d399" font-size="12" font-weight="700" font-family="Archivo,sans-serif">×2.5</text>
+                <!-- X labels -->
+                <text x="60"  y="237" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="9.5" font-family="Archivo,sans-serif">Pré-seed</text>
+                <text x="165" y="237" text-anchor="middle" fill="rgba(59,130,246,.8)" font-size="9.5" font-weight="600" font-family="Archivo,sans-serif">Seed</text>
+                <text x="270" y="237" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="9.5" font-family="Archivo,sans-serif">Série A</text>
+                <text x="375" y="237" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="9.5" font-family="Archivo,sans-serif">Série B</text>
+                <text x="480" y="237" text-anchor="middle" fill="rgba(16,185,129,.7)" font-size="9.5" font-family="Archivo,sans-serif">Exit</text>
+              </svg>
+              <div class="card-src">Valuations médianes — données PitchBook Europe 2019–2023</div>
+            </div>
+
+            <!-- Histogramme délai jusqu'à la sortie -->
+            <div class="card">
+              <div class="card-lbl">Délai médian jusqu'à la sortie (années)</div>
+              <!-- ViewBox 560×240
+                   7 bins, centres: 66,130,194,258,322,386,450
+                   Bar width=50, baseline y=220
+                   Scale: 30%→170px → 5.67px/%
+                   5%→h=28,top=192 · 15%→h=85,top=135 · 30%→h=170,top=50
+                   25%→h=142,top=78 · 13%→h=74,top=146 · 8%→h=45,top=175 · 4%→h=23,top=197 -->
+              <svg viewBox="0 0 560 240" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="hb1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3b82f6" stop-opacity=".4"/><stop offset="100%" stop-color="#3b82f6" stop-opacity=".15"/></linearGradient>
+                  <linearGradient id="hb2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#10b981" stop-opacity=".6"/><stop offset="100%" stop-color="#10b981" stop-opacity=".25"/></linearGradient>
+                  <linearGradient id="hb3" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#10b981" stop-opacity=".85"/><stop offset="100%" stop-color="#10b981" stop-opacity=".35"/></linearGradient>
+                </defs>
+                <line x1="40" y1="220" x2="520" y2="220" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+                <line x1="40" y1="135" x2="520" y2="135" stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
+                <line x1="40" y1="50" x2="520" y2="50" stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
+                <text x="34" y="224" text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">0</text>
+                <text x="34" y="139" text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">15%</text>
+                <text x="34" y="54" text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">30%</text>
+                <!-- Bars -->
+                <rect x="41" y="192" width="50" height="28" fill="url(#hb1)" rx="4"/>
+                <text x="66" y="188" text-anchor="middle" fill="rgba(59,130,246,.7)" font-size="11" font-weight="600" font-family="Archivo,sans-serif">5%</text>
+                <rect x="105" y="135" width="50" height="85" fill="url(#hb1)" rx="4"/>
+                <text x="130" y="131" text-anchor="middle" fill="rgba(59,130,246,.8)" font-size="11" font-weight="600" font-family="Archivo,sans-serif">15%</text>
+                <rect x="169" y="50" width="50" height="170" fill="url(#hb3)" rx="4"/>
+                <text x="194" y="46" text-anchor="middle" fill="#34d399" font-size="13" font-weight="700" font-family="Archivo,sans-serif">30%</text>
+                <rect x="233" y="78" width="50" height="142" fill="url(#hb2)" rx="4"/>
+                <text x="258" y="74" text-anchor="middle" fill="rgba(16,185,129,.9)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">25%</text>
+                <rect x="297" y="146" width="50" height="74" fill="url(#hb1)" rx="4"/>
+                <text x="322" y="142" text-anchor="middle" fill="rgba(59,130,246,.7)" font-size="11" font-weight="600" font-family="Archivo,sans-serif">13%</text>
+                <rect x="361" y="175" width="50" height="45" fill="url(#hb1)" rx="4"/>
+                <text x="386" y="171" text-anchor="middle" fill="rgba(59,130,246,.65)" font-size="11" font-weight="600" font-family="Archivo,sans-serif">8%</text>
+                <rect x="425" y="197" width="50" height="23" fill="url(#hb1)" rx="4"/>
+                <text x="450" y="193" text-anchor="middle" fill="rgba(59,130,246,.6)" font-size="11" font-weight="600" font-family="Archivo,sans-serif">4%</text>
+                <!-- X labels -->
+                <text x="66"  y="234" text-anchor="middle" fill="rgba(255,255,255,.25)" font-size="9.5" font-family="Archivo,sans-serif">1-2</text>
+                <text x="130" y="234" text-anchor="middle" fill="rgba(255,255,255,.25)" font-size="9.5" font-family="Archivo,sans-serif">3-4</text>
+                <text x="194" y="234" text-anchor="middle" fill="#34d399" font-size="9.5" font-weight="600" font-family="Archivo,sans-serif">5-6</text>
+                <text x="258" y="234" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="9.5" font-family="Archivo,sans-serif">7-8</text>
+                <text x="322" y="234" text-anchor="middle" fill="rgba(255,255,255,.25)" font-size="9.5" font-family="Archivo,sans-serif">9-10</text>
+                <text x="386" y="234" text-anchor="middle" fill="rgba(255,255,255,.25)" font-size="9.5" font-family="Archivo,sans-serif">11-12</text>
+                <text x="450" y="234" text-anchor="middle" fill="rgba(255,255,255,.25)" font-size="9.5" font-family="Archivo,sans-serif">13+</text>
+                <text x="280" y="14" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">années</text>
+              </svg>
+              <div class="card-src">Beauhurst / PitchBook — 3 200 exits VC seed 2005–2023</div>
+            </div>
+          </div>
+
+          <!-- V22 + V23 : Taux de follow-on + probabilités conditionnelles -->
+          <div class="g2" style="margin-bottom:14px;">
+            <!-- Funnel follow-on -->
+            <div class="card">
+              <div class="card-lbl">Taux de financement suivant — sur 100 startups seed</div>
+              <!-- ViewBox 480×210
+                   4 levels · h=34 · y_top: 10, 58, 106, 154
+                   Seed 100%: w=420 x=30
+                   Série A 30%: w=280 x=100
+                   Série B 11%: w=180 x=150
+                   Exit sign. 4%: w=100 x=190 -->
+              <svg viewBox="0 0 480 210" xmlns="http://www.w3.org/2000/svg">
+                <!-- Level 1 Seed -->
+                <rect x="30" y="10" width="420" height="34" fill="rgba(59,130,246,.18)" rx="6"/>
+                <text x="240" y="32" text-anchor="middle" fill="rgba(59,130,246,.9)" font-size="12" font-weight="600" font-family="Archivo,sans-serif">100 seed financées</text>
+                <text x="454" y="32" fill="rgba(255,255,255,.28)" font-size="10.5" font-family="Archivo,sans-serif">100%</text>
+                <!-- Arrow -->
+                <path d="M240,46 L240,56 M234,52 L240,58 L246,52" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="1.5" stroke-linejoin="round"/>
+                <!-- Level 2 Série A -->
+                <rect x="100" y="60" width="280" height="34" fill="rgba(59,130,246,.3)" rx="6"/>
+                <text x="240" y="82" text-anchor="middle" fill="rgba(59,130,246,.95)" font-size="12" font-weight="600" font-family="Archivo,sans-serif">30 lèvent une Série A</text>
+                <text x="384" y="82" fill="rgba(59,130,246,.5)" font-size="10.5" font-family="Archivo,sans-serif">30%</text>
+                <!-- Arrow -->
+                <path d="M240,96 L240,106 M234,102 L240,108 L246,102" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="1.5" stroke-linejoin="round"/>
+                <!-- Level 3 Série B -->
+                <rect x="150" y="110" width="180" height="34" fill="rgba(59,130,246,.44)" rx="6"/>
+                <text x="240" y="132" text-anchor="middle" fill="#fff" font-size="12" font-weight="600" font-family="Archivo,sans-serif">11 lèvent une Série B</text>
+                <text x="334" y="132" fill="rgba(59,130,246,.6)" font-size="10.5" font-family="Archivo,sans-serif">11%</text>
+                <!-- Arrow -->
+                <path d="M240,146 L240,156 M234,152 L240,158 L246,152" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="1.5" stroke-linejoin="round"/>
+                <!-- Level 4 Exit -->
+                <rect x="190" y="160" width="100" height="34" fill="rgba(16,185,129,.6)" rx="6"/>
+                <text x="240" y="182" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="Archivo,sans-serif">4 exits sign.</text>
+                <text x="294" y="182" fill="#34d399" font-size="10.5" font-weight="600" font-family="Archivo,sans-serif">4%</text>
+              </svg>
+            </div>
+
+            <!-- Probabilités conditionnelles par stade -->
+            <div class="card">
+              <div class="card-lbl">Probabilité de financement à chaque stade</div>
+              <!-- ViewBox 480×210
+                   3 barres horizontales conditionnelles
+                   Scale: max 40% → 320px → 8px/%
+                   x_start=220 (labels x=0-210)
+                   Seed→A 30%: w=240
+                   A→B 36%: w=288
+                   B→Exit 38%: w=304 -->
+              <svg viewBox="0 0 480 210" xmlns="http://www.w3.org/2000/svg">
+                <line x1="218" y1="20" x2="218" y2="190" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+                <!-- Bar 1: Seed → A -->
+                <text x="212" y="68" text-anchor="end" fill="rgba(255,255,255,.55)" font-size="11" font-family="Archivo,sans-serif">Seed → A</text>
+                <text x="212" y="82" text-anchor="end" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">si seed financé</text>
+                <rect x="220" y="52" width="240" height="36" fill="rgba(59,130,246,.4)" rx="5"/>
+                <text x="466" y="74" fill="#60a5fa" font-size="13" font-weight="700" font-family="Archivo,sans-serif">30%</text>
+                <!-- Bar 2: A → B -->
+                <text x="212" y="126" text-anchor="end" fill="rgba(255,255,255,.55)" font-size="11" font-family="Archivo,sans-serif">A → B</text>
+                <text x="212" y="140" text-anchor="end" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">si Série A levée</text>
+                <rect x="220" y="110" width="288" height="36" fill="rgba(96,165,250,.45)" rx="5"/>
+                <text x="466" y="132" fill="#60a5fa" font-size="13" font-weight="700" font-family="Archivo,sans-serif">36%</text>
+                <!-- Bar 3: B → Exit -->
+                <text x="212" y="183" text-anchor="end" fill="rgba(255,255,255,.55)" font-size="11" font-family="Archivo,sans-serif">B → Exit</text>
+                <text x="212" y="197" text-anchor="end" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">si Série B levée</text>
+                <rect x="220" y="167" width="304" height="36" fill="rgba(52,211,153,.45)" rx="5"/>
+                <text x="466" y="189" fill="#34d399" font-size="13" font-weight="700" font-family="Archivo,sans-serif">38%</text>
+                <!-- Note -->
+                <text x="240" y="18" text-anchor="middle" fill="rgba(255,255,255,.18)" font-size="10" font-family="Archivo,sans-serif">probabilité conditionnelle</text>
+              </svg>
+              <div class="card-src">Startup Genome / Dealroom — données Europe 2015–2023</div>
+            </div>
+          </div>
+
+          <!-- V27 : Funnel de sélection LIQUID+ (0.1%) -->
           <div class="card">
-            <div class="card-lbl">De la candidature à l'investissement — le processus de sélection</div>
-            <!-- Funnel · ViewBox 500×180
-                 4 niveaux élargissant de haut en bas (inversé = filtre)
-                 Level 1: 500 candidatures · w=400, x=50
-                 Level 2: 100 sélectionnées · w=280, x=110
-                 Level 3: 30 analysées · w=180, x=160
-                 Level 4: 10 investissements · w=100, x=200
-                 Hauteur chaque level: 30px, gap: 4px
-            -->
+            <div class="card-lbl">De la candidature à l'investissement — processus de sélection LIQUID+</div>
+            <!-- Funnel · ViewBox 500×190
+                 1000→100→10→1 (0.1% de sélectivité)
+                 Level 1: 1000 · w=420 x=40
+                 Level 2: 100  · w=280 x=110
+                 Level 3: 10   · w=160 x=170
+                 Level 4: 1    · w=80  x=210 -->
             <svg viewBox="0 0 500 190" xmlns="http://www.w3.org/2000/svg">
               <!-- Level 1 -->
-              <rect x="50"  y="10" width="400" height="34" fill="rgba(255,255,255,.06)" rx="6"/>
-              <text x="250" y="32" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="12" font-weight="600" font-family="Archivo,sans-serif">500 startups candidatent</text>
+              <rect x="40"  y="10" width="420" height="34" fill="rgba(255,255,255,.06)" rx="6"/>
+              <text x="250" y="32" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="12" font-weight="600" font-family="Archivo,sans-serif">1 000 startups candidatent</text>
+              <text x="464" y="32" fill="rgba(255,255,255,.2)" font-size="10.5" font-family="Archivo,sans-serif">100%</text>
               <!-- Flèche -->
               <path d="M250,46 L250,54 M244,50 L250,56 L256,50" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="1.5" stroke-linejoin="round"/>
               <!-- Level 2 -->
               <rect x="110" y="58" width="280" height="34" fill="rgba(59,130,246,.12)" rx="6"/>
               <text x="250" y="80" text-anchor="middle" fill="rgba(59,130,246,.8)" font-size="12" font-weight="600" font-family="Archivo,sans-serif">100 passent la sélection initiale</text>
+              <text x="394" y="80" fill="rgba(59,130,246,.5)" font-size="10.5" font-family="Archivo,sans-serif">10%</text>
               <!-- Flèche -->
               <path d="M250,94 L250,102 M244,98 L250,104 L256,98" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="1.5" stroke-linejoin="round"/>
               <!-- Level 3 -->
-              <rect x="160" y="106" width="180" height="34" fill="rgba(59,130,246,.2)" rx="6"/>
-              <text x="250" y="128" text-anchor="middle" fill="rgba(59,130,246,.9)" font-size="12" font-weight="600" font-family="Archivo,sans-serif">30 analysées en détail</text>
+              <rect x="170" y="106" width="160" height="34" fill="rgba(59,130,246,.2)" rx="6"/>
+              <text x="250" y="128" text-anchor="middle" fill="rgba(59,130,246,.9)" font-size="12" font-weight="600" font-family="Archivo,sans-serif">10 analysées en détail</text>
+              <text x="334" y="128" fill="rgba(59,130,246,.6)" font-size="10.5" font-family="Archivo,sans-serif">1%</text>
               <!-- Flèche -->
               <path d="M250,142 L250,150 M244,146 L250,152 L256,146" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="1.5" stroke-linejoin="round"/>
               <!-- Level 4 -->
-              <rect x="200" y="154" width="100" height="34" fill="rgba(59,130,246,.5)" rx="6"/>
-              <text x="250" y="176" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="Archivo,sans-serif">10 sur LIQUID+</text>
-              <!-- Pourcentage à droite de chaque level -->
-              <text x="458" y="32"  fill="rgba(255,255,255,.2)" font-size="10.5" font-family="Archivo,sans-serif">100%</text>
-              <text x="397" y="80"  fill="rgba(59,130,246,.5)"  font-size="10.5" font-family="Archivo,sans-serif">20%</text>
-              <text x="347" y="128" fill="rgba(59,130,246,.6)"  font-size="10.5" font-family="Archivo,sans-serif">6%</text>
-              <text x="307" y="176" fill="#60a5fa"              font-size="10.5" font-family="Archivo,sans-serif" font-weight="600">2%</text>
+              <rect x="210" y="154" width="80" height="34" fill="rgba(59,130,246,.55)" rx="6"/>
+              <text x="250" y="176" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="Archivo,sans-serif">1 sur LIQUID+</text>
+              <text x="294" y="176" fill="#60a5fa" font-size="10.5" font-weight="700" font-family="Archivo,sans-serif">0.1%</text>
             </svg>
           </div>
         </section>
@@ -678,6 +1204,167 @@
         <hr class="div"/>
 
         <!-- ═══════════════════════════════════════════════ -->
+        <!-- 06 · DONNÉES AVANCÉES                          -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <section class="sec">
+          <h2 class="sec-h">Données de marché</h2>
+          <p class="sec-p">Performance par millésime, répartition sectorielle et concentration de portefeuille.</p>
+
+          <!-- V28 : Heatmap millésimes -->
+          <div class="card" style="margin-bottom:14px;">
+            <div class="card-lbl">Performance des fonds seed par millésime — TVPI · DPI · IRR net</div>
+            <!-- ViewBox 640×244
+                 6 millésimes (2017–2022), 3 colonnes métriques
+                 Col centres: Année x=10→110, TVPI=220, DPI=370, IRR=510
+                 Row h=26 gap=6 · y_top: 50,82,114,146,178,210 -->
+            <svg viewBox="0 0 640 244" xmlns="http://www.w3.org/2000/svg">
+              <!-- Header -->
+              <text x="60"  y="32" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10.5" font-weight="600" font-family="Archivo,sans-serif">Millésime</text>
+              <text x="220" y="32" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10.5" font-weight="600" font-family="Archivo,sans-serif">TVPI</text>
+              <text x="370" y="32" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10.5" font-weight="600" font-family="Archivo,sans-serif">DPI</text>
+              <text x="520" y="32" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10.5" font-weight="600" font-family="Archivo,sans-serif">IRR net</text>
+              <line x1="10" y1="38" x2="630" y2="38" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+              <!-- Row 2017 y=50 -->
+              <text x="60" y="67" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11" font-family="Archivo,sans-serif">2017</text>
+              <rect x="145" y="50" width="150" height="26" fill="rgba(16,185,129,.32)" rx="5"/>
+              <text x="220" y="67" text-anchor="middle" fill="#34d399" font-size="12" font-weight="700" font-family="Archivo,sans-serif">1.8×</text>
+              <rect x="295" y="50" width="150" height="26" fill="rgba(245,158,11,.28)" rx="5"/>
+              <text x="370" y="67" text-anchor="middle" fill="#fbbf24" font-size="12" font-weight="700" font-family="Archivo,sans-serif">1.1×</text>
+              <rect x="445" y="50" width="150" height="26" fill="rgba(16,185,129,.32)" rx="5"/>
+              <text x="520" y="67" text-anchor="middle" fill="#34d399" font-size="12" font-weight="700" font-family="Archivo,sans-serif">14 %</text>
+              <!-- Row 2018 y=82 -->
+              <text x="60" y="99" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11" font-family="Archivo,sans-serif">2018</text>
+              <rect x="145" y="82" width="150" height="26" fill="rgba(245,158,11,.28)" rx="5"/>
+              <text x="220" y="99" text-anchor="middle" fill="#fbbf24" font-size="12" font-weight="700" font-family="Archivo,sans-serif">1.5×</text>
+              <rect x="295" y="82" width="150" height="26" fill="rgba(245,158,11,.28)" rx="5"/>
+              <text x="370" y="99" text-anchor="middle" fill="#fbbf24" font-size="12" font-weight="700" font-family="Archivo,sans-serif">0.9×</text>
+              <rect x="445" y="82" width="150" height="26" fill="rgba(245,158,11,.28)" rx="5"/>
+              <text x="520" y="99" text-anchor="middle" fill="#fbbf24" font-size="12" font-weight="700" font-family="Archivo,sans-serif">10 %</text>
+              <!-- Row 2019 y=114 -->
+              <text x="60" y="131" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11" font-family="Archivo,sans-serif">2019</text>
+              <rect x="145" y="114" width="150" height="26" fill="rgba(245,158,11,.28)" rx="5"/>
+              <text x="220" y="131" text-anchor="middle" fill="#fbbf24" font-size="12" font-weight="700" font-family="Archivo,sans-serif">1.3×</text>
+              <rect x="295" y="114" width="150" height="26" fill="rgba(239,68,68,.25)" rx="5"/>
+              <text x="370" y="131" text-anchor="middle" fill="#f87171" font-size="12" font-weight="700" font-family="Archivo,sans-serif">0.4×</text>
+              <rect x="445" y="114" width="150" height="26" fill="rgba(245,158,11,.28)" rx="5"/>
+              <text x="520" y="131" text-anchor="middle" fill="#fbbf24" font-size="12" font-weight="700" font-family="Archivo,sans-serif">6 %</text>
+              <!-- Row 2020 y=146 (COVID boom) -->
+              <text x="60" y="163" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11" font-family="Archivo,sans-serif">2020</text>
+              <rect x="145" y="146" width="150" height="26" fill="rgba(16,185,129,.45)" rx="5"/>
+              <text x="220" y="163" text-anchor="middle" fill="#34d399" font-size="13" font-weight="700" font-family="Archivo,sans-serif">2.2×</text>
+              <rect x="295" y="146" width="150" height="26" fill="rgba(239,68,68,.22)" rx="5"/>
+              <text x="370" y="163" text-anchor="middle" fill="#f87171" font-size="12" font-weight="700" font-family="Archivo,sans-serif">0.7×</text>
+              <rect x="445" y="146" width="150" height="26" fill="rgba(16,185,129,.45)" rx="5"/>
+              <text x="520" y="163" text-anchor="middle" fill="#34d399" font-size="13" font-weight="700" font-family="Archivo,sans-serif">21 %</text>
+              <!-- Row 2021 y=178 (bulle) -->
+              <text x="60" y="195" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11" font-family="Archivo,sans-serif">2021</text>
+              <rect x="145" y="178" width="150" height="26" fill="rgba(239,68,68,.25)" rx="5"/>
+              <text x="220" y="195" text-anchor="middle" fill="#f87171" font-size="12" font-weight="700" font-family="Archivo,sans-serif">1.1×</text>
+              <rect x="295" y="178" width="150" height="26" fill="rgba(239,68,68,.25)" rx="5"/>
+              <text x="370" y="195" text-anchor="middle" fill="#f87171" font-size="12" font-weight="700" font-family="Archivo,sans-serif">0.1×</text>
+              <rect x="445" y="178" width="150" height="26" fill="rgba(239,68,68,.25)" rx="5"/>
+              <text x="520" y="195" text-anchor="middle" fill="#f87171" font-size="12" font-weight="700" font-family="Archivo,sans-serif">3 %</text>
+              <!-- Row 2022 y=210 (trop tôt) -->
+              <text x="60" y="227" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11" font-family="Archivo,sans-serif">2022</text>
+              <rect x="145" y="210" width="150" height="26" fill="rgba(239,68,68,.3)" rx="5"/>
+              <text x="220" y="227" text-anchor="middle" fill="#f87171" font-size="12" font-weight="700" font-family="Archivo,sans-serif">0.9×</text>
+              <rect x="295" y="210" width="150" height="26" fill="rgba(239,68,68,.3)" rx="5"/>
+              <text x="370" y="227" text-anchor="middle" fill="#f87171" font-size="12" font-weight="700" font-family="Archivo,sans-serif">0.0×</text>
+              <rect x="445" y="210" width="150" height="26" fill="rgba(239,68,68,.3)" rx="5"/>
+              <text x="520" y="227" text-anchor="middle" fill="#f87171" font-size="12" font-weight="700" font-family="Archivo,sans-serif">−4 %</text>
+            </svg>
+            <div class="card-src">Preqin / PitchBook — médianes des fonds seed fermés par millésime, Europe (2024)</div>
+          </div>
+
+          <!-- V29 + V30 : Secteurs + concentration portefeuille -->
+          <div class="g2">
+            <!-- Répartition sectorielle -->
+            <div class="card">
+              <div class="card-lbl">Répartition sectorielle — startups seed financées</div>
+              <!-- ViewBox 540×256
+                   8 secteurs, barres horizontales
+                   labels x=0→132, bars x=138→490 (352px)
+                   SaaS 34% max → 352px → 10.35px/%
+                   Row h=24 gap=7 y_top: 20,51,82,113,144,175,206,237 -->
+              <svg viewBox="0 0 540 256" xmlns="http://www.w3.org/2000/svg">
+                <line x1="136" y1="14" x2="136" y2="248" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+                <!-- SaaS 34% w=352 -->
+                <text x="130" y="36" text-anchor="end" fill="rgba(255,255,255,.6)" font-size="11" font-family="Archivo,sans-serif">SaaS B2B</text>
+                <rect x="138" y="20" width="352" height="24" fill="rgba(59,130,246,.5)" rx="4"/>
+                <text x="496" y="36" fill="#60a5fa" font-size="11" font-weight="700" font-family="Archivo,sans-serif">34%</text>
+                <!-- Fintech 18% w=186 -->
+                <text x="130" y="67" text-anchor="end" fill="rgba(255,255,255,.55)" font-size="11" font-family="Archivo,sans-serif">Fintech</text>
+                <rect x="138" y="51" width="186" height="24" fill="rgba(59,130,246,.38)" rx="4"/>
+                <text x="330" y="67" fill="#93c5fd" font-size="11" font-weight="700" font-family="Archivo,sans-serif">18%</text>
+                <!-- Healthtech 12% w=124 -->
+                <text x="130" y="98" text-anchor="end" fill="rgba(255,255,255,.5)" font-size="11" font-family="Archivo,sans-serif">Healthtech</text>
+                <rect x="138" y="82" width="124" height="24" fill="rgba(52,211,153,.35)" rx="4"/>
+                <text x="268" y="98" fill="#34d399" font-size="11" font-weight="700" font-family="Archivo,sans-serif">12%</text>
+                <!-- Deeptech 11% w=114 -->
+                <text x="130" y="129" text-anchor="end" fill="rgba(255,255,255,.5)" font-size="11" font-family="Archivo,sans-serif">Deeptech</text>
+                <rect x="138" y="113" width="114" height="24" fill="rgba(139,92,246,.38)" rx="4"/>
+                <text x="258" y="129" fill="#c4b5fd" font-size="11" font-weight="700" font-family="Archivo,sans-serif">11%</text>
+                <!-- Marketplace 9% w=93 -->
+                <text x="130" y="160" text-anchor="end" fill="rgba(255,255,255,.45)" font-size="11" font-family="Archivo,sans-serif">Marketplace</text>
+                <rect x="138" y="144" width="93" height="24" fill="rgba(245,158,11,.35)" rx="4"/>
+                <text x="237" y="160" fill="#fbbf24" font-size="11" font-weight="700" font-family="Archivo,sans-serif">9%</text>
+                <!-- Proptech 6% w=62 -->
+                <text x="130" y="191" text-anchor="end" fill="rgba(255,255,255,.4)" font-size="11" font-family="Archivo,sans-serif">Proptech</text>
+                <rect x="138" y="175" width="62" height="24" fill="rgba(245,158,11,.28)" rx="4"/>
+                <text x="206" y="191" fill="rgba(245,158,11,.8)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">6%</text>
+                <!-- Edtech 5% w=52 -->
+                <text x="130" y="222" text-anchor="end" fill="rgba(255,255,255,.38)" font-size="11" font-family="Archivo,sans-serif">Edtech</text>
+                <rect x="138" y="206" width="52" height="24" fill="rgba(107,114,128,.35)" rx="4"/>
+                <text x="196" y="222" fill="rgba(107,114,128,.8)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">5%</text>
+                <!-- Autre 5% w=52 -->
+                <text x="130" y="251" text-anchor="end" fill="rgba(255,255,255,.35)" font-size="11" font-family="Archivo,sans-serif">Autre</text>
+                <rect x="138" y="237" width="52" height="14" fill="rgba(107,114,128,.25)" rx="4"/>
+                <text x="196" y="248" fill="rgba(107,114,128,.6)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">5%</text>
+              </svg>
+              <div class="card-src">Dealroom.co — startups seed financées en Europe 2020–2023</div>
+            </div>
+
+            <!-- Concentration valeur portefeuille -->
+            <div class="card">
+              <div class="card-lbl">Concentration de valeur — portefeuille 20 startups</div>
+              <!-- Donut de concentration: 1 jackpot 55%, 3 exits 30%, 6 mod 10%, 10 pertes 5%
+                   ViewBox 260×220, centre 120,100, r=70, circ=439.8
+                   55%→242 offset=110
+                   30%→132 offset=110-242=-132
+                   10%→44 offset=-132-132=-264
+                   5%→22 offset=-308 -->
+              <svg viewBox="0 0 260 220" xmlns="http://www.w3.org/2000/svg">
+                <!-- Anneau jackpot 55% -->
+                <circle cx="120" cy="100" r="70" fill="none" stroke="#3b82f6" stroke-width="30" stroke-opacity=".8"
+                  stroke-dasharray="242 198" stroke-dashoffset="110" transform="rotate(0 120 100)"/>
+                <!-- Anneau bons exits 30% -->
+                <circle cx="120" cy="100" r="70" fill="none" stroke="#60a5fa" stroke-width="30" stroke-opacity=".55"
+                  stroke-dasharray="132 308" stroke-dashoffset="-132" transform="rotate(0 120 100)"/>
+                <!-- Anneau modérés 10% -->
+                <circle cx="120" cy="100" r="70" fill="none" stroke="rgba(107,114,128,.6)" stroke-width="30"
+                  stroke-dasharray="44 396" stroke-dashoffset="-264" transform="rotate(0 120 100)"/>
+                <!-- Anneau pertes 5% -->
+                <circle cx="120" cy="100" r="70" fill="none" stroke="#ef4444" stroke-width="30" stroke-opacity=".5"
+                  stroke-dasharray="22 418" stroke-dashoffset="-308" transform="rotate(0 120 100)"/>
+                <!-- Centre -->
+                <text x="120" y="95" text-anchor="middle" fill="#fff" font-size="14" font-weight="700" font-family="Archivo,sans-serif">Valeur</text>
+                <text x="120" y="111" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10" font-family="Archivo,sans-serif">% créée</text>
+                <!-- Légende -->
+                <rect x="14" y="174" width="10" height="10" rx="2" fill="#3b82f6" fill-opacity=".8"/>
+                <text x="28" y="184" fill="rgba(255,255,255,.55)" font-size="10.5" font-family="Archivo,sans-serif">×1 jackpot = 55%</text>
+                <rect x="14" y="188" width="10" height="10" rx="2" fill="#60a5fa" fill-opacity=".55"/>
+                <text x="28" y="198" fill="rgba(255,255,255,.55)" font-size="10.5" font-family="Archivo,sans-serif">×3 bons exits = 30%</text>
+                <rect x="14" y="202" width="10" height="10" rx="2" fill="rgba(107,114,128,.6)"/>
+                <text x="28" y="212" fill="rgba(255,255,255,.45)" font-size="10.5" font-family="Archivo,sans-serif">×6 modérés = 10%</text>
+              </svg>
+              <div class="card-src">Gregson, Mann &amp; Harrison (2017) — distribution empirique</div>
+            </div>
+          </div>
+        </section>
+
+        <hr class="div"/>
+
+        <!-- ═══════════════════════════════════════════════ -->
         <!-- RÉSUMÉ CHIFFRES CLÉS                           -->
         <!-- ═══════════════════════════════════════════════ -->
         <!-- VISUEL 14 : Chiffres clés visuels -->
@@ -706,7 +1393,7 @@
             <!-- Séparateur -->
             <line x1="640" y1="20" x2="640" y2="90" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
             <!-- Bloc 5 -->
-            <text x="720" y="44" text-anchor="middle" fill="#c4b5fd" font-size="34" font-weight="700" font-family="Archivo,sans-serif" letter-spacing="-2">2%</text>
+            <text x="720" y="44" text-anchor="middle" fill="#c4b5fd" font-size="30" font-weight="700" font-family="Archivo,sans-serif" letter-spacing="-1">0.1%</text>
             <text x="720" y="62" text-anchor="middle" fill="rgba(255,255,255,.28)" font-size="11" font-family="Archivo,sans-serif">des candidats sélectionnés</text>
           </svg>
           <div class="card-src">Sources : Korteweg &amp; Nagel (2016) · Gregson, Mann &amp; Harrison (2017) · Cambridge Associates Global VC Index (2024)</div>
