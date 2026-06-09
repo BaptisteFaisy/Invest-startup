@@ -124,10 +124,6 @@ function createUser({ email, password, full_name }) {
 // ─── Middleware ──────────────────────────────────────────────────────────────
 app.use(express.json());
 app.use(cookieParser());
-app.use((req, res, next) => {
-  if (req.headers['x-forwarded-proto'] === 'http') return res.redirect(301, 'https://' + req.headers.host + req.url);
-  next();
-});
 app.use('/uploads/public', express.static(PUBLIC_IMG_DIR));
 app.use(express.static(__dirname));   // sert index.html, login.html, styles.css…
 
@@ -224,6 +220,9 @@ app.post('/api/auth/login', async (req, res) => {
   const user = findByEmail(email.trim().toLowerCase());
   if (!user)
     return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
+
+  if (!user.password)
+    return res.status(401).json({ error: 'Ce compte utilise Google. Connectez-vous avec le bouton Google.' });
 
   const valid = await bcrypt.compare(password, user.password);
   if (!valid)
