@@ -329,6 +329,48 @@ app.get('/api/auth/me', requireAuth, (req, res) => {
   res.json({ user: { id: user.id, email: user.email, full_name: user.full_name, created_at: user.created_at } });
 });
 
+// ─── PUT /api/auth/profile — modifier nom et email ───────────────────────────
+app.put('/api/auth/profile', requireAuth, async (req, res) => {
+  const { full_name, email } = req.body ?? {};
+  if (!email) return res.status(400).json({ error: 'Email requis' });
+  const emailClean = email.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailClean))
+    return res.status(400).json({ error: 'Adresse email invalide' });
+
+  const users = readUsers();
+  const idx   = users.findIndex(u => u.id === req.user.id);
+  if (idx === -1) return res.status(404).json({ error: 'Utilisateur introuvable' });
+
+  const conflict = users.find(u => u.email === emailClean && u.id !== req.user.id);
+  if (conflict) return res.status(409).json({ error: 'Cet email est déjà utilisé' });
+
+  users[idx].full_name = full_name ? full_name.trim() : users[idx].full_name;
+  users[idx].email     = emailClean;
+  writeUsers(users);
+  setAuthCookie(res, users[idx]);
+  res.json({ success: true, user: { id: users[idx].id, email: users[idx].email, full_name: users[idx].full_name } });
+});
+
+// ─── PUT /api/auth/password — changer le mot de passe ────────────────────────
+app.put('/api/auth/password', requireAuth, async (req, res) => {
+  const { currentPassword, newPassword } = req.body ?? {};
+  if (!currentPassword || !newPassword)
+    return res.status(400).json({ error: 'Mot de passe actuel et nouveau requis' });
+  if (newPassword.length < 8)
+    return res.status(400).json({ error: 'Le nouveau mot de passe doit faire au moins 8 caractères' });
+
+  const users = readUsers();
+  const idx   = users.findIndex(u => u.id === req.user.id);
+  if (idx === -1) return res.status(404).json({ error: 'Utilisateur introuvable' });
+
+  const valid = await bcrypt.compare(currentPassword, users[idx].password);
+  if (!valid) return res.status(400).json({ error: 'Mot de passe actuel incorrect' });
+
+  users[idx].password = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+  writeUsers(users);
+  res.json({ success: true });
+});
+
 // ─── GET /api/investments ────────────────────────────────────────────────────
 const MOCK_INVESTMENTS = [
   {
@@ -564,6 +606,33 @@ function httpsGet(hostname, path, token) {
     req.end();
   });
 }
+
+// ─── POST /api/auth/google/token — vérifie un access_token Google (app mobile) ─
+app.post('/api/auth/google/token', async (req, res) => {
+  const { access_token } = req.body ?? {};
+  if (!access_token) return res.status(400).json({ error: 'access_token requis' });
+
+  try {
+    const profile = await httpsGet('www.googleapis.com', '/oauth2/v2/userinfo', access_token);
+    if (!profile.email) return res.status(401).json({ error: 'Email non récupérable via Google' });
+
+    const emailClean = profile.email.toLowerCase();
+    let user = findByEmail(emailClean);
+    if (!user) {
+      user = createUser({
+        email:     emailClean,
+        password:  '',
+        full_name: profile.name || emailClean.split('@')[0],
+      });
+    }
+
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+    res.json({ success: true, token, user: { id: user.id, email: user.email, name: user.full_name } });
+  } catch (err) {
+    console.error('Google token verify error:', err.message);
+    res.status(401).json({ error: 'Token Google invalide' });
+  }
+});
 
 // ─── GET /auth/google ─────────────────────────────────────────────────────────
 app.get('/auth/google', (req, res) => {

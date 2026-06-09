@@ -38,6 +38,15 @@
       .btn-danger  { background: none; color: #c0392b; border: 1.5px solid rgba(224,88,72,0.3); border-radius: 10px; padding: 10px 20px; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; transition: background .15s; }
       .btn-danger:hover  { background: rgba(224,88,72,0.06); }
 
+      /* ── Profile form ── */
+      .profile-form { display: grid; gap: 20px; margin-top: 4px; }
+      .profile-field { display: grid; gap: 6px; font-size: 0.88rem; font-weight: 600; color: #080c14; }
+      .profile-input { width: 100%; padding: 11px 14px; border-radius: 10px; border: 1.5px solid rgba(0,0,0,0.15); background: #f9f9f9; font-size: 0.95rem; color: #080c14; outline: none; box-sizing: border-box; transition: border-color .18s; font-family: inherit; }
+      .profile-input:focus { border-color: #080c14; background: #fff; }
+      .profile-input-wrap { position: relative; }
+      .profile-eye { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #5e5e6a; padding: 4px; }
+      .section-divider { border: none; border-top: 1px solid var(--line); margin: 32px 0; }
+
       /* ── Setup flow ── */
       .setup-flow { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 24px; display: none; }
       .setup-flow.open { display: block; }
@@ -76,11 +85,72 @@
         <p class="settings-sub">Gérez votre compte et vos préférences de sécurité.</p>
 
         <div class="tabs">
-          <button class="tab active" data-tab="security">Sécurité</button>
+          <button class="tab active" data-tab="profile">Profil</button>
+          <button class="tab" data-tab="security">Sécurité</button>
+        </div>
+
+        <!-- ── Onglet Profil ── -->
+        <div id="tab-profile" class="tab-panel active">
+          <div class="setting-card" style="flex-direction:column;align-items:stretch;">
+            <div>
+              <h3 style="font-size:1rem;font-weight:700;color:#080c14;margin:0 0 4px;">Informations personnelles</h3>
+              <p style="font-size:.88rem;color:var(--muted);margin:0 0 20px;line-height:1.5;">Modifiez votre nom et votre adresse email.</p>
+            </div>
+            <form class="profile-form" id="profile-form" novalidate>
+              <label class="profile-field">
+                Nom complet
+                <input class="profile-input" type="text" id="profile-name" autocomplete="name" placeholder="Jean Dupont" />
+              </label>
+              <label class="profile-field">
+                Adresse email
+                <input class="profile-input" type="email" id="profile-email" autocomplete="email" placeholder="vous@exemple.fr" required />
+              </label>
+              <div id="profile-alert" class="auth-alert" hidden></div>
+              <button type="submit" class="btn-primary" id="profile-save-btn" style="width:fit-content;">Enregistrer</button>
+            </form>
+          </div>
+
+          <div class="setting-card" style="flex-direction:column;align-items:stretch;margin-top:20px;">
+            <div>
+              <h3 style="font-size:1rem;font-weight:700;color:#080c14;margin:0 0 4px;">Mot de passe</h3>
+              <p style="font-size:.88rem;color:var(--muted);margin:0 0 20px;line-height:1.5;">Choisissez un mot de passe fort d'au moins 8 caractères.</p>
+            </div>
+            <form class="profile-form" id="password-form" novalidate>
+              <label class="profile-field">
+                Mot de passe actuel
+                <div class="profile-input-wrap">
+                  <input class="profile-input" type="password" id="current-password" autocomplete="current-password" placeholder="••••••••" style="padding-right:40px;" />
+                  <button type="button" class="profile-eye" data-target="current-password" aria-label="Afficher">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </div>
+              </label>
+              <label class="profile-field">
+                Nouveau mot de passe
+                <div class="profile-input-wrap">
+                  <input class="profile-input" type="password" id="new-password" autocomplete="new-password" placeholder="••••••••" style="padding-right:40px;" />
+                  <button type="button" class="profile-eye" data-target="new-password" aria-label="Afficher">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </div>
+              </label>
+              <label class="profile-field">
+                Confirmer le nouveau mot de passe
+                <div class="profile-input-wrap">
+                  <input class="profile-input" type="password" id="confirm-password" autocomplete="new-password" placeholder="••••••••" style="padding-right:40px;" />
+                  <button type="button" class="profile-eye" data-target="confirm-password" aria-label="Afficher">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </div>
+              </label>
+              <div id="password-alert" class="auth-alert" hidden></div>
+              <button type="submit" class="btn-primary" id="password-save-btn" style="width:fit-content;">Changer le mot de passe</button>
+            </form>
+          </div>
         </div>
 
         <!-- ── Onglet Sécurité ── -->
-        <div id="tab-security" class="tab-panel active">
+        <div id="tab-security" class="tab-panel">
 
           <div class="setting-card">
             <div class="setting-info" style="flex:1">
@@ -125,13 +195,25 @@
         });
       });
 
+      // ── Boutons œil mot de passe ──────────────────────────────────────────────
+      document.querySelectorAll('.profile-eye').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const inp = document.getElementById(btn.dataset.target);
+          inp.type  = inp.type === 'password' ? 'text' : 'password';
+        });
+      });
+
       // ── Vérif connexion et chargement statut 2FA ──────────────────────────────
       async function init() {
         const meRes = await fetch('/api/auth/me', { credentials: 'include' });
         if (!meRes.ok) { window.location.href = 'login.html'; return; }
 
-        // Update nav
         const meData = await meRes.json();
+        // Pré-remplir le formulaire profil
+        document.getElementById('profile-name').value  = meData.user.full_name || '';
+        document.getElementById('profile-email').value = meData.user.email || '';
+
+        // Update nav
         const name   = meData.user.full_name ? meData.user.full_name.split(' ')[0] : meData.user.email;
         document.getElementById('nav-links').innerHTML = `
           <a class="nav-link" href="marche.html">Ressources</a>
@@ -170,6 +252,57 @@
           disableBtn.style.display = 'none';
           toggleBtn.textContent = 'Activer le 2FA';
         }
+      }
+
+      // ── Sauvegarder le profil ─────────────────────────────────────────────────
+      document.getElementById('profile-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const alertEl = document.getElementById('profile-alert');
+        alertEl.hidden = true;
+        const btn = document.getElementById('profile-save-btn');
+        btn.disabled = true; btn.textContent = 'Enregistrement…';
+        try {
+          const res  = await fetch('/api/auth/profile', {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ full_name: document.getElementById('profile-name').value, email: document.getElementById('profile-email').value }),
+          });
+          const data = await res.json();
+          if (!res.ok) { showAlert('profile-alert', 'error', data.error || 'Erreur'); return; }
+          showAlert('profile-alert', 'success', 'Profil mis à jour avec succès');
+        } catch { showAlert('profile-alert', 'error', 'Impossible de joindre le serveur'); }
+        finally { btn.disabled = false; btn.textContent = 'Enregistrer'; }
+      });
+
+      // ── Changer le mot de passe ───────────────────────────────────────────────
+      document.getElementById('password-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const alertEl = document.getElementById('password-alert');
+        alertEl.hidden = true;
+        const newPwd  = document.getElementById('new-password').value;
+        const confPwd = document.getElementById('confirm-password').value;
+        if (newPwd !== confPwd) { showAlert('password-alert', 'error', 'Les mots de passe ne correspondent pas'); return; }
+        const btn = document.getElementById('password-save-btn');
+        btn.disabled = true; btn.textContent = 'Modification…';
+        try {
+          const res  = await fetch('/api/auth/password', {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ currentPassword: document.getElementById('current-password').value, newPassword: newPwd }),
+          });
+          const data = await res.json();
+          if (!res.ok) { showAlert('password-alert', 'error', data.error || 'Erreur'); return; }
+          showAlert('password-alert', 'success', 'Mot de passe modifié avec succès');
+          document.getElementById('password-form').reset();
+        } catch { showAlert('password-alert', 'error', 'Impossible de joindre le serveur'); }
+        finally { btn.disabled = false; btn.textContent = 'Changer le mot de passe'; }
+      });
+
+      function showAlert(id, type, msg) {
+        const el = document.getElementById(id);
+        el.className = 'auth-alert auth-alert--' + type;
+        el.textContent = msg;
+        el.hidden = false;
       }
 
       // ── Activer le 2FA — démarrer le flow ─────────────────────────────────────
