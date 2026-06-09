@@ -133,10 +133,11 @@ app.use(express.static(__dirname));
 // ─── Auth helpers ─────────────────────────────────────────────────────────────
 function setAuthCookie(res, user) {
   const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+  const isProd = process.env.NODE_ENV === 'production';
   res.cookie('auth_token', token, {
     httpOnly: true,
-    secure:   process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure:   isProd,
+    sameSite: isProd ? 'none' : 'lax',
     maxAge:   7 * 24 * 60 * 60 * 1000,
   });
   return token;
@@ -319,12 +320,7 @@ app.put('/api/auth/password', requireAuth, async (req, res) => {
 });
 
 // ─── GET /api/investments ─────────────────────────────────────────────────────
-const MOCK_INVESTMENTS = [
-  { id: 1, name: 'TechSaaS',    sector: 'SaaS B2B',  description: 'Logiciel de gestion RH pour PME',                   invested: 2000, current_value: 2480, return_pct: 24.0,  invested_at: '2024-03-15', status: 'Actif', color: '#2de0bc' },
-  { id: 2, name: 'BiomedX',     sector: 'Biotech',   description: 'Diagnostic médical par intelligence artificielle',   invested: 1500, current_value: 1755, return_pct: 17.0,  invested_at: '2024-05-20', status: 'Actif', color: '#f5a06a' },
-  { id: 3, name: 'GreenEnergy', sector: 'Cleantech', description: 'Stockage d\'énergie pour les énergies renouvelables', invested: 3000, current_value: 4200, return_pct: 40.0,  invested_at: '2023-11-08', status: 'Actif', color: '#1f8e7a' },
-  { id: 4, name: 'FinFlow',     sector: 'Fintech',   description: 'Paiements instantanés B2B en Europe',               invested: 1000, current_value:  920, return_pct: -8.0,  invested_at: '2024-09-01', status: 'Actif', color: '#e07a4f' },
-];
+const MOCK_INVESTMENTS = [];
 
 app.get('/api/investments', requireAuth, (_req, res) => {
   res.json({ investments: MOCK_INVESTMENTS });
