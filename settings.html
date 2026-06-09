@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LIQUID+ — Paramètres</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Libre+Franklin:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/svg+xml" href="/ressourcegraphique/favicon-drop.svg" />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .settings-wrap { max-width: 680px; margin: 0 auto; padding: 60px var(--gutter) 80px; }
+      .settings-title { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 700; color: #080c14; margin: 0 0 8px; }
+      .settings-sub   { font-size: 0.95rem; color: var(--muted); margin: 0 0 40px; }
+
+      /* ── Tabs ── */
+      .tabs { display: flex; gap: 0; border-bottom: 2px solid var(--line); margin-bottom: 36px; }
+      .tab  { padding: 10px 20px; font-size: 0.92rem; font-weight: 600; color: var(--muted); cursor: pointer; border: none; background: none; font-family: inherit; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: color .15s, border-color .15s; }
+      .tab.active { color: #080c14; border-bottom-color: #080c14; }
+      .tab-panel { display: none; }
+      .tab-panel.active { display: block; }
+
+      /* ── Section card ── */
+      .setting-card { background: rgba(255,255,255,0.7); border: 1px solid var(--line); border-radius: 16px; padding: 28px 32px; display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+      .setting-info h3 { font-size: 1rem; font-weight: 700; color: #080c14; margin: 0 0 4px; }
+      .setting-info p  { font-size: 0.88rem; color: var(--muted); margin: 0; line-height: 1.5; }
+      .badge-on  { display: inline-flex; align-items: center; gap: 5px; font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: #dcfce7; color: #16a34a; margin-top: 8px; }
+      .badge-off { display: inline-flex; align-items: center; gap: 5px; font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: rgba(0,0,0,0.06); color: #5e5e6a; margin-top: 8px; }
+
+      /* ── Buttons ── */
+      .btn-primary { background: #080c14; color: #fff; border: none; border-radius: 10px; padding: 10px 20px; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; transition: background .15s; }
+      .btn-primary:hover { background: #1a1f2e; }
+      .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+      .btn-danger  { background: none; color: #c0392b; border: 1.5px solid rgba(224,88,72,0.3); border-radius: 10px; padding: 10px 20px; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; transition: background .15s; }
+      .btn-danger:hover  { background: rgba(224,88,72,0.06); }
+
+      /* ── Setup flow ── */
+      .setup-flow { margin-top: 24px; border-top: 1px solid var(--line); padding-top: 24px; display: none; }
+      .setup-flow.open { display: block; }
+      .qr-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; margin: 20px 0; }
+      .qr-wrap canvas { border-radius: 10px; border: 1px solid rgba(0,0,0,0.08); }
+      .secret-box { font-family: monospace; font-size: 0.82rem; background: #f5f5f5; padding: 8px 14px; border-radius: 8px; word-break: break-all; color: #080c14; text-align: center; letter-spacing: .05em; }
+      .setup-hint { font-size: 0.82rem; color: var(--muted); text-align: center; }
+      .code-row   { display: flex; gap: 10px; align-items: center; margin-top: 16px; }
+      .code-input { flex: 1; padding: 11px 14px; border-radius: 10px; border: 1.5px solid rgba(0,0,0,0.15); background: #f9f9f9; font-size: 1.1rem; color: #080c14; outline: none; text-align: center; letter-spacing: .2em; font-family: inherit; transition: border-color .18s; }
+      .code-input:focus { border-color: #080c14; background: #fff; }
+
+      .auth-alert { padding: 10px 14px; border-radius: 8px; font-size: 0.88rem; margin-top: 12px; }
+      .auth-alert--error   { background: rgba(224,88,72,0.1); color: #c0392b; border: 1px solid rgba(224,88,72,0.2); }
+      .auth-alert--success { background: rgba(16,185,129,0.1); color: #065f46; border: 1px solid rgba(16,185,129,0.2); }
+    </style>
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <nav class="nav">
+        <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
+        <div class="nav-links" id="nav-links">
+          <a class="nav-link" href="marche.html">Ressources</a>
+          <a class="nav-link" href="startups.html">Startups</a>
+          <a class="nav-link" href="comment-ca-marche.html">Comment ça marche</a>
+          <a class="button ghost" href="login.html">Se connecter</a>
+        </div>
+        <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+      </nav>
+    </header>
+
+    <main>
+      <div class="settings-wrap">
+        <h1 class="settings-title">Paramètres</h1>
+        <p class="settings-sub">Gérez votre compte et vos préférences de sécurité.</p>
+
+        <div class="tabs">
+          <button class="tab active" data-tab="security">Sécurité</button>
+        </div>
+
+        <!-- ── Onglet Sécurité ── -->
+        <div id="tab-security" class="tab-panel active">
+
+          <div class="setting-card">
+            <div class="setting-info" style="flex:1">
+              <h3>Authentification à deux facteurs (2FA)</h3>
+              <p>Protégez votre compte avec Google Authenticator. À chaque connexion, un code à 6 chiffres vous sera demandé en plus de votre mot de passe.</p>
+              <div id="status-badge"></div>
+
+              <!-- Flow de configuration -->
+              <div class="setup-flow" id="setup-flow">
+                <p style="font-size:.88rem;color:var(--muted);margin:0 0 16px">Scannez ce QR code avec Google Authenticator (ou Authy), puis entrez le code pour confirmer.</p>
+                <div class="qr-wrap">
+                  <canvas id="qr-canvas"></canvas>
+                  <p class="setup-hint">Vous ne pouvez pas scanner ? Entrez ce code manuellement :</p>
+                  <div class="secret-box" id="secret-display"></div>
+                </div>
+                <div class="code-row">
+                  <input class="code-input" type="text" id="totp-confirm-input" inputmode="numeric" autocomplete="one-time-code" placeholder="000 000" maxlength="7" />
+                  <button class="btn-primary" id="confirm-btn">Activer</button>
+                </div>
+                <div id="setup-alert" class="auth-alert" hidden></div>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0">
+              <button class="btn-primary" id="toggle-btn" style="display:none">Activer</button>
+              <button class="btn-danger"  id="disable-btn" style="display:none">Désactiver</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+
+    <script>
+      // ── Tabs ─────────────────────────────────────────────────────────────────
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+          tab.classList.add('active');
+          document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+        });
+      });
+
+      // ── Vérif connexion et chargement statut 2FA ──────────────────────────────
+      async function init() {
+        const meRes = await fetch('/api/auth/me', { credentials: 'include' });
+        if (!meRes.ok) { window.location.href = 'login.html'; return; }
+
+        // Update nav
+        const meData = await meRes.json();
+        const name   = meData.user.full_name ? meData.user.full_name.split(' ')[0] : meData.user.email;
+        document.getElementById('nav-links').innerHTML = `
+          <a class="nav-link" href="marche.html">Ressources</a>
+          <a class="nav-link" href="startups.html">Startups</a>
+          <a class="nav-link" href="comment-ca-marche.html">Comment ça marche</a>
+          <a class="nav-link" href="investments.html">Mes investissements</a>
+          <a class="nav-link active" href="settings.html">Paramètres</a>
+          <span class="nav-link nav-user-name">${name}</span>
+          <button class="button ghost" id="nav-logout">Se déconnecter</button>
+        `;
+        document.getElementById('nav-logout').addEventListener('click', async () => {
+          await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+          window.location.href = 'login.html';
+        });
+
+        load2FAStatus();
+      }
+
+      async function load2FAStatus() {
+        const res  = await fetch('/api/auth/2fa/status', { credentials: 'include' });
+        const data = await res.json();
+
+        const badge     = document.getElementById('status-badge');
+        const toggleBtn = document.getElementById('toggle-btn');
+        const disableBtn= document.getElementById('disable-btn');
+        const flow      = document.getElementById('setup-flow');
+
+        if (data.enabled) {
+          badge.innerHTML = '<span class="badge-on"><svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="#16a34a"/></svg>Activé</span>';
+          toggleBtn.style.display  = 'none';
+          disableBtn.style.display = 'inline-flex';
+          flow.classList.remove('open');
+        } else {
+          badge.innerHTML = '<span class="badge-off">Non activé</span>';
+          toggleBtn.style.display  = 'block';
+          disableBtn.style.display = 'none';
+          toggleBtn.textContent = 'Activer le 2FA';
+        }
+      }
+
+      // ── Activer le 2FA — démarrer le flow ─────────────────────────────────────
+      document.getElementById('toggle-btn').addEventListener('click', async () => {
+        const btn = document.getElementById('toggle-btn');
+        btn.disabled = true; btn.textContent = 'Chargement…';
+
+        try {
+          const res  = await fetch('/api/auth/2fa/setup', { method: 'POST', credentials: 'include' });
+          const data = await res.json();
+          if (!res.ok) { alert(data.error || 'Erreur'); return; }
+
+          document.getElementById('secret-display').textContent = data.secret;
+          document.getElementById('setup-flow').classList.add('open');
+          generateQR(data.otpauth);
+          document.getElementById('totp-confirm-input').focus();
+        } catch {
+          alert('Impossible de joindre le serveur');
+        } finally {
+          btn.disabled = false; btn.textContent = 'Activer le 2FA';
+        }
+      });
+
+      // ── Confirmer le code TOTP ────────────────────────────────────────────────
+      document.getElementById('confirm-btn').addEventListener('click', async () => {
+        const code  = document.getElementById('totp-confirm-input').value.replace(/\s/g, '');
+        const alert = document.getElementById('setup-alert');
+        alert.hidden = true;
+
+        if (code.length < 6) { showSetupAlert('error', 'Entrez le code à 6 chiffres'); return; }
+
+        const btn = document.getElementById('confirm-btn');
+        btn.disabled = true; btn.textContent = 'Vérification…';
+
+        try {
+          const res  = await fetch('/api/auth/2fa/confirm', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            credentials: 'include', body: JSON.stringify({ code }),
+          });
+          const data = await res.json();
+          if (!res.ok) { showSetupAlert('error', data.error || 'Code incorrect'); return; }
+          showSetupAlert('success', '2FA activé avec succès !');
+          document.getElementById('totp-confirm-input').value = '';
+          setTimeout(() => { document.getElementById('setup-flow').classList.remove('open'); load2FAStatus(); }, 1200);
+        } catch {
+          showSetupAlert('error', 'Impossible de joindre le serveur');
+        } finally {
+          btn.disabled = false; btn.textContent = 'Activer';
+        }
+      });
+
+      // ── Désactiver le 2FA ─────────────────────────────────────────────────────
+      document.getElementById('disable-btn').addEventListener('click', async () => {
+        if (!confirm('Désactiver l\'authentification à deux facteurs ? Votre compte sera moins sécurisé.')) return;
+
+        try {
+          const res = await fetch('/api/auth/2fa', { method: 'DELETE', credentials: 'include' });
+          if (res.ok) load2FAStatus();
+          else alert('Erreur lors de la désactivation');
+        } catch {
+          alert('Impossible de joindre le serveur');
+        }
+      });
+
+      // ── Génération QR code client-side ────────────────────────────────────────
+      function generateQR(otpauth) {
+        if (window.QRCode) { renderQR(otpauth); return; }
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
+        s.onload = () => renderQR(otpauth);
+        document.head.appendChild(s);
+      }
+      function renderQR(otpauth) {
+        QRCode.toCanvas(document.getElementById('qr-canvas'), otpauth, {
+          width: 200, margin: 2, color: { dark: '#080c14', light: '#ffffff' },
+        });
+      }
+
+      // ── Formatage code ────────────────────────────────────────────────────────
+      document.getElementById('totp-confirm-input').addEventListener('input', function () {
+        const v = this.value.replace(/\D/g, '').slice(0, 6);
+        this.value = v.length > 3 ? v.slice(0, 3) + ' ' + v.slice(3) : v;
+      });
+      document.getElementById('totp-confirm-input').addEventListener('keydown', e => {
+        if (e.key === 'Enter') document.getElementById('confirm-btn').click();
+      });
+
+      function showSetupAlert(type, msg) {
+        const el = document.getElementById('setup-alert');
+        el.className = 'auth-alert auth-alert--' + type;
+        el.textContent = msg;
+        el.hidden = false;
+      }
+
+      init();
+    </script>
+  </body>
+</html>

@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Libre+Franklin:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="icon" type="image/png" href="/ressourcegraphique/Goutte%20blanche.png" />
+    <link rel="icon" type="image/svg+xml" href="/ressourcegraphique/favicon-drop.svg" />
     <link rel="stylesheet" href="styles.css" />
     <style>
       body { background: #000; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 16px; }
@@ -18,9 +18,9 @@
       .auth-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
       .auth-logo img { height: 40px; width: auto; }
       .auth-logo-text { font-family: "Archivo", sans-serif; font-weight: 600; font-size: 1.4rem; text-transform: uppercase; letter-spacing: 0.1em; color: #fff; }
-      .auth-card { background: #fff; border-radius: 20px; padding: 40px 36px; width: 100%; box-shadow: 0 24px 60px rgba(0,0,0,0.5); }
-      .auth-card h1 { font-size: 1.6rem; font-weight: 700; color: #080c14; margin-bottom: 6px; }
-      .auth-lead { font-size: 0.92rem; color: #5e5e6a; margin-bottom: 24px; }
+      .auth-card { background: #fff; border-radius: 20px; padding: 40px 36px; width: 100%; box-shadow: 0 24px 60px rgba(0,0,0,0.5); box-sizing: border-box; }
+      .auth-card h1 { font-size: 1.6rem; font-weight: 700; color: #080c14; margin: 0 0 6px; }
+      .auth-lead { font-size: 0.92rem; color: #5e5e6a; margin: 0 0 24px; }
       .google-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 11px 20px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.12); background: #fff; color: #080c14; font-size: 0.9rem; font-weight: 600; text-decoration: none; transition: background .18s, box-shadow .18s; cursor: pointer; box-sizing: border-box; }
       .google-btn:hover { background: #f7f7f7; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
       .auth-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: #b0b0b8; font-size: 0.82rem; }
@@ -40,6 +40,11 @@
       .auth-link:hover { text-decoration: underline; }
       .auth-alert { padding: 10px 14px; border-radius: 8px; font-size: 0.88rem; margin-bottom: 8px; }
       .auth-alert--error { background: rgba(224,88,72,0.1); color: #c0392b; border: 1px solid rgba(224,88,72,0.2); }
+      .panel { display: none; }
+      .panel.active { display: block; }
+      .back-btn { background: none; border: none; color: #5e5e6a; font-size: 0.85rem; cursor: pointer; padding: 0 0 16px; font-family: inherit; display: flex; align-items: center; gap: 4px; }
+      .back-btn:hover { color: #080c14; }
+      .code-big { letter-spacing: .2em; font-size: 1.4rem; text-align: center; }
     </style>
   </head>
   <body>
@@ -50,43 +55,68 @@
       </a>
 
       <div class="auth-card">
-        <h1>Connexion</h1>
-        <p class="auth-lead">Accédez à votre espace investisseur.</p>
 
-        <div id="auth-error" class="auth-alert auth-alert--error" role="alert" hidden></div>
+        <!-- ══ Panneau 1 : Email + mot de passe ══ -->
+        <div id="panel-login" class="panel active">
+          <h1>Connexion</h1>
+          <p class="auth-lead">Accédez à votre espace investisseur.</p>
 
-        <a href="/auth/google" class="google-btn">
-          <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
-            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-          </svg>
-          Continuer avec Google
-        </a>
+          <div id="login-error" class="auth-alert auth-alert--error" role="alert" hidden></div>
 
-        <div class="auth-divider"><span>ou</span></div>
+          <a href="/auth/google" class="google-btn">
+            <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
+            Continuer avec Google
+          </a>
 
-        <form class="auth-form" id="login-form" novalidate>
-          <label class="auth-field">
-            <span>Email</span>
-            <input class="auth-input" type="email" name="email" autocomplete="email" placeholder="vous@exemple.fr" required />
-          </label>
-          <label class="auth-field">
-            <span>Mot de passe</span>
-            <div class="auth-input-wrap">
-              <input class="auth-input" type="password" name="password" id="login-password" autocomplete="current-password" placeholder="••••••••" required />
-              <button type="button" class="auth-eye" aria-label="Afficher le mot de passe" data-target="login-password">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              </button>
-            </div>
-          </label>
-          <button class="auth-submit" id="submit-btn" type="submit">Se connecter</button>
-        </form>
+          <div class="auth-divider"><span>ou</span></div>
 
-        <p class="auth-footer">
-          Pas de compte ? <a class="auth-link" href="register.html">Créer un compte</a>
-        </p>
+          <form class="auth-form" id="login-form" novalidate>
+            <label class="auth-field">
+              <span>Email</span>
+              <input class="auth-input" type="email" name="email" autocomplete="email" placeholder="vous@exemple.fr" required />
+            </label>
+            <label class="auth-field">
+              <span>Mot de passe</span>
+              <div class="auth-input-wrap">
+                <input class="auth-input" type="password" name="password" id="login-password" autocomplete="current-password" placeholder="••••••••" required />
+                <button type="button" class="auth-eye" aria-label="Afficher le mot de passe" data-target="login-password">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </label>
+            <button class="auth-submit" id="login-btn" type="submit">Se connecter</button>
+          </form>
+
+          <p class="auth-footer">
+            Pas de compte ? <a class="auth-link" href="register.html">Créer un compte</a>
+          </p>
+        </div>
+
+        <!-- ══ Panneau 2 : Code Google Authenticator ══ -->
+        <div id="panel-2fa" class="panel">
+          <button class="back-btn" id="back-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15,18 9,12 15,6"/></svg>
+            Retour
+          </button>
+          <h1>Vérification</h1>
+          <p class="auth-lead">Entrez le code affiché dans votre application Google Authenticator.</p>
+
+          <div id="twofa-error" class="auth-alert auth-alert--error" role="alert" hidden></div>
+
+          <div class="auth-form">
+            <label class="auth-field">
+              <span>Code à 6 chiffres</span>
+              <input class="auth-input code-big" type="text" id="totp-input" inputmode="numeric" autocomplete="one-time-code" placeholder="000 000" maxlength="7" />
+            </label>
+            <button class="auth-submit" id="verify-btn">Vérifier</button>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -99,25 +129,42 @@
         });
       });
 
-      const form      = document.getElementById('login-form');
-      const errEl     = document.getElementById('auth-error');
-      const submitBtn = document.getElementById('submit-btn');
+      // ── Erreurs Google OAuth dans l'URL ──────────────────────────────────────
+      const urlError = new URLSearchParams(window.location.search).get('error');
+      if (urlError) {
+        const msgs = {
+          google_cancelled: 'Connexion Google annulée.',
+          google_token:     'Erreur Google OAuth : token invalide.',
+          google_email:     'Impossible de récupérer l\'email Google.',
+          google_failed:    'Erreur Google OAuth. Vérifiez que http://localhost:3000/auth/google/callback est bien autorisé dans Google Cloud Console.',
+        };
+        const el = document.getElementById('login-error');
+        el.textContent = msgs[urlError] || `Erreur Google : ${urlError}`;
+        el.hidden = false;
+      }
 
-      form.addEventListener('submit', async (e) => {
+      let tempToken = null;
+
+      function showPanel(id) {
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+      }
+
+      // ── Connexion ────────────────────────────────────────────────────────────
+      const loginForm = document.getElementById('login-form');
+      const loginBtn  = document.getElementById('login-btn');
+      const loginErr  = document.getElementById('login-error');
+
+      loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        errEl.hidden = true;
+        loginErr.hidden = true;
 
-        const email    = form.email.value.trim();
-        const password = form.password.value;
+        const email    = loginForm.email.value.trim();
+        const password = loginForm.password.value;
+        if (!email || !password) { loginErr.textContent = 'Email et mot de passe requis'; loginErr.hidden = false; return; }
 
-        if (!email || !password) {
-          errEl.textContent = 'Email et mot de passe requis';
-          errEl.hidden = false;
-          return;
-        }
-
-        submitBtn.disabled    = true;
-        submitBtn.textContent = 'Connexion…';
+        loginBtn.disabled    = true;
+        loginBtn.textContent = 'Connexion…';
 
         try {
           const res  = await fetch('/api/auth/login', {
@@ -125,20 +172,57 @@
             credentials: 'include', body: JSON.stringify({ email, password }),
           });
           const data = await res.json();
-
-          if (!res.ok) {
-            errEl.textContent = data.error || 'Identifiants incorrects';
-            errEl.hidden = false;
-          } else {
-            window.location.href = 'index.html';
-          }
+          if (!res.ok) { loginErr.textContent = data.error || 'Identifiants incorrects'; loginErr.hidden = false; return; }
+          if (data.requires2FA) { tempToken = data.tempToken; showPanel('panel-2fa'); document.getElementById('totp-input').focus(); }
+          else window.location.href = 'index.html';
         } catch {
-          errEl.textContent = 'Impossible de joindre le serveur';
-          errEl.hidden = false;
+          loginErr.textContent = 'Impossible de joindre le serveur';
+          loginErr.hidden = false;
         } finally {
-          submitBtn.disabled    = false;
-          submitBtn.textContent = 'Se connecter';
+          loginBtn.disabled    = false;
+          loginBtn.textContent = 'Se connecter';
         }
+      });
+
+      // ── Vérification 2FA ─────────────────────────────────────────────────────
+      const verifyBtn  = document.getElementById('verify-btn');
+      const twofaErr   = document.getElementById('twofa-error');
+      const totpInput  = document.getElementById('totp-input');
+
+      verifyBtn.addEventListener('click', async () => {
+        twofaErr.hidden = true;
+        const code = totpInput.value.replace(/\s/g, '');
+        if (code.length < 6) { twofaErr.textContent = 'Entrez le code à 6 chiffres'; twofaErr.hidden = false; return; }
+
+        verifyBtn.disabled    = true;
+        verifyBtn.textContent = 'Vérification…';
+
+        try {
+          const res  = await fetch('/api/auth/2fa/verify', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            credentials: 'include', body: JSON.stringify({ tempToken, code }),
+          });
+          const data = await res.json();
+          if (!res.ok) { twofaErr.textContent = data.error || 'Code incorrect'; twofaErr.hidden = false; return; }
+          window.location.href = 'index.html';
+        } catch {
+          twofaErr.textContent = 'Impossible de joindre le serveur';
+          twofaErr.hidden = false;
+        } finally {
+          verifyBtn.disabled    = false;
+          verifyBtn.textContent = 'Vérifier';
+        }
+      });
+
+      totpInput.addEventListener('keydown', e => { if (e.key === 'Enter') verifyBtn.click(); });
+      totpInput.addEventListener('input', function () {
+        const v = this.value.replace(/\D/g, '').slice(0, 6);
+        this.value = v.length > 3 ? v.slice(0, 3) + ' ' + v.slice(3) : v;
+      });
+
+      document.getElementById('back-btn').addEventListener('click', () => {
+        tempToken = null; totpInput.value = ''; twofaErr.hidden = true;
+        showPanel('panel-login');
       });
     </script>
   </body>

@@ -1,11 +1,12 @@
 require('dotenv').config();
-const express      = require('express');
-const path         = require('path');
-const fs           = require('fs');
-const https        = require('https');
-const cookieParser = require('cookie-parser');
-const bcrypt       = require('bcryptjs');
-const jwt          = require('jsonwebtoken');
+const express        = require('express');
+const path           = require('path');
+const fs             = require('fs');
+const https          = require('https');
+const cookieParser   = require('cookie-parser');
+const bcrypt         = require('bcryptjs');
+const jwt            = require('jsonwebtoken');
+const { authenticator } = require('otplib');
 const multer       = require('multer');
 
 const app  = express();
@@ -25,6 +26,9 @@ const DOCS_FILE        = path.join(DATA_DIR, 'documents.json');
 const CATALOG_FILE     = path.join(DATA_DIR, 'startups_catalog.json');
 
 const ADMIN_EMAILS = ['baptiste.faisy@gmail.com', 'bg.fsg.invest@gmail.com'];
+
+// ─── Store temporaire TOTP (mémoire) ─────────────────────────────────────────
+const totpSetupStore = new Map(); // userId → secret (pendant la configuration)
 
 if (!fs.existsSync(DATA_DIR))    fs.mkdirSync(DATA_DIR);
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR);
@@ -203,10 +207,7 @@ app.post('/api/auth/register', async (req, res) => {
   const user = createUser({ email: emailClean, password: hash, full_name: full_name?.trim() });
 
   setAuthCookie(res, user);
-  res.status(201).json({
-    success: true,
-    user: { id: user.id, email: user.email, full_name: user.full_name },
-  });
+  res.status(201).json({ success: true, user: { id: user.id, email: user.email, full_name: user.full_name } });
 });
 
 // ─── POST /api/auth/login ────────────────────────────────────────────────────
@@ -224,17 +225,90 @@ app.post('/api/auth/login', async (req, res) => {
   if (!valid)
     return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
 
-  setAuthCookie(res, user);
-  res.json({
-    success: true,
-    user: { id: user.id, email: user.email, full_name: user.full_name },
-  });
+  // Pas de 2FA configuré → connexion directe
+  if (!user.twofa_method) {
+    setAuthCookie(res, user);
+    return res.json({ success: true, user: { id: user.id, email: user.email, full_name: user.full_name } });
+  }
+
+  const tempToken = jwt.sign(
+    { id: user.id, email: user.email, purpose: 'verify_2fa' },
+    JWT_SECRET,
+    { expiresIn: '5m' }
+  );
+  return res.json({ requires2FA: true, tempToken });
 });
 
 // ─── POST /api/auth/logout ───────────────────────────────────────────────────
 app.post('/api/auth/logout', (_req, res) => {
   res.clearCookie('auth_token');
   res.json({ success: true });
+});
+
+// ─── GET /api/auth/2fa/status — statut 2FA (utilisateur connecté) ────────────
+app.get('/api/auth/2fa/status', requireAuth, (req, res) => {
+  const user = readUsers().find(u => u.id === req.user.id);
+  if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
+  res.json({ enabled: !!user.twofa_method });
+});
+
+// ─── POST /api/auth/2fa/setup — démarrer la config TOTP (utilisateur connecté) ─
+app.post('/api/auth/2fa/setup', requireAuth, (req, res) => {
+  const user = readUsers().find(u => u.id === req.user.id);
+  if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
+
+  const secret  = authenticator.generateSecret();
+  totpSetupStore.set(user.id, secret);
+  const otpauth = authenticator.keyuri(user.email, 'LIQUID+', secret);
+  res.json({ success: true, otpauth, secret });
+});
+
+// ─── POST /api/auth/2fa/confirm — activer le 2FA après scan QR ───────────────
+app.post('/api/auth/2fa/confirm', requireAuth, (req, res) => {
+  const { code }  = req.body ?? {};
+  const secret    = totpSetupStore.get(req.user.id);
+  if (!secret) return res.status(400).json({ error: 'Session expirée, recommencez la configuration' });
+
+  if (!authenticator.verify({ token: (code || '').replace(/\s/g, ''), secret }))
+    return res.status(400).json({ error: 'Code incorrect — vérifiez l\'heure de votre téléphone' });
+
+  const users   = readUsers();
+  const userIdx = users.findIndex(u => u.id === req.user.id);
+  users[userIdx].twofa_method = 'totp';
+  users[userIdx].totp_secret  = secret;
+  writeUsers(users);
+  totpSetupStore.delete(req.user.id);
+  res.json({ success: true });
+});
+
+// ─── DELETE /api/auth/2fa — désactiver le 2FA ────────────────────────────────
+app.delete('/api/auth/2fa', requireAuth, (req, res) => {
+  const users   = readUsers();
+  const userIdx = users.findIndex(u => u.id === req.user.id);
+  if (userIdx === -1) return res.status(404).json({ error: 'Utilisateur introuvable' });
+  delete users[userIdx].twofa_method;
+  delete users[userIdx].totp_secret;
+  writeUsers(users);
+  res.json({ success: true });
+});
+
+// ─── POST /api/auth/2fa/verify — vérifier le code TOTP à la connexion ────────
+app.post('/api/auth/2fa/verify', (req, res) => {
+  const { tempToken, code } = req.body ?? {};
+  let payload;
+  try {
+    payload = jwt.verify(tempToken, JWT_SECRET);
+    if (payload.purpose !== 'verify_2fa') throw new Error();
+  } catch { return res.status(401).json({ error: 'Session expirée, veuillez vous reconnecter' }); }
+
+  const user = findByEmail(payload.email);
+  if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
+
+  if (!authenticator.verify({ token: (code || '').replace(/\s/g, ''), secret: user.totp_secret }))
+    return res.status(400).json({ error: 'Code incorrect' });
+
+  setAuthCookie(res, user);
+  res.json({ success: true, user: { id: user.id, email: user.email, full_name: user.full_name } });
 });
 
 // ─── GET /api/auth/me ────────────────────────────────────────────────────────
