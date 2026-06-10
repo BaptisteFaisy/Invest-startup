@@ -815,46 +815,6 @@
 
           <!-- VISUEL 9 + 10 : Barres + Courbes de croissance -->
           <div class="g2" style="margin-bottom:14px;">
-            <!-- Barres -->
-            <div class="card">
-              <div class="card-lbl">10 000 € investis → résultat après 10 ans</div>
-              <!-- ViewBox 280×270
-                   4 barres · largeur=46 · centres: 48,116,184,250
-                   Y: y=240=0 · y=30=45000 → 210px/45000 → px/k€=4.67
-                   11.8k→h=55,top=185 · 26k→h=121,top=119 · 32k→h=149,top=91 · 45k→h=210,top=30 + flèche
-              -->
-              <svg viewBox="0 0 290 270" xmlns="http://www.w3.org/2000/svg">
-                <line x1="22" y1="240" x2="278" y2="240" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
-                <line x1="22" y1="185" x2="278" y2="185" stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
-                <line x1="22" y1="130" x2="278" y2="130" stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
-                <line x1="22" y1="75"  x2="278" y2="75"  stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
-                <text x="18" y="244" text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">0</text>
-                <text x="18" y="189" text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">12k</text>
-                <text x="18" y="134" text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">24k</text>
-                <text x="18" y="79"  text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">36k</text>
-                <!-- Mise initiale ligne -->
-                <line x1="22" y1="193" x2="278" y2="193" stroke="rgba(255,255,255,.18)" stroke-width="1.5" stroke-dasharray="5,3"/>
-                <!-- Bar 1 Livret A 11.8k → h=55, top=185 -->
-                <rect x="25" y="185" width="46" height="55" fill="rgba(107,114,128,.5)" rx="5"/>
-                <text x="48" y="173" text-anchor="middle" fill="rgba(255,255,255,.55)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">11.8k€</text>
-                <text x="48" y="255" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="10" font-family="Archivo,sans-serif">Livret A</text>
-                <!-- Bar 2 S&P 500 26k → h=121, top=119 -->
-                <rect x="95" y="119" width="46" height="121" fill="rgba(59,130,246,.45)" rx="5"/>
-                <text x="118" y="107" text-anchor="middle" fill="#93c5fd" font-size="11" font-weight="700" font-family="Archivo,sans-serif">26k€</text>
-                <text x="118" y="255" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="10" font-family="Archivo,sans-serif">S&amp;P 500</text>
-                <!-- Bar 3 Seed moyen 32k → h=149, top=91 -->
-                <rect x="165" y="91" width="46" height="149" fill="rgba(245,158,11,.45)" rx="5"/>
-                <text x="188" y="79" text-anchor="middle" fill="#fde68a" font-size="11" font-weight="700" font-family="Archivo,sans-serif">32k€</text>
-                <text x="188" y="255" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="10" font-family="Archivo,sans-serif">Seed div.</text>
-                <!-- Bar 4 Seed top → tronqué avec flèche -->
-                <rect x="235" y="30" width="46" height="210" fill="rgba(16,185,129,.45)" rx="5"/>
-                <path d="M258,22 L258,8 M251,16 L258,6 L265,16" fill="none" stroke="#34d399" stroke-width="1.8" stroke-linejoin="round"/>
-                <text x="258" y="4"  text-anchor="middle" fill="#34d399" font-size="11" font-weight="700" font-family="Archivo,sans-serif">45k€+</text>
-                <text x="258" y="255" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="10" font-family="Archivo,sans-serif">Seed top</text>
-              </svg>
-              <p class="card-note">Sur 10 ans, le seed diversifié surpasse le S&P 500 et le Livret A — mais uniquement avec une vraie diversification sur 15+ startups ; un seed mal diversifié peut aboutir au pire résultat.</p>
-            </div>
-
             <!-- VISUEL 10 : Courbes de croissance compound -->
             <div class="card">
               <div class="card-lbl">Croissance année par année (10 000 € de départ)</div>
