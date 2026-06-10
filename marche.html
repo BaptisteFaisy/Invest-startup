@@ -28,18 +28,18 @@
       .hero-stats { display:flex; gap:20px; flex-wrap:wrap; }
       .hstat { background:#0c1120; border:1px solid rgba(255,255,255,.07); border-radius:16px; padding:22px 28px; min-width:140px; }
       .hstat-n { font-size:2.6rem; font-weight:700; letter-spacing:-.04em; line-height:1; margin-bottom:6px; }
-      .hstat-d { font-size:.82rem; color:rgba(255,255,255,.4); line-height:1.45; }
+      .hstat-d { font-size:.82rem; color:#fff; line-height:1.45; }
       /* Sections */
       .sec { margin-bottom:72px; }
       .sec-h { font-size:clamp(1.3rem,2.5vw,1.75rem); font-weight:700; letter-spacing:-.015em; line-height:1.2; margin-bottom:10px; }
-      .sec-p { font-size:.97rem; color:rgba(255,255,255,.48); line-height:1.75; max-width:600px; margin-bottom:22px; }
-      .sec-p strong { color:rgba(255,255,255,.85); }
+      .sec-p { font-size:.97rem; color:#fff; line-height:1.75; max-width:600px; margin-bottom:22px; }
+      .sec-p strong { color:#fff; }
       /* Cards */
       .card { background:#0c1120; border:1px solid rgba(255,255,255,.07); border-radius:18px; padding:26px 22px; overflow:hidden; }
       .card svg { width:100%; height:auto; display:block; }
-      .card-lbl { font-size:.76rem; font-weight:600; color:rgba(255,255,255,.28); margin-bottom:18px; letter-spacing:.02em; }
-      .card-src { font-size:.72rem; color:rgba(255,255,255,.16); margin-top:12px; font-style:italic; }
-      .card-note { font-size:.78rem; color:rgba(255,255,255,.32); margin:10px 0 0; line-height:1.6; }
+      .card-lbl { font-size:.76rem; font-weight:600; color:#fff; margin-bottom:18px; letter-spacing:.02em; }
+      .card-src { font-size:.72rem; color:#fff; margin-top:12px; font-style:italic; }
+      .card-note { font-size:.78rem; color:#fff; margin:10px 0 0; line-height:1.6; }
       /* Grids */
       .g2 { display:grid; grid-template-columns:1fr; gap:14px; }
       .g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
@@ -50,9 +50,9 @@
       .rule { background:#0c1120; border:1px solid rgba(255,255,255,.07); border-radius:16px; padding:24px 20px; }
       .rule-n { font-size:1.9rem; font-weight:700; letter-spacing:-.03em; line-height:1; margin-bottom:10px; }
       .rule-t { font-size:.95rem; font-weight:700; margin-bottom:6px; }
-      .rule-d { font-size:.82rem; color:rgba(255,255,255,.4); line-height:1.55; }
+      .rule-d { font-size:.82rem; color:#fff; line-height:1.55; }
       /* Insight strip */
-      .strip { background:rgba(59,130,246,.07); border:1px solid rgba(59,130,246,.16); border-radius:12px; padding:18px 22px; margin:18px 0; font-size:.92rem; line-height:1.7; color:rgba(255,255,255,.65); }
+      .strip { background:rgba(59,130,246,.07); border:1px solid rgba(59,130,246,.16); border-radius:12px; padding:18px 22px; margin:18px 0; font-size:.92rem; line-height:1.7; color:#fff; }
       .strip strong { color:#fff; }
       /* Mobile */
       @media(max-width:580px) {
@@ -82,7 +82,7 @@
       <button class="nav-hamburger open" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><span></span><span></span><span></span></button>
       <a href="index.html">Accueil</a><a href="startups.html">Startups</a><a href="marche.html">Ressources</a>
       <a href="comment-ca-marche.html">Comment ça marche</a>
-      <a href="login.html" style="margin-top:16px;font-size:1.1rem;color:rgba(255,255,255,0.5);">Se connecter</a>
+      <a href="login.html" style="margin-top:16px;font-size:1.1rem;color:#fff;">Se connecter</a>
     </div>
     <script>
       (function(){var b=document.getElementById('nav-hamburger'),m=document.getElementById('mobile-menu'),c=document.getElementById('mobile-close');if(!b||!m)return;function o(){m.classList.add('open');b.classList.add('open');b.setAttribute('aria-expanded','true');document.body.style.overflow='hidden';}function cl(){m.classList.remove('open');b.classList.remove('open');b.setAttribute('aria-expanded','false');document.body.style.overflow='';}b.addEventListener('click',o);if(c)c.addEventListener('click',cl);m.addEventListener('click',function(e){if(e.target.tagName==='A')cl();});})();
@@ -240,7 +240,7 @@
             <!-- Courbe de Lorenz -->
             <div class="card">
               <div class="card-lbl">Concentration de valeur — courbe de Lorenz</div>
-              <p style="font-size:.8rem;color:rgba(255,255,255,.38);margin:0 0 12px;line-height:1.55;">La courbe bleue montre la répartition réelle de la valeur créée. Plus elle s'éloigne de la diagonale (répartition égale), plus la richesse est concentrée dans quelques startups.</p>
+              <p style="font-size:.8rem;color:#fff;margin:0 0 12px;line-height:1.55;">La courbe bleue montre la répartition réelle de la valeur créée. Plus elle s'éloigne de la diagonale (répartition égale), plus la richesse est concentrée dans quelques startups.</p>
               <!-- ViewBox 340×280 · axes: x 40→320, y 20→260
                    Diagonale = égalité parfaite · Courbe bleue = réalité seed -->
               <svg viewBox="0 0 340 294" xmlns="http://www.w3.org/2000/svg">
@@ -375,7 +375,7 @@
                    Médiane N=1:0.5→y170, N=5:0.9→y130, N=10:1.2→y100,
                    N=20:1.45→y75, N=30:1.55→y65, N=50:1.62→y58
                    X: 60+n*10 -->
-              <svg viewBox="0 0 560 240" xmlns="http://www.w3.org/2000/svg">
+              <svg viewBox="0 0 620 240" xmlns="http://www.w3.org/2000/svg">
                 <!-- Grid -->
                 <line x1="50" y1="220" x2="530" y2="220" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
                 <line x1="50" y1="170" x2="530" y2="170" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="3,4"/>
@@ -395,12 +395,15 @@
                   fill="rgba(59,130,246,.07)"/>
                 <!-- Ligne espérance (constante) -->
                 <line x1="50" y1="50" x2="530" y2="50" stroke="#10b981" stroke-width="2" stroke-dasharray="6,3"/>
-                <text x="534" y="53" fill="#34d399" font-size="10.5" font-weight="700" font-family="Archivo,sans-serif">Esp.</text>
-                <text x="534" y="64" fill="rgba(16,185,129,.6)" font-size="9.5" font-family="Archivo,sans-serif">~1.7×</text>
                 <!-- Courbe médiane (croît) -->
                 <polyline points="60,170 100,130 150,100 250,75 350,65 530,58"
                   fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                <text x="534" y="61" fill="#60a5fa" font-size="10.5" font-weight="700" font-family="Archivo,sans-serif">Méd.</text>
+                <!-- Légende colonne droite -->
+                <rect x="542" y="40" width="8" height="8" rx="2" fill="#10b981" fill-opacity=".8"/>
+                <text x="554" y="48" fill="#34d399" font-size="10.5" font-weight="700" font-family="Archivo,sans-serif">Esp.</text>
+                <text x="554" y="60" fill="rgba(16,185,129,.7)" font-size="9.5" font-family="Archivo,sans-serif">~1.7×</text>
+                <rect x="542" y="75" width="8" height="8" rx="2" fill="#3b82f6"/>
+                <text x="554" y="83" fill="#60a5fa" font-size="10.5" font-weight="700" font-family="Archivo,sans-serif">Méd.</text>
                 <!-- Annotation écart at N=1 -->
                 <circle cx="60" cy="170" r="4" fill="#ef4444" fill-opacity=".8"/>
                 <text x="64" y="175" fill="#f87171" font-size="9.5" font-family="Archivo,sans-serif">1 inv : médiane = 0.5×</text>
@@ -465,7 +468,6 @@
               <!-- Annotations -->
               <text x="200" y="192" text-anchor="middle" fill="rgba(239,68,68,.6)" font-size="10" font-family="Archivo,sans-serif">Point bas (an 3)</text>
               <text x="634" y="44" text-anchor="end" fill="#34d399" font-size="13" font-weight="700" font-family="Archivo,sans-serif">+170%</text>
-              <text x="634" y="57" text-anchor="end" fill="rgba(52,211,153,.65)" font-size="9.5" font-family="Archivo,sans-serif">de rendement</text>
               <!-- Phase labels -->
               <text x="185" y="55" text-anchor="middle" fill="rgba(239,68,68,.5)" font-size="11" font-weight="600" font-family="Archivo,sans-serif">Attente</text>
               <text x="500" y="55" text-anchor="middle" fill="rgba(16,185,129,.6)" font-size="11" font-weight="600" font-family="Archivo,sans-serif">Gains</text>
@@ -615,7 +617,7 @@
                  DPI (bleu) croît lentement puis s'accélère
                  RVPI (or) pic an6 puis décroit
                  TVPI (vert) = somme -->
-            <svg viewBox="0 0 600 240" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 660 240" xmlns="http://www.w3.org/2000/svg">
               <!-- Grid -->
               <line x1="40" y1="220" x2="580" y2="220" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
               <line x1="40" y1="170" x2="580" y2="170" stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
@@ -641,12 +643,14 @@
               <!-- DPI (bleu) -->
               <polyline points="85,218 130,216 175,213 220,206 265,196 310,180 355,158 400,135 445,110 490,85 535,63 580,45"
                 fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-              <!-- Labels fin de courbes -->
-              <text x="584" y="42" fill="#10b981" font-size="10.5" font-weight="700" font-family="Archivo,sans-serif">TVPI</text>
-              <text x="584" y="49" fill="rgba(16,185,129,.6)" font-size="9" font-family="Archivo,sans-serif">1.82×</text>
-              <text x="584" y="63" fill="#f59e0b" font-size="10.5" font-weight="700" font-family="Archivo,sans-serif">RVPI</text>
-              <text x="584" y="49" fill="rgba(245,158,11,.6)" font-size="9" font-family="Archivo,sans-serif"></text>
-              <text x="584" y="110" fill="#60a5fa" font-size="10.5" font-weight="700" font-family="Archivo,sans-serif">DPI</text>
+              <!-- Légende colonne droite -->
+              <rect x="592" y="44" width="8" height="8" rx="2" fill="#10b981" fill-opacity=".8"/>
+              <text x="604" y="52" fill="#10b981" font-size="10.5" font-weight="700" font-family="Archivo,sans-serif">TVPI</text>
+              <text x="604" y="64" fill="rgba(16,185,129,.6)" font-size="9" font-family="Archivo,sans-serif">1.82×</text>
+              <rect x="592" y="80" width="8" height="8" rx="2" fill="#f59e0b" fill-opacity=".8"/>
+              <text x="604" y="88" fill="#f59e0b" font-size="10.5" font-weight="700" font-family="Archivo,sans-serif">RVPI</text>
+              <rect x="592" y="112" width="8" height="8" rx="2" fill="#3b82f6"/>
+              <text x="604" y="120" fill="#60a5fa" font-size="10.5" font-weight="700" font-family="Archivo,sans-serif">DPI</text>
               <!-- Annotation pic RVPI -->
               <circle cx="310" cy="133" r="4" fill="#f59e0b" fill-opacity=".8"/>
               <text x="310" y="126" text-anchor="middle" fill="rgba(245,158,11,.7)" font-size="9.5" font-family="Archivo,sans-serif">pic RVPI an 6</text>
@@ -690,9 +694,9 @@
                 <text x="580" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">9</text>
                 <text x="630" y="235" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">10 ans</text>
                 <!-- Annotation -->
-                <text x="100" y="50" fill="rgba(255,255,255,.4)" font-size="9.5" font-family="Archivo,sans-serif">80 % an 1</text>
-                <text x="480" y="140" fill="rgba(255,255,255,.4)" font-size="9.5" font-family="Archivo,sans-serif">38 % an 6</text>
-                <text x="580" y="162" text-anchor="end" fill="rgba(59,130,246,.7)" font-size="9.5" font-weight="600" font-family="Archivo,sans-serif">24 % an 10</text>
+                <text x="108" y="54" fill="rgba(255,255,255,.7)" font-size="9.5" font-family="Archivo,sans-serif">80 % an 1</text>
+                <text x="408" y="138" fill="rgba(255,255,255,.7)" font-size="9.5" font-family="Archivo,sans-serif">38 % an 6</text>
+                <text x="634" y="166" text-anchor="end" fill="rgba(59,130,246,.9)" font-size="9.5" font-weight="600" font-family="Archivo,sans-serif">24 % an 10</text>
               </svg>
               <p class="card-note">Chaque marche vers le bas représente une vague de faillites ; après 10 ans, seulement 1 startup seed sur 4 est encore en vie — les 3 premières années sont les plus critiques.</p>
               <div class="card-src">Kaplan &amp; Meier estimator — données VC seed européen, Beauhurst (2023)</div>
@@ -1742,7 +1746,7 @@
           <h2 style="font-size:clamp(1.4rem,3vw,2rem);font-weight:700;letter-spacing:-.015em;margin-bottom:12px;">Prêt à investir dans les startups de demain ?</h2>
           <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:24px;">
             <a href="startups.html" style="background:#fff;color:#080c14;border-radius:12px;padding:15px 30px;font-size:.97rem;font-weight:700;text-decoration:none;display:inline-block;">Voir les startups</a>
-            <a href="comment-ca-marche.html" style="background:transparent;color:rgba(255,255,255,.65);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:15px 30px;font-size:.97rem;font-weight:600;text-decoration:none;display:inline-block;">Comment ça marche</a>
+            <a href="comment-ca-marche.html" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:12px;padding:15px 30px;font-size:.97rem;font-weight:600;text-decoration:none;display:inline-block;">Comment ça marche</a>
           </div>
         </div>
 
