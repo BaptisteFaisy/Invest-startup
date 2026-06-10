@@ -39,6 +39,7 @@
       .card svg { width:100%; height:auto; display:block; }
       .card-lbl { font-size:.76rem; font-weight:600; color:rgba(255,255,255,.28); margin-bottom:18px; letter-spacing:.02em; }
       .card-src { font-size:.72rem; color:rgba(255,255,255,.16); margin-top:12px; font-style:italic; }
+      .card-note { font-size:.78rem; color:rgba(255,255,255,.32); margin:10px 0 0; line-height:1.6; }
       /* Grids */
       .g2 { display:grid; grid-template-columns:1fr; gap:14px; }
       .g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
@@ -176,6 +177,7 @@
               <text x="624" y="154" text-anchor="middle" fill="#60a5fa" font-size="10.5" font-weight="600" font-family="Archivo,sans-serif">Ces 5 paient</text>
               <text x="624" y="166" text-anchor="middle" fill="#60a5fa" font-size="10.5" font-weight="600" font-family="Archivo,sans-serif">pour les 54</text>
             </svg>
+            <p class="card-note">Sur 100 startups seed, 54 perdent tout ou partie de l'investissement, 19 font à peine leur retour, et seulement 5 atteignent le jackpot — ce sont ces 5 qui compensent les pertes de toutes les autres.</p>
             <div class="card-src">Gregson, Mann &amp; Harrison (2017) — 4 200 investissements seed</div>
           </div>
 
@@ -204,6 +206,7 @@
                 <rect x="20" y="228" width="10" height="10" rx="3" fill="#10b981" fill-opacity=".7"/>
                 <text x="34" y="238" fill="rgba(255,255,255,.45)" font-size="9" font-family="Archivo,sans-serif">46 remboursent ou plus</text>
               </svg>
+              <p class="card-note">Une majorité de startups seed ne remboursent pas — ce taux d'échec élevé est structurel et prévisible, pas une anomalie.</p>
             </div>
 
             <!-- Donut B : d'où vient la valeur -->
@@ -228,6 +231,7 @@
                 <rect x="20" y="228" width="10" height="10" rx="3" fill="rgba(255,255,255,.15)"/>
                 <text x="34" y="238" fill="rgba(255,255,255,.45)" font-size="9" font-family="Archivo,sans-serif">95 autres startups = 50%</text>
               </svg>
+              <p class="card-note">5 startups sur 100 génèrent autant de valeur que les 95 autres réunies — c'est la loi de puissance : investir sans diversification revient à miser sur le bon numéro.</p>
             </div>
           </div>
 
@@ -236,19 +240,18 @@
             <!-- Courbe de Lorenz -->
             <div class="card">
               <div class="card-lbl">Concentration de valeur — courbe de Lorenz</div>
+              <p style="font-size:.8rem;color:rgba(255,255,255,.38);margin:0 0 12px;line-height:1.55;">La courbe bleue montre la répartition réelle de la valeur créée. Plus elle s'éloigne de la diagonale (répartition égale), plus la richesse est concentrée dans quelques startups.</p>
               <!-- ViewBox 340×280 · axes: x 40→320, y 20→260
-                   x=40+pct*2.8 · y=260-pct*2.4
-                   (0,0)→(40,260) (20,1)→(96,258) (40,5)→(152,248)
-                   (60,14)→(208,227) (80,34)→(264,178) (100,100)→(320,20) -->
+                   Diagonale = égalité parfaite · Courbe bleue = réalité seed -->
               <svg viewBox="0 0 340 280" xmlns="http://www.w3.org/2000/svg">
                 <!-- Axis guides -->
                 <line x1="40" y1="20" x2="40" y2="260" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
                 <line x1="40" y1="260" x2="320" y2="260" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
                 <line x1="40" y1="140" x2="320" y2="140" stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
                 <line x1="180" y1="20" x2="180" y2="260" stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
-                <!-- Ligne d'égalité parfaite -->
+                <!-- Ligne d'égalité parfaite (diagonale) -->
                 <line x1="40" y1="260" x2="320" y2="20" stroke="rgba(255,255,255,.18)" stroke-width="1.5" stroke-dasharray="5,4"/>
-                <text x="300" y="16" text-anchor="end" fill="rgba(255,255,255,.25)" font-size="9.5" font-family="Archivo,sans-serif">Égalité</text>
+                <text x="72" y="248" fill="rgba(255,255,255,.22)" font-size="9" font-family="Archivo,sans-serif">égalité parfaite</text>
                 <!-- Zone de concentration (entre les deux courbes) -->
                 <path d="M40,260 L96,258 L152,248 L208,227 L264,178 L320,20 L40,260 Z" fill="rgba(59,130,246,.06)"/>
                 <!-- Courbe de Lorenz (données VC seed) -->
@@ -258,36 +261,34 @@
                 <circle cx="264" cy="178" r="4" fill="#60a5fa"/>
                 <circle cx="320" cy="20" r="4" fill="#10b981"/>
                 <!-- Annotation Gini -->
-                <text x="160" y="218" text-anchor="middle" fill="rgba(59,130,246,.7)" font-size="12" font-weight="700" font-family="Archivo,sans-serif">Gini ≈ 0.72</text>
+                <text x="120" y="218" text-anchor="middle" fill="rgba(59,130,246,.7)" font-size="12" font-weight="700" font-family="Archivo,sans-serif">Gini ≈ 0.72</text>
                 <!-- Y labels -->
                 <text x="35" y="24" text-anchor="end" fill="rgba(255,255,255,.25)" font-size="10" font-family="Archivo,sans-serif">100%</text>
                 <text x="35" y="144" text-anchor="end" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">50%</text>
                 <text x="35" y="264" text-anchor="end" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">0%</text>
-                <!-- X labels (origin 0% supprimé pour éviter le doublon avec l'axe Y) -->
+                <!-- X labels -->
                 <text x="180" y="276" text-anchor="middle" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">50%</text>
                 <text x="320" y="276" text-anchor="middle" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">100%</text>
                 <!-- Axis titles -->
-                <text x="180" y="16" text-anchor="middle" fill="rgba(255,255,255,.18)" font-size="9" font-family="Archivo,sans-serif">% valeur créée</text>
+                <text x="180" y="14" text-anchor="middle" fill="rgba(255,255,255,.18)" font-size="9" font-family="Archivo,sans-serif">% valeur créée</text>
                 <text x="328" y="276" text-anchor="middle" fill="rgba(255,255,255,.18)" font-size="9" font-family="Archivo,sans-serif">% startups</text>
-                <!-- Annotation convergence -->
-                <text x="316" y="12" text-anchor="end" fill="rgba(16,185,129,.65)" font-size="8.5" font-family="Archivo,sans-serif">Les 2 courbes se confondent</text>
-                <text x="316" y="22" text-anchor="end" fill="rgba(16,185,129,.65)" font-size="8.5" font-family="Archivo,sans-serif">à 100% des startups</text>
                 <!-- Annotation key point -->
                 <text x="270" y="170" fill="rgba(96,165,250,.8)" font-size="9.5" font-family="Archivo,sans-serif">20% génèrent</text>
                 <text x="270" y="181" fill="rgba(96,165,250,.8)" font-size="9.5" font-family="Archivo,sans-serif">66% de la valeur</text>
               </svg>
+              <p class="card-note">Plus la courbe bleue s'éloigne de la diagonale, plus la richesse est concentrée dans quelques startups — un Gini de 0.72 est bien supérieur à celui de la bourse (~0.40).</p>
               <div class="card-src">Gregson, Mann &amp; Harrison (2017)</div>
             </div>
 
             <!-- Donut types de sorties -->
             <div class="card">
               <div class="card-lbl">Types de sorties — sur les startups qui remboursent</div>
-              <!-- ViewBox 260×225 · centre 120,105 r=70 circ=439.8
-                   Perte/writeoff 56% → arc=246.3 offset=110 (12h)
+              <!-- ViewBox 260×252 · centre 120,100 r=70 circ=439.8
+                   Perte totale 56% → arc=246.3 offset=110 (12h)
                    Acquisition 35% → arc=153.9 offset=-136.3
                    IPO 9% → arc=39.6 offset=-290.2 -->
-              <svg viewBox="0 0 260 225" xmlns="http://www.w3.org/2000/svg">
-                <!-- Anneau writeoff 56% -->
+              <svg viewBox="0 0 260 252" xmlns="http://www.w3.org/2000/svg">
+                <!-- Anneau perte totale 56% -->
                 <circle cx="120" cy="100" r="70" fill="none" stroke="#ef4444" stroke-width="30" stroke-opacity=".7"
                   stroke-dasharray="246.3 193.5" stroke-dashoffset="110" transform="rotate(0 120 100)"/>
                 <!-- Anneau acquisition 35% -->
@@ -300,94 +301,16 @@
                 <text x="120" y="96" text-anchor="middle" fill="#fff" font-size="14" font-weight="700" font-family="Archivo,sans-serif">Sorties</text>
                 <text x="120" y="112" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10" font-family="Archivo,sans-serif">sur exitées</text>
                 <!-- Légende -->
-                <rect x="16" y="178" width="10" height="10" rx="2" fill="#ef4444" fill-opacity=".7"/>
-                <text x="30" y="188" fill="rgba(255,255,255,.55)" font-size="11" font-family="Archivo,sans-serif">56 % writeoff</text>
-                <rect x="16" y="194" width="10" height="10" rx="2" fill="#60a5fa" fill-opacity=".75"/>
-                <text x="30" y="204" fill="rgba(255,255,255,.55)" font-size="11" font-family="Archivo,sans-serif">35 % acquisition</text>
-                <rect x="16" y="210" width="10" height="10" rx="2" fill="#fbbf24" fill-opacity=".8"/>
-                <text x="30" y="220" fill="rgba(255,255,255,.55)" font-size="11" font-family="Archivo,sans-serif">9 % IPO</text>
+                <rect x="16" y="196" width="10" height="10" rx="2" fill="#ef4444" fill-opacity=".7"/>
+                <text x="30" y="206" fill="rgba(255,255,255,.55)" font-size="10" font-family="Archivo,sans-serif">56 % perte totale</text>
+                <rect x="16" y="214" width="10" height="10" rx="2" fill="#60a5fa" fill-opacity=".75"/>
+                <text x="30" y="224" fill="rgba(255,255,255,.55)" font-size="10" font-family="Archivo,sans-serif">35 % acquisition</text>
+                <rect x="16" y="232" width="10" height="10" rx="2" fill="#fbbf24" fill-opacity=".8"/>
+                <text x="30" y="242" fill="rgba(255,255,255,.55)" font-size="10" font-family="Archivo,sans-serif">9 % IPO</text>
               </svg>
+              <p class="card-note">Parmi les startups qui ont une issue, plus de la moitié correspondent à une perte totale (faillite ou fermeture) ; seules 9 % atteignent une introduction en bourse.</p>
               <div class="card-src">Venture-backed exits dataset, Cambridge Associates (2024)</div>
             </div>
-          </div>
-
-          <!-- V8 : Concentration de valeur en portefeuille -->
-          <div class="card" style="margin-top:14px;">
-            <div class="card-lbl">Distribution de valeur dans un portefeuille de 20 startups</div>
-            <!-- ViewBox 580×90 · barre unique y=22→62 (h=40)
-                 x=20→560 = 540px total
-                 1 jackpot 55% → 297px : x=20→317
-                 3 bons exits 30% → 162px : x=317→479
-                 6 modérés 10% → 54px : x=479→533
-                 10 pertes 5% → 27px : x=533→560 -->
-            <svg viewBox="0 0 580 90" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="cv1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#3b82f6" stop-opacity=".9"/><stop offset="100%" stop-color="#2563eb" stop-opacity=".7"/></linearGradient>
-                <linearGradient id="cv2" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#60a5fa" stop-opacity=".6"/><stop offset="100%" stop-color="#93c5fd" stop-opacity=".45"/></linearGradient>
-              </defs>
-              <!-- Segments -->
-              <rect x="20" y="22" width="297" height="40" fill="url(#cv1)" rx="7" style="border-radius:7px 0 0 7px;"/>
-              <rect x="317" y="22" width="162" height="40" fill="url(#cv2)" rx="0"/>
-              <rect x="479" y="22" width="54" height="40" fill="rgba(107,114,128,.4)" rx="0"/>
-              <rect x="533" y="22" width="27" height="40" fill="rgba(239,68,68,.5)" rx="7" style="border-radius:0 7px 7px 0;"/>
-              <!-- Séparateurs -->
-              <line x1="317" y1="22" x2="317" y2="62" stroke="rgba(0,0,0,.3)" stroke-width="1"/>
-              <line x1="479" y1="22" x2="479" y2="62" stroke="rgba(0,0,0,.3)" stroke-width="1"/>
-              <line x1="533" y1="22" x2="533" y2="62" stroke="rgba(0,0,0,.3)" stroke-width="1"/>
-              <!-- Labels in segments -->
-              <text x="168" y="39" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="Archivo,sans-serif">×1 jackpot</text>
-              <text x="168" y="55" text-anchor="middle" fill="rgba(255,255,255,.75)" font-size="11" font-family="Archivo,sans-serif">55 % de la valeur</text>
-              <text x="398" y="39" text-anchor="middle" fill="#fff" font-size="11" font-weight="600" font-family="Archivo,sans-serif">×3 bons exits</text>
-              <text x="398" y="53" text-anchor="middle" fill="rgba(255,255,255,.7)" font-size="10" font-family="Archivo,sans-serif">30 %</text>
-              <text x="506" y="44" text-anchor="middle" fill="rgba(255,255,255,.7)" font-size="10" font-family="Archivo,sans-serif">10 %</text>
-              <text x="547" y="44" text-anchor="middle" fill="rgba(255,255,255,.6)" font-size="10" font-family="Archivo,sans-serif">5 %</text>
-              <!-- Labels below -->
-              <text x="20" y="80" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">×1 jackpot</text>
-              <text x="317" y="80" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">×3 bons exits</text>
-              <text x="479" y="80" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">×6 mod.</text>
-              <text x="533" y="80" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">×10 pertes</text>
-            </svg>
-          </div>
-
-          <!-- Loi de puissance vs distribution normale -->
-          <div class="card" style="margin-top:14px;">
-            <div class="card-lbl">Loi de puissance vs distribution normale — pourquoi les stats classiques ne s'appliquent pas</div>
-            <!-- ViewBox 660×200 · 2 panels · séparateur x=330
-                 Gauche: courbe gaussienne centrée x=160 · Droite: power law pic x=382 queue droite -->
-            <svg viewBox="0 0 660 200" xmlns="http://www.w3.org/2000/svg">
-              <!-- Séparateur panels -->
-              <line x1="330" y1="8" x2="330" y2="192" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
-              <!-- Baselines -->
-              <line x1="10"  y1="170" x2="310" y2="170" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
-              <line x1="350" y1="170" x2="650" y2="170" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
-              <!-- Courbe normale (gauche) — zone remplie -->
-              <path d="M10,170 C40,170 70,162 85,140 C100,118 130,60 155,40 C180,60 210,118 225,140 C240,162 270,170 310,170 Z"
-                fill="rgba(107,114,128,.12)"/>
-              <path d="M10,170 C40,170 70,162 85,140 C100,118 130,60 155,40 C180,60 210,118 225,140 C240,162 270,170 310,170"
-                fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/>
-              <!-- Ligne médiane = moyenne (normale) -->
-              <line x1="155" y1="40" x2="155" y2="170" stroke="rgba(107,114,128,.35)" stroke-width="1" stroke-dasharray="3,3"/>
-              <text x="155" y="186" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="9.5" font-family="Archivo,sans-serif">médiane = moyenne</text>
-              <!-- Loi de puissance (droite) — zone remplie -->
-              <path d="M350,170 L368,168 C370,148 376,95 382,50 C388,82 397,118 410,138 C428,157 455,164 495,167 C535,169 595,170 650,170 Z"
-                fill="rgba(59,130,246,.12)"/>
-              <path d="M350,170 L368,168 C370,148 376,95 382,50 C388,82 397,118 410,138 C428,157 455,164 495,167 C535,169 595,170 650,170"
-                fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"/>
-              <!-- Pic (médiane) loi puissance -->
-              <line x1="382" y1="50" x2="382" y2="170" stroke="rgba(59,130,246,.25)" stroke-width="1" stroke-dasharray="3,3"/>
-              <text x="382" y="186" text-anchor="middle" fill="rgba(59,130,246,.6)" font-size="9.5" font-family="Archivo,sans-serif">médiane &lt; 1×</text>
-              <!-- Queue épaisse annotation -->
-              <text x="540" y="158" fill="rgba(59,130,246,.55)" font-size="9.5" font-family="Archivo,sans-serif">queue épaisse</text>
-              <path d="M536,155 L505,152" fill="none" stroke="rgba(59,130,246,.3)" stroke-width="1"/>
-              <!-- Jackpot label -->
-              <text x="382" y="42" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="700" font-family="Archivo,sans-serif">jackpots ×50+</text>
-              <!-- Titres -->
-              <text x="160" y="18" text-anchor="middle" fill="rgba(255,255,255,.55)" font-size="12" font-weight="700" font-family="Archivo,sans-serif">Distribution normale</text>
-              <text x="160" y="31" text-anchor="middle" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">(actions cotées)</text>
-              <text x="500" y="18" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="700" font-family="Archivo,sans-serif">Loi de puissance</text>
-              <text x="500" y="31" text-anchor="middle" fill="rgba(59,130,246,.5)" font-size="10" font-family="Archivo,sans-serif">(startups seed)</text>
-            </svg>
-            <div class="card-src">Concept fondamental — Taleb (2007), Gregson et al. (2017)</div>
           </div>
 
           <!-- Simulation Gregson : taille de portefeuille -->
@@ -436,8 +359,9 @@
                 <text x="260" y="235" text-anchor="middle" fill="rgba(16,185,129,.7)" font-size="10" font-family="Archivo,sans-serif">20</text>
                 <text x="360" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">30</text>
                 <text x="560" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">50</text>
-                <text x="310" y="12" text-anchor="middle" fill="rgba(255,255,255,.14)" font-size="9.5" font-family="Archivo,sans-serif">nombre d'investissements</text>
+                <text x="563" y="223" fill="rgba(255,255,255,.18)" font-size="9.5" font-family="Archivo,sans-serif">nombre d'investissements →</text>
               </svg>
+              <p class="card-note">La simulation de 10 000 portefeuilles montre qu'avec 20 investissements, on dépasse 70 % de chances de finir en profit — contre 46 % avec une seule startup.</p>
               <div class="card-src">Gregson, Mann &amp; Harrison (2017) — simulation Monte Carlo, 10 000 portefeuilles</div>
             </div>
 
@@ -480,8 +404,6 @@
                 <!-- Annotation écart at N=1 -->
                 <circle cx="60" cy="170" r="4" fill="#ef4444" fill-opacity=".8"/>
                 <text x="64" y="175" fill="#f87171" font-size="9.5" font-family="Archivo,sans-serif">1 inv : médiane = 0.5×</text>
-                <!-- Annotation convergence -->
-                <text x="360" y="55" fill="rgba(59,130,246,.6)" font-size="9.5" font-family="Archivo,sans-serif">convergence</text>
                 <!-- X labels -->
                 <text x="60"  y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">1</text>
                 <text x="150" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">10</text>
@@ -489,6 +411,7 @@
                 <text x="350" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">30</text>
                 <text x="530" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">50</text>
               </svg>
+              <p class="card-note">L'espérance (gain moyen théorique) reste stable à ~1.7× quel que soit le nombre de startups, mais la médiane (résultat probable d'un investisseur réel) s'améliore nettement avec la diversification.</p>
               <div class="card-src">Gregson, Mann &amp; Harrison (2017) — espérance vs médiane par taille de portefeuille</div>
             </div>
           </div>
@@ -547,6 +470,7 @@
               <text x="500" y="55" text-anchor="middle" fill="rgba(16,185,129,.6)" font-size="11" font-weight="600" font-family="Archivo,sans-serif">Gains</text>
               <line x1="362" y1="60" x2="362" y2="220" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="3,4"/>
             </svg>
+            <p class="card-note">La courbe en J montre qu'un investissement seed perd typiquement de la valeur les 3 premières années avant de remonter — la patience est une condition d'entrée, pas une option.</p>
             <div class="card-src">Simulation d'un investissement seed moyen — résultats réels très variables selon les startups</div>
           </div>
 
@@ -606,6 +530,7 @@
               <text x="460" y="152" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">An 0</text>
               <text x="650" y="152" text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">An 12</text>
             </svg>
+            <p class="card-note">Ces 3 trajectoires coexistent dans tout portefeuille seed : la diversification permet d'en avoir plusieurs en même temps, et de compter sur la réussite pour compenser les échecs.</p>
           </div>
 
           <!-- VISUEL 8 : Timeline des 3 phases -->
@@ -635,6 +560,7 @@
               <text x="360" y="75" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10.5" font-family="Archivo,sans-serif">An 6</text>
               <text x="640" y="75" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10.5" font-family="Archivo,sans-serif">An 12</text>
             </svg>
+            <p class="card-note">Un investissement seed se déroule en 3 phases : déploiement (0–3 ans), développement (3–6 ans), puis sorties et gains (6–12 ans) — l'horizon minimal réaliste est de 7 ans.</p>
           </div>
 
           <!-- Définitions DPI / RVPI / TVPI -->
@@ -676,6 +602,7 @@
               <text x="535" y="108" text-anchor="middle" fill="#34d399" font-size="13" font-weight="700" font-family="Archivo,sans-serif">1.4×</text>
               <text x="535" y="123" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="9.5" font-family="Archivo,sans-serif">0.6 DPI + 0.8 RVPI = 1.4×</text>
             </svg>
+            <p class="card-note">Ces trois indicateurs permettent de savoir à tout moment combien d'argent est déjà revenu (DPI), combien reste dans le portefeuille (RVPI), et la performance totale combinée (TVPI = DPI + RVPI).</p>
           </div>
 
           <!-- V12 : DPI vs RVPI vs TVPI -->
@@ -723,6 +650,7 @@
               <circle cx="310" cy="133" r="4" fill="#f59e0b" fill-opacity=".8"/>
               <text x="310" y="126" text-anchor="middle" fill="rgba(245,158,11,.7)" font-size="9.5" font-family="Archivo,sans-serif">pic RVPI an 6</text>
             </svg>
+            <p class="card-note">Le RVPI culmine vers l'an 6 — c'est la valeur latente maximale avant les sorties ; à partir de là, il se convertit progressivement en DPI (cash retourné aux investisseurs).</p>
             <div class="card-src">Métriques LP standard — simulation fonds seed 2010–2022, Preqin</div>
           </div>
 
@@ -765,6 +693,7 @@
                 <text x="480" y="140" fill="rgba(255,255,255,.4)" font-size="9.5" font-family="Archivo,sans-serif">38 % an 6</text>
                 <text x="580" y="162" text-anchor="end" fill="rgba(59,130,246,.7)" font-size="9.5" font-weight="600" font-family="Archivo,sans-serif">24 % an 10</text>
               </svg>
+              <p class="card-note">Chaque marche vers le bas représente une vague de faillites ; après 10 ans, seulement 1 startup seed sur 4 est encore en vie — les 3 premières années sont les plus critiques.</p>
               <div class="card-src">Kaplan &amp; Meier estimator — données VC seed européen, Beauhurst (2023)</div>
             </div>
 
@@ -815,6 +744,7 @@
                 <text x="270" y="178" fill="rgba(239,68,68,.6)" font-size="9.5" font-family="Archivo,sans-serif">−4%</text>
                 <text x="205" y="202" text-anchor="middle" fill="#f87171" font-size="11" font-weight="700" font-family="Archivo,sans-serif">−18%</text>
               </svg>
+              <p class="card-note">L'écart entre le meilleur et le pire quartile est colossal : +30 % contre −18 % d'IRR annuel — choisir soigneusement dans quels fonds ou quelles startups on investit compte autant que la classe d'actif.</p>
               <div class="card-src">Korteweg &amp; Nagel (2016) — IRR nets de frais sur fonds seed/early stage</div>
             </div>
           </div>
@@ -868,6 +798,7 @@
               <rect x="360" y="184" width="14" height="8" rx="2" fill="rgba(239,68,68,.45)"/>
               <text x="378" y="192" fill="rgba(255,255,255,.4)" font-size="9.5" font-family="Archivo,sans-serif">Frais gestion (2.5%)</text>
             </svg>
+            <p class="card-note">Les frais de gestion et le carried interest réduisent mécaniquement l'IRR brut de ~6.5 points — choisir une plateforme avec des frais raisonnables améliore directement votre rendement net.</p>
             <div class="card-src">Structure standard fonds VC — frais = 2%/an, carried interest = 20% des profits au-dessus du hurdle rate</div>
           </div>
         </section>
@@ -920,6 +851,7 @@
                 <text x="258" y="4"  text-anchor="middle" fill="#34d399" font-size="11" font-weight="700" font-family="Archivo,sans-serif">45k€+</text>
                 <text x="258" y="255" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="10" font-family="Archivo,sans-serif">Seed top</text>
               </svg>
+              <p class="card-note">Sur 10 ans, le seed diversifié surpasse le S&P 500 et le Livret A — mais uniquement avec une vraie diversification sur 15+ startups ; un seed mal diversifié peut aboutir au pire résultat.</p>
             </div>
 
             <!-- VISUEL 10 : Courbes de croissance compound -->
@@ -963,6 +895,7 @@
                 <div class="legend-item"><span class="leg-line" style="background:#3b82f6"></span>S&amp;P 500 ~10%/an</div>
                 <div class="legend-item"><span class="leg-line" style="background:#10b981"></span>Seed 15% médiane</div>
               </div>
+              <p class="card-note">La courbe seed démarre plus lentement (J-curve) mais prend de l'avance sur le S&P 500 à partir de l'an 5–6, atteignant +300 % à l'an 10 contre +160 % pour la bourse.</p>
             </div>
           </div>
 
@@ -1008,6 +941,7 @@
               <!-- Légende taille des bulles -->
               <text x="50" y="207" fill="rgba(255,255,255,.18)" font-size="10" font-family="Archivo,sans-serif">La taille des cercles représente le ticket minimum d'investissement typique</text>
             </svg>
+            <p class="card-note">Le seed diversifié (LIQUID+) cumule le meilleur potentiel de rendement de toutes les classes d'actifs pour un niveau de risque comparable à la bourse — la diversification déplace le point vers la gauche.</p>
             <div class="card-src">Cambridge Associates (2024) — données indicatives, rendements nets médians</div>
           </div>
 
@@ -1062,6 +996,7 @@
                 <!-- Explication -->
                 <text x="280" y="188" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">PME = ratio investissement VC / même cash dans le S&amp;P 500</text>
               </svg>
+              <p class="card-note">Un PME >1 signifie que le fonds a fait mieux que si vous aviez simplement investi dans le S&P 500 ; le meilleur quartile seed affiche 1.8×, soit 80 % de valeur en plus que la bourse sur la même période.</p>
               <div class="card-src">Kaplan &amp; Schoar (2005) — méthodologie PME, données Cambridge Associates (2024)</div>
             </div>
 
@@ -1115,6 +1050,7 @@
                 <rect x="396" y="196" width="10" height="8" rx="2" fill="rgba(16,185,129,.6)"/>
                 <text x="410" y="204" fill="rgba(255,255,255,.35)" font-size="9.5" font-family="Archivo,sans-serif">Alpha pur</text>
               </svg>
+              <p class="card-note">Le rendement du seed se décompose en 4 sources cumulées : la rémunération du temps (rf), le risque de marché, la prime d'illiquidité (ILP), et la compétence pure du gestionnaire (alpha).</p>
               <div class="card-src">Korteweg &amp; Nagel (2016) — décomposition rf + β·MKT + SMB + ILP + α</div>
             </div>
           </div>
@@ -1161,6 +1097,7 @@
                 <rect x="150" y="214" width="114" height="26" fill="rgba(52,211,153,.65)" rx="5"/>
                 <text x="270" y="231" fill="#10b981" font-size="11" font-weight="700" font-family="Archivo,sans-serif">6 %</text>
               </svg>
+              <p class="card-note">La distribution est bimodale : beaucoup de fonds perdent (20 % sous −10 %) et beaucoup gagnent bien (20 % à 10–20 %) — peu finissent dans la zone intermédiaire neutre 0–10 %.</p>
               <div class="card-src">Korteweg &amp; Nagel (2016) — 4 500 fonds VC nord-américains 1987–2012</div>
             </div>
 
@@ -1220,6 +1157,7 @@
                 <rect x="308" y="170" width="10" height="10" rx="2" fill="rgba(16,185,129,.65)"/>
                 <text x="322" y="180" fill="rgba(255,255,255,.35)" font-size="9.5" font-family="Archivo,sans-serif">Alpha pur</text>
               </svg>
+              <p class="card-note">Un fonds top quartile doit sa surperformance à 60 % à l'alpha pur (compétence du gérant) — la médiane génère peu d'alpha et profite surtout des primes de marché et d'illiquidité.</p>
               <div class="card-src">Korteweg &amp; Nagel (2016) — modèle rf+β·MKT+SMB+ILP+α</div>
             </div>
           </div>
@@ -1272,6 +1210,7 @@
               <rect x="150" y="175" width="18" height="32" fill="rgba(107,114,128,.3)" rx="4"/>
               <text x="176" y="195" fill="rgba(255,255,255,.28)" font-size="13" font-family="Archivo,sans-serif">×2</text>
             </svg>
+            <p class="card-note">Plus on entre tôt dans la vie d'une startup, plus le multiple potentiel est élevé : le seed offre jusqu'à ×50, contre ×2 seulement en bourse — la valorisation de départ est l'avantage clé.</p>
             <div class="card-src">Multiples illustratifs — données historiques VC seed américain et européen 2000–2022</div>
           </div>
 
@@ -1318,6 +1257,7 @@
                 <text x="375" y="237" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="9.5" font-family="Archivo,sans-serif">Série B</text>
                 <text x="480" y="237" text-anchor="middle" fill="rgba(16,185,129,.7)" font-size="9.5" font-family="Archivo,sans-serif">Exit</text>
               </svg>
+              <p class="card-note">À chaque tour de financement, la valorisation multiplie en moyenne par 4–5 : entrer au seed, c'est participer à l'intégralité de cette progression de 1 M€ à 200 M€.</p>
               <div class="card-src">Valuations médianes — données PitchBook Europe 2019–2023</div>
             </div>
 
@@ -1367,6 +1307,7 @@
                 <text x="450" y="234" text-anchor="middle" fill="rgba(255,255,255,.25)" font-size="9.5" font-family="Archivo,sans-serif">13+</text>
                 <text x="280" y="14" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">années</text>
               </svg>
+              <p class="card-note">La grande majorité des exits intervient entre 5 et 8 ans après l'investissement initial — planifier un horizon de 7–10 ans est donc à la fois réaliste et nécessaire.</p>
               <div class="card-src">Beauhurst / PitchBook — 3 200 exits VC seed 2005–2023</div>
             </div>
           </div>
@@ -1406,6 +1347,7 @@
                 <text x="240" y="182" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="Archivo,sans-serif">4 exits sign.</text>
                 <text x="294" y="182" fill="#34d399" font-size="10.5" font-weight="600" font-family="Archivo,sans-serif">4%</text>
               </svg>
+              <p class="card-note">Sur 100 startups seed financées, seules 4 atteignent une sortie significative — mais ces 4 peuvent générer des rendements qui compensent les 96 autres à elles seules.</p>
             </div>
 
             <!-- Probabilités conditionnelles par stade -->
@@ -1438,6 +1380,7 @@
                 <!-- Note -->
                 <text x="240" y="18" text-anchor="middle" fill="rgba(255,255,255,.18)" font-size="10" font-family="Archivo,sans-serif">probabilité conditionnelle</text>
               </svg>
+              <p class="card-note">Les probabilités de passer au stade suivant s'améliorent à chaque étape : une startup qui a levé une Série B a 38 % de chances d'aboutir à une sortie significative.</p>
               <div class="card-src">Startup Genome / Dealroom — données Europe 2015–2023</div>
             </div>
           </div>
@@ -1473,6 +1416,7 @@
               <!-- Labels above -->
               <text x="252" y="14" text-anchor="middle" fill="rgba(255,255,255,.25)" font-size="9.5" font-family="Archivo,sans-serif">Retour total : 28 000 € (×2.8)</text>
             </svg>
+            <p class="card-note">Sur 10 000 € investis dans un fonds top quartile, l'investisseur (LP) perçoit 22 400 € nets ; le gérant (GP) touche 3 600 € de carried interest et récupère 2 000 € de frais de gestion.</p>
           </div>
 
           <!-- V27 : Funnel de sélection LIQUID+ (0.1%) -->
@@ -1508,6 +1452,7 @@
               <text x="250" y="176" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="Archivo,sans-serif">1 sur LIQUID+</text>
               <text x="294" y="176" fill="#60a5fa" font-size="10.5" font-weight="700" font-family="Archivo,sans-serif">0.1%</text>
             </svg>
+            <p class="card-note">LIQUID+ ne présente à ses membres qu'1 startup sur 1 000 candidates — ce filtre extrême est la première ligne de protection contre les mauvais investissements.</p>
           </div>
         </section>
 
@@ -1602,6 +1547,7 @@
                 <text x="560" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">50</text>
                 <text x="310" y="12" text-anchor="middle" fill="rgba(255,255,255,.14)" font-size="9.5" font-family="Archivo,sans-serif">nombre d'investissements</text>
               </svg>
+              <p class="card-note">Le risque idiosyncratique diminue très vite avec la diversification : 20 startups réduisent le risque de 78 % par rapport à un seul investissement — au-delà de 30, le gain est marginal.</p>
               <div class="card-src">Théorie de la diversification — Markowitz (1952), calibré sur données VC seed</div>
             </div>
 
@@ -1643,6 +1589,7 @@
                 <!-- Note -->
                 <text x="280" y="232" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">Sharpe = (rendement moyen − taux sans risque) ÷ volatilité</text>
               </svg>
+              <p class="card-note">Le ratio de Sharpe mesure le rendement par unité de risque : le seed diversifié (1.05) surpasse le S&P 500 (0.8) — plus de gain pour le même niveau de risque.</p>
               <div class="card-src">Données indicatives — calibré sur Korteweg &amp; Nagel (2016) et Cambridge Associates (2024)</div>
             </div>
           </div>
@@ -1710,6 +1657,7 @@
               <rect x="445" y="210" width="150" height="26" fill="rgba(239,68,68,.3)" rx="5"/>
               <text x="520" y="227" text-anchor="middle" fill="#f87171" font-size="12" font-weight="700" font-family="Archivo,sans-serif">−4 %</text>
             </svg>
+            <p class="card-note">Les millésimes 2017 et 2020 sont les plus performants ; 2021–2022 (période de bulle et de correction) affichent des résultats décevants — le timing d'entrée dans un fonds a un impact significatif.</p>
             <div class="card-src">Preqin / PitchBook — médianes des fonds seed fermés par millésime, Europe (2024)</div>
           </div>
 
@@ -1746,6 +1694,7 @@
                 <rect x="14" y="202" width="10" height="10" rx="2" fill="rgba(107,114,128,.6)"/>
                 <text x="28" y="212" fill="rgba(255,255,255,.45)" font-size="10.5" font-family="Archivo,sans-serif">×6 modérés = 10%</text>
               </svg>
+            <p class="card-note">Dans un portefeuille de 20 startups, une seule (le jackpot) représente 55 % de toute la valeur créée — sans elle, le portefeuille serait à peine à l'équilibre.</p>
             <div class="card-src">Gregson, Mann &amp; Harrison (2017) — distribution empirique</div>
           </div>
         </section>
