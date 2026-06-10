@@ -62,7 +62,11 @@
       .strip { background:rgba(0,24,57,.06); border:1px solid rgba(0,24,57,.14); border-radius:12px; padding:18px 22px; margin:18px 0; font-size:.92rem; line-height:1.7; color:#080c14; }
       .strip strong { color:#080c14; }
       /* ── Animations graphiques (déclenchées au scroll via .seen) ── */
-      .card svg rect, .card svg circle { transform-box: fill-box; transform-origin: center; }
+      /* fill-box uniquement sur les éléments SANS attribut transform : un transform
+         SVG du type rotate(-90 cx cy) embarque son origine, changer la boîte de
+         référence le casserait (arcs de donut projetés hors cadre) */
+      .card svg rect:not([transform]), .card svg circle:not([transform]), .card svg text:not([transform]),
+      .card svg path:not([transform]), .card svg polyline:not([transform]), .card svg line:not([transform]) { transform-box: fill-box; transform-origin: center; }
       @keyframes chDraw  { from { stroke-dasharray:1500 1500; stroke-dashoffset:1500; } to { stroke-dasharray:1500 1500; stroke-dashoffset:0; } }
       @keyframes chGrowY { from { transform:scaleY(0); } }
       @keyframes chGrowX { from { transform:scaleX(0); } }
@@ -124,7 +128,6 @@
       .card.seen svg.anim-fade text, .card.seen svg.anim-fade rect, .card.seen svg.anim-fade line { animation: chFade .8s ease backwards; }
       .card.seen svg.anim-fade text:nth-of-type(even) { animation-delay:.25s; }
       /* ── Keyframes additionnels pour animations uniques ── */
-      .card svg * { transform-box: fill-box; }
       @keyframes chInflate   { from { stroke-width:0; } }
       @keyframes chBlurIn    { from { opacity:0; filter:blur(9px); } to { opacity:1; filter:blur(0); } }
       @keyframes chDropIn    { from { opacity:0; transform:translateY(-26px); } to { opacity:1; transform:none; } }
@@ -620,13 +623,13 @@
               <svg class="anim-donut ch5" viewBox="0 0 260 252" xmlns="http://www.w3.org/2000/svg">
                 <!-- Anneau perte totale 56% -->
                 <circle cx="120" cy="100" r="70" fill="none" stroke="#ef4444" stroke-width="30" stroke-opacity=".7"
-                  stroke-dasharray="246.3 193.5" stroke-dashoffset="110" transform="rotate(0 120 100)"/>
+                  stroke-dasharray="246.3 193.5" stroke-dashoffset="110"/>
                 <!-- Anneau acquisition 35% -->
                 <circle cx="120" cy="100" r="70" fill="none" stroke="#60a5fa" stroke-width="30" stroke-opacity=".75"
-                  stroke-dasharray="153.9 285.9" stroke-dashoffset="-136.3" transform="rotate(0 120 100)"/>
+                  stroke-dasharray="153.9 285.9" stroke-dashoffset="-136.3"/>
                 <!-- Anneau IPO 9% -->
                 <circle cx="120" cy="100" r="70" fill="none" stroke="#fbbf24" stroke-width="30" stroke-opacity=".8"
-                  stroke-dasharray="39.6 400.2" stroke-dashoffset="-290.2" transform="rotate(0 120 100)"/>
+                  stroke-dasharray="39.6 400.2" stroke-dashoffset="-290.2"/>
                 <!-- Centre -->
                 <text x="120" y="96" text-anchor="middle" fill="#fff" font-size="14" font-weight="700" font-family="Archivo,sans-serif">Sorties</text>
                 <text x="120" y="112" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10" font-family="Archivo,sans-serif">sur exitées</text>
@@ -1804,16 +1807,16 @@
               <svg class="anim-donut ch29" viewBox="0 0 260 250" xmlns="http://www.w3.org/2000/svg">
                 <!-- Anneau jackpot 55% -->
                 <circle cx="120" cy="100" r="70" fill="none" stroke="#3b82f6" stroke-width="30" stroke-opacity=".8"
-                  stroke-dasharray="242 198" stroke-dashoffset="110" transform="rotate(0 120 100)"/>
+                  stroke-dasharray="242 198" stroke-dashoffset="110"/>
                 <!-- Anneau bons exits 30% -->
                 <circle cx="120" cy="100" r="70" fill="none" stroke="#60a5fa" stroke-width="30" stroke-opacity=".55"
-                  stroke-dasharray="132 308" stroke-dashoffset="-132" transform="rotate(0 120 100)"/>
+                  stroke-dasharray="132 308" stroke-dashoffset="-132"/>
                 <!-- Anneau modérés 10% -->
                 <circle cx="120" cy="100" r="70" fill="none" stroke="rgba(107,114,128,.6)" stroke-width="30"
-                  stroke-dasharray="44 396" stroke-dashoffset="-264" transform="rotate(0 120 100)"/>
+                  stroke-dasharray="44 396" stroke-dashoffset="-264"/>
                 <!-- Anneau pertes 5% -->
                 <circle cx="120" cy="100" r="70" fill="none" stroke="#ef4444" stroke-width="30" stroke-opacity=".5"
-                  stroke-dasharray="22 418" stroke-dashoffset="-308" transform="rotate(0 120 100)"/>
+                  stroke-dasharray="22 418" stroke-dashoffset="-308"/>
                 <!-- Centre -->
                 <text x="120" y="95" text-anchor="middle" fill="#fff" font-size="14" font-weight="700" font-family="Archivo,sans-serif">Valeur</text>
                 <text x="120" y="111" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10" font-family="Archivo,sans-serif">% créée</text>
