@@ -36,9 +36,14 @@
       .sec-p strong { color:#080c14; }
       /* Cards — tous intégrés dans la page */
       .card { background:transparent; border:none; border-top:2px solid rgba(0,0,0,.07); border-radius:0; padding:48px 0 36px; overflow:visible; color:#080c14; }
-      .card svg { background:transparent; width:100%; height:auto; display:block; filter:saturate(1.8) brightness(1.05); }
-      .card svg text { fill: rgba(8,12,20,.65); }
-      .card svg line, .card svg path[fill="none"] { stroke-opacity: .8; }
+      .card svg { background:rgba(8,12,20,.05); border-radius:14px; width:100%; height:auto; display:block; filter:saturate(1.8) brightness(1.05); }
+      .card svg text[fill^="rgba(255"], .card svg text[fill="#fff"] { fill: rgba(8,12,20,.7); }
+      .card svg line[stroke^="rgba(255"], .card svg path[stroke^="rgba(255"] { stroke: rgba(8,12,20,.18); }
+      .card svg rect[fill^="rgba(255"] { fill: rgba(8,12,20,.1); }
+      .card svg path[fill^="rgba(255"] { fill: rgba(8,12,20,.25); }
+      .card svg circle[stroke^="rgba(255"] { stroke: rgba(8,12,20,.15); }
+      .card svg circle[fill^="rgba(255"] { fill: rgba(8,12,20,.45); }
+      .card svg line, .card svg path[fill="none"] { stroke-opacity: .85; }
       .card-lbl { font-size:.8rem; font-weight:800; color:#080c14; margin-bottom:12px; letter-spacing:.06em; text-transform:uppercase; }
       .card-src { font-size:.72rem; color:rgba(0,0,0,.3); margin-top:10px; font-style:italic; }
       .card-note { font-size:.95rem; color:#080c14; margin:16px 0 0; line-height:1.75; max-width:640px; }
@@ -245,7 +250,7 @@
               <p style="font-size:.8rem;color:#080c14;margin:0 0 12px;line-height:1.55;">La courbe bleue montre la répartition réelle de la valeur créée. Plus elle s'éloigne de la diagonale (répartition égale), plus la richesse est concentrée dans quelques startups.</p>
               <!-- ViewBox 340×280 · axes: x 40→320, y 20→260
                    Diagonale = égalité parfaite · Courbe bleue = réalité seed -->
-              <svg viewBox="0 0 340 294" xmlns="http://www.w3.org/2000/svg">
+              <svg viewBox="0 0 354 294" xmlns="http://www.w3.org/2000/svg">
                 <!-- Axis guides -->
                 <line x1="40" y1="20" x2="40" y2="260" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
                 <line x1="40" y1="260" x2="320" y2="260" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
@@ -361,7 +366,7 @@
                 <text x="260" y="235" text-anchor="middle" fill="rgba(16,185,129,.7)" font-size="10" font-family="Archivo,sans-serif">20</text>
                 <text x="360" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">30</text>
                 <text x="560" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">50</text>
-                <text x="563" y="223" fill="rgba(255,255,255,.18)" font-size="9.5" font-family="Archivo,sans-serif">nombre d'investissements →</text>
+                <text x="596" y="212" text-anchor="end" fill="rgba(255,255,255,.18)" font-size="9.5" font-family="Archivo,sans-serif">nombre d'investissements →</text>
               </svg>
               <p class="card-note">La simulation de 10 000 portefeuilles montre qu'avec 20 investissements, on dépasse 70 % de chances de finir en profit — contre 46 % avec une seule startup.</p>
               <div class="card-src">Gregson, Mann &amp; Harrison (2017) — simulation Monte Carlo, 10 000 portefeuilles</div>
@@ -670,7 +675,7 @@
                    X: an 0→10, x=40+yr*60 → x0=40 x10=640
                    Y: 0→100%, y=220-pct*2 → 100%=y20 0%=y220
                    Step function: horizontal puis vertical -->
-              <svg viewBox="0 0 640 240" xmlns="http://www.w3.org/2000/svg">
+              <svg viewBox="0 0 650 240" xmlns="http://www.w3.org/2000/svg">
                 <!-- Zone de survie -->
                 <path d="M40,20 H100 V60 H160 V80 H220 V100 H280 V116 H340 V132 H400 V144 H460 V154 H520 V162 H580 V168 H640 V172 L640,220 L40,220 Z"
                   fill="rgba(59,130,246,.06)"/>
@@ -694,7 +699,7 @@
                 <text x="220" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">3</text>
                 <text x="400" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">6</text>
                 <text x="580" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">9</text>
-                <text x="630" y="235" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">10 ans</text>
+                <text x="648" y="235" text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">10 ans</text>
                 <!-- Annotation -->
                 <text x="108" y="54" fill="rgba(255,255,255,.7)" font-size="9.5" font-family="Archivo,sans-serif">80 % an 1</text>
                 <text x="408" y="138" fill="rgba(255,255,255,.7)" font-size="9.5" font-family="Archivo,sans-serif">38 % an 6</text>
@@ -781,7 +786,7 @@
                  Seed 1 seul: x=540, y=80 (haut risque / haut potentiel)
                  Seed diversifié: x=400, y=70 (risque réduit, haut potentiel)
             -->
-            <svg viewBox="0 0 660 210" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 660 216" xmlns="http://www.w3.org/2000/svg">
               <!-- Axes -->
               <line x1="50" y1="175" x2="630" y2="175" stroke="rgba(255,255,255,.15)" stroke-width="1.5"/>
               <line x1="50" y1="20"  x2="50"  y2="175" stroke="rgba(255,255,255,.15)" stroke-width="1.5"/>
@@ -905,7 +910,7 @@
                 <rect x="217" y="152" width="95" height="28" fill="rgba(59,130,246,.5)" rx="0"/>
                 <rect x="312" y="152" width="95" height="28" fill="rgba(20,184,166,.55)" rx="0"/>
                 <rect x="407" y="152" width="152" height="28" fill="rgba(16,185,129,.6)" rx="0" style="border-radius:0 4px 4px 0;"/>
-                <text x="530" y="170" fill="#34d399" font-size="12" font-weight="700" font-family="Archivo,sans-serif">+20 %</text>
+                <text x="556" y="148" text-anchor="end" fill="#34d399" font-size="12" font-weight="700" font-family="Archivo,sans-serif">+20 %</text>
                 <!-- ILP label -->
                 <text x="359" y="148" text-anchor="middle" fill="rgba(20,184,166,.7)" font-size="9.5" font-family="Archivo,sans-serif">ILP</text>
                 <!-- Alpha label -->
@@ -935,7 +940,7 @@
                    labels x=0→145 bars x=150→530 (380px max)
                    Max bucket 20% → 380px → 19px/%
                    Row h=26px gap=6px, y_top: 22,54,86,118,150,182,214 -->
-              <svg viewBox="0 0 560 256" xmlns="http://www.w3.org/2000/svg">
+              <svg viewBox="0 0 575 256" xmlns="http://www.w3.org/2000/svg">
                 <!-- Axis -->
                 <line x1="148" y1="16" x2="148" y2="246" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
                 <!-- Row &lt;−10% (20%) -->
@@ -1054,9 +1059,9 @@
                  Bourse ×2: w=18
                  Rows y: 30,82,134,186 (cy), h=32 → y_top = cy-16
             -->
-            <svg viewBox="0 0 620 200" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 660 214" xmlns="http://www.w3.org/2000/svg">
               <!-- Axis -->
-              <line x1="148" y1="10" x2="148" y2="190" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+              <line x1="148" y1="10" x2="148" y2="207" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
               <!-- Seed -->
               <text x="140" y="39" text-anchor="end" fill="rgba(255,255,255,.7)"  font-size="13" font-weight="600" font-family="Archivo,sans-serif">Seed</text>
               <text x="140" y="55" text-anchor="end" fill="rgba(255,255,255,.25)" font-size="10"   font-family="Archivo,sans-serif">~2M€ valeur</text>
@@ -1543,8 +1548,8 @@
         <div style="text-align:center;">
           <h2 style="font-size:clamp(1.4rem,3vw,2rem);font-weight:700;letter-spacing:-.015em;margin-bottom:12px;">Prêt à investir dans les startups de demain ?</h2>
           <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:24px;">
-            <a href="startups.html" style="background:#fff;color:#080c14;border-radius:12px;padding:15px 30px;font-size:.97rem;font-weight:700;text-decoration:none;display:inline-block;">Voir les startups</a>
-            <a href="comment-ca-marche.html" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:12px;padding:15px 30px;font-size:.97rem;font-weight:600;text-decoration:none;display:inline-block;">Comment ça marche</a>
+            <a href="startups.html" style="background:#080c14;color:#fff;border-radius:12px;padding:15px 30px;font-size:.97rem;font-weight:700;text-decoration:none;display:inline-block;">Voir les startups</a>
+            <a href="comment-ca-marche.html" style="background:transparent;color:#080c14;border:1px solid rgba(0,0,0,.35);border-radius:12px;padding:15px 30px;font-size:.97rem;font-weight:600;text-decoration:none;display:inline-block;">Comment ça marche</a>
           </div>
         </div>
 
