@@ -18,9 +18,9 @@
     <link rel="stylesheet" href="styles.css" />
     <style>
       *, *::before, *::after { box-sizing: border-box; margin: 0; }
-      body { background: radial-gradient(circle at 10% 15%, rgba(0,24,57,0.06), transparent 40%), #f4f2ee; color: #080c14; font-family: 'Archivo', sans-serif; }
-      .wrap { max-width: 860px; margin: 0 auto; padding: 0 20px 100px; }
-      .hero { padding: 120px 20px 56px; max-width: 860px; margin: 0 auto; }
+      body { background: radial-gradient(circle at 10% 15%, rgba(0,24,57,0.06), transparent 40%), #f4f2ee; color: #080c14; font-family: 'Archivo', sans-serif; padding: 0; }
+      .wrap { max-width: 960px; margin: 0 auto; padding: 0 32px 100px; }
+      .hero { padding: 120px 32px 56px; max-width: 960px; margin: 0 auto; }
       .tag { display:inline-block; background:rgba(59,130,246,.1); border:1px solid rgba(59,130,246,.3); color:#1d4ed8; font-size:.72rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; padding:5px 13px; border-radius:99px; margin-bottom:22px; }
       .h1 { font-size:clamp(2rem,5vw,3.2rem); font-weight:700; line-height:1.1; letter-spacing:-.025em; margin-bottom:40px; color:#080c14; }
       .h1 em { color:#1d4ed8; font-style:normal; }
@@ -43,7 +43,7 @@
       .card-src { font-size:.72rem; color:rgba(0,0,0,.3); margin-top:10px; font-style:italic; }
       .card-note { font-size:.95rem; color:#080c14; margin:16px 0 0; line-height:1.75; max-width:640px; }
       /* Cartes featured — bulles noires proéminentes */
-      .card.featured { background:#000; border:1px solid rgba(255,255,255,.12); border-top:none; border-radius:20px; padding:44px 64px; overflow:hidden; color:#fff; box-shadow:0 24px 60px rgba(0,0,0,.25); }
+      .card.featured { background:#000; border:1px solid rgba(255,255,255,.12); border-top:none; border-radius:20px; padding:44px 40px; overflow:hidden; color:#fff; box-shadow:0 24px 60px rgba(0,0,0,.25); }
       .card.featured svg { background:transparent; border-radius:0; }
       .card.featured .card-lbl { font-size:1.3rem; color:#fff; font-weight:800; text-transform:none; letter-spacing:-.01em; }
       .card.featured .card-src { color:rgba(255,255,255,.3); }
@@ -1468,73 +1468,6 @@
               <p class="card-note">Le ratio de Sharpe mesure le rendement par unité de risque : le seed diversifié (1.05) surpasse le S&P 500 (0.8) — plus de gain pour le même niveau de risque.</p>
               <div class="card-src">Données indicatives — calibré sur Korteweg &amp; Nagel (2016) et Cambridge Associates (2024)</div>
             </div>
-          </div>
-
-          <!-- V28 : Heatmap millésimes -->
-          <div class="card" style="margin-bottom:14px;">
-            <div class="card-lbl">Performance des fonds seed par millésime — TVPI · DPI · IRR net</div>
-            <!-- ViewBox 640×244
-                 6 millésimes (2017–2022), 3 colonnes métriques
-                 Col centres: Année x=10→110, TVPI=220, DPI=370, IRR=510
-                 Row h=26 gap=6 · y_top: 50,82,114,146,178,210 -->
-            <svg viewBox="0 0 640 244" xmlns="http://www.w3.org/2000/svg">
-              <!-- Header -->
-              <text x="60"  y="32" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10.5" font-weight="600" font-family="Archivo,sans-serif">Millésime</text>
-              <text x="220" y="32" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10.5" font-weight="600" font-family="Archivo,sans-serif">TVPI</text>
-              <text x="370" y="32" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10.5" font-weight="600" font-family="Archivo,sans-serif">DPI</text>
-              <text x="520" y="32" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10.5" font-weight="600" font-family="Archivo,sans-serif">IRR net</text>
-              <line x1="10" y1="38" x2="630" y2="38" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
-              <!-- Row 2017 y=50 -->
-              <text x="60" y="67" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11" font-family="Archivo,sans-serif">2017</text>
-              <rect x="145" y="50" width="150" height="26" fill="rgba(16,185,129,.32)" rx="5"/>
-              <text x="220" y="67" text-anchor="middle" fill="#34d399" font-size="12" font-weight="700" font-family="Archivo,sans-serif">1.8×</text>
-              <rect x="295" y="50" width="150" height="26" fill="rgba(245,158,11,.28)" rx="5"/>
-              <text x="370" y="67" text-anchor="middle" fill="#fbbf24" font-size="12" font-weight="700" font-family="Archivo,sans-serif">1.1×</text>
-              <rect x="445" y="50" width="150" height="26" fill="rgba(16,185,129,.32)" rx="5"/>
-              <text x="520" y="67" text-anchor="middle" fill="#34d399" font-size="12" font-weight="700" font-family="Archivo,sans-serif">14 %</text>
-              <!-- Row 2018 y=82 -->
-              <text x="60" y="99" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11" font-family="Archivo,sans-serif">2018</text>
-              <rect x="145" y="82" width="150" height="26" fill="rgba(245,158,11,.28)" rx="5"/>
-              <text x="220" y="99" text-anchor="middle" fill="#fbbf24" font-size="12" font-weight="700" font-family="Archivo,sans-serif">1.5×</text>
-              <rect x="295" y="82" width="150" height="26" fill="rgba(245,158,11,.28)" rx="5"/>
-              <text x="370" y="99" text-anchor="middle" fill="#fbbf24" font-size="12" font-weight="700" font-family="Archivo,sans-serif">0.9×</text>
-              <rect x="445" y="82" width="150" height="26" fill="rgba(245,158,11,.28)" rx="5"/>
-              <text x="520" y="99" text-anchor="middle" fill="#fbbf24" font-size="12" font-weight="700" font-family="Archivo,sans-serif">10 %</text>
-              <!-- Row 2019 y=114 -->
-              <text x="60" y="131" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11" font-family="Archivo,sans-serif">2019</text>
-              <rect x="145" y="114" width="150" height="26" fill="rgba(245,158,11,.28)" rx="5"/>
-              <text x="220" y="131" text-anchor="middle" fill="#fbbf24" font-size="12" font-weight="700" font-family="Archivo,sans-serif">1.3×</text>
-              <rect x="295" y="114" width="150" height="26" fill="rgba(239,68,68,.25)" rx="5"/>
-              <text x="370" y="131" text-anchor="middle" fill="#f87171" font-size="12" font-weight="700" font-family="Archivo,sans-serif">0.4×</text>
-              <rect x="445" y="114" width="150" height="26" fill="rgba(245,158,11,.28)" rx="5"/>
-              <text x="520" y="131" text-anchor="middle" fill="#fbbf24" font-size="12" font-weight="700" font-family="Archivo,sans-serif">6 %</text>
-              <!-- Row 2020 y=146 (COVID boom) -->
-              <text x="60" y="163" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11" font-family="Archivo,sans-serif">2020</text>
-              <rect x="145" y="146" width="150" height="26" fill="rgba(16,185,129,.45)" rx="5"/>
-              <text x="220" y="163" text-anchor="middle" fill="#34d399" font-size="13" font-weight="700" font-family="Archivo,sans-serif">2.2×</text>
-              <rect x="295" y="146" width="150" height="26" fill="rgba(239,68,68,.22)" rx="5"/>
-              <text x="370" y="163" text-anchor="middle" fill="#f87171" font-size="12" font-weight="700" font-family="Archivo,sans-serif">0.7×</text>
-              <rect x="445" y="146" width="150" height="26" fill="rgba(16,185,129,.45)" rx="5"/>
-              <text x="520" y="163" text-anchor="middle" fill="#34d399" font-size="13" font-weight="700" font-family="Archivo,sans-serif">21 %</text>
-              <!-- Row 2021 y=178 (bulle) -->
-              <text x="60" y="195" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11" font-family="Archivo,sans-serif">2021</text>
-              <rect x="145" y="178" width="150" height="26" fill="rgba(239,68,68,.25)" rx="5"/>
-              <text x="220" y="195" text-anchor="middle" fill="#f87171" font-size="12" font-weight="700" font-family="Archivo,sans-serif">1.1×</text>
-              <rect x="295" y="178" width="150" height="26" fill="rgba(239,68,68,.25)" rx="5"/>
-              <text x="370" y="195" text-anchor="middle" fill="#f87171" font-size="12" font-weight="700" font-family="Archivo,sans-serif">0.1×</text>
-              <rect x="445" y="178" width="150" height="26" fill="rgba(239,68,68,.25)" rx="5"/>
-              <text x="520" y="195" text-anchor="middle" fill="#f87171" font-size="12" font-weight="700" font-family="Archivo,sans-serif">3 %</text>
-              <!-- Row 2022 y=210 (trop tôt) -->
-              <text x="60" y="227" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11" font-family="Archivo,sans-serif">2022</text>
-              <rect x="145" y="210" width="150" height="26" fill="rgba(239,68,68,.3)" rx="5"/>
-              <text x="220" y="227" text-anchor="middle" fill="#f87171" font-size="12" font-weight="700" font-family="Archivo,sans-serif">0.9×</text>
-              <rect x="295" y="210" width="150" height="26" fill="rgba(239,68,68,.3)" rx="5"/>
-              <text x="370" y="227" text-anchor="middle" fill="#f87171" font-size="12" font-weight="700" font-family="Archivo,sans-serif">0.0×</text>
-              <rect x="445" y="210" width="150" height="26" fill="rgba(239,68,68,.3)" rx="5"/>
-              <text x="520" y="227" text-anchor="middle" fill="#f87171" font-size="12" font-weight="700" font-family="Archivo,sans-serif">−4 %</text>
-            </svg>
-            <p class="card-note">Les millésimes 2017 et 2020 sont les plus performants ; 2021–2022 (période de bulle et de correction) affichent des résultats décevants — le timing d'entrée dans un fonds a un impact significatif.</p>
-            <div class="card-src">Preqin / PitchBook — médianes des fonds seed fermés par millésime, Europe (2024)</div>
           </div>
 
           <!-- Concentration valeur portefeuille -->
