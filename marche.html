@@ -34,12 +34,18 @@
       .sec-h { font-size:clamp(1.3rem,2.5vw,1.75rem); font-weight:700; letter-spacing:-.015em; line-height:1.2; margin-bottom:10px; color:#080c14; }
       .sec-p { font-size:.97rem; color:#080c14; line-height:1.75; max-width:600px; margin-bottom:22px; }
       .sec-p strong { color:#080c14; }
-      /* Cards */
-      .card { background:#000; border:1px solid rgba(255,255,255,.1); border-radius:18px; padding:36px 64px; overflow:hidden; color:#fff; }
-      .card svg { width:100%; height:auto; display:block; }
-      .card-lbl { font-size:1.25rem; font-weight:800; color:#fff; margin-bottom:18px; letter-spacing:-.01em; }
-      .card-src { font-size:.72rem; color:rgba(255,255,255,.35); margin-top:12px; font-style:italic; }
-      .card-note { font-size:.97rem; color:#fff; margin:10px 0 0; line-height:1.7; }
+      /* Cards — intégrés dans la page par défaut */
+      .card { background:transparent; border:none; border-top:1px solid rgba(0,0,0,.08); border-radius:0; padding:40px 0; overflow:visible; color:#080c14; }
+      .card svg { background:#0d1117; border-radius:12px; width:100%; height:auto; display:block; }
+      .card-lbl { font-size:1.15rem; font-weight:800; color:#080c14; margin-bottom:14px; letter-spacing:-.01em; }
+      .card-src { font-size:.72rem; color:rgba(0,0,0,.35); margin-top:12px; font-style:italic; }
+      .card-note { font-size:.97rem; color:#080c14; margin:14px 0 0; line-height:1.7; }
+      /* Cartes featured — bulles noires */
+      .card.featured { background:#000; border:1px solid rgba(255,255,255,.1); border-radius:18px; padding:36px 64px; overflow:hidden; color:#fff; }
+      .card.featured svg { background:transparent; border-radius:0; }
+      .card.featured .card-lbl { font-size:1.25rem; color:#fff; }
+      .card.featured .card-src { color:rgba(255,255,255,.35); }
+      .card.featured .card-note { color:#fff; }
       /* Grids */
       .g2 { display:grid; grid-template-columns:1fr; gap:14px; }
       .g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
@@ -124,7 +130,7 @@
           <p class="sec-p">Sur 100 startups seed, <strong>54 perdent de l'argent</strong>. Les 5 qui réussissent vraiment génèrent à elles seules la moitié de toute la valeur créée.</p>
 
           <!-- VISUEL 2 : Barres distribution -->
-          <div class="card" style="margin-bottom:14px;">
+          <div class="card featured" style="margin-bottom:14px;">
             <div class="card-lbl">Sur 100 startups seed financées — que se passe-t-il ?</div>
             <!-- ViewBox 720×280 · 5 barres · centres: 96,216,336,456,624 · largeur 100px
                  Y: y=240=0%, y=30=35% → 210px/35% → 6px/%
@@ -366,7 +372,7 @@
             </div>
 
             <!-- Médiane vs espérance selon portefeuille -->
-            <div class="card">
+            <div class="card featured">
               <div class="card-lbl">Médiane vs espérance — l'asymétrie de la distribution</div>
               <!-- ViewBox 560×240
                    2 lignes : espérance (constante ~1.7×) et médiane (croît avec N)
@@ -430,7 +436,7 @@
           <p class="sec-p">C'est normal et prévisible — ça s'appelle la courbe en J. <strong>Il faut attendre 7 à 10 ans</strong> avant de voir les premiers remboursements significatifs.</p>
 
           <!-- VISUEL 6 : J-curve principale -->
-          <div class="card" style="margin-bottom:14px;">
+          <div class="card featured" style="margin-bottom:14px;">
             <div class="card-lbl">Simulation : 1 000 € investis dans une startup seed</div>
             <!-- ViewBox 680×260
                  X: an 0→12, x=60+an*48.3
@@ -478,7 +484,7 @@
           </div>
 
           <!-- VISUEL 7 : 3 mini scénarios côte à côte -->
-          <div class="card" style="margin-bottom:14px;">
+          <div class="card featured" style="margin-bottom:14px;">
             <div class="card-lbl">Les 3 scénarios possibles pour votre investissement</div>
             <!-- 3 panels · ViewBox 660×160
                  Panel 1 x:20→220 (Échec)
@@ -768,7 +774,7 @@
           <p class="sec-p">Un portefeuille de <strong>15+ startups seed</strong> bat historiquement la bourse sur 10 ans — mais uniquement si l'on diversifie suffisamment.</p>
 
           <!-- VISUEL 11 : Risque-rendement scatter -->
-          <div class="card">
+          <div class="card featured">
             <div class="card-lbl">Risque vs rendement — positionnement des classes d'actifs</div>
             <!-- ViewBox 660×200
                  X: risque faible→élevé : x=60→600
