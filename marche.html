@@ -37,7 +37,14 @@
       /* Cards — tous intégrés dans la page */
       .card { background:transparent; border:none; border-top:2px solid rgba(0,0,0,.07); border-radius:0; padding:64px 0 48px; overflow:visible; color:#080c14; }
       .card svg { background:rgba(8,12,20,.05); border-radius:14px; width:100%; height:auto; display:block; filter:saturate(2) brightness(1.06); padding:20px 22px; }
-      .card svg text[fill^="rgba(255"], .card svg text[fill="#fff"] { fill: rgba(8,12,20,.7); }
+      .card svg text[fill^="rgba(255"], .card svg text[fill="#fff"] { fill: rgba(8,12,20,.92); }
+      /* Textes colorés des graphiques : palette pastel (dark mode) → tons 700 foncés pour contraste sur fond clair */
+      .card svg text[fill="#34d399"], .card svg text[fill="#10b981"], .card svg text[fill^="rgba(16,185,129"], .card svg text[fill^="rgba(52,211,153"] { fill: #047857; }
+      .card svg text[fill^="rgba(20,184,166"] { fill: #0f766e; }
+      .card svg text[fill="#60a5fa"], .card svg text[fill="#93c5fd"], .card svg text[fill="#3b82f6"], .card svg text[fill^="rgba(59,130,246"], .card svg text[fill^="rgba(96,165,250"] { fill: #1d4ed8; }
+      .card svg text[fill="#fbbf24"], .card svg text[fill="#f59e0b"], .card svg text[fill^="rgba(245,158,11"] { fill: #b45309; }
+      .card svg text[fill="#f87171"], .card svg text[fill="#dc2626"], .card svg text[fill^="rgba(239,68,68"] { fill: #b91c1c; }
+      .card svg text[fill="#c4b5fd"], .card svg text[fill="#a78bfa"], .card svg text[fill^="rgba(167,139,250"] { fill: #6d28d9; }
       .card svg line[stroke^="rgba(255"], .card svg path[stroke^="rgba(255"] { stroke: rgba(8,12,20,.18); }
       .card svg rect[fill^="rgba(255"] { fill: rgba(8,12,20,.1); }
       .card svg path[fill^="rgba(255"] { fill: rgba(8,12,20,.25); }
@@ -45,7 +52,7 @@
       .card svg circle[fill^="rgba(255"] { fill: rgba(8,12,20,.45); }
       .card svg line, .card svg path[fill="none"] { stroke-opacity: .85; }
       .card-lbl { font-size:1.45rem; font-weight:800; color:#080c14; margin-bottom:16px; letter-spacing:-.015em; }
-      .card-src { font-size:.78rem; color:rgba(0,0,0,.3); margin-top:10px; font-style:italic; }
+      .card-src { font-size:.78rem; color:rgba(0,0,0,.55); margin-top:10px; font-style:italic; }
       .card-note { font-size:1.2rem; color:#080c14; margin:18px 0 0; line-height:1.7; }
       /* Grids */
       .g2 { display:grid; grid-template-columns:1fr; gap:32px; }
@@ -1035,51 +1042,51 @@
           <!-- Impact des frais 2+20 : Brut vs Net -->
           <div class="card" style="margin-top:14px;">
             <div class="card-lbl">Structure de frais 2+20 — impact sur l'IRR net LP</div>
-            <!-- ViewBox 620×200 · waterfall horizontal
-                 Scale: 1% = 9px · x_start=150
-                 Brut 20% → end=150+180=330
-                 −Frais gestion 2.5% → 22.5px (from 330 to 307.5)
-                 −Carried interest 4% → 36px (from 307.5 to 271.5)
-                 Net LP 13.5% → 150+121.5=271.5 ✓ -->
-            <svg class="anim-bars-h ch14" viewBox="0 0 620 200" xmlns="http://www.w3.org/2000/svg">
+            <!-- ViewBox 620×262 · waterfall horizontal (pleine largeur)
+                 Scale: 1% = 17px · x_start=130
+                 Brut 20% → end=130+340=470
+                 −Frais gestion 2.5% → 42.5px (from 470 to 427.5)
+                 −Carried interest 4% → 68px (from 427.5 to 359.5)
+                 Net LP 13.5% → 130+229.5=359.5 ✓ -->
+            <svg class="anim-bars-h ch14" viewBox="0 0 620 262" xmlns="http://www.w3.org/2000/svg">
               <!-- Axis -->
-              <line x1="148" y1="20" x2="148" y2="180" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+              <line x1="128" y1="18" x2="128" y2="226" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
               <!-- Row 1: IRR brut fonds -->
-              <text x="142" y="52" text-anchor="end" fill="rgba(255,255,255,.6)" font-size="11" font-family="Archivo,sans-serif">IRR brut fonds</text>
-              <text x="142" y="65" text-anchor="end" fill="rgba(255,255,255,.22)" font-size="9.5" font-family="Archivo,sans-serif">avant frais</text>
-              <rect x="150" y="36" width="180" height="36" fill="rgba(16,185,129,.45)" rx="5"/>
-              <text x="335" y="57" fill="#34d399" font-size="13" font-weight="700" font-family="Archivo,sans-serif">+20 %</text>
+              <text x="122" y="48" text-anchor="end" fill="rgba(255,255,255,.6)" font-size="13" font-family="Archivo,sans-serif">IRR brut fonds</text>
+              <text x="122" y="64" text-anchor="end" fill="rgba(255,255,255,.22)" font-size="11" font-family="Archivo,sans-serif">avant frais</text>
+              <rect x="130" y="28" width="340" height="48" fill="rgba(16,185,129,.45)" rx="6"/>
+              <text x="478" y="58" fill="#34d399" font-size="16" font-weight="700" font-family="Archivo,sans-serif">+20 %</text>
               <!-- Connector -->
-              <path d="M330,54 L330,102" stroke="rgba(255,255,255,.1)" stroke-width="1" stroke-dasharray="3,3" fill="none"/>
+              <path d="M470,52 L470,124" stroke="rgba(255,255,255,.1)" stroke-width="1" stroke-dasharray="3,3" fill="none"/>
               <!-- Row 2: Frais de gestion -->
-              <text x="142" y="107" text-anchor="end" fill="rgba(239,68,68,.7)" font-size="11" font-family="Archivo,sans-serif">− Frais gestion</text>
-              <text x="142" y="120" text-anchor="end" fill="rgba(239,68,68,.4)" font-size="9.5" font-family="Archivo,sans-serif">2 % /an × 10 ans</text>
-              <rect x="307" y="90" width="23" height="36" fill="rgba(239,68,68,.45)" rx="5"/>
-              <text x="335" y="112" fill="#f87171" font-size="11" font-weight="700" font-family="Archivo,sans-serif">−2.5 %</text>
+              <text x="122" y="119" text-anchor="end" fill="rgba(239,68,68,.7)" font-size="13" font-family="Archivo,sans-serif">− Frais gestion</text>
+              <text x="122" y="135" text-anchor="end" fill="rgba(239,68,68,.4)" font-size="11" font-family="Archivo,sans-serif">2 % /an × 10 ans</text>
+              <rect x="427.5" y="100" width="42.5" height="48" fill="rgba(239,68,68,.45)" rx="6"/>
+              <text x="478" y="130" fill="#f87171" font-size="14" font-weight="700" font-family="Archivo,sans-serif">−2.5 %</text>
               <!-- Connector -->
-              <path d="M307,108 L307,152" stroke="rgba(255,255,255,.1)" stroke-width="1" stroke-dasharray="3,3" fill="none"/>
+              <path d="M427.5,124 L427.5,196" stroke="rgba(255,255,255,.1)" stroke-width="1" stroke-dasharray="3,3" fill="none"/>
               <!-- Row 3: Carried interest -->
-              <text x="142" y="158" text-anchor="end" fill="rgba(245,158,11,.7)" font-size="11" font-family="Archivo,sans-serif">− Carried interest</text>
-              <text x="142" y="171" text-anchor="end" fill="rgba(245,158,11,.4)" font-size="9.5" font-family="Archivo,sans-serif">20 % des profits</text>
-              <rect x="271" y="140" width="36" height="36" fill="rgba(245,158,11,.45)" rx="5"/>
-              <text x="312" y="162" fill="#fbbf24" font-size="11" font-weight="700" font-family="Archivo,sans-serif">−4 %</text>
+              <text x="122" y="189" text-anchor="end" fill="rgba(245,158,11,.7)" font-size="13" font-family="Archivo,sans-serif">− Carried interest</text>
+              <text x="122" y="205" text-anchor="end" fill="rgba(245,158,11,.4)" font-size="11" font-family="Archivo,sans-serif">20 % des profits</text>
+              <rect x="359.5" y="170" width="68" height="48" fill="rgba(245,158,11,.45)" rx="6"/>
+              <text x="436" y="200" fill="#fbbf24" font-size="14" font-weight="700" font-family="Archivo,sans-serif">−4 %</text>
               <!-- Result arrow -->
-              <path d="M338,90 L370,90 L370,56" stroke="rgba(255,255,255,.1)" stroke-width="1" fill="none"/>
+              <path d="M482,124 L530,124 L530,60" stroke="rgba(255,255,255,.1)" stroke-width="1" fill="none"/>
               <!-- Row 4 result (inside first bar, annotated) -->
-              <rect x="150" y="36" width="121" height="36" fill="rgba(59,130,246,.6)" rx="5" style="border-radius:5px 0 0 5px;"/>
-              <text x="150" y="52" fill="transparent" font-size="1">.</text>
-              <text x="213" y="52" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="Archivo,sans-serif">Net LP</text>
-              <text x="213" y="65" text-anchor="middle" fill="rgba(255,255,255,.8)" font-size="11" font-family="Archivo,sans-serif">+13.5 %</text>
+              <rect x="130" y="28" width="229.5" height="48" fill="rgba(59,130,246,.6)" rx="6" style="border-radius:6px 0 0 6px;"/>
+              <text x="130" y="48" fill="transparent" font-size="1">.</text>
+              <text x="244" y="48" text-anchor="middle" fill="#fff" font-size="15" font-weight="700" font-family="Archivo,sans-serif">Net LP</text>
+              <text x="244" y="66" text-anchor="middle" fill="rgba(255,255,255,.8)" font-size="13" font-family="Archivo,sans-serif">+13.5 %</text>
               <!-- Separator inside bar -->
-              <line x1="271" y1="36" x2="271" y2="72" stroke="rgba(245,158,11,.6)" stroke-width="1.5"/>
-              <line x1="307" y1="36" x2="307" y2="72" stroke="rgba(239,68,68,.6)" stroke-width="1.5"/>
+              <line x1="359.5" y1="28" x2="359.5" y2="76" stroke="rgba(245,158,11,.6)" stroke-width="1.5"/>
+              <line x1="427.5" y1="28" x2="427.5" y2="76" stroke="rgba(239,68,68,.6)" stroke-width="1.5"/>
               <!-- Légende en dessous -->
-              <rect x="150" y="184" width="14" height="8" rx="2" fill="rgba(59,130,246,.6)"/>
-              <text x="168" y="192" fill="rgba(255,255,255,.4)" font-size="9.5" font-family="Archivo,sans-serif">Net LP (13.5%)</text>
-              <rect x="270" y="184" width="14" height="8" rx="2" fill="rgba(245,158,11,.45)"/>
-              <text x="288" y="192" fill="rgba(255,255,255,.4)" font-size="9.5" font-family="Archivo,sans-serif">Carry (4%)</text>
-              <rect x="360" y="184" width="14" height="8" rx="2" fill="rgba(239,68,68,.45)"/>
-              <text x="378" y="192" fill="rgba(255,255,255,.4)" font-size="9.5" font-family="Archivo,sans-serif">Frais gestion (2.5%)</text>
+              <rect x="130" y="242" width="16" height="10" rx="2" fill="rgba(59,130,246,.6)"/>
+              <text x="151" y="251" fill="rgba(255,255,255,.4)" font-size="11.5" font-family="Archivo,sans-serif">Net LP (13.5%)</text>
+              <rect x="288" y="242" width="16" height="10" rx="2" fill="rgba(245,158,11,.45)"/>
+              <text x="309" y="251" fill="rgba(255,255,255,.4)" font-size="11.5" font-family="Archivo,sans-serif">Carry (4%)</text>
+              <rect x="420" y="242" width="16" height="10" rx="2" fill="rgba(239,68,68,.45)"/>
+              <text x="441" y="251" fill="rgba(255,255,255,.4)" font-size="11.5" font-family="Archivo,sans-serif">Frais gestion (2.5%)</text>
             </svg>
             <p class="card-note">Les frais de gestion et le carried interest réduisent mécaniquement l'IRR brut de ~6.5 points — choisir une plateforme avec des frais raisonnables améliore directement votre rendement net.</p>
             <div class="card-src">Structure standard fonds VC — frais = 2%/an, carried interest = 20% des profits au-dessus du hurdle rate</div>
@@ -1107,7 +1114,7 @@
                  Seed 1 seul: x=540, y=80 (haut risque / haut potentiel)
                  Seed diversifié: x=400, y=70 (risque réduit, haut potentiel)
             -->
-            <svg class="anim-scatter ch15" viewBox="0 0 660 216" xmlns="http://www.w3.org/2000/svg">
+            <svg class="anim-scatter ch15" viewBox="0 0 660 202" xmlns="http://www.w3.org/2000/svg">
               <!-- Axes -->
               <line x1="50" y1="175" x2="630" y2="175" stroke="rgba(255,255,255,.15)" stroke-width="1.5"/>
               <line x1="50" y1="20"  x2="50"  y2="175" stroke="rgba(255,255,255,.15)" stroke-width="1.5"/>
@@ -1128,16 +1135,13 @@
               <text x="270" y="86" text-anchor="middle" fill="#93c5fd" font-size="10.5" font-family="Archivo,sans-serif">S&amp;P 500</text>
               <!-- Seed diversifié -->
               <circle cx="390" cy="68" r="26" fill="rgba(16,185,129,.25)" stroke="#10b981" stroke-width="2"/>
-              <text x="390" y="62" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600" font-family="Archivo,sans-serif">Seed div.</text>
-              <text x="390" y="76" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10" font-family="Archivo,sans-serif">LIQUID+</text>
+              <text x="390" y="34" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600" font-family="Archivo,sans-serif">Seed div.</text>
               <!-- Seed non div -->
               <circle cx="560" cy="52" r="20" fill="rgba(239,68,68,.2)" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4,2"/>
               <text x="560" y="26" text-anchor="middle" fill="#f87171" font-size="10" font-family="Archivo,sans-serif">Seed seul</text>
               <text x="560" y="56" text-anchor="middle" fill="rgba(255,255,255,.25)" font-size="9" font-family="Archivo,sans-serif">(1 startup)</text>
-              <!-- Légende taille des bulles -->
-              <text x="50" y="207" fill="rgba(255,255,255,.18)" font-size="10" font-family="Archivo,sans-serif">La taille des cercles représente le ticket minimum d'investissement typique</text>
             </svg>
-            <p class="card-note">Le seed diversifié (LIQUID+) cumule le meilleur potentiel de rendement de toutes les classes d'actifs pour un niveau de risque comparable à la bourse — la diversification déplace le point vers la gauche.</p>
+            <p class="card-note">Le seed diversifié cumule le meilleur potentiel de rendement de toutes les classes d'actifs pour un niveau de risque comparable à la bourse — la diversification déplace le point vers la gauche.</p>
             <div class="card-src">Cambridge Associates (2024) — données indicatives, rendements nets médians</div>
           </div>
 
@@ -1212,25 +1216,25 @@
                 <line x1="168" y1="14" x2="168" y2="200" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
                 <!-- Livret A (y=25-55) -->
                 <text x="162" y="44" text-anchor="end" fill="rgba(255,255,255,.45)" font-size="11" font-family="Archivo,sans-serif">Livret A</text>
-                <rect x="170" y="26" width="47" height="28" fill="rgba(107,114,128,.5)" rx="4"/>
+                <rect x="170" y="26" width="47" height="28" fill="rgba(107,114,128,.5)" rx="8"/>
                 <text x="222" y="44" fill="rgba(255,255,255,.45)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">+2.5 %</text>
                 <!-- S&P 500 (y=68-98) -->
                 <text x="162" y="87" text-anchor="end" fill="rgba(255,255,255,.5)" font-size="11" font-family="Archivo,sans-serif">S&amp;P 500</text>
-                <rect x="170" y="68" width="47" height="28" fill="rgba(107,114,128,.5)" rx="4" style="border-radius:4px 0 0 4px;"/>
-                <rect x="217" y="68" width="76" height="28" fill="rgba(59,130,246,.5)" rx="0" style="border-radius:0 4px 4px 0;"/>
+                <rect x="170" y="68" width="47" height="28" fill="rgba(107,114,128,.5)" style="clip-path:inset(0 round 8px 0 0 8px);"/>
+                <rect x="217" y="68" width="76" height="28" fill="rgba(59,130,246,.5)" style="clip-path:inset(0 round 0 8px 8px 0);"/>
                 <text x="298" y="87" fill="#93c5fd" font-size="11" font-weight="700" font-family="Archivo,sans-serif">+6.5 %</text>
                 <!-- Immobilier (y=110-140) -->
                 <text x="162" y="129" text-anchor="end" fill="rgba(255,255,255,.5)" font-size="11" font-family="Archivo,sans-serif">Immobilier</text>
-                <rect x="170" y="110" width="47" height="28" fill="rgba(107,114,128,.5)" rx="4" style="border-radius:4px 0 0 4px;"/>
-                <rect x="217" y="110" width="57" height="28" fill="rgba(59,130,246,.4)" rx="0"/>
-                <rect x="274" y="110" width="38" height="28" fill="rgba(20,184,166,.5)" rx="0" style="border-radius:0 4px 4px 0;"/>
+                <rect x="170" y="110" width="47" height="28" fill="rgba(107,114,128,.5)" style="clip-path:inset(0 round 8px 0 0 8px);"/>
+                <rect x="217" y="110" width="57" height="28" fill="rgba(59,130,246,.4)"/>
+                <rect x="274" y="110" width="38" height="28" fill="rgba(20,184,166,.5)" style="clip-path:inset(0 round 0 8px 8px 0);"/>
                 <text x="317" y="129" fill="rgba(255,255,255,.6)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">+7.5 %</text>
                 <!-- VC seed (y=152-182) -->
                 <text x="162" y="170" text-anchor="end" fill="#60a5fa" font-size="11" font-weight="700" font-family="Archivo,sans-serif">VC seed</text>
-                <rect x="170" y="152" width="47" height="28" fill="rgba(107,114,128,.5)" rx="4" style="border-radius:4px 0 0 4px;"/>
-                <rect x="217" y="152" width="95" height="28" fill="rgba(59,130,246,.5)" rx="0"/>
-                <rect x="312" y="152" width="95" height="28" fill="rgba(20,184,166,.55)" rx="0"/>
-                <rect x="407" y="152" width="152" height="28" fill="rgba(16,185,129,.6)" rx="0" style="border-radius:0 4px 4px 0;"/>
+                <rect x="170" y="152" width="47" height="28" fill="rgba(107,114,128,.5)" style="clip-path:inset(0 round 8px 0 0 8px);"/>
+                <rect x="217" y="152" width="95" height="28" fill="rgba(59,130,246,.5)"/>
+                <rect x="312" y="152" width="95" height="28" fill="rgba(20,184,166,.55)"/>
+                <rect x="407" y="152" width="152" height="28" fill="rgba(16,185,129,.6)" style="clip-path:inset(0 round 0 8px 8px 0);"/>
                 <text x="556" y="148" text-anchor="end" fill="#34d399" font-size="12" font-weight="700" font-family="Archivo,sans-serif">+20 %</text>
                 <!-- ILP label -->
                 <text x="359" y="148" text-anchor="middle" fill="rgba(20,184,166,.7)" font-size="9.5" font-family="Archivo,sans-serif">ILP</text>
@@ -1313,15 +1317,15 @@
                 <text x="96" y="138" text-anchor="end" fill="rgba(255,255,255,.45)" font-size="11" font-family="Archivo,sans-serif">Médiane</text>
                 <!-- Top quartile bar (y=46→82) -->
                 <!-- rf 2% → w=26 -->
-                <rect x="100" y="46" width="26" height="36" fill="rgba(107,114,128,.5)" rx="3" style="border-radius:3px 0 0 3px;"/>
+                <rect x="100" y="46" width="26" height="36" fill="rgba(107,114,128,.5)" style="clip-path:inset(0 round 9px 0 0 9px);"/>
                 <!-- MKT 4% → w=52 -->
-                <rect x="126" y="46" width="52" height="36" fill="rgba(59,130,246,.5)" rx="0"/>
+                <rect x="126" y="46" width="52" height="36" fill="rgba(59,130,246,.5)"/>
                 <!-- SMB 2% → w=26 -->
-                <rect x="178" y="46" width="26" height="36" fill="rgba(139,92,246,.5)" rx="0"/>
+                <rect x="178" y="46" width="26" height="36" fill="rgba(139,92,246,.5)"/>
                 <!-- ILP 4% → w=52 -->
-                <rect x="204" y="46" width="52" height="36" fill="rgba(20,184,166,.5)" rx="0"/>
+                <rect x="204" y="46" width="52" height="36" fill="rgba(20,184,166,.5)"/>
                 <!-- alpha 18% → w=234 -->
-                <rect x="256" y="46" width="234" height="36" fill="rgba(16,185,129,.65)" rx="3" style="border-radius:0 3px 3px 0;"/>
+                <rect x="256" y="46" width="234" height="36" fill="rgba(16,185,129,.65)" style="clip-path:inset(0 round 0 9px 9px 0);"/>
                 <!-- IRR label -->
                 <text x="494" y="58" fill="#34d399" font-size="11" font-weight="700" font-family="Archivo,sans-serif">IRR</text>
                 <text x="494" y="72" fill="#34d399" font-size="13" font-weight="700" font-family="Archivo,sans-serif">+30%</text>
@@ -1329,15 +1333,15 @@
                 <text x="373" y="69" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Archivo,sans-serif">α = +18 %</text>
                 <!-- Median bar (y=116→152) -->
                 <!-- rf 2% -->
-                <rect x="100" y="116" width="26" height="36" fill="rgba(107,114,128,.4)" rx="3" style="border-radius:3px 0 0 3px;"/>
+                <rect x="100" y="116" width="26" height="36" fill="rgba(107,114,128,.4)" style="clip-path:inset(0 round 9px 0 0 9px);"/>
                 <!-- MKT 4% -->
-                <rect x="126" y="116" width="52" height="36" fill="rgba(59,130,246,.35)" rx="0"/>
+                <rect x="126" y="116" width="52" height="36" fill="rgba(59,130,246,.35)"/>
                 <!-- SMB 2% -->
-                <rect x="178" y="116" width="26" height="36" fill="rgba(139,92,246,.35)" rx="0"/>
+                <rect x="178" y="116" width="26" height="36" fill="rgba(139,92,246,.35)"/>
                 <!-- ILP 2% → w=26 -->
-                <rect x="204" y="116" width="26" height="36" fill="rgba(20,184,166,.35)" rx="0"/>
+                <rect x="204" y="116" width="26" height="36" fill="rgba(20,184,166,.35)"/>
                 <!-- alpha 4% → w=52 -->
-                <rect x="230" y="116" width="52" height="36" fill="rgba(16,185,129,.4)" rx="3" style="border-radius:0 3px 3px 0;"/>
+                <rect x="230" y="116" width="52" height="36" fill="rgba(16,185,129,.4)" style="clip-path:inset(0 round 0 9px 9px 0);"/>
                 <!-- IRR label -->
                 <text x="290" y="128" fill="rgba(255,255,255,.5)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">IRR +14%</text>
                 <text x="290" y="144" fill="rgba(16,185,129,.55)" font-size="10" font-family="Archivo,sans-serif">α = +4 %</text>
@@ -1366,7 +1370,7 @@
         <!-- ═══════════════════════════════════════════════ -->
         <section class="sec">
           <h2 class="sec-h">Le seed : le stade où les multiples sont les plus hauts</h2>
-          <p class="sec-p">Plus on entre tôt, plus la valorisation est basse — et plus le multiple potentiel est grand.</p>
+          <p class="sec-p" style="max-width:none; white-space:nowrap;">Plus on entre tôt, plus la valorisation est basse — et plus le multiple potentiel est grand.</p>
 
           <!-- VISUEL 12 : Barres horizontales stades -->
           <div class="card" style="margin-bottom:14px;">
@@ -1501,7 +1505,7 @@
                 <text x="322" y="234" text-anchor="middle" fill="rgba(255,255,255,.25)" font-size="9.5" font-family="Archivo,sans-serif">9-10</text>
                 <text x="386" y="234" text-anchor="middle" fill="rgba(255,255,255,.25)" font-size="9.5" font-family="Archivo,sans-serif">11-12</text>
                 <text x="450" y="234" text-anchor="middle" fill="rgba(255,255,255,.25)" font-size="9.5" font-family="Archivo,sans-serif">13+</text>
-                <text x="280" y="14" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">années</text>
+                <text x="280" y="14" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">Années</text>
               </svg>
               <p class="card-note">La grande majorité des exits intervient entre 5 et 8 ans après l'investissement initial — planifier un horizon de 7–10 ans est donc à la fois réaliste et nécessaire.</p>
               <div class="card-src">Beauhurst / PitchBook — 3 200 exits VC seed 2005–2023</div>
@@ -1519,7 +1523,7 @@
                    Série A 30%: w=280 x=100
                    Série B 11%: w=180 x=150
                    Exit sign. 4%: w=100 x=190 -->
-              <svg class="anim-funnel ch23" viewBox="0 0 480 210" xmlns="http://www.w3.org/2000/svg">
+              <svg class="anim-funnel ch23" viewBox="0 0 500 210" xmlns="http://www.w3.org/2000/svg">
                 <!-- Level 1 Seed -->
                 <rect x="30" y="10" width="420" height="34" fill="rgba(59,130,246,.18)" rx="6"/>
                 <text x="240" y="32" text-anchor="middle" fill="rgba(59,130,246,.9)" font-size="12" font-weight="600" font-family="Archivo,sans-serif">100 seed financées</text>
@@ -1557,7 +1561,7 @@
                    A→B 36%: w=288
                    B→Exit 38%: w=304 -->
               <svg class="anim-bars-h ch24" viewBox="0 0 565 210" xmlns="http://www.w3.org/2000/svg">
-                <line x1="218" y1="20" x2="218" y2="190" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+                <line x1="218" y1="52" x2="218" y2="203" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
                 <!-- Bar 1: Seed → A -->
                 <text x="212" y="68" text-anchor="end" fill="rgba(255,255,255,.55)" font-size="11" font-family="Archivo,sans-serif">Seed → A</text>
                 <text x="212" y="82" text-anchor="end" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">si seed financé</text>
@@ -1574,7 +1578,7 @@
                 <rect x="220" y="167" width="304" height="36" fill="rgba(52,211,153,.45)" rx="5"/>
                 <text x="532" y="189" fill="#34d399" font-size="13" font-weight="700" font-family="Archivo,sans-serif">38%</text>
                 <!-- Note -->
-                <text x="240" y="18" text-anchor="middle" fill="rgba(255,255,255,.18)" font-size="10" font-family="Archivo,sans-serif">probabilité conditionnelle</text>
+                <text x="240" y="18" text-anchor="middle" fill="rgba(255,255,255,.18)" font-size="10" font-family="Archivo,sans-serif">Probabilité conditionnelle</text>
               </svg>
               <p class="card-note">Les probabilités de passer au stade suivant s'améliorent à chaque étape : une startup qui a levé une Série B a 38 % de chances d'aboutir à une sortie significative.</p>
               <div class="card-src">Startup Genome / Dealroom — données Europe 2015–2023</div>
@@ -1592,19 +1596,19 @@
                 <linearGradient id="lp1" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#3b82f6" stop-opacity=".7"/><stop offset="100%" stop-color="#10b981" stop-opacity=".65"/></linearGradient>
               </defs>
               <!-- Barre LP (80%) -->
-              <rect x="20" y="20" width="464" height="44" fill="url(#lp1)" rx="6" style="border-radius:6px 0 0 6px;"/>
+              <rect x="20" y="20" width="464" height="44" fill="url(#lp1)" style="clip-path:inset(0 round 10px 0 0 10px);"/>
               <text x="252" y="39" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="Archivo,sans-serif">Investisseur LP</text>
               <text x="252" y="55" text-anchor="middle" fill="rgba(255,255,255,.8)" font-size="11" font-family="Archivo,sans-serif">22 400 € · 80 %</text>
               <!-- Séparateur -->
               <line x1="484" y1="20" x2="484" y2="64" stroke="rgba(0,0,0,.3)" stroke-width="1.5"/>
               <!-- Barre GP carry (12.9%) -->
-              <rect x="484" y="20" width="75" height="44" fill="rgba(245,158,11,.55)" rx="0"/>
+              <rect x="484" y="20" width="75" height="44" fill="rgba(245,158,11,.55)"/>
               <text x="521" y="39" text-anchor="middle" fill="#fff" font-size="10" font-weight="600" font-family="Archivo,sans-serif">GP Carry</text>
               <text x="521" y="53" text-anchor="middle" fill="rgba(255,255,255,.8)" font-size="9.5" font-family="Archivo,sans-serif">3 600 € · 13 %</text>
               <!-- Séparateur -->
               <line x1="559" y1="20" x2="559" y2="64" stroke="rgba(0,0,0,.3)" stroke-width="1.5"/>
               <!-- Frais gestion (7.1%) -->
-              <rect x="559" y="20" width="41" height="44" fill="rgba(107,114,128,.45)" rx="6" style="border-radius:0 6px 6px 0;"/>
+              <rect x="559" y="20" width="41" height="44" fill="rgba(107,114,128,.45)" style="clip-path:inset(0 round 0 10px 10px 0);"/>
               <text x="579" y="39" text-anchor="middle" fill="rgba(255,255,255,.7)" font-size="9.5" font-weight="600" font-family="Archivo,sans-serif">Frais</text>
               <text x="579" y="52" text-anchor="middle" fill="rgba(255,255,255,.6)" font-size="9" font-family="Archivo,sans-serif">2 000 €</text>
               <!-- Source info -->
@@ -1627,59 +1631,28 @@
             <svg class="anim-funnel ch26" viewBox="0 0 500 190" xmlns="http://www.w3.org/2000/svg">
               <!-- Level 1 -->
               <rect x="40"  y="10" width="420" height="34" fill="rgba(255,255,255,.06)" rx="6"/>
-              <text x="250" y="32" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="12" font-weight="600" font-family="Archivo,sans-serif">1 000 startups candidatent</text>
-              <text x="464" y="32" fill="rgba(255,255,255,.2)" font-size="10.5" font-family="Archivo,sans-serif">100%</text>
+              <text x="250" y="31" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="10" font-weight="600" font-family="Archivo,sans-serif">1 000 startups candidatent</text>
+              <text x="464" y="31" fill="rgba(255,255,255,.2)" font-size="9" font-family="Archivo,sans-serif">100%</text>
               <!-- Flèche -->
               <path d="M250,46 L250,54 M244,50 L250,56 L256,50" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="1.5" stroke-linejoin="round"/>
               <!-- Level 2 -->
               <rect x="110" y="58" width="280" height="34" fill="rgba(59,130,246,.12)" rx="6"/>
-              <text x="250" y="80" text-anchor="middle" fill="rgba(59,130,246,.8)" font-size="12" font-weight="600" font-family="Archivo,sans-serif">100 passent la sélection initiale</text>
-              <text x="394" y="80" fill="rgba(59,130,246,.5)" font-size="10.5" font-family="Archivo,sans-serif">10%</text>
+              <text x="250" y="79" text-anchor="middle" fill="rgba(59,130,246,.8)" font-size="10" font-weight="600" font-family="Archivo,sans-serif">100 passent la sélection initiale</text>
+              <text x="394" y="79" fill="rgba(59,130,246,.5)" font-size="9" font-family="Archivo,sans-serif">10%</text>
               <!-- Flèche -->
               <path d="M250,94 L250,102 M244,98 L250,104 L256,98" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="1.5" stroke-linejoin="round"/>
               <!-- Level 3 -->
               <rect x="170" y="106" width="160" height="34" fill="rgba(59,130,246,.2)" rx="6"/>
-              <text x="250" y="128" text-anchor="middle" fill="rgba(59,130,246,.9)" font-size="12" font-weight="600" font-family="Archivo,sans-serif">10 analysées en détail</text>
-              <text x="334" y="128" fill="rgba(59,130,246,.6)" font-size="10.5" font-family="Archivo,sans-serif">1%</text>
+              <text x="250" y="127" text-anchor="middle" fill="rgba(59,130,246,.9)" font-size="10" font-weight="600" font-family="Archivo,sans-serif">10 analysées en détail</text>
+              <text x="334" y="127" fill="rgba(59,130,246,.6)" font-size="9" font-family="Archivo,sans-serif">1%</text>
               <!-- Flèche -->
               <path d="M250,142 L250,150 M244,146 L250,152 L256,146" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="1.5" stroke-linejoin="round"/>
               <!-- Level 4 -->
               <rect x="210" y="154" width="80" height="34" fill="rgba(59,130,246,.55)" rx="6"/>
-              <text x="250" y="176" text-anchor="middle" fill="#fff" font-size="12" font-weight="700" font-family="Archivo,sans-serif">1 sur LIQUID+</text>
-              <text x="294" y="176" fill="#60a5fa" font-size="10.5" font-weight="700" font-family="Archivo,sans-serif">0.1%</text>
+              <text x="250" y="175" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" font-family="Archivo,sans-serif">1 sur LIQUID+</text>
+              <text x="294" y="175" fill="#60a5fa" font-size="9" font-weight="700" font-family="Archivo,sans-serif">0.1%</text>
             </svg>
             <p class="card-note">LIQUID+ ne présente à ses membres qu'1 startup sur 1 000 candidates — ce filtre extrême est la première ligne de protection contre les mauvais investissements.</p>
-          </div>
-        </section>
-
-        <hr class="div"/>
-
-        <!-- ═══════════════════════════════════════════════ -->
-        <!-- 05 · LES 4 RÈGLES                              -->
-        <!-- ═══════════════════════════════════════════════ -->
-        <section class="sec">
-          <h2 class="sec-h">4 règles pour investir en seed</h2>
-          <div class="rules">
-            <div class="rule">
-              <div class="rule-n" style="color:#60a5fa">1</div>
-              <div class="rule-t">Investir dans 10+ startups</div>
-              <div class="rule-d">Un seul investissement seed est un pari. Dix, c'est une stratégie.</div>
-            </div>
-            <div class="rule">
-              <div class="rule-n" style="color:#34d399">2</div>
-              <div class="rule-t">Bloquer l'argent 7–10 ans</div>
-              <div class="rule-d">N'investissez que de l'argent dont vous n'avez pas besoin à court terme.</div>
-            </div>
-            <div class="rule">
-              <div class="rule-n" style="color:#fbbf24">3</div>
-              <div class="rule-t">Max 5–10% de son épargne</div>
-              <div class="rule-d">Le reste doit rester dans des placements plus sûrs (bourse, immobilier).</div>
-            </div>
-            <div class="rule">
-              <div class="rule-n" style="color:#c4b5fd">4</div>
-              <div class="rule-t">Miser sur l'équipe</div>
-              <div class="rule-d">Au seed, le produit change. L'équipe fondatrice, c'est le critère #1.</div>
-            </div>
           </div>
         </section>
 
