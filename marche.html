@@ -45,6 +45,9 @@
       .card svg text[fill="#fbbf24"], .card svg text[fill="#f59e0b"], .card svg text[fill^="rgba(245,158,11"] { fill: #b45309; }
       .card svg text[fill="#f87171"], .card svg text[fill="#dc2626"], .card svg text[fill^="rgba(239,68,68"] { fill: #b91c1c; }
       .card svg text[fill="#c4b5fd"], .card svg text[fill="#a78bfa"], .card svg text[fill^="rgba(167,139,250"] { fill: #6d28d9; }
+      /* Courbes vertes alignées sur la couleur du texte vert */
+      .card svg path[stroke="#10b981"], .card svg polyline[stroke="#10b981"], .card svg line[stroke="#10b981"] { stroke: #047857; }
+      .card svg circle[fill="#10b981"] { fill: #047857; }
       .card svg line[stroke^="rgba(255"], .card svg path[stroke^="rgba(255"] { stroke: rgba(8,12,20,.18); }
       .card svg rect[fill^="rgba(255"] { fill: rgba(8,12,20,.1); }
       .card svg path[fill^="rgba(255"] { fill: rgba(8,12,20,.25); }
@@ -450,7 +453,7 @@
           <div class="hstat"><div class="hstat-n" style="color:#ef4444">54%</div><div class="hstat-d">des startups seed ne remboursent pas</div></div>
           <div class="hstat"><div class="hstat-n" style="color:#60a5fa">×1000</div><div class="hstat-d">multiple possible sur une seule réussite</div></div>
           <div class="hstat"><div class="hstat-n" style="color:#34d399">7–10</div><div class="hstat-d">années pour voir les gains</div></div>
-          <div class="hstat"><div class="hstat-n" style="color:#fbbf24">10+</div><div class="hstat-d">startups minimum pour diversifier</div></div>
+          <div class="hstat"><div class="hstat-n" style="color:#b45309">10+</div><div class="hstat-d">startups minimum pour diversifier</div></div>
         </div>
       </div>
 
@@ -775,9 +778,9 @@
                  2700€ → y=220-153=67 -->
             <svg class="anim-line ch8" viewBox="0 0 680 260" xmlns="http://www.w3.org/2000/svg">
               <!-- Zone gain (vert) -->
-              <path d="M362,163 C390,156 416,148 448,136 C480,122 512,104 544,86 C576,68 608,58 640,52 L640,220 L362,220 Z" fill="rgba(16,185,129,.07)"/>
+              <path d="M362,163 C400,158 430,149 460,138 C492,126 524,108 556,90 C582,74 610,60 640,52 L640,220 L362,220 Z" fill="rgba(16,185,129,.07)"/>
               <!-- Zone perte (rouge) -->
-              <path d="M60,163 C90,166 120,170 152,172 C184,174 214,174 246,172 C278,170 310,166 362,163 L362,220 L60,220 Z" fill="rgba(239,68,68,.05)"/>
+              <path d="M60,163 C84,166 110,170 152,173 C186,175 220,175 246,174 C282,171 318,167 362,163 L362,220 L60,220 Z" fill="rgba(239,68,68,.05)"/>
               <!-- Baseline 1000€ -->
               <line x1="60" y1="163" x2="640" y2="163" stroke="rgba(255,255,255,.12)" stroke-width="1.5" stroke-dasharray="6,4"/>
               <!-- Axes -->
@@ -1077,9 +1080,6 @@
               <text x="130" y="48" fill="transparent" font-size="1">.</text>
               <text x="244" y="48" text-anchor="middle" fill="#fff" font-size="15" font-weight="700" font-family="Archivo,sans-serif">Net LP</text>
               <text x="244" y="66" text-anchor="middle" fill="rgba(255,255,255,.8)" font-size="13" font-family="Archivo,sans-serif">+13.5 %</text>
-              <!-- Separator inside bar -->
-              <line x1="359.5" y1="28" x2="359.5" y2="76" stroke="rgba(245,158,11,.6)" stroke-width="1.5"/>
-              <line x1="427.5" y1="28" x2="427.5" y2="76" stroke="rgba(239,68,68,.6)" stroke-width="1.5"/>
               <!-- Légende en dessous -->
               <rect x="130" y="242" width="16" height="10" rx="2" fill="rgba(59,130,246,.6)"/>
               <text x="151" y="251" fill="rgba(255,255,255,.4)" font-size="11.5" font-family="Archivo,sans-serif">Net LP (13.5%)</text>
@@ -1139,7 +1139,6 @@
               <!-- Seed non div -->
               <circle cx="560" cy="52" r="20" fill="rgba(239,68,68,.2)" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4,2"/>
               <text x="560" y="26" text-anchor="middle" fill="#f87171" font-size="10" font-family="Archivo,sans-serif">Seed seul</text>
-              <text x="560" y="56" text-anchor="middle" fill="rgba(255,255,255,.25)" font-size="9" font-family="Archivo,sans-serif">(1 startup)</text>
             </svg>
             <p class="card-note">Le seed diversifié cumule le meilleur potentiel de rendement de toutes les classes d'actifs pour un niveau de risque comparable à la bourse — la diversification déplace le point vers la gauche.</p>
             <div class="card-src">Cambridge Associates (2024) — données indicatives, rendements nets médians</div>
@@ -1700,7 +1699,6 @@
                 <circle cx="560" cy="192" r="4" fill="#3b82f6" fill-opacity=".7"/>
                 <!-- Ligne minimum théorique -->
                 <line x1="60" y1="192" x2="560" y2="192" stroke="rgba(16,185,129,.25)" stroke-width="1" stroke-dasharray="4,3"/>
-                <text x="564" y="195" fill="rgba(16,185,129,.5)" font-size="9.5" font-family="Archivo,sans-serif">min</text>
                 <!-- Annotation N=1 -->
                 <text x="74" y="14" fill="#f87171" font-size="9.5" font-weight="600" font-family="Archivo,sans-serif">1 deal : risque max</text>
                 <!-- Annotation zone recommandée -->
@@ -1751,9 +1749,6 @@
                 <!-- VC seed div: Sharpe 1.05 → w=367.5 -->
                 <text x="142" y="207" text-anchor="end" fill="#60a5fa" font-size="11" font-weight="700" font-family="Archivo,sans-serif">Seed div.</text>
                 <rect x="150" y="186" width="368" height="32" fill="rgba(16,185,129,.5)" rx="5"/>
-                <!-- Badge LIQUID+ -->
-                <rect x="154" y="194" width="60" height="16" rx="3" fill="rgba(255,255,255,.2)"/>
-                <text x="184" y="205" text-anchor="middle" fill="#fff" font-size="8.5" font-weight="700" font-family="Archivo,sans-serif">LIQUID+</text>
                 <text x="524" y="206" fill="#34d399" font-size="12" font-weight="700" font-family="Archivo,sans-serif">1.05</text>
                 <!-- Note -->
                 <text x="280" y="232" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">Sharpe = (rendement moyen − taux sans risque) ÷ volatilité</text>
