@@ -180,7 +180,7 @@
           </div>
 
           <!-- VISUEL 3+4 : 2 donuts côte à côte -->
-          <div class="g2">
+          <div class="g2" style="grid-template-columns:1fr 1fr;">
             <!-- Donut A : qui perd vs qui gagne -->
             <div class="card">
               <div class="card-lbl">Répartition des startups (sur 100)</div>
@@ -200,9 +200,9 @@
                 <text x="120" y="120" text-anchor="middle" fill="rgba(255,255,255,.35)" font-size="11" font-family="Archivo,sans-serif">startups</text>
                 <!-- Légende -->
                 <rect x="20" y="188" width="12" height="12" rx="3" fill="#ef4444" fill-opacity=".75"/>
-                <text x="36" y="199" fill="rgba(255,255,255,.55)" font-size="12" font-family="Archivo,sans-serif">54 perdent de l'argent</text>
+                <text x="36" y="199" fill="rgba(255,255,255,.55)" font-size="9.5" font-family="Archivo,sans-serif">54 perdent de l'argent</text>
                 <rect x="20" y="205" width="12" height="12" rx="3" fill="#10b981" fill-opacity=".7"/>
-                <text x="36" y="216" fill="rgba(255,255,255,.55)" font-size="12" font-family="Archivo,sans-serif">46 remboursent ou plus</text>
+                <text x="36" y="216" fill="rgba(255,255,255,.55)" font-size="9.5" font-family="Archivo,sans-serif">46 remboursent ou plus</text>
               </svg>
             </div>
 
@@ -224,9 +224,9 @@
                 <text x="120" y="122" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10.5" font-family="Archivo,sans-serif">valeur créée</text>
                 <!-- Légende -->
                 <rect x="20" y="188" width="12" height="12" rx="3" fill="#3b82f6" fill-opacity=".8"/>
-                <text x="36" y="199" fill="rgba(255,255,255,.55)" font-size="12" font-family="Archivo,sans-serif">5 startups jackpot = 50%</text>
+                <text x="36" y="199" fill="rgba(255,255,255,.55)" font-size="9.5" font-family="Archivo,sans-serif">5 startups jackpot = 50%</text>
                 <rect x="20" y="205" width="12" height="12" rx="3" fill="rgba(255,255,255,.15)"/>
-                <text x="36" y="216" fill="rgba(255,255,255,.55)" font-size="12" font-family="Archivo,sans-serif">95 autres startups = 50%</text>
+                <text x="36" y="216" fill="rgba(255,255,255,.55)" font-size="9.5" font-family="Archivo,sans-serif">95 autres startups = 50%</text>
               </svg>
             </div>
           </div>
@@ -235,48 +235,48 @@
           <div class="card" style="margin-top:14px;">
             <div class="card-lbl">Visualisation d'un portefeuille de 20 startups seed</div>
             <!-- 4 rangées × 5 colonnes = 20 cercles
-                 Cols cx: 50,108,166,224,282 · Rows cy: 44,94,144,194
-                 Mapping: pos 0-10=rouge(11), pos 11-14=jaune(4), pos 15-18=vert(4), pos 19=bleu jackpot(1) -->
-            <svg viewBox="0 0 340 240" xmlns="http://www.w3.org/2000/svg">
+                 Cols cx: 44,96,148,200,252 · Rows cy: 36,82,128,174
+                 r=10 (jackpot r=13), labels x=272 -->
+            <svg viewBox="0 0 340 200" style="max-width:340px; display:block; margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
               <!-- Row 0 : pos 0-4 → rouge -->
-              <circle cx="50"  cy="44" r="14" fill="#ef4444" fill-opacity=".7"/>
-              <circle cx="108" cy="44" r="14" fill="#ef4444" fill-opacity=".7"/>
-              <circle cx="166" cy="44" r="14" fill="#ef4444" fill-opacity=".7"/>
-              <circle cx="224" cy="44" r="14" fill="#ef4444" fill-opacity=".7"/>
-              <circle cx="282" cy="44" r="14" fill="#ef4444" fill-opacity=".7"/>
+              <circle cx="44"  cy="36" r="10" fill="#ef4444" fill-opacity=".7"/>
+              <circle cx="96"  cy="36" r="10" fill="#ef4444" fill-opacity=".7"/>
+              <circle cx="148" cy="36" r="10" fill="#ef4444" fill-opacity=".7"/>
+              <circle cx="200" cy="36" r="10" fill="#ef4444" fill-opacity=".7"/>
+              <circle cx="252" cy="36" r="10" fill="#ef4444" fill-opacity=".7"/>
               <!-- Row 1 : pos 5-9 → rouge -->
-              <circle cx="50"  cy="96" r="14" fill="#ef4444" fill-opacity=".7"/>
-              <circle cx="108" cy="96" r="14" fill="#ef4444" fill-opacity=".7"/>
-              <circle cx="166" cy="96" r="14" fill="#ef4444" fill-opacity=".7"/>
-              <circle cx="224" cy="96" r="14" fill="#ef4444" fill-opacity=".7"/>
-              <circle cx="282" cy="96" r="14" fill="#ef4444" fill-opacity=".7"/>
+              <circle cx="44"  cy="82" r="10" fill="#ef4444" fill-opacity=".7"/>
+              <circle cx="96"  cy="82" r="10" fill="#ef4444" fill-opacity=".7"/>
+              <circle cx="148" cy="82" r="10" fill="#ef4444" fill-opacity=".7"/>
+              <circle cx="200" cy="82" r="10" fill="#ef4444" fill-opacity=".7"/>
+              <circle cx="252" cy="82" r="10" fill="#ef4444" fill-opacity=".7"/>
               <!-- Row 2 : pos 10=rouge · 11-14=jaune -->
-              <circle cx="50"  cy="148" r="14" fill="#ef4444" fill-opacity=".7"/>
-              <circle cx="108" cy="148" r="14" fill="#f59e0b" fill-opacity=".75"/>
-              <circle cx="166" cy="148" r="14" fill="#f59e0b" fill-opacity=".75"/>
-              <circle cx="224" cy="148" r="14" fill="#f59e0b" fill-opacity=".75"/>
-              <circle cx="282" cy="148" r="14" fill="#f59e0b" fill-opacity=".75"/>
-              <!-- Row 3 : pos 15-18=vert · 19=bleu jackpot (r=18) -->
-              <circle cx="50"  cy="200" r="14" fill="#10b981" fill-opacity=".75"/>
-              <circle cx="108" cy="200" r="14" fill="#10b981" fill-opacity=".75"/>
-              <circle cx="166" cy="200" r="14" fill="#10b981" fill-opacity=".75"/>
-              <circle cx="224" cy="200" r="14" fill="#10b981" fill-opacity=".75"/>
-              <circle cx="282" cy="200" r="18" fill="#3b82f6" fill-opacity=".9"/>
+              <circle cx="44"  cy="128" r="10" fill="#ef4444" fill-opacity=".7"/>
+              <circle cx="96"  cy="128" r="10" fill="#f59e0b" fill-opacity=".75"/>
+              <circle cx="148" cy="128" r="10" fill="#f59e0b" fill-opacity=".75"/>
+              <circle cx="200" cy="128" r="10" fill="#f59e0b" fill-opacity=".75"/>
+              <circle cx="252" cy="128" r="10" fill="#f59e0b" fill-opacity=".75"/>
+              <!-- Row 3 : pos 15-18=vert · 19=bleu jackpot (r=13) -->
+              <circle cx="44"  cy="174" r="10" fill="#10b981" fill-opacity=".75"/>
+              <circle cx="96"  cy="174" r="10" fill="#10b981" fill-opacity=".75"/>
+              <circle cx="148" cy="174" r="10" fill="#10b981" fill-opacity=".75"/>
+              <circle cx="200" cy="174" r="10" fill="#10b981" fill-opacity=".75"/>
+              <circle cx="252" cy="174" r="13" fill="#3b82f6" fill-opacity=".9"/>
               <!-- Étoile / halo jackpot -->
-              <circle cx="282" cy="200" r="24" fill="none" stroke="#3b82f6" stroke-opacity=".3" stroke-width="2"/>
+              <circle cx="252" cy="174" r="19" fill="none" stroke="#3b82f6" stroke-opacity=".3" stroke-width="2"/>
               <!-- Labels à droite -->
-              <text x="314" y="48"  fill="#f87171" font-size="11" font-family="Archivo,sans-serif" font-weight="600">×11 perdent</text>
-              <text x="314" y="100" fill="#f87171" font-size="11" font-family="Archivo,sans-serif" font-weight="600"></text>
-              <text x="314" y="152" fill="#fbbf24" font-size="11" font-family="Archivo,sans-serif" font-weight="600">×4 équilibre</text>
-              <text x="314" y="196" fill="#34d399" font-size="11" font-family="Archivo,sans-serif" font-weight="600">×4 gagnent</text>
-              <text x="314" y="208" fill="#60a5fa" font-size="11" font-family="Archivo,sans-serif" font-weight="700">×1 jackpot</text>
+              <text x="272" y="40"  fill="#f87171" font-size="10" font-family="Archivo,sans-serif" font-weight="600">×11 perdent</text>
+              <text x="272" y="86"  fill="#f87171" font-size="10" font-family="Archivo,sans-serif" font-weight="600"></text>
+              <text x="272" y="132" fill="#fbbf24" font-size="10" font-family="Archivo,sans-serif" font-weight="600">×4 équilibre</text>
+              <text x="272" y="170" fill="#34d399" font-size="10" font-family="Archivo,sans-serif" font-weight="600">×4 gagnent</text>
+              <text x="272" y="182" fill="#60a5fa" font-size="10" font-family="Archivo,sans-serif" font-weight="700">×1 jackpot</text>
               <!-- Résultat global -->
-              <text x="170" y="226" text-anchor="middle" fill="rgba(255,255,255,.28)" font-size="11" font-family="Archivo,sans-serif">→ Le jackpot seul rembourse les 11 pertes et génère du profit</text>
+              <text x="148" y="196" text-anchor="middle" fill="rgba(255,255,255,.28)" font-size="9" font-family="Archivo,sans-serif">→ Le jackpot seul rembourse les 11 pertes et génère du profit</text>
             </svg>
           </div>
 
           <!-- V6+V7 : Lorenz curve + Exit type donut -->
-          <div class="g2" style="margin-top:14px;">
+          <div class="g2" style="margin-top:14px; grid-template-columns:1fr 1fr;">
             <!-- Courbe de Lorenz -->
             <div class="card">
               <div class="card-lbl">Concentration de valeur — courbe de Lorenz</div>

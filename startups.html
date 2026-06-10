@@ -65,7 +65,21 @@
         align-items: stretch;
       }
       @media (max-width: 1000px) { .startup-grid { grid-template-columns: repeat(2, 1fr); } }
-      @media (max-width: 600px)  { .startup-grid { grid-template-columns: 1fr; } }
+      @media (max-width: 600px)  { .startup-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
+      @media (max-width: 360px)  { .startup-grid { grid-template-columns: 1fr; } }
+
+      @media (max-width: 600px) {
+        .startup-card { padding: 14px; gap: 10px; }
+        .sc-logo { width: 38px; height: 38px; border-radius: 10px; font-size: 1rem; }
+        .sc-name { font-size: 0.9rem; }
+        .sc-tagline { font-size: 0.72rem; }
+        .sc-badge { font-size: 0.62rem; padding: 3px 8px; }
+        .sc-desc { font-size: 0.78rem; }
+        .sc-kpi strong { font-size: 0.82rem; }
+        .sc-kpi span { font-size: 0.58rem; }
+        .sc-kpi { padding: 8px 6px; }
+        .sc-avatar { width: 22px; height: 22px; font-size: 0.58rem; }
+      }
 
       /* ���� Carte startup ���� */
       .startup-card {
