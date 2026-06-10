@@ -702,52 +702,6 @@
               <div class="card-src">Kaplan &amp; Meier estimator — données VC seed européen, Beauhurst (2023)</div>
             </div>
 
-            <!-- IRR quartile ranges -->
-            <div class="card">
-              <div class="card-lbl">Plages d'IRR net par quartile de fonds seed</div>
-              <!-- ViewBox 580×240
-                   X: −50% à +65%, 520px → 4.52px/%
-                   x_zero = 60+50*4.52 = 286
-                   Q1 range [15%,55%] médiane 30%
-                   Q2 range [5%,22%] médiane 13%
-                   Q3 range [−5%,12%] médiane 3%
-                   Q4 range [−42%,−4%] médiane −18% -->
-              <svg viewBox="0 0 580 240" xmlns="http://www.w3.org/2000/svg">
-                <!-- Zero line -->
-                <line x1="286" y1="18" x2="286" y2="225" stroke="rgba(255,255,255,.2)" stroke-width="1.5"/>
-                <text x="286" y="14" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10" font-family="Archivo,sans-serif">0%</text>
-                <!-- X scale labels -->
-                <text x="60" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">−50%</text>
-                <text x="286" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">0%</text>
-                <text x="520" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">+50%</text>
-                <!-- Q1 (top 25%) y=35 -->
-                <text x="52" y="42" text-anchor="end" fill="rgba(16,185,129,.8)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">Q1</text>
-                <rect x="354" y="22" width="181" height="26" fill="rgba(16,185,129,.2)" rx="5"/>
-                <line x1="422" y1="22" x2="422" y2="48" stroke="#10b981" stroke-width="2.5"/>
-                <text x="356" y="19" fill="rgba(16,185,129,.6)" font-size="9.5" font-family="Archivo,sans-serif">+15%</text>
-                <text x="537" y="19" fill="rgba(16,185,129,.6)" font-size="9.5" font-family="Archivo,sans-serif">+55%</text>
-                <!-- Q2 y=88 -->
-                <text x="52" y="95" text-anchor="end" fill="rgba(96,165,250,.8)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">Q2</text>
-                <rect x="309" y="75" width="75" height="26" fill="rgba(59,130,246,.2)" rx="5"/>
-                <line x1="345" y1="75" x2="345" y2="101" stroke="#3b82f6" stroke-width="2.5"/>
-                <text x="311" y="72" fill="rgba(59,130,246,.6)" font-size="9.5" font-family="Archivo,sans-serif">+5%</text>
-                <text x="370" y="72" fill="rgba(59,130,246,.6)" font-size="9.5" font-family="Archivo,sans-serif">+22%</text>
-                <!-- Q3 y=140 -->
-                <text x="52" y="148" text-anchor="end" fill="rgba(245,158,11,.8)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">Q3</text>
-                <rect x="263" y="128" width="77" height="26" fill="rgba(245,158,11,.2)" rx="5"/>
-                <line x1="300" y1="128" x2="300" y2="154" stroke="#f59e0b" stroke-width="2.5"/>
-                <text x="240" y="125" fill="rgba(245,158,11,.6)" font-size="9.5" font-family="Archivo,sans-serif">−5%</text>
-                <text x="327" y="125" fill="rgba(245,158,11,.6)" font-size="9.5" font-family="Archivo,sans-serif">+12%</text>
-                <!-- Q4 y=194 -->
-                <text x="52" y="202" text-anchor="end" fill="rgba(239,68,68,.8)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">Q4</text>
-                <rect x="96" y="181" width="190" height="26" fill="rgba(239,68,68,.18)" rx="5"/>
-                <line x1="205" y1="181" x2="205" y2="207" stroke="#ef4444" stroke-width="2.5"/>
-                <text x="82" y="178" fill="rgba(239,68,68,.6)" font-size="9.5" font-family="Archivo,sans-serif">−42%</text>
-                <text x="270" y="178" fill="rgba(239,68,68,.6)" font-size="9.5" font-family="Archivo,sans-serif">−4%</text>
-              </svg>
-              <p class="card-note">L'écart entre le meilleur et le pire quartile est colossal : +30 % contre −18 % d'IRR annuel — choisir soigneusement dans quels fonds ou quelles startups on investit compte autant que la classe d'actif.</p>
-              <div class="card-src">Korteweg &amp; Nagel (2016) — IRR nets de frais sur fonds seed/early stage</div>
-            </div>
           </div>
 
           <!-- Impact des frais 2+20 : Brut vs Net -->
@@ -812,53 +766,6 @@
         <section class="sec">
           <h2 class="sec-h">Seed diversifié vs bourse : comparaison sur 10 ans</h2>
           <p class="sec-p">Un portefeuille de <strong>15+ startups seed</strong> bat historiquement la bourse sur 10 ans — mais uniquement si l'on diversifie suffisamment.</p>
-
-          <!-- VISUEL 9 + 10 : Barres + Courbes de croissance -->
-          <div class="g2" style="margin-bottom:14px;">
-            <!-- VISUEL 10 : Courbes de croissance compound -->
-            <div class="card">
-              <div class="card-lbl">Croissance année par année (10 000 € de départ)</div>
-              <!-- ViewBox 280×270
-                   X: an 0→10 x=20+(an*24) → x0=20,x5=140,x10=260
-                   Y: y=240=0€ y=20=45000€ → 220px/45000 → 0.00489px/€
-                   10k→y=191 · 13.4k→y=174 · 25.9k→y=113 · 40k→y=44
-                   Livret A 3%: linéaire 10k→13.4k
-                   S&P 10%: 10k→11k→12.1k→14.6k→17.7k→21.4k→25.9k
-                   Seed 15%: 10k→9.5k(dip)→9k(creux)→10.5k→13k→17k→22k→30k→38k→40k
-              -->
-              <svg viewBox="0 0 280 270" xmlns="http://www.w3.org/2000/svg">
-                <line x1="20" y1="240" x2="260" y2="240" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
-                <line x1="20" y1="20"  x2="20"  y2="240" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
-                <line x1="20" y1="191" x2="260" y2="191" stroke="rgba(255,255,255,.12)" stroke-width="1" stroke-dasharray="4,3"/>
-                <line x1="20" y1="140" x2="260" y2="140" stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
-                <line x1="20" y1="90"  x2="260" y2="90"  stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
-                <!-- Y labels -->
-                <text x="14" y="195" text-anchor="end" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">10k</text>
-                <text x="14" y="144" text-anchor="end" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">22k</text>
-                <text x="14" y="94"  text-anchor="end" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">34k</text>
-                <!-- X labels -->
-                <text x="20"  y="254" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">0</text>
-                <text x="140" y="254" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">5 ans</text>
-                <text x="260" y="254" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="9.5" font-family="Archivo,sans-serif">10 ans</text>
-                <!-- Livret A — presque linéaire 191→174 -->
-                <path d="M20,191 C68,190 140,185 260,174" fill="none" stroke="rgba(107,114,128,.6)" stroke-width="2" stroke-linecap="round"/>
-                <text x="262" y="171" fill="rgba(107,114,128,.8)" font-size="10" font-family="Archivo,sans-serif">+34%</text>
-                <!-- S&P 500 — courbe modérée 191→113 -->
-                <path d="M20,191 C56,187 92,180 140,163 C175,149 215,133 260,113" fill="none" stroke="#3b82f6" stroke-width="2" stroke-opacity=".8" stroke-linecap="round"/>
-                <text x="262" y="110" fill="#93c5fd" font-size="10" font-family="Archivo,sans-serif">+160%</text>
-                <!-- Seed — J-curve 191→(creux 198)→...→44 -->
-                <path d="M20,191 C36,194 56,197 80,198 C104,198 128,194 140,189 C160,181 184,162 210,132 C228,112 244,76 260,44"
-                  fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/>
-                <text x="262" y="41" fill="#34d399" font-size="10" font-weight="700" font-family="Archivo,sans-serif">+300%</text>
-              </svg>
-              <div class="legend">
-                <div class="legend-item"><span class="leg-line" style="background:rgba(107,114,128,.7)"></span>Livret A 3%</div>
-                <div class="legend-item"><span class="leg-line" style="background:#3b82f6"></span>S&amp;P 500 ~10%/an</div>
-                <div class="legend-item"><span class="leg-line" style="background:#10b981"></span>Seed 15% médiane</div>
-              </div>
-              <p class="card-note">La courbe seed démarre plus lentement (J-curve) mais prend de l'avance sur le S&P 500 à partir de l'an 5–6, atteignant +300 % à l'an 10 contre +160 % pour la bourse.</p>
-            </div>
-          </div>
 
           <!-- VISUEL 11 : Risque-rendement scatter -->
           <div class="card">
