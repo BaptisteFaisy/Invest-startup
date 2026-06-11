@@ -12,6 +12,7 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
+html { overflow-x: clip; }
 body {
   font-family: "Libre Franklin","Helvetica Neue",sans-serif;
   color: var(--text);
@@ -1006,7 +1007,7 @@ body.auth { padding: 0; }
 @media (max-width: 720px) {
   /* ── Layout général ── */
   body { padding: 0 4vw; }
-  .site-header { width: 100vw; margin: 0 -4vw; padding: 0 4vw; box-sizing: border-box; }
+  .site-header { margin: 0 -4vw; padding: 0 4vw; }
   .nav { padding: 12px 0; }
   .logo-icon { height: 36px; }
   .logo-wordmark { font-size: 1.2rem; }
