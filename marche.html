@@ -37,12 +37,16 @@
       /* Cards — tous intégrés dans la page */
       .card { background:transparent; border:none; border-top:2px solid rgba(0,0,0,.07); border-radius:0; padding:64px 0 48px; overflow:visible; color:#080c14; }
       .card svg { background:rgba(8,12,20,.05); border-radius:14px; width:100%; height:auto; display:block; filter:saturate(2) brightness(1.06); padding:20px 22px; }
+      /* Normalise la taille apparente des polices : les petits viewBox (donuts 260u, funnels ~500u)
+         ne doivent pas être étirés à ×4 sinon leurs textes paraissent énormes vs les autres graphiques */
+      .card svg.anim-donut { max-width:500px; margin-left:auto; margin-right:auto; }
+      .card svg.anim-funnel { max-width:950px; margin-left:auto; margin-right:auto; }
       .card svg text[fill^="rgba(255"], .card svg text[fill="#fff"] { fill: rgba(8,12,20,.92); }
       /* Textes colorés des graphiques : palette pastel (dark mode) → tons 700 foncés pour contraste sur fond clair */
       .card svg text[fill="#34d399"], .card svg text[fill="#10b981"], .card svg text[fill^="rgba(16,185,129"], .card svg text[fill^="rgba(52,211,153"] { fill: #047857; }
       .card svg text[fill^="rgba(20,184,166"] { fill: #0f766e; }
       .card svg text[fill="#60a5fa"], .card svg text[fill="#93c5fd"], .card svg text[fill="#3b82f6"], .card svg text[fill^="rgba(59,130,246"], .card svg text[fill^="rgba(96,165,250"] { fill: #1d4ed8; }
-      .card svg text[fill="#fbbf24"], .card svg text[fill="#f59e0b"], .card svg text[fill^="rgba(245,158,11"] { fill: #b45309; }
+      .card svg text[fill="#fbbf24"], .card svg text[fill="#f59e0b"], .card svg text[fill^="rgba(245,158,11"] { fill: #a57641; }
       .card svg text[fill="#f87171"], .card svg text[fill="#dc2626"], .card svg text[fill^="rgba(239,68,68"] { fill: #b91c1c; }
       .card svg text[fill="#c4b5fd"], .card svg text[fill="#a78bfa"], .card svg text[fill^="rgba(167,139,250"] { fill: #6d28d9; }
       /* Courbes vertes alignées sur la couleur du texte vert */
@@ -453,7 +457,7 @@
           <div class="hstat"><div class="hstat-n" style="color:#ef4444">54%</div><div class="hstat-d">des startups seed ne remboursent pas</div></div>
           <div class="hstat"><div class="hstat-n" style="color:#60a5fa">×1000</div><div class="hstat-d">multiple possible sur une seule réussite</div></div>
           <div class="hstat"><div class="hstat-n" style="color:#34d399">7–10</div><div class="hstat-d">années pour voir les gains</div></div>
-          <div class="hstat"><div class="hstat-n" style="color:#b45309; filter:saturate(2) brightness(1.06);">10+</div><div class="hstat-d">startups minimum pour diversifier</div></div>
+          <div class="hstat"><div class="hstat-n" style="color:#a57641; filter:saturate(2) brightness(1.06);">10+</div><div class="hstat-d">startups minimum pour diversifier</div></div>
         </div>
       </div>
 
@@ -580,47 +584,41 @@
 
           <!-- V6+V7 : Lorenz curve + Exit type donut -->
           <div class="g2" style="margin-top:14px; grid-template-columns:1fr 1fr;">
-            <!-- Courbe de Lorenz -->
+            <!-- Concentration valeur portefeuille -->
             <div class="card">
-              <div class="card-lbl">Concentration de valeur — courbe de Lorenz</div>
-              <p style="font-size:.8rem;color:#080c14;margin:0 0 12px;line-height:1.55;">La courbe bleue montre la répartition réelle de la valeur créée. Plus elle s'éloigne de la diagonale (répartition égale), plus la richesse est concentrée dans quelques startups.</p>
-              <!-- ViewBox 340×280 · axes: x 40→320, y 20→260
-                   Diagonale = égalité parfaite · Courbe bleue = réalité seed -->
-              <svg class="anim-line ch4" viewBox="0 0 354 294" xmlns="http://www.w3.org/2000/svg">
-                <!-- Axis guides -->
-                <line x1="40" y1="20" x2="40" y2="260" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
-                <line x1="40" y1="260" x2="320" y2="260" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
-                <line x1="40" y1="140" x2="320" y2="140" stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
-                <line x1="180" y1="20" x2="180" y2="260" stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
-                <!-- Ligne d'égalité parfaite (diagonale) -->
-                <line x1="40" y1="260" x2="320" y2="20" stroke="rgba(255,255,255,.18)" stroke-width="1.5" stroke-dasharray="5,4"/>
-                <text x="72" y="248" fill="rgba(255,255,255,.22)" font-size="9" font-family="Archivo,sans-serif">égalité parfaite</text>
-                <!-- Zone de concentration (entre les deux courbes) -->
-                <path d="M40,260 L96,258 L152,248 L208,227 L264,178 L320,20 L40,260 Z" fill="rgba(59,130,246,.06)"/>
-                <!-- Courbe de Lorenz (données VC seed) -->
-                <polyline points="40,260 96,258 152,248 208,227 264,178 320,20"
-                  fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-                <!-- Points -->
-                <circle cx="264" cy="178" r="4" fill="#60a5fa"/>
-                <circle cx="320" cy="20" r="4" fill="#10b981"/>
-                <!-- Annotation Gini -->
-                <text x="120" y="218" text-anchor="middle" fill="rgba(59,130,246,.7)" font-size="12" font-weight="700" font-family="Archivo,sans-serif">Gini ≈ 0.72</text>
-                <!-- Y labels -->
-                <text x="35" y="24" text-anchor="end" fill="rgba(255,255,255,.25)" font-size="10" font-family="Archivo,sans-serif">100%</text>
-                <text x="35" y="144" text-anchor="end" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">50%</text>
-                <text x="35" y="264" text-anchor="end" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">0%</text>
-                <!-- X labels -->
-                <text x="180" y="276" text-anchor="middle" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">50%</text>
-                <text x="320" y="276" text-anchor="middle" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">100%</text>
-                <!-- Axis titles -->
-                <text x="180" y="14" text-anchor="middle" fill="rgba(255,255,255,.18)" font-size="9" font-family="Archivo,sans-serif">% valeur créée</text>
-                <text x="180" y="291" text-anchor="middle" fill="rgba(255,255,255,.18)" font-size="9" font-family="Archivo,sans-serif">% startups →</text>
-                <!-- Annotation key point -->
-                <text x="270" y="170" fill="rgba(96,165,250,.8)" font-size="9.5" font-family="Archivo,sans-serif">20% génèrent</text>
-                <text x="270" y="181" fill="rgba(96,165,250,.8)" font-size="9.5" font-family="Archivo,sans-serif">66% de la valeur</text>
+              <div class="card-lbl">Concentration de valeur — portefeuille 20 startups</div>
+              <!-- Donut de concentration: 1 jackpot 55%, 3 exits 30%, 6 mod 10%, 10 pertes 5%
+                   ViewBox 260×220, centre 120,100, r=70, circ=439.8
+                   55%→242 offset=110
+                   30%→132 offset=110-242=-132
+                   10%→44 offset=-132-132=-264
+                   5%→22 offset=-308 -->
+              <svg class="anim-donut ch29" viewBox="0 0 260 250" xmlns="http://www.w3.org/2000/svg">
+                <!-- Anneau jackpot 55% -->
+                <circle cx="120" cy="100" r="70" fill="none" stroke="#3b82f6" stroke-width="30" stroke-opacity=".8"
+                  stroke-dasharray="242 198" stroke-dashoffset="110"/>
+                <!-- Anneau bons exits 30% -->
+                <circle cx="120" cy="100" r="70" fill="none" stroke="#60a5fa" stroke-width="30" stroke-opacity=".55"
+                  stroke-dasharray="132 308" stroke-dashoffset="-132"/>
+                <!-- Anneau modérés 10% -->
+                <circle cx="120" cy="100" r="70" fill="none" stroke="rgba(107,114,128,.6)" stroke-width="30"
+                  stroke-dasharray="44 396" stroke-dashoffset="-264"/>
+                <!-- Anneau pertes 5% -->
+                <circle cx="120" cy="100" r="70" fill="none" stroke="#ef4444" stroke-width="30" stroke-opacity=".5"
+                  stroke-dasharray="22 418" stroke-dashoffset="-308"/>
+                <!-- Centre -->
+                <text x="120" y="95" text-anchor="middle" fill="#fff" font-size="14" font-weight="700" font-family="Archivo,sans-serif">Valeur</text>
+                <text x="120" y="111" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10" font-family="Archivo,sans-serif">% créée</text>
+                <!-- Légende -->
+                <rect x="14" y="198" width="10" height="10" rx="2" fill="#3b82f6" fill-opacity=".8"/>
+                <text x="28" y="208" fill="rgba(255,255,255,.55)" font-size="10.5" font-family="Archivo,sans-serif">×1 jackpot = 55%</text>
+                <rect x="14" y="216" width="10" height="10" rx="2" fill="#60a5fa" fill-opacity=".55"/>
+                <text x="28" y="226" fill="rgba(255,255,255,.55)" font-size="10.5" font-family="Archivo,sans-serif">×3 bons exits = 30%</text>
+                <rect x="14" y="234" width="10" height="10" rx="2" fill="rgba(107,114,128,.6)"/>
+                <text x="28" y="244" fill="rgba(255,255,255,.45)" font-size="10.5" font-family="Archivo,sans-serif">×6 modérés = 10%</text>
               </svg>
-              <p class="card-note">Plus la courbe bleue s'éloigne de la diagonale, plus la richesse est concentrée dans quelques startups — un Gini de 0.72 est bien supérieur à celui de la bourse (~0.40).</p>
-              <div class="card-src">Gregson, Mann &amp; Harrison (2017)</div>
+              <p class="card-note">Dans un portefeuille de 20 startups, une seule (le jackpot) représente 55 % de toute la valeur créée — sans elle, le portefeuille serait à peine à l'équilibre.</p>
+              <div class="card-src">Gregson, Mann &amp; Harrison (2017) — distribution empirique</div>
             </div>
 
             <!-- Donut types de sorties -->
@@ -687,6 +685,8 @@
                 <circle cx="70"  cy="193" r="4" fill="#3b82f6" fill-opacity=".7"/>
                 <circle cx="110" cy="167" r="4" fill="#3b82f6" fill-opacity=".8"/>
                 <circle cx="160" cy="131" r="4" fill="#60a5fa"/>
+                <circle cx="260" cy="87"  r="4" fill="#3b82f6" fill-opacity=".8"/>
+                <circle cx="360" cy="64"  r="4" fill="#3b82f6" fill-opacity=".8"/>
                 <circle cx="560" cy="42"  r="4" fill="#3b82f6" fill-opacity=".8"/>
                 <!-- X labels -->
                 <text x="70"  y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">1</text>
@@ -983,9 +983,6 @@
               <text x="604" y="88" fill="#f59e0b" font-size="10.5" font-weight="700" font-family="Archivo,sans-serif">RVPI</text>
               <rect x="592" y="112" width="8" height="8" rx="2" fill="#3b82f6"/>
               <text x="604" y="120" fill="#60a5fa" font-size="10.5" font-weight="700" font-family="Archivo,sans-serif">DPI</text>
-              <!-- Annotation pic RVPI -->
-              <circle cx="310" cy="133" r="4" fill="#f59e0b" fill-opacity=".8"/>
-              <text x="310" y="126" text-anchor="middle" fill="rgba(245,158,11,.7)" font-size="9.5" font-family="Archivo,sans-serif">pic RVPI an 6</text>
             </svg>
             <p class="card-note">Le RVPI culmine vers l'an 6 — c'est la valeur latente maximale avant les sorties ; à partir de là, il se convertit progressivement en DPI (cash retourné aux investisseurs).</p>
             <div class="card-src">Métriques LP standard — simulation fonds seed 2010–2022, Preqin</div>
@@ -1189,59 +1186,6 @@
               <div class="card-src">Kaplan &amp; Schoar (2005) — méthodologie PME, données Cambridge Associates (2024)</div>
             </div>
 
-            <!-- Prime d'illiquidité (ILP) -->
-            <div class="card">
-              <div class="card-lbl">Prime d'illiquidité — décomposition du rendement par classe d'actif</div>
-              <!-- ViewBox 560×220
-                   4 classes, barres horizontales empilées
-                   Scale: 20.5%=389.5px → 19px/% · x_start=170
-                   rf(gris) | Prime risque(bleu) | ILP(turquoise) | Alpha(vert)
-                   Livret A: rf=2.5% → 47.5px → end=217.5
-                   S&P: rf+prime=6.5% → 123.5px → end=293.5
-                   Immo: rf+risque+ILP=7.5% → 142.5px → end=312.5
-                   VC seed: rf+risque+ILP+alpha=20.5% → 389.5px → end=559.5≈560 ✓ -->
-              <svg class="anim-bars-h ch17" viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg">
-                <!-- Axis -->
-                <line x1="168" y1="14" x2="168" y2="200" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
-                <!-- Livret A (y=25-55) -->
-                <text x="162" y="44" text-anchor="end" fill="rgba(255,255,255,.45)" font-size="11" font-family="Archivo,sans-serif">Livret A</text>
-                <rect x="170" y="26" width="47" height="28" fill="rgba(107,114,128,.5)" rx="8"/>
-                <text x="222" y="44" fill="rgba(255,255,255,.45)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">+2.5 %</text>
-                <!-- S&P 500 (y=68-98) -->
-                <text x="162" y="87" text-anchor="end" fill="rgba(255,255,255,.5)" font-size="11" font-family="Archivo,sans-serif">S&amp;P 500</text>
-                <rect x="170" y="68" width="47" height="28" fill="rgba(107,114,128,.5)" style="clip-path:inset(0 round 8px 0 0 8px);"/>
-                <rect x="217" y="68" width="76" height="28" fill="rgba(59,130,246,.5)" style="clip-path:inset(0 round 0 8px 8px 0);"/>
-                <text x="298" y="87" fill="#93c5fd" font-size="11" font-weight="700" font-family="Archivo,sans-serif">+6.5 %</text>
-                <!-- Immobilier (y=110-140) -->
-                <text x="162" y="129" text-anchor="end" fill="rgba(255,255,255,.5)" font-size="11" font-family="Archivo,sans-serif">Immobilier</text>
-                <rect x="170" y="110" width="47" height="28" fill="rgba(107,114,128,.5)" style="clip-path:inset(0 round 8px 0 0 8px);"/>
-                <rect x="217" y="110" width="57" height="28" fill="rgba(59,130,246,.4)"/>
-                <rect x="274" y="110" width="38" height="28" fill="rgba(20,184,166,.5)" style="clip-path:inset(0 round 0 8px 8px 0);"/>
-                <text x="317" y="129" fill="rgba(255,255,255,.6)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">+7.5 %</text>
-                <!-- VC seed (y=152-182) -->
-                <text x="162" y="170" text-anchor="end" fill="#60a5fa" font-size="11" font-weight="700" font-family="Archivo,sans-serif">VC seed</text>
-                <rect x="170" y="152" width="47" height="28" fill="rgba(107,114,128,.5)" style="clip-path:inset(0 round 8px 0 0 8px);"/>
-                <rect x="217" y="152" width="95" height="28" fill="rgba(59,130,246,.5)"/>
-                <rect x="312" y="152" width="95" height="28" fill="rgba(20,184,166,.55)"/>
-                <rect x="407" y="152" width="152" height="28" fill="rgba(16,185,129,.6)" style="clip-path:inset(0 round 0 8px 8px 0);"/>
-                <text x="556" y="148" text-anchor="end" fill="#34d399" font-size="12" font-weight="700" font-family="Archivo,sans-serif">+20 %</text>
-                <!-- ILP label -->
-                <text x="359" y="148" text-anchor="middle" fill="rgba(20,184,166,.7)" font-size="9.5" font-family="Archivo,sans-serif">ILP</text>
-                <!-- Alpha label -->
-                <text x="483" y="170" text-anchor="middle" fill="#fff" font-size="10" font-weight="600" font-family="Archivo,sans-serif">Alpha</text>
-                <!-- Légende -->
-                <rect x="170" y="196" width="10" height="8" rx="2" fill="rgba(107,114,128,.5)"/>
-                <text x="184" y="204" fill="rgba(255,255,255,.35)" font-size="9.5" font-family="Archivo,sans-serif">rf</text>
-                <rect x="204" y="196" width="10" height="8" rx="2" fill="rgba(59,130,246,.5)"/>
-                <text x="218" y="204" fill="rgba(255,255,255,.35)" font-size="9.5" font-family="Archivo,sans-serif">Prime risque</text>
-                <rect x="294" y="196" width="10" height="8" rx="2" fill="rgba(20,184,166,.55)"/>
-                <text x="308" y="204" fill="rgba(255,255,255,.35)" font-size="9.5" font-family="Archivo,sans-serif">ILP (illiquidité)</text>
-                <rect x="396" y="196" width="10" height="8" rx="2" fill="rgba(16,185,129,.6)"/>
-                <text x="410" y="204" fill="rgba(255,255,255,.35)" font-size="9.5" font-family="Archivo,sans-serif">Alpha pur</text>
-              </svg>
-              <p class="card-note">Le rendement du seed se décompose en 4 sources cumulées : la rémunération du temps (rf), le risque de marché, la prime d'illiquidité (ILP), et la compétence pure du gestionnaire (alpha).</p>
-              <div class="card-src">Korteweg &amp; Nagel (2016) — décomposition rf + β·MKT + SMB + ILP + α</div>
-            </div>
           </div>
 
           <!-- V18 + V19 : IRR histogram + Factor model decomposition -->
@@ -1654,60 +1598,7 @@
           <h2 class="sec-h">Données de marché</h2>
           <p class="sec-p">Performance par millésime, répartition sectorielle et concentration de portefeuille.</p>
 
-          <!-- Courbe de diversification -->
           <div class="g2" style="margin-bottom:14px;">
-            <div class="card">
-              <div class="card-lbl">Courbe de diversification — réduction du risque avec le nombre d'investissements</div>
-              <!-- ViewBox 600×240
-                   X: 0→50 inv, x=60+n*10 · Y: risque 0→100%, y=220-pct*2
-                   N=1:100%→y20, N=2:71%→y78, N=5:45%→y130, N=10:32%→y156,
-                   N=20:22%→y176, N=30:18%→y184, N=50:14%→y192
-                   Bande de confiance supérieure (médiane+écart) et inférieure -->
-              <svg class="anim-line ch27" viewBox="0 0 600 240" xmlns="http://www.w3.org/2000/svg">
-                <!-- Grid -->
-                <line x1="60" y1="220" x2="560" y2="220" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
-                <line x1="60" y1="170" x2="560" y2="170" stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
-                <line x1="60" y1="120" x2="560" y2="120" stroke="rgba(255,255,255,.05)" stroke-width="1" stroke-dasharray="5,4"/>
-                <line x1="60" y1="70"  x2="560" y2="70"  stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
-                <line x1="60" y1="20"  x2="560" y2="20"  stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>
-                <!-- Y labels -->
-                <text x="54" y="224" text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">0%</text>
-                <text x="54" y="174" text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">25%</text>
-                <text x="54" y="124" text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">50%</text>
-                <text x="54" y="74"  text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">75%</text>
-                <text x="54" y="24"  text-anchor="end" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">100%</text>
-                <!-- Zone sous courbe -->
-                <path d="M70,20 C74,40 77,65 80,78 C88,104 100,118 110,130 C130,145 145,152 160,156 C200,162 230,170 260,176 C300,179 330,182 360,184 C430,187 490,190 560,192 L560,220 L70,220 Z"
-                  fill="rgba(59,130,246,.07)"/>
-                <!-- Courbe principale -->
-                <path d="M70,20 C74,40 77,65 80,78 C88,104 100,118 110,130 C130,145 145,152 160,156 C200,162 230,170 260,176 C300,179 330,182 360,184 C430,187 490,190 560,192"
-                  fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round"/>
-                <!-- Points clés -->
-                <circle cx="70"  cy="20"  r="4" fill="#ef4444" fill-opacity=".8"/>
-                <circle cx="160" cy="156" r="4" fill="#3b82f6"/>
-                <circle cx="260" cy="176" r="5" fill="#10b981"/>
-                <circle cx="560" cy="192" r="4" fill="#3b82f6" fill-opacity=".7"/>
-                <!-- Ligne minimum théorique -->
-                <line x1="60" y1="192" x2="560" y2="192" stroke="rgba(16,185,129,.25)" stroke-width="1" stroke-dasharray="4,3"/>
-                <!-- Annotation N=1 -->
-                <text x="74" y="14" fill="#f87171" font-size="9.5" font-weight="600" font-family="Archivo,sans-serif">1 deal : risque max</text>
-                <!-- Annotation zone recommandée -->
-                <line x1="260" y1="20" x2="260" y2="220" stroke="rgba(16,185,129,.3)" stroke-width="1.5" stroke-dasharray="4,3"/>
-                <text x="260" y="14" text-anchor="middle" fill="#34d399" font-size="9.5" font-weight="700" font-family="Archivo,sans-serif">20+</text>
-                <text x="265" y="172" fill="rgba(16,185,129,.7)" font-size="9.5" font-family="Archivo,sans-serif">−78%</text>
-                <text x="265" y="183" fill="rgba(16,185,129,.5)" font-size="9.5" font-family="Archivo,sans-serif">de risque</text>
-                <!-- X labels -->
-                <text x="70"  y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">1</text>
-                <text x="160" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">10</text>
-                <text x="260" y="235" text-anchor="middle" fill="rgba(16,185,129,.7)" font-size="10" font-family="Archivo,sans-serif">20</text>
-                <text x="360" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">30</text>
-                <text x="560" y="235" text-anchor="middle" fill="rgba(255,255,255,.2)" font-size="10" font-family="Archivo,sans-serif">50</text>
-                <text x="430" y="12" text-anchor="middle" fill="rgba(255,255,255,.14)" font-size="9.5" font-family="Archivo,sans-serif">nombre d'investissements</text>
-              </svg>
-              <p class="card-note">Le risque idiosyncratique diminue très vite avec la diversification : 20 startups réduisent le risque de 78 % par rapport à un seul investissement — au-delà de 30, le gain est marginal.</p>
-              <div class="card-src">Théorie de la diversification — Markowitz (1952), calibré sur données VC seed</div>
-            </div>
-
             <!-- Rendement ajusté au risque: Sharpe par classe -->
             <div class="card">
               <div class="card-lbl">Ratio de Sharpe — rendement ajusté au risque par classe d'actif</div>
@@ -1748,42 +1639,6 @@
             </div>
           </div>
 
-          <!-- Concentration valeur portefeuille -->
-          <div class="card">
-            <div class="card-lbl">Concentration de valeur — portefeuille 20 startups</div>
-              <!-- Donut de concentration: 1 jackpot 55%, 3 exits 30%, 6 mod 10%, 10 pertes 5%
-                   ViewBox 260×220, centre 120,100, r=70, circ=439.8
-                   55%→242 offset=110
-                   30%→132 offset=110-242=-132
-                   10%→44 offset=-132-132=-264
-                   5%→22 offset=-308 -->
-              <svg class="anim-donut ch29" viewBox="0 0 260 250" xmlns="http://www.w3.org/2000/svg">
-                <!-- Anneau jackpot 55% -->
-                <circle cx="120" cy="100" r="70" fill="none" stroke="#3b82f6" stroke-width="30" stroke-opacity=".8"
-                  stroke-dasharray="242 198" stroke-dashoffset="110"/>
-                <!-- Anneau bons exits 30% -->
-                <circle cx="120" cy="100" r="70" fill="none" stroke="#60a5fa" stroke-width="30" stroke-opacity=".55"
-                  stroke-dasharray="132 308" stroke-dashoffset="-132"/>
-                <!-- Anneau modérés 10% -->
-                <circle cx="120" cy="100" r="70" fill="none" stroke="rgba(107,114,128,.6)" stroke-width="30"
-                  stroke-dasharray="44 396" stroke-dashoffset="-264"/>
-                <!-- Anneau pertes 5% -->
-                <circle cx="120" cy="100" r="70" fill="none" stroke="#ef4444" stroke-width="30" stroke-opacity=".5"
-                  stroke-dasharray="22 418" stroke-dashoffset="-308"/>
-                <!-- Centre -->
-                <text x="120" y="95" text-anchor="middle" fill="#fff" font-size="14" font-weight="700" font-family="Archivo,sans-serif">Valeur</text>
-                <text x="120" y="111" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10" font-family="Archivo,sans-serif">% créée</text>
-                <!-- Légende -->
-                <rect x="14" y="198" width="10" height="10" rx="2" fill="#3b82f6" fill-opacity=".8"/>
-                <text x="28" y="208" fill="rgba(255,255,255,.55)" font-size="10.5" font-family="Archivo,sans-serif">×1 jackpot = 55%</text>
-                <rect x="14" y="216" width="10" height="10" rx="2" fill="#60a5fa" fill-opacity=".55"/>
-                <text x="28" y="226" fill="rgba(255,255,255,.55)" font-size="10.5" font-family="Archivo,sans-serif">×3 bons exits = 30%</text>
-                <rect x="14" y="234" width="10" height="10" rx="2" fill="rgba(107,114,128,.6)"/>
-                <text x="28" y="244" fill="rgba(255,255,255,.45)" font-size="10.5" font-family="Archivo,sans-serif">×6 modérés = 10%</text>
-              </svg>
-            <p class="card-note">Dans un portefeuille de 20 startups, une seule (le jackpot) représente 55 % de toute la valeur créée — sans elle, le portefeuille serait à peine à l'équilibre.</p>
-            <div class="card-src">Gregson, Mann &amp; Harrison (2017) — distribution empirique</div>
-          </div>
         </section>
 
         <hr class="div"/>
