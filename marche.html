@@ -589,47 +589,8 @@
             </div>
           </div>
 
-          <!-- V6+V7 : Lorenz curve + Exit type donut -->
-          <div class="g2" style="margin-top:14px; grid-template-columns:1fr 1fr;">
-            <!-- Concentration valeur portefeuille -->
-            <div class="card">
-              <div class="card-lbl">Concentration de valeur — portefeuille 20 startups</div>
-              <!-- Donut de concentration: 1 jackpot 55%, 3 exits 30%, 6 mod 10%, 10 pertes 5%
-                   ViewBox 260×220, centre 120,100, r=70, circ=439.8
-                   55%→242 offset=110
-                   30%→132 offset=110-242=-132
-                   10%→44 offset=-132-132=-264
-                   5%→22 offset=-308 -->
-              <svg class="anim-donut ch29" viewBox="0 0 260 250" xmlns="http://www.w3.org/2000/svg">
-                <!-- Anneau jackpot 55% -->
-                <circle cx="120" cy="100" r="70" fill="none" stroke="#3b82f6" stroke-width="30" stroke-opacity=".8"
-                  stroke-dasharray="242 198" stroke-dashoffset="110"/>
-                <!-- Anneau bons exits 30% -->
-                <circle cx="120" cy="100" r="70" fill="none" stroke="#60a5fa" stroke-width="30" stroke-opacity=".55"
-                  stroke-dasharray="132 308" stroke-dashoffset="-132"/>
-                <!-- Anneau modérés 10% -->
-                <circle cx="120" cy="100" r="70" fill="none" stroke="rgba(107,114,128,.6)" stroke-width="30"
-                  stroke-dasharray="44 396" stroke-dashoffset="-264"/>
-                <!-- Anneau pertes 5% -->
-                <circle cx="120" cy="100" r="70" fill="none" stroke="#ef4444" stroke-width="30" stroke-opacity=".5"
-                  stroke-dasharray="22 418" stroke-dashoffset="-308"/>
-                <!-- Centre -->
-                <text x="120" y="95" text-anchor="middle" fill="#fff" font-size="14" font-weight="700" font-family="Archivo,sans-serif">Valeur</text>
-                <text x="120" y="111" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="10" font-family="Archivo,sans-serif">% créée</text>
-                <!-- Légende -->
-                <rect x="14" y="198" width="10" height="10" rx="2" fill="#3b82f6" fill-opacity=".8"/>
-                <text x="28" y="208" fill="rgba(255,255,255,.55)" font-size="10.5" font-family="Archivo,sans-serif">×1 jackpot = 55%</text>
-                <rect x="14" y="216" width="10" height="10" rx="2" fill="#60a5fa" fill-opacity=".55"/>
-                <text x="28" y="226" fill="rgba(255,255,255,.55)" font-size="10.5" font-family="Archivo,sans-serif">×3 bons exits = 30%</text>
-                <rect x="14" y="234" width="10" height="10" rx="2" fill="rgba(107,114,128,.6)"/>
-                <text x="28" y="244" fill="rgba(255,255,255,.45)" font-size="10.5" font-family="Archivo,sans-serif">×6 modérés = 10%</text>
-              </svg>
-              <p class="card-note">Un seul jackpot concentre 55 % de la valeur du portefeuille — sans lui, le résultat est négatif.</p>
-              <div class="card-src">Gregson, Mann &amp; Harrison (2017) — distribution empirique</div>
-            </div>
-
-            <!-- Donut types de sorties -->
-            <div class="card">
+          <!-- Types de sorties donut -->
+          <div class="card" style="margin-top:14px;">
               <div class="card-lbl">Types de sorties — sur les startups qui remboursent</div>
               <!-- ViewBox 260×252 · centre 120,100 r=70 circ=439.8
                    Perte totale 56% → arc=246.3 offset=110 (12h)
@@ -657,7 +618,6 @@
               </svg>
               <p class="card-note">56 % des sorties sont des pertes totales ; 9 % seulement atteignent une IPO.</p>
               <div class="card-src">Venture-backed exits dataset, Cambridge Associates (2024)</div>
-            </div>
           </div>
 
           <!-- Simulation Gregson : taille de portefeuille -->
