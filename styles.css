@@ -1082,9 +1082,19 @@ body.auth { padding: 0; }
   /* ── Sélectivité : grand texte (clamp 1.3rem) ── */
   [style*="font-size:clamp(1.3rem"] { font-size: clamp(1.1rem, 5vw, 1.4rem) !important; }
 
-  /* ── Table performance : colonnes ── */
-  #perf-table th:nth-child(3),
-  #perf-table td:nth-child(3) { white-space: nowrap !important; }
+  /* ── Grilles de section : empêcher le contenu (tables/SVG) d'élargir la piste ──
+     minmax(0,1fr) plafonne la colonne à la largeur du conteneur, sinon une
+     piste 1fr/auto s'étire jusqu'au contenu le plus large et déborde l'écran */
+  div[style*="max-width:1380px"][style*="display:grid"] { grid-template-columns: minmax(0, 1fr) !important; }
+
+  /* ── Tableaux larges : faire tenir sans rognage sur mobile ── */
+  table[style*="min-width:480px"],
+  table[style*="min-width:520px"],
+  table[style*="min-width:340px"] { min-width: 0 !important; width: 100% !important; table-layout: fixed !important; }
+  #perf-table { font-size: 0.7rem !important; }
+  #perf-table th, #perf-table td { padding-left: 6px !important; padding-right: 6px !important; }
+  #perf-table th:first-child, #perf-table td:first-child { width: 30% !important; }
+  #fc-thead th, #fc-result-body td { padding-left: 6px !important; padding-right: 6px !important; font-size: 0.74rem !important; }
 
   /* ── Email long → wrap ── */
   a[href^="mailto"] { word-break: break-all; }
