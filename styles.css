@@ -12,7 +12,6 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { overflow-x: clip; }
 body {
   font-family: "Libre Franklin","Helvetica Neue",sans-serif;
   color: var(--text);
@@ -21,8 +20,7 @@ body {
     var(--bg);
   min-height: 100vh;
   line-height: 1.6;
-  padding: 0 6vw;
-  overflow-x: clip;
+  overflow-x: hidden;
 }
 
 .grain {
@@ -41,7 +39,6 @@ body {
   z-index: 100;
   background: #000;
   border-bottom: 1px solid rgba(255,255,255,0.08);
-  margin: 0 -6vw;
   padding: 0 6vw;
 }
 
@@ -148,7 +145,7 @@ h1, h2, h3 {
 .button.ghost:hover { color: #fff; border-color: rgba(255,255,255,0.5); box-shadow: none; }
 
 /* ══ Main ══ */
-main { display: grid; gap: 100px; padding: 8vh 0 10vh; position: relative; }
+main { display: grid; gap: 100px; padding: 8vh 6vw 10vh; position: relative; }
 
 /* ══ Hero ══ */
 .hero-simple {
@@ -726,7 +723,7 @@ main { display: grid; gap: 100px; padding: 8vh 0 10vh; position: relative; }
 .feature-card p  { font-size: 0.9rem; color: var(--muted); line-height: 1.65; }
 
 /* ══ Footer ══ */
-.site-footer { color: var(--muted); font-size: 0.9rem; }
+.site-footer { color: var(--muted); font-size: 0.9rem; padding-inline: 6vw; }
 .footer-inner {
   display: flex; align-items: center; justify-content: space-between;
   gap: 16px; flex-wrap: wrap;
@@ -1006,14 +1003,14 @@ body.auth { padding: 0; }
 
 @media (max-width: 720px) {
   /* ── Layout général ── */
-  body { padding: 0 4vw; }
-  .site-header { margin: 0 -4vw; padding: 0 4vw; }
+  .site-header { padding: 0 4vw; }
   .nav { padding: 12px 0; }
   .logo-icon { height: 36px; }
   .logo-wordmark { font-size: 1.2rem; }
   .nav-links { display: none; }
   .nav-hamburger { display: flex; }
-  main { padding: 4vh 0 8vh; gap: 40px; }
+  main { padding: 4vh 4vw 8vh; gap: 40px; }
+  .site-footer { padding-inline: 4vw; }
 
   /* ── Hero ── */
   .hero { grid-template-columns: 1fr; gap: 36px; }
