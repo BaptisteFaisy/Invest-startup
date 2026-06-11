@@ -400,7 +400,22 @@
       .card.seen svg.ch30 text:nth-of-type(8) { animation-delay:1.05s; }
       .card.seen svg.ch30 text:nth-of-type(10) { animation-delay:1.3s; }
       .card.seen svg.ch30 line { transform-origin:50% 50%; animation: chGrowY .5s ease .4s backwards; }
-      @media (prefers-reduced-motion: reduce) { .card svg * { animation: none !important; } }
+      /* ── Couche 2 : animations continues & interactions ── */
+      @keyframes chFloat     { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-5px); } }
+      @keyframes chPulseSoft { 0%,100% { transform:scale(1); } 50% { transform:scale(1.3); } }
+      @keyframes chBob       { 0%,100% { transform:translateY(0); } 50% { transform:translateY(3px); } }
+      /* Le dernier point de chaque courbe pulse en continu une fois apparu */
+      .card.seen svg.anim-line circle:last-of-type { animation: chPop .5s cubic-bezier(.3,1.6,.4,1) 1.15s backwards, chPulseSoft 2.6s ease-in-out 2.4s infinite; }
+      /* Les bulles du scatter flottent doucement */
+      .card.seen svg.anim-scatter circle { animation: chPop .6s cubic-bezier(.3,1.6,.4,1) backwards, chFloat 3.4s ease-in-out 1.6s infinite; }
+      /* Les flèches entre niveaux des funnels rebondissent */
+      .card.seen svg.anim-funnel path { animation: chFadeO .5s ease .55s backwards, chBob 1.9s ease-in-out 1.4s infinite; }
+      /* Survol : barres, points et arcs réagissent */
+      .card svg rect, .card svg circle { transition: filter .22s ease; }
+      .card svg rect:hover, .card svg circle:hover { filter: brightness(1.15); }
+      .card svg.anim-donut circle[stroke-dasharray] { transition: stroke-width .25s ease; }
+      .card svg.anim-donut circle[stroke-dasharray]:hover { stroke-width: 34; }
+      @media (prefers-reduced-motion: reduce) { .card svg * { animation: none !important; transition: none !important; } }
       /* Mobile */
       @media(max-width:580px) {
         .hero { padding:100px 0 40px; }
