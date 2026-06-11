@@ -128,6 +128,78 @@ async function insertCatalogEntry(e)  { await col('catalog').insertOne(e); }
 async function updateCatalogById(id, data) { await col('catalog').replaceOne({ id }, { ...data, id }); }
 async function deleteCatalogById(id)  { await col('catalog').deleteOne({ id }); }
 
+// Pré-remplissage du catalogue avec des startups d'exemple si la collection est
+// vide. Modifiables/supprimables via /admin.html. Ne s'exécute qu'une seule fois.
+const SEED_STARTUPS = [
+  {
+    id: 1, name: 'Nuvo', tagline: 'L\'épargne automatisée pour la génération mobile',
+    sector: 'Fintech', stage: 'Seed', color: '#3b82f6', emoji: '💸',
+    founded: '2022', employees: '8', raised: '1,2 M€', ticket: '1 000 €', open: true,
+    website: 'https://example.com', linkedin: 'https://linkedin.com',
+    description: 'Nuvo aide les 18-35 ans à épargner sans y penser en arrondissant leurs achats et en investissant la différence dans des portefeuilles diversifiés.',
+    problem: '70 % des jeunes actifs déclarent ne pas réussir à épargner régulièrement faute d\'outils simples et automatisés.',
+    solution: 'Une application qui connecte le compte bancaire, arrondit chaque dépense et place automatiquement l\'épargne selon le profil de risque.',
+    market: 'Le marché européen de l\'épargne mobile représente 12 Md€ et croît de 24 % par an.',
+    kpis: [{ value: '18 k', label: 'Utilisateurs' }, { value: '+22 %', label: 'Croissance / mois' }, { value: '4,8★', label: 'Note App Store' }],
+    team: [
+      { name: 'Camille Roy', role: 'CEO — ex-Qonto', color: '#3b82f6' },
+      { name: 'Hugo Lefèvre', role: 'CTO — ex-Lydia', color: '#1f8e7a' },
+    ],
+  },
+  {
+    id: 2, name: 'Greenloop', tagline: 'La consigne réutilisable pour les commerces',
+    sector: 'Greentech', stage: 'Pré-seed', color: '#16a34a', emoji: '♻️',
+    founded: '2023', employees: '5', raised: '600 k€', ticket: '1 000 €', open: true,
+    website: 'https://example.com', linkedin: 'https://linkedin.com',
+    description: 'Greenloop remplace les emballages jetables des restaurants et épiceries par un système de contenants consignés et traçés.',
+    problem: 'La restauration à emporter génère 220 000 tonnes d\'emballages jetables par an en France.',
+    solution: 'Des contenants réutilisables avec QR code, une appli de retour et une logistique de lavage mutualisée.',
+    market: 'La réglementation AGEC impose le réemploi : un marché de 1,5 Md€ adressable d\'ici 2030.',
+    kpis: [{ value: '120', label: 'Commerces partenaires' }, { value: '85 k', label: 'Contenants en circulation' }, { value: '92 %', label: 'Taux de retour' }],
+    team: [
+      { name: 'Léa Martin', role: 'CEO — ex-Phenix', color: '#16a34a' },
+      { name: 'Tom Bernard', role: 'COO — ex-Back Market', color: '#f59e0b' },
+    ],
+  },
+  {
+    id: 3, name: 'Medika', tagline: 'Le suivi des maladies chroniques par IA',
+    sector: 'Healthtech', stage: 'Seed', color: '#8b5cf6', emoji: '🩺',
+    founded: '2021', employees: '14', raised: '3,1 M€', ticket: '1 000 €', open: false,
+    website: 'https://example.com', linkedin: 'https://linkedin.com',
+    description: 'Medika accompagne les patients diabétiques avec un assistant qui analyse leurs données et alerte les soignants en cas de dérive.',
+    problem: '4 millions de Français vivent avec le diabète et le suivi entre deux consultations reste fragmenté.',
+    solution: 'Une plateforme connectée aux capteurs de glycémie qui détecte les anomalies et facilite le lien ville-hôpital.',
+    market: 'Le marché de la santé numérique des maladies chroniques pèse 8 Md€ en Europe.',
+    kpis: [{ value: '9 k', label: 'Patients suivis' }, { value: '32', label: 'Établissements' }, { value: '−27 %', label: 'Hospitalisations évitées' }],
+    team: [
+      { name: 'Dr Sarah Cohen', role: 'CEO — endocrinologue', color: '#8b5cf6' },
+      { name: 'Yanis Khelifi', role: 'CTO — ex-Doctolib', color: '#3b82f6' },
+    ],
+  },
+  {
+    id: 4, name: 'Foodly', tagline: 'Les cuisines fantômes nouvelle génération',
+    sector: 'Foodtech', stage: 'Série A', color: '#ef4444', emoji: '🍜',
+    founded: '2020', employees: '46', raised: '7,5 M€', ticket: '1 000 €', open: true,
+    website: 'https://example.com', linkedin: 'https://linkedin.com',
+    description: 'Foodly opère un réseau de cuisines optimisées pour la livraison, avec ses propres marques culinaires data-driven.',
+    problem: 'Ouvrir un restaurant de livraison coûte cher et 60 % ferment dans les trois ans.',
+    solution: 'Des cuisines clé en main, des marques testées par la donnée et une logistique mutualisée pour les restaurateurs.',
+    market: 'La livraison de repas atteindra 25 Md€ en France d\'ici 2027.',
+    kpis: [{ value: '12', label: 'Cuisines' }, { value: '480 k', label: 'Commandes / an' }, { value: '+38 %', label: 'CA annuel' }],
+    team: [
+      { name: 'Marc Dubois', role: 'CEO — ex-Deliveroo', color: '#ef4444' },
+      { name: 'Inès Garcia', role: 'CMO — ex-Frichti', color: '#8b5cf6' },
+    ],
+  },
+];
+
+async function seedCatalogIfEmpty() {
+  const count = await col('catalog').countDocuments();
+  if (count > 0) return;
+  await col('catalog').insertMany(SEED_STARTUPS.map(s => ({ logo_url: '', ...s })));
+  console.log(`  ✓  Catalogue initialisé avec ${SEED_STARTUPS.length} startups d'exemple`);
+}
+
 // News
 async function readNews()       { return col('news').find({}, { projection: { _id: 0 } }).toArray(); }
 async function insertNews(entry) { await col('news').insertOne(entry); }
@@ -660,7 +732,8 @@ app.delete('/api/admin/startups/:id', requireAdmin, async (req, res) => {
 
 // ─── Démarrage ────────────────────────────────────────────────────────────────
 assertSecretsOrExit();
-connectDB().then(() => {
+connectDB().then(async () => {
+  await seedCatalogIfEmpty();
   app.listen(PORT, () => console.log(`\n  ✓  LIQUID+  →  http://localhost:${PORT}\n`));
 }).catch(err => {
   console.error('Impossible de se connecter à MongoDB :', err.message);
