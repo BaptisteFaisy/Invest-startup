@@ -1202,65 +1202,6 @@
               <div class="card-src">Korteweg &amp; Nagel (2016) — 4 500 fonds VC nord-américains 1987–2012</div>
             </div>
 
-            <!-- Décomposition factorielle de l'alpha -->
-            <div class="card">
-              <div class="card-lbl">Décomposition de la performance — modèle factoriel</div>
-              <!-- ViewBox 560×200
-                   2 barres horizontales empilées
-                   Scale: 30% max → 390px → 13px/%
-                   x_start=100 · segments: rf(gris) MKT(bleu) SMB(violet) ILP(turquoise) alpha(vert)
-                   Top quartile: rf=2 MKT=4 SMB=2 ILP=4 alpha=18 → total=30%
-                   Médiane: rf=2 MKT=4 SMB=2 ILP=2 alpha=4 → total=14%
-                   Bar Top: y1=46 y2=82 (h=36) · Médiane: y1=116 y2=152 (h=36) -->
-              <svg class="anim-bars-h ch19" viewBox="0 0 560 212" xmlns="http://www.w3.org/2000/svg">
-                <!-- Labels barres -->
-                <text x="96" y="68" text-anchor="end" fill="rgba(16,185,129,.9)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">Top Q1</text>
-                <text x="96" y="138" text-anchor="end" fill="rgba(255,255,255,.45)" font-size="11" font-family="Archivo,sans-serif">Médiane</text>
-                <!-- Top quartile bar (y=46→82) -->
-                <!-- rf 2% → w=26 -->
-                <rect x="100" y="46" width="26" height="36" fill="rgba(107,114,128,.5)" style="clip-path:inset(0 round 9px 0 0 9px);"/>
-                <!-- MKT 4% → w=52 -->
-                <rect x="126" y="46" width="52" height="36" fill="rgba(59,130,246,.5)"/>
-                <!-- SMB 2% → w=26 -->
-                <rect x="178" y="46" width="26" height="36" fill="rgba(139,92,246,.5)"/>
-                <!-- ILP 4% → w=52 -->
-                <rect x="204" y="46" width="52" height="36" fill="rgba(20,184,166,.5)"/>
-                <!-- alpha 18% → w=234 -->
-                <rect x="256" y="46" width="234" height="36" fill="rgba(16,185,129,.65)" style="clip-path:inset(0 round 0 9px 9px 0);"/>
-                <!-- IRR label -->
-                <text x="494" y="58" fill="#34d399" font-size="11" font-weight="700" font-family="Archivo,sans-serif">IRR</text>
-                <text x="494" y="72" fill="#34d399" font-size="13" font-weight="700" font-family="Archivo,sans-serif">+30%</text>
-                <!-- Alpha label inside -->
-                <text x="373" y="69" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="Archivo,sans-serif">α = +18 %</text>
-                <!-- Median bar (y=116→152) -->
-                <!-- rf 2% -->
-                <rect x="100" y="116" width="26" height="36" fill="rgba(107,114,128,.4)" style="clip-path:inset(0 round 9px 0 0 9px);"/>
-                <!-- MKT 4% -->
-                <rect x="126" y="116" width="52" height="36" fill="rgba(59,130,246,.35)"/>
-                <!-- SMB 2% -->
-                <rect x="178" y="116" width="26" height="36" fill="rgba(139,92,246,.35)"/>
-                <!-- ILP 2% → w=26 -->
-                <rect x="204" y="116" width="26" height="36" fill="rgba(20,184,166,.35)"/>
-                <!-- alpha 4% → w=52 -->
-                <rect x="230" y="116" width="52" height="36" fill="rgba(16,185,129,.4)" style="clip-path:inset(0 round 0 9px 9px 0);"/>
-                <!-- IRR label -->
-                <text x="290" y="128" fill="rgba(255,255,255,.5)" font-size="11" font-weight="700" font-family="Archivo,sans-serif">IRR +14%</text>
-                <text x="290" y="144" fill="rgba(16,185,129,.55)" font-size="10" font-family="Archivo,sans-serif">α = +4 %</text>
-                <!-- Légende factors (2 lignes, libellés explicites) -->
-                <rect x="20" y="170" width="10" height="10" rx="2" fill="rgba(107,114,128,.6)"/>
-                <text x="34" y="179" fill="rgba(255,255,255,.45)" font-size="9.5" font-family="Archivo,sans-serif">rf — taux sans risque (rémunération du temps)</text>
-                <rect x="290" y="170" width="10" height="10" rx="2" fill="rgba(59,130,246,.5)"/>
-                <text x="304" y="179" fill="rgba(255,255,255,.45)" font-size="9.5" font-family="Archivo,sans-serif">Marché — prime de risque des actions (β)</text>
-                <rect x="20" y="188" width="10" height="10" rx="2" fill="rgba(139,92,246,.5)"/>
-                <text x="34" y="197" fill="rgba(255,255,255,.45)" font-size="9.5" font-family="Archivo,sans-serif">SMB — prime des petites capitalisations</text>
-                <rect x="240" y="188" width="10" height="10" rx="2" fill="rgba(20,184,166,.5)"/>
-                <text x="254" y="197" fill="rgba(255,255,255,.45)" font-size="9.5" font-family="Archivo,sans-serif">ILP — prime d'illiquidité</text>
-                <rect x="380" y="188" width="10" height="10" rx="2" fill="rgba(16,185,129,.65)"/>
-                <text x="394" y="197" fill="rgba(255,255,255,.45)" font-size="9.5" font-family="Archivo,sans-serif">Alpha — compétence du gérant</text>
-              </svg>
-              <p class="card-note">Un fonds top quartile doit sa surperformance à 60 % à l'alpha pur (compétence du gérant) — la médiane génère peu d'alpha et profite surtout des primes de marché et d'illiquidité.</p>
-              <div class="card-src">Korteweg &amp; Nagel (2016) — modèle rf+β·MKT+SMB+ILP+α</div>
-            </div>
           </div>
         </section>
 
