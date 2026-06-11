@@ -23,6 +23,7 @@ body {
     var(--bg);
   min-height: 100vh;
   line-height: 1.6;
+  overflow-x: clip;
 }
 /* horizontal-scroll wrappers (wide tables) must be allowed to shrink inside
    grid/flex parents, otherwise their min-content width blows out the page */
