@@ -87,7 +87,9 @@
       @keyframes chPop   { 0% { transform:scale(0); opacity:0; } 70% { transform:scale(1.3); opacity:1; } 100% { transform:scale(1); opacity:1; } }
       @keyframes chFade  { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
       @keyframes chFadeO { from { opacity:0; } to { opacity:1; } }
-      @keyframes chSweep { from { stroke-dasharray:0 999; } }
+      /* dash+gap doit rester égal à la circonférence (439.8) pendant l'interpolation,
+         sinon l'arc déborde de son secteur en cours d'animation */
+      @keyframes chSweep { from { stroke-dasharray:0 439.82; } }
       /* Courbes — tracé progressif, points qui éclosent, labels en fondu */
       .card.seen svg.anim-line polyline[stroke],
       .card.seen svg.anim-line path[fill="none"][stroke] { animation: chDraw 1.5s cubic-bezier(.45,0,.2,1) backwards; }
@@ -158,7 +160,7 @@
       .card.seen svg.ch1 text { animation: chDropIn .5s ease 1s backwards; }
       .card.seen svg.ch1 path { animation: chDraw .5s ease 1.35s backwards; }
       /* ch2 · donut répartition : balayage élastique, le 100 central explose à l'écran */
-      .card.seen svg.ch2 circle[stroke-dasharray] { animation: chSweep 1.4s cubic-bezier(.3,1.2,.4,1) backwards; }
+      .card.seen svg.ch2 circle[stroke-dasharray] { animation: chSweep 1.4s cubic-bezier(.5,0,.2,1) backwards; }
       .card.seen svg.ch2 circle[stroke-dasharray]:nth-of-type(3) { animation-delay:.55s; }
       .card.seen svg.ch2 text { animation: chSlideL .6s ease 1.3s backwards; }
       .card.seen svg.ch2 text:nth-of-type(1) { animation: chZoomCrash .7s cubic-bezier(.2,.8,.3,1) 1s backwards; }
@@ -173,7 +175,7 @@
       .card.seen svg.ch4 text { animation: chFadeO .9s ease 1.7s backwards; }
       .card.seen svg.ch4 path[fill]:not([fill="none"]) { animation: chFadeO 1.4s ease 1.5s backwards; }
       /* ch5 · donut sorties : 3 arcs en balayage rebondi séquentiel, légende glisse */
-      .card.seen svg.ch5 circle { animation: chSweep 1s cubic-bezier(.2,1.25,.4,1) backwards; }
+      .card.seen svg.ch5 circle { animation: chSweep 1s cubic-bezier(.5,0,.2,1) backwards; }
       .card.seen svg.ch5 circle:nth-of-type(2) { animation-delay:.4s; }
       .card.seen svg.ch5 circle:nth-of-type(3) { animation-delay:.75s; }
       .card.seen svg.ch5 rect { animation: chSlideL .5s ease 1s backwards; }
@@ -404,12 +406,10 @@
       .card.seen svg.ch30 line { transform-origin:50% 50%; animation: chGrowY .5s ease .4s backwards; }
       /* ── Couche 2 : animations continues & interactions ── */
       @keyframes chFloat     { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-5px); } }
-      @keyframes chGlow { 0%,100% { filter:drop-shadow(0 0 0 rgba(59,130,246,0)); } 50% { filter:drop-shadow(0 0 7px rgba(59,130,246,.95)); } }
       @keyframes chBob       { 0%,100% { transform:translateY(0); } 50% { transform:translateY(3px); } }
-      /* Le dernier point de chaque courbe : halo lumineux qui respire (taille fixe) */
-      .card.seen svg.anim-line circle:last-of-type { animation: chPop .5s cubic-bezier(.3,1.6,.4,1) 1.15s backwards, chGlow 2.8s ease-in-out 2.4s infinite; }
-      /* Les bulles du scatter flottent doucement */
+      /* Les bulles du scatter flottent doucement (sauf PME ch16 : points fixes) */
       .card.seen svg.anim-scatter circle { animation: chPop .6s cubic-bezier(.3,1.6,.4,1) backwards, chFloat 3.4s ease-in-out 1.6s infinite; }
+      .card.seen svg.ch16 circle { animation: chPop .6s cubic-bezier(.3,1.6,.4,1) backwards; }
       /* Les flèches entre niveaux des funnels rebondissent */
       .card.seen svg.anim-funnel path { animation: chFadeO .5s ease .55s backwards, chBob 1.9s ease-in-out 1.4s infinite; }
       /* Survol : barres, points et arcs réagissent */
