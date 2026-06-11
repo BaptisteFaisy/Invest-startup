@@ -12,6 +12,9 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
+/* clip (not hidden) prevents horizontal scroll WITHOUT creating a scroll
+   container, so position:sticky stays glued to the viewport */
+html { overflow-x: clip; }
 body {
   font-family: "Libre Franklin","Helvetica Neue",sans-serif;
   color: var(--text);
@@ -20,8 +23,10 @@ body {
     var(--bg);
   min-height: 100vh;
   line-height: 1.6;
-  overflow-x: hidden;
 }
+/* horizontal-scroll wrappers (wide tables) must be allowed to shrink inside
+   grid/flex parents, otherwise their min-content width blows out the page */
+[style*="overflow-x:auto"], [style*="overflow-x: auto"] { min-width: 0; }
 
 .grain {
   position: fixed;
