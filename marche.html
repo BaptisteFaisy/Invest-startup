@@ -122,6 +122,8 @@
       .card.seen svg.anim-donut circle[stroke-dasharray]:nth-of-type(2) { animation-delay:.2s; }
       .card.seen svg.anim-donut circle[stroke-dasharray]:nth-of-type(3) { animation-delay:.45s; }
       .card.seen svg.anim-donut circle[stroke-dasharray]:nth-of-type(4) { animation-delay:.65s; }
+      /* ch2 : l'arc vert ne démarre qu'après la fin du balayage de l'arc rouge */
+      .card.seen svg.ch2 circle[stroke-dasharray]:nth-of-type(2) { animation-delay:1.05s; }
       .card.seen svg.anim-donut text, .card.seen svg.anim-donut rect { animation: chFadeO .8s ease .9s backwards; }
       /* Scatter / points — bulles qui éclosent une à une */
       .card.seen svg.anim-scatter circle { animation: chPop .6s cubic-bezier(.3,1.6,.4,1) backwards; }
@@ -243,7 +245,7 @@
       .card.seen svg.ch14 rect { transform-origin:0 50%; animation: chGrowX .65s cubic-bezier(.25,.8,.3,1) backwards; }
       .card.seen svg.ch14 rect:nth-of-type(2) { animation-delay:.45s; }
       .card.seen svg.ch14 rect:nth-of-type(3) { animation-delay:.9s; }
-      .card.seen svg.ch14 rect:nth-of-type(4) { animation: chGrowX .65s cubic-bezier(.25,.8,.3,1) 1.35s backwards, chPulse .55s ease 2.3s 2; }
+      .card.seen svg.ch14 rect:nth-of-type(4) { animation: chGrowX .65s cubic-bezier(.25,.8,.3,1) 1.35s backwards; }
       .card.seen svg.ch14 path { animation: chDraw .4s ease backwards; }
       .card.seen svg.ch14 path:nth-of-type(1) { animation-delay:.55s; }
       .card.seen svg.ch14 path:nth-of-type(2) { animation-delay:1s; }
@@ -295,7 +297,7 @@
       .card.seen svg.ch19 rect:nth-of-type(2) { animation-delay:.25s; }
       .card.seen svg.ch19 rect:nth-of-type(3) { animation-delay:.5s; }
       .card.seen svg.ch19 rect:nth-of-type(4) { animation-delay:.75s; }
-      .card.seen svg.ch19 rect:nth-of-type(5) { animation: chGrowX .6s cubic-bezier(.3,.9,.35,1) 1s backwards, chPulse .6s ease 2s 2; }
+      .card.seen svg.ch19 rect:nth-of-type(5) { animation: chGrowX .6s cubic-bezier(.3,.9,.35,1) 1s backwards; }
       .card.seen svg.ch19 rect:nth-of-type(6) { animation-delay:1.2s; }
       .card.seen svg.ch19 rect:nth-of-type(7) { animation-delay:1.35s; }
       .card.seen svg.ch19 rect:nth-of-type(8) { animation-delay:1.5s; }
@@ -381,7 +383,6 @@
       .card.seen svg.ch28 rect:nth-of-type(4) { animation-delay:.6s; animation-timing-function:cubic-bezier(.2,1.7,.3,1); }
       .card.seen svg.ch28 rect:nth-of-type(5) { animation: chPop .5s cubic-bezier(.3,1.6,.4,1) 1.4s backwards; }
       .card.seen svg.ch28 text { animation: chFadeO .6s ease 1.2s backwards; }
-      .card.seen svg.ch28 text:nth-of-type(9) { animation: chZoomCrash .7s cubic-bezier(.2,.8,.3,1) 1.6s backwards; }
       /* ch29 · concentration : le donut tourne sur lui-même en balayant ses arcs */
       .card.seen svg.ch29 circle { animation: chSweep 1.3s ease backwards, chSpinIn 1.3s cubic-bezier(.3,.7,.2,1) backwards; }
       .card.seen svg.ch29 circle:nth-of-type(2) { animation-delay:.2s,.2s; }
@@ -403,10 +404,10 @@
       .card.seen svg.ch30 line { transform-origin:50% 50%; animation: chGrowY .5s ease .4s backwards; }
       /* ── Couche 2 : animations continues & interactions ── */
       @keyframes chFloat     { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-5px); } }
-      @keyframes chPulseSoft { 0%,100% { transform:scale(1); } 50% { transform:scale(1.3); } }
+      @keyframes chGlow { 0%,100% { filter:drop-shadow(0 0 0 rgba(59,130,246,0)); } 50% { filter:drop-shadow(0 0 7px rgba(59,130,246,.95)); } }
       @keyframes chBob       { 0%,100% { transform:translateY(0); } 50% { transform:translateY(3px); } }
-      /* Le dernier point de chaque courbe pulse en continu une fois apparu */
-      .card.seen svg.anim-line circle:last-of-type { animation: chPop .5s cubic-bezier(.3,1.6,.4,1) 1.15s backwards, chPulseSoft 2.6s ease-in-out 2.4s infinite; }
+      /* Le dernier point de chaque courbe : halo lumineux qui respire (taille fixe) */
+      .card.seen svg.anim-line circle:last-of-type { animation: chPop .5s cubic-bezier(.3,1.6,.4,1) 1.15s backwards, chGlow 2.8s ease-in-out 2.4s infinite; }
       /* Les bulles du scatter flottent doucement */
       .card.seen svg.anim-scatter circle { animation: chPop .6s cubic-bezier(.3,1.6,.4,1) backwards, chFloat 3.4s ease-in-out 1.6s infinite; }
       /* Les flèches entre niveaux des funnels rebondissent */
@@ -1292,10 +1293,7 @@
               <text x="140" y="39" text-anchor="end" fill="rgba(255,255,255,.7)"  font-size="13" font-weight="600" font-family="Archivo,sans-serif">Seed</text>
               <text x="140" y="55" text-anchor="end" fill="rgba(255,255,255,.25)" font-size="10"   font-family="Archivo,sans-serif">~2M€ valeur</text>
               <rect x="150" y="22" width="440" height="32" fill="rgba(59,130,246,.55)" rx="6"/>
-              <!-- Badge LIQUID+ à l'intérieur -->
-              <rect x="154" y="29" width="70" height="18" rx="4" fill="rgba(255,255,255,.2)"/>
-              <text x="189" y="42" text-anchor="middle" fill="#fff" font-size="9.5" font-weight="700" font-family="Archivo,sans-serif">LIQUID+</text>
-              <text x="598" y="42" fill="#60a5fa" font-size="13" font-weight="700" font-family="Archivo,sans-serif">×1000</text>
+              <text x="598" y="42" fill="#60a5fa" font-size="13" font-weight="700" font-family="Archivo,sans-serif">×150</text>
               <!-- Série A -->
               <text x="140" y="90"  text-anchor="end" fill="rgba(255,255,255,.5)"  font-size="13" font-family="Archivo,sans-serif">Série A</text>
               <text x="140" y="106" text-anchor="end" fill="rgba(255,255,255,.22)" font-size="10" font-family="Archivo,sans-serif">~20M€</text>
@@ -1311,7 +1309,7 @@
               <rect x="150" y="175" width="18" height="32" fill="rgba(107,114,128,.3)" rx="4"/>
               <text x="176" y="195" fill="rgba(255,255,255,.28)" font-size="13" font-family="Archivo,sans-serif">×2</text>
             </svg>
-            <p class="card-note">Plus on entre tôt dans la vie d'une startup, plus le multiple potentiel est élevé : le seed offre jusqu'à ×300 à ×1 000, contre ×2 seulement en bourse — la valorisation de départ est l'avantage clé.</p>
+            <p class="card-note">Plus on entre tôt dans la vie d'une startup, plus le multiple potentiel est élevé : entré à ~2 M€ de valorisation, un seed peut atteindre ×150 sur une très belle sortie (~300 M€), contre ×2 seulement en bourse — la valorisation de départ est l'avantage clé.</p>
             <div class="card-src">Multiples illustratifs — données historiques VC seed américain et européen 2000–2022</div>
           </div>
 
