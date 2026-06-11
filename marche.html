@@ -409,8 +409,9 @@
       /* Les bulles du scatter flottent doucement (sauf PME ch16 : points fixes) */
       .card.seen svg.anim-scatter circle { animation: chPop .6s cubic-bezier(.3,1.6,.4,1) backwards, chFloat 3.4s ease-in-out 1.6s infinite; }
       .card.seen svg.ch16 circle { animation: chPop .6s cubic-bezier(.3,1.6,.4,1) backwards; }
-      /* Les flèches entre niveaux des funnels rebondissent */
+      /* Les flèches entre niveaux des funnels rebondissent (sauf ch26 : statiques) */
       .card.seen svg.anim-funnel path { animation: chFadeO .5s ease .55s backwards, chBob 1.9s ease-in-out 1.4s infinite; }
+      .card.seen svg.ch26 path { animation: chFadeO .5s ease .55s backwards; }
       /* Survol : barres, points et arcs réagissent */
       .card svg rect, .card svg circle { transition: filter .22s ease; }
       .card svg rect:hover, .card svg circle:hover { filter: brightness(1.08) drop-shadow(0 3px 7px rgba(8,12,20,.5)); }
