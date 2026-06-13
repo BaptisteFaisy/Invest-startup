@@ -141,7 +141,6 @@
       <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
       <div id="nav-links" class="nav-links">
         <a class="nav-link" href="marche.html">Ressources</a>
-        <a class="nav-link nav-link--active" href="startups.html">Startups</a>
         <a class="nav-link" href="login.html">Se connecter</a>
         <a class="button primary" href="register.html">Rejoindre</a>
       </div>
@@ -172,14 +171,14 @@
       })
       .catch(() => {
         document.getElementById('page-content').innerHTML =
-          `<div class="s-loading">Impossible de charger les données. <a href="startups.html">Retour aux startups</a></div>`;
+          `<div class="s-loading">Impossible de charger les données. <a href="index.html">Retour aux startups</a></div>`;
       });
 
     function renderPage(s) {
       document.getElementById('page-content').innerHTML = `
         <!-- Hero -->
         <div class="s-hero">
-          <a class="s-back" href="startups.html">� � Toutes les startups</a>
+          <a class="s-back" href="index.html">� � Toutes les startups</a>
           <div class="s-hero-top">
             <div class="s-logo" style="background:${s.color}">${s.emoji || s.name.charAt(0)}</div>
             <div class="s-hero-info">
@@ -313,7 +312,7 @@
         const name = data.user.full_name ? data.user.full_name.split(' ')[0] : data.user.email;
         document.getElementById('nav-links').innerHTML = `
           <a class="nav-link" href="marche.html">Ressources</a>
-          <a class="nav-link nav-link--active" href="startups.html">Startups</a>
+          <a class="nav-link nav-link--active" href="index.html">Startups</a>
           <a class="nav-link" href="investments.html">Mes investissements</a>
           <span class="nav-link nav-user-name">${name}</span>
           <button class="button ghost" id="nav-logout">Se déconnecter</button>

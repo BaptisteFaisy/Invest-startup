@@ -1,20 +1,17 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>LIQUID+ — Investir dans des startups innovantes</title>
-    <meta name="description" content="LIQUID+ vous donne accès à des startups soigneusement sélectionnées. Investissez dès 1 000 € dans les entreprises de demain." />
+    <title>LIQUID+ — Levée de fonds pour startups | Accompagnement A à Z</title>
+    <meta name="description" content="LIQUID+ vous accompagne de A à Z dans votre levée de fonds. Analyse complète, pitch deck, accès réseau 3000+ VC. Transformez votre startup en entreprise investissable." />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://www.liquidplus.fr/" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://www.liquidplus.fr/" />
-    <meta property="og:title" content="LIQUID+ — Investir dans des startups innovantes" />
-    <meta property="og:description" content="LIQUID+ vous donne accès à des startups soigneusement sélectionnées. Investissez dès 1 000 € dans les entreprises de demain." />
+    <meta property="og:title" content="LIQUID+ — Accompagnement levée de fonds pour startups" />
+    <meta property="og:description" content="Analysez votre startup, préparez votre pitch, accédez à 3000+ investisseurs avec LIQUID+." />
     <meta property="og:image" content="https://www.liquidplus.fr/ressourcegraphique/Goutte%20blanche.png" />
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="LIQUID+ — Investir dans des startups innovantes" />
-    <meta name="twitter:description" content="LIQUID+ vous donne accès à des startups soigneusement sélectionnées. Investissez dès 1 000 €." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -22,9 +19,205 @@
       rel="stylesheet"
     />
     <link rel="icon" type="image/svg+xml" href="/ressourcegraphique/favicon-drop.svg" />
-    <link rel="stylesheet" href="styles.css?v=20260611b" />
-    <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
-    <script src="https://assets.calendly.com/assets/external/widget.js" type="text/javascript" async></script>
+    <link rel="stylesheet" href="styles.css?v=20260613" />
+    <style>
+      :root {
+        --gutter: clamp(16px, 5vw, 40px);
+        --line: rgba(0,0,0,0.1);
+        --text: #080c14;
+        --muted: #666;
+        --accent: #3b82f6;
+      }
+
+      body {
+        font-family: 'Archivo', sans-serif;
+        background: #fafaf9;
+        color: var(--text);
+        line-height: 1.6;
+      }
+
+      .button {
+        display: inline-block;
+        padding: 12px 28px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+        font-size: 1rem;
+      }
+
+      .button.primary {
+        background: #080c14;
+        color: white;
+      }
+
+      .button.primary:hover {
+        background: #1a1f2e;
+        transform: translateY(-2px);
+      }
+
+      .button.secondary {
+        background: var(--accent);
+        color: white;
+      }
+
+      .button.secondary:hover {
+        background: #2563eb;
+      }
+
+      .button.ghost {
+        background: transparent;
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+      }
+
+      .button.ghost:hover {
+        border-color: rgba(255,255,255,0.6);
+        background: rgba(255,255,255,0.05);
+      }
+
+      .site-header {
+        background: linear-gradient(135deg, #080c14 0%, #1a1f2e 100%);
+        color: white;
+        padding: 0 var(--gutter);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+
+      .nav {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 0;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 1.2rem;
+        color: white;
+      }
+
+      .logo-icon {
+        width: 32px;
+        height: 32px;
+      }
+
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 32px;
+      }
+
+      .nav-link {
+        color: rgba(255,255,255,0.8);
+        text-decoration: none;
+        transition: color 0.2s;
+      }
+
+      .nav-link:hover {
+        color: white;
+      }
+
+      .nav-hamburger {
+        display: none;
+        flex-direction: column;
+        gap: 6px;
+        background: none;
+        border: none;
+        cursor: pointer;
+      }
+
+      .nav-hamburger span {
+        width: 24px;
+        height: 2px;
+        background: white;
+        transition: all 0.3s;
+      }
+
+      .mobile-menu {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #080c14;
+        padding: 80px 24px 24px;
+        z-index: 999;
+      }
+
+      .mobile-menu.open {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      .mobile-menu a {
+        color: rgba(255,255,255,0.8);
+        text-decoration: none;
+        font-size: 1.1rem;
+      }
+
+      @media (max-width: 768px) {
+        .nav-links {
+          display: none;
+        }
+
+        .nav-hamburger {
+          display: flex;
+        }
+
+        .nav-hamburger.open span:nth-child(1) {
+          transform: rotate(45deg) translate(10px, 10px);
+        }
+
+        .nav-hamburger.open span:nth-child(2) {
+          opacity: 0;
+        }
+
+        .nav-hamburger.open span:nth-child(3) {
+          transform: rotate(-45deg) translate(7px, -7px);
+        }
+      }
+
+      .section {
+        padding: 80px var(--gutter);
+      }
+
+      .container {
+        max-width: 1380px;
+        margin: 0 auto;
+      }
+
+      h2 {
+        font-size: clamp(2rem, 4vw, 3.2rem);
+        color: var(--text);
+        margin-bottom: 60px;
+        font-weight: 800;
+      }
+
+      h3 {
+        font-size: 1.4rem;
+        color: var(--text);
+        margin-bottom: 16px;
+        font-weight: 700;
+      }
+
+      p {
+        color: var(--muted);
+        line-height: 1.8;
+      }
+    </style>
   </head>
   <body>
     <div class="grain" aria-hidden="true"></div>
@@ -38,7 +231,7 @@
         </div>
       <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button></nav>
     </header>
-    <!-- Menu mobile -->
+
     <div class="mobile-menu" id="mobile-menu" role="dialog" aria-label="Navigation">
       <button class="nav-hamburger open" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><span></span><span></span><span></span></button>
       <a href="index.html">Accueil</a>
@@ -48,11 +241,11 @@
 
     <script>
       (function() {
-        var btn   = document.getElementById('nav-hamburger');
-        var menu  = document.getElementById('mobile-menu');
+        var btn = document.getElementById('nav-hamburger');
+        var menu = document.getElementById('mobile-menu');
         var close = document.getElementById('mobile-close');
         if (!btn || !menu) return;
-        function openMenu()  { menu.classList.add('open');  btn.classList.add('open');  btn.setAttribute('aria-expanded','true');  document.body.style.overflow='hidden'; }
+        function openMenu() { menu.classList.add('open'); btn.classList.add('open'); btn.setAttribute('aria-expanded','true'); document.body.style.overflow='hidden'; }
         function closeMenu() { menu.classList.remove('open'); btn.classList.remove('open'); btn.setAttribute('aria-expanded','false'); document.body.style.overflow=''; }
         btn.addEventListener('click', openMenu);
         if (close) close.addEventListener('click', closeMenu);
@@ -100,1219 +293,449 @@
     </script>
 
     <main id="top">
-      <section class="hero-simple">
-        <h1 class="hero-simple-title">Investissez dans des startup<br>à partir de 1 000 €</h1>
-        <a class="button primary" href="startups.html">Investir maintenant</a>
-      </section>
-
-        <!-- graphique (supprimé) -->
-        <div class="hero-visual" style="display:none">
-          <div class="chart-glow" aria-hidden="true"></div>
-          <div class="particles" aria-hidden="true">
-            <span class="p p1"></span><span class="p p2"></span>
-            <span class="p p3"></span><span class="p p4"></span>
-            <span class="p p5"></span><span class="p p6"></span>
-          </div>
-
-          <!-- Carte graphique (fond sombre) -->
-          <div class="chart-card"
-            role="img"
-            aria-label="Évolution de 10 000 euros investis sur 10 ans : valeur finale 39 083 euros.">
-
-            <div class="chart-header">
-              <div>
-                <p class="chart-title">Évolution du capital</p>
-                <p class="chart-sub">10 000 € investis · simulation 2016–2026</p>
-              </div>
-              <div class="chart-result-badge">
-                <span class="crb-value">€ 39 083</span>
-                <span class="crb-delta">↑ +293% en 10 ans</span>
-              </div>
-            </div>
-
-            <!--
-              ViewBox 605 × 310
-              ─ Axe Y (x ≤ 50) : labels €10k → €35k
-              ─ Courbe cumulative (y 20 – 200, x 55 – 558)
-              ─ Séparateur y=212
-              ─ Histogramme annuel (baseline y=278, bars vers le haut)
-              ─ Labels années y=296
-            -->
-            <svg class="chart-svg" viewBox="0 0 605 310" fill="none"
-              xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <defs>
-                <linearGradient id="lineGrad" x1="0" y1="0" x2="605" y2="0" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%"   stop-color="#3b82f6"/>
-                  <stop offset="100%" stop-color="#4a90d9"/>
-                </linearGradient>
-                <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="205" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%"   stop-color="rgba(0,82,204,0.28)"/>
-                  <stop offset="100%" stop-color="rgba(59,130,246,0)"/>
-                </linearGradient>
-                <linearGradient id="glowGrad" x1="0" y1="0" x2="605" y2="0" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%"   stop-color="rgba(0,82,204,0.5)"/>
-                  <stop offset="100%" stop-color="rgba(74,144,217,0.5)"/>
-                </linearGradient>
-                <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%"   stop-color="#3b82f6" stop-opacity="0.9"/>
-                  <stop offset="100%" stop-color="#1f8e7a" stop-opacity="0.4"/>
-                </linearGradient>
-                <linearGradient id="barGradNeg" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%"   stop-color="#e05848" stop-opacity="0.4"/>
-                  <stop offset="100%" stop-color="#e05848" stop-opacity="0.85"/>
-                </linearGradient>
-                <filter id="tipShadow" x="-30%" y="-30%" width="160%" height="160%">
-                  <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="rgba(0,0,0,0.4)"/>
-                </filter>
-                <!-- Révèle la zone et la courbe de gauche à droite -->
-                <clipPath id="revealLeft">
-                  <rect x="55" y="0" width="0" height="310">
-                    <animate attributeName="width" from="0" to="550"
-                      dur="2.2s" begin="0.2s" fill="freeze"
-                      calcMode="spline" keyTimes="0;1"
-                      keySplines="0.4 0 0.2 1"/>
-                  </rect>
-                </clipPath>
-              </defs>
-
-              <!-- ── Axe Y ─────────────────────────────────────── -->
-              <line x1="50" y1="15" x2="50" y2="208"
-                stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-
-              <!-- Ticks + labels (€10k à €35k) -->
-              <line x1="46" y1="200" x2="52" y2="200" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
-              <text x="43" y="203" text-anchor="end"
-                font-family="Space Grotesk,sans-serif" font-size="8"
-                fill="rgba(255,255,255,0.5)">10k€</text>
-
-              <line x1="46" y1="169" x2="52" y2="169" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-              <text x="43" y="172" text-anchor="end"
-                font-family="Space Grotesk,sans-serif" font-size="8"
-                fill="rgba(255,255,255,0.5)">15k€</text>
-
-              <line x1="46" y1="138" x2="52" y2="138" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-              <text x="43" y="141" text-anchor="end"
-                font-family="Space Grotesk,sans-serif" font-size="8"
-                fill="rgba(255,255,255,0.5)">20k€</text>
-
-              <line x1="46" y1="107" x2="52" y2="107" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-              <text x="43" y="110" text-anchor="end"
-                font-family="Space Grotesk,sans-serif" font-size="8"
-                fill="rgba(255,255,255,0.5)">25k€</text>
-
-              <line x1="46" y1="76" x2="52" y2="76" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-              <text x="43" y="79" text-anchor="end"
-                font-family="Space Grotesk,sans-serif" font-size="8"
-                fill="rgba(255,255,255,0.5)">30k€</text>
-
-              <line x1="46" y1="45" x2="52" y2="45" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-              <text x="43" y="48" text-anchor="end"
-                font-family="Space Grotesk,sans-serif" font-size="8"
-                fill="rgba(255,255,255,0.5)">35k€</text>
-
-              <!-- ── Grilles horizontales ── -->
-              <line x1="50" y1="200" x2="595" y2="200" stroke="rgba(255,255,255,0.09)" stroke-width="1"/>
-              <line x1="50" y1="169" x2="595" y2="169" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-              <line x1="50" y1="138" x2="595" y2="138" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-              <line x1="50" y1="107" x2="595" y2="107" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-              <line x1="50" y1="76"  x2="595" y2="76"  stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-              <line x1="50" y1="45"  x2="595" y2="45"  stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-
-              <!--
-                ── Courbe : 10 000 € composés année par année ──
-                Points (x, y) où y=200 → €10k, y=20 → €39 083
-                Années : 2015(72,195) 2016(126,187) 2017(180,174)
-                         2018(234,176) 2019(288,155) 2020(342,150)
-                         2021(396,115) 2022(450,95)  2023(504,63)
-                         2024(558,20)
-              -->
-
-              <!-- Zone sous la courbe (révélée de gauche à droite) -->
-              <path class="chart-area" clip-path="url(#revealLeft)"
-                style="animation:none; opacity:1;"
-                d="M55 200 C 64 200 67 196 72 195
-                   C 99 192 112 188 126 187
-                   C 152 184 167 175 180 174
-                   C 207 173 223 177 234 176
-                   C 254 175 278 158 288 155
-                   C 311 152 328 151 342 150
-                   C 365 140 380 119 396 115
-                   C 416 106 435 99 450 95
-                   C 473 85 488 71 504 63
-                   C 526 50 543 33 558 20
-                   L558 200 L55 200 Z"
-                fill="url(#areaGrad)"/>
-
-              <!-- Ligne principale (animée) -->
-              <path class="chart-line"
-                d="M55 200 C 64 200 67 196 72 195
-                   C 99 192 112 188 126 187
-                   C 152 184 167 175 180 174
-                   C 207 173 223 177 234 176
-                   C 254 175 278 158 288 155
-                   C 311 152 328 151 342 150
-                   C 365 140 380 119 396 115
-                   C 416 106 435 99 450 95
-                   C 473 85 488 71 504 63
-                   C 526 50 543 33 558 20"
-                stroke="url(#lineGrad)" stroke-width="3"
-                stroke-linecap="round"/>
-
-              <!-- Points de données (apparition décalée) -->
-              <circle class="data-dot dd1" cx="72"  cy="195" r="3.5" fill="#3b82f6"/>
-              <circle class="data-dot dd2" cx="126" cy="187" r="3.5" fill="#3b82f6"/>
-              <circle class="data-dot dd3" cx="180" cy="174" r="3.5" fill="#45d8b0"/>
-              <circle class="data-dot dd4" cx="234" cy="176" r="3.5" fill="#e07070"/>
-              <circle class="data-dot dd5" cx="288" cy="155" r="3.5" fill="#7dd09c"/>
-              <circle class="data-dot dd6" cx="342" cy="150" r="3.5" fill="#9ecb8c"/>
-              <circle class="data-dot dd7" cx="396" cy="115" r="3.5" fill="#bec67c"/>
-              <circle class="data-dot dd8" cx="450" cy="95"  r="3.5" fill="#d8b870"/>
-              <circle class="data-dot dd9" cx="504" cy="63"  r="3.5" fill="#eeaa65"/>
-
-              <!-- Tooltip au sommet -->
-              <g class="chart-tip" transform="translate(408,6)" filter="url(#tipShadow)">
-                <rect width="148" height="54" rx="10"
-                  fill="#1a1816" stroke="rgba(59,130,246,0.18)" stroke-width="1"/>
-                <text x="12" y="20"
-                  font-family="Space Grotesk,sans-serif" font-size="9"
-                  fill="rgba(255,255,255,0.85)" letter-spacing="0.8">10 000 € → 39 083 €</text>
-                <text x="12" y="40"
-                  font-family="Space Grotesk,sans-serif" font-size="16" font-weight="700"
-                  fill="#3b82f6">+293% en 10 ans</text>
-              </g>
-
-              <!-- Point final + anneau pulsant -->
-              <circle class="chart-dot-ring" cx="558" cy="20" r="11"
-                fill="none" stroke="#3b82f6" stroke-width="1.5"/>
-              <circle class="chart-dot" cx="558" cy="20" r="5" fill="#3b82f6"/>
-
-              <!-- ── Séparateur ligne / barres ── -->
-              <line x1="50" y1="212" x2="595" y2="212"
-                stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-
-              <!--
-                ── Histogramme des rendements annuels ──
-                Baseline y=278 · barres vers le haut (positif) ou bas (négatif)
-                Slot width=54px, bar width=34px
-                Positions (x, center):
-                  2015:(55,72)  2016:(109,126) 2017:(163,180) 2018:(217,234)
-                  2019:(271,288) 2020:(325,342) 2021:(379,396) 2022:(433,450)
-                  2023:(487,504) 2024:(541,558)
-              -->
-
-              <!-- 2015 +8% → €10 800 / gain +€800 -->
-              <rect class="bar-col bc1" x="55" y="262" width="34" height="16" rx="3"
-                fill="url(#barGrad)" style="animation-delay:2.0s"/>
-              <text class="bar-pct" x="72" y="252" font-family="Space Grotesk,sans-serif"
-                font-size="7.5" fill="rgba(255,255,255,0.5)" text-anchor="middle"
-                style="animation-delay:2.0s">€10.8k</text>
-              <text class="bar-pct" x="72" y="260" font-family="Space Grotesk,sans-serif"
-                font-size="7" fill="rgba(0,82,204,0.7)" text-anchor="middle"
-                style="animation-delay:2.0s">+€0.8k</text>
-
-              <!-- 2016 +12% → €12 096 / gain +€1 296 -->
-              <rect class="bar-col bc2" x="109" y="255" width="34" height="23" rx="3"
-                fill="url(#barGrad)" style="animation-delay:2.15s"/>
-              <text class="bar-pct" x="126" y="245" font-family="Space Grotesk,sans-serif"
-                font-size="7.5" fill="rgba(255,255,255,0.5)" text-anchor="middle"
-                style="animation-delay:2.15s">€12.1k</text>
-              <text class="bar-pct" x="126" y="253" font-family="Space Grotesk,sans-serif"
-                font-size="7" fill="rgba(0,82,204,0.7)" text-anchor="middle"
-                style="animation-delay:2.15s">+€1.3k</text>
-
-              <!-- 2017 +18% → €14 273 / gain +€2 177 -->
-              <rect class="bar-col bc3" x="163" y="243" width="34" height="35" rx="3"
-                fill="url(#barGrad)" style="animation-delay:2.3s"/>
-              <text class="bar-pct" x="180" y="233" font-family="Space Grotesk,sans-serif"
-                font-size="7.5" fill="rgba(255,255,255,0.5)" text-anchor="middle"
-                style="animation-delay:2.3s">€14.3k</text>
-              <text class="bar-pct" x="180" y="241" font-family="Space Grotesk,sans-serif"
-                font-size="7" fill="rgba(0,82,204,0.7)" text-anchor="middle"
-                style="animation-delay:2.3s">+€2.2k</text>
-
-              <!-- 2018 −3% → €13 845 / gain −€428 -->
-              <rect class="bar-col bar-neg bc4" x="217" y="278" width="34" height="6" rx="2"
-                fill="url(#barGradNeg)" style="animation-delay:2.45s"/>
-              <text class="bar-pct" x="234" y="268" font-family="Space Grotesk,sans-serif"
-                font-size="7.5" fill="rgba(240,90,80,0.9)" text-anchor="middle"
-                style="animation-delay:2.45s">€13.8k</text>
-              <text class="bar-pct" x="234" y="276" font-family="Space Grotesk,sans-serif"
-                font-size="7" fill="rgba(240,90,80,0.75)" text-anchor="middle"
-                style="animation-delay:2.45s">−€0.4k</text>
-
-              <!-- 2019 +24% → €17 168 / gain +€3 323 -->
-              <rect class="bar-col bc5" x="271" y="232" width="34" height="46" rx="3"
-                fill="url(#barGrad)" style="animation-delay:2.6s"/>
-              <text class="bar-pct" x="288" y="222" font-family="Space Grotesk,sans-serif"
-                font-size="7.5" fill="rgba(255,255,255,0.5)" text-anchor="middle"
-                style="animation-delay:2.6s">€17.2k</text>
-              <text class="bar-pct" x="288" y="230" font-family="Space Grotesk,sans-serif"
-                font-size="7" fill="rgba(0,82,204,0.7)" text-anchor="middle"
-                style="animation-delay:2.6s">+€3.3k</text>
-
-              <!-- 2020 +5% → €18 026 / gain +€858 -->
-              <rect class="bar-col bc6" x="325" y="268" width="34" height="10" rx="2"
-                fill="url(#barGrad)" style="animation-delay:2.75s"/>
-              <text class="bar-pct" x="342" y="258" font-family="Space Grotesk,sans-serif"
-                font-size="7.5" fill="rgba(255,255,255,0.5)" text-anchor="middle"
-                style="animation-delay:2.75s">€18.0k</text>
-              <text class="bar-pct" x="342" y="266" font-family="Space Grotesk,sans-serif"
-                font-size="7" fill="rgba(0,82,204,0.7)" text-anchor="middle"
-                style="animation-delay:2.75s">+€0.9k</text>
-
-              <!-- 2021 +31% → €23 614 / gain +€5 588 -->
-              <rect class="bar-col bc7" x="379" y="218" width="34" height="60" rx="3"
-                fill="url(#barGrad)" style="animation-delay:2.9s"/>
-              <text class="bar-pct" x="396" y="208" font-family="Space Grotesk,sans-serif"
-                font-size="7.5" fill="rgba(255,255,255,0.5)" text-anchor="middle"
-                style="animation-delay:2.9s">€23.6k</text>
-              <text class="bar-pct" x="396" y="216" font-family="Space Grotesk,sans-serif"
-                font-size="7" fill="rgba(0,82,204,0.7)" text-anchor="middle"
-                style="animation-delay:2.9s">+€5.6k</text>
-
-              <!-- 2022 +14% → €26 920 / gain +€3 306 -->
-              <rect class="bar-col bc8" x="433" y="251" width="34" height="27" rx="3"
-                fill="url(#barGrad)" style="animation-delay:3.05s"/>
-              <text class="bar-pct" x="450" y="241" font-family="Space Grotesk,sans-serif"
-                font-size="7.5" fill="rgba(255,255,255,0.5)" text-anchor="middle"
-                style="animation-delay:3.05s">€26.9k</text>
-              <text class="bar-pct" x="450" y="249" font-family="Space Grotesk,sans-serif"
-                font-size="7" fill="rgba(0,82,204,0.7)" text-anchor="middle"
-                style="animation-delay:3.05s">+€3.3k</text>
-
-              <!-- 2023 +19% → €32 035 / gain +€5 115 -->
-              <rect class="bar-col bc9" x="487" y="241" width="34" height="37" rx="3"
-                fill="url(#barGrad)" style="animation-delay:3.2s"/>
-              <text class="bar-pct" x="504" y="231" font-family="Space Grotesk,sans-serif"
-                font-size="7.5" fill="rgba(255,255,255,0.5)" text-anchor="middle"
-                style="animation-delay:3.2s">€32.0k</text>
-              <text class="bar-pct" x="504" y="239" font-family="Space Grotesk,sans-serif"
-                font-size="7" fill="rgba(0,82,204,0.7)" text-anchor="middle"
-                style="animation-delay:3.2s">+€5.1k</text>
-
-              <!-- 2024 +22% → €39 083 / gain +€7 048 -->
-              <rect class="bar-col bc10" x="541" y="235" width="34" height="43" rx="3"
-                fill="rgba(74,144,217,0.85)" style="animation-delay:3.35s"/>
-              <text class="bar-pct" x="558" y="225" font-family="Space Grotesk,sans-serif"
-                font-size="7.5" fill="rgba(245,200,140,0.92)" text-anchor="middle"
-                style="animation-delay:3.35s">€39.1k</text>
-              <text class="bar-pct" x="558" y="233" font-family="Space Grotesk,sans-serif"
-                font-size="7" fill="rgba(245,170,110,0.8)" text-anchor="middle"
-                style="animation-delay:3.35s">+€7.0k</text>
-
-              <!-- Ligne de base des barres -->
-              <line x1="50" y1="278" x2="595" y2="278"
-                stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-
-              <!-- Étiquettes des années -->
-              <text x="72"  y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="middle">2016</text>
-              <text x="126" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="middle">2017</text>
-              <text x="180" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="middle">2018</text>
-              <text x="234" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="middle">2019</text>
-              <text x="288" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="middle">2020</text>
-              <text x="342" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="middle">2021</text>
-              <text x="396" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="middle">2022</text>
-              <text x="450" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="middle">2023</text>
-              <text x="504" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="middle">2024</text>
-              <text x="558" y="296" font-family="Space Grotesk,sans-serif" font-size="8" fill="rgba(255,255,255,0.5)" text-anchor="middle">2025</text>
-            </svg>
-
-            <div class="chart-stats">
-              <div class="chart-stat">
-                <span class="c-stat-v">+22%</span>
-                <span class="c-stat-l">Rend. moy.</span>
-              </div>
-              <div class="c-divider" aria-hidden="true"></div>
-              <div class="chart-stat">
-                <span class="c-stat-v">10 ans</span>
-                <span class="c-stat-l">Horizon</span>
-              </div>
-              <div class="c-divider" aria-hidden="true"></div>
-              <div class="chart-stat">
-                <span class="c-stat-v">1 000 €</span>
-                <span class="c-stat-l">Ticket min.</span>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-      <!-- ── Comparatif marché ── -->
-      <section style="padding: 0 var(--gutter) 80px;">
-        <div style="max-width:1380px; margin:0 auto; display:grid; gap:24px;">
-          <h2 style="font-size:clamp(2rem,4vw,3.2rem); color:#080c14;">Performance</h2>
-          <div class="compare-card">
-            <div class="compare-header">
-              <div>
-                <p class="compare-title">Simulation — 10 000 € investis en 2013</p>
-              </div>
-              <div class="compare-legend">
-                <div class="cleg"><span class="cleg-dot" style="background:#3b82f6"></span>Startups **</div>
-                <div class="cleg"><span class="cleg-dot" style="background:#f59e0b"></span>MSCI World *</div>
-                <div class="cleg"><span class="cleg-dot" style="background:#10b981"></span>Immobilier</div>
-                <div class="cleg"><span class="cleg-dot" style="background:#94a3b8"></span>Livret A</div>
-              </div>
-            </div>
-            <svg class="compare-svg" viewBox="0 0 640 290" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="peAreaGrad2" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%"   stop-color="rgba(59,130,246,0.18)"/>
-                  <stop offset="100%" stop-color="rgba(59,130,246,0)"/>
-                </linearGradient>
-              </defs>
-              <line x1="60" y1="250" x2="590" y2="250" stroke="rgba(0,0,0,0.08)"  stroke-width="1"/>
-              <line x1="60" y1="177" x2="590" y2="177" stroke="rgba(0,0,0,0.05)" stroke-width="1"/>
-              <line x1="60" y1="103" x2="590" y2="103" stroke="rgba(0,0,0,0.05)" stroke-width="1"/>
-              <line x1="60" y1="30"  x2="590" y2="30"  stroke="rgba(0,0,0,0.05)" stroke-width="1"/>
-              <line x1="60" y1="20"  x2="60"  y2="265" stroke="rgba(0,0,0,0.08)"  stroke-width="1"/>
-              <text x="54" y="253" text-anchor="end" font-size="8.5" fill="#080c14">10k€</text>
-              <text x="54" y="180" text-anchor="end" font-size="8.5" fill="#080c14">40k€</text>
-              <text x="54" y="106" text-anchor="end" font-size="8.5" fill="#080c14">70k€</text>
-              <text x="54" y="33"  text-anchor="end" font-size="8.5" fill="#080c14">100k€</text>
-              <text x="60"  y="278" text-anchor="middle" font-size="8" fill="#080c14">2013</text>
-              <text x="112" y="278" text-anchor="middle" font-size="8" fill="#080c14">2014</text>
-              <text x="164" y="278" text-anchor="middle" font-size="8" fill="#080c14">2015</text>
-              <text x="216" y="278" text-anchor="middle" font-size="8" fill="#080c14">2016</text>
-              <text x="268" y="278" text-anchor="middle" font-size="8" fill="#080c14">2017</text>
-              <text x="320" y="278" text-anchor="middle" font-size="8" fill="#080c14">2018</text>
-              <text x="372" y="278" text-anchor="middle" font-size="8" fill="#080c14">2019</text>
-              <text x="424" y="278" text-anchor="middle" font-size="8" fill="#080c14">2020</text>
-              <text x="476" y="278" text-anchor="middle" font-size="8" fill="#080c14">2021</text>
-              <text x="528" y="278" text-anchor="middle" font-size="8" fill="#080c14">2022</text>
-              <text x="580" y="278" text-anchor="middle" font-size="8" fill="#080c14">2023</text>
-              <polyline class="cline cline-livret" points="60,250 112,249 164,249 216,248 268,247 320,246 372,245 424,244 476,244 528,243 580,242"/>
-              <polyline class="cline cline-immo"   points="60,250 112,249 164,248 216,247 268,245 320,244 372,243 424,241 476,240 528,238 580,237"/>
-              <polyline class="cline cline-cac"    points="60,250 112,248 164,246 216,243 268,240 320,237 372,234 424,231 476,227 528,223 580,218"/>
-              <path class="carea-pe" d="M 60,250 L 112,244 L 164,235 L 216,225 L 268,212 L 320,195 L 372,174 L 424,148 L 476,114 L 528,72 L 580,18 L 580,265 L 60,265 Z" fill="url(#peAreaGrad2)"/>
-              <polyline class="cline cline-pe"     points="60,250 112,244 164,235 216,225 268,212 320,195 372,174 424,148 476,114 528,72 580,18"/>
-              <circle class="cend-dot" cx="580" cy="18"  r="5"   fill="#3b82f6" style="animation-delay:2.8s"/>
-              <circle class="cend-dot" cx="580" cy="218" r="4"   fill="#f59e0b" style="animation-delay:3.1s"/>
-              <circle class="cend-dot" cx="580" cy="237" r="4"   fill="#10b981" style="animation-delay:3.3s"/>
-              <circle class="cend-dot" cx="580" cy="242" r="3.5" fill="#94a3b8" style="animation-delay:3.5s"/>
-              <text class="clabel" x="590" y="21"  font-size="8.5" font-weight="700" fill="#3b82f6" style="animation-delay:2.9s">€ 104 931</text>
-              <text class="clabel" x="590" y="221" font-size="8.5" font-weight="700" fill="#f59e0b" style="animation-delay:3.2s">€ 23 024</text>
-              <text class="clabel" x="590" y="237" font-size="8.5" font-weight="700" fill="#10b981" style="animation-delay:3.4s">€ 15 530</text>
-              <text class="clabel" x="590" y="250" font-size="8.5" font-weight="700" fill="#94a3b8" style="animation-delay:3.6s">€ 13 439</text>
-            </svg>
-          </div>
-
-          <!-- Tableau comparatif -->
-          <div style="border-radius:20px; border:1px solid var(--line); overflow-x:auto; background:rgba(255,255,255,0.7);">
-            <table id="perf-table" style="width:100%; border-collapse:collapse; font-size:1rem; min-width:480px;">
-              <thead>
-                <tr style="border-bottom:1px solid var(--line);">
-                  <th style="text-align:left; padding:13px 24px; font-size:0.72rem; text-transform:uppercase; letter-spacing:.14em; color:var(--text); font-weight:600;">Classe d'actifs</th>
-                  <th style="text-align:right; padding:13px 16px; font-size:0.72rem; text-transform:uppercase; letter-spacing:.14em; color:var(--text); font-weight:600;">Rendement annuel moyen</th>
-                  <th style="text-align:right; padding:13px 16px; font-size:0.72rem; text-transform:uppercase; letter-spacing:.14em; color:var(--text); font-weight:600;">€ 10 000</th>
-                  <th style="text-align:right; padding:13px 24px 13px 16px; font-size:0.72rem; text-transform:uppercase; letter-spacing:.14em; color:var(--text); font-weight:600;">Risque</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr style="background:rgba(59,130,246,0.05); border-bottom:1px solid var(--line);">
-                  <td style="padding:15px 24px; font-weight:700; color:var(--text);">
-                    <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#3b82f6; margin-right:10px; vertical-align:middle;"></span>Startups
-                  </td>
-                  <td style="padding:15px 16px; text-align:right; font-weight:700; color:var(--accent-strong);">+26,5 % **</td>
-                  <td style="padding:15px 16px; text-align:right; font-weight:700; color:var(--accent-strong);">€ 104 931</td>
-                  <td style="padding:15px 24px 15px 16px; text-align:right; color:var(--text);">Élevé</td>
-                </tr>
-                <tr style="border-bottom:1px solid var(--line);">
-                  <td style="padding:15px 24px; color:var(--text);">
-                    <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#f59e0b; margin-right:10px; vertical-align:middle;"></span>MSCI World (actions mondiales)
-                  </td>
-                  <td style="padding:15px 16px; text-align:right; color:var(--text);">+8,7 % *</td>
-                  <td style="padding:15px 16px; text-align:right; color:var(--text);">€ 23 024</td>
-                  <td style="padding:15px 24px 15px 16px; text-align:right; color:var(--text);">Élevé</td>
-                </tr>
-                <tr style="border-bottom:1px solid var(--line);">
-                  <td style="padding:15px 24px; color:var(--text);">
-                    <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#10b981; margin-right:10px; vertical-align:middle;"></span>Immobilier locatif
-                  </td>
-                  <td style="padding:15px 16px; text-align:right; color:var(--text);">+4,5 %</td>
-                  <td style="padding:15px 16px; text-align:right; color:var(--text);">€ 15 530</td>
-                  <td style="padding:15px 24px 15px 16px; text-align:right; color:var(--text);">Modéré</td>
-                </tr>
-                <tr>
-                  <td style="padding:15px 24px; color:var(--text);">
-                    <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#94a3b8; margin-right:10px; vertical-align:middle;"></span>Livret A
-                  </td>
-                  <td style="padding:15px 16px; text-align:right; color:var(--text);">+3,0 %</td>
-                  <td style="padding:15px 16px; text-align:right; color:var(--text);">€ 13 439</td>
-                  <td style="padding:15px 24px 15px 16px; text-align:right; color:var(--text);">Très faible</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Notes -->
-          <div style="font-size:0.78rem; color:var(--muted); line-height:1.7; padding:12px 16px; border-radius:10px; border:1px solid var(--line); background:rgba(255,255,255,0.55); display:grid; gap:4px;">
-            <p>* +8,7 % par an : rendement annualisé moyen du MSCI World sur 20 ans (avril 2006 – avril 2026), dividendes réinvestis, en euros.</p>
-            <p>** +26,5 % par an : rendement annualisé moyen mesuré sur le portefeuille AngelList (2013–2023), après frais de 20 % sur les performances.</p>
+      <!-- HERO SECTION -->
+      <section style="padding: 100px var(--gutter) 80px; background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(59,130,246,0.08) 100%);">
+        <div class="container" style="text-align: center;">
+          <h1 style="font-size: clamp(2.5rem, 7vw, 4rem); font-weight: 800; color: var(--text); line-height: 1.1; margin-bottom: 24px;">
+            Transformez votre startup<br>en entreprise investissable
+          </h1>
+          <p style="font-size: 1.2rem; color: var(--muted); max-width: 700px; margin: 0 auto 40px; line-height: 1.7;">
+            LIQUID+ vous accompagne de A à Z dans votre levée de fonds. Accédez à un réseau de 3000+ VC et business angels, préparez votre pitch et optimisez votre profil investisseur.
+          </p>
+          <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+            <a class="button primary" href="#process" style="padding: 16px 40px; font-size: 1.05rem;">Découvrir comment</a>
+            <a class="button secondary" href="login.html" style="padding: 16px 40px; font-size: 1.05rem;">Commencer maintenant</a>
           </div>
         </div>
       </section>
 
-      <!-- ── Frais ── -->
-      <section style="padding: 0 var(--gutter) 0;">
-        <div style="max-width:1380px; margin:0 auto; display:grid; gap:28px;">
-
-          <div style="display:flex; align-items:baseline; gap:16px; flex-wrap:wrap;">
-            <h2 style="font-size:clamp(2rem,4vw,3.2rem); color:#080c14; margin:0;">Frais</h2>
-            <span style="font-size:0.82rem; font-weight:600; color:#16a34a; background:#dcfce7; border-radius:20px; padding:4px 12px; white-space:nowrap;">La plateforme de VC avec les frais les plus bas de France.</span>
-            <span style="font-size:0.82rem; font-weight:600; color:#080c14; background:rgba(0,0,0,0.05); border-radius:20px; padding:4px 12px;">0 frais cachés</span>
-          </div>
-
-          <div style="border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,0.7); padding:36px 40px; display:grid; gap:36px;">
-
-            <!-- Slider montant -->
-            <div style="display:grid; gap:14px;">
-              <div style="display:flex; align-items:center; justify-content:space-between;">
-                <label for="fc-slider" style="font-size:0.78rem; text-transform:uppercase; letter-spacing:.12em; font-weight:600; color:var(--muted);">Montant investi</label>
-                <div style="display:flex;align-items:center;gap:8px;">
-                  <span style="font-size:0.78rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.1em;">Espérance de rendement</span>
-                  <div style="display:flex;align-items:center;gap:2px;border-bottom:2px solid #080c14;padding-bottom:2px;">
-                    <input id="fc-return-input" type="number" min="1" max="200" step="1" value="20"
-                      style="width:42px;border:none;outline:none;font-size:0.9rem;font-weight:700;color:#080c14;text-align:right;background:transparent;-moz-appearance:textfield;appearance:textfield;">
-                    <span style="font-size:0.9rem;font-weight:700;color:#080c14;">%</span>
-                  </div>
-                </div>
-              </div>
-              <div style="display:flex; align-items:center; gap:20px;">
-                <input id="fc-slider" type="range" min="1000" max="10000000" step="1000" value="50000"
-                  style="flex:1; height:6px; border-radius:4px; accent-color:#080c14; cursor:pointer; outline:none;">
-                <div style="display:flex; align-items:center; gap:6px; border-bottom:2px solid #080c14; padding-bottom:2px;">
-                  <input id="fc-amount-input" type="number" min="1000" max="10000000" step="1000" value="50000"
-                    style="font-size:1.4rem; font-weight:800; color:#080c14; border:none; background:transparent; width:130px; text-align:right; outline:none; -moz-appearance:textfield; appearance:textfield;">
-                  <span style="font-size:1.1rem; font-weight:700; color:#080c14;">&#8364;</span>
-                </div>
-              </div>
-              <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--muted);">
-                <span>1 000 &#8364;</span>
-              </div>
-            </div>
-
-            <!-- Sélection des concurrents + horizon -->
-            <div style="display:flex; gap:32px; flex-wrap:wrap; align-items:flex-start;">
-              <div style="display:grid; gap:10px; position:relative;">
-                <p style="font-size:0.78rem; text-transform:uppercase; letter-spacing:.12em; font-weight:600; color:var(--muted); margin:0;">Comparer avec</p>
-                <div style="position:relative;">
-                  <input id="fc-search" type="text" placeholder="Rechercher un concurrent…" autocomplete="off"
-                    style="padding:8px 36px 8px 14px;border-radius:10px;border:2px solid var(--line);font-size:0.9rem;font-weight:600;color:#080c14;background:white;outline:none;width:220px;box-sizing:border-box;transition:border-color .15s;">
-                  <svg style="position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                  <div id="fc-suggestions" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:white;border:2px solid var(--line);border-radius:10px;overflow:hidden;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,0.1);"></div>
-                </div>
-                <div id="fc-chips" style="display:flex;gap:6px;flex-wrap:wrap;min-height:0;"></div>
-              </div>
-              <div style="display:grid; gap:10px;">
-                <p style="font-size:0.78rem; text-transform:uppercase; letter-spacing:.12em; font-weight:600; color:var(--muted); margin:0;">Horizon</p>
-                <div style="display:flex; gap:0; border:2px solid var(--line); border-radius:10px; overflow:hidden;">
-                  <button id="fc-btn-5" onclick="fcSetYears(5)" style="padding:8px 20px;border:none;font-size:0.85rem;font-weight:700;cursor:pointer;background:#080c14;color:white;transition:all .15s;">5 ans</button>
-                  <button id="fc-btn-10" onclick="fcSetYears(10)" style="padding:8px 20px;border:none;font-size:0.85rem;font-weight:600;cursor:pointer;background:white;color:var(--muted);transition:all .15s;">10 ans</button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Graphique barres style Rapidité -->
-            <div style="display:grid; gap:20px;">
-              <p id="fc-chart-title" style="font-size:0.78rem; text-transform:uppercase; letter-spacing:.12em; font-weight:600; color:var(--muted); margin:0;">Frais totaux en 5 ans</p>
-              <div id="fc-bars" style="display:flex; gap:24px; align-items:flex-end;"></div>
-            </div>
-
-            <!-- Tableau comparatif -->
-            <div style="overflow-x:auto;">
-              <table style="width:100%; border-collapse:separate; border-spacing:0; min-width:520px;">
-                <thead id="fc-thead"><tr></tr></thead>
-                <tbody id="fc-result-body"></tbody>
-              </table>
-            </div>
-
-            <!-- Tableau frais d'entrée LIQUID+ -->
-            <div style="margin-top:36px;">
-              <p style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.14em; font-weight:600; color:var(--muted); margin:0 0 14px;">Barème des frais LIQUID+</p>
-              <div style="overflow-x:auto;">
-                <table style="width:100%; border-collapse:collapse; min-width:340px; font-size:1rem;">
-                  <thead>
-                    <tr style="border-bottom:2px solid var(--line);">
-                      <th style="padding:10px 16px; text-align:left; font-weight:700; color:#080c14;">Montant investi</th>
-                      <th style="padding:10px 16px; text-align:right; font-weight:700; color:#080c14;">Frais d'entrée</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr style="border-bottom:1px solid var(--line);">
-                      <td style="padding:10px 16px; color:var(--text);">1 000 € – 5 000 €</td>
-                      <td style="padding:10px 16px; text-align:right; font-weight:700; color:#080c14;">10 %</td>
-                    </tr>
-                    <tr style="border-bottom:1px solid var(--line); background:rgba(0,0,0,0.02);">
-                      <td style="padding:10px 16px; color:var(--text);">5 000 € – 10 000 €</td>
-                      <td style="padding:10px 16px; text-align:right; font-weight:700; color:#080c14;">9 %</td>
-                    </tr>
-                    <tr style="border-bottom:1px solid var(--line);">
-                      <td style="padding:10px 16px; color:var(--text);">10 000 € – 30 000 €</td>
-                      <td style="padding:10px 16px; text-align:right; font-weight:700; color:#080c14;">8 %</td>
-                    </tr>
-                    <tr style="border-bottom:1px solid var(--line); background:rgba(0,0,0,0.02);">
-                      <td style="padding:10px 16px; color:var(--text);">30 000 € – 100 000 €</td>
-                      <td style="padding:10px 16px; text-align:right; font-weight:700; color:#080c14;">7 %</td>
-                    </tr>
-                    <tr style="border-bottom:1px solid var(--line);">
-                      <td style="padding:10px 16px; color:var(--text);">100 000 € – 300 000 €</td>
-                      <td style="padding:10px 16px; text-align:right; font-weight:700; color:#080c14;">6 %</td>
-                    </tr>
-                    <tr>
-                      <td style="padding:10px 16px; color:var(--text);">300 000 € et plus</td>
-                      <td style="padding:10px 16px; text-align:right; font-weight:700; color:#080c14;">5 %</td>
-                    </tr>
-                    <tr style="border-top:2px solid var(--line);">
-                      <td style="padding:10px 16px; color:var(--text);">Frais de performance (si x10)</td>
-                      <td style="padding:10px 16px; text-align:right; font-weight:700; color:#080c14;">3 % des gains</td>
-                    </tr>
-                    <tr style="border-top:2px solid var(--line); background:rgba(22,163,74,0.06);">
-                      <td style="padding:10px 16px; font-weight:700; color:#16a34a;">Frais cachés</td>
-                      <td style="padding:10px 16px; text-align:right; font-weight:800; color:#16a34a;">0 %</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- Note Fundora -->
-            <p style="font-size:0.78rem; color:var(--muted); line-height:1.6; padding:10px 14px; border-radius:10px; border:1px solid var(--line); background:rgba(255,255,255,0.55);">
-              * Le calcul des frais de Fundora n'est pas significatif : les frais des sociétés sous-jacentes ne sont pas pris en compte dans cette simulation.
+      <!-- LE PROBLÈME SECTION -->
+      <section class="section" style="background: white;">
+        <div class="container">
+          <div style="max-width: 900px; margin: 0 auto; text-align: center;">
+            <h2>Vous avez une super idée. Mais les investisseurs demandent plus.</h2>
+            <p style="font-size: 1.1rem; margin-bottom: 40px;">
+              Vous savez que votre produit/service est bon. Pourtant, quand vous pitchez auprès d'investisseurs, vous sentez qu'il manque quelque chose. Votre pitch deck ne raconte pas toute l'histoire. Votre stratégie reste floue. Vos chiffres manquent de clarté. Et surtout, vous ne savez pas par où commencer pour vraiment les convaincre.
             </p>
 
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 32px; margin-top: 60px;">
+              <div style="padding: 24px; background: rgba(255,0,0,0.05); border-radius: 16px; border-left: 4px solid #e05848;">
+                <p style="margin: 0; font-weight: 700; color: #e05848; font-size: 1.1rem;">Manque de structure</p>
+                <p style="margin: 8px 0 0; font-size: 0.95rem;">Vous n'avez pas une vision claire de ce qui doit être amélioré</p>
+              </div>
+              <div style="padding: 24px; background: rgba(255,0,0,0.05); border-radius: 16px; border-left: 4px solid #e05848;">
+                <p style="margin: 0; font-weight: 700; color: #e05848; font-size: 1.1rem;">Doutes sur votre évaluation</p>
+                <p style="margin: 8px 0 0; font-size: 0.95rem;">Vous ne savez pas à quel prix valoriser votre startup</p>
+              </div>
+              <div style="padding: 24px; background: rgba(255,0,0,0.05); border-radius: 16px; border-left: 4px solid #e05848;">
+                <p style="margin: 0; font-weight: 700; color: #e05848; font-size: 1.1rem;">Pas d'accès au réseau</p>
+                <p style="margin: 8px 0 0; font-size: 0.95rem;">Vous pitchez auprès de quelques investisseurs, toujours les mêmes</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <script>
-      (function () {
-        /* ── LIQUID+ frais d'entrée dégressifs ── */
-        function liquidEntryPct(amount) {
-          if (amount <=   5000) return 10.0;
-          if (amount <=  10000) return  9.0;
-          if (amount <=  30000) return  8.0;
-          if (amount <= 100000) return  7.0;
-          if (amount <= 300000) return  6.0;
-          return 5.0;
-        }
-
-        /* ── Altaroc frais de gestion dégressifs ── */
-        function altarocMgmtPct(amount) {
-          if (amount <   500000) return 2.50;
-          if (amount <  1000000) return 2.25;
-          if (amount <  2000000) return 2.00;
-          if (amount <  3000000) return 1.80;
-          if (amount < 10000000) return 1.65;
-          return 1.50;
-        }
-
-        /* ── Anaxago frais de gestion par année ── */
-        function anaxagoMgmtByYear(amount, year) {
-          if (amount < 30000) {
-            if (year === 1) return 4.5;
-            if (year <= 5)  return 2.0;
-          } else {
-            if (year === 1) return 3.5;
-            if (year <= 5)  return 1.0;
-          }
-          return 0;
-        }
-        function anaxagoMgmtLabel(amount) {
-          return amount < 30000
-            ? '4,5 % la 1ère année, puis 2 % / an'
-            : '3,5 % la 1ère année, puis 1 % / an';
-        }
-
-        /* ── Blast Club frais de structuration (one-time) ── */
-        function blastEntryFee(amount) {
-          if (amount <=  10000) return 1500 + amount * 0.05;
-          if (amount <=  25000) return 2000 + amount * 0.05;
-          if (amount <=  50000) return 3000 + amount * 0.04;
-          if (amount <= 100000) return 5000 + amount * 0.04;
-          return 10000 + amount * 0.03;
-        }
-        function blastEntryLabel(amount) {
-          if (amount <=  10000) return '1 500 € + 5 %';
-          if (amount <=  25000) return '2 000 € + 5 %';
-          if (amount <=  50000) return '3 000 € + 4 %';
-          if (amount <= 100000) return '5 000 € + 4 %';
-          return '10 000 € + 3 %';
-        }
-
-        /* ── Blast Club frais de gestion : an 1 → 1 % seulement, an 2+ → fixe + 1 % ── */
-        function blastMgmtAbs(amount, capital, year) {
-          if (year === 1) return capital * 0.01;
-          var fixed;
-          if (amount <=  10000) fixed = 1500;
-          else if (amount <=  25000) fixed = 2000;
-          else if (amount <=  50000) fixed = 3000;
-          else if (amount <= 100000) fixed = 5000;
-          else fixed = 10000;
-          return fixed + capital * 0.01;
-        }
-        function blastMgmtLabel(amount) {
-          var s;
-          if (amount <=  10000) s = '1 500 €';
-          else if (amount <=  25000) s = '2 000 €';
-          else if (amount <=  50000) s = '3 000 €';
-          else if (amount <= 100000) s = '5 000 €';
-          else s = '10 000 €';
-          return '1 % la 1ère année, puis ' + s + ' + 1 % / an';
-        }
-
-        /* ── Fundora frais d'entrée dégressifs ── */
-        function fundoraEntryPct(amount) {
-          if (amount < 30000)  return 20.0;
-          if (amount < 100000) return 17.5;
-          return 14.0;
-        }
-
-        function liquidPerfFee(capitalAfterEntry, finalCapital, amount) {
-          if (finalCapital < amount * 10) return 0;
-          return Math.max(0, finalCapital - amount) * 0.03;
-        }
-        function liquidPerfLabel(capitalAfterEntry, finalCapital, amount) {
-          if (finalCapital < amount * 10) return 'Aucun (< x10)';
-          return '3 % des gains (x10 atteint)';
-        }
-        var COMPANIES = [
-          { name: 'LIQUID+',    entryFn: liquidEntryPct, entryAbsFn: null,          entryLbl: null,           entry: null, mgmtFn: null,           mgmtByYear: null,              mgmtAbsFn: null,         mgmtLbl: null,             mgmt: 0,    perf: null, perfFn: liquidPerfFee, perfLbl: liquidPerfLabel, minAmount: 1000,   minYears: 5  },
-          { name: 'Altaroc',    entryFn: null,            entryAbsFn: null,          entryLbl: null,           entry: 5,   mgmtFn: altarocMgmtPct,  mgmtByYear: null,              mgmtAbsFn: null,         mgmtLbl: null,             mgmt: null, perf: 20, minAmount: 100000, minYears: 10 },
-          { name: 'Anaxago',    entryFn: null,            entryAbsFn: null,          entryLbl: null,           entry: 2.5, mgmtFn: null,            mgmtByYear: anaxagoMgmtByYear, mgmtAbsFn: null,         mgmtLbl: anaxagoMgmtLabel, mgmt: null, perf: 10, minAmount: 1000,   minYears: 5  },
-          { name: 'Blast Club', entryFn: null,            entryAbsFn: blastEntryFee, entryLbl: blastEntryLabel, entry: null, mgmtFn: null,          mgmtByYear: null,              mgmtAbsFn: blastMgmtAbs, mgmtLbl: blastMgmtLabel,   mgmt: null, perf: 20, minAmount: 1000,   minYears: 5  },
-          { name: 'Fundora *',  entryFn: fundoraEntryPct,  entryAbsFn: null,          entryLbl: null,            entry: null, mgmtFn: null,          mgmtByYear: null,              mgmtAbsFn: null,         mgmtLbl: null,             mgmt: 0,    perf: 0,  minAmount: 100,    minYears: 5  }
-        ];
-        var RETURN     = 0.20;
-        var COLORS     = ['#080c14', '#8b5cf6', '#0ea5e9', '#ec4899', '#f97316'];
-        var selectedCos = [1];
-        var years      = 5;
-
-        function minRequiredYears() {
-          return selectedCos.reduce(function (mx, i) { return Math.max(mx, COMPANIES[i].minYears); }, 5);
-        }
-
-        function syncHorizonButtons() {
-          var minY = minRequiredYears();
-          var btn5  = document.getElementById('fc-btn-5');
-          var btn10 = document.getElementById('fc-btn-10');
-          if (!btn5 || !btn10) return;
-          var locked = minY > 5;
-          btn5.disabled        = locked;
-          btn5.style.opacity   = locked ? '0.35' : '1';
-          btn5.style.cursor    = locked ? 'not-allowed' : 'pointer';
-          btn5.style.background  = (!locked && years === 5) ? '#080c14' : 'white';
-          btn5.style.color       = (!locked && years === 5) ? 'white'   : 'var(--muted)';
-          btn10.style.background = years === 10 ? '#080c14' : 'white';
-          btn10.style.color      = years === 10 ? 'white'   : 'var(--muted)';
-        }
-
-        window.fcSetYears = function (n) {
-          var minY = minRequiredYears();
-          if (n < minY) n = minY;
-          years = n;
-          syncHorizonButtons();
-          update();
-        };
-
-        function initReturnInput() {
-          var inp = document.getElementById('fc-return-input');
-          if (!inp) return;
-          inp.addEventListener('input', function () {
-            var v = parseFloat(this.value);
-            if (!isNaN(v) && v > 0) { RETURN = v / 100; update(); }
-          });
-          inp.addEventListener('blur', function () {
-            var v = Math.min(200, Math.max(1, parseFloat(this.value) || 20));
-            this.value = v;
-            RETURN = v / 100;
-            update();
-          });
-        }
-
-        function fmt(n) {
-          return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
-        }
-        function fmtAmt(n) {
-          if (n >= 1000000) return (n / 1000000).toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' M€';
-          if (n >= 1000)    return (n / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 0 }) + ' k€';
-          return n + ' €';
-        }
-
-        function getEntryPct(co, amount) {
-          return co.entryFn ? co.entryFn(amount) : co.entry;
-        }
-        function getMgmtPct(co, amount) {
-          return co.mgmtFn ? co.mgmtFn(amount) : co.mgmt;
-        }
-
-        function calc(co, amount, yrs) {
-          var entryFee = co.entryAbsFn
-            ? co.entryAbsFn(amount)
-            : amount * (getEntryPct(co, amount) / 100);
-          var entryDisplay = co.entryLbl
-            ? co.entryLbl(amount)
-            : (getEntryPct(co, amount)) + ' %';
-
-          var capital           = amount - entryFee;
-          var capitalAfterEntry = capital;
-          var totalMgmt = 0, totalPerf = 0;
-          for (var y = 0; y < yrs; y++) {
-            var gain = capital * RETURN;
-            var mg;
-            if (co.mgmtAbsFn)       mg = co.mgmtAbsFn(amount, capital, y + 1);
-            else if (co.mgmtByYear)  mg = capital * (co.mgmtByYear(amount, y + 1) / 100);
-            else                     mg = capital * (getMgmtPct(co, amount) / 100);
-            totalMgmt += mg;
-            capital   += gain - mg;
-          }
-          /* frais de performance appliques a la sortie sur les gains totaux */
-          var perfDisplay;
-          if (co.perfFn) {
-            totalPerf   = co.perfFn(capitalAfterEntry, capital, amount);
-            perfDisplay = co.perfLbl ? co.perfLbl(capitalAfterEntry, capital, amount) : '---';
-          } else {
-            var exitGains = Math.max(0, capital - capitalAfterEntry);
-            totalPerf   = exitGains * (co.perf / 100);
-            perfDisplay = co.perf + ' % a la sortie';
-          }
-          var mgmtDisplay = co.mgmtLbl
-            ? co.mgmtLbl(amount)
-            : (getMgmtPct(co, amount) + ' % / an');
-          return {
-            entryDisplay: entryDisplay,
-            mgmtDisplay:  mgmtDisplay,
-            perfDisplay:  perfDisplay,
-            entryFee:     entryFee,
-            totalMgmt:    totalMgmt,
-            totalPerf:    totalPerf,
-            total:        entryFee + totalMgmt + totalPerf
-          };
-        }
-
-        function buildSelect() {
-          var inp     = document.getElementById('fc-search');
-          var list    = document.getElementById('fc-suggestions');
-          var chipsEl = document.getElementById('fc-chips');
-          if (!inp || !list || !chipsEl) return;
-
-          function renderChips() {
-            chipsEl.innerHTML = selectedCos.map(function (i) {
-              return '<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px 4px 12px;border-radius:20px;font-size:0.82rem;font-weight:700;color:white;background:' + COLORS[i] + ';cursor:default;">'
-                + COMPANIES[i].name
-                + '<span data-remove="' + i + '" style="cursor:pointer;font-size:0.85em;opacity:0.8;" title="Retirer">&#x2715;</span>'
-                + '</span>';
-            }).join('');
-            chipsEl.querySelectorAll('[data-remove]').forEach(function (el) {
-              el.addEventListener('mousedown', function (e) {
-                e.preventDefault();
-                var idx = parseInt(this.dataset.remove, 10);
-                selectedCos = selectedCos.filter(function (x) { return x !== idx; });
-                renderChips();
-                renderSuggestions(inp.value);
-                syncHorizonButtons();
-                update();
-              });
-            });
-          }
-
-          function renderSuggestions(filter) {
-            var items = COMPANIES.slice(1).filter(function (co) {
-              return co.name.toLowerCase().indexOf((filter || '').toLowerCase()) !== -1;
-            });
-            if (items.length === 0) { list.style.display = 'none'; return; }
-            var full = selectedCos.length >= 3;
-            list.innerHTML = items.map(function (co) {
-              var i        = COMPANIES.indexOf(co);
-              var selected = selectedCos.indexOf(i) !== -1;
-              var disabled = full && !selected;
-              return '<div data-idx="' + i + '" style="padding:10px 14px;font-size:1rem;font-weight:' + (selected ? '700' : '500')
-                + ';color:' + (disabled ? '#bbb' : (selected ? COLORS[i] : '#080c14'))
-                + ';background:' + (selected ? 'rgba(0,0,0,0.04)' : 'white')
-                + ';cursor:' + (disabled ? 'not-allowed' : 'pointer') + ';border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;">'
-                + co.name
-                + (selected ? '<span style="font-size:0.75rem;color:var(--muted);">&#x2715;</span>' : '')
-                + (!selected && disabled ? '<span style="font-size:0.72rem;color:#bbb;">max 3</span>' : '')
-                + '</div>';
-            }).join('');
-            list.style.display = 'block';
-
-            list.querySelectorAll('div').forEach(function (el) {
-              el.addEventListener('mousedown', function (e) {
-                e.preventDefault();
-                var j   = parseInt(this.dataset.idx, 10);
-                var pos = selectedCos.indexOf(j);
-                if (pos !== -1) {
-                  selectedCos.splice(pos, 1);
-                } else if (selectedCos.length < 3) {
-                  selectedCos.push(j);
-                  var minY = minRequiredYears();
-                  if (years < minY) years = minY;
-                }
-                inp.value = '';
-                list.style.display = 'none';
-                renderChips();
-                syncHorizonButtons();
-                update();
-              });
-            });
-          }
-
-          inp.addEventListener('focus', function () {
-            inp.style.borderColor = '#080c14';
-            renderSuggestions(this.value);
-          });
-          inp.addEventListener('input', function () { renderSuggestions(this.value); });
-          inp.addEventListener('blur', function () {
-            setTimeout(function () { list.style.display = 'none'; }, 150);
-            inp.style.borderColor = '';
-          });
-
-          renderChips();
-        }
-
-        function drawBars(visRes, visCos, visCols, amount) {
-          var maxTotal = 1;
-          visRes.forEach(function (r) { if (r && r.total > maxTotal) maxTotal = r.total; });
-          var barH = 180;
-
-          return visCos.map(function (co, i) {
-            var r        = visRes[i];
-            var isLiquid = co.name === 'LIQUID+';
-            var color    = isLiquid ? '#080c14' : visCols[i];
-
-            if (amount < co.minAmount) {
-              return '<div style="flex:1; display:grid; gap:16px;">'
-                + '<div style="display:flex; align-items:center; justify-content:center; height:' + barH + 'px;">'
-                + '<span style="font-size:0.78rem; color:var(--muted); text-align:center; padding:8px; border:1px dashed var(--line); border-radius:10px;">Minimum ' + fmtAmt(co.minAmount) + '</span>'
-                + '</div>'
-                + '<div style="height:2px; background:rgba(0,0,0,0.12); border-radius:2px;"></div>'
-                + '<p style="font-size:0.78rem; text-transform:uppercase; letter-spacing:.1em; font-weight:600; color:var(--muted); margin:0; text-align:center;">' + co.name + '</p>'
-                + '</div>';
-            }
-
-            var h = Math.max(8, Math.round((r.total / maxTotal) * barH));
-            return '<div style="flex:1; display:grid; gap:16px;">'
-              + '<div style="display:flex; align-items:flex-end; height:' + barH + 'px;">'
-              + '<div style="width:100%; display:flex; flex-direction:column; align-items:center; gap:8px; justify-content:flex-end;">'
-              + '<span style="font-size:0.82rem; font-weight:700; color:' + color + '; white-space:nowrap;">' + fmt(r.total) + '</span>'
-              + '<div style="width:100%; height:' + h + 'px; background:' + color + '; border-radius:6px 6px 0 0;"></div>'
-              + '</div>'
-              + '</div>'
-              + '<div style="height:2px; background:rgba(0,0,0,0.12); border-radius:2px;"></div>'
-              + '<p style="font-size:0.78rem; text-transform:uppercase; letter-spacing:.1em; font-weight:' + (isLiquid ? '700' : '600') + '; color:' + (isLiquid ? '#080c14' : 'var(--muted)') + '; margin:0; text-align:center;">' + co.name + '</p>'
-              + '</div>';
-          }).join('');
-        }
-
-        function update() {
-          var amount = parseInt(document.getElementById('fc-slider').value, 10) || 50000;
-          var inputEl = document.getElementById('fc-amount-input');
-          if (document.activeElement !== inputEl) inputEl.value = amount;
-          document.getElementById('fc-chart-title').textContent = 'Frais totaux en ' + years + ' ans';
-
-          var visIdx  = [0].concat(selectedCos);
-          var visCos  = visIdx.map(function (i) { return COMPANIES[i]; });
-          var visCols = visIdx.map(function (i) { return COLORS[i]; });
-          var visRes  = visCos.map(function (co) {
-            if (amount < co.minAmount) return null;
-            return calc(co, amount, Math.max(years, co.minYears));
-          });
-
-          document.getElementById('fc-bars').innerHTML = drawBars(visRes, visCos, visCols, amount);
-
-          /* En-têtes */
-          document.querySelector('#fc-thead tr').innerHTML =
-            '<th style="text-align:left;padding:10px 16px;font-size:0.78rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:600;border-bottom:2px solid var(--line);">Type de frais</th>'
-            + visCos.map(function (co, i) {
-                var col = co.name === 'LIQUID+' ? '#080c14' : visCols[i];
-                return '<th style="padding:10px 16px;font-size:1rem;font-weight:600;color:' + col + ';border-bottom:2px solid ' + col + ';text-align:right;">' + co.name + '</th>';
-              }).join('');
-
-          var rows = '';
-
-          rows += '<tr style="border-bottom:1px solid var(--line);">'
-            + '<td style="padding:11px 16px;font-size:1rem;color:var(--muted);">Frais payé à l\'entrée</td>'
-            + visCos.map(function (co, i) {
-                if (visRes[i] === null) return '<td style="padding:11px 16px;text-align:right;font-size:1rem;color:var(--muted);">—</td>';
-                return '<td style="padding:11px 16px;text-align:right;font-size:1rem;font-weight:500;color:var(--text);">' + visRes[i].entryDisplay + '</td>';
-              }).join('')
-            + '</tr>';
-
-          rows += '<tr style="border-bottom:1px solid var(--line);">'
-            + '<td style="padding:11px 16px;font-size:1rem;color:var(--muted);">Frais annuels</td>'
-            + visCos.map(function (co, i) {
-                if (visRes[i] === null) return '<td style="padding:11px 16px;text-align:right;font-size:1rem;color:var(--muted);">—</td>';
-                return '<td style="padding:11px 16px;text-align:right;font-size:1rem;font-weight:500;color:var(--text);">' + visRes[i].mgmtDisplay + '</td>';
-              }).join('')
-            + '</tr>';
-
-          rows += '<tr style="border-bottom:2px solid var(--line);">'
-            + '<td style="padding:11px 16px;font-size:1rem;color:var(--muted);">Frais de performance</td>'
-            + visCos.map(function (co, i) {
-                if (visRes[i] === null) return '<td style="padding:11px 16px;text-align:right;font-size:1rem;color:var(--muted);">&#x2014;</td>';
-                return '<td style="padding:11px 16px;text-align:right;font-size:1rem;font-weight:500;color:var(--text);">'
-                  + visRes[i].perfDisplay
-                  + '<br><span style="font-size:0.78rem;color:var(--muted);font-weight:400;">' + fmt(visRes[i].totalPerf) + '</span>'
-                  + '</td>';
-              }).join('')
-            + '</tr>';
-
-          rows += '<tr style="border-bottom:1px solid var(--line);">'
-            + '<td style="padding:11px 16px;font-size:1rem;color:var(--muted);">Frais payé à l\'entrée du sous-jacent</td>'
-            + visCos.map(function () {
-                return '<td style="padding:11px 16px;text-align:right;font-size:1rem;font-weight:500;color:var(--text);">0 %</td>';
-              }).join('')
-            + '</tr>';
-
-          rows += '<tr style="border-bottom:1px solid var(--line);">'
-            + '<td style="padding:11px 16px;font-size:1rem;color:var(--muted);">Frais annuels du sous-jacent</td>'
-            + visCos.map(function () {
-                return '<td style="padding:11px 16px;text-align:right;font-size:1rem;font-weight:500;color:var(--text);">0 %</td>';
-              }).join('')
-            + '</tr>';
-
-          rows += '<tr style="border-bottom:2px solid var(--line);">'
-            + '<td style="padding:11px 16px;font-size:1rem;color:var(--muted);">Frais de performance du sous-jacent</td>'
-            + visCos.map(function () {
-                return '<td style="padding:11px 16px;text-align:right;font-size:1rem;font-weight:500;color:var(--text);">0 %</td>';
-              }).join('')
-            + '</tr>';
-
-          rows += '<tr style="background:rgba(8,12,20,0.03); border-bottom:1px solid var(--line);">'
-            + '<td style="padding:14px 16px;font-size:1rem;font-weight:700;color:#080c14;">Total frais calculés sur ' + years + ' ans</td>'
-            + visRes.map(function (r, i) {
-                if (r === null) return '<td style="padding:14px 16px;text-align:right;font-size:1rem;color:var(--muted);">—</td>';
-                var col = visCos[i].name === 'LIQUID+' ? '#080c14' : visCols[i];
-                return '<td style="padding:14px 16px;text-align:right;font-size:1.1rem;font-weight:800;color:' + col + ';">' + fmt(r.total) + '</td>';
-              }).join('')
-            + '</tr>';
-
-          var liquidRes = visRes[0];
-          rows += '<tr style="background:rgba(22,163,74,0.06); border-bottom:1px solid rgba(22,163,74,0.15);">'
-            + '<td style="padding:12px 16px;font-size:1rem;font-weight:700;color:#16a34a;">▲ Économies réalisées avec LIQUID+</td>'
-            + visRes.map(function (r, i) {
-                if (visCos[i].name === 'LIQUID+') return '<td style="padding:12px 16px;text-align:right;font-size:1rem;color:var(--muted);">Référence</td>';
-                if (r === null || liquidRes === null) return '<td style="padding:12px 16px;text-align:right;font-size:1rem;color:var(--muted);">—</td>';
-                var saving = r.total - liquidRes.total;
-                return '<td style="padding:12px 16px;text-align:right;font-size:1.1rem;font-weight:800;color:#16a34a;">+ ' + fmt(saving) + '</td>';
-              }).join('')
-            + '</tr>';
-
-          rows += '<tr style="background:rgba(22,163,74,0.03);">'
-            + '<td style="padding:10px 16px;font-size:1rem;font-weight:600;color:#16a34a;">Soit LIQUID+ est moins cher de</td>'
-            + visRes.map(function (r, i) {
-                if (visCos[i].name === 'LIQUID+') return '<td style="padding:10px 16px;text-align:right;font-size:1rem;color:var(--muted);">—</td>';
-                if (r === null || liquidRes === null || liquidRes.total === 0) return '<td style="padding:10px 16px;text-align:right;font-size:1rem;color:var(--muted);">—</td>';
-                var times = (r.total / liquidRes.total).toFixed(1);
-                return '<td style="padding:10px 16px;text-align:right;font-size:1.05rem;font-weight:700;color:#16a34a;">' + times + 'x moins cher</td>';
-              }).join('')
-            + '</tr>';
-
-          document.getElementById('fc-result-body').innerHTML = rows;
-        }
-
-        var fcSlider = document.getElementById('fc-slider');
-        fcSlider.addEventListener('input', update);
-        fcSlider.addEventListener('change', function() { this.blur(); });
-        fcSlider.addEventListener('touchend', function() { this.blur(); });
-
-        document.getElementById('fc-amount-input').addEventListener('input', function () {
-          var v = parseInt(this.value, 10);
-          if (!isNaN(v) && v >= 1000) {
-            document.getElementById('fc-slider').value = Math.min(10000000, v);
-            update();
-          }
-        });
-        document.getElementById('fc-amount-input').addEventListener('blur', function () {
-          var v = Math.min(10000000, Math.max(1000, parseInt(this.value, 10) || 1000));
-          this.value = v;
-          document.getElementById('fc-slider').value = v;
-          update();
-        });
-
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', function () { buildSelect(); initReturnInput(); update(); });
-        } else {
-          buildSelect(); initReturnInput();
-          update();
-        }
-      })();
-      </script>
-
-      <!-- ── Rapidité ── -->
-      <section style="padding: 0 var(--gutter) 0;">
-        <div style="max-width:1380px; margin:0 auto; display:grid; gap:28px;">
-          <h2 style="font-size:clamp(2rem,4vw,3.2rem); color:#080c14;">Rapidité</h2>
-          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:20px;">
-
-            <!-- Stat 1 : Temps de réponse -->
-            <div style="border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,0.7); padding:36px 32px; display:grid; gap:12px;">
-              <p style="font-size:0.85rem; text-transform:uppercase; letter-spacing:.14em; font-weight:600; color:var(--muted); margin:0;">Temps de réponse</p>
-              <p style="font-size:clamp(2.8rem,5vw,4rem); font-weight:800; color:#080c14; margin:0; line-height:1;">&lt;&nbsp;4&nbsp;h</p>
-              <p style="font-size:1.05rem; color:var(--muted); margin:0; line-height:1.6;">En jours ouvrés, hors week-ends et jours fériés.</p>
-            </div>
-
-            <!-- Stat 2 : Informations -->
-            <div style="border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,0.7); padding:36px 32px; display:grid; gap:12px;">
-              <p style="font-size:0.85rem; text-transform:uppercase; letter-spacing:.14em; font-weight:600; color:var(--muted); margin:0;">Temps pour trouver les informations</p>
-              <p style="font-size:clamp(2.8rem,5vw,4rem); font-weight:800; color:#080c14; margin:0; line-height:1;">&lt;&nbsp;10&nbsp;min</p>
-              <p style="font-size:1.05rem; color:var(--muted); margin:0; line-height:1.6;">Toutes les données clés centralisées sur la fiche startup.</p>
-            </div>
-
-            <!-- Stat 3 : Contrats -->
-            <div style="border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,0.7); padding:36px 32px; display:grid; gap:12px;">
-              <p style="font-size:0.85rem; text-transform:uppercase; letter-spacing:.14em; font-weight:600; color:var(--muted); margin:0;">Délai contrat &amp; investissement</p>
-              <p style="font-size:clamp(2.8rem,5vw,4rem); font-weight:800; color:#080c14; margin:0; line-height:1;">24&nbsp;h*</p>
-              <p style="font-size:1.05rem; color:var(--muted); margin:0; line-height:1.6;">De la signature à la confirmation, tout géré en ligne.</p>
-            </div>
-
+      <!-- LA SOLUTION SECTION -->
+      <section class="section" style="background: linear-gradient(135deg, rgba(59,130,246,0.05) 0%, rgba(255,255,255,0.5) 100%);">
+        <div class="container">
+          <div style="max-width: 900px; margin: 0 auto; text-align: center; margin-bottom: 60px;">
+            <h2>LIQUID+ : Votre partenaire de levée de fonds</h2>
+            <p style="font-size: 1.1rem;">
+              Nous ne sommes pas juste un service. Nous sommes vos partenaires dans cette transformation. Notre mission : faire de votre startup une entreprise tellement bien préparée et tellement bien présentée que les investisseurs ne pourront pas vous ignorer.
+            </p>
           </div>
-          <!-- Note -->
-          <p style="font-size:0.78rem; color:var(--muted); line-height:1.6; padding:12px 16px; border-radius:10px; border:1px solid var(--line); background:rgba(255,255,255,0.55);">
-            * Délai selon la réactivité de la startup.
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px;">
+            <div style="background: white; padding: 36px; border-radius: 16px; border: 1px solid var(--line);">
+              <div style="font-size: 2.5rem; margin-bottom: 16px;">🔬</div>
+              <h3>Analyse approfondie</h3>
+              <p>Nous analysons chaque aspect de votre startup pour identifier vos forces, vos faiblesses et vos opportunités réelles.</p>
+            </div>
+
+            <div style="background: white; padding: 36px; border-radius: 16px; border: 1px solid var(--line);">
+              <div style="font-size: 2.5rem; margin-bottom: 16px;">📊</div>
+              <h3>Pitch deck professionnel</h3>
+              <p>Transformation de votre vision en une présentation captivante et convaincante qui raconte votre histoire aux investisseurs.</p>
+            </div>
+
+            <div style="background: white; padding: 36px; border-radius: 16px; border: 1px solid var(--line);">
+              <div style="font-size: 2.5rem; margin-bottom: 16px;">🌐</div>
+              <h3>Accès au réseau</h3>
+              <p>3000+ VC et business angels, triés et qualifiés pour être en phase avec votre profil et vos objectifs.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CE QUE NOUS ANALYSONS -->
+      <section class="section" style="background: white;">
+        <div class="container">
+          <h2 style="text-align: center; margin-bottom: 60px;">Ce que nous analysons en détail</h2>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 40px;">
+            <!-- L'ÉQUIPE -->
+            <div>
+              <h3 style="font-size: 1.3rem; margin-bottom: 20px;">👥 L'Équipe</h3>
+              <ul style="list-style: none; padding: 0; margin: 0; color: var(--muted);">
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Expérience & compétences</strong> — Qui sont vraiment vos fondateurs ?
+                </li>
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Répartition des rôles</strong> — Qui fait quoi ? La synergie existe-t-elle ?
+                </li>
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Mindset & culture</strong> — Passion, ténacité, adaptabilité
+                </li>
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Management & leadership</strong> — Capacité à déléguer, à diriger
+                </li>
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Réseau des fondateurs</strong> — Leurs connexions, leurs contacts
+                </li>
+                <li style="padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Personnalité & relationnel</strong> — Comment ils communiquent avec le marché
+                </li>
+              </ul>
+            </div>
+
+            <!-- LE MARCHÉ -->
+            <div>
+              <h3 style="font-size: 1.3rem; margin-bottom: 20px;">📊 Le Marché</h3>
+              <ul style="list-style: none; padding: 0; margin: 0; color: var(--muted);">
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">TAM / SAM / SOM</strong> — Taille totale, accessible et réaliste du marché
+                </li>
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Analyse compétitive</strong> — Qui sont vos concurrents ? Directs et indirects ?
+                </li>
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Barrières d'entrée</strong> — Qu'est-ce qui vous protège de la concurrence ?
+                </li>
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Tendances & momentum</strong> — Pourquoi maintenant ? Quel vent vous porte ?
+                </li>
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Moat (avantage durable)</strong> — Tech, data, réseau, réglementation, marque
+                </li>
+                <li style="padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Régulation & fiscalité</strong> — Les contraintes légales à considérer
+                </li>
+              </ul>
+            </div>
+
+            <!-- LE PRODUIT/SERVICE -->
+            <div>
+              <h3 style="font-size: 1.3rem; margin-bottom: 20px;">💡 Le Produit/Service</h3>
+              <ul style="list-style: none; padding: 0; margin: 0; color: var(--muted);">
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Proposition de valeur</strong> — Qu'est-ce qui vous rend unique ?
+                </li>
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">MVP & traction</strong> — Qu'avez-vous validé ? Quels utilisateurs ?
+                </li>
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Stratégie de prix</strong> — Comment monétisez-vous ? À quel prix ?
+                </li>
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Roadmap produit</strong> — Vers quoi allez-vous ? Étapes clés ?
+                </li>
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Capacité d'automatisation</strong> — Pouvez-vous scaler ? L'IA, l'automatisation ?
+                </li>
+                <li style="padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Propriété intellectuelle</strong> — Brevets, licences, droits d'auteur
+                </li>
+              </ul>
+            </div>
+
+            <!-- LES FINANCES -->
+            <div>
+              <h3 style="font-size: 1.3rem; margin-bottom: 20px;">💰 Les Finances</h3>
+              <ul style="list-style: none; padding: 0; margin: 0; color: var(--muted);">
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Chiffre d'affaires & trajectoire</strong> — Croissance réelle et projections
+                </li>
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Marges brutes & nettes</strong> — Êtes-vous profitable ? Quand le serez-vous ?
+                </li>
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">CAC / LTV / Payback</strong> — Économie des clients, rentabilité réelle
+                </li>
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Rétention & churn</strong> — Gardez-vous vos clients ? Fidélité réelle ?
+                </li>
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Burn rate & runway</strong> — Combien brûlez-vous ? Jusqu'où pouvez-vous aller ?
+                </li>
+                <li style="padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Bilan & compte de résultat</strong> — Documents complets et audités si possible
+                </li>
+              </ul>
+            </div>
+
+            <!-- LA STRATÉGIE -->
+            <div>
+              <h3 style="font-size: 1.3rem; margin-bottom: 20px;">🚀 La Stratégie</h3>
+              <ul style="list-style: none; padding: 0; margin: 0; color: var(--muted);">
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Plan de croissance (crystal clear)</strong> — Comment allez-vous 10x votre revenu ?
+                </li>
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Canaux d'acquisition</strong> — Comment acquérez-vous des clients ? Coût ? Efficacité ?
+                </li>
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Tunnel de vente</strong> — Comprenez-vous chaque étape de la conversion ?
+                </li>
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Plan de scaling</strong> — Comment allez-vous passer à l'échelle ?
+                </li>
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Internationalisation</strong> — Ambitions internationales ? Comment ?
+                </li>
+                <li style="padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Budget marketing & distribution</strong> — Comment allez-vous dépenser ? Pour quel ROI ?
+                </li>
+              </ul>
+            </div>
+
+            <!-- LA STRUCTURE -->
+            <div>
+              <h3 style="font-size: 1.3rem; margin-bottom: 20px;">⚖️ La Structure & Gouvernance</h3>
+              <ul style="list-style: none; padding: 0; margin: 0; color: var(--muted);">
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Structure juridique</strong> — SARL, SAS, Micro-entreprise ? Pourquoi ce choix ?
+                </li>
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Table de capitalisation</strong> — Qui a combien ? Pour quel montant ?
+                </li>
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Pacte d'associés</strong> — Droits, devoirs, conditions de départ
+                </li>
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">BSPCE & stock-options</strong> — Avez-vous des mécanismes d'intéressement ?
+                </li>
+                <li style="margin-bottom: 12px; padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Montants levés & utilisation</strong> — Qui vous a financé avant ? Pour quoi faire ?
+                </li>
+                <li style="padding-left: 28px; position: relative;">
+                  <span style="position: absolute; left: 0;">✓</span>
+                  <strong style="color: var(--text);">Valorisation & critères</strong> — À quel prix êtes-vous prêts à céder ? Conditions ?
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PROCESSUS -->
+      <section id="process" class="section" style="background: linear-gradient(135deg, rgba(59,130,246,0.05) 0%, rgba(255,255,255,0.7) 100%);">
+        <div class="container">
+          <h2 style="text-align: center; margin-bottom: 60px;">Comment nous travaillons avec vous</h2>
+
+          <div style="max-width: 1000px; margin: 0 auto;">
+            <div style="display: grid; gap: 32px;">
+              <!-- Étape 1 -->
+              <div style="display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: start;">
+                <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 800; flex-shrink: 0;">1</div>
+                <div>
+                  <h3 style="margin-top: 0;">Audit complet</h3>
+                  <p>Nous analysons votre startup sous tous les angles : équipe, marché, produit, finances, stratégie, structure juridique. Rien n'est laissé au hasard.</p>
+                </div>
+              </div>
+
+              <!-- Étape 2 -->
+              <div style="display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: start;">
+                <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 800; flex-shrink: 0;">2</div>
+                <div>
+                  <h3 style="margin-top: 0;">Identification des forces & axes d'amélioration</h3>
+                  <p>Nous vous montrons exactement ce qui vous rend attractif pour les investisseurs, et où vous devez vous améliorer pour vraiment les convaincre.</p>
+                </div>
+              </div>
+
+              <!-- Étape 3 -->
+              <div style="display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: start;">
+                <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 800; flex-shrink: 0;">3</div>
+                <div>
+                  <h3 style="margin-top: 0;">Création du pitch deck parfait</h3>
+                  <p>Transformation de votre histoire en présentation visuelle captivante, avec narratif fort, données claires, et message convaincant.</p>
+                </div>
+              </div>
+
+              <!-- Étape 4 -->
+              <div style="display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: start;">
+                <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 800; flex-shrink: 0;">4</div>
+                <div>
+                  <h3 style="margin-top: 0;">Connexion au réseau</h3>
+                  <p>Introduction directe et personalisée auprès d'investisseurs qualifiés de notre réseau, adaptés à votre profil et votre étape de développement.</p>
+                </div>
+              </div>
+
+              <!-- Étape 5 -->
+              <div style="display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: start;">
+                <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 800; flex-shrink: 0;">5</div>
+                <div>
+                  <h3 style="margin-top: 0;">Accompagnement jusqu'à la signature</h3>
+                  <p>Coaching pour les pitches, préparation pour les due diligences, support pour les négociations. Nous sommes à vos côtés jusqu'à la signature.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- BÉNÉFICES CONCRETS -->
+      <section class="section" style="background: white;">
+        <div class="container">
+          <h2 style="text-align: center; margin-bottom: 60px;">Ce que vous gagnez en travaillant avec LIQUID+</h2>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 32px;">
+            <div style="padding: 32px; background: rgba(59,130,246,0.05); border-radius: 16px;">
+              <div style="font-size: 2rem; margin-bottom: 12px;">✓</div>
+              <h3 style="margin-bottom: 8px;">Clarté absolue</h3>
+              <p>Vous saurez exactement ce que les investisseurs cherchent, où vous êtes fort et où vous devez vous améliorer.</p>
+            </div>
+
+            <div style="padding: 32px; background: rgba(59,130,246,0.05); border-radius: 16px;">
+              <div style="font-size: 2rem; margin-bottom: 12px;">✓</div>
+              <h3 style="margin-bottom: 8px;">Pitch deck professionnel</h3>
+              <p>Une présentation tellement bien faite que même sans parler, votre startup raconte une histoire convaincante.</p>
+            </div>
+
+            <div style="padding: 32px; background: rgba(59,130,246,0.05); border-radius: 16px;">
+              <div style="font-size: 2rem; margin-bottom: 12px;">✓</div>
+              <h3 style="margin-bottom: 8px;">Accès privilégié</h3>
+              <p>Rencontrez 3000+ investisseurs qualifiés, au lieu de frapper à toutes les portes sans stratégie.</p>
+            </div>
+
+            <div style="padding: 32px; background: rgba(59,130,246,0.05); border-radius: 16px;">
+              <div style="font-size: 2rem; margin-bottom: 12px;">✓</div>
+              <h3 style="margin-bottom: 8px;">Négociation renforcée</h3>
+              <p>Vous saurez comment valoriser votre startup, quelles conditions accepter ou refuser.</p>
+            </div>
+
+            <div style="padding: 32px; background: rgba(59,130,246,0.05); border-radius: 16px;">
+              <div style="font-size: 2rem; margin-bottom: 12px;">✓</div>
+              <h3 style="margin-bottom: 8px;">Crédibilité maximale</h3>
+              <p>Vous arrivez aux investisseurs préparé, professionnel, convaincant. Pas d'improvisation, pas de zones floues.</p>
+            </div>
+
+            <div style="padding: 32px; background: rgba(59,130,246,0.05); border-radius: 16px;">
+              <div style="font-size: 2rem; margin-bottom: 12px;">✓</div>
+              <h3 style="margin-bottom: 8px;">Support continu</h3>
+              <p>De l'audit initial jusqu'à la signature, vous avez un vrai partenaire qui croit en votre succès.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- OBJECTIONS LEVÉES -->
+      <section class="section" style="background: linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(59,130,246,0.05) 100%);">
+        <div class="container">
+          <h2 style="text-align: center; margin-bottom: 60px;">Vos questions, nos réponses</h2>
+
+          <div style="max-width: 900px; margin: 0 auto; display: grid; gap: 24px;">
+            <details style="padding: 24px; background: white; border-radius: 12px; border: 1px solid var(--line); cursor: pointer;">
+              <summary style="font-weight: 700; color: var(--text); display: flex; justify-content: space-between; align-items: center;">
+                <span>Est-ce vraiment utile si j'ai déjà un pitch deck ?</span>
+                <span style="font-size: 0.8rem;">▼</span>
+              </summary>
+              <p style="margin: 16px 0 0; color: var(--muted);">
+                Très probablement votre pitch deck raconte votre histoire, mais pas forcement celle que les investisseurs veulent entendre. Nous refondons complètement votre narration, structure les données de façon convaincante, et surtout, nous identifions ce qui manque.
+              </p>
+            </details>
+
+            <details style="padding: 24px; background: white; border-radius: 12px; border: 1px solid var(--line); cursor: pointer;">
+              <summary style="font-weight: 700; color: var(--text); display: flex; justify-content: space-between; align-items: center;">
+                <span>Combien ça coûte ?</span>
+                <span style="font-size: 0.8rem;">▼</span>
+              </summary>
+              <p style="margin: 16px 0 0; color: var(--muted);">
+                Les tarifs dépendent de votre étape et de vos besoins. Audit seul, audit + pitch deck, accompagnement complet jusqu'à levée de fonds — nous avons différentes formules. Contactez-nous pour une estimation précise.
+              </p>
+            </details>
+
+            <details style="padding: 24px; background: white; border-radius: 12px; border: 1px solid var(--line); cursor: pointer;">
+              <summary style="font-weight: 700; color: var(--text); display: flex; justify-content: space-between; align-items: center;">
+                <span>Est-ce que vous prenez une commission sur ma levée de fonds ?</span>
+                <span style="font-size: 0.8rem;">▼</span>
+              </summary>
+              <p style="margin: 16px 0 0; color: var(--muted);">
+                Non. Vous payez un tarif forfaitaire pour nos services. Votre levée de fonds nous appartient pas en partie — ce qui est levé, c'est votre argent. Pas de pourcentage sur les montants levés.
+              </p>
+            </details>
+
+            <details style="padding: 24px; background: white; border-radius: 12px; border: 1px solid var(--line); cursor: pointer;">
+              <summary style="font-weight: 700; color: var(--text); display: flex; justify-content: space-between; align-items: center;">
+                <span>Combien de temps ça prend ?</span>
+                <span style="font-size: 0.8rem;">▼</span>
+              </summary>
+              <p style="margin: 16px 0 0; color: var(--muted);">
+                L'audit complet + pitch deck prend environ 4-6 semaines. Puis l'accompagnement réseau peut durer 2-6 mois selon votre traction et vos objectifs. C'est intensif, mais ça en vaut la peine.
+              </p>
+            </details>
+
+            <details style="padding: 24px; background: white; border-radius: 12px; border: 1px solid var(--line); cursor: pointer;">
+              <summary style="font-weight: 700; color: var(--text); display: flex; justify-content: space-between; align-items: center;">
+                <span>Est-ce que vous travaillez avec toutes les startups ?</span>
+                <span style="font-size: 0.8rem;">▼</span>
+              </summary>
+              <p style="margin: 16px 0 0; color: var(--muted);">
+                Presque. Si vous avez un projet avec un potentiel réel (marché lisible, équipe motivée, vision claire), nous parlons. Quelques startups ne sont simplement pas prêtes, et dans ce cas nous vous disons franchement — plutôt que de vous vendre du rêve.
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA FINAL -->
+      <section class="section" style="background: linear-gradient(135deg, #080c14 0%, #1a1f2e 100%); color: white; text-align: center;">
+        <div class="container" style="max-width: 700px;">
+          <h2 style="color: white; margin-bottom: 24px;">Prêt à transformer votre startup en machine à lever des fonds ?</h2>
+          <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem; margin-bottom: 40px;">
+            Prenez 30 minutes pour discuter avec nous. Aucun engagement. Juste une conversation honnête sur votre startup et comment nous pouvons vous aider.
+          </p>
+          <a class="button secondary" href="login.html" style="padding: 16px 40px; font-size: 1.05rem;">Démarrer une consultation</a>
+          <p style="margin-top: 24px; color: rgba(255,255,255,0.6); font-size: 0.95rem;">
+            Vous avez des questions avant ? Écrivez-nous. Nous répondons toujours.
           </p>
         </div>
       </section>
-
-      <!-- ── Liquidité ── -->
-      <section style="padding: 0 var(--gutter) 0;">
-        <div style="max-width:1380px; margin:0 auto; display:grid; gap:28px;">
-          <h2 style="font-size:clamp(2rem,4vw,3.2rem); color:#080c14;">Liquidité</h2>
-          <div style="border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,0.7); padding:48px 40px; display:grid; gap:20px;">
-            <div style="display:flex; align-items:center; gap:14px;">
-              <span style="font-size:0.78rem; text-transform:uppercase; letter-spacing:.14em; font-weight:600; color:var(--muted); background:rgba(0,0,0,0.05); border-radius:20px; padding:4px 12px; white-space:nowrap;">En développement</span>
-            </div>
-            <p style="font-size:clamp(1.3rem,2vw,1.6rem); font-weight:700; color:#080c14; line-height:1.4; margin:0; max-width:820px;">
-              Nous développons une solution pour ajouter de la liquidité dans l'écosystème du capital-risque.
-            </p>
-            <p style="font-size:1.05rem; color:var(--muted); line-height:1.7; margin:0; max-width:680px;">
-              À terme, cette fonctionnalité deviendra l'un de nos éléments différenciants majeurs.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <!-- ── Sélectivité ── -->
-      <section style="padding: 0 var(--gutter) 0;">
-        <div style="max-width:1380px; margin:0 auto; display:grid; gap:28px;">
-          <h2 style="font-size:clamp(2rem,4vw,3.2rem); color:#080c14;">Sélectivité des startups</h2>
-          <div style="border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,0.7); padding:48px 40px; display:grid; gap:40px;">
-
-            <!-- Stat principale -->
-            <div style="display:flex; align-items:center; gap:32px; flex-wrap:wrap;">
-              <div style="display:grid; gap:8px; flex-shrink:0;">
-                <p style="font-size:clamp(4rem,8vw,7rem); font-weight:800; color:#080c14; margin:0; line-height:1;">0.1&nbsp;%</p>
-                <p style="font-size:0.85rem; text-transform:uppercase; letter-spacing:.14em; font-weight:600; color:var(--muted); margin:0;">des startups rencontrées sélectionnées</p>
-              </div>
-              <div style="width:1px; height:80px; background:var(--line); flex-shrink:0; display:none;"></div>
-            </div>
-
-            <!-- Texte + bouton -->
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:32px; flex-wrap:wrap;">
-              <div style="display:grid; gap:20px; max-width:620px;">
-                <p style="font-size:clamp(1.3rem,2vw,1.6rem); font-weight:600; color:#080c14; line-height:1.5; margin:0;">
-                  Nous rencontrons en personne chaque fondateur avant toute décision d'investissement.
-                </p>
-                <div style="display:flex; align-items:flex-start; gap:14px;">
-                  <span style="width:8px; height:8px; border-radius:50%; background:#080c14; flex-shrink:0; margin-top:7px;"></span>
-                  <p style="font-size:1.05rem; color:var(--muted); margin:0; line-height:1.6;">Chaque dossier est analysé en profondeur : équipe, marché, traction, modèle économique.</p>
-                </div>
-              </div>
-              <a class="button primary" href="startups.html" style="white-space:nowrap; flex-shrink:0;">Découvrir les startups →</a>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      <!-- ── CTA Startups ── -->
-      <div style="padding: 0 var(--gutter);">
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:32px; flex-wrap:wrap; padding:36px 48px; border-radius:22px; border:1px solid var(--line); background:rgba(255,255,255,0.65);">
-          <div style="display:grid; gap:8px;">
-            <p style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.18em; font-weight:600; color:var(--muted);">Pour les startups</p>
-            <h2 style="font-size:clamp(1.3rem,2.2vw,1.7rem); margin:0;">Vous êtes une startup à la recherche de financement&nbsp;?</h2>
-            <p style="font-size:1.05rem; color:var(--muted); line-height:1.6; max-width:520px;">Soumettez votre dossier à notre équipe. Nous analysons chaque candidature et revenons vers vous sous 72&nbsp;h.</p>
-          </div>
-          <a class="button primary" href="mailto:liquidplus.contact@gmail.com?subject=Candidature startup" style="white-space:nowrap; flex-shrink:0;">Candidater →</a>
-        </div>
-      </div>
-
-      <!-- ── Nous contacter ── -->
-      <section style="padding: 0 var(--gutter) 0;">
-        <div style="max-width:1380px; margin:0 auto; display:grid; gap:28px;">
-          <h2 style="font-size:clamp(2rem,4vw,3.2rem); color:#080c14;">Nous contacter</h2>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
-
-            <!-- Colonne gauche : Calendly + Email -->
-            <div style="display:grid; gap:20px;">
-
-              <div style="border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,0.7); overflow:hidden;">
-                <div class="calendly-inline-widget" data-url="https://calendly.com/liquidplus-contact/30min?hide_gdpr_banner=1" style="min-width:280px; height:660px;"></div>
-              </div>
-
-              <div style="border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,0.7); padding:28px 32px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
-                <div style="display:grid; gap:4px;">
-                  <p style="font-size:0.78rem; text-transform:uppercase; letter-spacing:.14em; font-weight:600; color:var(--muted); margin:0;">Email</p>
-                  <a href="mailto:liquidplus.contact@gmail.com" style="font-size:1.1rem; font-weight:700; color:#080c14; text-decoration:none;">liquidplus.contact@gmail.com</a>
-                </div>
-                <a href="mailto:liquidplus.contact@gmail.com" style="display:inline-flex; align-items:center; gap:8px; border:2px solid #080c14; border-radius:10px; padding:10px 18px; font-size:0.88rem; font-weight:700; color:#080c14; text-decoration:none; white-space:nowrap;">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
-                  Écrire
-                </a>
-              </div>
-
-            </div>
-
-            <!-- Colonne droite : WhatsApp × 2 + LinkedIn -->
-            <div style="display:grid; gap:20px;">
-
-              <div style="border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,0.7); padding:28px 32px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
-                <div style="display:grid; gap:4px;">
-                  <p style="font-size:0.78rem; text-transform:uppercase; letter-spacing:.14em; font-weight:600; color:var(--muted); margin:0;">WhatsApp</p>
-                  <span style="font-size:1.1rem; font-weight:700; color:#080c14;">+33 6 48 17 63 23</span>
-                </div>
-                <a href="https://wa.me/33648176323" target="_blank" rel="noopener"
-                  style="display:inline-flex; align-items:center; gap:8px; background:#25D366; color:#fff; border-radius:10px; padding:10px 18px; font-size:0.88rem; font-weight:700; text-decoration:none; white-space:nowrap;">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.122 1.522 5.858L0 24l6.335-1.498A11.93 11.93 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.794 9.794 0 01-5.001-1.373l-.359-.214-3.72.879.936-3.617-.234-.372A9.787 9.787 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182S21.818 6.578 21.818 12 17.422 21.818 12 21.818z"/></svg>
-                  Message
-                </a>
-              </div>
-
-              <div style="border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,0.7); padding:28px 32px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
-                <div style="display:grid; gap:4px;">
-                  <p style="font-size:0.78rem; text-transform:uppercase; letter-spacing:.14em; font-weight:600; color:var(--muted); margin:0;">WhatsApp</p>
-                  <span style="font-size:1.1rem; font-weight:700; color:#080c14;">+33 7 69 66 45 31</span>
-                </div>
-                <a href="https://wa.me/33769664531" target="_blank" rel="noopener"
-                  style="display:inline-flex; align-items:center; gap:8px; background:#25D366; color:#fff; border-radius:10px; padding:10px 18px; font-size:0.88rem; font-weight:700; text-decoration:none; white-space:nowrap;">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.122 1.522 5.858L0 24l6.335-1.498A11.93 11.93 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.794 9.794 0 01-5.001-1.373l-.359-.214-3.72.879.936-3.617-.234-.372A9.787 9.787 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182S21.818 6.578 21.818 12 17.422 21.818 12 21.818z"/></svg>
-                  Message
-                </a>
-              </div>
-
-              <div style="border-radius:20px; border:1px solid var(--line); background:rgba(255,255,255,0.7); padding:28px 32px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
-                <div style="display:grid; gap:4px;">
-                  <p style="font-size:0.78rem; text-transform:uppercase; letter-spacing:.14em; font-weight:600; color:var(--muted); margin:0;">LinkedIn</p>
-                  <a href="https://www.linkedin.com/company/liquidplus" target="_blank" rel="noopener" style="font-size:1.05rem; font-weight:700; color:#080c14; text-decoration:none;">linkedin.com/company/liquidplus</a>
-                </div>
-                <a href="https://www.linkedin.com/company/liquidplus" target="_blank" rel="noopener"
-                  style="display:inline-flex; align-items:center; gap:8px; background:#0A66C2; color:#fff; border-radius:10px; padding:10px 18px; font-size:0.88rem; font-weight:700; text-decoration:none; white-space:nowrap;">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                  Suivre
-                </a>
-              </div>
-
-            </div>
-          </div>
-        </div>
-      </section>
-
     </main>
-
-                <footer class="site-footer">
-      <div class="footer-inner">
-        <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
-      </div>
-    </footer>
   </body>
 </html>
