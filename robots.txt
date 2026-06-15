@@ -7,5 +7,9 @@ Disallow: /register.html
 Disallow: /admin.html
 Disallow: /startup-dashboard.html
 Disallow: /startup-login.html
+Disallow: /investments.html
+Disallow: /startup.html
+Disallow: /startups.html
+Disallow: /comment-ca-marche.html
 
 Sitemap: https://www.liquidplus.fr/sitemap.xml
