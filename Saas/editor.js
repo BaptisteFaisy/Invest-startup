@@ -2089,6 +2089,7 @@ function insertCondTemplate(key, tplId) {
     + `</div>`
   );
   countWords();
+  paginate(); // recalcule la mise en page pour que la condition ne déborde pas
 }
 
 function renderCondTemplates(key) {
@@ -2136,6 +2137,7 @@ page.addEventListener('click', e => {
   const key = delBtn.dataset.delKey;
   if (key === activeKey) renderCondTemplates(key);
   countWords();
+  paginate(); // recalcule la mise en page après retrait de la condition
 }, true);
 
 // ─── Explications "comme à un enfant de 5 ans" ───────────────────────────────
