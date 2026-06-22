@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>liquid + — Dossiers</title>
+  <meta name="description" content="Tous vos documents juridiques de levée de fonds, au même endroit." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="editor.css" />
+  <style>
+    .app { visibility: hidden; }
+    .app.ready { visibility: visible; }
+
+    .dossiers { max-width: 1000px; margin: 0 auto; padding: 40px 28px 80px; }
+    .dossiers__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 6px; }
+    .dossiers__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-3); }
+    .dossiers__title { font-size: 32px; letter-spacing: -0.03em; margin-top: 6px; }
+    .dossiers__sub { color: var(--text-2); font-size: 15px; margin-top: 8px; }
+    .dossiers__head .btn { cursor: pointer; }
+
+    .section-label { display: flex; align-items: center; justify-content: space-between; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); margin: 34px 0 14px; }
+
+    /* Carte mise en avant (term sheet vivante) */
+    .feature-doc { display: flex; align-items: center; gap: 20px; background: var(--dark); color: var(--on-dark); border-radius: 16px; padding: 22px 24px; }
+    .feature-doc__ic { width: 50px; height: 50px; flex: none; display: grid; place-items: center; border-radius: 12px; background: var(--blue); font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 15px; }
+    .feature-doc__main { flex: 1; min-width: 0; }
+    .feature-doc__name { font-weight: 700; font-size: 17px; letter-spacing: -0.01em; }
+    .feature-doc__meta { font-family: 'Archivo', sans-serif; font-size: 13px; color: var(--on-dark-mut); margin-top: 4px; }
+
+    .files { display: flex; flex-direction: column; gap: 10px; }
+    .file { display: flex; align-items: center; gap: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 13px 18px; }
+    .file__ic { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: 10px; background: #eef0ff; font-size: 18px; }
+    .file__ic--pdf { background: #fdecec; }
+    .file__ic--docx { background: #e8effd; }
+    .file__main { flex: 1; min-width: 0; }
+    .file__name { font-weight: 700; font-size: 14.5px; letter-spacing: -0.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file__meta { font-family: 'Archivo', sans-serif; font-size: 12.5px; color: var(--text-2); margin-top: 3px; }
+    .file__actions { display: flex; gap: 8px; flex: none; }
+    .fbtn { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; color: var(--text); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; cursor: pointer; white-space: nowrap; text-decoration: none; }
+    .fbtn:hover { border-color: var(--text); }
+    .fbtn--accent { color: var(--blue); border-color: rgba(59,130,246,0.4); }
+    .fbtn--del { color: #dc2626; border-color: rgba(220,38,38,0.3); }
+
+    .empty { font-size: 14px; color: var(--text-3); text-align: center; padding: 26px; background: var(--card); border: 1px dashed var(--line); border-radius: 12px; line-height: 1.6; }
+    .err { font-size: 13px; color: #dc2626; background: rgba(220,38,38,0.06); border: 1px solid rgba(220,38,38,0.2); border-radius: 10px; padding: 10px 14px; margin-top: 12px; }
+
+    @media (max-width: 680px) {
+      .file__actions .fbtn { padding: 7px 9px; }
+      .file__meta { display: none; }
+    }
+  </style>
+  <script src="auth.js"></script>
+</head>
+<body>
+  <div class="app">
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="topbar__left">
+        <a href="index.html" class="brand">liquid <span class="brand__plus">+</span></a>
+        <span class="topbar__doc">Espace de travail</span>
+      </div>
+      <div class="topbar__actions">
+        <a href="editor.html" class="btn btn--ghost">Éditeur</a>
+        <a href="index.html" class="btn btn--ghost">← Accueil</a>
+        <button class="btn btn--ghost" id="logout-btn">Déconnexion</button>
+      </div>
+    </header>
+
+    <main class="dossiers">
+      <div class="dossiers__head">
+        <div>
+          <div class="dossiers__eyebrow">Dossiers</div>
+          <h1 class="dossiers__title">Mes documents</h1>
+          <p class="dossiers__sub">Vos term sheets, modèles et fichiers importés, au même endroit.</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn--ghost btn--lg" id="import-btn">⬆ Importer un fichier</button>
+          <a href="editor.html" class="btn btn--primary btn--lg">+ Nouvelle term sheet</a>
+        </div>
+        <input type="file" id="file-input" accept=".pdf,.doc,.docx" hidden />
+      </div>
+
+      <div id="error" class="err" hidden></div>
+
+      <!-- Document vivant (éditeur) -->
+      <div class="section-label">Document en cours</div>
+      <div class="feature-doc">
+        <div class="feature-doc__ic">TS</div>
+        <div class="feature-doc__main">
+          <div class="feature-doc__name">Term Sheet — Lumio SAS</div>
+          <div class="feature-doc__meta">Lettre d'intention · Série A · éditable dans le traitement de texte</div>
+        </div>
+        <a href="editor.html" class="btn btn--light">Ouvrir l'éditeur →</a>
+      </div>
+
+      <!-- Fichiers importés (backend) -->
+      <div class="section-label">
+        <span>Mes fichiers</span>
+        <span style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--text-3)">PDF · DOCX — conversion incluse</span>
+      </div>
+      <div class="files" id="files"></div>
+
+      <!-- Modèles fournis -->
+      <div class="section-label">Modèles juridiques</div>
+      <div class="files">
+        <div class="file">
+          <div class="file__ic file__ic--pdf">📄</div>
+          <div class="file__main">
+            <div class="file__name">Modèle de NDA (accord de confidentialité)</div>
+            <div class="file__meta">Modèle · PDF</div>
+          </div>
+          <div class="file__actions">
+            <a href="ressources/BOLD_Modele_NDA.pdf" target="_blank" rel="noopener" class="fbtn fbtn--accent">Ouvrir</a>
+          </div>
+        </div>
+        <div class="file">
+          <div class="file__ic file__ic--pdf">📄</div>
+          <div class="file__main">
+            <div class="file__name">Checklist — Pacte d'associés</div>
+            <div class="file__meta">Modèle · PDF</div>
+          </div>
+          <div class="file__actions">
+            <a href="ressources/Checklist_Pacte_Associes.pdf" target="_blank" rel="noopener" class="fbtn fbtn--accent">Ouvrir</a>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    requireAuth().then((user) => {
+      if (!user) return;
+      document.querySelector('.app').classList.add('ready');
+      loadFiles();
+    });
+    document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); logout(); });
+
+    const filesEl = document.getElementById('files');
+    const errEl   = document.getElementById('error');
+    const fileInput = document.getElementById('file-input');
+    document.getElementById('import-btn').addEventListener('click', () => fileInput.click());
+
+    function showErr(msg) { errEl.textContent = msg || ''; errEl.hidden = !msg; }
+    function fmtSize(b) { if (b == null) return ''; if (b < 1024) return b + ' o'; if (b < 1048576) return Math.round(b / 1024) + ' Ko'; return (b / 1048576).toFixed(1) + ' Mo'; }
+    function fmtDate(s) { try { return new Date(s).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return ''; } }
+    function ext(name) { const m = /\.([a-z0-9]+)$/i.exec(name || ''); return m ? m[1].toLowerCase() : ''; }
+    function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+    async function loadFiles() {
+      showErr('');
+      filesEl.innerHTML = '<p class="empty">Chargement…</p>';
+      try {
+        const r = await fetch('/api/saas/documents', { credentials: 'include' });
+        if (r.status === 401) { window.location.href = 'login.html'; return; }
+        const data = await r.json();
+        renderFiles(data.documents || []);
+      } catch {
+        filesEl.innerHTML = '';
+        showErr('Impossible de charger vos documents.');
+      }
+    }
+
+    function renderFiles(docs) {
+      if (!docs.length) {
+        filesEl.innerHTML = '<p class="empty">Aucun fichier importé pour le moment.<br />Importez un PDF ou un DOCX — vous pourrez le convertir et le télécharger.</p>';
+        return;
+      }
+      filesEl.innerHTML = '';
+      docs.forEach(d => {
+        const e = ext(d.originalname || d.name);
+        const target = e === 'pdf' ? 'docx' : (e === 'docx' || e === 'doc') ? 'pdf' : null;
+        const icClass = e === 'pdf' ? 'file__ic--pdf' : (e === 'docx' || e === 'doc') ? 'file__ic--docx' : '';
+
+        const row = document.createElement('div');
+        row.className = 'file';
+        row.innerHTML = `
+          <div class="file__ic ${icClass}">${(e || 'file').toUpperCase().slice(0,4)}</div>
+          <div class="file__main">
+            <div class="file__name" title="${esc(d.name)}">${esc(d.name)}</div>
+            <div class="file__meta">${fmtSize(d.size)} · ${fmtDate(d.created_at)}${d.converted_from ? ' · converti' : ''}</div>
+          </div>
+          <div class="file__actions"></div>`;
+        const actions = row.querySelector('.file__actions');
+
+        if (target) {
+          const cv = document.createElement('button');
+          cv.className = 'fbtn fbtn--accent';
+          cv.textContent = '→ ' + target.toUpperCase();
+          cv.title = 'Convertir en ' + target.toUpperCase();
+          cv.addEventListener('click', () => convert(d.id, target, cv));
+          actions.appendChild(cv);
+        }
+        const dl = document.createElement('a');
+        dl.className = 'fbtn';
+        dl.textContent = 'Télécharger';
+        dl.href = '/api/saas/documents/' + d.id + '/download';
+        actions.appendChild(dl);
+
+        const del = document.createElement('button');
+        del.className = 'fbtn fbtn--del';
+        del.textContent = 'Suppr.';
+        del.addEventListener('click', () => remove(d.id, del));
+        actions.appendChild(del);
+
+        filesEl.appendChild(row);
+      });
+    }
+
+    async function convert(id, to, btnEl) {
+      showErr('');
+      const old = btnEl.textContent;
+      btnEl.disabled = true; btnEl.textContent = 'Conversion…';
+      try {
+        const r = await fetch('/api/saas/documents/' + id + '/convert', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', body: JSON.stringify({ to }),
+        });
+        const data = await r.json();
+        if (!r.ok) { showErr(data.error || 'Conversion échouée.'); btnEl.disabled = false; btnEl.textContent = old; return; }
+        loadFiles();
+      } catch {
+        showErr('Impossible de joindre le serveur.');
+        btnEl.disabled = false; btnEl.textContent = old;
+      }
+    }
+
+    async function remove(id, btnEl) {
+      btnEl.disabled = true;
+      try {
+        const r = await fetch('/api/saas/documents/' + id, { method: 'DELETE', credentials: 'include' });
+        if (!r.ok) { const d = await r.json().catch(() => ({})); showErr(d.error || 'Suppression échouée.'); btnEl.disabled = false; return; }
+        loadFiles();
+      } catch {
+        showErr('Impossible de joindre le serveur.');
+        btnEl.disabled = false;
+      }
+    }
+
+    fileInput.addEventListener('change', async () => {
+      const f = fileInput.files && fileInput.files[0];
+      if (!f) return;
+      showErr('');
+      const fd = new FormData();
+      fd.append('file', f);
+      filesEl.insertAdjacentHTML('afterbegin', '<p class="empty">Import en cours…</p>');
+      try {
+        const r = await fetch('/api/saas/documents', { method: 'POST', credentials: 'include', body: fd });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) showErr(data.error || 'Import échoué.');
+      } catch {
+        showErr('Impossible de joindre le serveur.');
+      }
+      fileInput.value = '';
+      loadFiles();
+    });
+  </script>
+</body>
+</html>

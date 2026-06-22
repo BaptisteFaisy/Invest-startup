@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header class="top">
+    <span class="brand">liquid <span class="plus">+</span></span>
+    <button class="link" id="settings-toggle" type="button" title="Réglages">⚙</button>
+  </header>
+
+  <!-- Réglages : URL du serveur -->
+  <div class="settings" id="settings" hidden>
+    <label class="field">
+      <span>URL du serveur</span>
+      <input id="base-url" type="text" placeholder="http://localhost:3000" />
+    </label>
+    <button class="btn btn--ghost" id="settings-save" type="button">Enregistrer</button>
+  </div>
+
+  <!-- Vue connexion -->
+  <section class="view" id="view-auth">
+    <h1 class="title">Connexion</h1>
+    <p class="sub">Connectez-vous à votre compte liquid +.</p>
+    <form id="login-form" autocomplete="on">
+      <label class="field">
+        <span>Email</span>
+        <input id="login-email" type="email" required autocomplete="username" />
+      </label>
+      <label class="field">
+        <span>Mot de passe</span>
+        <input id="login-password" type="password" required autocomplete="current-password" />
+      </label>
+      <label class="field" id="twofa-field" hidden>
+        <span>Code à 6 chiffres (2FA)</span>
+        <input id="login-2fa" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" />
+      </label>
+      <button class="btn btn--primary" id="login-btn" type="submit">Se connecter</button>
+    </form>
+    <p class="status" id="auth-status" hidden></p>
+  </section>
+
+  <!-- Vue upload -->
+  <section class="view" id="view-main" hidden>
+    <div class="account">
+      <span id="account-email" class="account__email"></span>
+      <button class="link" id="logout-btn" type="button">Déconnexion</button>
+    </div>
+
+    <div class="dropzone" id="dropzone" tabindex="0">
+      <div class="dropzone__icon">⬆</div>
+      <p class="dropzone__title">Glissez-déposez un fichier ici</p>
+      <p class="dropzone__sub">ou cliquez pour parcourir</p>
+      <p class="dropzone__hint">PDF · DOCX · XLSX · PNG · JPG</p>
+      <input id="file-input" type="file" multiple
+             accept=".pdf,.docx,.doc,.xlsx,.xls,.png,.jpg,.jpeg" hidden />
+    </div>
+
+    <p class="status" id="upload-status" hidden></p>
+
+    <div class="recent">
+      <div class="recent__head">
+        <span>Documents récents</span>
+        <button class="link" id="refresh-btn" type="button">↻</button>
+      </div>
+      <ul class="recent__list" id="recent-list"></ul>
+    </div>
+  </section>
+
+  <script src="popup.js"></script>
+</body>
+</html>

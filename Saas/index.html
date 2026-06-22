@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>liquid + — Votre term sheet, sans avocat</title>
+  <meta name="description" content="liquid + décode votre term sheet de levée de fonds clause par clause : ce que chaque ligne veut dire, les pièges à négocier et votre dilution calculée. Plus besoin d'avocat pour comprendre et négocier." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- NAV -->
+  <header class="nav" id="top">
+    <div class="container nav__inner">
+      <a href="#top" class="brand">liquid <span class="brand__plus">+</span></a>
+      <nav class="nav__links">
+        <a href="#features">Ce que liquid + fait</a>
+        <a href="#how">Comment ça marche</a>
+        <a href="#pricing">Tarifs</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <div class="nav__cta">
+        <a href="login.html" class="btn btn--ghost" id="nav-login">Connexion</a>
+        <a href="register.html" class="btn btn--primary" id="nav-cta-primary">Essai gratuit</a>
+      </div>
+      <button class="nav__burger" aria-label="Menu" id="burger">☰</button>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container hero__inner">
+      <div class="hero__copy">
+        <span class="pill"><span class="dotmark"></span> Éditeur de term sheet — chaque clause décodée</span>
+        <h1>Comprenez et négociez votre term sheet. Sans avocat.</h1>
+        <p class="hero__sub">
+          Recevoir une term sheet ne devrait pas vous obliger à payer un avocat 400 €/h
+          pour la décrypter. liquid + traduit chaque clause en langage courant, vous montre
+          votre dilution réelle et vous signale exactement ce qu'un avocat vous dirait de
+          négocier — directement dans l'éditeur.
+        </p>
+        <div class="hero__actions">
+          <a href="editor.html" class="btn btn--primary btn--lg">Décoder ma term sheet →</a>
+          <a href="#how" class="btn btn--ghost btn--lg">Comment ça marche</a>
+        </div>
+        <div class="hero__trust">
+          <span>Adopté par <strong>4 200+ fondateurs</strong></span>
+          <span class="sep"></span>
+          <span>Sans avocat · sans carte bancaire</span>
+        </div>
+      </div>
+
+      <div class="hero__card">
+        <div class="chatcard">
+          <div class="chatcard__head">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            <span class="chatcard__title">Term Sheet — Série A · liquid +</span>
+          </div>
+          <div class="chatcard__body">
+            <div class="msg msg--user" style="max-width:100%">
+              <span style="color:var(--on-dark-mut);font-size:12px;font-family:'Archivo',sans-serif;letter-spacing:.06em">07 — LIQUIDATION PREFERENCE</span><br />
+              L'investisseur bénéficie d'une <strong>liquidation preference 1x non-participating</strong>.
+            </div>
+            <div class="msg msg--bot">
+              <strong>Ce qu'un avocat vous dirait —</strong> en cas de revente, l'investisseur récupère
+              d'abord sa mise (1x) avant tout partage. « Non-participating » = il choisit sa mise <em>ou</em>
+              sa part, pas les deux. C'est le standard sain.
+              <div class="msg__actions">
+                <span class="chip chip--accent">⚠️ Refusez le « participating »</span>
+                <span class="chip">Multiple > 1x ?</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOGOS -->
+  <section class="logos">
+    <div class="container">
+      <p class="logos__label">Ils ont négocié leur levée sans cabinet d'avocats</p>
+      <div class="logos__row">
+        <span>NovaPay</span><span>Bloom AI</span><span>Greenleaf</span><span>Korta</span><span>Studio Nine</span><span>Mistral.io</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROBLEM -->
+  <section class="section">
+    <div class="container">
+      <div class="section__head">
+        <span class="eyebrow">Le constat</span>
+        <h2>Pourquoi payer un avocat pour relire votre term sheet ?</h2>
+        <p>Une term sheet, c'est 3 pages de jargon qui décident de votre dilution, de votre contrôle et de ce que vous toucherez à la sortie. Aujourd'hui vous payez un avocat pour vous l'expliquer. Plus maintenant.</p>
+      </div>
+      <div class="grid grid--3">
+        <div class="stat">
+          <div class="stat__num">400 €/h</div>
+          <p>le tarif moyen d'un avocat pour décortiquer et commenter une term sheet.</p>
+        </div>
+        <div class="stat">
+          <div class="stat__num">5–10 j</div>
+          <p>d'attente pour qu'un cabinet vous renvoie ses remarques — pendant que l'investisseur attend votre réponse.</p>
+        </div>
+        <div class="stat">
+          <div class="stat__num">73 %</div>
+          <p>des fondateurs signent une term sheet sans comprendre toutes les clauses qu'elle contient.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="section" id="features" style="padding-top:0;">
+    <div class="container">
+      <div class="section__head">
+        <span class="eyebrow">Ce que liquid + fait</span>
+        <h2>Tout ce qu'un avocat ferait sur votre term sheet</h2>
+        <p>Sauf que c'est instantané, illimité, et que ça ne vous coûte pas une facture par clause.</p>
+      </div>
+      <div class="grid grid--3">
+        <article class="feature">
+          <div class="feature__icon">01 — TRADUCTION</div>
+          <h3>Chaque clause en clair</h3>
+          <p>Liquidation preference, anti-dilution, vesting, drag-along… Chaque clause traduite en une phrase que vous comprenez vraiment.</p>
+        </article>
+        <article class="feature">
+          <div class="feature__icon">02 — VIGILANCE</div>
+          <h3>Les pièges signalés</h3>
+          <p>liquid + pointe exactement ce qu'un avocat surlignerait : clauses agressives, multiples cachés, formulations à votre désavantage.</p>
+        </article>
+        <article class="feature">
+          <div class="feature__icon">03 — DILUTION</div>
+          <h3>Votre dilution calculée</h3>
+          <p>Pre-money, post-money, pool d'options : voyez en temps réel le pourcentage que vous cédez réellement.</p>
+        </article>
+        <article class="feature">
+          <div class="feature__icon">04 — NÉGOCIATION</div>
+          <h3>Quoi négocier, et comment</h3>
+          <p>Pour chaque point sensible, l'argument à renvoyer à l'investisseur et le standard de marché à invoquer.</p>
+        </article>
+        <article class="feature">
+          <div class="feature__icon">05 — ÉDITEUR</div>
+          <h3>Modifiez directement le texte</h3>
+          <p>Un vrai traitement de texte : amendez les clauses, contre-proposez, exportez la version révisée en PDF.</p>
+        </article>
+        <article class="feature">
+          <div class="feature__icon">06 — GLOSSAIRE</div>
+          <h3>Le vocabulaire VC démystifié</h3>
+          <p>SAFE, BSA-AIR, ratchet, ESOP : un glossaire intégré pour ne plus jamais hocher la tête sans comprendre.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS (dark) -->
+  <section class="section section--dark" id="how">
+    <div class="container">
+      <div class="section__head">
+        <span class="eyebrow" style="color:var(--on-dark-mut)">Comment ça marche</span>
+        <h2>Votre term sheet décodée en 3 étapes</h2>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <span class="step__num">01</span>
+          <div>
+            <h3>Collez votre term sheet</h3>
+            <p>Copiez le texte reçu de l'investisseur dans l'éditeur, ou partez d'un modèle.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step__num">02</span>
+          <div>
+            <h3>liquid + décode chaque clause</h3>
+            <p>Cliquez sur une clause : traduction en langage courant, point de vigilance et conseil de négociation s'affichent à côté.</p>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step__num">03</span>
+          <div>
+            <h3>Négociez et signez en confiance</h3>
+            <p>Amendez le texte, renvoyez votre contre-proposition à l'investisseur et signez en sachant exactement ce que vous signez.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="section">
+    <div class="container">
+      <div class="section__head">
+        <span class="eyebrow">Témoignages</span>
+        <h2>Des fondateurs qui ont négocié seuls</h2>
+      </div>
+      <div class="grid grid--3 grid--plain">
+        <figure class="quote">
+          <blockquote>« J'ai compris ma liquidation preference et fait sauter le "participating" en relisant l'explication de liquid +. Mon avocat m'aurait facturé ça 800 €. »</blockquote>
+          <figcaption><span class="avatar">CM</span> Camille M. — CEO, NovaPay</figcaption>
+        </figure>
+        <figure class="quote">
+          <blockquote>« Reçu la term sheet à 23h, tout décodé avant minuit. J'ai renvoyé mes contre-propositions le lendemain matin, sans attendre un cabinet. »</blockquote>
+          <figcaption><span class="avatar">TL</span> Thomas L. — Fondateur, Bloom AI</figcaption>
+        </figure>
+        <figure class="quote">
+          <blockquote>« Pour la première fois j'ai signé une levée en comprenant chaque ligne. Zéro avocat, zéro angle mort. »</blockquote>
+          <figcaption><span class="avatar">SR</span> Sofia R. — COO, Greenleaf</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="section" id="pricing" style="padding-top:0;">
+    <div class="container">
+      <div class="section__head">
+        <span class="eyebrow">Tarifs</span>
+        <h2>Le prix d'une heure d'avocat. Pour toutes vos term sheets.</h2>
+        <p>Annulable à tout moment. 14 jours d'essai gratuit, sans carte bancaire.</p>
+      </div>
+      <div class="grid grid--3 pricing">
+        <div class="plan">
+          <h3>Découverte</h3>
+          <div class="plan__price">0 €<span>/mois</span></div>
+          <p class="plan__desc">Pour décoder une première term sheet.</p>
+          <ul>
+            <li>1 term sheet</li>
+            <li>Traduction clause par clause</li>
+            <li>Calcul de dilution</li>
+            <li class="muted">Conseils de négociation</li>
+            <li class="muted">Export PDF</li>
+          </ul>
+          <a href="register.html" class="btn btn--ghost btn--block">Commencer</a>
+        </div>
+        <div class="plan plan--featured">
+          <span class="plan__badge">Le plus choisi</span>
+          <h3>Founder</h3>
+          <div class="plan__price">49 €<span>/mois</span></div>
+          <p class="plan__desc">Pour piloter votre levée de A à Z.</p>
+          <ul>
+            <li>Term sheets illimitées</li>
+            <li>Points de vigilance complets</li>
+            <li>Conseils de négociation</li>
+            <li>Éditeur + export PDF</li>
+            <li>Glossaire VC intégré</li>
+          </ul>
+          <a href="register.html" class="btn btn--light btn--block">Démarrer l'essai gratuit</a>
+        </div>
+        <div class="plan">
+          <h3>Scale</h3>
+          <div class="plan__price">149 €<span>/mois</span></div>
+          <p class="plan__desc">Pour les tours complexes et les équipes.</p>
+          <ul>
+            <li>Tout le plan Founder</li>
+            <li>Multi-utilisateurs</li>
+            <li>Comparaison de term sheets</li>
+            <li>Validation par avocat partenaire (option)</li>
+            <li>Support prioritaire</li>
+          </ul>
+          <a href="#" class="btn btn--ghost btn--block">Contacter l'équipe</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section" id="faq" style="padding-top:0;">
+    <div class="container container--narrow">
+      <div class="section__head">
+        <span class="eyebrow">FAQ</span>
+        <h2>Questions fréquentes</h2>
+      </div>
+      <div class="faq">
+        <details>
+          <summary>liquid + remplace-t-il vraiment mon avocat sur la term sheet ?</summary>
+          <p>Pour comprendre et négocier votre term sheet, oui : vous obtenez la même lecture clause par clause, les mêmes points de vigilance et les standards de marché — instantanément. Pour le closing juridique final d'un tour complexe, vous pouvez activer en option une validation par un avocat partenaire.</p>
+        </details>
+        <details>
+          <summary>Les explications sont-elles fiables ?</summary>
+          <p>Nos décodages de clauses sont rédigés et tenus à jour par des juristes et des experts du financement de startups, en s'appuyant sur les standards de marché des levées en France et en Europe.</p>
+        </details>
+        <details>
+          <summary>Mes données sont-elles sécurisées ?</summary>
+          <p>Votre term sheet est chiffrée, hébergée en Europe et conforme au RGPD. Vous restez l'unique propriétaire de vos documents.</p>
+        </details>
+        <details>
+          <summary>Puis-je annuler à tout moment ?</summary>
+          <p>Oui, sans engagement. Vous gardez l'accès à vos term sheets décodées même après résiliation.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta">
+    <div class="container cta__inner">
+      <h2>Votre prochaine term sheet, négociée sans avocat.</h2>
+      <p>Rejoignez les milliers de fondateurs qui comprennent et négocient leur levée en autonomie.</p>
+      <a href="register.html" class="btn btn--light btn--lg">Décoder ma term sheet →</a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer__inner">
+      <div class="footer__brand">
+        <a href="#top" class="brand">liquid <span class="brand__plus">+</span></a>
+        <p>Le décrypteur de term sheet des fondateurs de startup.</p>
+      </div>
+      <div class="footer__col">
+        <h4>Produit</h4>
+        <a href="#features">Ce que liquid + fait</a>
+        <a href="#pricing">Tarifs</a>
+        <a href="#how">Démo</a>
+      </div>
+      <div class="footer__col">
+        <h4>Ressources</h4>
+        <a href="#">Guide de la term sheet</a>
+        <a href="#faq">FAQ</a>
+        <a href="#">Glossaire VC</a>
+      </div>
+      <div class="footer__col">
+        <h4>Légal</h4>
+        <a href="#">Mentions légales</a>
+        <a href="#">Confidentialité</a>
+        <a href="#">CGU</a>
+      </div>
+    </div>
+    <div class="container footer__bottom">
+      <span>© 2026 liquid +. liquid + vous rend autonome sur la lecture et la négociation de votre term sheet ; il ne se substitue pas à un conseil juridique personnalisé pour les cas complexes.</span>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+  <script src="auth.js"></script>
+  <script>refreshNav();</script>
+</body>
+</html>

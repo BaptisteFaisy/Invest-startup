@@ -10,6 +10,8 @@ const speakeasy        = require('speakeasy');
 const QRCode           = require('qrcode');
 const multer           = require('multer');
 const { MongoClient }  = require('mongodb');
+const Anthropic        = require('@anthropic-ai/sdk');
+const CloudConvert     = require('cloudconvert');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -22,6 +24,12 @@ const MONGODB_URI          = process.env.MONGODB_URI          || 'mongodb://loca
 const STARTUP_SECRET       = process.env.STARTUP_SECRET       || 'startup_post_secret_2026';
 
 const ADMIN_EMAILS = ['baptiste.faisy@gmail.com', 'bg.fsg.invest@gmail.com'];
+
+// ─── Claude (assistant IA term sheet du SaaS) ─────────────────────────────────
+const anthropic = process.env.ANTHROPIC_API_KEY ? new Anthropic() : null; // lit ANTHROPIC_API_KEY
+
+// ─── CloudConvert (conversion PDF ⇄ DOCX du SaaS) ─────────────────────────────
+const cloudConvert = process.env.CLOUDCONVERT_API_KEY ? new CloudConvert(process.env.CLOUDCONVERT_API_KEY) : null;
 
 // ─── TOTP temporaire (mémoire) ────────────────────────────────────────────────
 const totpSetupStore = new Map();
@@ -129,6 +137,9 @@ const imageUpload = multer({
 app.use(express.json());
 app.use(cookieParser());
 app.use('/uploads/public', express.static(PUBLIC_IMG_DIR));
+// Le SaaS (dossier interne au site) est servi sous /saas → même origine que l'API,
+// donc le cookie de session et les appels /api/auth/* fonctionnent sans CORS.
+app.use('/saas', express.static(path.join(__dirname, 'Saas')));
 app.use(express.static(__dirname));
 
 // ─── Auth helpers ─────────────────────────────────────────────────────────────
@@ -476,20 +487,25 @@ app.post('/api/auth/google/token', async (req, res) => {
 
 app.get('/auth/google', (req, res) => {
   if (!GOOGLE_CLIENT_ID) return res.status(503).send('Google OAuth non configuré.');
-  const fromApp  = req.query.from === 'app';
+  const state =
+    req.query.from === 'app'  ? 'from_app'  :
+    req.query.from === 'saas' ? 'from_saas' : 'from_web';
   const params   = new URLSearchParams({
     client_id: GOOGLE_CLIENT_ID, redirect_uri: `${BASE_URL}/auth/google/callback`,
     response_type: 'code', scope: 'openid email profile',
-    state: fromApp ? 'from_app' : 'from_web', access_type: 'online', prompt: 'select_account',
+    state, access_type: 'online', prompt: 'select_account',
   });
   res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params}`);
 });
 
 app.get('/auth/google/callback', async (req, res) => {
   const { code, error, state } = req.query;
-  const fromApp = state === 'from_app';
+  const fromApp  = state === 'from_app';
+  const fromSaas = state === 'from_saas';
   if (error || !code)
-    return fromApp ? res.redirect('liquidplus://auth?error=google_cancelled') : res.redirect('/login.html?error=google_cancelled');
+    return fromApp  ? res.redirect('liquidplus://auth?error=google_cancelled')
+         : fromSaas ? res.redirect('/saas/login.html?error=google_cancelled')
+         :            res.redirect('/login.html?error=google_cancelled');
   try {
     const tokenData = await httpsPost('oauth2.googleapis.com', '/token', {
       code, client_id: GOOGLE_CLIENT_ID, client_secret: GOOGLE_CLIENT_SECRET,
@@ -506,10 +522,12 @@ app.get('/auth/google/callback', async (req, res) => {
       const appToken = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
       return res.redirect(`liquidplus://auth?token=${encodeURIComponent(appToken)}`);
     }
-    res.redirect('/index.html');
+    res.redirect(fromSaas ? '/saas/editor.html' : '/index.html');
   } catch (err) {
     console.error('Google OAuth error:', err.message);
-    fromApp ? res.redirect('liquidplus://auth?error=google_failed') : res.redirect('/login.html?error=google_failed');
+    fromApp  ? res.redirect('liquidplus://auth?error=google_failed')
+    : fromSaas ? res.redirect('/saas/login.html?error=google_failed')
+    :            res.redirect('/login.html?error=google_failed');
   }
 });
 
@@ -588,6 +606,253 @@ app.delete('/api/admin/startups/:id', requireAdmin, async (req, res) => {
   if (!(await col('catalog').findOne({ id }))) return res.status(404).json({ error: 'Startup introuvable' });
   await deleteCatalogById(id);
   res.json({ success: true });
+});
+
+// ─── SaaS : assistant IA Claude pour modifier une clause de term sheet ─────────
+app.post('/api/saas/clause-chat', requireAuth, async (req, res) => {
+  if (!anthropic)
+    return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ANTHROPIC_API_KEY dans le .env du serveur.' });
+
+  const { clauseLabel, clauseHtml, plain, documentContext, messages } = req.body ?? {};
+  if (!clauseHtml || !Array.isArray(messages) || messages.length === 0)
+    return res.status(400).json({ error: 'clauseHtml et messages sont requis' });
+
+  // On ne garde que les tours user/assistant textuels, plafonnés pour borner le contexte.
+  const convo = messages
+    .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+    .slice(-16)
+    .map(m => ({ role: m.role, content: m.content }));
+  if (!convo.length || convo[convo.length - 1].role !== 'user')
+    return res.status(400).json({ error: 'Le dernier message doit provenir de l\'utilisateur' });
+
+  const system =
+`Tu es l'assistant juridique IA de « liquid + », un éditeur de term sheet pour fondateurs de startup.
+Tu aides un fondateur à comprendre et à modifier UNE SEULE clause de sa term sheet — celle ci-dessous, et aucune autre.
+
+Plan complet de la term sheet (CONTEXTE seulement, pour comprendre les renvois entre clauses — tu ne dois RIEN y modifier) :
+${documentContext || '(non fourni)'}
+
+Clause à traiter : « ${clauseLabel || 'Clause'} »
+Résumé en langage courant : ${plain || '(non fourni)'}
+
+Contenu HTML actuel de la clause (c'est le SEUL texte que tu peux modifier) :
+${clauseHtml}
+
+Règles :
+- Réponds en français, de façon claire et concise, du point de vue du fondateur (pas de l'investisseur).
+- Fais le changement le plus CIBLÉ possible. Ne réécris JAMAIS toute la clause pour une demande mineure.
+- Pour une modification locale (une durée, un montant, un mot, une phrase), renvoie une liste "edits" : chaque entrée a "find" = un extrait EXACT copié caractère pour caractère depuis le HTML de la clause ci-dessus (assez long pour être unique), et "replace" = le texte de remplacement. Tout le reste de la clause doit rester identique. Dans ce cas, laisse "updatedClause" vide ("").
+- N'utilise "updatedClause" (la clause entière réécrite en HTML, même format que l'original) QUE si la demande impose de restructurer l'essentiel de la clause. Dans ce cas, laisse "edits" vide ([]).
+- Ne remplis jamais "edits" ET "updatedClause" en même temps.
+- Si le fondateur pose seulement une question (pas de modification), laisse "edits" vide et "updatedClause" vide.
+- N'invente jamais de chiffres non demandés et ne touche pas aux autres clauses. Signale brièvement dans "reply" l'impact de ta modification (point de vigilance).`;
+
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-opus-4-8',
+      max_tokens: 4000,
+      thinking: { type: 'adaptive' },
+      system,
+      messages: convo,
+      output_config: {
+        format: {
+          type: 'json_schema',
+          schema: {
+            type: 'object',
+            properties: {
+              reply: { type: 'string', description: 'Réponse de chat en français pour le fondateur.' },
+              edits: {
+                type: 'array',
+                description: 'Modifications ciblées (find/replace) sur le HTML de la clause. Vide si aucune.',
+                items: {
+                  type: 'object',
+                  properties: {
+                    find:    { type: 'string', description: 'Extrait exact à remplacer, copié depuis le HTML de la clause.' },
+                    replace: { type: 'string', description: 'Texte de remplacement.' },
+                  },
+                  required: ['find', 'replace'],
+                  additionalProperties: false,
+                },
+              },
+              updatedClause: { type: 'string', description: 'Clause entière réécrite en HTML, ou "" si on utilise edits / aucune modification.' },
+            },
+            required: ['reply', 'edits', 'updatedClause'],
+            additionalProperties: false,
+          },
+        },
+      },
+    });
+
+    const textBlock = response.content.find(b => b.type === 'text');
+    const data = JSON.parse(textBlock ? textBlock.text : '{}');
+    res.json({
+      reply:         data.reply || '',
+      edits:         Array.isArray(data.edits) ? data.edits.filter(e => e && typeof e.find === 'string' && typeof e.replace === 'string' && e.find) : [],
+      updatedClause: data.updatedClause || '',
+    });
+  } catch (err) {
+    console.error('Claude clause-chat error:', err.message);
+    res.status(502).json({ error: 'L\'assistant IA est momentanément indisponible.' });
+  }
+});
+
+// ─── SaaS : bloc « Pour bien comprendre » (explication dynamique d'UNE clause) ─
+// Recalcule à la demande l'explication simple d'une clause précise, à partir de
+// son texte RÉEL (valeurs comprises) — pas un texte générique. Le front la
+// réactualise dès que la clause change.
+app.post('/api/saas/clause-explain', requireAuth, async (req, res) => {
+  if (!anthropic)
+    return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ANTHROPIC_API_KEY dans le .env du serveur.' });
+
+  const { clauseLabel, clauseHtml, plain } = req.body ?? {};
+  if (!clauseHtml || typeof clauseHtml !== 'string')
+    return res.status(400).json({ error: 'clauseHtml est requis' });
+
+  const system =
+`Tu es l'assistant pédagogique de « liquid + », un éditeur de term sheet pour fondateurs de startup.
+On te donne UNE clause précise. Tu dois rédiger le bloc « Pour bien comprendre » : une explication très simple et imagée de CE QUE DIT EXACTEMENT le texte actuel de cette clause, en tenant compte de ses valeurs réelles (durées, montants, pourcentages).
+
+Clause : « ${clauseLabel || 'Clause'} »
+Résumé en langage courant (contexte) : ${plain || '(non fourni)'}
+
+Contenu HTML actuel de la clause (c'est CE texte précis que tu dois expliquer, avec ses vraies valeurs) :
+${clauseHtml}
+
+Règles :
+- Réponds UNIQUEMENT par le texte de l'explication, en français, 1 à 3 phrases, sans titre, sans balises HTML, sans liste.
+- Sois fidèle aux valeurs réellement écrites dans la clause : si une durée, un montant ou un pourcentage change, l'explication doit changer en conséquence.
+- Utilise une analogie simple et concrète de la vie quotidienne, du point de vue du fondateur. Pas de jargon juridique.`;
+
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-opus-4-8',
+      max_tokens: 600,
+      system,
+      messages: [{ role: 'user', content: 'Rédige le bloc « Pour bien comprendre » pour cette clause.' }],
+    });
+    const textBlock = response.content.find(b => b.type === 'text');
+    const simple = (textBlock ? textBlock.text : '').trim();
+    res.json({ simple });
+  } catch (err) {
+    console.error('Claude clause-explain error:', err.message);
+    res.status(502).json({ error: 'L\'assistant IA est momentanément indisponible.' });
+  }
+});
+
+// ─── SaaS : stockage de documents (par utilisateur) ───────────────────────────
+function publicDoc(d) {
+  const { _id, filename, user_id, ...rest } = d; // on masque le nom de fichier interne
+  return rest;
+}
+
+app.get('/api/saas/documents', requireAuth, async (req, res) => {
+  const docs = await col('saas_documents')
+    .find({ user_id: req.user.id }, { projection: { _id: 0, filename: 0, user_id: 0 } })
+    .sort({ created_at: -1 })
+    .toArray();
+  res.json({ documents: docs });
+});
+
+app.post('/api/saas/documents', requireAuth, upload.single('file'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Aucun fichier reçu ou format non supporté' });
+  const id  = await nextId('saas_documents');
+  const doc = {
+    id, user_id: req.user.id,
+    name: (req.body.name || req.file.originalname).trim(),
+    filename: req.file.filename, originalname: req.file.originalname,
+    mimetype: req.file.mimetype, size: req.file.size,
+    created_at: new Date().toISOString(),
+  };
+  await col('saas_documents').insertOne(doc);
+  res.status(201).json({ document: publicDoc(doc) });
+});
+
+app.get('/api/saas/documents/:id/download', requireAuth, async (req, res) => {
+  const id  = Number(req.params.id);
+  const doc = await col('saas_documents').findOne({ id, user_id: req.user.id });
+  if (!doc) return res.status(404).json({ error: 'Document introuvable' });
+  const filepath = path.join(UPLOADS_DIR, doc.filename);
+  if (!fs.existsSync(filepath)) return res.status(404).json({ error: 'Fichier introuvable' });
+  res.download(filepath, doc.originalname || doc.name);
+});
+
+app.delete('/api/saas/documents/:id', requireAuth, async (req, res) => {
+  const id  = Number(req.params.id);
+  const doc = await col('saas_documents').findOne({ id, user_id: req.user.id });
+  if (!doc) return res.status(404).json({ error: 'Document introuvable' });
+  const filepath = path.join(UPLOADS_DIR, doc.filename);
+  if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
+  await col('saas_documents').deleteOne({ id, user_id: req.user.id });
+  res.json({ success: true });
+});
+
+// ─── SaaS : conversion PDF ⇄ DOCX via CloudConvert ────────────────────────────
+async function convertViaCloudConvert(inputPath, inputFilename, outputFormat) {
+  let job = await cloudConvert.jobs.create({
+    tasks: {
+      'upload-file':  { operation: 'import/upload' },
+      'convert-file': { operation: 'convert', input: 'upload-file', output_format: outputFormat },
+      'export-file':  { operation: 'export/url', input: 'convert-file' },
+    },
+  });
+  const uploadTask = job.tasks.find(t => t.name === 'upload-file');
+  await cloudConvert.tasks.upload(uploadTask, fs.createReadStream(inputPath), inputFilename);
+  job = await cloudConvert.jobs.wait(job.id);
+  const exportTask = job.tasks.find(t => t.name === 'export-file');
+  if (!exportTask || exportTask.status !== 'finished' || !exportTask.result?.files?.length)
+    throw new Error('export task non terminée');
+  return exportTask.result.files[0]; // { filename, url, size }
+}
+
+async function downloadTo(url, destPath) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`téléchargement échoué (${r.status})`);
+  fs.writeFileSync(destPath, Buffer.from(await r.arrayBuffer()));
+}
+
+app.post('/api/saas/documents/:id/convert', requireAuth, async (req, res) => {
+  if (!cloudConvert)
+    return res.status(503).json({ error: 'Conversion non configurée : ajoutez CLOUDCONVERT_API_KEY dans le .env du serveur.' });
+
+  const id     = Number(req.params.id);
+  const target = String(req.body?.to || '').toLowerCase();
+  if (!['pdf', 'docx'].includes(target))
+    return res.status(400).json({ error: 'Format cible invalide (pdf ou docx).' });
+
+  const doc = await col('saas_documents').findOne({ id, user_id: req.user.id });
+  if (!doc) return res.status(404).json({ error: 'Document introuvable' });
+
+  const srcExt = path.extname(doc.originalname || doc.filename).toLowerCase();
+  if (srcExt === '.' + target)
+    return res.status(400).json({ error: `Ce document est déjà au format ${target.toUpperCase()}.` });
+
+  const filepath = path.join(UPLOADS_DIR, doc.filename);
+  if (!fs.existsSync(filepath)) return res.status(404).json({ error: 'Fichier introuvable' });
+
+  try {
+    const out       = await convertViaCloudConvert(filepath, doc.originalname || doc.filename, target);
+    const baseName  = (doc.name || doc.originalname || 'document').replace(/\.[^.]+$/, '');
+    const safe      = (out.filename || `${baseName}.${target}`).replace(/[^a-zA-Z0-9._-]/g, '_');
+    const storedName = `${Date.now()}_${safe}`;
+    const destPath  = path.join(UPLOADS_DIR, storedName);
+    await downloadTo(out.url, destPath);
+
+    const newId  = await nextId('saas_documents');
+    const newDoc = {
+      id: newId, user_id: req.user.id,
+      name: `${baseName}.${target}`, filename: storedName, originalname: `${baseName}.${target}`,
+      mimetype: target === 'pdf'
+        ? 'application/pdf'
+        : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      size: fs.statSync(destPath).size, created_at: new Date().toISOString(),
+      converted_from: doc.id,
+    };
+    await col('saas_documents').insertOne(newDoc);
+    res.status(201).json({ document: publicDoc(newDoc) });
+  } catch (err) {
+    console.error('CloudConvert error:', err.message);
+    res.status(502).json({ error: 'La conversion a échoué. Réessayez.' });
+  }
 });
 
 // ─── Démarrage ────────────────────────────────────────────────────────────────

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>liquid + — Éditeur de term sheet</title>
+  <meta name="description" content="Traitement de texte pour vos term sheets de levée de fonds, avec chaque clause expliquée en langage courant." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="editor.css" />
+  <link rel="stylesheet" href="documents.css" />
+  <style>.app{visibility:hidden}.app.ready{visibility:visible}</style>
+  <script src="auth.js"></script>
+</head>
+<body>
+  <!-- En-tête et pied de page : visibles uniquement à l'impression / export PDF -->
+  <div class="print-head" aria-hidden="true">
+    <span class="print-head__org">LUMIO SAS</span>
+    <span class="print-head__doc">Lettre d'intention</span>
+  </div>
+  <div class="print-foot" aria-hidden="true"></div>
+
+  <div class="app">
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="topbar__left">
+        <a href="index.html" class="brand">liquid <span class="brand__plus">+</span></a>
+        <span class="topbar__doc">Lettre d'intention — Lumio SAS.docx</span>
+      </div>
+      <div class="topbar__actions">
+        <a href="index.html" class="btn btn--ghost">← Accueil</a>
+        <a href="dossiers.html" class="btn btn--ghost">📁 Dossiers</a>
+        <button class="btn btn--ghost" id="docs-btn">Mes documents</button>
+        <button class="btn btn--primary" id="export-btn">Exporter en PDF</button>
+        <button class="btn btn--ghost" id="logout-btn">Déconnexion</button>
+      </div>
+    </header>
+
+    <!-- Ribbon : barre d'outils de mise en forme -->
+    <div class="ribbon" id="ribbon">
+      <div class="tgroup">
+        <button class="tbtn" data-cmd="undo" title="Annuler (Ctrl+Z)">↶</button>
+        <button class="tbtn" data-cmd="redo" title="Rétablir (Ctrl+Y)">↷</button>
+      </div>
+      <div class="tdiv"></div>
+
+      <div class="tgroup">
+        <select class="tsel tsel--style" id="sel-style" title="Style de paragraphe">
+          <option value="p">Normal</option>
+          <option value="h1">Titre 1</option>
+          <option value="h2">Titre 2</option>
+          <option value="h3">Titre 3</option>
+          <option value="blockquote">Citation</option>
+        </select>
+        <select class="tsel tsel--font" id="sel-font" title="Police">
+          <option value="'Libre Franklin', sans-serif">Libre Franklin</option>
+          <option value="Archivo, sans-serif">Archivo</option>
+          <option value="Georgia, serif">Georgia</option>
+          <option value="'Times New Roman', serif">Times New Roman</option>
+          <option value="Arial, sans-serif">Arial</option>
+          <option value="'Courier New', monospace">Courier New</option>
+        </select>
+        <select class="tsel tsel--size" id="sel-size" title="Taille">
+          <option>10</option><option>11</option><option>12</option><option>13</option>
+          <option selected>15</option><option>18</option><option>21</option><option>24</option><option>32</option>
+        </select>
+      </div>
+      <div class="tdiv"></div>
+
+      <div class="tgroup">
+        <button class="tbtn" data-cmd="bold" data-state="bold" title="Gras (Ctrl+B)"><b>G</b></button>
+        <button class="tbtn" data-cmd="italic" data-state="italic" title="Italique (Ctrl+I)"><i>I</i></button>
+        <button class="tbtn" data-cmd="underline" data-state="underline" title="Souligné (Ctrl+U)"><u>S</u></button>
+        <button class="tbtn" data-cmd="strikeThrough" data-state="strikeThrough" title="Barré"><s>B</s></button>
+      </div>
+      <div class="tdiv"></div>
+
+      <div class="tgroup">
+        <label class="tcolor" title="Couleur du texte">
+          <span>A</span><span class="bar" id="fore-bar" style="background:#3b82f6"></span>
+          <input type="color" id="fore-color" value="#3b82f6" />
+        </label>
+        <label class="tcolor" title="Surlignage">
+          <span>🖌</span><span class="bar" id="back-bar" style="background:#ffe27a"></span>
+          <input type="color" id="back-color" value="#ffe27a" />
+        </label>
+      </div>
+      <div class="tdiv"></div>
+
+      <div class="tgroup">
+        <button class="tbtn" data-cmd="justifyLeft" data-state="justifyLeft" title="Aligner à gauche">⯇</button>
+        <button class="tbtn" data-cmd="justifyCenter" data-state="justifyCenter" title="Centrer">≡</button>
+        <button class="tbtn" data-cmd="justifyRight" data-state="justifyRight" title="Aligner à droite">⯈</button>
+        <button class="tbtn" data-cmd="justifyFull" data-state="justifyFull" title="Justifier">☰</button>
+      </div>
+      <div class="tdiv"></div>
+
+      <div class="tgroup">
+        <button class="tbtn" data-cmd="insertUnorderedList" data-state="insertUnorderedList" title="Liste à puces">•</button>
+        <button class="tbtn" data-cmd="insertOrderedList" data-state="insertOrderedList" title="Liste numérotée">1.</button>
+        <button class="tbtn" data-cmd="outdent" title="Diminuer le retrait">⇤</button>
+        <button class="tbtn" data-cmd="indent" title="Augmenter le retrait">⇥</button>
+      </div>
+      <div class="tdiv"></div>
+
+      <div class="tgroup">
+        <button class="tbtn" data-cmd="removeFormat" title="Effacer la mise en forme">⌫</button>
+      </div>
+    </div>
+
+    <!-- Workspace -->
+    <div class="workspace">
+      <!-- Panneau gauche : Bibliothèque de clauses / Conseil -->
+      <aside class="library">
+        <div class="lib-tabs" role="tablist">
+          <button class="lib-tab is-active" data-tab="library" type="button">Bibliothèque</button>
+          <button class="lib-tab" data-tab="advice" type="button">Conseil</button>
+        </div>
+
+        <!-- Vue Bibliothèque -->
+        <div class="lib-view" id="view-library">
+          <div class="library__head">
+            <div class="library__eyebrow">Bibliothèque</div>
+            <h2 class="library__title">Clauses disponibles</h2>
+            <p class="library__sub" id="library-count"></p>
+          </div>
+          <div class="library__list" id="library-list"></div>
+        </div>
+
+        <!-- Vue Conseil : points à négocier, par ordre de priorité -->
+        <div class="lib-view" id="view-advice" hidden>
+          <div class="library__head">
+            <div class="library__eyebrow">Conseil — côté fondateur</div>
+            <h2 class="library__title">Points à négocier</h2>
+            <p class="library__sub" id="advice-count"></p>
+          </div>
+          <div class="library__list" id="advice-list"></div>
+        </div>
+      </aside>
+
+      <!-- Canevas + page éditable -->
+      <div class="editor-canvas">
+        <div class="paper" id="paper">
+          <div class="sheet-bg" id="sheet-bg" aria-hidden="true"></div>
+          <div class="page" id="page" contenteditable="true" spellcheck="false"></div>
+        </div>
+      </div>
+
+      <!-- Panneau d'explication -->
+      <aside class="panel">
+        <div class="panel__head">
+          <div class="panel__eyebrow" id="panel-eyebrow">Décrypteur</div>
+          <h2 class="panel__title" id="panel-title">Placez le curseur dans une clause</h2>
+        </div>
+        <div class="panel__body" id="panel-body"></div>
+
+        <!-- Assistant IA (Claude) : discuter et modifier la clause sélectionnée -->
+        <div class="chat" id="chat" hidden>
+          <div class="chat__head">
+            <span class="chat__title">✦ Assistant IA — modifier cette clause</span>
+            <button class="chat__explain" id="chat-explain" type="button">Expliquer la clause</button>
+          </div>
+          <div class="chat__log" id="chat-log"></div>
+          <form class="chat__form" id="chat-form">
+            <input class="chat__input" id="chat-input" type="text" autocomplete="off"
+                   placeholder="Ex : raccourcis la non-concurrence à 6 mois" />
+            <button class="chat__send" id="chat-send" type="submit" aria-label="Envoyer">→</button>
+          </form>
+        </div>
+
+        <div class="panel__foot">
+          <span id="panel-count"></span>
+          <span>liquid + · décrypteur</span>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Status bar -->
+    <div class="statusbar">
+      <span id="caret-clause">Document prêt</span>
+      <div class="statusbar__right">
+        <span id="wordcount">0 mot</span>
+        <span>liquid + · traitement de texte</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modale « Mes documents » : stockage + conversion PDF ⇄ DOCX -->
+  <div class="docs-modal" id="docs-modal" hidden>
+    <div class="docs-modal__backdrop" id="docs-close-bg"></div>
+    <div class="docs-modal__panel" role="dialog" aria-modal="true" aria-label="Mes documents">
+      <div class="docs-modal__head">
+        <h2>Mes documents</h2>
+        <button class="docs-modal__x" id="docs-close" aria-label="Fermer">✕</button>
+      </div>
+      <div class="docs-modal__bar">
+        <label class="docs-upload">
+          <input type="file" id="docs-file" accept=".pdf,.docx,.doc,.xlsx,.xls,.png,.jpg,.jpeg" hidden />
+          <span>⬆ Importer un document</span>
+        </label>
+        <span class="docs-hint">PDF ⇄ DOCX · stockés sur votre espace</span>
+      </div>
+      <div class="docs-error" id="docs-error" hidden></div>
+      <div class="docs-list" id="docs-list"></div>
+    </div>
+  </div>
+
+  <script src="editor.js"></script>
+  <script src="documents.js"></script>
+  <script>
+    // Garde d'accès : l'éditeur est réservé aux utilisateurs connectés.
+    requireAuth().then((user) => {
+      if (!user) return; // requireAuth a déjà redirigé vers login.html
+      document.querySelector('.app').classList.add('ready');
+    });
+    document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); logout(); });
+  </script>
+</body>
+</html>
