@@ -13,6 +13,9 @@
   <style>
     .app { visibility: hidden; }
     .app.ready { visibility: visible; }
+    /* editor.css verrouille .app à 100vh/overflow:hidden (éditeur plein écran).
+       Sur cette page on veut un défilement normal de la fenêtre. */
+    .app { height: auto; overflow: visible; display: block; }
 
     .dossiers { max-width: 1000px; margin: 0 auto; padding: 40px 28px 80px; }
     .dossiers__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 6px; }
@@ -201,10 +204,11 @@
 
     function render() {
       foldersEl.innerHTML = '';
-      // Un « dossier virtuel » pour les fichiers non classés.
+      // Dossier virtuel « Documents importés » : tous les fichiers non classés
+      // (imports + nouvelles term sheets). Placé en tête pour être visible direct.
       const buckets = folders.map(f => ({ ...f, virtual: false }));
       const unfiled = docs.filter(d => d.folder_id == null);
-      if (unfiled.length) buckets.push({ id: null, name: 'Non classés', system: true, virtual: true });
+      if (unfiled.length) buckets.unshift({ id: null, name: 'Documents importés', system: true, virtual: true });
 
       if (!buckets.length) {
         foldersEl.innerHTML = '<p class="empty">Aucun dossier pour le moment.</p>';
