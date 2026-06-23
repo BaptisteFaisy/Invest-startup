@@ -1107,6 +1107,17 @@ app.delete('/api/saas/documents/:id', requireAuth, async (req, res) => {
     if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
   }
   await col('saas_documents').deleteOne({ id, user_id: req.user.id });
+  // Détache le document de toute checklist de phase qui le référence.
+  const folders = await col('saas_folders').find({ user_id: req.user.id }).toArray();
+  for (const f of folders) {
+    if (!f.items_state) continue;
+    let changed = false;
+    const st = { ...f.items_state };
+    for (const k of Object.keys(st)) {
+      if (st[k] && st[k].document_id === id) { delete st[k]; changed = true; }
+    }
+    if (changed) await col('saas_folders').updateOne({ id: f.id, user_id: req.user.id }, { $set: { items_state: st } });
+  }
   res.json({ success: true });
 });
 

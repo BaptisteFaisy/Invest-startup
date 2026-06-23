@@ -284,9 +284,10 @@
     function ext(name) { const m = /\.([a-z0-9]+)$/i.exec(name || ''); return m ? m[1].toLowerCase() : ''; }
     function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
+    let loaded = false;
     async function load() {
       showErr('');
-      foldersEl.innerHTML = '<p class="empty">Chargement…</p>';
+      if (!loaded) foldersEl.innerHTML = '<p class="empty">Chargement…</p>';
       try {
         const [fr, dr] = await Promise.all([
           fetch('/api/saas/folders',   { credentials: 'include' }),
@@ -296,6 +297,7 @@
         folders = (await fr.json()).folders || [];
         docs    = (await dr.json()).documents || [];
         render();
+        loaded = true;
       } catch {
         foldersEl.innerHTML = '';
         showErr('Impossible de charger vos dossiers.');
@@ -718,7 +720,16 @@
       try {
         const r = await fetch('/api/saas/documents/' + id, { method: 'DELETE', credentials: 'include' });
         if (!r.ok) { const d = await r.json().catch(() => ({})); showErr(d.error || 'Suppression échouée.'); btnEl.disabled = false; return; }
-        load();
+        // Mise à jour locale (pas de rechargement complet du site) : on retire le
+        // document et on détache ses liens de checklist, puis on re-rend.
+        docs = docs.filter(d => d.id !== id);
+        folders.forEach(f => {
+          if (!f.items_state) return;
+          Object.keys(f.items_state).forEach(k => {
+            if (f.items_state[k] && f.items_state[k].document_id === id) delete f.items_state[k];
+          });
+        });
+        render();
       } catch {
         showErr('Impossible de joindre le serveur.');
         btnEl.disabled = false;
