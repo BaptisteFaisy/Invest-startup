@@ -1039,6 +1039,11 @@ app.post('/api/saas/termsheets', requireAuth, async (req, res) => {
     html, size: Buffer.byteLength(html, 'utf8'),
     created_at: now, updated_at: now,
   };
+  // Rangement direct dans une phase (utilisé par les modèles de la roadlist).
+  if (req.body && req.body.folder_id) {
+    const folderId = Number(req.body.folder_id);
+    if (await col('saas_folders').findOne({ id: folderId, user_id: req.user.id })) doc.folder_id = folderId;
+  }
   await col('saas_documents').insertOne(doc);
   res.status(201).json({ id, document: publicDoc({ ...doc, html: undefined }) });
 });

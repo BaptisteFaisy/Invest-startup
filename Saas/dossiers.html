@@ -237,10 +237,13 @@
     const MODELS = new Set([
       // Phase 1 — mise en ordre juridique
       'statuts-a-jour',
+      'extrait-kbis-moins-de-3-mois',
       'table-de-capitalisation-cap-table',
       'registre-des-mouvements-de-titres',
       'registre-des-beneficiaires-effectifs-rbe',
       'pv-des-assemblees-generales-anterieures',
+      'pacte-d-associes-existant',
+      'contrats-cles-clients-fournisseurs-baux',
       'cessions-de-propriete-intellectuelle-depots-marques-brevets',
       'contrats-de-travail-bspce-bsa-management-package',
       // Phase 2 — confidentialité
@@ -454,15 +457,15 @@
           <div class="cli__actions"></div>`;
         const acts = li.querySelector('.cli__actions');
 
-        // 0) Modèle pré-rempli (ouvre une page complète, éditable, imprimable en PDF).
-        if (MODELS.has(slug)) {
-          const tpl = document.createElement('a');
+        // 0) Modèle pré-rempli : crée une term sheet à partir du modèle, la range
+        // dans la phase, la lie à cette ligne, puis ouvre l'éditeur (même style
+        // que l'édition de la term sheet). Affiché si aucun document n'est encore lié.
+        if (!linked && MODELS.has(slug)) {
+          const tpl = document.createElement('button');
           tpl.className = 'fbtn fbtn--mini fbtn--accent';
           tpl.textContent = 'Modèle';
-          tpl.title = 'Ouvrir un modèle pré-rempli, éditable';
-          tpl.target = '_blank';
-          tpl.rel = 'noopener';
-          tpl.href = 'ressources/modeles/' + slug + '.html';
+          tpl.title = 'Créer un document à partir d\'un modèle et l\'éditer';
+          tpl.addEventListener('click', () => useTemplate(f.id, slug, item, tpl));
           acts.appendChild(tpl);
         }
 
@@ -574,6 +577,37 @@
         await load();
         return true;
       } catch { showErr('Impossible de joindre le serveur.'); return false; }
+    }
+
+    // Crée une term sheet à partir d'un modèle, la range dans la phase, la lie à
+    // l'élément de roadlist, puis ouvre l'éditeur.
+    async function useTemplate(folderId, slug, item, btn) {
+      showErr('');
+      const old = btn ? btn.textContent : '';
+      if (btn) { btn.disabled = true; btn.textContent = 'Création…'; }
+      try {
+        const tr = await fetch('ressources/modeles/' + slug + '.html', { credentials: 'include' });
+        if (!tr.ok) throw new Error('modele');
+        const html = await tr.text();
+        const cr = await fetch('/api/saas/termsheets', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', body: JSON.stringify({ name: item, html, folder_id: folderId }),
+        });
+        const data = await cr.json().catch(() => ({}));
+        if (!cr.ok || data.id == null) {
+          showErr(data.error || 'Création du modèle échouée.');
+          if (btn) { btn.disabled = false; btn.textContent = old; }
+          return;
+        }
+        await fetch('/api/saas/folders/' + folderId + '/checklist', {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', body: JSON.stringify({ slug, document_id: data.id }),
+        });
+        window.location.href = 'editor.html?doc=' + data.id;
+      } catch {
+        showErr('Impossible de créer le modèle.');
+        if (btn) { btn.disabled = false; btn.textContent = old; }
+      }
     }
 
     async function setFinal(folderId, slug, final) {

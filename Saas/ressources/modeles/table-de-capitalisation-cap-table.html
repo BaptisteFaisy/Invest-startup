@@ -1,54 +1,25 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Table de capitalisation (cap table) — modèle liquid +</title>
-<link rel="stylesheet" href="modele.css" />
-</head>
-<body>
-<div class="no-print back"><a href="../../dossiers.html">← Retour aux dossiers</a></div>
-<article class="doc">
-  <div class="doc__kicker">Phase 1 · Mise en ordre juridique</div>
-  <h1>Table de capitalisation (cap table)</h1>
-  <p class="doc__sub">Répartition du capital — avant / après opération</p>
-
-  <div class="note no-print"><strong>Comment l'utiliser :</strong> renseignez chaque détenteur de titres. Le « pleinement dilué » inclut les BSPCE/BSA/options attribués <em>et</em> le pool non attribué. Cliquez « Activer l'édition » pour saisir vos chiffres directement dans le tableau, puis imprimez en PDF.</div>
-
-  <h2>Synthèse</h2>
-  <table>
-    <tr><th>Élément</th><th>Valeur</th></tr>
-    <tr><td>Date</td><td><span class="fill">[JJ/MM/AAAA]</span></td></tr>
-    <tr><td>Nombre total d'actions émises</td><td><span class="fill">[…]</span></td></tr>
-    <tr><td>Valeur nominale</td><td><span class="fill">[…]</span> €</td></tr>
-    <tr><td>Capital social</td><td><span class="fill">[…]</span> €</td></tr>
-    <tr><td>Pool d'options (BSPCE/BSA) — attribué</td><td><span class="fill">[…]</span></td></tr>
-    <tr><td>Pool d'options — non attribué (réservé)</td><td><span class="fill">[…]</span></td></tr>
-    <tr><td>Valorisation pre-money / post-money</td><td><span class="fill">[…]</span> € / <span class="fill">[…]</span> €</td></tr>
-  </table>
-
-  <h2>Détail par détenteur</h2>
-  <table>
-    <tr>
-      <th>Détenteur</th>
-      <th>Type de titres</th>
-      <th>Nombre</th>
-      <th>% capital</th>
-      <th>% pleinement dilué</th>
-    </tr>
-    <tr><td><span class="fill">[Fondateur 1]</span></td><td>Actions ordinaires</td><td><span class="fill">[…]</span></td><td><span class="fill">[…]%</span></td><td><span class="fill">[…]%</span></td></tr>
-    <tr><td><span class="fill">[Fondateur 2]</span></td><td>Actions ordinaires</td><td><span class="fill">[…]</span></td><td><span class="fill">[…]%</span></td><td><span class="fill">[…]%</span></td></tr>
-    <tr><td><span class="fill">[Investisseur — Série A]</span></td><td>Actions de préférence A</td><td><span class="fill">[…]</span></td><td><span class="fill">[…]%</span></td><td><span class="fill">[…]%</span></td></tr>
-    <tr><td><span class="fill">[Business angel]</span></td><td>Actions ordinaires / BSA-AIR</td><td><span class="fill">[…]</span></td><td><span class="fill">[…]%</span></td><td><span class="fill">[…]%</span></td></tr>
-    <tr><td><span class="fill">[Salariés]</span></td><td>BSPCE attribués</td><td><span class="fill">[…]</span></td><td>—</td><td><span class="fill">[…]%</span></td></tr>
-    <tr><td>Pool non attribué</td><td>BSPCE réservés</td><td><span class="fill">[…]</span></td><td>—</td><td><span class="fill">[…]%</span></td></tr>
-    <tr><td><strong>Total</strong></td><td></td><td><strong><span class="fill">[…]</span></strong></td><td><strong>100 %</strong></td><td><strong>100 %</strong></td></tr>
-  </table>
-
-  <div class="note"><strong>Rappel :</strong> le pourcentage « pleinement dilué » se calcule sur le total incluant tous les instruments donnant accès au capital (options, BSA, BSPCE, OC, BSA-AIR). Tenez la cap table cohérente avec le registre des mouvements de titres.</div>
-
-  <p class="foot">Modèle fourni par liquid + à titre informatif. Ne constitue pas un conseil juridique.</p>
-</article>
-<script src="modele.js" defer></script>
-</body>
-</html>
+<h1 class="doc-title">TABLE DE CAPITALISATION</h1>
+<p class="doc-sub">[DÉNOMINATION] — au [JJ/MM/AAAA]</p>
+<div class="ts-group" contenteditable="false">Synthèse</div>
+<div class="ts-clause"><div class="ts-label">Paramètres</div><div class="ts-content">
+<table>
+<tr><td>Nombre total d'actions émises</td><td>[…]</td></tr>
+<tr><td>Valeur nominale / capital social</td><td>[…] € / […] €</td></tr>
+<tr><td>Pool d'options (attribué / réservé)</td><td>[…] / […]</td></tr>
+<tr><td>Valorisation pre-money / post-money</td><td>[…] € / […] €</td></tr>
+</table></div></div>
+<div class="ts-group" contenteditable="false">Répartition par détenteur</div>
+<div class="ts-clause"><div class="ts-label">Détail</div><div class="ts-content">
+<table>
+<tr><th>Détenteur</th><th>Type de titres</th><th>Nombre</th><th>% capital</th><th>% pleinement dilué</th></tr>
+<tr><td>[Fondateur 1]</td><td>Actions ordinaires</td><td>[…]</td><td>[…]%</td><td>[…]%</td></tr>
+<tr><td>[Fondateur 2]</td><td>Actions ordinaires</td><td>[…]</td><td>[…]%</td><td>[…]%</td></tr>
+<tr><td>[Investisseur — Série A]</td><td>Actions de préférence A</td><td>[…]</td><td>[…]%</td><td>[…]%</td></tr>
+<tr><td>[Business angel]</td><td>Actions / BSA-AIR</td><td>[…]</td><td>[…]%</td><td>[…]%</td></tr>
+<tr><td>[Salariés]</td><td>BSPCE attribués</td><td>[…]</td><td>—</td><td>[…]%</td></tr>
+<tr><td>Pool non attribué</td><td>BSPCE réservés</td><td>[…]</td><td>—</td><td>[…]%</td></tr>
+<tr><td><strong>Total</strong></td><td></td><td><strong>[…]</strong></td><td><strong>100 %</strong></td><td><strong>100 %</strong></td></tr>
+</table>
+<p>Le « pleinement dilué » inclut tous les instruments donnant accès au capital (options, BSA, BSPCE, OC, BSA-AIR). À tenir cohérent avec le registre des mouvements de titres.</p>
+</div></div>
+<p class="doc-note">Modèle liquid + à titre informatif — ne constitue pas un conseil juridique.</p>

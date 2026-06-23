@@ -1,50 +1,13 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Registre des mouvements de titres — modèle liquid +</title>
-<link rel="stylesheet" href="modele.css" />
-</head>
-<body>
-<div class="no-print back"><a href="../../dossiers.html">← Retour aux dossiers</a></div>
-<article class="doc">
-  <div class="doc__kicker">Phase 1 · Mise en ordre juridique</div>
-  <h1>Registre des mouvements de titres</h1>
-  <p class="doc__sub">Document obligatoire — historique des entrées et sorties de titres</p>
-
-  <div class="note no-print"><strong>Comment l'utiliser :</strong> ce registre, tenu chronologiquement par la Société, retrace tous les mouvements (souscription, cession, transmission). Chaque ligne correspond à une opération. Conservez-le à jour et cohérent avec les comptes d'actionnaires individuels et la cap table.</div>
-
-  <h2>Société</h2>
-  <table>
-    <tr><th>Dénomination</th><td><span class="fill">[DÉNOMINATION]</span></td></tr>
-    <tr><th>Forme / capital</th><td>SAS au capital de <span class="fill">[MONTANT]</span> €</td></tr>
-    <tr><th>RCS</th><td><span class="fill">[VILLE / SIREN]</span></td></tr>
-  </table>
-
-  <h2>Mouvements</h2>
-  <table>
-    <tr>
-      <th>N°</th>
-      <th>Date</th>
-      <th>Nature de l'opération</th>
-      <th>Cédant / souscripteur sortant</th>
-      <th>Cessionnaire / souscripteur</th>
-      <th>Nb d'actions</th>
-      <th>N° des actions (de / à)</th>
-      <th>Prix / valeur</th>
-      <th>Solde du compte</th>
-    </tr>
-    <tr><td>1</td><td><span class="fill">[…]</span></td><td>Souscription (constitution)</td><td>—</td><td><span class="fill">[Fondateur]</span></td><td><span class="fill">[…]</span></td><td><span class="fill">[1 → …]</span></td><td><span class="fill">[…]</span></td><td><span class="fill">[…]</span></td></tr>
-    <tr><td>2</td><td><span class="fill">[…]</span></td><td>Augmentation de capital</td><td>—</td><td><span class="fill">[Investisseur]</span></td><td><span class="fill">[…]</span></td><td><span class="fill">[… → …]</span></td><td><span class="fill">[…]</span></td><td><span class="fill">[…]</span></td></tr>
-    <tr><td>3</td><td><span class="fill">[…]</span></td><td>Cession</td><td><span class="fill">[…]</span></td><td><span class="fill">[…]</span></td><td><span class="fill">[…]</span></td><td><span class="fill">[… → …]</span></td><td><span class="fill">[…]</span></td><td><span class="fill">[…]</span></td></tr>
-    <tr><td><span class="fill">[…]</span></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-  </table>
-
-  <div class="note">Le registre doit être tenu sans blanc ni altération. Les mouvements y sont inscrits chronologiquement et appuyés par les ordres de mouvement signés conservés par la Société.</div>
-
-  <p class="foot">Modèle fourni par liquid + à titre informatif. Ne constitue pas un conseil juridique.</p>
-</article>
-<script src="modele.js" defer></script>
-</body>
-</html>
+<h1 class="doc-title">REGISTRE DES MOUVEMENTS DE TITRES</h1>
+<p class="doc-sub">[DÉNOMINATION] — SAS au capital de [MONTANT] € — RCS [VILLE / SIREN]</p>
+<div class="ts-group" contenteditable="false">Mouvements</div>
+<div class="ts-clause"><div class="ts-label">Historique chronologique</div><div class="ts-content">
+<table>
+<tr><th>N°</th><th>Date</th><th>Nature</th><th>Cédant</th><th>Cessionnaire / souscripteur</th><th>Nb actions</th><th>N° (de → à)</th><th>Prix</th><th>Solde</th></tr>
+<tr><td>1</td><td>[…]</td><td>Souscription (constitution)</td><td>—</td><td>[Fondateur]</td><td>[…]</td><td>[1 → …]</td><td>[…]</td><td>[…]</td></tr>
+<tr><td>2</td><td>[…]</td><td>Augmentation de capital</td><td>—</td><td>[Investisseur]</td><td>[…]</td><td>[… → …]</td><td>[…]</td><td>[…]</td></tr>
+<tr><td>3</td><td>[…]</td><td>Cession</td><td>[…]</td><td>[…]</td><td>[…]</td><td>[… → …]</td><td>[…]</td><td>[…]</td></tr>
+<tr><td>[…]</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+</table></div></div>
+<div class="ts-clause"><div class="ts-label">Tenue du registre</div><div class="ts-content"><p>Le registre est tenu sans blanc ni altération. Les mouvements y sont inscrits chronologiquement et appuyés par les ordres de mouvement signés, conservés par la Société. Il doit rester cohérent avec les comptes d'actionnaires et la table de capitalisation.</p></div></div>
+<p class="doc-note">Modèle liquid + à titre informatif — ne constitue pas un conseil juridique.</p>
