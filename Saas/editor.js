@@ -369,6 +369,11 @@ let EXPLAIN = Object.fromEntries(TERMSHEET.map(c => [c.key, c]));
 // Clés de la term sheet de démonstration : sert à détecter un autre type de document.
 const ORIGINAL_TS_KEYS = new Set(TERMSHEET.map(c => c.key));
 
+// Document « libre » (statuts, pacte, PV…) chargé via un modèle : on parle alors
+// de « paragraphes » et l'onglet Conseil propose des pistes d'amélioration.
+let isCustom = false;
+const UNIT  = (n = 1) => (isCustom ? 'paragraphe' : 'clause') + (n > 1 ? 's' : '');
+
 /* Clauses indispensables (non supprimables) et ordre d'affichage des groupes. */
 const ESSENTIAL = new Set(['societe', 'fondateurs', 'investisseur', 'investissement', 'titre']);
 const GROUP_ORDER = [
@@ -649,7 +654,9 @@ function renderPanel(key) {
       ${c.example}
     </div>` : '';
 
-  const removeCtrl = ESSENTIAL.has(key)
+  const removeCtrl = isCustom
+    ? ''
+    : ESSENTIAL.has(key)
     ? `<span class="clause-essential">Clause essentielle</span>`
     : `<button class="clause-remove" id="clause-remove" title="Déplacer cette clause vers la bibliothèque">Retirer du contrat</button>`;
 
@@ -696,9 +703,9 @@ function showEmptyPanel() {
   activeKey = null;
   page.querySelectorAll('.ts-clause').forEach(el => el.classList.remove('is-active'));
   panelEyebrow.textContent = 'Décrypteur';
-  panelTitle.textContent = 'Placez le curseur dans une clause';
+  panelTitle.textContent = `Placez le curseur dans un${isCustom ? ' paragraphe' : 'e clause'}`;
   caretClause.textContent = 'Document prêt';
-  panelBody.innerHTML = `<div class="panel__empty"><p>Cliquez dans une clause du document pour l'expliquer en langage courant.</p></div>`;
+  panelBody.innerHTML = `<div class="panel__empty"><p>Cliquez dans un${isCustom ? ' paragraphe' : 'e clause'} du document pour l'expliquer en langage courant.</p></div>`;
   hideChat();
 }
 
@@ -1070,8 +1077,20 @@ function adoptDocumentClauses() {
     derived.push({ key, group, label, risk: 'low', html, plain: '', watch: '', inDoc: true });
   });
   if (!derived.length) return;
+  isCustom = true;
   TERMSHEET = derived;
   EXPLAIN = Object.fromEntries(derived.map(c => [c.key, c]));
+  // Réétiquette les panneaux pour un document « libre ».
+  const libTitle = document.querySelector('#view-library .library__title');
+  if (libTitle) libTitle.textContent = 'Paragraphes du document';
+  const advEyebrow = document.querySelector('#view-advice .library__eyebrow');
+  if (advEyebrow) advEyebrow.textContent = 'Conseil';
+  const advTitle = document.querySelector('#view-advice .library__title');
+  if (advTitle) advTitle.textContent = 'Améliorer ce document';
+  const chatTitle = document.querySelector('.chat__title');
+  if (chatTitle) chatTitle.textContent = 'Assistant IA — modifier ce paragraphe';
+  const chatExplainBtn = document.getElementById('chat-explain');
+  if (chatExplainBtn) chatExplainBtn.textContent = 'Expliquer le paragraphe';
   renderLibrary();
   renderAdvice();
   updateClauseCount();
@@ -1426,10 +1445,34 @@ function removeFromContract(key) {
 
 function updateClauseCount() {
   const n = TERMSHEET.filter(c => c.inDoc).length;
-  panelCount.textContent = `${n} clauses au contrat`;
+  panelCount.textContent = isCustom ? `${n} ${UNIT(n)}` : `${n} clauses au contrat`;
+}
+
+// Document libre : aller à un paragraphe depuis le sommaire.
+function jumpToClause(key) {
+  const el = page.querySelector(`.ts-clause[data-key="${key}"]`);
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  page.querySelectorAll('.ts-clause').forEach(c => c.classList.toggle('is-active', c === el));
+  activeKey = key;
+  renderPanel(key);
 }
 
 function renderLibrary() {
+  // Document libre : la bibliothèque devient le sommaire des paragraphes (clic = aller au paragraphe).
+  if (isCustom) {
+    const list = TERMSHEET.filter(c => c.inDoc);
+    libraryCount.textContent = list.length
+      ? `${list.length} ${UNIT(list.length)} dans ce document`
+      : 'Document vide';
+    libraryList.innerHTML = list.map(c => `
+      <div class="libitem" data-jump="${c.key}">
+        <div class="libitem__top"><span class="libitem__group">${c.group}</span></div>
+        <div class="libitem__label">${c.label}</div>
+        <button class="libitem__add" data-jump="${c.key}" type="button">Voir le paragraphe</button>
+      </div>`).join('') || '<p class="library__empty">Ce document ne contient pas encore de paragraphe.</p>';
+    return;
+  }
   const items = TERMSHEET.filter(c => !c.inDoc);
   libraryCount.textContent = items.length
     ? `${items.length} clause${items.length > 1 ? 's' : ''} à ajouter`
@@ -1450,8 +1493,10 @@ function renderLibrary() {
 }
 
 libraryList.addEventListener('click', (e) => {
-  const btn = e.target.closest('[data-add]');
-  if (btn) addToContract(btn.dataset.add);
+  const add = e.target.closest('[data-add]');
+  if (add) { addToContract(add.dataset.add); return; }
+  const jump = e.target.closest('[data-jump]');
+  if (jump) jumpToClause(jump.dataset.jump);
 });
 
 /* ---------- Onglet « Conseil » : points à négocier, par priorité ---------- */
@@ -1473,7 +1518,34 @@ function priorityTier(c) {
   return 2;
 }
 
+// Pistes d'amélioration pour un document libre (statuts, pacte, PV…).
+function improvementTips() {
+  const tips = [];
+  const text = page.innerText || '';
+  const placeholders = (text.match(/\[[^\]\n]{0,60}\]/g) || []).length;
+  if (placeholders) {
+    tips.push({ title: `Compléter ${placeholders} champ${placeholders > 1 ? 's' : ''} à renseigner`,
+      body: `Le document contient ${placeholders} champ${placeholders > 1 ? 's' : ''} entre crochets (noms, montants, dates…) à remplacer par vos informations réelles.` });
+  }
+  tips.push({ title: 'Vérifier la cohérence', body: 'Assurez-vous que les chiffres et noms concordent avec vos autres documents : statuts, pacte, table de capitalisation, registre des mouvements de titres.' });
+  tips.push({ title: 'Dater et faire signer', body: 'Renseignez le lieu et la date, et prévoyez les signatures de toutes les parties concernées.' });
+  tips.push({ title: 'Expliquer chaque paragraphe', body: 'Cliquez sur un paragraphe pour obtenir une explication en langage courant et, si besoin, demandez une reformulation à l\'assistant IA.' });
+  tips.push({ title: 'Faire relire par un professionnel', body: 'Avant tout usage officiel, faites valider le document par un avocat ou un conseil — ce modèle est un point de départ.' });
+  return tips;
+}
+
 function renderAdvice() {
+  // Document libre : on propose des pistes pour améliorer le document.
+  if (isCustom) {
+    const tips = improvementTips();
+    adviceCount.textContent = `${tips.length} conseil${tips.length > 1 ? 's' : ''} pour améliorer ce document`;
+    adviceList.innerHTML = tips.map(t => `
+      <div class="advitem" style="border-left-color:#1f8e7a">
+        <div class="advitem__label">${t.title}</div>
+        <p class="advitem__watch">${t.body}</p>
+      </div>`).join('');
+    return;
+  }
   // On ne conseille que sur les clauses présentes au contrat et qui méritent
   // une négociation (point sensible/à surveiller, ou penché en faveur des fonds).
   const items = TERMSHEET
