@@ -655,7 +655,6 @@ function renderPanel(key) {
 
   panelBody.innerHTML = `
     <div class="panel-actions">
-      <span class="risk ${riskClass}"><span class="d"></span>${RISK_LABEL[c.risk]}</span>
       ${removeCtrl}
     </div>
     ${c.plain ? `<div class="block">
@@ -1443,7 +1442,6 @@ function renderLibrary() {
     <div class="libitem" data-key="${c.key}">
       <div class="libitem__top">
         <span class="libitem__group">${c.group}</span>
-        <span class="risk risk--${c.risk}"><span class="d"></span>${RISK_LABEL[c.risk]}</span>
       </div>
       <div class="libitem__label">${c.label}</div>
       <p class="libitem__desc">${c.plain}</p>
