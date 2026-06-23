@@ -781,17 +781,90 @@ app.get('/api/saas/usage', requireAuth, async (req, res) => {
   });
 });
 
-// ─── SaaS : dossiers de levée de fonds (par utilisateur, en base) ─────────────
-// Chaque utilisateur dispose de dossiers liés à son compte. À la première visite,
-// on initialise automatiquement les phases standard d'une levée de fonds.
+// ─── SaaS : dossiers JURIDIQUES de levée de fonds (par utilisateur, en base) ───
+// Le SaaS se concentre sur le volet juridique d'une levée. Chaque dossier
+// correspond à une phase juridique de l'opération et porte la checklist des
+// documents juridiques attendus à cette étape (droit français, SAS).
+// `FOLDERS_SEED_VERSION` est incrémentée à chaque évolution de cette liste pour
+// re-synchroniser automatiquement les dossiers système des utilisateurs.
+const FOLDERS_SEED_VERSION = 2;
 const FUNDRAISING_PHASES = [
-  'Préparation',
-  'Ciblage des investisseurs',
-  'Prise de contact & pitch',
-  'Due diligence',
-  'Négociation & term sheet',
-  'Closing',
-  'Post-investissement',
+  {
+    key: 'mise-en-ordre',
+    name: '1 · Mise en ordre juridique (pré-levée)',
+    checklist: [
+      'Statuts à jour',
+      'Extrait Kbis (moins de 3 mois)',
+      'Table de capitalisation (cap table)',
+      'Registre des mouvements de titres',
+      'Registre des bénéficiaires effectifs (RBE)',
+      'PV des assemblées générales antérieures',
+      'Pacte d’associés existant',
+      'Contrats clés (clients, fournisseurs, baux)',
+      'Cessions de propriété intellectuelle & dépôts (marques, brevets)',
+      'Contrats de travail, BSPCE / BSA / management package',
+    ],
+  },
+  {
+    key: 'confidentialite',
+    name: '2 · Confidentialité & approche',
+    checklist: [
+      'Accord de confidentialité (NDA)',
+      'Engagement de confidentialité d’accès à la data room',
+    ],
+  },
+  {
+    key: 'term-sheet',
+    name: '3 · Lettre d’intention / Term sheet',
+    checklist: [
+      'Term sheet (lettre d’intention)',
+      'Clause d’exclusivité / de négociation',
+    ],
+  },
+  {
+    key: 'due-diligence',
+    name: '4 · Audit juridique (due diligence)',
+    checklist: [
+      'Data room structurée',
+      'Questionnaire de due diligence (réponses)',
+      'Rapport d’audit juridique',
+      'État des contentieux et litiges en cours',
+    ],
+  },
+  {
+    key: 'documentation',
+    name: '5 · Documentation de l’opération',
+    checklist: [
+      'Pacte d’associés (shareholders agreement)',
+      'Statuts modifiés (actions de préférence)',
+      'Contrat / bulletin de souscription',
+      'Convention de garantie d’actif et de passif (GAP)',
+      'Termes des valeurs mobilières émises (ADP, BSA, OC)',
+      'Rapport du commissaire aux comptes / aux apports',
+    ],
+  },
+  {
+    key: 'closing',
+    name: '6 · Closing (augmentation de capital)',
+    checklist: [
+      'PV de l’AGE actant l’augmentation de capital',
+      'Certificat du dépositaire des fonds',
+      'PV de constatation de la réalisation définitive',
+      'Registre des mouvements de titres mis à jour',
+      'Cap table post-money mise à jour',
+    ],
+  },
+  {
+    key: 'post-closing',
+    name: '7 · Formalités & post-closing',
+    checklist: [
+      'Dépôt au greffe (statuts modifiés, formulaire M2)',
+      'Déclaration des bénéficiaires effectifs mise à jour',
+      'Information / reporting des investisseurs (info rights)',
+      'PV de conseil / comité de surveillance',
+      'Suivi des engagements du pacte (covenants)',
+    ],
+  },
 ];
 
 function publicFolder(f) {
@@ -799,15 +872,44 @@ function publicFolder(f) {
   return rest;
 }
 
-// Crée les dossiers de phases par défaut si l'utilisateur n'en a aucun.
+// Synchronise les dossiers juridiques « système » de l'utilisateur avec la liste
+// ci-dessus : crée/met à jour ceux attendus, retire les anciens devenus obsolètes
+// (leurs fichiers redeviennent « non classés »). Les dossiers créés par
+// l'utilisateur (non système) ne sont jamais touchés. Idempotent et sans écriture
+// inutile une fois la dernière version appliquée.
 async function ensureUserFolders(userId) {
-  if (await col('saas_folders').countDocuments({ user_id: userId }) > 0) return;
-  const firstId = await nextId('saas_folders');
-  const now     = new Date().toISOString();
-  const folders = FUNDRAISING_PHASES.map((name, i) => ({
-    id: firstId + i, user_id: userId, name, order: i, system: true, created_at: now,
-  }));
-  await col('saas_folders').insertMany(folders);
+  const sys = await col('saas_folders')
+    .find({ user_id: userId, system: true }, { projection: { id: 1, key: 1, seed_version: 1 } })
+    .toArray();
+
+  const upToDate = sys.length === FUNDRAISING_PHASES.length
+    && FUNDRAISING_PHASES.every(p => sys.some(f => f.key === p.key && f.seed_version === FOLDERS_SEED_VERSION));
+  if (upToDate) return;
+
+  const wantedKeys = new Set(FUNDRAISING_PHASES.map(p => p.key));
+  const byKey      = {};
+  sys.forEach(f => { if (f.key) byKey[f.key] = f; });
+  const now = new Date().toISOString();
+
+  // Supprime les dossiers système obsolètes (anciens génériques sans clé inclus).
+  const obsolete = sys.filter(f => !f.key || !wantedKeys.has(f.key));
+  for (const f of obsolete) {
+    await col('saas_folders').deleteOne({ id: f.id, user_id: userId });
+    await col('saas_documents').updateMany({ user_id: userId, folder_id: f.id }, { $unset: { folder_id: '' } });
+  }
+
+  // Crée ou met à jour les dossiers juridiques attendus, dans l'ordre.
+  for (let i = 0; i < FUNDRAISING_PHASES.length; i++) {
+    const p   = FUNDRAISING_PHASES[i];
+    const cur = byKey[p.key];
+    const set = { name: p.name, order: i, checklist: p.checklist, system: true, seed_version: FOLDERS_SEED_VERSION };
+    if (cur) {
+      await col('saas_folders').updateOne({ id: cur.id, user_id: userId }, { $set: set });
+    } else {
+      const id = await nextId('saas_folders');
+      await col('saas_folders').insertOne({ id, user_id: userId, key: p.key, created_at: now, ...set });
+    }
+  }
 }
 
 app.get('/api/saas/folders', requireAuth, async (req, res) => {

@@ -44,6 +44,14 @@
     .folder.open .folder__body { display: block; }
     .folder__empty { font-size: 13px; color: var(--text-3); padding: 10px 6px 6px; }
 
+    /* Checklist juridique attendue dans un dossier */
+    .checklist { background: var(--bg, #f4f2ee); border: 1px dashed var(--line); border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; }
+    .checklist__title { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 8px; }
+    .checklist__list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; }
+    .checklist__item { font-size: 13px; color: var(--text-2); line-height: 1.5; display: flex; gap: 8px; align-items: flex-start; }
+    .checklist__item::before { content: '○'; color: var(--text-3); font-size: 12px; line-height: 1.6; flex: none; }
+    @media (max-width: 680px) { .checklist__list { grid-template-columns: 1fr; } }
+
     .files { display: flex; flex-direction: column; gap: 10px; }
     .file { display: flex; align-items: center; gap: 16px; background: var(--bg, #f4f2ee); border: 1px solid var(--line); border-radius: 12px; padding: 11px 14px; }
     .file__ic { width: 36px; height: 36px; flex: none; display: grid; place-items: center; border-radius: 9px; background: #eef0ff; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; }
@@ -91,8 +99,8 @@
       <div class="dossiers__head">
         <div>
           <div class="dossiers__eyebrow">Dossiers</div>
-          <h1 class="dossiers__title">Mes documents</h1>
-          <p class="dossiers__sub">Vos documents classés par phase de levée de fonds — liés à votre compte.</p>
+          <h1 class="dossiers__title">Mes documents juridiques</h1>
+          <p class="dossiers__sub">Vos documents juridiques classés par phase de la levée — liés à votre compte.</p>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <button class="btn btn--ghost btn--lg" id="new-folder-btn">+ Nouveau dossier</button>
@@ -115,10 +123,10 @@
         <a href="editor.html" class="btn btn--light">Ouvrir l'éditeur →</a>
       </div>
 
-      <!-- Dossiers de la levée de fonds (backend, par compte) -->
+      <!-- Dossiers juridiques de la levée (backend, par compte) -->
       <div class="section-label">
-        <span>Phases de la levée</span>
-        <span style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--text-3)">Classez vos fichiers par étape</span>
+        <span>Phases juridiques de la levée</span>
+        <span style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--text-3)">Documents juridiques attendus par étape</span>
       </div>
       <div id="folders"></div>
 
@@ -247,8 +255,19 @@
           actions.appendChild(del);
         }
 
+        // Checklist des documents juridiques attendus à cette phase.
+        if (Array.isArray(f.checklist) && f.checklist.length) {
+          const cl = document.createElement('div');
+          cl.className = 'checklist';
+          cl.innerHTML = '<div class="checklist__title">Documents juridiques attendus</div>' +
+            '<ul class="checklist__list">' +
+            f.checklist.map(item => `<li class="checklist__item">${esc(item)}</li>`).join('') +
+            '</ul>';
+          body.appendChild(cl);
+        }
+
         if (!inFolder.length) {
-          body.innerHTML = '<div class="folder__empty">Aucun fichier dans ce dossier.</div>';
+          body.insertAdjacentHTML('beforeend', '<div class="folder__empty">Aucun fichier importé dans ce dossier pour le moment.</div>');
         } else {
           const list = document.createElement('div');
           list.className = 'files';
