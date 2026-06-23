@@ -10,7 +10,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="editor.css" />
-  <link rel="stylesheet" href="documents.css" />
   <style>.app{visibility:hidden}.app.ready{visibility:visible}</style>
   <script src="auth.js"></script>
 </head>
@@ -32,7 +31,8 @@
       <div class="topbar__actions">
         <a href="index.html" class="btn btn--ghost">← Accueil</a>
         <a href="dossiers.html" class="btn btn--ghost">📁 Dossiers</a>
-        <button class="btn btn--ghost" id="docs-btn">Mes documents</button>
+        <input type="file" id="docs-file" accept=".pdf,.docx,.doc,.xlsx,.xls,.png,.jpg,.jpeg" hidden />
+        <button class="btn btn--ghost" id="docs-btn">+ Ajouter un document</button>
         <button class="btn btn--ghost" id="save-btn">💾 Enregistrer</button>
         <button class="btn btn--primary" id="export-btn">Exporter en PDF</button>
         <button class="btn btn--ghost" id="logout-btn">Déconnexion</button>
@@ -185,26 +185,6 @@
         <span id="wordcount">0 mot</span>
         <span>liquid + · traitement de texte</span>
       </div>
-    </div>
-  </div>
-
-  <!-- Modale « Mes documents » : stockage + conversion PDF ⇄ DOCX -->
-  <div class="docs-modal" id="docs-modal" hidden>
-    <div class="docs-modal__backdrop" id="docs-close-bg"></div>
-    <div class="docs-modal__panel" role="dialog" aria-modal="true" aria-label="Mes documents">
-      <div class="docs-modal__head">
-        <h2>Mes documents</h2>
-        <button class="docs-modal__x" id="docs-close" aria-label="Fermer">✕</button>
-      </div>
-      <div class="docs-modal__bar">
-        <label class="docs-upload">
-          <input type="file" id="docs-file" accept=".pdf,.docx,.doc,.xlsx,.xls,.png,.jpg,.jpeg" hidden />
-          <span>⬆ Importer un document</span>
-        </label>
-        <span class="docs-hint">PDF ⇄ DOCX · stockés sur votre espace</span>
-      </div>
-      <div class="docs-error" id="docs-error" hidden></div>
-      <div class="docs-list" id="docs-list"></div>
     </div>
   </div>
 
