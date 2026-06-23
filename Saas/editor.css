@@ -22,7 +22,7 @@
   font-family: 'Libre Franklin', serif; font-size: 15px; line-height: 1; transition: background .12s ease, border-color .12s ease;
 }
 .tbtn:hover { background: #f0eee9; }
-.tbtn.is-active { background: #e8ecf6; border-color: #c9d4ef; color: var(--navy-mid); }
+.tbtn.is-active { background: #e7e4de; border-color: #cfcbc2; color: var(--dark); }
 .tbtn b { font-weight: 800; }
 .tbtn i { font-style: italic; font-family: Georgia, serif; }
 .tbtn u { text-decoration: underline; }
@@ -68,8 +68,8 @@
 .advitem__group { margin-left: auto; font-family: 'Archivo', sans-serif; font-size: 9.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-3); }
 .advitem__label { font-weight: 700; font-size: 14px; letter-spacing: -0.01em; margin-bottom: 6px; }
 .advitem__watch { font-size: 12.5px; color: var(--text-2); line-height: 1.55; margin-bottom: 12px; }
-.advitem__go { width: 100%; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; color: var(--navy); background: transparent; border: 1.5px solid var(--navy); border-radius: 8px; padding: 8px; cursor: pointer; transition: background .15s ease, color .15s ease; }
-.advitem__go:hover { background: var(--navy); color: #fff; }
+.advitem__go { width: 100%; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; color: var(--dark); background: transparent; border: 1.5px solid var(--dark); border-radius: 8px; padding: 8px; cursor: pointer; transition: background .15s ease, color .15s ease; }
+.advitem__go:hover { background: var(--dark); color: #fff; }
 .library__head { flex: none; padding: 18px 20px 14px; border-bottom: 1px solid var(--line); }
 .library__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-3); }
 .library__title { font-size: 18px; letter-spacing: -0.02em; margin-top: 6px; }
@@ -82,8 +82,8 @@
 .libitem__group { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-3); }
 .libitem__label { font-weight: 700; font-size: 14px; letter-spacing: -0.01em; margin-bottom: 5px; }
 .libitem__desc { font-size: 12.5px; color: var(--text-2); line-height: 1.55; margin-bottom: 12px; }
-.libitem__add { width: 100%; font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; color: #fff; background: var(--navy); border: 0; border-radius: 8px; padding: 9px; cursor: pointer; transition: background .15s ease; }
-.libitem__add:hover { background: var(--navy-mid); }
+.libitem__add { width: 100%; font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; color: #fff; background: var(--dark); border: 0; border-radius: 8px; padding: 9px; cursor: pointer; transition: background .15s ease; }
+.libitem__add:hover { background: var(--dark-muted); }
 .libitem .risk { font-size: 9px; padding: 4px 8px; }
 
 /* Action « Retirer » dans le décrypteur */
@@ -219,8 +219,8 @@
 .chat { flex: none; display: flex; flex-direction: column; border-top: 1px solid var(--line); background: var(--card); max-height: 46%; }
 .chat__head { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 24px 8px; }
 .chat__title { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--navy); }
-.chat__explain { flex: none; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; color: var(--navy); background: rgba(0,24,57,0.06); border: 1px solid rgba(0,24,57,0.18); border-radius: 7px; padding: 5px 10px; cursor: pointer; transition: background .15s ease, color .15s ease; }
-.chat__explain:hover { background: var(--navy); color: #fff; }
+.chat__explain { flex: none; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; color: var(--dark); background: rgba(8,9,12,0.06); border: 1px solid rgba(8,9,12,0.18); border-radius: 7px; padding: 5px 10px; cursor: pointer; transition: background .15s ease, color .15s ease; }
+.chat__explain:hover { background: var(--dark); color: #fff; }
 .chat__explain:disabled { opacity: .5; cursor: default; }
 .chat__log { flex: 1; min-height: 64px; overflow-y: auto; padding: 4px 24px 8px; display: flex; flex-direction: column; gap: 8px; }
 .chat__empty { font-size: 12.5px; color: var(--text-3); line-height: 1.5; margin: 4px 0; }
@@ -235,7 +235,7 @@
 .chat__input { flex: 1; height: 38px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg); padding: 0 12px; font-family: inherit; font-size: 13.5px; color: var(--text); outline: none; transition: border-color .15s ease; }
 .chat__input:focus { border-color: var(--blue); background: #fff; }
 .chat__send { flex: none; width: 38px; height: 38px; border: none; border-radius: 9px; background: var(--dark); color: #fff; font-size: 17px; cursor: pointer; transition: background .15s ease; }
-.chat__send:hover { background: var(--navy); }
+.chat__send:hover { background: var(--dark-muted); }
 .chat__send:disabled { opacity: 0.5; cursor: default; }
 
 /* ---------- Responsive ---------- */
@@ -266,8 +266,8 @@
 .cond-tpl__badge { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; color: #fff; padding: 2px 7px; border-radius: 5px; letter-spacing: 0.02em; }
 .cond-tpl__label { font-weight: 700; font-size: 13px; letter-spacing: -0.01em; margin: 6px 0 4px; color: var(--text); }
 .cond-tpl__preview { font-size: 11.5px; color: var(--text-2); line-height: 1.5; margin: 0 0 10px; }
-.cond-tpl__add { width: 100%; font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 700; color: var(--navy); background: transparent; border: 1.5px solid var(--navy); border-radius: 8px; padding: 7px; cursor: pointer; transition: background .12s, color .12s; }
-.cond-tpl__add:hover { background: var(--navy); color: #fff; }
+.cond-tpl__add { width: 100%; font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 700; color: var(--dark); background: transparent; border: 1.5px solid var(--dark); border-radius: 8px; padding: 7px; cursor: pointer; transition: background .12s, color .12s; }
+.cond-tpl__add:hover { background: var(--dark); color: #fff; }
 .cond-tpl__done { font-family: 'Archivo', sans-serif; font-size: 11.5px; font-weight: 700; color: var(--up); display: block; text-align: center; padding: 4px 0; }
 
 /* Bloc de condition dans le document */
