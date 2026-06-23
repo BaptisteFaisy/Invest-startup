@@ -1530,7 +1530,6 @@ function improvementTips() {
   tips.push({ title: 'Vérifier la cohérence', body: 'Assurez-vous que les chiffres et noms concordent avec vos autres documents : statuts, pacte, table de capitalisation, registre des mouvements de titres.' });
   tips.push({ title: 'Dater et faire signer', body: 'Renseignez le lieu et la date, et prévoyez les signatures de toutes les parties concernées.' });
   tips.push({ title: 'Expliquer chaque paragraphe', body: 'Cliquez sur un paragraphe pour obtenir une explication en langage courant et, si besoin, demandez une reformulation à l\'assistant IA.' });
-  tips.push({ title: 'Faire relire par un professionnel', body: 'Avant tout usage officiel, faites valider le document par un avocat ou un conseil — ce modèle est un point de départ.' });
   return tips;
 }
 
