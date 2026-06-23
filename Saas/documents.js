@@ -48,35 +48,50 @@
     }
     listEl.innerHTML = '';
     docs.forEach(d => {
-      const e = ext(d.originalname || d.name);
-      const target = e === 'pdf' ? 'docx' : (e === 'docx' || e === 'doc') ? 'pdf' : null;
+      const isTermsheet = d.kind === 'termsheet';
+      const e = isTermsheet ? 'ts' : ext(d.originalname || d.name);
+      const target = isTermsheet ? null
+        : e === 'pdf' ? 'docx' : (e === 'docx' || e === 'doc') ? 'pdf' : null;
+      const badge = isTermsheet ? 'TS' : (e || '?').toUpperCase();
+      const sub = isTermsheet
+        ? `Term sheet en cours · ${fmtSize(d.size)} · ${fmtDate(d.updated_at || d.created_at)}`
+        : `${fmtSize(d.size)} · ${fmtDate(d.created_at)}${d.converted_from ? ' · converti' : ''}`;
 
       const row = document.createElement('div');
       row.className = 'docrow';
       row.innerHTML = `
         <div class="docrow__main">
-          <span class="docrow__ext docrow__ext--${e || 'file'}">${(e || '?').toUpperCase()}</span>
+          <span class="docrow__ext docrow__ext--${e || 'file'}">${badge}</span>
           <div class="docrow__meta">
             <div class="docrow__name" title="${escapeHtml(d.name)}">${escapeHtml(d.name)}</div>
-            <div class="docrow__sub">${fmtSize(d.size)} · ${fmtDate(d.created_at)}${d.converted_from ? ' · converti' : ''}</div>
+            <div class="docrow__sub">${sub}</div>
           </div>
         </div>
         <div class="docrow__actions"></div>`;
 
       const actions = row.querySelector('.docrow__actions');
-      if (target) {
-        const cv = document.createElement('button');
-        cv.className = 'docbtn docbtn--convert';
-        cv.textContent = '→ ' + target.toUpperCase();
-        cv.title = 'Convertir en ' + target.toUpperCase();
-        cv.addEventListener('click', () => convert(d.id, target, cv));
-        actions.appendChild(cv);
+
+      if (isTermsheet) {
+        const open = document.createElement('a');
+        open.className = 'docbtn docbtn--convert';
+        open.textContent = 'Ouvrir';
+        open.href = 'editor.html?doc=' + d.id;
+        actions.appendChild(open);
+      } else {
+        if (target) {
+          const cv = document.createElement('button');
+          cv.className = 'docbtn docbtn--convert';
+          cv.textContent = '→ ' + target.toUpperCase();
+          cv.title = 'Convertir en ' + target.toUpperCase();
+          cv.addEventListener('click', () => convert(d.id, target, cv));
+          actions.appendChild(cv);
+        }
+        const dl = document.createElement('a');
+        dl.className = 'docbtn';
+        dl.textContent = 'Télécharger';
+        dl.href = '/api/saas/documents/' + d.id + '/download';
+        actions.appendChild(dl);
       }
-      const dl = document.createElement('a');
-      dl.className = 'docbtn';
-      dl.textContent = 'Télécharger';
-      dl.href = '/api/saas/documents/' + d.id + '/download';
-      actions.appendChild(dl);
 
       const del = document.createElement('button');
       del.className = 'docbtn docbtn--del';

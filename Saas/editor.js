@@ -970,6 +970,97 @@ window.addEventListener('afterprint', () => { printing = false; paginate(); });
 /* ---------- 6. Export PDF ---------- */
 document.getElementById('export-btn').addEventListener('click', () => window.print());
 
+/* ---------- 6 bis. Enregistrer / charger la term sheet (Mes documents) ------ */
+let currentDocId = null;
+const docNameEl = document.querySelector('.topbar__doc');
+
+// Nom proposé pour le document (à partir du sous-titre LUMIO SAS, etc.).
+function termsheetName() {
+  const sub = page.querySelector('.doc-sub');
+  const title = page.querySelector('.doc-title');
+  const company = sub ? sub.textContent.trim() : '';
+  const t = title ? title.textContent.trim() : 'Term sheet';
+  return (company ? `${t} — ${company}` : t).slice(0, 120);
+}
+
+// Renvoie le HTML de la term sheet, nettoyé des artefacts de pagination.
+function termsheetHtml() {
+  const clone = page.cloneNode(true);
+  clone.querySelectorAll('[data-pgspacer]').forEach(el => el.remove());
+  clone.querySelectorAll('[data-pgpush]').forEach(el => { el.style.marginTop = ''; el.removeAttribute('data-pgpush'); });
+  clone.querySelectorAll('.ts-clause.is-active').forEach(el => el.classList.remove('is-active'));
+  return clone.innerHTML;
+}
+
+async function saveTermsheet() {
+  const btn = document.getElementById('save-btn');
+  const label = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Enregistrement…'; }
+  const name = termsheetName();
+  const html = termsheetHtml();
+  try {
+    const res = currentDocId
+      ? await fetch('/api/saas/termsheets/' + currentDocId, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', body: JSON.stringify({ name, html }) })
+      : await fetch('/api/saas/termsheets', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', body: JSON.stringify({ name, html }) });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      if (data.id) { currentDocId = data.id; history.replaceState(null, '', '?doc=' + currentDocId); }
+      if (docNameEl) docNameEl.textContent = name;
+      if (btn) btn.textContent = '✓ Enregistré';
+    } else if (res.status === 401) {
+      window.location.href = 'login.html';
+    } else {
+      if (btn) btn.textContent = '✕ Échec';
+    }
+  } catch {
+    if (btn) btn.textContent = '✕ Erreur réseau';
+  } finally {
+    if (btn) setTimeout(() => { btn.disabled = false; btn.textContent = label || '💾 Enregistrer'; }, 1600);
+  }
+}
+
+// Réaligne le modèle (clauses présentes / éditées) sur le DOM chargé.
+function syncModelFromDOM() {
+  TERMSHEET.forEach(c => {
+    const content = page.querySelector(`.ts-clause[data-key="${c.key}"] .ts-content`);
+    c.inDoc = !!content;
+    if (content) { c.html = content.innerHTML; c._merged = true; }
+  });
+  renderLibrary();
+  renderAdvice();
+  updateClauseCount();
+}
+
+async function loadTermsheet(id) {
+  try {
+    const res = await fetch('/api/saas/termsheets/' + id, { credentials: 'include' });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data.html) return;
+    page.innerHTML = data.html;
+    currentDocId = data.id;
+    if (docNameEl) docNameEl.textContent = data.name || 'Term sheet';
+    syncModelFromDOM();
+    showEmptyPanel();
+    paginate();
+  } catch { /* on garde la term sheet de démonstration */ }
+}
+
+const saveBtn = document.getElementById('save-btn');
+if (saveBtn) saveBtn.addEventListener('click', saveTermsheet);
+// Ctrl/Cmd + S enregistre aussi.
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) { e.preventDefault(); saveTermsheet(); }
+});
+
+// Ouvre la term sheet enregistrée passée dans l'URL (?doc=ID).
+const urlDocId = new URLSearchParams(location.search).get('doc');
+if (urlDocId && /^\d+$/.test(urlDocId)) loadTermsheet(Number(urlDocId));
+
 /* ---------- 7. Assistant IA (Claude) : modifier la clause active ---------- */
 const chatBox   = document.getElementById('chat');
 const chatLog   = document.getElementById('chat-log');
