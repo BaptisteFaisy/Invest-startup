@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="editor.css" />
+  <link rel="stylesheet" href="styles.css?v=2" />
+  <link rel="stylesheet" href="editor.css?v=2" />
   <style>.app{visibility:hidden}.app.ready{visibility:visible}</style>
   <script src="auth.js"></script>
 </head>
@@ -29,11 +29,11 @@
         <span class="topbar__doc">Lettre d'intention — Lumio SAS.docx</span>
       </div>
       <div class="topbar__actions">
-        <a href="index.html" class="btn btn--ghost">← Accueil</a>
-        <a href="dossiers.html" class="btn btn--ghost">📁 Dossiers</a>
+        <a href="index.html" class="btn btn--ghost">Accueil</a>
+        <a href="dossiers.html" class="btn btn--ghost">Dossiers</a>
         <input type="file" id="docs-file" accept=".pdf,.docx,.doc,.xlsx,.xls,.png,.jpg,.jpeg" hidden />
         <button class="btn btn--ghost" id="docs-btn">+ Ajouter un document</button>
-        <button class="btn btn--ghost" id="save-btn">💾 Enregistrer</button>
+        <button class="btn btn--ghost" id="save-btn">Enregistrer</button>
         <button class="btn btn--primary" id="export-btn">Exporter en PDF</button>
         <button class="btn btn--ghost" id="logout-btn">Déconnexion</button>
       </div>
@@ -84,7 +84,7 @@
           <input type="color" id="fore-color" value="#3b82f6" />
         </label>
         <label class="tcolor" title="Surlignage">
-          <span>🖌</span><span class="bar" id="back-bar" style="background:#ffe27a"></span>
+          <span>A</span><span class="bar" id="back-bar" style="background:#ffe27a"></span>
           <input type="color" id="back-color" value="#ffe27a" />
         </label>
       </div>
@@ -160,7 +160,7 @@
         <!-- Assistant IA (Claude) : discuter et modifier la clause sélectionnée -->
         <div class="chat" id="chat" hidden>
           <div class="chat__head">
-            <span class="chat__title">✦ Assistant IA — modifier cette clause</span>
+            <span class="chat__title">Assistant IA — modifier cette clause</span>
             <button class="chat__explain" id="chat-explain" type="button">Expliquer la clause</button>
           </div>
           <div class="chat__log" id="chat-log"></div>
@@ -188,8 +188,8 @@
     </div>
   </div>
 
-  <script src="editor.js"></script>
-  <script src="documents.js"></script>
+  <script src="editor.js?v=2"></script>
+  <script src="documents.js?v=2"></script>
   <script>
     // Garde d'accès : l'éditeur est réservé aux utilisateurs connectés.
     requireAuth().then((user) => {
