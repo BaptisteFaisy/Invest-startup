@@ -8,7 +8,7 @@
 /* Société fictive : LUMIO SAS — éditeur d'un logiciel de pilotage
    financier pour PME. Investisseur lead fictif : Orbit Ventures. */
 
-const TERMSHEET = [
+let TERMSHEET = [
   /* ----- PARTIES ----- */
   {
     key: 'societe', group: 'Parties', label: 'Société', risk: 'low',
@@ -365,7 +365,9 @@ const TERMSHEET = [
 ];
 
 const RISK_LABEL = { low: 'Risque faible', mid: 'À surveiller', high: 'Point sensible' };
-const EXPLAIN = Object.fromEntries(TERMSHEET.map(c => [c.key, c]));
+let EXPLAIN = Object.fromEntries(TERMSHEET.map(c => [c.key, c]));
+// Clés de la term sheet de démonstration : sert à détecter un autre type de document.
+const ORIGINAL_TS_KEYS = new Set(TERMSHEET.map(c => c.key));
 
 /* Clauses indispensables (non supprimables) et ordre d'affichage des groupes. */
 const ESSENTIAL = new Set(['societe', 'fondateurs', 'investisseur', 'investissement', 'titre']);
@@ -656,23 +658,23 @@ function renderPanel(key) {
       <span class="risk ${riskClass}"><span class="d"></span>${RISK_LABEL[c.risk]}</span>
       ${removeCtrl}
     </div>
-    <div class="block">
+    ${c.plain ? `<div class="block">
       <div class="block__h">En langage courant</div>
       <p>${c.plain}</p>
-    </div>
+    </div>` : ''}
     <div class="block block--simple" id="block-simple">
       <div class="block__h">Pour bien comprendre</div>
       <p id="simple-text">${SIMPLE[key] || '…'}</p>
     </div>
     ${exampleBlock}
-    <div class="block">
+    ${BIAS[key] !== undefined ? `<div class="block">
       <div class="block__h">Avantage pour les investisseurs</div>
       ${biasMeter(BIAS[key] || 3)}
-    </div>
-    <div class="callout callout--advice">
+    </div>` : ''}
+    ${c.watch ? `<div class="callout callout--advice">
       <div class="block__h">Conseil — côté fondateur</div>
       <p>${c.watch}</p>
-    </div>
+    </div>` : ''}
     <div class="cond-section" id="cond-section">
       <div class="cond-section__head">
         <span class="cond-section__title">Conditions pré-écrites</span>
@@ -1035,6 +1037,47 @@ function syncModelFromDOM() {
   updateClauseCount();
 }
 
+// Le document chargé est-il un autre type que la term sheet de démonstration ?
+// (au moins une clause sans clé connue de la term sheet)
+function isCustomDocument() {
+  const cls = page.querySelectorAll('.ts-clause');
+  if (!cls.length) return false;
+  for (const el of cls) {
+    if (!el.dataset.key || !ORIGINAL_TS_KEYS.has(el.dataset.key)) return true;
+  }
+  return false;
+}
+
+// Reconstruit le modèle de clauses À PARTIR du document chargé : chaque type de
+// document (statuts, pacte, GAP, PV…) a ainsi SES propres clauses dans le
+// décrypteur et la bibliothèque, et l'explication « Pour bien comprendre » est
+// générée à la demande à partir du texte réel de la clause cliquée.
+function adoptDocumentClauses() {
+  const derived = [];
+  let group = 'Document';
+  let i = 0;
+  page.querySelectorAll('.ts-group, .ts-clause').forEach(el => {
+    if (el.classList.contains('ts-group')) {
+      group = (el.textContent || '').trim() || group;
+      return;
+    }
+    i += 1;
+    let key = el.dataset.key;
+    if (!key) { key = 'c' + i; el.dataset.key = key; }
+    const labelEl   = el.querySelector('.ts-label');
+    const contentEl = el.querySelector('.ts-content');
+    const label = (labelEl ? labelEl.textContent : 'Clause ' + i).trim() || ('Clause ' + i);
+    const html  = contentEl ? contentEl.innerHTML : el.innerHTML;
+    derived.push({ key, group, label, risk: 'low', html, plain: '', watch: '', inDoc: true });
+  });
+  if (!derived.length) return;
+  TERMSHEET = derived;
+  EXPLAIN = Object.fromEntries(derived.map(c => [c.key, c]));
+  renderLibrary();
+  renderAdvice();
+  updateClauseCount();
+}
+
 async function loadTermsheet(id) {
   try {
     const res = await fetch('/api/saas/termsheets/' + id, { credentials: 'include' });
@@ -1044,7 +1087,8 @@ async function loadTermsheet(id) {
     page.innerHTML = data.html;
     currentDocId = data.id;
     if (docNameEl) docNameEl.textContent = data.name || 'Term sheet';
-    syncModelFromDOM();
+    if (isCustomDocument()) adoptDocumentClauses();
+    else syncModelFromDOM();
     showEmptyPanel();
     paginate();
   } catch { /* on garde la term sheet de démonstration */ }
