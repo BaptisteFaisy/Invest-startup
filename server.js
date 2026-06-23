@@ -100,10 +100,18 @@ const PUBLIC_IMG_DIR = path.join(UPLOADS_DIR, 'public');
 if (!fs.existsSync(UPLOADS_DIR))    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 if (!fs.existsSync(PUBLIC_IMG_DIR)) fs.mkdirSync(PUBLIC_IMG_DIR, { recursive: true });
 
+// Multer/busboy décode le nom de fichier en latin1 : on le ré-interprète en
+// UTF-8 pour éviter le mojibake (« â Ãditeur » → « – Éditeur »). On mute
+// file.originalname pour que tous les usages en aval (titre, download…) en profitent.
+const fixOriginalName = (file) => {
+  file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
+  return file.originalname;
+};
+
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
   filename:    (_req, file, cb) => {
-    const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const safe = fixOriginalName(file).replace(/[^a-zA-Z0-9._-]/g, '_');
     cb(null, `${Date.now()}_${safe}`);
   },
 });
@@ -123,7 +131,7 @@ const upload = multer({
 const imageStorage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, PUBLIC_IMG_DIR),
   filename:    (_req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase() || '.jpg';
+    const ext = path.extname(fixOriginalName(file)).toLowerCase() || '.jpg';
     cb(null, `img_${Date.now()}_${Math.random().toString(36).slice(2)}${ext}`);
   },
 });
@@ -609,6 +617,23 @@ app.delete('/api/admin/startups/:id', requireAdmin, async (req, res) => {
 });
 
 // ─── SaaS : assistant IA Claude pour modifier une clause de term sheet ─────────
+// Comptabilise les tokens Claude consommés par un utilisateur (cumul + nb requêtes).
+async function recordClaudeUsage(userId, response) {
+  try {
+    const u = response?.usage || {};
+    const input  = (u.input_tokens || 0) + (u.cache_read_input_tokens || 0) + (u.cache_creation_input_tokens || 0);
+    const output = u.output_tokens || 0;
+    await col('saas_claude_usage').updateOne(
+      { user_id: userId },
+      {
+        $inc: { requests: 1, input_tokens: input, output_tokens: output, total_tokens: input + output },
+        $set: { updated_at: new Date().toISOString() },
+      },
+      { upsert: true }
+    );
+  } catch (e) { console.error('recordClaudeUsage error:', e.message); }
+}
+
 app.post('/api/saas/clause-chat', requireAuth, async (req, res) => {
   if (!anthropic)
     return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ANTHROPIC_API_KEY dans le .env du serveur.' });
@@ -682,6 +707,7 @@ Règles :
         },
       },
     });
+    await recordClaudeUsage(req.user.id, response);
 
     const textBlock = response.content.find(b => b.type === 'text');
     const data = JSON.parse(textBlock ? textBlock.text : '{}');
@@ -730,6 +756,7 @@ Règles :
       system,
       messages: [{ role: 'user', content: 'Rédige le bloc « Pour bien comprendre » pour cette clause.' }],
     });
+    await recordClaudeUsage(req.user.id, response);
     const textBlock = response.content.find(b => b.type === 'text');
     const simple = (textBlock ? textBlock.text : '').trim();
     res.json({ simple });
@@ -739,6 +766,21 @@ Règles :
   }
 });
 
+// ─── SaaS : consommation IA Claude de l'utilisateur (tokens + nb requêtes) ─────
+app.get('/api/saas/usage', requireAuth, async (req, res) => {
+  const u = await col('saas_claude_usage').findOne(
+    { user_id: req.user.id },
+    { projection: { _id: 0, user_id: 0 } }
+  );
+  res.json({
+    requests:      u?.requests      || 0,
+    input_tokens:  u?.input_tokens  || 0,
+    output_tokens: u?.output_tokens || 0,
+    total_tokens:  u?.total_tokens  || 0,
+    updated_at:    u?.updated_at     || null,
+  });
+});
+
 // ─── SaaS : stockage de documents (par utilisateur) ───────────────────────────
 function publicDoc(d) {
   const { _id, filename, user_id, ...rest } = d; // on masque le nom de fichier interne
@@ -746,11 +788,51 @@ function publicDoc(d) {
 }
 
 app.get('/api/saas/documents', requireAuth, async (req, res) => {
+  // On exclut le HTML des term sheets (volumineux) de la liste.
   const docs = await col('saas_documents')
-    .find({ user_id: req.user.id }, { projection: { _id: 0, filename: 0, user_id: 0 } })
-    .sort({ created_at: -1 })
+    .find({ user_id: req.user.id }, { projection: { _id: 0, filename: 0, user_id: 0, html: 0 } })
+    .sort({ updated_at: -1, created_at: -1 })
     .toArray();
   res.json({ documents: docs });
+});
+
+// ─── SaaS : term sheets éditées (stockées en base, pas de fichier) ────────────
+// Enregistre / met à jour le document de travail (apparaît dans « Mes documents »).
+app.post('/api/saas/termsheets', requireAuth, async (req, res) => {
+  const { name, html } = req.body ?? {};
+  if (typeof html !== 'string') return res.status(400).json({ error: 'html requis' });
+  const now = new Date().toISOString();
+  const id  = await nextId('saas_documents');
+  const doc = {
+    id, user_id: req.user.id, kind: 'termsheet',
+    name: (name || 'Term sheet').trim(),
+    html, size: Buffer.byteLength(html, 'utf8'),
+    created_at: now, updated_at: now,
+  };
+  await col('saas_documents').insertOne(doc);
+  res.status(201).json({ id, document: publicDoc({ ...doc, html: undefined }) });
+});
+
+app.put('/api/saas/termsheets/:id', requireAuth, async (req, res) => {
+  const id = Number(req.params.id);
+  const { name, html } = req.body ?? {};
+  const doc = await col('saas_documents').findOne({ id, user_id: req.user.id, kind: 'termsheet' });
+  if (!doc) return res.status(404).json({ error: 'Term sheet introuvable' });
+  const set = { updated_at: new Date().toISOString() };
+  if (typeof html === 'string') { set.html = html; set.size = Buffer.byteLength(html, 'utf8'); }
+  if (typeof name === 'string' && name.trim()) set.name = name.trim();
+  await col('saas_documents').updateOne({ id, user_id: req.user.id }, { $set: set });
+  res.json({ success: true, id });
+});
+
+app.get('/api/saas/termsheets/:id', requireAuth, async (req, res) => {
+  const id = Number(req.params.id);
+  const doc = await col('saas_documents').findOne(
+    { id, user_id: req.user.id, kind: 'termsheet' },
+    { projection: { _id: 0, user_id: 0 } }
+  );
+  if (!doc) return res.status(404).json({ error: 'Term sheet introuvable' });
+  res.json({ id: doc.id, name: doc.name, html: doc.html || '' });
 });
 
 app.post('/api/saas/documents', requireAuth, upload.single('file'), async (req, res) => {
@@ -780,8 +862,10 @@ app.delete('/api/saas/documents/:id', requireAuth, async (req, res) => {
   const id  = Number(req.params.id);
   const doc = await col('saas_documents').findOne({ id, user_id: req.user.id });
   if (!doc) return res.status(404).json({ error: 'Document introuvable' });
-  const filepath = path.join(UPLOADS_DIR, doc.filename);
-  if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
+  if (doc.filename) { // term sheets stockées en base : pas de fichier à supprimer
+    const filepath = path.join(UPLOADS_DIR, doc.filename);
+    if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
+  }
   await col('saas_documents').deleteOne({ id, user_id: req.user.id });
   res.json({ success: true });
 });

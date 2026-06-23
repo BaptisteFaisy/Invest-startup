@@ -89,6 +89,27 @@
 
         <!-- ── Onglet Profil ── -->
         <div id="tab-profile" class="tab-panel active">
+          <div class="setting-card" style="flex-direction:column;align-items:stretch;margin-bottom:20px;">
+            <div>
+              <h3 style="font-size:1rem;font-weight:700;color:#080c14;margin:0 0 4px;">Consommation IA (assistant Claude)</h3>
+              <p style="font-size:.88rem;color:var(--muted);margin:0 0 16px;line-height:1.5;">Suivi de votre utilisation de l'assistant IA du SaaS liquid +.</p>
+            </div>
+            <div id="usage-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+              <div style="background:#f6f8fc;border:1px solid rgba(0,0,0,.06);border-radius:10px;padding:14px;text-align:center;">
+                <div id="usage-requests" style="font-size:1.5rem;font-weight:800;color:#080c14;">—</div>
+                <div style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:4px;">Requêtes Claude</div>
+              </div>
+              <div style="background:#f6f8fc;border:1px solid rgba(0,0,0,.06);border-radius:10px;padding:14px;text-align:center;">
+                <div id="usage-total" style="font-size:1.5rem;font-weight:800;color:#080c14;">—</div>
+                <div style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:4px;">Tokens utilisés</div>
+              </div>
+              <div style="background:#f6f8fc;border:1px solid rgba(0,0,0,.06);border-radius:10px;padding:14px;text-align:center;">
+                <div id="usage-io" style="font-size:1.1rem;font-weight:700;color:#080c14;">—</div>
+                <div style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:4px;">Entrée / Sortie</div>
+              </div>
+            </div>
+          </div>
+
           <div class="setting-card" style="flex-direction:column;align-items:stretch;">
             <div>
               <h3 style="font-size:1rem;font-weight:700;color:#080c14;margin:0 0 4px;">Informations personnelles</h3>
@@ -383,6 +404,23 @@
       }
 
       init();
+
+      // Consommation IA (tokens + nombre de requêtes Claude)
+      (function () {
+        const fmt = n => (n || 0).toLocaleString('fr-FR');
+        fetch('/api/saas/usage', { credentials: 'include' })
+          .then(r => r.ok ? r.json() : null)
+          .then(u => {
+            if (!u) return;
+            const req = document.getElementById('usage-requests');
+            const tot = document.getElementById('usage-total');
+            const io  = document.getElementById('usage-io');
+            if (req) req.textContent = fmt(u.requests);
+            if (tot) tot.textContent = fmt(u.total_tokens);
+            if (io)  io.textContent  = `${fmt(u.input_tokens)} / ${fmt(u.output_tokens)}`;
+          })
+          .catch(() => {});
+      })();
     </script>
     <script src="nav.js"></script>
   </body>
