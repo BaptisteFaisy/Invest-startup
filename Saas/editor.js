@@ -372,6 +372,7 @@ const ORIGINAL_TS_KEYS = new Set(TERMSHEET.map(c => c.key));
 // Document « libre » (statuts, pacte, PV…) chargé via un modèle : on parle alors
 // de « paragraphes » et l'onglet Conseil propose des pistes d'amélioration.
 let isCustom = false;
+let docAdviceCache = null; // conseils IA spécifiques au document chargé
 const UNIT  = (n = 1) => (isCustom ? 'paragraphe' : 'clause') + (n > 1 ? 's' : '');
 
 /* Clauses indispensables (non supprimables) et ordre d'affichage des groupes. */
@@ -1104,6 +1105,8 @@ async function loadTermsheet(id) {
     if (!data.html) return;
     page.innerHTML = data.html;
     currentDocId = data.id;
+    isCustom = false;
+    docAdviceCache = null;
     if (docNameEl) docNameEl.textContent = data.name || 'Term sheet';
     if (isCustomDocument()) adoptDocumentClauses();
     else syncModelFromDOM();
@@ -1518,33 +1521,56 @@ function priorityTier(c) {
   return 2;
 }
 
-// Pistes d'amélioration pour un document libre (statuts, pacte, PV…).
-function improvementTips() {
-  const tips = [];
+// Conseil instantané et local : nombre de champs [entre crochets] à compléter.
+function placeholderTip() {
   const text = page.innerText || '';
-  const placeholders = (text.match(/\[[^\]\n]{0,60}\]/g) || []).length;
-  if (placeholders) {
-    tips.push({ title: `Compléter ${placeholders} champ${placeholders > 1 ? 's' : ''} à renseigner`,
-      body: `Le document contient ${placeholders} champ${placeholders > 1 ? 's' : ''} entre crochets (noms, montants, dates…) à remplacer par vos informations réelles.` });
+  const n = (text.match(/\[[^\]\n]{0,60}\]/g) || []).length;
+  if (!n) return [];
+  return [{ title: `Compléter ${n} champ${n > 1 ? 's' : ''} à renseigner`,
+    body: `Le document contient ${n} champ${n > 1 ? 's' : ''} entre crochets (noms, montants, dates…) à remplacer par vos informations réelles.` }];
+}
+
+function advEsc(s) { return String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
+
+function paintAdvice(tips, note) {
+  adviceCount.textContent = note || `${tips.length} conseil${tips.length > 1 ? 's' : ''} pour améliorer ce document`;
+  adviceList.innerHTML = tips.length
+    ? tips.map(t => `
+      <div class="advitem" style="border-left-color:#1f8e7a">
+        <div class="advitem__label">${advEsc(t.title)}</div>
+        <p class="advitem__watch">${advEsc(t.body)}</p>
+      </div>`).join('')
+    : '<p class="library__empty">Aucun conseil pour ce document.</p>';
+}
+
+// Conseils SPÉCIFIQUES au document, générés par l'IA à partir de son contenu réel.
+async function renderDocAdvice() {
+  const local = placeholderTip();
+  if (docAdviceCache) { paintAdvice(local.concat(docAdviceCache)); return; }
+  paintAdvice(local, 'Analyse du document en cours…');
+  try {
+    const title = (docNameEl && docNameEl.textContent)
+      || (page.querySelector('.doc-title') ? page.querySelector('.doc-title').textContent : 'Document');
+    const text = page.innerText || '';
+    const r = await fetch('/api/saas/doc-advice', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', body: JSON.stringify({ title, text }),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (r.ok && Array.isArray(data.tips) && data.tips.length) {
+      docAdviceCache = data.tips;
+      if (isCustom) paintAdvice(local.concat(data.tips));
+    } else if (isCustom) {
+      paintAdvice(local, local.length ? null : 'Conseils indisponibles pour le moment.');
+    }
+  } catch {
+    if (isCustom) paintAdvice(local, local.length ? null : 'Conseils indisponibles pour le moment.');
   }
-  tips.push({ title: 'Vérifier la cohérence', body: 'Assurez-vous que les chiffres et noms concordent avec vos autres documents : statuts, pacte, table de capitalisation, registre des mouvements de titres.' });
-  tips.push({ title: 'Dater et faire signer', body: 'Renseignez le lieu et la date, et prévoyez les signatures de toutes les parties concernées.' });
-  tips.push({ title: 'Expliquer chaque paragraphe', body: 'Cliquez sur un paragraphe pour obtenir une explication en langage courant et, si besoin, demandez une reformulation à l\'assistant IA.' });
-  return tips;
 }
 
 function renderAdvice() {
-  // Document libre : on propose des pistes pour améliorer le document.
-  if (isCustom) {
-    const tips = improvementTips();
-    adviceCount.textContent = `${tips.length} conseil${tips.length > 1 ? 's' : ''} pour améliorer ce document`;
-    adviceList.innerHTML = tips.map(t => `
-      <div class="advitem" style="border-left-color:#1f8e7a">
-        <div class="advitem__label">${t.title}</div>
-        <p class="advitem__watch">${t.body}</p>
-      </div>`).join('');
-    return;
-  }
+  // Document libre : conseils spécifiques au document (IA).
+  if (isCustom) { renderDocAdvice(); return; }
   // On ne conseille que sur les clauses présentes au contrat et qui méritent
   // une négociation (point sensible/à surveiller, ou penché en faveur des fonds).
   const items = TERMSHEET

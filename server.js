@@ -766,6 +766,72 @@ Règles :
   }
 });
 
+// ─── SaaS : conseils d'amélioration SPÉCIFIQUES à un document ──────────────────
+app.post('/api/saas/doc-advice', requireAuth, async (req, res) => {
+  if (!anthropic)
+    return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ANTHROPIC_API_KEY dans le .env du serveur.' });
+
+  const { title, text } = req.body ?? {};
+  if (!text || typeof text !== 'string')
+    return res.status(400).json({ error: 'text est requis' });
+
+  const system =
+`Tu es l'assistant de « liquid + », un outil juridique pour fondateurs de startup en levée de fonds.
+On te donne le contenu réel d'UN document juridique. Tu dois proposer des conseils CONCRETS et SPÉCIFIQUES À CE DOCUMENT pour l'améliorer / le compléter, du point de vue du fondateur.
+
+Type / titre du document : « ${title || 'Document'} »
+
+Contenu réel du document :
+${String(text).slice(0, 12000)}
+
+Règles :
+- 3 à 5 conseils, propres à CE document précis (cite des éléments réels : un article, un champ à compléter, une valeur, une incohérence, une clause manquante typique de ce type de document).
+- N'invente pas de conseils génériques applicables à n'importe quel document (ex. « faites relire par un avocat », « datez le document »). Sois spécifique au contenu.
+- Chaque conseil : un "title" court (max ~6 mots) et un "body" d'une phrase, en français, ton clair et utile.`;
+
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-opus-4-8',
+      max_tokens: 1200,
+      thinking: { type: 'adaptive' },
+      system,
+      messages: [{ role: 'user', content: 'Donne les conseils d\'amélioration spécifiques à ce document.' }],
+      output_config: {
+        format: {
+          type: 'json_schema',
+          schema: {
+            type: 'object',
+            properties: {
+              tips: {
+                type: 'array',
+                description: 'Conseils spécifiques au document (3 à 5).',
+                items: {
+                  type: 'object',
+                  properties: {
+                    title: { type: 'string', description: 'Titre court du conseil.' },
+                    body:  { type: 'string', description: 'Explication en une phrase.' },
+                  },
+                  required: ['title', 'body'],
+                  additionalProperties: false,
+                },
+              },
+            },
+            required: ['tips'],
+            additionalProperties: false,
+          },
+        },
+      },
+    });
+    await recordClaudeUsage(req.user.id, response);
+    const textBlock = response.content.find(b => b.type === 'text');
+    const data = JSON.parse(textBlock ? textBlock.text : '{}');
+    res.json({ tips: Array.isArray(data.tips) ? data.tips.filter(t => t && t.title && t.body) : [] });
+  } catch (err) {
+    console.error('Claude doc-advice error:', err.message);
+    res.status(502).json({ error: 'L\'assistant IA est momentanément indisponible.' });
+  }
+});
+
 // ─── SaaS : consommation IA Claude de l'utilisateur (tokens + nb requêtes) ─────
 app.get('/api/saas/usage', requireAuth, async (req, res) => {
   const u = await col('saas_claude_usage').findOne(
