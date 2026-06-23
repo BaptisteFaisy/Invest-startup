@@ -232,6 +232,19 @@
     let docs    = [];
     const openState = {}; // mémorise les dossiers dépliés entre deux rendus
 
+    // Modèles juridiques disponibles : slug d'élément de roadlist -> fichier modèle.
+    // Le bouton « Modèle » n'apparaît que pour les éléments listés ici.
+    const MODELS = new Set([
+      // Phase 1 — mise en ordre juridique
+      'statuts-a-jour',
+      'table-de-capitalisation-cap-table',
+      'registre-des-mouvements-de-titres',
+      // Phase 2 — confidentialité
+      'accord-de-confidentialite-nda',
+      // Phase 3 — term sheet
+      'term-sheet-lettre-d-intention',
+    ]);
+
     function showErr(msg) { errEl.textContent = msg || ''; errEl.hidden = !msg; }
     function fmtSize(b) { if (b == null) return ''; if (b < 1024) return b + ' o'; if (b < 1048576) return Math.round(b / 1024) + ' Ko'; return (b / 1048576).toFixed(1) + ' Mo'; }
     function fmtDate(s) { try { return new Date(s).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return ''; } }
@@ -429,6 +442,18 @@
           </div>
           <div class="cli__actions"></div>`;
         const acts = li.querySelector('.cli__actions');
+
+        // 0) Modèle pré-rempli (ouvre une page complète, éditable, imprimable en PDF).
+        if (MODELS.has(slug)) {
+          const tpl = document.createElement('a');
+          tpl.className = 'fbtn fbtn--mini fbtn--accent';
+          tpl.textContent = 'Modèle';
+          tpl.title = 'Ouvrir un modèle pré-rempli, éditable';
+          tpl.target = '_blank';
+          tpl.rel = 'noopener';
+          tpl.href = 'ressources/modeles/' + slug + '.html';
+          acts.appendChild(tpl);
+        }
 
         // 1) Ajouter / Remplacer un document (ordinateur ou compte).
         const add = document.createElement('button');
