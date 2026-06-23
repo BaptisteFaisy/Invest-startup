@@ -47,13 +47,41 @@
     .folder.open .folder__body { display: block; }
     .folder__empty { font-size: 13px; color: var(--text-3); padding: 10px 6px 6px; }
 
-    /* Checklist juridique attendue dans un dossier */
-    .checklist { background: var(--bg, #f4f2ee); border: 1px dashed var(--line); border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; }
-    .checklist__title { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 8px; }
-    .checklist__list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; }
-    .checklist__item { font-size: 13px; color: var(--text-2); line-height: 1.5; display: flex; gap: 8px; align-items: flex-start; }
-    .checklist__item::before { content: '○'; color: var(--text-3); font-size: 12px; line-height: 1.6; flex: none; }
-    @media (max-width: 680px) { .checklist__list { grid-template-columns: 1fr; } }
+    /* Checklist juridique attendue dans un dossier (roadlist de documents) */
+    .checklist { background: var(--bg, #f4f2ee); border: 1px dashed var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; }
+    .checklist__title { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 10px; }
+    .checklist__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+    .cli { display: flex; align-items: center; gap: 12px; background: var(--card, #fff); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; }
+    .cli__status { flex: none; width: 18px; text-align: center; font-size: 14px; line-height: 1; }
+    .cli__status--todo { color: var(--text-3); }
+    .cli__status--done { color: var(--blue); }
+    .cli__status--final { color: #16a34a; }
+    .cli__main { flex: 1; min-width: 0; }
+    .cli__name { font-size: 13.5px; font-weight: 600; color: var(--text); }
+    .cli__badge { display: inline-block; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 7px; border-radius: 99px; margin-left: 6px; background: rgba(22,163,74,0.12); color: #16a34a; vertical-align: middle; }
+    .cli__doc { font-size: 12px; color: var(--text-2); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cli__actions { display: flex; gap: 6px; flex: none; align-items: center; }
+    .fbtn--ok { color: #16a34a; border-color: rgba(22,163,74,0.4); }
+    @media (max-width: 680px) {
+      .cli { flex-wrap: wrap; }
+      .cli__actions { width: 100%; justify-content: flex-end; }
+    }
+
+    /* Modal de sélection d'un document (ordinateur / compte) */
+    .pick { position: fixed; inset: 0; z-index: 1000; display: none; align-items: center; justify-content: center; padding: 24px; }
+    .pick.is-open { display: flex; }
+    .pick__backdrop { position: absolute; inset: 0; background: rgba(8,9,12,0.45); }
+    .pick__dialog { position: relative; width: 100%; max-width: 460px; background: var(--card, #fff); border-radius: 16px; box-shadow: 0 24px 60px rgba(8,9,12,0.28); border: 1px solid var(--line-card, rgba(8,9,12,0.06)); overflow: hidden; }
+    .pick__head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+    .pick__title { margin: 0; font: 600 16px/1.2 'Archivo', sans-serif; color: var(--text); }
+    .pick__close { border: 0; background: none; font-size: 22px; line-height: 1; cursor: pointer; color: var(--text-2); padding: 2px 6px; border-radius: 8px; }
+    .pick__body { padding: 18px 20px; }
+    .pick__section + .pick__section { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); }
+    .pick__label { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); margin-bottom: 8px; }
+    .pick__row { display: flex; gap: 8px; }
+    .pick__select { flex: 1; font-family: 'Libre Franklin', sans-serif; font-size: 13.5px; color: var(--text); background: var(--bg, #f4f2ee); border: 1px solid var(--line); border-radius: 9px; padding: 9px 10px; }
+    .pick__err { display: none; margin-top: 12px; color: #b91c1c; font-size: 13px; }
+    .pick__err.is-shown { display: block; }
 
     .files { display: flex; flex-direction: column; gap: 10px; }
     .file { display: flex; align-items: center; gap: 16px; background: var(--bg, #f4f2ee); border: 1px solid var(--line); border-radius: 12px; padding: 11px 14px; }
@@ -93,7 +121,7 @@
       </div>
       <div class="topbar__actions">
         <a href="editor.html" class="btn btn--ghost">Éditeur</a>
-        <a href="index.html" class="btn btn--ghost">← Accueil</a>
+        <a href="index.html" class="btn btn--ghost">Accueil</a>
         <button class="btn btn--ghost" id="logout-btn">Déconnexion</button>
       </div>
     </header>
@@ -107,7 +135,7 @@
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <button class="btn btn--ghost btn--lg" id="new-folder-btn">+ Nouveau dossier</button>
-          <button class="btn btn--ghost btn--lg" id="import-btn">⬆ Importer un fichier</button>
+          <button class="btn btn--ghost btn--lg" id="import-btn">Importer un fichier</button>
           <a href="editor.html" class="btn btn--primary btn--lg">+ Nouvelle term sheet</a>
         </div>
         <input type="file" id="file-input" accept=".pdf,.doc,.docx" hidden />
@@ -123,7 +151,7 @@
           <div class="feature-doc__name">Term Sheet — Lumio SAS</div>
           <div class="feature-doc__meta">Lettre d'intention · Série A · éditable dans le traitement de texte</div>
         </div>
-        <a href="editor.html" class="btn btn--light">Ouvrir l'éditeur →</a>
+        <a href="editor.html" class="btn btn--light">Ouvrir l'éditeur</a>
       </div>
 
       <!-- Dossiers juridiques de la levée (backend, par compte) -->
@@ -159,6 +187,32 @@
       </div>
     </main>
   </div>
+
+  <!-- Modal : choisir un document pour un élément de la roadlist -->
+  <div class="pick" id="pick" role="dialog" aria-modal="true" aria-labelledby="pick-title">
+    <div class="pick__backdrop" data-pick-close></div>
+    <div class="pick__dialog">
+      <div class="pick__head">
+        <h2 class="pick__title" id="pick-title">Ajouter un document</h2>
+        <button class="pick__close" type="button" data-pick-close aria-label="Fermer">&times;</button>
+      </div>
+      <div class="pick__body">
+        <div class="pick__section">
+          <div class="pick__label">Depuis mon ordinateur</div>
+          <button class="btn btn--ghost" type="button" id="pick-upload">Choisir un fichier…</button>
+        </div>
+        <div class="pick__section">
+          <div class="pick__label">Depuis mes documents</div>
+          <div class="pick__row">
+            <select class="pick__select" id="pick-select"></select>
+            <button class="btn btn--primary" type="button" id="pick-link">Lier</button>
+          </div>
+        </div>
+        <div class="pick__err" id="pick-err"></div>
+      </div>
+    </div>
+  </div>
+  <input type="file" id="pick-file" accept=".pdf,.doc,.docx,.xlsx,.xls,.png,.jpg,.jpeg" hidden />
 
   <script>
     requireAuth().then((user) => {
@@ -225,7 +279,6 @@
         card.innerHTML = `
           <div class="folder__head">
             <span class="folder__chevron">▶</span>
-            <div class="folder__ic">📁</div>
             <div class="folder__main">
               <div class="folder__name">${esc(f.name)}</div>
               <div class="folder__count">${inFolder.length} ${inFolder.length > 1 ? 'fichiers' : 'fichier'}</div>
@@ -326,7 +379,7 @@
         if (target) {
           const cv = document.createElement('button');
           cv.className = 'fbtn fbtn--accent';
-          cv.textContent = '→ ' + target.toUpperCase();
+          cv.textContent = target.toUpperCase();
           cv.title = 'Convertir en ' + target.toUpperCase();
           cv.addEventListener('click', () => convert(d.id, target, cv));
           actions.appendChild(cv);

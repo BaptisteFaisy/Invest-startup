@@ -66,12 +66,10 @@
       <div class="docmodal__body">
         <div class="docmodal__drop" id="docmodal-drop" tabindex="0" role="button"
              aria-label="Glisser un fichier ou parcourir">
-          <span class="docmodal__icon">📄</span>
           <span><strong>Glissez un fichier ici</strong> ou cliquez pour parcourir</span>
           <span class="docmodal__hint">PDF, Word, Excel ou image</span>
         </div>
         <div class="docmodal__file" id="docmodal-file">
-          <span class="docmodal__file-icon">📎</span>
           <div class="docmodal__file-meta">
             <div class="docmodal__file-name" id="docmodal-file-name"></div>
             <div class="docmodal__file-size" id="docmodal-file-size"></div>
@@ -197,7 +195,7 @@
       const r = await fetch('/api/saas/documents', { method: 'POST', credentials: 'include', body: fd });
       if (r.status === 401) { window.location.href = 'login.html'; return; }
       if (r.ok) {
-        submit.textContent = '✓ Ajouté';
+        submit.textContent = 'Ajouté';
         busy = false;
         setTimeout(closeModal, 900);
       } else {

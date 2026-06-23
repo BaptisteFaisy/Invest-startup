@@ -649,7 +649,7 @@ function renderPanel(key) {
 
   const removeCtrl = ESSENTIAL.has(key)
     ? `<span class="clause-essential">Clause essentielle</span>`
-    : `<button class="clause-remove" id="clause-remove" title="Déplacer cette clause vers la bibliothèque">✕ Retirer du contrat</button>`;
+    : `<button class="clause-remove" id="clause-remove" title="Déplacer cette clause vers la bibliothèque">Retirer du contrat</button>`;
 
   panelBody.innerHTML = `
     <div class="panel-actions">
@@ -1010,16 +1010,16 @@ async function saveTermsheet() {
     if (res.ok) {
       if (data.id) { currentDocId = data.id; history.replaceState(null, '', '?doc=' + currentDocId); }
       if (docNameEl) docNameEl.textContent = name;
-      if (btn) btn.textContent = '✓ Enregistré';
+      if (btn) btn.textContent = 'Enregistré';
     } else if (res.status === 401) {
       window.location.href = 'login.html';
     } else {
-      if (btn) btn.textContent = '✕ Échec';
+      if (btn) btn.textContent = 'Échec';
     }
   } catch {
-    if (btn) btn.textContent = '✕ Erreur réseau';
+    if (btn) btn.textContent = 'Erreur réseau';
   } finally {
-    if (btn) setTimeout(() => { btn.disabled = false; btn.textContent = label || '💾 Enregistrer'; }, 1600);
+    if (btn) setTimeout(() => { btn.disabled = false; btn.textContent = label || 'Enregistrer'; }, 1600);
   }
 }
 
@@ -1127,12 +1127,12 @@ function applyEdits(key, edits, btn) {
   if (applied) {
     content.innerHTML = html;
     if (EXPLAIN[key]) EXPLAIN[key].html = html;
-    btn.textContent = `✓ Modification appliquée${applied > 1 ? ` (${applied})` : ''}`;
+    btn.textContent = `Modification appliquée${applied > 1 ? ` (${applied})` : ''}`;
     btn.disabled = true;
     countWords();
     if (key === activeKey) refreshSimple(key); // la clause a changé → on réactualise sa bulle
   } else {
-    btn.textContent = '✕ Extrait introuvable — non appliqué';
+    btn.textContent = 'Extrait introuvable — non appliqué';
     btn.disabled = true;
   }
 }
@@ -1142,7 +1142,7 @@ function applyUpdatedClause(key, html, btn) {
   if (!content) return;
   content.innerHTML = html;
   if (EXPLAIN[key]) EXPLAIN[key].html = html; // garde le modèle cohérent
-  btn.textContent = '✓ Clause réécrite';
+  btn.textContent = 'Clause réécrite';
   btn.disabled = true;
   countWords();
   if (key === activeKey) refreshSimple(key); // la clause a changé → on réactualise sa bulle
@@ -1253,9 +1253,9 @@ async function sendMessage(apiText, displayText = apiText) {
     if (active) addBubble('bot', reply);
 
     if (active && data.edits && data.edits.length) {
-      addApplyButton('✦ Appliquer la modification', btn => applyEdits(key, data.edits, btn));
+      addApplyButton('Appliquer la modification', btn => applyEdits(key, data.edits, btn));
     } else if (active && data.updatedClause) {
-      addApplyButton('✦ Réécrire toute la clause', btn => applyUpdatedClause(key, data.updatedClause, btn));
+      addApplyButton('Réécrire toute la clause', btn => applyUpdatedClause(key, data.updatedClause, btn));
     }
   } catch {
     thinking.remove();
@@ -1275,7 +1275,7 @@ chatForm.addEventListener('submit', (e) => {
 
 // Bouton « Expliquer la clause » : envoie un prompt d'explication à Claude.
 const chatExplain = document.getElementById('chat-explain');
-chatExplain.addEventListener('click', () => sendMessage(EXPLAIN_PROMPT, '✦ Explique-moi cette clause'));
+chatExplain.addEventListener('click', () => sendMessage(EXPLAIN_PROMPT, 'Explique-moi cette clause'));
 
 /* ---------- 8. Bibliothèque de clauses + ajout / retrait dynamique ---------- */
 const libraryList  = document.getElementById('library-list');
@@ -1463,7 +1463,7 @@ function renderAdvice() {
       </div>
       <div class="advitem__label">${c.label}</div>
       <p class="advitem__watch">${c.watch}</p>
-      <button class="advitem__go" data-go="${c.key}" type="button">Voir la clause →</button>
+      <button class="advitem__go" data-go="${c.key}" type="button">Voir la clause</button>
     </div>`;
   }).join('');
 }
@@ -2202,7 +2202,7 @@ function renderCondTemplates(key) {
       + `<p class="cond-tpl__preview">${tpl.preview}</p>`
       + (COND_SIMPLE[tpl.id] ? `<p class="cond-tpl__simple">${COND_SIMPLE[tpl.id]}</p>` : '')
       + (added
-          ? `<span class="cond-tpl__done">✓ Insérée — modifiable dans le document</span>`
+          ? `<span class="cond-tpl__done">Insérée — modifiable dans le document</span>`
           : `<button class="cond-tpl__add" data-add-tpl="${tpl.id}" data-add-key="${key}">+ Insérer dans la clause</button>`)
       + `</div>`;
   }).join('');
