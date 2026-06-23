@@ -781,6 +781,93 @@ app.get('/api/saas/usage', requireAuth, async (req, res) => {
   });
 });
 
+// ─── SaaS : dossiers de levée de fonds (par utilisateur, en base) ─────────────
+// Chaque utilisateur dispose de dossiers liés à son compte. À la première visite,
+// on initialise automatiquement les phases standard d'une levée de fonds.
+const FUNDRAISING_PHASES = [
+  'Préparation',
+  'Ciblage des investisseurs',
+  'Prise de contact & pitch',
+  'Due diligence',
+  'Négociation & term sheet',
+  'Closing',
+  'Post-investissement',
+];
+
+function publicFolder(f) {
+  const { _id, user_id, ...rest } = f;
+  return rest;
+}
+
+// Crée les dossiers de phases par défaut si l'utilisateur n'en a aucun.
+async function ensureUserFolders(userId) {
+  if (await col('saas_folders').countDocuments({ user_id: userId }) > 0) return;
+  const firstId = await nextId('saas_folders');
+  const now     = new Date().toISOString();
+  const folders = FUNDRAISING_PHASES.map((name, i) => ({
+    id: firstId + i, user_id: userId, name, order: i, system: true, created_at: now,
+  }));
+  await col('saas_folders').insertMany(folders);
+}
+
+app.get('/api/saas/folders', requireAuth, async (req, res) => {
+  await ensureUserFolders(req.user.id);
+  const folders = await col('saas_folders')
+    .find({ user_id: req.user.id }, { projection: { _id: 0, user_id: 0 } })
+    .sort({ order: 1, id: 1 })
+    .toArray();
+  res.json({ folders });
+});
+
+app.post('/api/saas/folders', requireAuth, async (req, res) => {
+  const name = (req.body?.name || '').trim();
+  if (!name) return res.status(400).json({ error: 'Nom du dossier requis' });
+  await ensureUserFolders(req.user.id);
+  const last   = await col('saas_folders').findOne({ user_id: req.user.id }, { sort: { order: -1 }, projection: { order: 1 } });
+  const id     = await nextId('saas_folders');
+  const folder = { id, user_id: req.user.id, name, order: (last?.order ?? -1) + 1, system: false, created_at: new Date().toISOString() };
+  await col('saas_folders').insertOne(folder);
+  res.status(201).json({ folder: publicFolder(folder) });
+});
+
+app.put('/api/saas/folders/:id', requireAuth, async (req, res) => {
+  const id   = Number(req.params.id);
+  const name = (req.body?.name || '').trim();
+  if (!name) return res.status(400).json({ error: 'Nom du dossier requis' });
+  const folder = await col('saas_folders').findOne({ id, user_id: req.user.id });
+  if (!folder) return res.status(404).json({ error: 'Dossier introuvable' });
+  await col('saas_folders').updateOne({ id, user_id: req.user.id }, { $set: { name } });
+  res.json({ success: true });
+});
+
+app.delete('/api/saas/folders/:id', requireAuth, async (req, res) => {
+  const id     = Number(req.params.id);
+  const folder = await col('saas_folders').findOne({ id, user_id: req.user.id });
+  if (!folder) return res.status(404).json({ error: 'Dossier introuvable' });
+  await col('saas_folders').deleteOne({ id, user_id: req.user.id });
+  // Les documents qui étaient classés ici redeviennent « non classés ».
+  await col('saas_documents').updateMany({ user_id: req.user.id, folder_id: id }, { $unset: { folder_id: '' } });
+  res.json({ success: true });
+});
+
+// Range (ou retire) un document dans un dossier.
+app.put('/api/saas/documents/:id/folder', requireAuth, async (req, res) => {
+  const id  = Number(req.params.id);
+  const raw = req.body?.folder_id;
+  const doc = await col('saas_documents').findOne({ id, user_id: req.user.id });
+  if (!doc) return res.status(404).json({ error: 'Document introuvable' });
+
+  if (raw === null || raw === '' || raw === undefined) {
+    await col('saas_documents').updateOne({ id, user_id: req.user.id }, { $unset: { folder_id: '' } });
+  } else {
+    const folderId = Number(raw);
+    if (!(await col('saas_folders').findOne({ id: folderId, user_id: req.user.id })))
+      return res.status(404).json({ error: 'Dossier introuvable' });
+    await col('saas_documents').updateOne({ id, user_id: req.user.id }, { $set: { folder_id: folderId } });
+  }
+  res.json({ success: true });
+});
+
 // ─── SaaS : stockage de documents (par utilisateur) ───────────────────────────
 function publicDoc(d) {
   const { _id, filename, user_id, ...rest } = d; // on masque le nom de fichier interne
@@ -845,6 +932,11 @@ app.post('/api/saas/documents', requireAuth, upload.single('file'), async (req, 
     mimetype: req.file.mimetype, size: req.file.size,
     created_at: new Date().toISOString(),
   };
+  // Rangement direct dans un dossier de l'utilisateur si fourni.
+  if (req.body.folder_id) {
+    const folderId = Number(req.body.folder_id);
+    if (await col('saas_folders').findOne({ id: folderId, user_id: req.user.id })) doc.folder_id = folderId;
+  }
   await col('saas_documents').insertOne(doc);
   res.status(201).json({ document: publicDoc(doc) });
 });

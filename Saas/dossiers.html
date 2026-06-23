@@ -30,19 +30,36 @@
     .feature-doc__name { font-weight: 700; font-size: 17px; letter-spacing: -0.01em; }
     .feature-doc__meta { font-family: 'Archivo', sans-serif; font-size: 13px; color: var(--on-dark-mut); margin-top: 4px; }
 
+    /* Dossiers (phases de levée) */
+    .folder { background: var(--card); border: 1px solid var(--line); border-radius: 14px; margin-bottom: 12px; overflow: hidden; }
+    .folder__head { display: flex; align-items: center; gap: 14px; padding: 15px 18px; cursor: pointer; }
+    .folder__chevron { font-size: 12px; color: var(--text-3); transition: transform .15s; flex: none; width: 14px; }
+    .folder.open .folder__chevron { transform: rotate(90deg); }
+    .folder__ic { width: 38px; height: 38px; flex: none; display: grid; place-items: center; border-radius: 10px; background: #eef0ff; font-size: 18px; }
+    .folder__main { flex: 1; min-width: 0; }
+    .folder__name { font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
+    .folder__count { font-family: 'Archivo', sans-serif; font-size: 12.5px; color: var(--text-2); margin-top: 2px; }
+    .folder__actions { display: flex; gap: 8px; flex: none; }
+    .folder__body { display: none; padding: 4px 14px 16px; }
+    .folder.open .folder__body { display: block; }
+    .folder__empty { font-size: 13px; color: var(--text-3); padding: 10px 6px 6px; }
+
     .files { display: flex; flex-direction: column; gap: 10px; }
-    .file { display: flex; align-items: center; gap: 16px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 13px 18px; }
-    .file__ic { width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: 10px; background: #eef0ff; font-size: 18px; }
+    .file { display: flex; align-items: center; gap: 16px; background: var(--bg, #f4f2ee); border: 1px solid var(--line); border-radius: 12px; padding: 11px 14px; }
+    .file__ic { width: 36px; height: 36px; flex: none; display: grid; place-items: center; border-radius: 9px; background: #eef0ff; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; }
     .file__ic--pdf { background: #fdecec; }
     .file__ic--docx { background: #e8effd; }
+    .file__ic--ts { background: #e7f7f1; }
     .file__main { flex: 1; min-width: 0; }
-    .file__name { font-weight: 700; font-size: 14.5px; letter-spacing: -0.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .file__meta { font-family: 'Archivo', sans-serif; font-size: 12.5px; color: var(--text-2); margin-top: 3px; }
-    .file__actions { display: flex; gap: 8px; flex: none; }
+    .file__name { font-weight: 700; font-size: 14px; letter-spacing: -0.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file__meta { font-family: 'Archivo', sans-serif; font-size: 12px; color: var(--text-2); margin-top: 3px; }
+    .file__actions { display: flex; gap: 8px; flex: none; align-items: center; }
     .fbtn { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; color: var(--text); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; cursor: pointer; white-space: nowrap; text-decoration: none; }
     .fbtn:hover { border-color: var(--text); }
     .fbtn--accent { color: var(--dark); border-color: rgba(8,9,12,0.35); }
     .fbtn--del { color: #dc2626; border-color: rgba(220,38,38,0.3); }
+    .fbtn--mini { padding: 5px 9px; font-size: 12px; }
+    .fselect { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; color: var(--text); background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; cursor: pointer; max-width: 160px; }
 
     .empty { font-size: 14px; color: var(--text-3); text-align: center; padding: 26px; background: var(--card); border: 1px dashed var(--line); border-radius: 12px; line-height: 1.6; }
     .err { font-size: 13px; color: #dc2626; background: rgba(220,38,38,0.06); border: 1px solid rgba(220,38,38,0.2); border-radius: 10px; padding: 10px 14px; margin-top: 12px; }
@@ -50,6 +67,7 @@
     @media (max-width: 680px) {
       .file__actions .fbtn { padding: 7px 9px; }
       .file__meta { display: none; }
+      .fselect { max-width: 120px; }
     }
   </style>
   <script src="auth.js"></script>
@@ -74,9 +92,10 @@
         <div>
           <div class="dossiers__eyebrow">Dossiers</div>
           <h1 class="dossiers__title">Mes documents</h1>
-          <p class="dossiers__sub">Vos term sheets, modèles et fichiers importés, au même endroit.</p>
+          <p class="dossiers__sub">Vos documents classés par phase de levée de fonds — liés à votre compte.</p>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn--ghost btn--lg" id="new-folder-btn">+ Nouveau dossier</button>
           <button class="btn btn--ghost btn--lg" id="import-btn">⬆ Importer un fichier</button>
           <a href="editor.html" class="btn btn--primary btn--lg">+ Nouvelle term sheet</a>
         </div>
@@ -96,18 +115,18 @@
         <a href="editor.html" class="btn btn--light">Ouvrir l'éditeur →</a>
       </div>
 
-      <!-- Fichiers importés (backend) -->
+      <!-- Dossiers de la levée de fonds (backend, par compte) -->
       <div class="section-label">
-        <span>Mes fichiers</span>
-        <span style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--text-3)">PDF · DOCX — conversion incluse</span>
+        <span>Phases de la levée</span>
+        <span style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--text-3)">Classez vos fichiers par étape</span>
       </div>
-      <div class="files" id="files"></div>
+      <div id="folders"></div>
 
       <!-- Modèles fournis -->
       <div class="section-label">Modèles juridiques</div>
       <div class="files">
         <div class="file">
-          <div class="file__ic file__ic--pdf">📄</div>
+          <div class="file__ic file__ic--pdf">PDF</div>
           <div class="file__main">
             <div class="file__name">Modèle de NDA (accord de confidentialité)</div>
             <div class="file__meta">Modèle · PDF</div>
@@ -117,7 +136,7 @@
           </div>
         </div>
         <div class="file">
-          <div class="file__ic file__ic--pdf">📄</div>
+          <div class="file__ic file__ic--pdf">PDF</div>
           <div class="file__main">
             <div class="file__name">Checklist — Pacte d'associés</div>
             <div class="file__meta">Modèle · PDF</div>
@@ -134,14 +153,19 @@
     requireAuth().then((user) => {
       if (!user) return;
       document.querySelector('.app').classList.add('ready');
-      loadFiles();
+      load();
     });
     document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); logout(); });
 
-    const filesEl = document.getElementById('files');
-    const errEl   = document.getElementById('error');
+    const foldersEl = document.getElementById('folders');
+    const errEl     = document.getElementById('error');
     const fileInput = document.getElementById('file-input');
     document.getElementById('import-btn').addEventListener('click', () => fileInput.click());
+    document.getElementById('new-folder-btn').addEventListener('click', createFolder);
+
+    let folders = [];
+    let docs    = [];
+    const openState = {}; // mémorise les dossiers dépliés entre deux rendus
 
     function showErr(msg) { errEl.textContent = msg || ''; errEl.hidden = !msg; }
     function fmtSize(b) { if (b == null) return ''; if (b < 1024) return b + ' o'; if (b < 1048576) return Math.round(b / 1024) + ' Ko'; return (b / 1048576).toFixed(1) + ' Mo'; }
@@ -149,79 +173,211 @@
     function ext(name) { const m = /\.([a-z0-9]+)$/i.exec(name || ''); return m ? m[1].toLowerCase() : ''; }
     function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
-    async function loadFiles() {
+    async function load() {
       showErr('');
-      filesEl.innerHTML = '<p class="empty">Chargement…</p>';
+      foldersEl.innerHTML = '<p class="empty">Chargement…</p>';
       try {
-        const r = await fetch('/api/saas/documents', { credentials: 'include' });
-        if (r.status === 401) { window.location.href = 'login.html'; return; }
-        const data = await r.json();
-        renderFiles(data.documents || []);
+        const [fr, dr] = await Promise.all([
+          fetch('/api/saas/folders',   { credentials: 'include' }),
+          fetch('/api/saas/documents', { credentials: 'include' }),
+        ]);
+        if (fr.status === 401 || dr.status === 401) { window.location.href = 'login.html'; return; }
+        folders = (await fr.json()).folders || [];
+        docs    = (await dr.json()).documents || [];
+        render();
       } catch {
-        filesEl.innerHTML = '';
-        showErr('Impossible de charger vos documents.');
+        foldersEl.innerHTML = '';
+        showErr('Impossible de charger vos dossiers.');
       }
     }
 
-    function renderFiles(docs) {
-      if (!docs.length) {
-        filesEl.innerHTML = '<p class="empty">Aucun fichier importé pour le moment.<br />Importez un PDF ou un DOCX — vous pourrez le convertir et le télécharger.</p>';
+    function render() {
+      foldersEl.innerHTML = '';
+      // Un « dossier virtuel » pour les fichiers non classés.
+      const buckets = folders.map(f => ({ ...f, virtual: false }));
+      const unfiled = docs.filter(d => d.folder_id == null);
+      if (unfiled.length) buckets.push({ id: null, name: 'Non classés', system: true, virtual: true });
+
+      if (!buckets.length) {
+        foldersEl.innerHTML = '<p class="empty">Aucun dossier pour le moment.</p>';
         return;
       }
-      filesEl.innerHTML = '';
-      docs.forEach(d => {
-        const isTermsheet = d.kind === 'termsheet';
-        const e = isTermsheet ? 'ts' : ext(d.originalname || d.name);
-        const target = isTermsheet ? null
-          : e === 'pdf' ? 'docx' : (e === 'docx' || e === 'doc') ? 'pdf' : null;
-        const icClass = isTermsheet ? 'file__ic--ts' : e === 'pdf' ? 'file__ic--pdf' : (e === 'docx' || e === 'doc') ? 'file__ic--docx' : '';
-        const meta = isTermsheet
-          ? `Term sheet en cours · ${fmtSize(d.size)} · ${fmtDate(d.updated_at || d.created_at)}`
-          : `${fmtSize(d.size)} · ${fmtDate(d.created_at)}${d.converted_from ? ' · converti' : ''}`;
 
-        const row = document.createElement('div');
-        row.className = 'file';
-        row.innerHTML = `
-          <div class="file__ic ${icClass}">${isTermsheet ? 'TS' : (e || 'file').toUpperCase().slice(0,4)}</div>
-          <div class="file__main">
-            <div class="file__name" title="${esc(d.name)}">${esc(d.name)}</div>
-            <div class="file__meta">${meta}</div>
+      buckets.forEach(f => {
+        const inFolder = docs.filter(d => (f.id == null ? d.folder_id == null : d.folder_id === f.id));
+        const key = String(f.id);
+        const isOpen = openState[key] ?? (inFolder.length > 0);
+
+        const card = document.createElement('div');
+        card.className = 'folder' + (isOpen ? ' open' : '');
+        card.innerHTML = `
+          <div class="folder__head">
+            <span class="folder__chevron">▶</span>
+            <div class="folder__ic">📁</div>
+            <div class="folder__main">
+              <div class="folder__name">${esc(f.name)}</div>
+              <div class="folder__count">${inFolder.length} ${inFolder.length > 1 ? 'fichiers' : 'fichier'}</div>
+            </div>
+            <div class="folder__actions"></div>
           </div>
-          <div class="file__actions"></div>`;
-        const actions = row.querySelector('.file__actions');
+          <div class="folder__body"></div>`;
 
-        if (isTermsheet) {
-          const open = document.createElement('a');
-          open.className = 'fbtn fbtn--accent';
-          open.textContent = 'Ouvrir';
-          open.href = 'editor.html?doc=' + d.id;
-          actions.appendChild(open);
-        } else {
-          if (target) {
-            const cv = document.createElement('button');
-            cv.className = 'fbtn fbtn--accent';
-            cv.textContent = '→ ' + target.toUpperCase();
-            cv.title = 'Convertir en ' + target.toUpperCase();
-            cv.addEventListener('click', () => convert(d.id, target, cv));
-            actions.appendChild(cv);
-          }
-          const dl = document.createElement('a');
-          dl.className = 'fbtn';
-          dl.textContent = 'Télécharger';
-          dl.href = '/api/saas/documents/' + d.id + '/download';
-          actions.appendChild(dl);
+        const head    = card.querySelector('.folder__head');
+        const actions = card.querySelector('.folder__actions');
+        const body    = card.querySelector('.folder__body');
+
+        head.addEventListener('click', () => {
+          const nowOpen = !card.classList.contains('open');
+          card.classList.toggle('open', nowOpen);
+          openState[key] = nowOpen;
+        });
+
+        // Renommer / supprimer : uniquement pour les dossiers créés par l'utilisateur.
+        if (!f.virtual && !f.system) {
+          const ren = document.createElement('button');
+          ren.className = 'fbtn fbtn--mini';
+          ren.textContent = 'Renommer';
+          ren.addEventListener('click', (e) => { e.stopPropagation(); renameFolder(f); });
+          actions.appendChild(ren);
+
+          const del = document.createElement('button');
+          del.className = 'fbtn fbtn--mini fbtn--del';
+          del.textContent = 'Suppr.';
+          del.addEventListener('click', (e) => { e.stopPropagation(); deleteFolder(f); });
+          actions.appendChild(del);
         }
 
-        const del = document.createElement('button');
-        del.className = 'fbtn fbtn--del';
-        del.textContent = 'Suppr.';
-        del.addEventListener('click', () => remove(d.id, del));
-        actions.appendChild(del);
+        if (!inFolder.length) {
+          body.innerHTML = '<div class="folder__empty">Aucun fichier dans ce dossier.</div>';
+        } else {
+          const list = document.createElement('div');
+          list.className = 'files';
+          inFolder
+            .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))
+            .forEach(d => list.appendChild(fileRow(d)));
+          body.appendChild(list);
+        }
 
-        filesEl.appendChild(row);
+        foldersEl.appendChild(card);
       });
     }
 
+    function fileRow(d) {
+      const isTermsheet = d.kind === 'termsheet';
+      const e = isTermsheet ? 'ts' : ext(d.originalname || d.name);
+      const target = isTermsheet ? null
+        : e === 'pdf' ? 'docx' : (e === 'docx' || e === 'doc') ? 'pdf' : null;
+      const icClass = isTermsheet ? 'file__ic--ts' : e === 'pdf' ? 'file__ic--pdf' : (e === 'docx' || e === 'doc') ? 'file__ic--docx' : '';
+      const meta = isTermsheet
+        ? `Term sheet en cours · ${fmtSize(d.size)} · ${fmtDate(d.updated_at || d.created_at)}`
+        : `${fmtSize(d.size)} · ${fmtDate(d.created_at)}${d.converted_from ? ' · converti' : ''}`;
+
+      const row = document.createElement('div');
+      row.className = 'file';
+      row.innerHTML = `
+        <div class="file__ic ${icClass}">${isTermsheet ? 'TS' : (e || 'file').toUpperCase().slice(0,4)}</div>
+        <div class="file__main">
+          <div class="file__name" title="${esc(d.name)}">${esc(d.name)}</div>
+          <div class="file__meta">${meta}</div>
+        </div>
+        <div class="file__actions"></div>`;
+      const actions = row.querySelector('.file__actions');
+
+      // Sélecteur de dossier (déplacer le fichier d'une phase à l'autre).
+      const sel = document.createElement('select');
+      sel.className = 'fselect';
+      sel.title = 'Déplacer vers un dossier';
+      sel.innerHTML = '<option value="">Non classé</option>' +
+        folders.map(f => `<option value="${f.id}">${esc(f.name)}</option>`).join('');
+      sel.value = d.folder_id == null ? '' : String(d.folder_id);
+      sel.addEventListener('change', () => moveDoc(d.id, sel.value));
+      actions.appendChild(sel);
+
+      if (isTermsheet) {
+        const open = document.createElement('a');
+        open.className = 'fbtn fbtn--accent';
+        open.textContent = 'Ouvrir';
+        open.href = 'editor.html?doc=' + d.id;
+        actions.appendChild(open);
+      } else {
+        if (target) {
+          const cv = document.createElement('button');
+          cv.className = 'fbtn fbtn--accent';
+          cv.textContent = '→ ' + target.toUpperCase();
+          cv.title = 'Convertir en ' + target.toUpperCase();
+          cv.addEventListener('click', () => convert(d.id, target, cv));
+          actions.appendChild(cv);
+        }
+        const dl = document.createElement('a');
+        dl.className = 'fbtn';
+        dl.textContent = 'Télécharger';
+        dl.href = '/api/saas/documents/' + d.id + '/download';
+        actions.appendChild(dl);
+      }
+
+      const del = document.createElement('button');
+      del.className = 'fbtn fbtn--del';
+      del.textContent = 'Suppr.';
+      del.addEventListener('click', () => remove(d.id, del));
+      actions.appendChild(del);
+
+      return row;
+    }
+
+    // ---- Actions dossiers ----
+    async function createFolder() {
+      const name = (prompt('Nom du nouveau dossier :') || '').trim();
+      if (!name) return;
+      showErr('');
+      try {
+        const r = await fetch('/api/saas/folders', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', body: JSON.stringify({ name }),
+        });
+        if (!r.ok) { const d = await r.json().catch(() => ({})); showErr(d.error || 'Création échouée.'); return; }
+        const created = (await r.json()).folder;
+        if (created) openState[String(created.id)] = true;
+        load();
+      } catch { showErr('Impossible de joindre le serveur.'); }
+    }
+
+    async function renameFolder(f) {
+      const name = (prompt('Renommer le dossier :', f.name) || '').trim();
+      if (!name || name === f.name) return;
+      showErr('');
+      try {
+        const r = await fetch('/api/saas/folders/' + f.id, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', body: JSON.stringify({ name }),
+        });
+        if (!r.ok) { const d = await r.json().catch(() => ({})); showErr(d.error || 'Renommage échoué.'); return; }
+        load();
+      } catch { showErr('Impossible de joindre le serveur.'); }
+    }
+
+    async function deleteFolder(f) {
+      if (!confirm(`Supprimer le dossier « ${f.name} » ? Les fichiers qu'il contient redeviendront « non classés ».`)) return;
+      showErr('');
+      try {
+        const r = await fetch('/api/saas/folders/' + f.id, { method: 'DELETE', credentials: 'include' });
+        if (!r.ok) { const d = await r.json().catch(() => ({})); showErr(d.error || 'Suppression échouée.'); return; }
+        load();
+      } catch { showErr('Impossible de joindre le serveur.'); }
+    }
+
+    async function moveDoc(id, folderId) {
+      showErr('');
+      try {
+        const r = await fetch('/api/saas/documents/' + id + '/folder', {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', body: JSON.stringify({ folder_id: folderId || null }),
+        });
+        if (!r.ok) { const d = await r.json().catch(() => ({})); showErr(d.error || 'Déplacement échoué.'); return; }
+        load();
+      } catch { showErr('Impossible de joindre le serveur.'); }
+    }
+
+    // ---- Actions fichiers ----
     async function convert(id, to, btnEl) {
       showErr('');
       const old = btnEl.textContent;
@@ -233,7 +389,7 @@
         });
         const data = await r.json();
         if (!r.ok) { showErr(data.error || 'Conversion échouée.'); btnEl.disabled = false; btnEl.textContent = old; return; }
-        loadFiles();
+        load();
       } catch {
         showErr('Impossible de joindre le serveur.');
         btnEl.disabled = false; btnEl.textContent = old;
@@ -245,7 +401,7 @@
       try {
         const r = await fetch('/api/saas/documents/' + id, { method: 'DELETE', credentials: 'include' });
         if (!r.ok) { const d = await r.json().catch(() => ({})); showErr(d.error || 'Suppression échouée.'); btnEl.disabled = false; return; }
-        loadFiles();
+        load();
       } catch {
         showErr('Impossible de joindre le serveur.');
         btnEl.disabled = false;
@@ -258,7 +414,6 @@
       showErr('');
       const fd = new FormData();
       fd.append('file', f);
-      filesEl.insertAdjacentHTML('afterbegin', '<p class="empty">Import en cours…</p>');
       try {
         const r = await fetch('/api/saas/documents', { method: 'POST', credentials: 'include', body: fd });
         const data = await r.json().catch(() => ({}));
@@ -267,7 +422,7 @@
         showErr('Impossible de joindre le serveur.');
       }
       fileInput.value = '';
-      loadFiles();
+      load();
     });
   </script>
 </body>
