@@ -970,6 +970,47 @@ app.put('/api/saas/documents/:id/folder', requireAuth, async (req, res) => {
   res.json({ success: true });
 });
 
+// Lier un document à un élément de la checklist d'un dossier, et/ou marquer cet
+// élément comme « document final » (validé). L'état est conservé dans
+// `items_state` (carte slug -> { document_id, final }) sur le dossier lui-même ;
+// la synchronisation des dossiers système ne touche pas ce champ.
+app.put('/api/saas/folders/:id/checklist', requireAuth, async (req, res) => {
+  const id   = Number(req.params.id);
+  const slug = (req.body?.slug ?? '').toString().trim();
+  if (!slug) return res.status(400).json({ error: 'Élément de checklist requis' });
+
+  const folder = await col('saas_folders').findOne({ id, user_id: req.user.id });
+  if (!folder) return res.status(404).json({ error: 'Dossier introuvable' });
+
+  const state = { ...(folder.items_state || {}) };
+  const cur   = { ...(state[slug] || {}) };
+
+  // Lien vers un document (ou retrait si null/'').
+  if ('document_id' in (req.body || {})) {
+    const raw = req.body.document_id;
+    if (raw === null || raw === '' || raw === undefined) {
+      delete cur.document_id;
+      cur.final = false;
+    } else {
+      const docId = Number(raw);
+      const doc   = await col('saas_documents').findOne({ id: docId, user_id: req.user.id });
+      if (!doc) return res.status(404).json({ error: 'Document introuvable' });
+      cur.document_id = docId;
+      // Le document fourni est rangé dans la phase concernée.
+      await col('saas_documents').updateOne({ id: docId, user_id: req.user.id }, { $set: { folder_id: id } });
+    }
+  }
+
+  // Validation « document final ».
+  if ('final' in (req.body || {})) cur.final = !!req.body.final;
+
+  if (cur.document_id == null && !cur.final) delete state[slug];
+  else state[slug] = cur;
+
+  await col('saas_folders').updateOne({ id, user_id: req.user.id }, { $set: { items_state: state } });
+  res.json({ success: true, items_state: state });
+});
+
 // ─── SaaS : stockage de documents (par utilisateur) ───────────────────────────
 function publicDoc(d) {
   const { _id, filename, user_id, ...rest } = d; // on masque le nom de fichier interne

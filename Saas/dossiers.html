@@ -312,15 +312,9 @@
           actions.appendChild(del);
         }
 
-        // Checklist des documents juridiques attendus à cette phase.
+        // Roadlist : documents juridiques attendus à cette phase, avec actions.
         if (Array.isArray(f.checklist) && f.checklist.length) {
-          const cl = document.createElement('div');
-          cl.className = 'checklist';
-          cl.innerHTML = '<div class="checklist__title">Documents juridiques attendus</div>' +
-            '<ul class="checklist__list">' +
-            f.checklist.map(item => `<li class="checklist__item">${esc(item)}</li>`).join('') +
-            '</ul>';
-          body.appendChild(cl);
+          body.appendChild(checklistEl(f));
         }
 
         if (!inFolder.length) {
@@ -398,6 +392,164 @@
       actions.appendChild(del);
 
       return row;
+    }
+
+    // ---- Roadlist : documents attendus par phase ----
+    // Identifiant stable d'un élément de checklist (résiste au réordonnancement).
+    function slugify(s) {
+      return String(s).toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    }
+
+    function checklistEl(f) {
+      const wrap = document.createElement('div');
+      wrap.className = 'checklist';
+      wrap.innerHTML = '<div class="checklist__title">Documents juridiques attendus</div>';
+      const ul = document.createElement('ul');
+      ul.className = 'checklist__list';
+      const state = f.items_state || {};
+
+      f.checklist.forEach(item => {
+        const slug   = slugify(item);
+        const st     = state[slug] || {};
+        const doc    = st.document_id != null ? docs.find(d => d.id === st.document_id) : null;
+        const linked = !!doc;
+        const final  = linked && !!st.final;
+
+        const li = document.createElement('li');
+        li.className = 'cli';
+        const icon    = final ? '●' : linked ? '◐' : '○';
+        const iconCls = final ? 'final' : linked ? 'done' : 'todo';
+        li.innerHTML = `
+          <span class="cli__status cli__status--${iconCls}" aria-hidden="true">${icon}</span>
+          <div class="cli__main">
+            <div class="cli__name">${esc(item)}${final ? '<span class="cli__badge">Final</span>' : ''}</div>
+            ${linked ? `<div class="cli__doc" title="${esc(doc.name)}">${esc(doc.name)}</div>` : ''}
+          </div>
+          <div class="cli__actions"></div>`;
+        const acts = li.querySelector('.cli__actions');
+
+        // 1) Ajouter / Remplacer un document (ordinateur ou compte).
+        const add = document.createElement('button');
+        add.className = 'fbtn fbtn--mini';
+        add.textContent = linked ? 'Remplacer' : 'Ajouter';
+        add.addEventListener('click', () => openPicker(f.id, slug, item));
+        acts.appendChild(add);
+
+        if (linked) {
+          // 2) Valider le « document final ».
+          const val = document.createElement('button');
+          val.className = 'fbtn fbtn--mini' + (final ? ' fbtn--ok' : '');
+          val.textContent = final ? '✓ Final' : 'Valider';
+          val.title = final ? 'Retirer la validation' : 'Marquer comme document final';
+          val.addEventListener('click', () => setFinal(f.id, slug, !final));
+          acts.appendChild(val);
+
+          // 3) Éditer (term sheet : éditeur ; fichier importé : télécharger).
+          const ed = document.createElement('a');
+          ed.className = 'fbtn fbtn--mini fbtn--accent';
+          ed.textContent = 'Éditer';
+          if (doc.kind === 'termsheet') {
+            ed.href = 'editor.html?doc=' + doc.id;
+          } else {
+            ed.href = '/api/saas/documents/' + doc.id + '/download';
+            ed.title = 'Télécharger pour éditer (document importé)';
+          }
+          acts.appendChild(ed);
+
+          // Détacher le document de cet élément.
+          const un = document.createElement('button');
+          un.className = 'fbtn fbtn--mini';
+          un.textContent = '✕';
+          un.title = 'Détacher ce document';
+          un.addEventListener('click', () => linkDoc(f.id, slug, null));
+          acts.appendChild(un);
+        }
+
+        ul.appendChild(li);
+      });
+
+      wrap.appendChild(ul);
+      return wrap;
+    }
+
+    // ---- Picker : choisir un document (ordinateur / compte) ----
+    const pick       = document.getElementById('pick');
+    const pickSelect = document.getElementById('pick-select');
+    const pickErr    = document.getElementById('pick-err');
+    const pickFile   = document.getElementById('pick-file');
+    const pickTitle  = document.getElementById('pick-title');
+    let pickCtx = null; // { folderId, slug }
+
+    function openPicker(folderId, slug, label) {
+      pickCtx = { folderId, slug };
+      pickTitle.textContent = 'Ajouter — ' + label;
+      pickErr.classList.remove('is-shown'); pickErr.textContent = '';
+      const opts = docs.map(d => `<option value="${d.id}">${esc(d.name)}</option>`).join('');
+      pickSelect.innerHTML = opts || '<option value="">Aucun document enregistré</option>';
+      pickSelect.disabled = !opts;
+      pick.classList.add('is-open');
+    }
+    function closePicker() { pick.classList.remove('is-open'); pickCtx = null; }
+    function pickShowErr(m) { pickErr.textContent = m; pickErr.classList.add('is-shown'); }
+
+    pick.addEventListener('click', (e) => { if (e.target.hasAttribute('data-pick-close')) closePicker(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && pick.classList.contains('is-open')) closePicker(); });
+
+    // Depuis le compte : lier le document sélectionné.
+    document.getElementById('pick-link').addEventListener('click', async () => {
+      if (!pickCtx) return;
+      const docId = pickSelect.value;
+      if (!docId) { pickShowErr('Choisissez un document.'); return; }
+      const ctx = pickCtx;
+      const ok = await linkDoc(ctx.folderId, ctx.slug, Number(docId));
+      if (ok) closePicker();
+    });
+
+    // Depuis l'ordinateur : téléverser dans la phase puis lier.
+    document.getElementById('pick-upload').addEventListener('click', () => pickFile.click());
+    pickFile.addEventListener('change', async () => {
+      const file = pickFile.files && pickFile.files[0];
+      if (!file || !pickCtx) { pickFile.value = ''; return; }
+      const ctx = pickCtx;
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('folder_id', String(ctx.folderId));
+      try {
+        const r = await fetch('/api/saas/documents', { method: 'POST', credentials: 'include', body: fd });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) { pickShowErr(data.error || 'Import échoué.'); return; }
+        const newId = data.document && data.document.id;
+        if (newId != null) await linkDoc(ctx.folderId, ctx.slug, newId);
+        closePicker();
+      } catch { pickShowErr('Impossible de joindre le serveur.'); }
+      finally { pickFile.value = ''; }
+    });
+
+    async function linkDoc(folderId, slug, documentId) {
+      showErr('');
+      try {
+        const r = await fetch('/api/saas/folders/' + folderId + '/checklist', {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', body: JSON.stringify({ slug, document_id: documentId }),
+        });
+        if (!r.ok) { const d = await r.json().catch(() => ({})); showErr(d.error || 'Action échouée.'); return false; }
+        await load();
+        return true;
+      } catch { showErr('Impossible de joindre le serveur.'); return false; }
+    }
+
+    async function setFinal(folderId, slug, final) {
+      showErr('');
+      try {
+        const r = await fetch('/api/saas/folders/' + folderId + '/checklist', {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', body: JSON.stringify({ slug, final }),
+        });
+        if (!r.ok) { const d = await r.json().catch(() => ({})); showErr(d.error || 'Action échouée.'); return; }
+        await load();
+      } catch { showErr('Impossible de joindre le serveur.'); }
     }
 
     // ---- Actions dossiers ----
