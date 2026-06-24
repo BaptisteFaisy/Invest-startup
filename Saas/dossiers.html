@@ -72,6 +72,25 @@
     .cli-todos ul { margin: 0; padding-left: 18px; }
     .cli-todos li { font-size: 13px; color: var(--text-2); line-height: 1.5; margin: 4px 0; }
     .cli-todos__date { font-family: 'Archivo', sans-serif; font-size: 11px; color: var(--text-3); margin-top: 6px; }
+    .file { cursor: grab; }
+    .file.is-dragging { opacity: 0.45; }
+    /* Section « À faire » (récap des tâches restantes) */
+    .todo { background: var(--card, #fff); border: 1px solid var(--line); border-radius: 14px; margin-bottom: 12px; overflow: hidden; }
+    .todo__head { display: flex; align-items: center; gap: 14px; padding: 15px 18px; cursor: pointer; }
+    .todo.open .todo__chevron { transform: rotate(90deg); }
+    .todo__chevron { font-size: 12px; color: var(--text-3); transition: transform .15s; flex: none; width: 14px; }
+    .todo__ic { width: 38px; height: 38px; flex: none; display: grid; place-items: center; border-radius: 10px; background: #fff4d6; font-size: 18px; }
+    .todo__main { flex: 1; min-width: 0; }
+    .todo__name { font-weight: 700; font-size: 15px; }
+    .todo__count { font-family: 'Archivo', sans-serif; font-size: 12.5px; color: var(--text-2); margin-top: 2px; }
+    .todo__body { display: none; padding: 4px 16px 16px; }
+    .todo.open .todo__body { display: block; }
+    .todo__phase { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); margin: 14px 0 6px; }
+    .todo__item { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--text); padding: 5px 0; }
+    .todo__dot { flex: none; width: 16px; text-align: center; }
+    .todo__dot--todo { color: var(--text-3); }
+    .todo__dot--wip { color: var(--blue, #3b82f6); }
+    .todo__tag { font-family: 'Archivo', sans-serif; font-size: 11px; color: var(--text-2); margin-left: auto; }
     @media (max-width: 680px) {
       .cli { flex-wrap: wrap; }
       .cli__actions { width: 100%; justify-content: flex-end; }
@@ -303,6 +322,9 @@
         return;
       }
 
+      // Section « À faire » : récapitulatif de toutes les tâches restantes.
+      foldersEl.appendChild(todoSummaryEl());
+
       buckets.forEach(f => {
         const inFolder = docs.filter(d => (f.id == null ? d.folder_id == null : d.folder_id === f.id));
         const key = String(f.id);
@@ -331,26 +353,33 @@
           openState[key] = nowOpen;
         });
 
-        // Glisser-déposer un fichier depuis l'ordinateur → téléversé dans ce dossier.
+        // Glisser-déposer : depuis l'ordinateur (téléversement) OU un fichier
+        // existant déplacé d'une phase à l'autre (drag interne).
         let dragDepth = 0;
         card.addEventListener('dragenter', (e) => {
-          if (!hasFiles(e)) return;
+          if (!hasFiles(e) && !hasInternal(e)) return;
           e.preventDefault();
           dragDepth++; card.classList.add('is-drag');
         });
         card.addEventListener('dragover', (e) => {
-          if (!hasFiles(e)) return;
-          e.preventDefault(); e.dataTransfer.dropEffect = 'copy';
+          if (!hasFiles(e) && !hasInternal(e)) return;
+          e.preventDefault(); e.dataTransfer.dropEffect = hasFiles(e) ? 'copy' : 'move';
         });
         card.addEventListener('dragleave', () => {
           if (--dragDepth <= 0) { dragDepth = 0; card.classList.remove('is-drag'); }
         });
         card.addEventListener('drop', (e) => {
-          if (!hasFiles(e)) return;
+          if (!hasFiles(e) && !hasInternal(e)) return;
           e.preventDefault();
           dragDepth = 0; card.classList.remove('is-drag');
-          const files = e.dataTransfer.files;
-          if (files && files.length) { openState[key] = true; uploadFiles(files, f.id); }
+          if (hasFiles(e)) {
+            const files = e.dataTransfer.files;
+            if (files && files.length) { openState[key] = true; uploadFiles(files, f.id); }
+            return;
+          }
+          const idStr = e.dataTransfer.getData('application/x-liquid-doc');
+          const did = Number(idStr);
+          if (did) { openState[key] = true; moveDoc(did, f.id == null ? '' : f.id); }
         });
 
         // Renommer / supprimer : uniquement pour les dossiers créés par l'utilisateur.
@@ -409,6 +438,15 @@
         <div class="file__actions"></div>`;
       const actions = row.querySelector('.file__actions');
 
+      // Glisser ce fichier vers un autre dossier (drag & drop interne).
+      row.draggable = true;
+      row.addEventListener('dragstart', (ev) => {
+        ev.dataTransfer.setData('application/x-liquid-doc', String(d.id));
+        ev.dataTransfer.effectAllowed = 'move';
+        row.classList.add('is-dragging');
+      });
+      row.addEventListener('dragend', () => row.classList.remove('is-dragging'));
+
       // Sélecteur de dossier (déplacer le fichier d'une phase à l'autre).
       const sel = document.createElement('select');
       sel.className = 'fselect';
@@ -465,6 +503,71 @@
       return String(s).toLowerCase()
         .normalize('NFD').replace(/[̀-ͯ]/g, '')
         .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    }
+
+    // Récapitulatif « À faire » : toutes les tâches restantes (documents non
+    // fournis ou non encore validés « final »), groupées par phase.
+    function todoSummaryEl() {
+      const open = openState['__todo__'] ?? true;
+      const card = document.createElement('div');
+      card.className = 'todo' + (open ? ' open' : '');
+
+      const groups = [];
+      let total = 0;
+      folders.forEach(f => {
+        if (!Array.isArray(f.checklist) || !f.checklist.length) return;
+        const state = f.items_state || {};
+        const items = [];
+        f.checklist.forEach(item => {
+          const slug = slugify(item);
+          const st = state[slug] || {};
+          const linked = st.document_id != null && docs.some(d => d.id === st.document_id);
+          const final = linked && !!st.final;
+          if (final) return;
+          items.push({ item, linked });
+          total++;
+        });
+        if (items.length) groups.push({ phase: f.name, items });
+      });
+
+      card.innerHTML = `
+        <div class="todo__head">
+          <span class="todo__chevron">▶</span>
+          <div class="todo__ic">📝</div>
+          <div class="todo__main">
+            <div class="todo__name">À faire</div>
+            <div class="todo__count">${total ? total + (total > 1 ? ' tâches restantes' : ' tâche restante') : 'Tout est à jour'}</div>
+          </div>
+        </div>
+        <div class="todo__body"></div>`;
+
+      const head = card.querySelector('.todo__head');
+      const body = card.querySelector('.todo__body');
+      head.addEventListener('click', () => {
+        const n = !card.classList.contains('open');
+        card.classList.toggle('open', n);
+        openState['__todo__'] = n;
+      });
+
+      if (!total) {
+        body.innerHTML = '<p class="folder__empty">Aucune tâche en attente. 🎉</p>';
+        return card;
+      }
+      groups.forEach(g => {
+        const h = document.createElement('div');
+        h.className = 'todo__phase';
+        h.textContent = g.phase;
+        body.appendChild(h);
+        g.items.forEach(it => {
+          const row = document.createElement('div');
+          row.className = 'todo__item';
+          row.innerHTML = `<span class="todo__dot todo__dot--${it.linked ? 'wip' : 'todo'}">${it.linked ? '◐' : '○'}</span>` +
+            `<span>${esc(it.item)}</span>` +
+            `<span class="todo__tag">${it.linked ? 'à valider' : 'à fournir'}</span>`;
+          body.appendChild(row);
+        });
+      });
+      return card;
     }
 
     function checklistEl(f) {
@@ -855,6 +958,11 @@
     // Vrai si l'évènement de drag transporte des fichiers (et non du texte/HTML).
     function hasFiles(e) {
       return !!e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files');
+    }
+
+    // Vrai si l'on déplace un fichier existant d'une phase à l'autre (drag interne).
+    function hasInternal(e) {
+      return !!e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('application/x-liquid-doc');
     }
 
     // Téléverse un ou plusieurs fichiers, éventuellement dans un dossier précis
