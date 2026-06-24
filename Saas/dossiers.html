@@ -67,6 +67,7 @@
     .cli__name--link { cursor: pointer; }
     .cli__name--link:hover { text-decoration: underline; }
     .cli__caret { font-size: 10px; color: var(--text-3); margin-left: 4px; }
+    .cli--drop { outline: 2px dashed var(--blue, #3b82f6); outline-offset: 2px; background: rgba(59,130,246,0.06); }
     .cli-todos { margin-top: 8px; background: var(--bg, #f4f2ee); border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; }
     .cli-todos__h { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); margin-bottom: 6px; }
     .cli-todos ul { margin: 0; padding-left: 18px; }
@@ -598,6 +599,28 @@
           <div class="cli__actions"></div>`;
         const acts = li.querySelector('.cli__actions');
 
+        // Glisser-déposer un fichier DIRECTEMENT sur cette ligne → le lie à ce
+        // document précis (depuis l'ordinateur : téléversé puis lié ; existant : lié).
+        li.addEventListener('dragover', (e) => {
+          if (!hasFiles(e) && !hasInternal(e)) return;
+          e.preventDefault(); e.stopPropagation();
+          e.dataTransfer.dropEffect = hasFiles(e) ? 'copy' : 'move';
+          li.classList.add('cli--drop');
+        });
+        li.addEventListener('dragleave', () => li.classList.remove('cli--drop'));
+        li.addEventListener('drop', async (e) => {
+          if (!hasFiles(e) && !hasInternal(e)) return;
+          e.preventDefault(); e.stopPropagation();
+          li.classList.remove('cli--drop');
+          if (hasFiles(e)) {
+            const file = e.dataTransfer.files && e.dataTransfer.files[0];
+            if (file) await uploadDocToSlot(file, f.id, slug);
+            return;
+          }
+          const did = Number(e.dataTransfer.getData('application/x-liquid-doc'));
+          if (did) await linkDoc(f.id, slug, did);
+        });
+
         // 0) Modèle pré-rempli : crée une term sheet à partir du modèle, la range
         // dans la phase, la lie à cette ligne, puis ouvre l'éditeur (même style
         // que l'édition de la term sheet). Affiché si aucun document n'est encore lié.
@@ -963,6 +986,23 @@
     // Vrai si l'on déplace un fichier existant d'une phase à l'autre (drag interne).
     function hasInternal(e) {
       return !!e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('application/x-liquid-doc');
+    }
+
+    // Téléverse un fichier dans une phase puis le lie à un élément précis de la roadlist.
+    async function uploadDocToSlot(file, folderId, slug) {
+      if (!file) return;
+      showErr('');
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('folder_id', String(folderId));
+      try {
+        const r = await fetch('/api/saas/documents', { method: 'POST', credentials: 'include', body: fd });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) { showErr(data.error || 'Import échoué.'); return; }
+        const newId = data.document && data.document.id;
+        if (newId != null) await linkDoc(folderId, slug, newId);
+        else await load();
+      } catch { showErr('Impossible de joindre le serveur.'); }
     }
 
     // Téléverse un ou plusieurs fichiers, éventuellement dans un dossier précis
