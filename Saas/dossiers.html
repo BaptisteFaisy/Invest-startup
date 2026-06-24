@@ -448,15 +448,7 @@
       });
       row.addEventListener('dragend', () => row.classList.remove('is-dragging'));
 
-      // Sélecteur de dossier (déplacer le fichier d'une phase à l'autre).
-      const sel = document.createElement('select');
-      sel.className = 'fselect';
-      sel.title = 'Déplacer vers un dossier';
-      sel.innerHTML = '<option value="">Non classé</option>' +
-        folders.map(f => `<option value="${f.id}">${esc(f.name)}</option>`).join('');
-      sel.value = d.folder_id == null ? '' : String(d.folder_id);
-      sel.addEventListener('change', () => moveDoc(d.id, sel.value));
-      actions.appendChild(sel);
+      // Le déplacement se fait par glisser-déposer (le menu déroulant a été retiré).
 
       if (isTermsheet) {
         const open = document.createElement('a');
