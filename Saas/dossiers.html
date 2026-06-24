@@ -92,8 +92,9 @@
     .todo__dot--todo { color: var(--text-3); }
     .todo__dot--wip { color: var(--blue, #3b82f6); }
     .todo__tag { font-family: 'Archivo', sans-serif; font-size: 11px; color: var(--text-2); }
-    .todo__tag--todo { color: #d97706; }
-    .todo__tag--wip  { color: #16a34a; }
+    .todo__tag--todo { color: #dc2626; }
+    .todo__tag--wip  { color: var(--blue, #3b82f6); }
+    .todo__tag--done { color: #16a34a; }
     .todo__right { display: flex; align-items: center; gap: 6px; margin-left: auto; }
     @media (max-width: 680px) {
       .cli { flex-wrap: wrap; }
@@ -581,18 +582,25 @@
             right.appendChild(an);
           }
 
+          const tag = document.createElement('span');
+          tag.className = `todo__tag ${it.linked ? 'todo__tag--wip' : 'todo__tag--todo'}`;
+          tag.textContent = it.linked ? 'à valider' : 'à fournir';
+
           if (it.linked) {
             const val = document.createElement('button');
             val.className = 'fbtn fbtn--mini';
             val.textContent = 'Valider';
             val.title = 'Marquer comme document final';
-            val.addEventListener('click', (e) => { e.stopPropagation(); setFinal(it.folderId, it.slug, true); });
+            val.addEventListener('click', (e) => {
+              e.stopPropagation();
+              tag.className = 'todo__tag todo__tag--done';
+              tag.textContent = 'validé';
+              val.disabled = true;
+              setFinal(it.folderId, it.slug, true);
+            });
             right.appendChild(val);
           }
 
-          const tag = document.createElement('span');
-          tag.className = `todo__tag ${it.linked ? 'todo__tag--wip' : 'todo__tag--todo'}`;
-          tag.textContent = it.linked ? 'à valider' : 'à fournir';
           right.appendChild(tag);
 
           row.appendChild(right);
