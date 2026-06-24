@@ -1332,25 +1332,42 @@ app.post('/api/saas/documents/:id/convert', requireAuth, async (req, res) => {
 // ─── SaaS : export direct d'une term sheet / document HTML → DOCX ou PDF ───────
 // On exporte DEPUIS le HTML structuré (titre, sections, clauses), ce qui conserve
 // la mise en page — au lieu de passer par un PDF (qui perd toute structure).
+// Transforme le HTML de l'éditeur (divs .ts-group / .ts-clause / .ts-label /
+// .ts-content) en HTML SÉMANTIQUE (titre = <h1>, sections = <h1>, clauses = <h2>),
+// pour que la conversion en DOCX produise de vrais styles de titre Word — et donc
+// que la ré-importation puisse redécouper le document à l'identique.
+function editorHtmlToSemantic(html) {
+  let s = String(html || '');
+  // Clause : label -> <h2>, contenu déballé.
+  s = s.replace(/<div class="ts-clause"[^>]*>\s*<div class="ts-label">([\s\S]*?)<\/div>\s*<div class="ts-content">([\s\S]*?)<\/div>\s*<\/div>/gi,
+    (m, label, body) => `<h2>${label}</h2>\n${body}`);
+  // Section -> <h1>.
+  s = s.replace(/<div class="ts-group"[^>]*>([\s\S]*?)<\/div>/gi, (m, t) => `<h1>${t}</h1>`);
+  // Titre du document -> <h1> (premier titre du document).
+  s = s.replace(/<h1 class="doc-title">([\s\S]*?)<\/h1>/i, (m, t) => `<h1>${t}</h1>`);
+  // Bloc signature -> paragraphe simple.
+  s = s.replace(/<div class="ts-sign">([\s\S]*?)<\/div>/gi, (m, t) => `<div class="t-sign">${t}</div>`);
+  return s;
+}
+
 function buildExportHtml(inner, title) {
+  const body = editorHtmlToSemantic(inner);
   return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>${title}</title>
 <style>
   body { font-family: 'Calibri','Liberation Sans',Arial,sans-serif; font-size: 11pt; color:#14171f; line-height:1.5; margin:2.2cm; }
-  h1.doc-title { font-size: 20pt; text-align:center; margin:0 0 4pt; }
-  .doc-title { font-size: 20pt; font-weight:bold; text-align:center; margin:0 0 4pt; }
+  h1 { font-size: 14pt; font-weight:bold; margin:18pt 0 8pt; }
+  h1:first-of-type { font-size: 20pt; text-align:center; margin:0 0 6pt; border:0; }
+  h2 { font-size: 12pt; font-weight:bold; margin:10pt 0 3pt; }
+  p { margin:4pt 0; }
   p.doc-sub, .doc-sub { text-align:center; color:#555; font-size:11pt; margin:0 0 18pt; }
-  .ts-group { font-size: 13pt; font-weight:bold; margin:18pt 0 8pt; border-bottom:1px solid #cccccc; padding-bottom:3pt; }
-  .ts-clause { margin:0 0 10pt; }
-  .ts-label { font-weight:bold; font-size:11.5pt; margin:8pt 0 2pt; }
-  .ts-content p { margin:4pt 0; }
-  .ts-content ul, .ts-content ol { margin:4pt 0 4pt 20pt; }
-  .ts-sign { margin-top:26pt; }
+  ul, ol { margin:4pt 0 4pt 20pt; }
+  .t-sign { margin-top:26pt; }
   .doc-note { margin-top:18pt; font-size:9.5pt; color:#666; }
   table { border-collapse:collapse; width:100%; margin:6pt 0; }
   th,td { border:1px solid #999999; padding:4pt 6pt; font-size:10.5pt; text-align:left; vertical-align:top; }
   th { background:#f0f0f0; }
   mark { background:#fff3c4; }
-</style></head><body>${inner}</body></html>`;
+</style></head><body>${body}</body></html>`;
 }
 
 async function convertHtmlToFile(html, baseName, outputFormat) {
@@ -1451,26 +1468,42 @@ function docxHtmlToEditorPage(rawHtml, docName) {
   const blocks = topLevelBlocks(rawHtml).filter(b => stripHtml(b) || /<(img|table)/i.test(b));
   if (!blocks.length) return clauseBlock('c1', docName || 'Document', '<p></p>');
 
-  const clauses = [];
   let cur = null, n = 0;
-  const push = (label, firstBody) => { n++; cur = { key: 'c' + n, label, body: firstBody ? [firstBody] : [] }; clauses.push(cur); };
 
   if (blocks.some(isHeadingBlock)) {
-    // Une clause par titre Word ; le contenu avant le 1er titre forme un préambule.
+    // Document structuré (vrais titres Word). On reconstruit : 1er titre = titre du
+    // document ; <h1> suivants = sections ; <h2>..<h6> = clauses ; 1er paragraphe
+    // après le titre = sous-titre. Cela reflète l'export et conserve la structure.
+    const out = [];
+    let titleSet = false, subSet = false;
+    const flush = () => { if (cur) { out.push(clauseBlock(cur.key, cur.label, cur.body.join('\n'))); cur = null; } };
     blocks.forEach(b => {
-      if (isHeadingBlock(b)) push(stripHtml(b) || 'Section');
-      else { if (!cur) push(docName || 'Préambule'); cur.body.push(b); }
+      const hm = /^<h([1-6])\b/i.exec(b);
+      if (hm) {
+        const text = stripHtml(b) || 'Section';
+        if (!titleSet) { out.push(`<h1 class="doc-title">${escapeHtml(text)}</h1>`); titleSet = true; return; }
+        if (+hm[1] === 1) { flush(); out.push(`<div class="ts-group" contenteditable="false">${escapeHtml(text)}</div>`); }
+        else { flush(); n++; cur = { key: 'c' + n, label: text, body: [] }; }
+      } else {
+        if (titleSet && !subSet && !cur) { out.push(`<p class="doc-sub">${escapeHtml(stripHtml(b))}</p>`); subSet = true; return; }
+        if (!cur) { n++; cur = { key: 'c' + n, label: docName || 'Préambule', body: [] }; }
+        cur.body.push(b);
+      }
     });
-  } else {
-    // Pas de styles Titre : on coupe aux articles numérotés, sinon une seule clause.
-    blocks.forEach(b => {
-      const txt = stripHtml(b);
-      if (!cur || SECTION_RE.test(txt)) {
-        const label = txt.split(/[.:—–]/)[0].split(/\s+/).slice(0, 9).join(' ');
-        push(label || ('Paragraphe ' + (n + 1)), b);
-      } else cur.body.push(b);
-    });
+    flush();
+    return out.join('\n');
   }
+
+  // Pas de styles Titre : on coupe aux articles numérotés, sinon une seule clause.
+  const clauses = [];
+  const push = (label, firstBody) => { n++; cur = { key: 'c' + n, label, body: firstBody ? [firstBody] : [] }; clauses.push(cur); };
+  blocks.forEach(b => {
+    const txt = stripHtml(b);
+    if (!cur || SECTION_RE.test(txt)) {
+      const label = txt.split(/[.:—–]/)[0].split(/\s+/).slice(0, 9).join(' ');
+      push(label || ('Paragraphe ' + (n + 1)), b);
+    } else cur.body.push(b);
+  });
   return clauses.map(c => clauseBlock(c.key, c.label, c.body.join('\n'))).join('\n');
 }
 
