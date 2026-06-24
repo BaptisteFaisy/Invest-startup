@@ -91,7 +91,10 @@
     .todo__dot { flex: none; width: 16px; text-align: center; }
     .todo__dot--todo { color: var(--text-3); }
     .todo__dot--wip { color: var(--blue, #3b82f6); }
-    .todo__tag { font-family: 'Archivo', sans-serif; font-size: 11px; color: var(--text-2); margin-left: auto; }
+    .todo__tag { font-family: 'Archivo', sans-serif; font-size: 11px; color: var(--text-2); }
+    .todo__tag--todo { color: #d97706; }
+    .todo__tag--wip  { color: var(--blue, #3b82f6); }
+    .todo__right { display: flex; align-items: center; gap: 6px; margin-left: auto; }
     @media (max-width: 680px) {
       .cli { flex-wrap: wrap; }
       .cli__actions { width: 100%; justify-content: flex-end; }
@@ -514,10 +517,12 @@
         f.checklist.forEach(item => {
           const slug = slugify(item);
           const st = state[slug] || {};
-          const linked = st.document_id != null && docs.some(d => d.id === st.document_id);
+          const doc = st.document_id != null ? docs.find(d => d.id === st.document_id) : null;
+          const linked = !!doc;
           const final = linked && !!st.final;
           if (final) return;
-          items.push({ item, linked });
+          const hasTodos = Array.isArray(st.todos) && st.todos.length;
+          items.push({ item, linked, doc, folderId: f.id, slug, hasTodos });
           total++;
         });
         if (items.length) groups.push({ phase: f.name, items });
@@ -554,9 +559,34 @@
         g.items.forEach(it => {
           const row = document.createElement('div');
           row.className = 'todo__item';
-          row.innerHTML = `<span class="todo__dot todo__dot--${it.linked ? 'wip' : 'todo'}">${it.linked ? '◐' : '○'}</span>` +
-            `<span>${esc(it.item)}</span>` +
-            `<span class="todo__tag">${it.linked ? 'à valider' : 'à fournir'}</span>`;
+
+          const dot = document.createElement('span');
+          dot.className = `todo__dot todo__dot--${it.linked ? 'wip' : 'todo'}`;
+          dot.textContent = it.linked ? '◐' : '○';
+          row.appendChild(dot);
+
+          const name = document.createElement('span');
+          name.textContent = it.item;
+          row.appendChild(name);
+
+          const right = document.createElement('div');
+          right.className = 'todo__right';
+
+          if (it.linked && it.doc && it.doc.kind === 'termsheet') {
+            const an = document.createElement('button');
+            an.className = 'fbtn fbtn--mini';
+            an.textContent = it.hasTodos ? '↻ Analyser' : 'Analyser';
+            an.title = 'Analyser ce document avec Claude et lister les choses à faire';
+            an.addEventListener('click', (e) => { e.stopPropagation(); analyzeDoc(it.folderId, it.slug, it.doc, an); });
+            right.appendChild(an);
+          }
+
+          const tag = document.createElement('span');
+          tag.className = `todo__tag ${it.linked ? 'todo__tag--wip' : 'todo__tag--todo'}`;
+          tag.textContent = it.linked ? 'à valider' : 'à fournir';
+          right.appendChild(tag);
+
+          row.appendChild(right);
           body.appendChild(row);
         });
       });
