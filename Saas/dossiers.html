@@ -68,6 +68,8 @@
     .cli__name--link:hover { text-decoration: underline; }
     .cli__caret { font-size: 10px; color: var(--text-3); margin-left: 4px; }
     .cli--drop { outline: 2px dashed var(--blue, #3b82f6); outline-offset: 2px; background: rgba(59,130,246,0.06); }
+    .cli[draggable="true"] { cursor: grab; }
+    .cli.is-dragging { opacity: 0.45; }
     .cli-todos { margin-top: 8px; background: var(--bg, #f4f2ee); border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; }
     .cli-todos__h { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); margin-bottom: 6px; }
     .cli-todos ul { margin: 0; padding-left: 18px; }
@@ -591,12 +593,33 @@
             val.className = 'fbtn fbtn--mini';
             val.textContent = 'Valider';
             val.title = 'Marquer comme document final';
-            val.addEventListener('click', (e) => {
+            val.addEventListener('click', async (e) => {
               e.stopPropagation();
-              tag.className = 'todo__tag todo__tag--done';
-              tag.textContent = 'validé';
-              val.disabled = true;
-              setFinal(it.folderId, it.slug, true);
+              val.disabled = true; val.textContent = '…';
+              showErr('');
+              try {
+                const r = await fetch('/api/saas/folders/' + it.folderId + '/checklist', {
+                  method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ slug: it.slug, final: true }),
+                });
+                if (!r.ok) {
+                  const d = await r.json().catch(() => ({}));
+                  showErr(d.error || 'Validation échouée.');
+                  val.disabled = false; val.textContent = 'Valider'; return;
+                }
+                // Mise à jour locale immédiate → l'item disparaît de la liste sans attendre load()
+                const folder = folders.find(x => x.id === it.folderId);
+                if (folder) {
+                  folder.items_state = folder.items_state || {};
+                  folder.items_state[it.slug] = { ...(folder.items_state[it.slug] || {}), final: true };
+                }
+                render();
+                load(); // synchronise en arrière-plan
+              } catch {
+                showErr('Impossible de joindre le serveur.');
+                val.disabled = false; val.textContent = 'Valider';
+              }
             });
             right.appendChild(val);
           }
@@ -657,7 +680,17 @@
             return;
           }
           const did = Number(e.dataTransfer.getData('application/x-liquid-doc'));
-          if (did) await linkDoc(f.id, slug, did);
+          if (!did) return;
+          // Réaffectation entre sous-documents : on lie à la cible et, si le glissé
+          // vient d'une autre ligne, on le détache de sa ligne d'origine.
+          const srcRaw = e.dataTransfer.getData('application/x-liquid-src');
+          await linkDoc(f.id, slug, did);
+          if (srcRaw) {
+            try {
+              const src = JSON.parse(srcRaw);
+              if (src && (src.folderId !== f.id || src.slug !== slug)) await linkDoc(src.folderId, src.slug, null);
+            } catch (_) {}
+          }
         });
 
         // 0) Modèle pré-rempli : crée une term sheet à partir du modèle, la range
@@ -683,6 +716,16 @@
           const todoKey  = f.id + ':' + slug;
           const hasTodos = Array.isArray(st.todos) && st.todos.length;
 
+          // La ligne (avec son document) peut être glissée vers un autre sous-document.
+          li.draggable = true;
+          li.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('application/x-liquid-doc', String(doc.id));
+            e.dataTransfer.setData('application/x-liquid-src', JSON.stringify({ folderId: f.id, slug }));
+            e.dataTransfer.effectAllowed = 'move';
+            li.classList.add('is-dragging');
+          });
+          li.addEventListener('dragend', () => li.classList.remove('is-dragging'));
+
           // Nom du document cliquable : déplie / replie les « choses à faire ».
           const docNameEl = li.querySelector('.cli__doc');
           if (docNameEl && hasTodos) {
@@ -691,25 +734,9 @@
             docNameEl.addEventListener('click', () => { todosOpen[todoKey] = !todosOpen[todoKey]; render(); });
           }
 
-          // 2) Analyser le document par Claude → liste des choses à faire.
-          if (doc.kind === 'termsheet') {
-            const an = document.createElement('button');
-            an.className = 'fbtn fbtn--mini';
-            an.textContent = hasTodos ? '↻ Analyser' : 'Analyser';
-            an.title = 'Analyser ce document avec Claude et lister les choses à faire';
-            an.addEventListener('click', () => analyzeDoc(f.id, slug, doc, an));
-            acts.appendChild(an);
-          }
+          // Analyser et Valider ne sont plus ici : ils sont dans la section « À faire ».
 
-          // 3) Valider le « document final ».
-          const val = document.createElement('button');
-          val.className = 'fbtn fbtn--mini' + (final ? ' fbtn--ok' : '');
-          val.textContent = final ? '✓ Final' : 'Valider';
-          val.title = final ? 'Retirer la validation' : 'Marquer comme document final';
-          val.addEventListener('click', () => setFinal(f.id, slug, !final));
-          acts.appendChild(val);
-
-          // 3) Éditer (term sheet : éditeur ; fichier importé : télécharger).
+          // Éditer (term sheet : éditeur ; fichier importé : télécharger).
           const ed = document.createElement('a');
           ed.className = 'fbtn fbtn--mini fbtn--accent';
           ed.textContent = 'Éditer';
