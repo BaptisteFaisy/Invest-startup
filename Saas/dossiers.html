@@ -34,7 +34,9 @@
     .feature-doc__meta { font-family: 'Archivo', sans-serif; font-size: 13px; color: var(--on-dark-mut); margin-top: 4px; }
 
     /* Dossiers (phases de levée) */
-    .folder { background: var(--card); border: 1px solid var(--line); border-radius: 14px; margin-bottom: 12px; overflow: hidden; }
+    .folder { background: var(--card); border: 1px solid var(--line); border-radius: 14px; margin-bottom: 12px; overflow: hidden; transition: border-color .15s, box-shadow .15s; }
+    .folder.is-drag { border-color: var(--blue, #3b82f6); box-shadow: 0 0 0 2px rgba(59,130,246,0.25); }
+    .folder.is-drag .folder__head { background: rgba(59,130,246,0.06); }
     .folder__head { display: flex; align-items: center; gap: 14px; padding: 15px 18px; cursor: pointer; }
     .folder__chevron { font-size: 12px; color: var(--text-3); transition: transform .15s; flex: none; width: 14px; }
     .folder.open .folder__chevron { transform: rotate(90deg); }
@@ -318,6 +320,28 @@
           const nowOpen = !card.classList.contains('open');
           card.classList.toggle('open', nowOpen);
           openState[key] = nowOpen;
+        });
+
+        // Glisser-déposer un fichier depuis l'ordinateur → téléversé dans ce dossier.
+        let dragDepth = 0;
+        card.addEventListener('dragenter', (e) => {
+          if (!hasFiles(e)) return;
+          e.preventDefault();
+          dragDepth++; card.classList.add('is-drag');
+        });
+        card.addEventListener('dragover', (e) => {
+          if (!hasFiles(e)) return;
+          e.preventDefault(); e.dataTransfer.dropEffect = 'copy';
+        });
+        card.addEventListener('dragleave', () => {
+          if (--dragDepth <= 0) { dragDepth = 0; card.classList.remove('is-drag'); }
+        });
+        card.addEventListener('drop', (e) => {
+          if (!hasFiles(e)) return;
+          e.preventDefault();
+          dragDepth = 0; card.classList.remove('is-drag');
+          const files = e.dataTransfer.files;
+          if (files && files.length) { openState[key] = true; uploadFiles(files, f.id); }
         });
 
         // Renommer / supprimer : uniquement pour les dossiers créés par l'utilisateur.
@@ -711,22 +735,40 @@
       }
     }
 
-    fileInput.addEventListener('change', async () => {
-      const f = fileInput.files && fileInput.files[0];
-      if (!f) return;
+    // Vrai si l'évènement de drag transporte des fichiers (et non du texte/HTML).
+    function hasFiles(e) {
+      return !!e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files');
+    }
+
+    // Téléverse un ou plusieurs fichiers, éventuellement dans un dossier précis
+    // (folderId null = « Documents importés », non classé).
+    async function uploadFiles(fileList, folderId) {
+      const files = Array.from(fileList || []);
+      if (!files.length) return false;
       showErr('');
-      const fd = new FormData();
-      fd.append('file', f);
-      try {
-        const r = await fetch('/api/saas/documents', { method: 'POST', credentials: 'include', body: fd });
-        const data = await r.json().catch(() => ({}));
-        if (!r.ok) showErr(data.error || 'Import échoué.');
-      } catch {
-        showErr('Impossible de joindre le serveur.');
+      let failed = 0;
+      for (const file of files) {
+        const fd = new FormData();
+        fd.append('file', file);
+        if (folderId != null) fd.append('folder_id', String(folderId));
+        try {
+          const r = await fetch('/api/saas/documents', { method: 'POST', credentials: 'include', body: fd });
+          if (!r.ok) { const d = await r.json().catch(() => ({})); showErr(d.error || 'Import échoué.'); failed++; }
+        } catch { showErr('Impossible de joindre le serveur.'); failed++; }
       }
+      await load();
+      return failed === 0;
+    }
+
+    fileInput.addEventListener('change', async () => {
+      await uploadFiles(fileInput.files, null);
       fileInput.value = '';
-      load();
     });
+
+    // Empêche le navigateur d'ouvrir un fichier déposé hors d'un dossier.
+    ['dragover', 'drop'].forEach(ev => document.addEventListener(ev, (e) => {
+      if (hasFiles(e)) e.preventDefault();
+    }));
   </script>
 </body>
 </html>
