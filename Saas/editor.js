@@ -976,8 +976,32 @@ window.addEventListener('load', () => paginate());
 window.addEventListener('beforeprint', () => { printing = true; paginate({ print: true }); });
 window.addEventListener('afterprint', () => { printing = false; paginate(); });
 
-/* ---------- 6. Export PDF ---------- */
+/* ---------- 6. Export PDF / Word ---------- */
 document.getElementById('export-btn').addEventListener('click', () => window.print());
+
+// Export direct du document (HTML structuré) → DOCX/PDF via le serveur : conserve
+// la mise en page, sans passer par un PDF reconverti.
+async function exportToFile(format, btn) {
+  const old = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Export…'; }
+  try {
+    await saveTermsheet();             // s'assure que le dernier contenu est en base
+    if (!currentDocId) { alert('Enregistrez d\'abord le document, puis réessayez.'); return; }
+    const r = await fetch('/api/saas/termsheets/' + currentDocId + '/export', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', body: JSON.stringify({ to: format }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.document) { alert(d.error || 'Export échoué.'); return; }
+    window.location = '/api/saas/documents/' + d.document.id + '/download';
+  } catch {
+    alert('Impossible de joindre le serveur.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = old; }
+  }
+}
+const exportDocxBtn = document.getElementById('export-docx-btn');
+if (exportDocxBtn) exportDocxBtn.addEventListener('click', () => exportToFile('docx', exportDocxBtn));
 
 /* ---------- 6 bis. Enregistrer / charger la term sheet (Mes documents) ------ */
 let currentDocId = null;

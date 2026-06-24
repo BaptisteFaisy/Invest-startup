@@ -1329,6 +1329,82 @@ app.post('/api/saas/documents/:id/convert', requireAuth, async (req, res) => {
   }
 });
 
+// ─── SaaS : export direct d'une term sheet / document HTML → DOCX ou PDF ───────
+// On exporte DEPUIS le HTML structuré (titre, sections, clauses), ce qui conserve
+// la mise en page — au lieu de passer par un PDF (qui perd toute structure).
+function buildExportHtml(inner, title) {
+  return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>${title}</title>
+<style>
+  body { font-family: 'Calibri','Liberation Sans',Arial,sans-serif; font-size: 11pt; color:#14171f; line-height:1.5; margin:2.2cm; }
+  h1.doc-title { font-size: 20pt; text-align:center; margin:0 0 4pt; }
+  .doc-title { font-size: 20pt; font-weight:bold; text-align:center; margin:0 0 4pt; }
+  p.doc-sub, .doc-sub { text-align:center; color:#555; font-size:11pt; margin:0 0 18pt; }
+  .ts-group { font-size: 13pt; font-weight:bold; margin:18pt 0 8pt; border-bottom:1px solid #cccccc; padding-bottom:3pt; }
+  .ts-clause { margin:0 0 10pt; }
+  .ts-label { font-weight:bold; font-size:11.5pt; margin:8pt 0 2pt; }
+  .ts-content p { margin:4pt 0; }
+  .ts-content ul, .ts-content ol { margin:4pt 0 4pt 20pt; }
+  .ts-sign { margin-top:26pt; }
+  .doc-note { margin-top:18pt; font-size:9.5pt; color:#666; }
+  table { border-collapse:collapse; width:100%; margin:6pt 0; }
+  th,td { border:1px solid #999999; padding:4pt 6pt; font-size:10.5pt; text-align:left; vertical-align:top; }
+  th { background:#f0f0f0; }
+  mark { background:#fff3c4; }
+</style></head><body>${inner}</body></html>`;
+}
+
+async function convertHtmlToFile(html, baseName, outputFormat) {
+  const tmpName = `${Date.now()}_${Math.random().toString(36).slice(2)}.html`;
+  const tmpPath = path.join(UPLOADS_DIR, tmpName);
+  fs.writeFileSync(tmpPath, html, 'utf8');
+  try {
+    return await convertViaCloudConvert(tmpPath, baseName + '.html', outputFormat);
+  } finally {
+    if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath);
+  }
+}
+
+app.post('/api/saas/termsheets/:id/export', requireAuth, async (req, res) => {
+  if (!cloudConvert)
+    return res.status(503).json({ error: 'Conversion non configurée : ajoutez CLOUDCONVERT_API_KEY dans le .env du serveur.' });
+
+  const id     = Number(req.params.id);
+  const target = String(req.body?.to || '').toLowerCase();
+  if (!['pdf', 'docx'].includes(target))
+    return res.status(400).json({ error: 'Format cible invalide (pdf ou docx).' });
+
+  const doc = await col('saas_documents').findOne({ id, user_id: req.user.id, kind: 'termsheet' });
+  if (!doc) return res.status(404).json({ error: 'Document introuvable' });
+  if (!doc.html) return res.status(400).json({ error: 'Document vide.' });
+
+  const baseName = (doc.name || 'document').replace(/\.[^.]+$/, '').trim() || 'document';
+  const html     = buildExportHtml(doc.html, baseName);
+
+  try {
+    const out        = await convertHtmlToFile(html, baseName, target);
+    const safe       = `${baseName}.${target}`.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const storedName = `${Date.now()}_${safe}`;
+    const destPath   = path.join(UPLOADS_DIR, storedName);
+    await downloadTo(out.url, destPath);
+
+    const newId  = await nextId('saas_documents');
+    const newDoc = {
+      id: newId, user_id: req.user.id, folder_id: doc.folder_id,
+      name: `${baseName}.${target}`, filename: storedName, originalname: `${baseName}.${target}`,
+      mimetype: target === 'pdf'
+        ? 'application/pdf'
+        : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      size: fs.statSync(destPath).size, created_at: new Date().toISOString(),
+      exported_from: doc.id,
+    };
+    await col('saas_documents').insertOne(newDoc);
+    res.status(201).json({ document: publicDoc(newDoc) });
+  } catch (err) {
+    console.error('CloudConvert export error:', err.message);
+    res.status(502).json({ error: 'L\'export a échoué. Réessayez.' });
+  }
+});
+
 // ─── SaaS : éditer un DOCX dans l'éditeur (conversion DOCX → HTML « clausé ») ──
 // L'éditeur travaille sur du HTML structuré en clauses (.ts-clause / .ts-content).
 // On convertit le DOCX en HTML avec mammoth, puis on le découpe en clauses (une
