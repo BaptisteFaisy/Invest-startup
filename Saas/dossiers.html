@@ -64,6 +64,14 @@
     .cli__doc { font-size: 12px; color: var(--text-2); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .cli__actions { display: flex; gap: 6px; flex: none; align-items: center; }
     .fbtn--ok { color: #16a34a; border-color: rgba(22,163,74,0.4); }
+    .cli__name--link { cursor: pointer; }
+    .cli__name--link:hover { text-decoration: underline; }
+    .cli__caret { font-size: 10px; color: var(--text-3); margin-left: 4px; }
+    .cli-todos { margin-top: 8px; background: var(--bg, #f4f2ee); border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; }
+    .cli-todos__h { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); margin-bottom: 6px; }
+    .cli-todos ul { margin: 0; padding-left: 18px; }
+    .cli-todos li { font-size: 13px; color: var(--text-2); line-height: 1.5; margin: 4px 0; }
+    .cli-todos__date { font-family: 'Archivo', sans-serif; font-size: 11px; color: var(--text-3); margin-top: 6px; }
     @media (max-width: 680px) {
       .cli { flex-wrap: wrap; }
       .cli__actions { width: 100%; justify-content: flex-end; }
@@ -208,6 +216,7 @@
     let folders = [];
     let docs    = [];
     const openState = {}; // mémorise les dossiers dépliés entre deux rendus
+    const todosOpen = {}; // mémorise les listes « choses à faire » dépliées (clé folderId:slug)
 
     // Modèles juridiques disponibles : slug d'élément de roadlist -> fichier modèle.
     // Le bouton « Modèle » n'apparaît que pour les éléments listés ici.
@@ -417,9 +426,18 @@
         open.href = 'editor.html?doc=' + d.id;
         actions.appendChild(open);
       } else {
+        if (e === 'docx') {
+          const ed = document.createElement('button');
+          ed.className = 'fbtn fbtn--accent';
+          ed.textContent = 'Éditer';
+          ed.title = 'Ouvrir ce document dans l\'éditeur';
+          ed.addEventListener('click', () => editInEditor(d.id, ed));
+          actions.appendChild(ed);
+        }
         if (target) {
           const cv = document.createElement('button');
-          cv.className = 'fbtn fbtn--accent';
+          // « Éditer » est l'action principale d'un DOCX ; ici la conversion reste secondaire.
+          cv.className = 'fbtn' + (e === 'docx' ? '' : ' fbtn--accent');
           cv.textContent = target.toUpperCase();
           cv.title = 'Convertir en ' + target.toUpperCase();
           cv.addEventListener('click', () => convert(d.id, target, cv));
@@ -497,7 +515,28 @@
         acts.appendChild(add);
 
         if (linked) {
-          // 2) Valider le « document final ».
+          const todoKey  = f.id + ':' + slug;
+          const hasTodos = Array.isArray(st.todos) && st.todos.length;
+
+          // Nom du document cliquable : déplie / replie les « choses à faire ».
+          const docNameEl = li.querySelector('.cli__doc');
+          if (docNameEl && hasTodos) {
+            docNameEl.classList.add('cli__name--link');
+            docNameEl.insertAdjacentHTML('beforeend', `<span class="cli__caret">${todosOpen[todoKey] ? '▲' : '▼'}</span>`);
+            docNameEl.addEventListener('click', () => { todosOpen[todoKey] = !todosOpen[todoKey]; render(); });
+          }
+
+          // 2) Analyser le document par Claude → liste des choses à faire.
+          if (doc.kind === 'termsheet') {
+            const an = document.createElement('button');
+            an.className = 'fbtn fbtn--mini';
+            an.textContent = hasTodos ? '↻ Analyser' : 'Analyser';
+            an.title = 'Analyser ce document avec Claude et lister les choses à faire';
+            an.addEventListener('click', () => analyzeDoc(f.id, slug, doc, an));
+            acts.appendChild(an);
+          }
+
+          // 3) Valider le « document final ».
           const val = document.createElement('button');
           val.className = 'fbtn fbtn--mini' + (final ? ' fbtn--ok' : '');
           val.textContent = final ? '✓ Final' : 'Valider';
@@ -524,6 +563,17 @@
           un.title = 'Détacher ce document';
           un.addEventListener('click', () => linkDoc(f.id, slug, null));
           acts.appendChild(un);
+        }
+
+        // Panneau « choses à faire » (déplié au clic sur le nom du document).
+        if (linked && Array.isArray(st.todos) && st.todos.length && todosOpen[f.id + ':' + slug]) {
+          const main = li.querySelector('.cli__main');
+          const box = document.createElement('div');
+          box.className = 'cli-todos';
+          box.innerHTML = '<div class="cli-todos__h">Choses à faire</div><ul>' +
+            st.todos.map(t => `<li>${esc(t)}</li>`).join('') + '</ul>' +
+            (st.analysis_at ? `<div class="cli-todos__date">Analyse du ${fmtDate(st.analysis_at)}</div>` : '');
+          if (main) main.appendChild(box);
         }
 
         ul.appendChild(li);
@@ -642,6 +692,55 @@
       } catch { showErr('Impossible de joindre le serveur.'); }
     }
 
+    // Analyse d'un document par Claude → liste des « choses à faire », stockée et
+    // dépliable au clic sur le nom du document.
+    async function analyzeDoc(folderId, slug, doc, btn) {
+      if (!doc || doc.kind !== 'termsheet') {
+        showErr('L\'analyse est disponible pour les documents éditables (modèles / term sheets).');
+        return;
+      }
+      const old = btn.textContent;
+      btn.disabled = true; btn.textContent = 'Analyse…';
+      showErr('');
+      try {
+        // Récupère le contenu du document, puis le convertit en texte.
+        const tr = await fetch('/api/saas/termsheets/' + doc.id, { credentials: 'include' });
+        const td = await tr.json().catch(() => ({}));
+        const tmp = document.createElement('div');
+        tmp.innerHTML = td.html || '';
+        const text = (tmp.innerText || tmp.textContent || '').trim();
+        if (!text) { showErr('Document vide : rien à analyser.'); btn.disabled = false; btn.textContent = old; return; }
+
+        const ar = await fetch('/api/saas/doc-analyze', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', body: JSON.stringify({ title: doc.name, text }),
+        });
+        const ad = await ar.json().catch(() => ({}));
+        if (!ar.ok || !Array.isArray(ad.todos) || !ad.todos.length) {
+          showErr(ad.error || 'Analyse indisponible pour le moment.');
+          btn.disabled = false; btn.textContent = old; return;
+        }
+
+        // Sauvegarde des choses à faire dans l'état de la roadlist.
+        await fetch('/api/saas/folders/' + folderId + '/checklist', {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', body: JSON.stringify({ slug, todos: ad.todos }),
+        });
+
+        // Mise à jour locale + ouverture du panneau (sans rechargement complet).
+        const f = folders.find(x => x.id === folderId);
+        if (f) {
+          f.items_state = f.items_state || {};
+          f.items_state[slug] = { ...(f.items_state[slug] || {}), todos: ad.todos, analysis_at: new Date().toISOString() };
+        }
+        todosOpen[folderId + ':' + slug] = true;
+        render();
+      } catch {
+        showErr('Impossible de joindre le serveur.');
+        btn.disabled = false; btn.textContent = old;
+      }
+    }
+
     // ---- Actions dossiers ----
     async function createFolder() {
       const name = (prompt('Nom du nouveau dossier :') || '').trim();
@@ -708,6 +807,24 @@
         const data = await r.json();
         if (!r.ok) { showErr(data.error || 'Conversion échouée.'); btnEl.disabled = false; btnEl.textContent = old; return; }
         load();
+      } catch {
+        showErr('Impossible de joindre le serveur.');
+        btnEl.disabled = false; btnEl.textContent = old;
+      }
+    }
+
+    // Convertit un DOCX en term sheet éditable (côté serveur) puis ouvre l'éditeur.
+    async function editInEditor(id, btnEl) {
+      showErr('');
+      const old = btnEl.textContent;
+      btnEl.disabled = true; btnEl.textContent = 'Ouverture…';
+      try {
+        const r = await fetch('/api/saas/documents/' + id + '/to-editor', {
+          method: 'POST', credentials: 'include',
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) { showErr(data.error || 'Ouverture impossible.'); btnEl.disabled = false; btnEl.textContent = old; return; }
+        window.location.href = 'editor.html?doc=' + data.id;
       } catch {
         showErr('Impossible de joindre le serveur.');
         btnEl.disabled = false; btnEl.textContent = old;

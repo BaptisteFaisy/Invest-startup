@@ -12,6 +12,7 @@ const multer           = require('multer');
 const { MongoClient }  = require('mongodb');
 const Anthropic        = require('@anthropic-ai/sdk');
 const CloudConvert     = require('cloudconvert');
+const mammoth          = require('mammoth');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -832,6 +833,66 @@ Règles :
   }
 });
 
+// ─── SaaS : analyse d'un document → liste des « choses à faire » ───────────────
+app.post('/api/saas/doc-analyze', requireAuth, async (req, res) => {
+  if (!anthropic)
+    return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ANTHROPIC_API_KEY dans le .env du serveur.' });
+
+  const { title, text } = req.body ?? {};
+  if (!text || typeof text !== 'string')
+    return res.status(400).json({ error: 'text est requis' });
+
+  const system =
+`Tu es l'assistant juridique de « liquid + », un outil pour fondateurs de startup en levée de fonds.
+On te donne le contenu réel d'UN document juridique. Tu dois l'analyser et lister TOUTES les « choses à faire » concrètes pour que ce document précis soit complet, exact et prêt à l'emploi, du point de vue du fondateur.
+
+Type / titre du document : « ${title || 'Document'} »
+
+Contenu réel du document :
+${String(text).slice(0, 14000)}
+
+Règles :
+- Liste des actions concrètes et SPÉCIFIQUES À CE DOCUMENT : champs à compléter (cite-les), valeurs/dates/montants manquants, clauses à préciser ou à ajouter typiques de ce type de document, incohérences à corriger, vérifications à faire.
+- N'invente pas d'actions génériques applicables à n'importe quel document (ex. « faire relire par un avocat »).
+- Chaque item : une phrase d'action commençant par un verbe à l'infinitif, en français.
+- Donne entre 4 et 12 items, ordonnés du plus important au moins important.`;
+
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-opus-4-8',
+      max_tokens: 1500,
+      thinking: { type: 'adaptive' },
+      system,
+      messages: [{ role: 'user', content: 'Analyse ce document et liste les choses à faire.' }],
+      output_config: {
+        format: {
+          type: 'json_schema',
+          schema: {
+            type: 'object',
+            properties: {
+              todos: {
+                type: 'array',
+                description: 'Les choses à faire, spécifiques au document (4 à 12).',
+                items: { type: 'string' },
+              },
+            },
+            required: ['todos'],
+            additionalProperties: false,
+          },
+        },
+      },
+    });
+    await recordClaudeUsage(req.user.id, response);
+    const textBlock = response.content.find(b => b.type === 'text');
+    const data = JSON.parse(textBlock ? textBlock.text : '{}');
+    const todos = Array.isArray(data.todos) ? data.todos.filter(t => typeof t === 'string' && t.trim()).map(t => t.trim()) : [];
+    res.json({ todos });
+  } catch (err) {
+    console.error('Claude doc-analyze error:', err.message);
+    res.status(502).json({ error: 'L\'assistant IA est momentanément indisponible.' });
+  }
+});
+
 // ─── SaaS : consommation IA Claude de l'utilisateur (tokens + nb requêtes) ─────
 app.get('/api/saas/usage', requireAuth, async (req, res) => {
   const u = await col('saas_claude_usage').findOne(
@@ -1070,6 +1131,18 @@ app.put('/api/saas/folders/:id/checklist', requireAuth, async (req, res) => {
   // Validation « document final ».
   if ('final' in (req.body || {})) cur.final = !!req.body.final;
 
+  // Résultat de l'analyse Claude : liste des choses à faire.
+  if ('todos' in (req.body || {})) {
+    const t = req.body.todos;
+    if (Array.isArray(t) && t.length) {
+      cur.todos = t.slice(0, 60).map(x => String(x).slice(0, 500));
+      cur.analysis_at = new Date().toISOString();
+    } else {
+      delete cur.todos;
+      delete cur.analysis_at;
+    }
+  }
+
   if (cur.document_id == null && !cur.final) delete state[slug];
   else state[slug] = cur;
 
@@ -1253,6 +1326,112 @@ app.post('/api/saas/documents/:id/convert', requireAuth, async (req, res) => {
   } catch (err) {
     console.error('CloudConvert error:', err.message);
     res.status(502).json({ error: 'La conversion a échoué. Réessayez.' });
+  }
+});
+
+// ─── SaaS : éditer un DOCX dans l'éditeur (conversion DOCX → HTML « clausé ») ──
+// L'éditeur travaille sur du HTML structuré en clauses (.ts-clause / .ts-content).
+// On convertit le DOCX en HTML avec mammoth, puis on le découpe en clauses (une
+// par titre, ou par article numéroté à défaut de styles Titre Word) pour que le
+// décrypteur et l'assistant IA fonctionnent paragraphe par paragraphe.
+function stripHtml(s) {
+  return String(s)
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ').trim();
+}
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// Découpe le HTML « plat » produit par mammoth en blocs de premier niveau, en
+// suivant la profondeur d'imbrication (listes/tableaux restent entiers).
+function topLevelBlocks(html) {
+  const blocks = [];
+  const tagRe = /<(\/?)(p|h[1-6]|ul|ol|table|blockquote|pre|div)\b[^>]*?(\/?)>/gi;
+  let depth = 0, startIdx = -1, m;
+  while ((m = tagRe.exec(html))) {
+    if (m[3] === '/') continue;                         // balise auto-fermante
+    if (m[1] !== '/') { if (depth === 0) startIdx = m.index; depth++; }
+    else { depth--; if (depth === 0 && startIdx >= 0) { blocks.push(html.slice(startIdx, m.index + m[0].length)); startIdx = -1; } }
+  }
+  return blocks;
+}
+
+const isHeadingBlock = (b) => /^<h[1-6]\b/i.test(b);
+// Début d'article numéroté (fallback : « ARTICLE 5 », « 5. », « 5.1 », « III. »).
+const SECTION_RE = /^\s*(ARTICLE\s+\d+|TITRE\s+[IVXLC\d]+|\d+(?:\.\d+)*[.)]\s|[IVXLC]+[.)]\s)/i;
+
+function clauseBlock(key, label, bodyHtml) {
+  const safeLabel = escapeHtml(label || 'Clause').slice(0, 120) || 'Clause';
+  return `<div class="ts-clause" data-key="${key}">` +
+         `<div class="ts-label">${safeLabel}</div>` +
+         `<div class="ts-content">${bodyHtml || '<p></p>'}</div></div>`;
+}
+
+function docxHtmlToEditorPage(rawHtml, docName) {
+  const blocks = topLevelBlocks(rawHtml).filter(b => stripHtml(b) || /<(img|table)/i.test(b));
+  if (!blocks.length) return clauseBlock('c1', docName || 'Document', '<p></p>');
+
+  const clauses = [];
+  let cur = null, n = 0;
+  const push = (label, firstBody) => { n++; cur = { key: 'c' + n, label, body: firstBody ? [firstBody] : [] }; clauses.push(cur); };
+
+  if (blocks.some(isHeadingBlock)) {
+    // Une clause par titre Word ; le contenu avant le 1er titre forme un préambule.
+    blocks.forEach(b => {
+      if (isHeadingBlock(b)) push(stripHtml(b) || 'Section');
+      else { if (!cur) push(docName || 'Préambule'); cur.body.push(b); }
+    });
+  } else {
+    // Pas de styles Titre : on coupe aux articles numérotés, sinon une seule clause.
+    blocks.forEach(b => {
+      const txt = stripHtml(b);
+      if (!cur || SECTION_RE.test(txt)) {
+        const label = txt.split(/[.:—–]/)[0].split(/\s+/).slice(0, 9).join(' ');
+        push(label || ('Paragraphe ' + (n + 1)), b);
+      } else cur.body.push(b);
+    });
+  }
+  return clauses.map(c => clauseBlock(c.key, c.label, c.body.join('\n'))).join('\n');
+}
+
+app.post('/api/saas/documents/:id/to-editor', requireAuth, async (req, res) => {
+  const id  = Number(req.params.id);
+  const doc = await col('saas_documents').findOne({ id, user_id: req.user.id });
+  if (!doc) return res.status(404).json({ error: 'Document introuvable' });
+
+  const srcExt = path.extname(doc.originalname || doc.filename || doc.name || '').toLowerCase();
+  if (srcExt !== '.docx')
+    return res.status(400).json({ error: 'Seuls les fichiers .docx peuvent être édités. Convertissez d\'abord le document en DOCX.' });
+  if (!doc.filename) return res.status(400).json({ error: 'Ce document n\'est pas éditable.' });
+
+  // Déjà ouvert dans l'éditeur ? On rouvre la term sheet existante (pas de doublon).
+  const existing = await col('saas_documents').findOne({ user_id: req.user.id, kind: 'termsheet', editor_source: id });
+  if (existing) return res.json({ id: existing.id, reused: true });
+
+  const filepath = path.join(UPLOADS_DIR, doc.filename);
+  if (!fs.existsSync(filepath)) return res.status(404).json({ error: 'Fichier introuvable' });
+
+  try {
+    const result   = await mammoth.convertToHtml({ path: filepath });
+    const pageHtml  = docxHtmlToEditorPage(result.value || '', doc.name);
+    const baseName  = (doc.name || doc.originalname || 'Document').replace(/\.[^.]+$/, '');
+    const now       = new Date().toISOString();
+    const newId     = await nextId('saas_documents');
+    const newDoc = {
+      id: newId, user_id: req.user.id, kind: 'termsheet',
+      name: baseName, html: pageHtml, size: Buffer.byteLength(pageHtml, 'utf8'),
+      editor_source: id, created_at: now, updated_at: now,
+    };
+    if (doc.folder_id != null) newDoc.folder_id = doc.folder_id;
+    await col('saas_documents').insertOne(newDoc);
+    res.status(201).json({ id: newId });
+  } catch (err) {
+    console.error('DOCX→éditeur error:', err.message);
+    res.status(502).json({ error: 'La conversion du DOCX a échoué. Réessayez.' });
   }
 });
 
