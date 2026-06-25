@@ -874,10 +874,16 @@
           if (btn) { btn.disabled = false; btn.textContent = old; }
           return;
         }
-        await fetch('/api/saas/folders/' + folderId + '/checklist', {
+        // Affichage instantané : on transmet à l'éditeur le contenu déjà chargé
+        // pour lui éviter un nouvel aller-retour réseau au chargement.
+        try { sessionStorage.setItem('liquid_prefill_' + data.id, JSON.stringify({ html, name: item })); } catch {}
+        // Liaison à la roadlist hors du chemin critique (keepalive : la requête
+        // survit à la navigation, pas besoin de l'attendre avant d'ouvrir l'éditeur).
+        fetch('/api/saas/folders/' + folderId + '/checklist', {
           method: 'PUT', headers: { 'Content-Type': 'application/json' },
-          credentials: 'include', body: JSON.stringify({ slug, document_id: data.id }),
-        });
+          credentials: 'include', keepalive: true,
+          body: JSON.stringify({ slug, document_id: data.id }),
+        }).catch(() => {});
         window.location.href = 'editor.html?doc=' + data.id + '&folder=' + folderId;
       } catch {
         showErr('Impossible de créer le modèle.');

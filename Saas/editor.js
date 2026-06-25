@@ -1189,32 +1189,54 @@ function adoptDocumentClauses() {
 }
 
 async function loadTermsheet(id) {
+  // Affichage instantané : si le document vient d'être créé depuis un modèle, son
+  // contenu a été pré-chargé (sessionStorage) — on l'affiche sans attendre le réseau.
+  let preHtml = null;
+  try {
+    const raw = sessionStorage.getItem('liquid_prefill_' + id);
+    if (raw) {
+      sessionStorage.removeItem('liquid_prefill_' + id);
+      const pre = JSON.parse(raw);
+      if (pre && typeof pre.html === 'string' && pre.html) {
+        applyTermsheet(id, pre.html, pre.name);
+        preHtml = pre.html;
+      }
+    }
+  } catch { /* pas de pré-chargement : chargement réseau normal */ }
   try {
     const res = await fetch('/api/saas/termsheets/' + id, { credentials: 'include' });
     if (!res.ok) return;
     const data = await res.json();
     if (!data.html) return;
-    page.innerHTML = data.html;
-    currentDocId = data.id;
-    isCustom = false;
-    docAdviceCache = null;
-    if (docNameEl) docNameEl.textContent = data.name || 'Term sheet';
-    if (isCustomDocument()) adoptDocumentClauses();
-    else syncModelFromDOM();
-
-    // Conseil + conditions codés en dur dans le modèle (blocs embarqués).
-    const bakedAdvice = readBakedAdvice();
-    if (bakedAdvice) docAdviceCache = bakedAdvice;
-    BAKED_COND = readBakedConditions();
-    // Le modèle est-il déjà analysé en dur (explications et/ou conseil embarqués) ?
-    const isBaked = !!bakedAdvice || !!page.querySelector('.ts-clause[data-plain]');
-
-    showEmptyPanel();
-    paginate();
-    // Sinon (document libre non baké, ex. DOCX importé), analyse à la demande,
-    // mise en cache serveur — pas de nouvel appel Claude à chaque génération.
-    if (isCustom && !isBaked) analyzeFull(document.getElementById('analyze-btn'));
+    // Déjà affiché à l'identique via le pré-chargement : rien à refaire.
+    if (preHtml !== null && data.html === preHtml) { currentDocId = data.id; return; }
+    applyTermsheet(data.id, data.html, data.name);
   } catch { /* on garde la term sheet de démonstration */ }
+}
+
+// Rend une term sheet dans la page et (ré)initialise l'analyse codée en dur
+// (décrypteur, conseil et conditions embarqués dans le modèle).
+function applyTermsheet(id, html, name) {
+  page.innerHTML = html;
+  currentDocId = id;
+  isCustom = false;
+  docAdviceCache = null;
+  if (docNameEl) docNameEl.textContent = name || 'Term sheet';
+  if (isCustomDocument()) adoptDocumentClauses();
+  else syncModelFromDOM();
+
+  // Conseil + conditions codés en dur dans le modèle (blocs embarqués).
+  const bakedAdvice = readBakedAdvice();
+  if (bakedAdvice) docAdviceCache = bakedAdvice;
+  BAKED_COND = readBakedConditions();
+  // Le modèle est-il déjà analysé en dur (explications et/ou conseil embarqués) ?
+  const isBaked = !!bakedAdvice || !!page.querySelector('.ts-clause[data-plain]');
+
+  showEmptyPanel();
+  paginate();
+  // Sinon (document libre non baké, ex. DOCX importé), analyse à la demande,
+  // mise en cache serveur — pas de nouvel appel Claude à chaque génération.
+  if (isCustom && !isBaked) analyzeFull(document.getElementById('analyze-btn'));
 }
 
 // Lit le conseil « codé en dur » embarqué dans un modèle (<script data-advice>).
