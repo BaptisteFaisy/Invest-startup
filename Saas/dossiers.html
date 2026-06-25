@@ -541,7 +541,6 @@
       card.innerHTML = `
         <div class="todo__head">
           <span class="todo__chevron">▶</span>
-          <div class="todo__ic">📝</div>
           <div class="todo__main">
             <div class="todo__name">À faire</div>
             <div class="todo__count">${total ? total + (total > 1 ? ' tâches restantes' : ' tâche restante') : 'Tout est à jour'}</div>
@@ -558,7 +557,7 @@
       });
 
       if (!total) {
-        body.innerHTML = '<p class="folder__empty">Aucune tâche en attente. 🎉</p>';
+        body.innerHTML = '<p class="folder__empty">Aucune tâche en attente.</p>';
         return card;
       }
       groups.forEach(g => {
