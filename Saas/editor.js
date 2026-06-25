@@ -1003,6 +1003,55 @@ async function exportToFile(format, btn) {
 const exportDocxBtn = document.getElementById('export-docx-btn');
 if (exportDocxBtn) exportDocxBtn.addEventListener('click', () => exportToFile('docx', exportDocxBtn));
 
+/* ---------- 6 ter. Analyser tout le document (Claude) ---------- */
+// Remplit en une fois : le « Pour bien comprendre » de chaque paragraphe (requête
+// groupée), et l'onglet Conseil (pistes d'amélioration). La bibliothèque est déjà
+// alimentée par les paragraphes du document.
+async function analyzeFull(btn) {
+  const old = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Analyse…'; }
+  try {
+    const clauses = [];
+    page.querySelectorAll('.ts-clause').forEach(el => {
+      const key = el.dataset.key;
+      const labelEl = el.querySelector('.ts-label');
+      const contentEl = el.querySelector('.ts-content');
+      if (!key || !contentEl) return;
+      clauses.push({ key, label: labelEl ? labelEl.textContent.trim() : key, html: contentEl.innerHTML });
+    });
+    const title = (docNameEl && docNameEl.textContent)
+      || (page.querySelector('.doc-title') ? page.querySelector('.doc-title').textContent : 'Document');
+
+    // 1) « Pour bien comprendre » pour chaque paragraphe (une seule requête).
+    if (clauses.length) {
+      const r = await fetch('/api/saas/clauses-explain', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', body: JSON.stringify({ title, clauses }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.explanations) {
+        clauses.forEach(c => {
+          const t = d.explanations[c.key];
+          if (t) SIMPLE_CACHE[c.key] = { sig: clauseSig(c.html), text: t };
+        });
+        if (activeKey) refreshSimple(activeKey);   // met à jour la bulle ouverte
+      }
+    }
+
+    // 2) Onglet Conseil : pistes d'amélioration spécifiques au document.
+    docAdviceCache = null;
+    await renderDocAdvice();
+
+    if (btn) btn.textContent = '✓ Analysé';
+  } catch {
+    if (btn) btn.textContent = 'Échec';
+  } finally {
+    if (btn) setTimeout(() => { btn.disabled = false; btn.textContent = old || 'Analyser'; }, 1600);
+  }
+}
+const analyzeBtn = document.getElementById('analyze-btn');
+if (analyzeBtn) analyzeBtn.addEventListener('click', () => analyzeFull(analyzeBtn));
+
 /* ---------- 6 bis. Enregistrer / charger la term sheet (Mes documents) ------ */
 let currentDocId = null;
 const docNameEl = document.querySelector('.topbar__doc');

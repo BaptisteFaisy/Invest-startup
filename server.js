@@ -893,6 +893,79 @@ Règles :
   }
 });
 
+// ─── SaaS : explication « Pour bien comprendre » de TOUS les paragraphes (groupée) ─
+app.post('/api/saas/clauses-explain', requireAuth, async (req, res) => {
+  if (!anthropic)
+    return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ANTHROPIC_API_KEY dans le .env du serveur.' });
+
+  const { title, clauses } = req.body ?? {};
+  if (!Array.isArray(clauses) || !clauses.length)
+    return res.status(400).json({ error: 'clauses requis' });
+
+  // On borne le nombre de paragraphes et la taille de chacun.
+  const list = clauses.slice(0, 60).map((c, i) => ({
+    key:   String(c && c.key != null ? c.key : 'c' + (i + 1)),
+    label: String(c && c.label ? c.label : 'Paragraphe ' + (i + 1)).slice(0, 200),
+    html:  String(c && c.html ? c.html : '').slice(0, 4000),
+  }));
+
+  const system =
+`Tu es l'assistant pédagogique de « liquid + », un outil juridique pour fondateurs de startup.
+On te donne la liste des paragraphes d'UN document juridique. Pour CHAQUE paragraphe, rédige une explication « Pour bien comprendre » : 1 à 3 phrases en français, simples et imagées, fidèles aux valeurs réelles du texte (durées, montants, pourcentages), du point de vue du fondateur, sans jargon ni balises HTML.
+
+Type / titre du document : « ${title || 'Document'} »
+
+Paragraphes (identifiant + libellé + contenu) :
+${list.map(c => `--- ${c.key} | ${c.label}\n${c.html}`).join('\n\n')}
+
+Renvoie une explication pour chaque identifiant fourni.`;
+
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-opus-4-8',
+      max_tokens: 8000,
+      thinking: { type: 'adaptive' },
+      system,
+      messages: [{ role: 'user', content: 'Explique chaque paragraphe.' }],
+      output_config: {
+        format: {
+          type: 'json_schema',
+          schema: {
+            type: 'object',
+            properties: {
+              items: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    key:    { type: 'string', description: 'Identifiant du paragraphe.' },
+                    simple: { type: 'string', description: 'Explication en langage courant.' },
+                  },
+                  required: ['key', 'simple'],
+                  additionalProperties: false,
+                },
+              },
+            },
+            required: ['items'],
+            additionalProperties: false,
+          },
+        },
+      },
+    });
+    await recordClaudeUsage(req.user.id, response);
+    const textBlock = response.content.find(b => b.type === 'text');
+    const data = JSON.parse(textBlock ? textBlock.text : '{}');
+    const explanations = {};
+    if (Array.isArray(data.items)) {
+      data.items.forEach(it => { if (it && it.key && it.simple) explanations[String(it.key)] = String(it.simple).trim(); });
+    }
+    res.json({ explanations });
+  } catch (err) {
+    console.error('Claude clauses-explain error:', err.message);
+    res.status(502).json({ error: 'L\'assistant IA est momentanément indisponible.' });
+  }
+});
+
 // ─── SaaS : consommation IA Claude de l'utilisateur (tokens + nb requêtes) ─────
 app.get('/api/saas/usage', requireAuth, async (req, res) => {
   const u = await col('saas_claude_usage').findOne(
