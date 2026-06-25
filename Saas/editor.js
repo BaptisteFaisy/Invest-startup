@@ -626,6 +626,7 @@ function syncToolbar() {
 /* ---------- 4. Décrypteur : suit le curseur ---------- */
 const panelBody = document.getElementById('panel-body');
 const panelActions = document.getElementById('panel-actions');
+const panelResult = document.getElementById('panel-result');
 const panelTitle = document.getElementById('panel-title');
 const panelEyebrow = document.getElementById('panel-eyebrow');
 const panelCount = document.getElementById('panel-count');
@@ -663,11 +664,13 @@ function renderPanel(key) {
     : `<button class="clause-remove" id="clause-remove" title="Déplacer cette clause vers la bibliothèque">Retirer du contrat</button>`;
 
   panelActions.innerHTML = `${removeCtrl}
-    <button class="verify-btn" id="verify-btn" title="Analyser cette clause avec Claude">Analyser</button>`;
+    <button class="btn btn--primary" id="verify-btn" title="Analyser cette clause avec Claude">Analyser</button>`;
   panelActions.hidden = false;
 
+  const vr = document.getElementById('verify-result');
+  if (vr) { vr.innerHTML = ''; panelResult.hidden = true; }
+
   panelBody.innerHTML = `
-    <div class="callout callout--claude" id="verify-result" hidden></div>
     ${c.plain ? `<div class="block">
       <div class="block__h">En langage courant</div>
       <p>${c.plain}</p>
@@ -713,6 +716,7 @@ function showEmptyPanel() {
   panelTitle.textContent = `Placez le curseur dans un${isCustom ? ' paragraphe' : 'e clause'}`;
   caretClause.textContent = 'Document prêt';
   panelActions.hidden = true;
+  panelResult.hidden = true;
   panelBody.innerHTML = `<div class="panel__empty"><p>Cliquez dans un${isCustom ? ' paragraphe' : 'e clause'} du document pour l'expliquer en langage courant.</p></div>`;
   hideChat();
 }
@@ -1390,7 +1394,7 @@ async function verifyClause(key) {
   const simple     = (SIMPLE_CACHE[key] && SIMPLE_CACHE[key].text) || '';
 
   btn.disabled = true; btn.textContent = 'Analyse…';
-  resultEl.hidden = false;
+  panelResult.hidden = false;
   resultEl.innerHTML = '<p class="verify-result__loading">Analyse en cours…</p>';
 
   try {
