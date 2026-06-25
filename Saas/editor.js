@@ -664,7 +664,9 @@ function renderPanel(key) {
   panelBody.innerHTML = `
     <div class="panel-actions">
       ${removeCtrl}
+      <button class="verify-btn" id="verify-btn" title="Analyser cette clause avec Claude">Analyser</button>
     </div>
+    <div class="callout callout--claude" id="verify-result" hidden></div>
     ${c.plain ? `<div class="block">
       <div class="block__h">En langage courant</div>
       <p>${c.plain}</p>
@@ -688,10 +690,6 @@ function renderPanel(key) {
         <span class="cond-section__hint">Valeurs en jaune = modifiables</span>
       </div>
       <div class="cond-tpl-list" id="cond-tpl-list"></div>
-    </div>
-    <div class="verify-section" id="verify-section">
-      <button class="btn btn--primary verify-btn" id="verify-btn" title="Analyser cette clause et vérifier la qualité des explications">Analyser cette clause</button>
-      <div class="verify-result" id="verify-result" hidden></div>
     </div>`;
   panelBody.scrollTop = 0;
 
@@ -1400,14 +1398,13 @@ async function verifyClause(key) {
     const data = await res.json();
     if (!res.ok || !data.analysis) throw new Error(data.error || 'Erreur');
 
-    // On vérifie que l'utilisateur est encore sur la même clause
     if (key !== activeKey) return;
     const curBtn    = document.getElementById('verify-btn');
     const curResult = document.getElementById('verify-result');
     if (!curBtn || !curResult) return;
 
     curResult.innerHTML =
-      `<div class="block__h verify-result__h">Analyse Claude</div>` +
+      `<div class="block__h">Analyse</div>` +
       `<p class="verify-result__text">${data.analysis}</p>`;
     curBtn.textContent = '↻ Ré-analyser';
     curBtn.disabled    = false;
@@ -1415,7 +1412,7 @@ async function verifyClause(key) {
     if (key !== activeKey) return;
     const curBtn    = document.getElementById('verify-btn');
     const curResult = document.getElementById('verify-result');
-    if (curBtn)    { curBtn.disabled = false; curBtn.textContent = 'Analyser cette clause'; }
+    if (curBtn)    { curBtn.disabled = false; curBtn.textContent = 'Analyser'; }
     if (curResult) curResult.innerHTML = '<p class="verify-result__err">Analyse indisponible pour le moment.</p>';
   }
 }
