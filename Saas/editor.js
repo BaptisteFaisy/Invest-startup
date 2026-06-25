@@ -1185,6 +1185,9 @@ async function loadTermsheet(id) {
     else syncModelFromDOM();
     showEmptyPanel();
     paginate();
+    // Analyse automatique des modèles (décrypteur + conseil). Après la 1re fois,
+    // c'est servi par le cache serveur — pas de nouvel appel Claude à chaque génération.
+    if (isCustom) analyzeFull(document.getElementById('analyze-btn'));
   } catch { /* on garde la term sheet de démonstration */ }
 }
 

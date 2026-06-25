@@ -635,6 +635,23 @@ async function recordClaudeUsage(userId, response) {
   } catch (e) { console.error('recordClaudeUsage error:', e.message); }
 }
 
+// ─── Cache d'analyse IA par contenu ────────────────────────────────────────────
+// Les modèles étant des documents identiques d'une génération à l'autre, on met en
+// cache le résultat de l'analyse Claude par empreinte du contenu : un modèle n'est
+// analysé qu'UNE fois, puis réutilisé sans rappeler Claude.
+const crypto = require('crypto');
+function aiHash(kind, parts) {
+  return crypto.createHash('sha256').update(kind + '' + parts.join('')).digest('hex');
+}
+async function aiCacheGet(hash) {
+  try { const r = await col('ai_cache').findOne({ hash }, { projection: { _id: 0, data: 1 } }); return r ? r.data : null; }
+  catch { return null; }
+}
+async function aiCacheSet(hash, data) {
+  try { await col('ai_cache').updateOne({ hash }, { $set: { hash, data, created_at: new Date().toISOString() } }, { upsert: true }); }
+  catch (e) { console.error('aiCacheSet error:', e.message); }
+}
+
 app.post('/api/saas/clause-chat', requireAuth, async (req, res) => {
   if (!anthropic)
     return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ANTHROPIC_API_KEY dans le .env du serveur.' });
@@ -790,6 +807,11 @@ Règles :
 - N'invente pas de conseils génériques applicables à n'importe quel document (ex. « faites relire par un avocat », « datez le document »). Sois spécifique au contenu.
 - Chaque conseil : un "title" court (max ~6 mots) et un "body" d'une phrase, en français, ton clair et utile.`;
 
+  // Cache par contenu : un même document n'est analysé qu'une fois.
+  const cacheHash = aiHash('doc-advice', [title || '', String(text).slice(0, 12000)]);
+  const cached = await aiCacheGet(cacheHash);
+  if (cached) return res.json({ tips: cached, cached: true });
+
   try {
     const response = await anthropic.messages.create({
       model: 'claude-opus-4-8',
@@ -826,7 +848,9 @@ Règles :
     await recordClaudeUsage(req.user.id, response);
     const textBlock = response.content.find(b => b.type === 'text');
     const data = JSON.parse(textBlock ? textBlock.text : '{}');
-    res.json({ tips: Array.isArray(data.tips) ? data.tips.filter(t => t && t.title && t.body) : [] });
+    const tips = Array.isArray(data.tips) ? data.tips.filter(t => t && t.title && t.body) : [];
+    if (tips.length) await aiCacheSet(cacheHash, tips);
+    res.json({ tips });
   } catch (err) {
     console.error('Claude doc-advice error:', err.message);
     res.status(502).json({ error: 'L\'assistant IA est momentanément indisponible.' });
@@ -920,6 +944,11 @@ ${list.map(c => `--- ${c.key} | ${c.label}\n${c.html}`).join('\n\n')}
 
 Renvoie une explication pour chaque identifiant fourni.`;
 
+  // Cache par contenu : on n'explique un même ensemble de paragraphes qu'une fois.
+  const cacheHash = aiHash('clauses-explain', [title || '', ...list.map(c => c.key + '|' + c.html)]);
+  const cached = await aiCacheGet(cacheHash);
+  if (cached) return res.json({ explanations: cached, cached: true });
+
   try {
     const response = await anthropic.messages.create({
       model: 'claude-opus-4-8',
@@ -959,6 +988,7 @@ Renvoie une explication pour chaque identifiant fourni.`;
     if (Array.isArray(data.items)) {
       data.items.forEach(it => { if (it && it.key && it.simple) explanations[String(it.key)] = String(it.simple).trim(); });
     }
+    if (Object.keys(explanations).length) await aiCacheSet(cacheHash, explanations);
     res.json({ explanations });
   } catch (err) {
     console.error('Claude clauses-explain error:', err.message);
