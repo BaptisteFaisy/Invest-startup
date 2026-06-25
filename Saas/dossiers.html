@@ -336,7 +336,14 @@
       foldersEl.appendChild(todoSummaryEl());
 
       buckets.forEach(f => {
-        const inFolder = docs.filter(d => (f.id == null ? d.folder_id == null : d.folder_id === f.id));
+        // IDs des documents déjà liés à un point de checklist de CE dossier
+        // → on les exclut de la liste de fichiers pour éviter le doublon.
+        const checklistLinked = new Set(
+          Object.values(f.items_state || {}).map(st => st.document_id).filter(id => id != null)
+        );
+        const inFolder = docs.filter(d =>
+          (f.id == null ? d.folder_id == null : d.folder_id === f.id) && !checklistLinked.has(d.id)
+        );
         const key = String(f.id);
         // Le dossier « Fichiers importés » est ouvert par défaut (zone de dépôt).
         const isOpen = openState[key] ?? (f.virtual || inFolder.length > 0);

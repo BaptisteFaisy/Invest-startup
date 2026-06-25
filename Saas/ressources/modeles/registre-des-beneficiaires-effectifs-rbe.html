@@ -1,12 +1,55 @@
 <h1 class="doc-title">REGISTRE DES BÉNÉFICIAIRES EFFECTIFS</h1>
-<p class="doc-sub">[DÉNOMINATION] — RCS [VILLE / SIREN]</p>
-<div class="ts-group" contenteditable="false">Bénéficiaires effectifs</div>
-<div class="ts-clause"><div class="ts-label">Identification</div><div class="ts-content">
-<p>Personnes physiques détenant, directement ou indirectement, plus de 25 % du capital ou des droits de vote, ou exerçant un contrôle. Support de la déclaration au greffe (formulaire DBE-S-1).</p>
+<p class="doc-sub">[DÉNOMINATION] — RCS [VILLE / SIREN] — version exhaustive</p>
+
+<div class="ts-group" contenteditable="false">Comprendre</div>
+
+<div class="ts-clause" data-plain="Le RBE identifie les vraies personnes physiques qui possèdent ou contrôlent la société, derrière les sociétés et les montages. C'est une obligation de transparence anti-blanchiment : toute société non cotée doit déclarer ses bénéficiaires effectifs au greffe."><div class="ts-label">Qu'est-ce que le bénéficiaire effectif</div><div class="ts-content"><p>Le bénéficiaire effectif (BE) est la ou les <strong>personnes physiques</strong> qui, en dernier ressort, possèdent ou contrôlent la Société. L'objectif est la transparence dans le cadre de la lutte contre le blanchiment et le financement du terrorisme (LCB-FT). Toute société non cotée immatriculée en France doit identifier ses bénéficiaires effectifs, tenir un registre interne et en déposer la déclaration auprès du greffe (via le guichet unique). Le présent document constitue le support interne de cette identification et de la déclaration.</p></div></div>
+
+<div class="ts-clause" data-key="critere-be" data-plain="La règle pour savoir qui est bénéficiaire effectif : toute personne qui détient (directement ou via des sociétés) plus de 25 % du capital OU des droits de vote, ou qui contrôle la société par un autre moyen. À défaut, c'est le dirigeant qui est déclaré."><div class="ts-label">Critères de qualification</div><div class="ts-content"><p>Est bénéficiaire effectif la personne physique qui :</p><ul><li>détient, directement ou indirectement, <strong>plus de 25 % du capital</strong> de la Société ; ou</li><li>détient, directement ou indirectement, <strong>plus de 25 % des droits de vote</strong> ; ou</li><li>exerce, <strong>par tout autre moyen</strong>, un pouvoir de contrôle sur les organes de direction ou sur l'assemblée des associés.</li></ul><p>À défaut d'identification d'une personne dépassant ces seuils, le bénéficiaire effectif est, par défaut, le ou les <strong>représentants légaux</strong> de la Société, ce qui doit être expressément mentionné.</p></div></div>
+
+<div class="ts-clause" data-plain="La détention « indirecte » : si vous détenez la société via une holding, on calcule en remontant la chaîne (multiplication des pourcentages). Il faut donc identifier la personne physique tout en haut, pas seulement la société actionnaire."><div class="ts-label">Détention directe et indirecte</div><div class="ts-content"><p>La détention <strong>directe</strong> résulte des actions détenues en nom propre. La détention <strong>indirecte</strong> s'apprécie en remontant la chaîne de participations : lorsqu'un associé est une personne morale (holding, fonds), on identifie la personne physique qui la contrôle et on apprécie sa détention en multipliant les taux le long de la chaîne. Un associé personne physique détenant 40 % d'une holding qui détient elle-même 60 % de la Société est réputé détenir indirectement 24 % — à comparer aux seuils, en tenant compte aussi des pactes et des droits de vote.</p></div></div>
+
+<div class="ts-group" contenteditable="false">Identification</div>
+
+<div class="ts-clause" data-plain="Le tableau de déclaration : pour chaque bénéficiaire effectif, son identité complète, ses pourcentages de capital et de droits de vote, et la nature du contrôle (direct, indirect, autre). Ces informations alimentent la déclaration au greffe."><div class="ts-label">Bénéficiaires effectifs déclarés</div><div class="ts-content">
 <table>
-<tr><th>Nom, prénom</th><th>Naissance</th><th>Nationalité</th><th>Domicile</th><th>% capital</th><th>% droits de vote</th><th>Nature du contrôle</th></tr>
-<tr><td>[…]</td><td>[…]</td><td>[…]</td><td>[…]</td><td>[…]%</td><td>[…]%</td><td>[détention directe / indirecte / autre]</td></tr>
-<tr><td>[…]</td><td>[…]</td><td>[…]</td><td>[…]</td><td>[…]%</td><td>[…]%</td><td>[…]</td></tr>
-</table></div></div>
-<div class="ts-clause"><div class="ts-label">Cas par défaut</div><div class="ts-content"><p>Si aucune personne physique ne dépasse les seuils, le bénéficiaire effectif est, par défaut, le représentant légal — à mentionner expressément. Toute fausse déclaration est pénalement sanctionnée.</p></div></div>
+<tr><th>Nom, prénom</th><th>Date &amp; lieu de naissance</th><th>Nationalité</th><th>Domicile</th><th>% capital</th><th>% droits de vote</th><th>Modalité de contrôle</th><th>Date d'acquisition de la qualité</th></tr>
+<tr><td>[…]</td><td>[…]</td><td>[…]</td><td>[…]</td><td>[…]%</td><td>[…]%</td><td>[détention directe]</td><td>[…]</td></tr>
+<tr><td>[…]</td><td>[…]</td><td>[…]</td><td>[…]</td><td>[…]%</td><td>[…]%</td><td>[détention indirecte via [holding]]</td><td>[…]</td></tr>
+<tr><td>[…]</td><td>[…]</td><td>[…]</td><td>[…]</td><td>[…]%</td><td>[…]%</td><td>[contrôle par autre moyen]</td><td>[…]</td></tr>
+</table>
+</div></div>
+
+<div class="ts-clause" data-plain="Le cas fréquent des sociétés à actionnariat dispersé : si personne n'atteint 25 %, on déclare le représentant légal comme bénéficiaire effectif « par défaut ». Il faut l'indiquer explicitement, ce n'est pas une absence de déclaration."><div class="ts-label">Bénéficiaire effectif par défaut</div><div class="ts-content"><p>Si, après analyse de la détention directe et indirecte et des modalités de contrôle, aucune personne physique n'atteint les seuils, est déclaré bénéficiaire effectif par défaut :</p><table>
+<tr><th>Représentant légal</th><th>Qualité</th><th>Date &amp; lieu de naissance</th><th>Nationalité</th><th>Domicile</th></tr>
+<tr><td>[NOM, prénom]</td><td>Président</td><td>[…]</td><td>[…]</td><td>[…]</td></tr>
+</table><p>Cette désignation par défaut doit être expressément motivée dans la déclaration.</p></div></div>
+
+<div class="ts-group" contenteditable="false">Déclaration &amp; mise à jour</div>
+
+<div class="ts-clause" data-plain="Comment et quand déclarer : la déclaration se dépose au guichet unique (INPI), dès la création, puis à chaque changement (dans les 30 jours). Après une levée, l'entrée d'un investisseur ou le franchissement du seuil de 25 % oblige à mettre à jour."><div class="ts-label">Modalités et délais de déclaration</div><div class="ts-content"><p>La déclaration des bénéficiaires effectifs est déposée par voie dématérialisée sur le <strong>guichet unique des formalités (procedures.inpi.fr)</strong>, qui transmet au greffe et alimente le Registre national des entreprises. Elle doit être effectuée :</p><ul><li>lors de la <strong>constitution</strong> (ou au plus tard dans les délais légaux suivant l'immatriculation) ;</li><li>à chaque <strong>modification</strong> entraînant un changement de bénéficiaire effectif ou de ses caractéristiques (entrée d'un investisseur, franchissement des seuils de 25 %, cession, changement de dirigeant) — généralement dans les <strong>trente jours</strong>.</li></ul><p>Dans le cadre d'une levée, l'entrée de l'investisseur impose en règle générale une <strong>déclaration modificative</strong>.</p></div></div>
+
+<div class="ts-clause" data-plain="Qui peut consulter ces informations et ce que vous risquez en cas d'oubli ou de fausse déclaration. L'accès est désormais restreint (autorités, personnes assujetties LCB-FT, intérêt légitime) ; l'absence de déclaration est pénalement sanctionnée."><div class="ts-label">Accès, confidentialité et sanctions</div><div class="ts-content"><p>L'accès aux informations sur les bénéficiaires effectifs est encadré : autorités compétentes, professionnels assujettis à la LCB-FT (banques, notaires, avocats dans le cadre de leurs obligations de vigilance), et toute personne justifiant d'un intérêt légitime, dans les conditions fixées par les textes. Le défaut de dépôt, le dépôt de informations inexactes ou incomplètes est <strong>pénalement sanctionné</strong> (peine d'emprisonnement et amende) et peut entraîner une injonction sous astreinte. La déclaration est certifiée exacte par le représentant légal.</p></div></div>
+
+<div class="ts-clause" data-plain="L'action concrète : mettez le RBE à jour après l'entrée de l'investisseur, déposez la déclaration modificative au guichet unique, puis ajoutez ici le récépissé et le registre interne."><div class="ts-label">À faire</div><div class="ts-content"><ul>
+<li>Réexaminer la qualité de bénéficiaire effectif après l'opération (entrée de l'investisseur, franchissements de seuils).</li>
+<li>Déposer la déclaration (initiale ou modificative) sur le guichet unique dans les délais.</li>
+<li>Téléverser, via « Ajouter », le registre interne et le récépissé de dépôt.</li>
+</ul></div></div>
+
 <div class="ts-sign"><p>Déclaration certifiée exacte. Fait à [VILLE], le [DATE].</p><p>Le représentant légal — [NOM, QUALITÉ]</p></div>
+<script type="application/json" data-conditions>{
+"critere-be": [
+{"id":"rbe_capital","type":"option","label":"Détention > 25 % du capital","preview":"Bénéficiaire identifié par le capital détenu","html":"<p>Est bénéficiaire effectif la personne physique détenant, directement ou indirectement, plus de <mark class='cond-val'>25 % du capital</mark> de la Société.</p>"},
+{"id":"rbe_votes","type":"option","label":"Détention > 25 % des droits de vote","preview":"Bénéficiaire identifié par les droits de vote","html":"<p>Est bénéficiaire effectif la personne physique détenant, directement ou indirectement, plus de <mark class='cond-val'>25 % des droits de vote</mark> de la Société.</p>"},
+{"id":"rbe_controle","type":"option","label":"Contrôle par tout autre moyen","preview":"Contrôle de fait des organes ou de l'assemblée","html":"<p>Est bénéficiaire effectif la personne physique exerçant, <mark class='cond-val'>par tout autre moyen</mark>, un pouvoir de contrôle sur les organes de direction ou sur l'assemblée des associés.</p>"},
+{"id":"rbe_defaut","type":"exception","label":"Représentant légal par défaut","preview":"Aucune personne au-dessus des seuils","html":"<p>À défaut de personne dépassant les seuils, le bénéficiaire effectif est, <mark class='cond-val'>par défaut, le représentant légal</mark>, ce qui est expressément mentionné.</p>"}
+]
+}</script>
+<script type="application/json" data-advice>[
+{"title":"Mettre le RBE à jour après la levée","body":"L'entrée d'un investisseur ou le franchissement du seuil de 25 % impose une déclaration modificative au guichet unique, en principe dans les 30 jours : ne l'oubliez pas au closing."},
+{"title":"Remonter toute la chaîne de détention","body":"Pour les associés personnes morales (holdings, fonds), identifiez la personne physique au sommet et calculez la détention indirecte ; n'arrêtez pas l'analyse à la société actionnaire."},
+{"title":"Motiver la désignation par défaut","body":"Si aucun associé n'atteint 25 %, déclarez le représentant légal en motivant expressément ce choix : une case vide n'est pas une déclaration valable."},
+{"title":"Vérifier la cohérence avec la cap table et le Kbis","body":"Les pourcentages déclarés doivent concorder avec la table de capitalisation et les dirigeants figurant au Kbis ; les investisseurs et leurs banques recoupent ces données (KYC)."},
+{"title":"Ne pas négliger les sanctions","body":"Le défaut ou l'inexactitude de la déclaration est pénalement sanctionné et peut bloquer des démarches (ouverture de compte, closing) : traitez-le comme une formalité critique."}
+]</script>
