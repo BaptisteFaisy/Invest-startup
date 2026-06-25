@@ -685,7 +685,7 @@ function renderPanel(key) {
       ${biasMeter(BIAS[key] || 3)}
     </div>` : ''}
     ${c.watch ? `<div class="callout callout--advice">
-      <div class="block__h">Conseil — côté fondateur</div>
+      <div class="block__h">Priorités — côté fondateur</div>
       <p>${c.watch}</p>
     </div>` : ''}
     <div class="cond-section" id="cond-section">
@@ -1176,7 +1176,7 @@ function adoptDocumentClauses() {
   const libTitle = document.querySelector('#view-library .library__title');
   if (libTitle) libTitle.textContent = 'Paragraphes du document';
   const advEyebrow = document.querySelector('#view-advice .library__eyebrow');
-  if (advEyebrow) advEyebrow.textContent = 'Conseil';
+  if (advEyebrow) advEyebrow.textContent = 'Priorités';
   const advTitle = document.querySelector('#view-advice .library__title');
   if (advTitle) advTitle.textContent = 'Améliorer ce document';
   const chatTitle = document.querySelector('.chat__title');
@@ -1622,6 +1622,7 @@ function addToContract(key) {
   renderAdvice();
   countWords();
   updateClauseCount();
+  paginate();                 // recalcule la mise en page AVANT de défiler (sinon tout se décale)
   selectClauseByKey(key, el);
   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
@@ -1635,6 +1636,7 @@ function removeFromContract(key) {
   renderAdvice();
   countWords();
   updateClauseCount();
+  paginate();                 // recompose les pages après le retrait de la clause
   showEmptyPanel();
 }
 

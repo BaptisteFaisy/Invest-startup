@@ -119,7 +119,7 @@
       <aside class="library">
         <div class="lib-tabs" role="tablist">
           <button class="lib-tab is-active" data-tab="library" type="button">Bibliothèque</button>
-          <button class="lib-tab" data-tab="advice" type="button">Conseil</button>
+          <button class="lib-tab" data-tab="advice" type="button">Priorités</button>
         </div>
 
         <!-- Vue Bibliothèque -->
@@ -135,7 +135,7 @@
         <!-- Vue Conseil : points à négocier, par ordre de priorité -->
         <div class="lib-view" id="view-advice" hidden>
           <div class="library__head">
-            <div class="library__eyebrow">Conseil — côté fondateur</div>
+            <div class="library__eyebrow">Priorités — côté fondateur</div>
             <h2 class="library__title">Points à négocier</h2>
             <p class="library__sub" id="advice-count"></p>
           </div>
@@ -194,8 +194,8 @@
     </div>
   </div>
 
-  <script src="editor.js?v=14"></script>
-  <script src="documents.js?v=14"></script>
+  <script src="editor.js?v=15"></script>
+  <script src="documents.js?v=15"></script>
   <script>
     // Garde d'accès : l'éditeur est réservé aux utilisateurs connectés.
     requireAuth().then((user) => {
