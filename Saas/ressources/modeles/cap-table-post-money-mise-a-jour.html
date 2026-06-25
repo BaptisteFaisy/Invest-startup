@@ -1,13 +1,56 @@
 <h1 class="doc-title">CAP TABLE POST-MONEY</h1>
-<p class="doc-sub">[DÉNOMINATION] — après l'opération du [DATE]</p>
+<p class="doc-sub">[DÉNOMINATION] — après l'opération du [DATE] — version exhaustive</p>
+
+<div class="ts-group" contenteditable="false">Comprendre</div>
+
+<div class="ts-clause" data-plain="La cap table « post-money » est la photo du capital juste après la levée : qui détient quoi une fois l'investisseur entré et le pool créé. C'est la référence pour la suite, à figer et à conserver."><div class="ts-label">Rôle de la cap table post-money</div><div class="ts-content"><p>La cap table post-money fige la répartition du capital à l'issue de l'opération : entrée de l'investisseur, création ou extension du pool d'options, exercices éventuels. Elle sert de référence pour tous les calculs ultérieurs (dilution, prochains tours, waterfall de liquidation) et doit concorder avec le PV de constatation de la réalisation définitive, les statuts modifiés et le registre des mouvements de titres mis à jour.</p></div></div>
+
+<div class="ts-clause" data-plain="Rappel : « au capital » se calcule sur les actions émises ; « pleinement dilué » intègre tous les bons et options comme s'ils étaient convertis. Les investisseurs raisonnent en pleinement dilué, pool compris."><div class="ts-label">« Au capital » vs « pleinement dilué »</div><div class="ts-content"><p>Le pourcentage <strong>au capital</strong> porte sur les seules actions émises ; le pourcentage <strong>pleinement dilué</strong> intègre les instruments donnant accès au capital (BSPCE, BSA, OC, pool réservé) comme s'ils étaient convertis. Précisez toujours la base retenue : la participation négociée de l'investisseur s'entend en pleinement dilué.</p></div></div>
+
 <div class="ts-group" contenteditable="false">Répartition post-money</div>
-<div class="ts-clause"><div class="ts-label">Détail</div><div class="ts-content"><table>
-<tr><th>Détenteur</th><th>Type</th><th>Nombre</th><th>% capital</th><th>% pleinement dilué</th></tr>
-<tr><td>[Fondateur 1]</td><td>Ordinaires</td><td>[…]</td><td>[…]%</td><td>[…]%</td></tr>
-<tr><td>[Fondateur 2]</td><td>Ordinaires</td><td>[…]</td><td>[…]%</td><td>[…]%</td></tr>
-<tr><td>[Investisseur — Série A]</td><td>ADP A</td><td>[…]</td><td>[…]%</td><td>[…]%</td></tr>
-<tr><td>[Salariés]</td><td>BSPCE</td><td>[…]</td><td>—</td><td>[…]%</td></tr>
-<tr><td>Pool non attribué</td><td>BSPCE réservés</td><td>[…]</td><td>—</td><td>[…]%</td></tr>
-<tr><td><strong>Total</strong></td><td></td><td><strong>[…]</strong></td><td><strong>100 %</strong></td><td><strong>100 %</strong></td></tr>
+
+<div class="ts-clause" data-plain="Le tableau principal après la levée : chaque détenteur, son type de titres et ses deux pourcentages. Le total doit boucler à 100 % et correspondre au nouveau nombre d'actions."><div class="ts-label">Détail par détenteur</div><div class="ts-content"><table>
+<tr><th>Détenteur</th><th>Type de titres</th><th>Nombre</th><th>Montant investi</th><th>% capital</th><th>% pleinement dilué</th></tr>
+<tr><td>[Fondateur 1]</td><td>Actions ordinaires</td><td>[…]</td><td>[…] €</td><td>[…]%</td><td>[…]%</td></tr>
+<tr><td>[Fondateur 2]</td><td>Actions ordinaires</td><td>[…]</td><td>[…] €</td><td>[…]%</td><td>[…]%</td></tr>
+<tr><td>[Investisseurs historiques]</td><td>Ordinaires / ADP</td><td>[…]</td><td>[…] €</td><td>[…]%</td><td>[…]%</td></tr>
+<tr><td>[Investisseur — Série A]</td><td>ADP A</td><td>[…]</td><td>[…] €</td><td>[…]%</td><td>[…]%</td></tr>
+<tr><td>[Salariés / managers]</td><td>BSPCE attribués</td><td>[…]</td><td>—</td><td>—</td><td>[…]%</td></tr>
+<tr><td>Pool non attribué</td><td>BSPCE / BSA réservés</td><td>[…]</td><td>—</td><td>—</td><td>[…]%</td></tr>
+<tr><td><strong>Total</strong></td><td></td><td><strong>[…]</strong></td><td><strong>[…] €</strong></td><td><strong>100 %</strong></td><td><strong>100 %</strong></td></tr>
 </table></div></div>
-<div class="ts-clause"><div class="ts-label">Rappels</div><div class="ts-content"><p>Valorisation post-money : [...] €. La cap table post-money doit être cohérente avec le PV de réalisation et le registre des mouvements de titres mis à jour.</p></div></div>
+
+<div class="ts-clause" data-plain="Le comparatif avant/après : montre concrètement l'effet de la levée sur la part de chacun. Utile pour vérifier que la dilution correspond bien à ce qui a été négocié."><div class="ts-label">Comparatif pre-money / post-money</div><div class="ts-content"><table>
+<tr><th>Détenteur</th><th>% avant (pre-money)</th><th>% après (post-money)</th><th>Dilution</th></tr>
+<tr><td>[Fondateurs]</td><td>[…]%</td><td>[…]%</td><td>[…] pts</td></tr>
+<tr><td>[Investisseurs historiques]</td><td>[…]%</td><td>[…]%</td><td>[…] pts</td></tr>
+<tr><td>[Nouvel investisseur]</td><td>—</td><td>[…]%</td><td>—</td></tr>
+<tr><td>Pool d'options</td><td>[…]%</td><td>[…]%</td><td>[…] pts</td></tr>
+</table></div></div>
+
+<div class="ts-group" contenteditable="false">Rappels &amp; cohérence</div>
+
+<div class="ts-clause" data-key="valorisation" data-plain="Les paramètres de référence de l'opération : valorisation post-money et prix par action. Ils figent la base de calcul pour les prochains tours."><div class="ts-label">Paramètres de l'opération</div><div class="ts-content"><p>Valorisation pre-money : [...] € ; montant levé : [...] € ; <strong>valorisation post-money : [...] €</strong> ; prix par action : [...] € (nominal [...] € + prime [...] €). La cap table post-money sert de base aux pourcentages et au prix des opérations futures.</p></div></div>
+
+<div class="ts-clause" data-plain="La check-list de cohérence : la cap table post-money doit donner exactement les mêmes chiffres que le PV de constatation, les statuts modifiés et le registre à jour. À vérifier avant de la diffuser."><div class="ts-label">Cohérence à vérifier</div><div class="ts-content"><ul>
+<li>Total des actions et capital cohérents avec les <strong>statuts modifiés</strong> et le futur Kbis.</li>
+<li>Concordance avec le <strong>PV de constatation</strong> de la réalisation définitive et le certificat du dépositaire.</li>
+<li>Recoupement ligne à ligne avec le <strong>registre des mouvements de titres mis à jour</strong> et les comptes individuels.</li>
+<li>Pourcentages au capital et pleinement dilué bouclant à <strong>100 %</strong>.</li>
+<li>Date d'arrêté et base de calcul clairement indiquées.</li>
+</ul></div></div>
+
+<div class="ts-sign"><p>Cap table post-money arrêtée au [DATE], cohérente avec le PV de réalisation et le registre des mouvements de titres mis à jour.</p><p>Le Président — [NOM]</p></div>
+<script type="application/json" data-conditions>{
+"valorisation": [
+{"id":"capm_post","type":"option","label":"Pourcentages en pleinement dilué","preview":"Base de référence des investisseurs","html":"<p>Les pourcentages sont exprimés en base <mark class='cond-val'>pleinement diluée</mark> (pool et instruments inclus), conformément à la base de négociation de l'opération.</p>"},
+{"id":"capm_capital","type":"option","label":"Pourcentages au capital émis","preview":"Sur les seules actions émises","html":"<p>Les pourcentages sont exprimés <mark class='cond-val'>au capital émis</mark> (hors instruments non encore convertis), à distinguer de la base pleinement diluée.</p>"}
+]
+}</script>
+<script type="application/json" data-advice>[
+{"title":"Figer la version post-money","body":"Conservez la cap table post-money datée et signée comme version de référence : c'est la base de tous les calculs jusqu'au prochain tour."},
+{"title":"Vérifier la concordance des chiffres","body":"Le total des actions et le capital doivent coïncider avec les statuts modifiés, le PV de constatation et le registre mis à jour ; tout écart doit être corrigé."},
+{"title":"Raisonner en pleinement dilué","body":"Présentez les pourcentages en base pleinement diluée (pool inclus) : c'est la base de négociation et celle qui sera reprise au tour suivant."},
+{"title":"Contrôler la dilution effective","body":"Comparez pre et post-money pour vérifier que la dilution de chacun correspond exactement à ce qui a été négocié dans la term sheet."},
+{"title":"Synchroniser avec le registre","body":"Tenez la cap table post-money et le registre des mouvements de titres parfaitement alignés : ils doivent se recouper ligne à ligne."}
+]</script>
