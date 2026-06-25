@@ -48,6 +48,10 @@
     .folder__body { display: none; padding: 4px 14px 16px; }
     .folder.open .folder__body { display: block; }
     .folder__empty { font-size: 13px; color: var(--text-3); padding: 10px 6px 6px; }
+    .folder--import .folder__ic { background: #fff4d6; }
+    .folder__drop { text-align: center; font-size: 13.5px; color: var(--text-2); line-height: 1.6; padding: 22px 14px; border: 2px dashed var(--line); border-radius: 12px; background: var(--bg, #f4f2ee); }
+    .folder__drop span { font-size: 12px; color: var(--text-3); }
+    .folder--import.is-drag .folder__drop { border-color: var(--blue, #3b82f6); background: rgba(59,130,246,0.06); }
 
     /* Checklist juridique attendue dans un dossier (roadlist de documents) */
     .checklist { background: var(--bg, #f4f2ee); border: 1px dashed var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; }
@@ -318,11 +322,10 @@
 
     function render() {
       foldersEl.innerHTML = '';
-      // Dossier virtuel « Documents importés » : tous les fichiers non classés
-      // (imports + nouvelles term sheets). Placé en tête pour être visible direct.
+      // Dossier virtuel « Fichiers importés » : zone de glisser-déposer toujours
+      // visible, regroupant les fichiers non classés (imports + nouvelles term sheets).
       const buckets = folders.map(f => ({ ...f, virtual: false }));
-      const unfiled = docs.filter(d => d.folder_id == null);
-      if (unfiled.length) buckets.unshift({ id: null, name: 'Documents importés', system: true, virtual: true });
+      buckets.unshift({ id: null, name: 'Fichiers importés', system: true, virtual: true });
 
       if (!buckets.length) {
         foldersEl.innerHTML = '<p class="empty">Aucun dossier pour le moment.</p>';
@@ -335,13 +338,15 @@
       buckets.forEach(f => {
         const inFolder = docs.filter(d => (f.id == null ? d.folder_id == null : d.folder_id === f.id));
         const key = String(f.id);
-        const isOpen = openState[key] ?? (inFolder.length > 0);
+        // Le dossier « Fichiers importés » est ouvert par défaut (zone de dépôt).
+        const isOpen = openState[key] ?? (f.virtual || inFolder.length > 0);
 
         const card = document.createElement('div');
-        card.className = 'folder' + (isOpen ? ' open' : '');
+        card.className = 'folder' + (isOpen ? ' open' : '') + (f.virtual ? ' folder--import' : '');
         card.innerHTML = `
           <div class="folder__head">
             <span class="folder__chevron">▶</span>
+            <div class="folder__ic">${f.virtual ? '⬆' : '📁'}</div>
             <div class="folder__main">
               <div class="folder__name">${esc(f.name)}</div>
               <div class="folder__count">${inFolder.length} ${inFolder.length > 1 ? 'fichiers' : 'fichier'}</div>
@@ -410,7 +415,9 @@
         }
 
         if (!inFolder.length) {
-          body.insertAdjacentHTML('beforeend', '<div class="folder__empty">Aucun fichier importé dans ce dossier pour le moment.</div>');
+          body.insertAdjacentHTML('beforeend', f.virtual
+            ? '<div class="folder__drop">⬆ Glissez-déposez vos fichiers ici pour les importer<br /><span>(PDF, Word, Excel, images…)</span></div>'
+            : '<div class="folder__empty">Aucun fichier importé dans ce dossier pour le moment.</div>');
         } else {
           const list = document.createElement('div');
           list.className = 'files';
