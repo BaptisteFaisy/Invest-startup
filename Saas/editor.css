@@ -23,6 +23,8 @@
 }
 .tbtn:hover { background: #f0eee9; }
 .tbtn.is-active { background: #e7e4de; border-color: #cfcbc2; color: var(--dark); }
+.tbtn--text { width: auto; gap: 4px; padding: 0 12px; font-size: 12.5px; font-weight: 700; color: var(--blue); border-color: var(--line); }
+.tbtn--text:hover { background: #eef4ff; }
 .tbtn b { font-weight: 800; }
 .tbtn i { font-style: italic; font-family: Georgia, serif; }
 .tbtn u { text-decoration: underline; }

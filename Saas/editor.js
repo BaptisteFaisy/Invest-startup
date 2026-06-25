@@ -569,6 +569,8 @@ buildDocument();
 
 /* ---------- 2. Barre d'outils : commandes de mise en forme ---------- */
 try { document.execCommand('styleWithCSS', false, true); } catch (e) {}
+// La touche Entrée crée des paragraphes <p> (stylés) plutôt que des <div> bruts.
+try { document.execCommand('defaultParagraphSeparator', false, 'p'); } catch (e) {}
 
 function exec(cmd, value = null) {
   page.focus();
@@ -580,6 +582,46 @@ document.querySelectorAll('.tbtn[data-cmd]').forEach(btn => {
   btn.addEventListener('mousedown', e => e.preventDefault());
   btn.addEventListener('click', () => exec(btn.dataset.cmd));
 });
+
+// Ajout d'une clause STRUCTURÉE (étiquette + contenu) : seule façon fiable
+// d'insérer un paragraphe qui respecte la mise en page (grille étiquette | contenu),
+// notamment dans les modèles « libres » où la bibliothèque sert de sommaire.
+function addClauseBlock() {
+  const div = document.createElement('div');
+  div.className = 'ts-clause';
+  const key = 'c' + Date.now().toString(36);
+  div.dataset.key = key;
+  div.innerHTML = '<div class="ts-label">Nouveau paragraphe</div>'
+    + '<div class="ts-content"><p>Saisissez le texte de ce paragraphe…</p></div>';
+
+  // Position : juste après la clause active, sinon avant la signature / l'annexe.
+  const ref = activeKey ? page.querySelector('.ts-clause[data-key="' + activeKey + '"]') : null;
+  if (ref) ref.after(div);
+  else {
+    const anchor = page.querySelector('.ts-sign') || page.querySelector('.ts-annexe');
+    if (anchor) anchor.before(div); else page.appendChild(div);
+  }
+
+  // Réintègre la nouvelle clause au modèle (sommaire + décrypteur) puis recompose
+  // la mise en page avant de défiler/placer le curseur (sinon tout se décalerait).
+  adoptDocumentClauses();
+  paginate();
+  selectClauseByKey(key, div);
+  div.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const p = div.querySelector('.ts-content p');
+  if (p) {
+    const r = document.createRange();
+    r.selectNodeContents(p);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(r);
+  }
+}
+const addClauseBtn = document.getElementById('add-clause-btn');
+if (addClauseBtn) {
+  addClauseBtn.addEventListener('mousedown', e => e.preventDefault());
+  addClauseBtn.addEventListener('click', addClauseBlock);
+}
 
 const selStyle = document.getElementById('sel-style');
 selStyle.addEventListener('change', () => exec('formatBlock', selStyle.value));
