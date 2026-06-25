@@ -61,6 +61,8 @@ a { color: inherit; text-decoration: none; }
 .btn--ghost:hover { border-color: var(--text); }
 .btn--light { background: var(--bg); color: var(--text); }
 .btn--light:hover { background: #fff; }
+.btn--white { background: #fff; color: var(--dark); border-color: rgba(8,9,12,0.18); }
+.btn--white:hover { background: #f5f4f1; }
 .btn--lg { padding: 14px 24px; font-size: 15px; }
 .btn--block { width: 100%; }
 
