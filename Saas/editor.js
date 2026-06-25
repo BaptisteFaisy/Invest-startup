@@ -625,6 +625,7 @@ function syncToolbar() {
 
 /* ---------- 4. Décrypteur : suit le curseur ---------- */
 const panelBody = document.getElementById('panel-body');
+const panelActions = document.getElementById('panel-actions');
 const panelTitle = document.getElementById('panel-title');
 const panelEyebrow = document.getElementById('panel-eyebrow');
 const panelCount = document.getElementById('panel-count');
@@ -661,11 +662,11 @@ function renderPanel(key) {
     ? `<span class="clause-essential">Clause essentielle</span>`
     : `<button class="clause-remove" id="clause-remove" title="Déplacer cette clause vers la bibliothèque">Retirer du contrat</button>`;
 
+  panelActions.innerHTML = `${removeCtrl}
+    <button class="verify-btn" id="verify-btn" title="Analyser cette clause avec Claude">Analyser</button>`;
+  panelActions.hidden = false;
+
   panelBody.innerHTML = `
-    <div class="panel-actions">
-      ${removeCtrl}
-      <button class="verify-btn" id="verify-btn" title="Analyser cette clause avec Claude">Analyser</button>
-    </div>
     <div class="callout callout--claude" id="verify-result" hidden></div>
     ${c.plain ? `<div class="block">
       <div class="block__h">En langage courant</div>
@@ -711,6 +712,7 @@ function showEmptyPanel() {
   panelEyebrow.textContent = 'Décrypteur';
   panelTitle.textContent = `Placez le curseur dans un${isCustom ? ' paragraphe' : 'e clause'}`;
   caretClause.textContent = 'Document prêt';
+  panelActions.hidden = true;
   panelBody.innerHTML = `<div class="panel__empty"><p>Cliquez dans un${isCustom ? ' paragraphe' : 'e clause'} du document pour l'expliquer en langage courant.</p></div>`;
   hideChat();
 }
@@ -1193,9 +1195,10 @@ async function loadTermsheet(id) {
     if (isCustomDocument()) adoptDocumentClauses();
     else syncModelFromDOM();
 
-    // Conseil codé en dur dans le modèle (bloc embarqué) → rempli sans appel Claude.
+    // Conseil + conditions codés en dur dans le modèle (blocs embarqués).
     const bakedAdvice = readBakedAdvice();
     if (bakedAdvice) docAdviceCache = bakedAdvice;
+    BAKED_COND = readBakedConditions();
     // Le modèle est-il déjà analysé en dur (explications et/ou conseil embarqués) ?
     const isBaked = !!bakedAdvice || !!page.querySelector('.ts-clause[data-plain]');
 
@@ -1213,6 +1216,14 @@ function readBakedAdvice() {
   if (!el) return null;
   try { const arr = JSON.parse(el.textContent || '[]'); return Array.isArray(arr) && arr.length ? arr : null; }
   catch { return null; }
+}
+
+// Lit les conditions pré-écrites « codées en dur » d'un modèle (<script data-conditions>).
+function readBakedConditions() {
+  const el = page.querySelector('script[data-conditions]');
+  if (!el) return {};
+  try { const obj = JSON.parse(el.textContent || '{}'); return (obj && typeof obj === 'object') ? obj : {}; }
+  catch { return {}; }
 }
 
 const saveBtn = document.getElementById('save-btn');
@@ -1803,7 +1814,11 @@ const COND_BADGE = {
   ratchet:   { label: 'Ratchet',               color: '#ec4899' },
   leaver:    { label: 'Leaver',                color: '#f97316' },
   duree:     { label: 'Durée / Expiration',    color: '#6366f1' },
+  option:    { label: 'Variante',              color: '#6b6b78' },
 };
+
+// Conditions pré-écrites « codées en dur » dans un modèle (clé de clause -> [templates]).
+let BAKED_COND = {};
 
 /* ---- Bibliothèque de conditions pré-rédigées ---- */
 const COND_TEMPLATES = {
@@ -2450,7 +2465,9 @@ const COND_TEMPLATES = {
 // ---- Fonctions d\'insertion et de rendu ----
 
 function condTplById(key, id) {
-  return (COND_TEMPLATES[key] || []).find(t => t.id === id) || null;
+  return (COND_TEMPLATES[key] || []).find(t => t.id === id)
+      || (BAKED_COND[key] || []).find(t => t.id === id)
+      || null;
 }
 
 function insertCondTemplate(key, tplId) {
@@ -2477,7 +2494,7 @@ function insertCondTemplate(key, tplId) {
 function renderCondTemplates(key) {
   const listEl = document.getElementById('cond-tpl-list');
   if (!listEl) return;
-  const allTpls = [...(COND_TEMPLATES[key] || [])];
+  const allTpls = [...(COND_TEMPLATES[key] || []), ...(BAKED_COND[key] || [])];
   const content = page.querySelector(`.ts-clause[data-key="${key}"] .ts-content`);
 
   if (!allTpls.length) {
