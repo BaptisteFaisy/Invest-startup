@@ -1,14 +1,40 @@
 <h1 class="doc-title">CERTIFICAT DU DÉPOSITAIRE DES FONDS</h1>
-<p class="doc-sub">Attestation de dépôt des fonds de l'augmentation de capital</p>
-<div class="ts-group" contenteditable="false">Attestation</div>
-<div class="ts-clause"><div class="ts-label">Dépositaire</div><div class="ts-content"><p>[BANQUE / NOTAIRE], [adresse], dépositaire des fonds, atteste de ce qui suit.</p></div></div>
-<div class="ts-clause"><div class="ts-label">Objet</div><div class="ts-content"><p>Dans le cadre de l'augmentation de capital de [DÉNOMINATION] (SAS, RCS [VILLE / SIREN]) décidée le [DATE], il a été déposé sur le compte ouvert à cet effet la somme totale de <strong>[MONTANT TOTAL] €</strong>, correspondant à la libération de [NOMBRE] actions souscrites.</p></div></div>
-<div class="ts-clause"><div class="ts-label">Détail des versements</div><div class="ts-content"><table>
-<tr><th>Souscripteur</th><th>Nb d'actions</th><th>Montant versé</th><th>Date</th></tr>
+<p class="doc-sub">Attestation de dépôt des fonds de l'augmentation de capital — fiche &amp; modèle</p>
+
+<div class="ts-group" contenteditable="false">Comprendre</div>
+
+<div class="ts-clause" data-plain="Quand les investisseurs versent leur argent pour la levée, il est bloqué sur un compte spécial chez un « dépositaire » (banque ou notaire). Celui-ci délivre un certificat attestant que les fonds sont bien là. C'est la preuve que les actions sont payées (libérées)."><div class="ts-label">Rôle du certificat</div><div class="ts-content"><p>Lors d'une augmentation de capital en numéraire, les fonds des souscripteurs sont déposés sur un compte ouvert au nom de la Société auprès d'un dépositaire (banque, notaire, ou Caisse des dépôts). Le dépositaire établit un <strong>certificat</strong> attestant du montant déposé et de la libération des actions souscrites. Ce certificat est requis pour constater la réalisation définitive de l'augmentation et pour les formalités au greffe. Il est délivré et signé par le dépositaire, sur la base de la liste des souscripteurs.</p></div></div>
+
+<div class="ts-clause" data-plain="Les fonds restent bloqués jusqu'à ce que l'augmentation soit officiellement réalisée : le dépositaire ne les libère à la société que sur présentation des justificatifs (souvent le Kbis modifié). C'est une sécurité pour les souscripteurs."><div class="ts-label">Blocage &amp; déblocage des fonds</div><div class="ts-content"><p>Les fonds versés sont <strong>indisponibles</strong> jusqu'à la réalisation définitive de l'augmentation de capital. Le dépositaire ne les met à disposition de la Société que sur présentation des pièces justificatives (selon le cas : Kbis modifié mentionnant le nouveau capital, attestation de réalisation, procès-verbal de constatation). En cas de non-réalisation dans le délai légal, les souscripteurs peuvent demander la restitution de leurs versements.</p></div></div>
+
+<div class="ts-group" contenteditable="false">Modèle d'attestation</div>
+
+<div class="ts-clause" data-key="depositaire" data-plain="Identifie le dépositaire : selon le cas une banque, un notaire ou la Caisse des dépôts. C'est lui qui certifie et signe."><div class="ts-label">Dépositaire</div><div class="ts-content"><p>[BANQUE / NOTAIRE / CAISSE DES DÉPÔTS], [adresse], dépositaire des fonds de l'augmentation de capital, atteste de ce qui suit.</p></div></div>
+
+<div class="ts-clause" data-plain="L'objet de l'attestation : le montant total déposé pour l'augmentation, correspondant au nombre d'actions souscrites. Le chiffre clé du certificat."><div class="ts-label">Objet</div><div class="ts-content"><p>Dans le cadre de l'augmentation de capital de [DÉNOMINATION] (SAS, RCS [VILLE / SIREN]) décidée le [DATE], il a été déposé sur le compte ouvert à cet effet la somme totale de <strong>[MONTANT TOTAL] €</strong>, correspondant à la libération de [NOMBRE] actions souscrites (nominal et prime d'émission).</p></div></div>
+
+<div class="ts-clause" data-plain="Le détail souscripteur par souscripteur des sommes versées. Ce tableau doit coïncider exactement avec les bulletins de souscription."><div class="ts-label">Détail des versements</div><div class="ts-content"><table>
+<tr><th>Souscripteur</th><th>Nb d'actions</th><th>Montant versé</th><th>Date du versement</th></tr>
 <tr><td>[…]</td><td>[…]</td><td>[… €]</td><td>[…]</td></tr>
 <tr><td>[…]</td><td>[…]</td><td>[… €]</td><td>[…]</td></tr>
 <tr><td><strong>Total</strong></td><td><strong>[…]</strong></td><td><strong>[… €]</strong></td><td></td></tr>
 </table></div></div>
-<div class="ts-clause"><div class="ts-label">Déblocage</div><div class="ts-content"><p>Les fonds seront mis à disposition de la Société sur présentation [du Kbis modifié / de l'attestation de réalisation de l'augmentation de capital], conformément à la réglementation.</p></div></div>
+
+<div class="ts-clause" data-plain="Rappelle la condition de déblocage : les fonds iront à la société une fois l'augmentation constatée et le nouveau capital inscrit."><div class="ts-label">Déblocage</div><div class="ts-content"><p>Les fonds seront mis à disposition de la Société sur présentation [du Kbis modifié mentionnant le nouveau capital / de l'attestation de réalisation définitive de l'augmentation de capital], conformément à la réglementation applicable.</p></div></div>
+
 <div class="ts-sign"><p>Fait à [VILLE], le [DATE].</p><p>Le Dépositaire — [NOM, QUALITÉ, cachet]</p></div>
-<p class="doc-note">Modèle liquid + à titre informatif. Le certificat est délivré et signé par le dépositaire (banque/notaire).</p>
+<p class="doc-note">Modèle liquid + à titre informatif. Le certificat est délivré et signé par le dépositaire (banque, notaire ou Caisse des dépôts).</p>
+<script type="application/json" data-conditions>{
+"depositaire": [
+{"id":"dep_banque","type":"option","label":"Banque","preview":"Dépôt sur compte bancaire bloqué","html":"<p>Les fonds sont déposés auprès d'une <mark class='cond-val'>banque</mark>, sur un compte bloqué ouvert au nom de la Société pour l'augmentation de capital.</p>"},
+{"id":"dep_notaire","type":"option","label":"Notaire","preview":"Dépôt en l'étude du notaire","html":"<p>Les fonds sont déposés auprès d'un <mark class='cond-val'>notaire</mark>, qui en assure la conservation et la délivrance du certificat.</p>"},
+{"id":"dep_cdc","type":"option","label":"Caisse des dépôts","preview":"Dépôt à la Caisse des dépôts","html":"<p>Les fonds sont déposés auprès de la <mark class='cond-val'>Caisse des dépôts et consignations</mark>.</p>"}
+]
+}</script>
+<script type="application/json" data-advice>[
+{"title":"Ouvrir le compte de dépôt tôt","body":"Le compte bloqué et le KYC bancaire prennent du temps : engagez la démarche auprès du dépositaire dès la signature de la term sheet pour ne pas retarder le closing."},
+{"title":"Faire concorder le certificat et les bulletins","body":"Le détail des versements doit correspondre exactement aux bulletins de souscription et au PV d'AGE ; tout écart bloque la constatation de l'augmentation."},
+{"title":"Anticiper les justificatifs de déblocage","body":"Préparez les pièces requises (Kbis modifié, attestation de réalisation) pour débloquer rapidement les fonds après la constatation."},
+{"title":"Vérifier le délai de réalisation","body":"À défaut de réalisation dans le délai légal, les souscripteurs peuvent demander la restitution : tenez le calendrier de l'opération sous contrôle."},
+{"title":"Conserver l'original du certificat","body":"L'original signé par le dépositaire est nécessaire aux formalités ; classez-le avec le PV de constatation et les bulletins."}
+]</script>

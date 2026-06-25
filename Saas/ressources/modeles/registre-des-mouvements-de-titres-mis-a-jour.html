@@ -1,11 +1,48 @@
 <h1 class="doc-title">REGISTRE DES MOUVEMENTS DE TITRES (MIS À JOUR)</h1>
-<p class="doc-sub">[DÉNOMINATION] — après augmentation de capital du [DATE]</p>
+<p class="doc-sub">[DÉNOMINATION] — après augmentation de capital du [DATE] — version exhaustive</p>
+
+<div class="ts-group" contenteditable="false">Comprendre</div>
+
+<div class="ts-clause" data-plain="Après le closing, il faut inscrire la nouvelle émission d'actions dans le registre des mouvements de titres. Ce registre à jour doit refléter la cap table post-money : c'est la photo officielle du capital après la levée."><div class="ts-label">Mise à jour post-closing</div><div class="ts-content"><p>Une fois l'augmentation de capital constatée, l'émission des nouvelles actions (ADP A souscrites par l'investisseur, exercices de bons éventuels) doit être inscrite à la suite des mouvements antérieurs dans le registre des mouvements de titres. Le registre mis à jour fait foi de la nouvelle répartition du capital : il doit concorder avec le PV de constatation, le certificat du dépositaire, la cap table post-money et les comptes individuels d'associés.</p></div></div>
+
 <div class="ts-group" contenteditable="false">Mouvements</div>
-<div class="ts-clause"><div class="ts-label">Historique à jour</div><div class="ts-content">
+
+<div class="ts-clause" data-plain="Le tableau du registre à jour : on reprend le solde antérieur puis on ajoute la ligne de l'augmentation de capital, avec la catégorie (ADP A), les numéros d'actions créées et le nouveau solde."><div class="ts-label">Historique à jour</div><div class="ts-content">
 <table>
-<tr><th>N°</th><th>Date</th><th>Nature</th><th>Souscripteur / cessionnaire</th><th>Nb actions</th><th>Catégorie</th><th>N° (de → à)</th><th>Solde</th></tr>
-<tr><td>…</td><td>[…]</td><td>Solde antérieur</td><td>[Fondateurs]</td><td>[…]</td><td>Ordinaires</td><td>[1 → …]</td><td>[…]</td></tr>
-<tr><td>n</td><td>[DATE]</td><td>Augmentation de capital</td><td>[Investisseur]</td><td>[…]</td><td>ADP A</td><td>[… → …]</td><td>[…]</td></tr>
+<tr><th>N°</th><th>Date</th><th>Nature</th><th>Souscripteur / cessionnaire</th><th>Nb actions</th><th>Catégorie</th><th>Numéros (de → à)</th><th>Prix</th><th>Solde</th></tr>
+<tr><td>…</td><td>[…]</td><td>Solde antérieur</td><td>[Fondateurs / associés]</td><td>[…]</td><td>Ordinaires</td><td>[1 → …]</td><td>—</td><td>[…]</td></tr>
+<tr><td>n</td><td>[DATE]</td><td>Augmentation de capital — Série A</td><td>[Investisseur]</td><td>[…]</td><td>ADP A</td><td>[… → …]</td><td>[…] €</td><td>[…]</td></tr>
+<tr><td>n+1</td><td>[DATE]</td><td>[Exercice de BSPCE, le cas échéant]</td><td>[Salarié]</td><td>[…]</td><td>Ordinaires</td><td>[… → …]</td><td>[…] €</td><td>[…]</td></tr>
 </table>
-<p>Inscrire la nouvelle émission à la suite des mouvements antérieurs. Le registre doit refléter la cap table post-money et les comptes d'actionnaires mis à jour.</p>
+<p>La nouvelle émission est inscrite à la suite des mouvements antérieurs, sans blanc ni rature, avec numérotation continue des actions.</p>
 </div></div>
+
+<div class="ts-clause" data-plain="Le tableau des comptes par associé après la levée : combien chacun détient désormais, par catégorie, et son nouveau pourcentage. C'est la traduction « par personne » du registre."><div class="ts-label">Comptes individuels post-money</div><div class="ts-content">
+<table>
+<tr><th>Associé</th><th>Actions ordinaires</th><th>ADP A</th><th>Total titres</th><th>% capital</th></tr>
+<tr><td>[Fondateur 1]</td><td>[…]</td><td>—</td><td>[…]</td><td>[…]%</td></tr>
+<tr><td>[Fondateur 2]</td><td>[…]</td><td>—</td><td>[…]</td><td>[…]%</td></tr>
+<tr><td>[Investisseur]</td><td>—</td><td>[…]</td><td>[…]</td><td>[…]%</td></tr>
+<tr><td><strong>Total</strong></td><td><strong>[…]</strong></td><td><strong>[…]</strong></td><td><strong>[…]</strong></td><td><strong>100 %</strong></td></tr>
+</table>
+</div></div>
+
+<div class="ts-clause" data-plain="La check-list de cohérence post-levée : le registre, la cap table post-money, les statuts modifiés et le certificat du dépositaire doivent tous donner les mêmes chiffres. À vérifier avant de clôturer."><div class="ts-label">Cohérence &amp; à faire</div><div class="ts-content"><ul>
+<li>Inscrire l'augmentation de capital (et tout exercice de bons) à la suite des mouvements.</li>
+<li>Vérifier la concordance avec le PV de constatation, le certificat du dépositaire et les statuts modifiés.</li>
+<li>Mettre à jour les comptes individuels et la <strong>cap table post-money</strong>.</li>
+<li>Numériser le registre à jour et le téléverser via « Ajouter ».</li>
+</ul></div></div>
+<script type="application/json" data-conditions>{
+"forme-registre": [
+{"id":"rmtu_papier","type":"option","label":"Registre papier coté et paraphé","preview":"Registre relié, coté et paraphé","html":"<p>Le registre mis à jour est tenu sur un <mark class='cond-val'>registre papier coté et paraphé</mark>, la nouvelle émission y étant inscrite sans blanc ni altération.</p>"},
+{"id":"rmtu_electronique","type":"option","label":"Registre électronique / DEEP","preview":"Tenue dématérialisée horodatée","html":"<p>Le registre est tenu sous forme <mark class='cond-val'>électronique</mark> (logiciel dédié ou dispositif d'enregistrement électronique partagé), garantissant l'intégrité et l'horodatage des inscriptions.</p>"}
+]
+}</script>
+<script type="application/json" data-advice>[
+{"title":"Inscrire l'émission sans délai","body":"Mettez le registre à jour dès la constatation de la réalisation : un registre en retard sur le closing crée des incohérences avec la cap table post-money."},
+{"title":"Assurer la concordance des chiffres","body":"Le total des actions doit coïncider avec le nouveau capital des statuts modifiés, le certificat du dépositaire et la cap table post-money."},
+{"title":"Numéroter en continu","body":"Attribuez aux actions nouvelles des numéros à la suite des précédents, sans doublon ni interruption, pour préserver la traçabilité."},
+{"title":"Tenir comptes individuels et cap table ensemble","body":"Actualisez simultanément les comptes individuels d'associés et la cap table : ils doivent se recouper ligne à ligne avec le registre."},
+{"title":"Ne jamais raturer","body":"Inscrivez la nouvelle émission à la suite, sans blanc ni rature ; toute correction se fait par écriture rectificative datée."}
+]</script>
