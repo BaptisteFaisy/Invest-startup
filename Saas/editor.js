@@ -688,6 +688,10 @@ function renderPanel(key) {
         <span class="cond-section__hint">Valeurs en jaune = modifiables</span>
       </div>
       <div class="cond-tpl-list" id="cond-tpl-list"></div>
+    </div>
+    <div class="verify-section" id="verify-section">
+      <button class="btn btn--primary verify-btn" id="verify-btn" title="Analyser cette clause et vérifier la qualité des explications">Analyser cette clause</button>
+      <div class="verify-result" id="verify-result" hidden></div>
     </div>`;
   panelBody.scrollTop = 0;
 
@@ -695,6 +699,9 @@ function renderPanel(key) {
   if (rb) rb.addEventListener('click', () => removeFromContract(key));
 
   renderCondTemplates(key);
+
+  const vb = document.getElementById('verify-btn');
+  if (vb) vb.addEventListener('click', () => verifyClause(key));
 
   mountChat(key);
   refreshSimple(key);
@@ -1149,6 +1156,10 @@ function adoptDocumentClauses() {
     const label = (labelEl ? labelEl.textContent : 'Clause ' + i).trim() || ('Clause ' + i);
     const html  = contentEl ? contentEl.innerHTML : el.innerHTML;
     derived.push({ key, group, label, risk: 'low', html, plain: '', watch: '', inDoc: true });
+    // Explication « Pour bien comprendre » codée en dur dans le modèle (data-plain)
+    // → on amorce le cache pour un affichage instantané, sans appel Claude.
+    const baked = el.getAttribute('data-plain');
+    if (baked) SIMPLE_CACHE[key] = { sig: clauseSig(html), text: baked };
   });
   if (!derived.length) return;
   isCustom = true;
@@ -1183,12 +1194,27 @@ async function loadTermsheet(id) {
     if (docNameEl) docNameEl.textContent = data.name || 'Term sheet';
     if (isCustomDocument()) adoptDocumentClauses();
     else syncModelFromDOM();
+
+    // Conseil codé en dur dans le modèle (bloc embarqué) → rempli sans appel Claude.
+    const bakedAdvice = readBakedAdvice();
+    if (bakedAdvice) docAdviceCache = bakedAdvice;
+    // Le modèle est-il déjà analysé en dur (explications et/ou conseil embarqués) ?
+    const isBaked = !!bakedAdvice || !!page.querySelector('.ts-clause[data-plain]');
+
     showEmptyPanel();
     paginate();
-    // Analyse automatique des modèles (décrypteur + conseil). Après la 1re fois,
-    // c'est servi par le cache serveur — pas de nouvel appel Claude à chaque génération.
-    if (isCustom) analyzeFull(document.getElementById('analyze-btn'));
+    // Sinon (document libre non baké, ex. DOCX importé), analyse à la demande,
+    // mise en cache serveur — pas de nouvel appel Claude à chaque génération.
+    if (isCustom && !isBaked) analyzeFull(document.getElementById('analyze-btn'));
   } catch { /* on garde la term sheet de démonstration */ }
+}
+
+// Lit le conseil « codé en dur » embarqué dans un modèle (<script data-advice>).
+function readBakedAdvice() {
+  const el = page.querySelector('script[data-advice]');
+  if (!el) return null;
+  try { const arr = JSON.parse(el.textContent || '[]'); return Array.isArray(arr) && arr.length ? arr : null; }
+  catch { return null; }
 }
 
 const saveBtn = document.getElementById('save-btn');
@@ -1338,6 +1364,59 @@ async function refreshSimple(key) {
       const cur = document.getElementById('simple-text');
       if (cur) cur.textContent = SIMPLE[key] || 'Explication indisponible pour le moment.';
     }
+  }
+}
+
+// ─── Vérification d'une clause + de ses contenus pédagogiques ───────────────────
+async function verifyClause(key) {
+  const btn      = document.getElementById('verify-btn');
+  const resultEl = document.getElementById('verify-result');
+  if (!btn || !resultEl) return;
+
+  const contentEl = page.querySelector(`.ts-clause[data-key="${key}"] .ts-content`);
+  if (!contentEl) return;
+
+  const clause     = EXPLAIN[key] || {};
+  const clauseHtml = contentEl.innerHTML;
+  const simple     = (SIMPLE_CACHE[key] && SIMPLE_CACHE[key].text) || '';
+
+  btn.disabled = true; btn.textContent = 'Analyse…';
+  resultEl.hidden = false;
+  resultEl.innerHTML = '<p class="verify-result__loading">Analyse en cours…</p>';
+
+  try {
+    const res = await fetch('/api/saas/clause-verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        clauseLabel: clause.label || key,
+        clauseHtml,
+        plain:  clause.plain  || '',
+        simple,
+        watch:  clause.watch  || '',
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.analysis) throw new Error(data.error || 'Erreur');
+
+    // On vérifie que l'utilisateur est encore sur la même clause
+    if (key !== activeKey) return;
+    const curBtn    = document.getElementById('verify-btn');
+    const curResult = document.getElementById('verify-result');
+    if (!curBtn || !curResult) return;
+
+    curResult.innerHTML =
+      `<div class="block__h verify-result__h">Analyse Claude</div>` +
+      `<p class="verify-result__text">${data.analysis}</p>`;
+    curBtn.textContent = '↻ Ré-analyser';
+    curBtn.disabled    = false;
+  } catch {
+    if (key !== activeKey) return;
+    const curBtn    = document.getElementById('verify-btn');
+    const curResult = document.getElementById('verify-result');
+    if (curBtn)    { curBtn.disabled = false; curBtn.textContent = 'Analyser cette clause'; }
+    if (curResult) curResult.innerHTML = '<p class="verify-result__err">Analyse indisponible pour le moment.</p>';
   }
 }
 

@@ -258,6 +258,15 @@
 .cond-tpl-list { display: flex; flex-direction: column; gap: 9px; }
 .cond-empty { font-size: 12.5px; color: var(--text-3); text-align: center; padding: 14px 10px; background: var(--card); border: 1px dashed var(--line); border-radius: 9px; line-height: 1.55; margin: 0; }
 
+/* ---------- Section vérification par clause ---------- */
+.verify-section { margin-top: 22px; border-top: 1px solid var(--line); padding-top: 18px; padding-bottom: 8px; }
+.verify-btn { font-size: 13px !important; padding: 9px 16px !important; width: 100%; }
+.verify-result { margin-top: 14px; }
+.verify-result__h { margin-bottom: 8px; }
+.verify-result__text { font-size: 13px; color: var(--text); line-height: 1.65; margin: 0; }
+.verify-result__loading { font-size: 13px; color: var(--text-3); margin: 0; }
+.verify-result__err { font-size: 13px; color: #dc2626; margin: 0; }
+
 /* Carte de condition (panneau) */
 .cond-tpl { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; transition: border-color .12s; }
 .cond-tpl:hover { border-color: #c9c6bf; }

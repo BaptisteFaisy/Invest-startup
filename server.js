@@ -784,6 +784,53 @@ Règles :
   }
 });
 
+// ─── SaaS : vérification d'UNE clause + de ses contenus pédagogiques ────────────
+app.post('/api/saas/clause-verify', requireAuth, async (req, res) => {
+  if (!anthropic)
+    return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ANTHROPIC_API_KEY dans le .env du serveur.' });
+
+  const { clauseLabel, clauseHtml, plain, simple, watch } = req.body ?? {};
+  if (!clauseHtml || typeof clauseHtml !== 'string')
+    return res.status(400).json({ error: 'clauseHtml est requis' });
+
+  const system =
+`Tu es un expert juridique et pédagogique qui accompagne des fondateurs de startup dans la lecture de leur term sheet.
+Tu reçois UNE clause d'une term sheet ainsi que les trois contenus pédagogiques affichés à côté dans l'éditeur :
+- « En langage courant » (résumé)
+- « Pour bien comprendre » (explication imagée)
+- « Conseil fondateur » (point de vigilance)
+
+Ta mission est double :
+1. Analyser la clause elle-même — y a-t-il un déséquilibre, un risque caché, une formulation à clarifier ou à négocier ?
+2. Évaluer la qualité pédagogique de ces trois explications — sont-elles fidèles au texte réel, utiles pour un fondateur non-juriste, ni trop alarmistes ni trop rassurantes ?
+
+Clause : « ${clauseLabel || 'Clause'} »
+Texte HTML de la clause :
+${clauseHtml}
+
+En langage courant : ${plain || '(non fourni)'}
+Pour bien comprendre : ${simple || '(non généré)'}
+Conseil fondateur : ${watch || '(non fourni)'}
+
+Réponds en français, en texte continu, 3 à 6 phrases. Commence par un verdict sur la clause (OK / à surveiller / problématique), puis tes observations sur les explications pédagogiques, puis une suggestion concrète si nécessaire. Pas de titre, pas de liste, texte fluide.`;
+
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-opus-4-8',
+      max_tokens: 800,
+      system,
+      messages: [{ role: 'user', content: 'Analyse cette clause et ses contenus pédagogiques.' }],
+    });
+    await recordClaudeUsage(req.user.id, response);
+    const textBlock = response.content.find(b => b.type === 'text');
+    const analysis = (textBlock ? textBlock.text : '').trim();
+    res.json({ analysis });
+  } catch (err) {
+    console.error('Claude clause-verify error:', err.message);
+    res.status(502).json({ error: 'L\'assistant IA est momentanément indisponible.' });
+  }
+});
+
 // ─── SaaS : conseils d'amélioration SPÉCIFIQUES à un document ──────────────────
 app.post('/api/saas/doc-advice', requireAuth, async (req, res) => {
   if (!anthropic)
