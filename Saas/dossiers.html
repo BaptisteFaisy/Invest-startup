@@ -871,7 +871,7 @@
           method: 'PUT', headers: { 'Content-Type': 'application/json' },
           credentials: 'include', body: JSON.stringify({ slug, document_id: data.id }),
         });
-        window.location.href = 'editor.html?doc=' + data.id;
+        window.location.href = 'editor.html?doc=' + data.id + '&folder=' + folderId;
       } catch {
         showErr('Impossible de créer le modèle.');
         if (btn) { btn.disabled = false; btn.textContent = old; }

@@ -1066,6 +1066,7 @@ if (analyzeBtn) analyzeBtn.addEventListener('click', () => analyzeFull(analyzeBt
 /* ---------- 6 bis. Enregistrer / charger la term sheet (Mes documents) ------ */
 let currentDocId = null;
 const docNameEl = document.querySelector('.topbar__doc');
+const urlFolderId = new URLSearchParams(location.search).get('folder');
 
 // Nom proposé pour le document (à partir du sous-titre LUMIO SAS, etc.).
 function termsheetName() {
@@ -1091,14 +1092,16 @@ async function saveTermsheet() {
   if (btn) { btn.disabled = true; btn.textContent = 'Enregistrement…'; }
   const name = termsheetName();
   const html = termsheetHtml();
+  const body = { name, html };
+  if (urlFolderId) body.folder_id = Number(urlFolderId);
   try {
     const res = currentDocId
       ? await fetch('/api/saas/termsheets/' + currentDocId, {
           method: 'PUT', headers: { 'Content-Type': 'application/json' },
-          credentials: 'include', body: JSON.stringify({ name, html }) })
+          credentials: 'include', body: JSON.stringify(body) })
       : await fetch('/api/saas/termsheets', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          credentials: 'include', body: JSON.stringify({ name, html }) });
+          credentials: 'include', body: JSON.stringify(body) });
     const data = await res.json().catch(() => ({}));
     if (res.ok) {
       if (data.id) { currentDocId = data.id; history.replaceState(null, '', '?doc=' + currentDocId); }

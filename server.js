@@ -1345,6 +1345,11 @@ app.put('/api/saas/termsheets/:id', requireAuth, async (req, res) => {
   const set = { updated_at: new Date().toISOString() };
   if (typeof html === 'string') { set.html = html; set.size = Buffer.byteLength(html, 'utf8'); }
   if (typeof name === 'string' && name.trim()) set.name = name.trim();
+  // Si le doc n'a pas encore de dossier et qu'un folder_id est fourni, on l'assigne.
+  if (req.body?.folder_id != null && !doc.folder_id) {
+    const fid = Number(req.body.folder_id);
+    if (await col('saas_folders').findOne({ id: fid, user_id: req.user.id })) set.folder_id = fid;
+  }
   await col('saas_documents').updateOne({ id, user_id: req.user.id }, { $set: set });
   res.json({ success: true, id });
 });
