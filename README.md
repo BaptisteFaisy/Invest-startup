@@ -1,650 +1,551 @@
-# LIQUID+ — Guide complet du projet
+# LIQUID+ — Architecture technique
 
-> **Pour qui ?** Ce document explique le projet de zéro, sans prérequis technique. Tu peux le lire même si tu n'as jamais écrit une ligne de code.
-
----
-
-## Table des matières
-
-1. [C'est quoi LIQUID+ ?](#1-cest-quoi-liquid-)
-2. [Architecture générale — vue d'ensemble](#2-architecture-générale--vue-densemble)
-3. [Les deux faces du produit](#3-les-deux-faces-du-produit)
-4. [La pile technique (stack)](#4-la-pile-technique-stack)
-5. [Structure des fichiers](#5-structure-des-fichiers)
-6. [La base de données (MongoDB)](#6-la-base-de-données-mongodb)
-7. [Le serveur (server.js)](#7-le-serveur-serverjs)
-8. [Les pages publiques](#8-les-pages-publiques)
-9. [Le SaaS — gestion des dossiers](#9-le-saas--gestion-des-dossiers)
-10. [L'éditeur de documents](#10-léditeur-de-documents)
-11. [L'assistant IA (Claude)](#11-lassistant-ia-claude)
-12. [Authentification & sécurité](#12-authentification--sécurité)
-13. [Les modèles de documents juridiques](#13-les-modèles-de-documents-juridiques)
-14. [Variables d'environnement (.env)](#14-variables-denvironnement-env)
-15. [Déploiement sur Railway](#15-déploiement-sur-railway)
-16. [Lancer le projet en local](#16-lancer-le-projet-en-local)
-17. [Flux utilisateur — parcours type](#17-flux-utilisateur--parcours-type)
-18. [Lexique technique](#18-lexique-technique)
-13. [Les modèles de documents juridiques](#13-les-modèles-de-documents-juridiques)
-14. [Variables d'environnement (.env)](#14-variables-denvironnement-env)
-15. [Lancer le projet en local](#15-lancer-le-projet-en-local)
-16. [Flux utilisateur — parcours type](#16-flux-utilisateur--parcours-type)
-17. [Lexique technique](#17-lexique-technique)
+Plateforme d'accompagnement à la levée de fonds pour startups françaises. Deux produits dans un seul déploiement : un site marketing public et un SaaS de gestion documentaire juridique avec IA.
 
 ---
 
-## 1. C'est quoi LIQUID+ ?
+## Sommaire
 
-**LIQUID+** est une plateforme en ligne qui aide les startups françaises à lever des fonds. Le service se décompose en deux parties :
-
-### La partie "service" (public)
-Un site vitrine qui présente LIQUID+ comme un accompagnateur de levée de fonds. Le modèle commercial est simple : **LIQUID+ ne se rémunère que si la startup lève effectivement des fonds** (success fee). La plateforme promet un accès à plus de 3 000 VCs (fonds de capital-risque) et business angels, ainsi qu'une aide à la préparation du pitch deck et de l'analyse financière.
-
-### La partie SaaS (outil payant)
-Un **outil de gestion documentaire juridique** accessible après connexion. Concrètement, quand une startup prépare une levée de fonds, elle doit produire des dizaines de documents juridiques (NDA, term sheet, pacte d'associés, statuts…). Le SaaS de LIQUID+ :
-- Organise ces documents en 7 phases chronologiques de la levée
-- Fournit des modèles pré-rédigés pour chaque document
-- Intègre un éditeur de texte pour rédiger/modifier les documents
-- Intègre un assistant IA (Claude d'Anthropic) pour aider à rédiger et négocier les clauses
-
----
-
-## 2. Architecture générale — vue d'ensemble
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                   Navigateur de l'utilisateur            │
-│  (Chrome, Firefox, Safari — aucune installation requise) │
-└───────────────────────────┬─────────────────────────────┘
-                            │ HTTP (requêtes web)
-                            ▼
-┌─────────────────────────────────────────────────────────┐
-│                    server.js (Node.js)                   │
-│   Le "cerveau" : gère les connexions, les fichiers,      │
-│   les droits d'accès et toutes les données.              │
-│                                                          │
-│   Port : 3000 (local) / 443 (production HTTPS)          │
-└──────┬──────────────────────┬───────────────────────────┘
-       │                      │
-       ▼                      ▼
-┌─────────────┐      ┌────────────────────┐
-│  MongoDB    │      │  Services externes  │
-│  (Atlas)    │      │  • Claude (IA)      │
-│  Base de    │      │  • CloudConvert     │
-│  données    │      │    (PDF ↔ DOCX)     │
-│  cloud      │      │  • Google OAuth     │
-└─────────────┘      └────────────────────┘
-```
-
-**En résumé :** Le navigateur parle au serveur, le serveur parle à la base de données et aux services externes, et renvoie les réponses au navigateur.
+1. [Stack & dépendances](#1-stack--dépendances)
+2. [Architecture du dépôt](#2-architecture-du-dépôt)
+3. [Modèle de données (MongoDB)](#3-modèle-de-données-mongodb)
+4. [Serveur Express — organisation des routes](#4-serveur-express--organisation-des-routes)
+5. [Authentification](#5-authentification)
+6. [SaaS — Gestion des dossiers & checklist](#6-saas--gestion-des-dossiers--checklist)
+7. [SaaS — Éditeur de documents](#7-saas--éditeur-de-documents)
+8. [SaaS — Intégration Claude (Anthropic)](#8-saas--intégration-claude-anthropic)
+9. [SaaS — Export / conversion de fichiers](#9-saas--export--conversion-de-fichiers)
+10. [Frontend — Architecture sans framework](#10-frontend--architecture-sans-framework)
+11. [Déploiement Railway](#11-déploiement-railway)
+12. [Variables d'environnement](#12-variables-denvironnement)
+13. [Lancer en local](#13-lancer-en-local)
 
 ---
 
-## 3. Les deux faces du produit
+## 1. Stack & dépendances
 
-### Face 1 — Site public (`/`)
-Accessible à tout le monde, sans connexion. Pages : accueil, présentation du marché, catalogue des startups.
+**Runtime :** Node.js 18+ / Express 4
 
-### Face 2 — SaaS (`/saas`)
-Accessible uniquement après connexion. C'est l'outil de travail. Il est servi à l'adresse `/saas` sur le même serveur que le site public, ce qui permet de partager la même session utilisateur sans complication.
+**Base de données :** MongoDB Atlas (driver natif `mongodb` v6 — pas d'ODM)
 
-### Portail Startup (pages `startup-*.html`)
-Un espace séparé où les startups peuvent créer un compte et déposer leurs documents pour qu'un investisseur (connecté côté investisseur) puisse les consulter.
+**Frontend :** HTML/CSS/JS vanilla, zéro bundler, zéro framework
 
-### Panel Admin (`admin.html`)
-Réservé aux emails `baptiste.faisy@gmail.com` et `bg.fsg.invest@gmail.com`. Permet de gérer le catalogue des startups, télécharger des images, etc.
+**Services tiers :**
 
----
+| Package | Usage |
+|---------|-------|
+| `@anthropic-ai/sdk` | IA juridique (Claude Opus 4.8 avec extended thinking) |
+| `cloudconvert` | Conversion HTML→DOCX, PDF→DOCX, DOCX→PDF |
+| `mammoth` | Parse DOCX → HTML brut pour l'éditeur |
+| `bcryptjs` | Hachage des mots de passe (10 rounds) |
+| `jsonwebtoken` | Sessions via JWT signé (cookie HTTP-only, 7j) |
+| `speakeasy` | TOTP 2FA (compatible Google Authenticator) |
+| `qrcode` | Génération QR pour la config 2FA |
+| `multer` | Upload multipart (PDF, DOCX, XLSX, images, 20 Mo max) |
+| `cookie-parser` | Lecture des cookies dans Express |
+| `dotenv` | Variables d'environnement depuis `.env` |
 
-## 4. La pile technique (stack)
-
-| Couche | Technologie | Rôle |
-|--------|-------------|------|
-| Serveur | **Node.js + Express** | Reçoit les requêtes HTTP, sert les fichiers, expose l'API |
-| Hébergement | **Railway** | Plateforme cloud qui héberge et fait tourner le serveur Node.js en production |
-| Base de données | **MongoDB Atlas** | Stockage de toutes les données (cloud) |
-| Frontend | **HTML + CSS + JS vanilla** | Pages web, sans framework (pas de React, pas de Vue) |
-| Auth | **JWT + bcrypt** | Connexion sécurisée, mots de passe chiffrés |
-| Auth sociale | **Google OAuth 2.0** | Connexion avec un compte Google |
-| Double auth | **TOTP (speakeasy)** | Authentification à deux facteurs (code temporaire type Google Authenticator) |
-| IA | **Anthropic Claude** | Assistant de rédaction juridique |
-| Conversion | **CloudConvert** | Convertit les documents entre PDF et DOCX |
-| Parsing DOCX | **mammoth** | Lit les fichiers Word et les convertit en HTML |
-| QR codes | **qrcode** | Génère les QR codes pour la configuration 2FA |
-| Uploads | **multer** | Gère les fichiers envoyés par les utilisateurs |
-
-**Pourquoi du vanilla JS ?** Pas de framework front-end signifie moins de dépendances, un déploiement ultra-simple (un seul dossier), et des pages qui se chargent vite.
+**Hébergement :** Railway (PaaS, déploiement continu depuis Git)
 
 ---
 
-## 5. Structure des fichiers
+## 2. Architecture du dépôt
 
 ```
 invest-startup/
+├── server.js           # Serveur unique (~2 100 lignes) — tout le backend
+├── package.json
+├── .env                # Secrets (gitignored)
+├── start.bat           # Raccourci Windows + adb reverse pour émulateur Android
 │
-├── server.js              ← Le serveur (toute la logique backend)
-├── package.json           ← Dépendances Node.js
-├── .env                   ← Clés API et secrets (NE PAS PARTAGER)
-├── start.bat              ← Script de démarrage Windows
+├── *.html              # Site public (index, login, register, startups, admin…)
+├── styles.css          # CSS du site public
+├── nav.js              # Barre de nav partagée
 │
-├── styles.css             ← CSS du site public
-├── index.html             ← Page d'accueil publique
-├── login.html             ← Connexion investisseur
-├── register.html          ← Inscription investisseur
-├── investments.html       ← Suivi des investissements
-├── marche.html            ← Page marché / analyse
-├── startups.html          ← Catalogue des startups
-├── admin.html             ← Panel administrateur
-├── settings.html          ← Paramètres compte (2FA, mot de passe)
-├── startup-*.html         ← Portail startups (login, dashboard)
-├── comment-ca-marche.html ← Page explicative
-├── nav.js                 ← Navigation commune
+├── uploads/            # Fichiers uploadés (éphémères sur Railway — voir §11)
+│   └── public/         # Images publiques (logos catalog)
 │
-├── uploads/               ← Fichiers envoyés par les utilisateurs
-│   └── public/            ← Images publiques (logos, etc.)
-│
-└── Saas/                  ← L'outil SaaS (accessible via /saas)
-    ├── index.html         ← Accueil SaaS
-    ├── login.html         ← Connexion SaaS (même compte)
-    ├── register.html      ← Inscription SaaS
-    ├── dossiers.html      ← Gestion des dossiers et documents ★
-    ├── editor.html        ← Interface de l'éditeur
-    ├── editor.js          ← Logique de l'éditeur (~2 700 lignes) ★
-    ├── editor.css         ← Style de l'éditeur
-    ├── styles.css         ← Style général du SaaS
-    ├── auth.js            ← Vérification de session côté client
-    ├── documents.js       ← Gestion des fichiers importés
+└── Saas/               # Servi sous /saas par express.static
+    ├── dossiers.html   # Page centrale du SaaS (~1 400 lignes HTML+JS inline)
+    ├── editor.html     # Shell de l'éditeur
+    ├── editor.js       # Éditeur (~2 700 lignes)
+    ├── editor.css
+    ├── styles.css
+    ├── auth.js         # Guard côté client (redirect si pas de cookie)
+    ├── documents.js    # Logique d'upload / liste de fichiers importés
     └── ressources/
-        └── modeles/       ← 35+ modèles de documents juridiques
+        └── modeles/    # 35+ templates HTML de documents juridiques
             ├── accord-de-confidentialite-nda.html
             ├── term-sheet-lettre-d-intention.html
-            ├── pacte-d-associes-shareholders-agreement.html
-            └── ... (35 fichiers au total)
+            └── …
 ```
+
+**Principe de routing :**
+```js
+app.use('/saas', express.static(path.join(__dirname, 'Saas')));
+app.use(express.static(__dirname));
+```
+Le SaaS est servi sous `/saas` sur la même origine que l'API, donc les cookies de session fonctionnent sans CORS. Toutes les routes API sont sous `/api/*`.
 
 ---
 
-## 6. La base de données (MongoDB)
+## 3. Modèle de données (MongoDB)
 
-MongoDB est une base de données "NoSQL" : au lieu de tables avec des colonnes fixes (comme Excel), elle stocke des **documents JSON** (des objets clé-valeur flexibles).
+Pas d'ODM — accès direct via `db.collection(name)`. Helper `nextId(colName)` pour les IDs auto-incrémentés (pas d'ObjectId exposé en API).
 
-### Collections (= tables)
+### `users`
+```json
+{
+  "id": 7,
+  "email": "alice@startup.fr",
+  "password": "$2b$10$...",         // bcrypt, vide si OAuth
+  "full_name": "Alice Martin",
+  "created_at": "2026-01-10T09:00:00Z",
+  "twofa_method": "totp",           // undefined si 2FA désactivée
+  "totp_secret": "BASE32SECRET"     // jamais renvoyé en API
+}
+```
 
-| Collection | Contenu |
-|------------|---------|
-| `users` | Comptes investisseurs (email, mot de passe haché, nom, 2FA…) |
-| `startup_accounts` | Comptes startups |
-| `documents` | Fichiers déposés par les startups pour les investisseurs |
-| `catalog` | Catalogue public des startups présentées sur le site |
-| `news` | Actualités affichées aux utilisateurs connectés |
-| `saas_documents` | Documents créés/importés par l'utilisateur dans le SaaS |
-| `saas_folders` | Dossiers (phases de levée) de l'utilisateur dans le SaaS |
+### `saas_folders`
+```json
+{
+  "id": 3,
+  "user_id": 7,
+  "name": "2 · Confidentialité & approche",
+  "key": "confidentialite",         // slug unique (dossiers système)
+  "system": true,                   // false pour les dossiers créés par l'user
+  "seed_version": 2,                // permet la re-sync si FUNDRAISING_PHASES évolue
+  "items_state": {
+    "accord-de-confidentialite-nda": {
+      "document_id": 42,            // saas_documents.id lié
+      "final": false,
+      "todos": ["Compléter les parties", "…"],
+      "analysis_at": "2026-06-20T14:05:00Z"
+    }
+  },
+  "created_at": "2026-01-10T09:00:00Z"
+}
+```
 
-### Exemple d'un document `saas_documents`
+### `saas_documents`
 ```json
 {
   "id": 42,
   "user_id": 7,
-  "name": "Mon NDA avec InvestCorp",
-  "kind": "termsheet",
-  "html": "<h1>ACCORD DE CONFIDENTIALITÉ...</h1>",
-  "folder_id": 3,
-  "size": 18420,
-  "created_at": "2026-05-12T10:23:00Z",
-  "updated_at": "2026-06-20T14:05:00Z"
+  "kind": "termsheet",              // "termsheet" = édité dans l'éditeur
+                                    // undefined = fichier importé (PDF, DOCX…)
+  "name": "NDA — InvestCorp",
+  "html": "<h1>ACCORD…</h1>",      // contenu HTML brut (stocké côté serveur)
+  "folder_id": 3,                   // null = "Fichiers importés"
+  "size": 18420,                    // en bytes
+  "filename": "1718885100000_nda.docx",  // chemin relatif dans uploads/ (fichiers importés)
+  "originalname": "nda.docx",
+  "mimetype": "application/pdf",
+  "exported_from": 41,              // id source si généré par export
+  "created_at": "…",
+  "updated_at": "…"
 }
 ```
 
-### Connexion MongoDB
-La base est hébergée sur **MongoDB Atlas** (cloud). La connexion passe par une URI standard (pas SRV) car le réseau local ne résout pas les enregistrements SRV :
+### `saas_claude_usage`
+```json
+{
+  "user_id": 7,
+  "requests": 24,
+  "input_tokens": 145000,
+  "output_tokens": 38000,
+  "total_tokens": 183000,
+  "updated_at": "2026-06-25T11:00:00Z"
+}
 ```
-mongodb://user:password@hote1:27017,hote2:27017,hote3:27017/liquidplus?...
+
+### Autres collections
+- `startup_accounts` — comptes startups (portail séparé)
+- `documents` — fichiers partagés startup→investisseur
+- `catalog` — startups présentées sur le site public
+- `news` — flux d'actualité investisseur
+
+---
+
+## 4. Serveur Express — organisation des routes
+
+`server.js` est un fichier unique sans découpe en modules. Les routes sont regroupées logiquement par blocs de commentaires.
+
+```
+/api/auth/*          → Auth investisseur (register, login, logout, me, 2FA, Google OAuth)
+/api/startup/*       → Auth & actions portail startup
+/api/investor/*      → Documents visibles par les investisseurs
+/api/documents/*     → Download sécurisé des fichiers startup
+/api/admin/*         → Panel admin (requireAdmin middleware)
+/api/news            → Flux d'actualité
+/api/investments     → Données de portefeuille (statique pour l'instant)
+/api/startups        → Catalogue public
+/api/saas/clause-*   → IA : chat, explain, verify sur une clause
+/api/saas/doc-*      → IA : analyse et conseils sur le document entier
+/api/saas/clauses-*  → IA : explication groupée de toutes les clauses
+/api/saas/usage      → Compteur de tokens Claude par user
+/api/saas/folders    → CRUD dossiers + checklist
+/api/saas/documents  → CRUD documents importés (upload, download, delete)
+/api/saas/termsheets → CRUD documents édités (create, save, load)
 ```
 
----
+**Middlewares globaux :**
+```js
+app.use(express.json());
+app.use(cookieParser());
+app.use('/uploads/public', express.static(PUBLIC_IMG_DIR));
+app.use('/saas', express.static(path.join(__dirname, 'Saas')));
+app.use(express.static(__dirname));
+```
 
-## 7. Le serveur (server.js)
-
-`server.js` est le cœur du projet. Ce fichier unique de ~2 000 lignes fait tout :
-- Sert les fichiers HTML/CSS/JS au navigateur
-- Gère la connexion des utilisateurs
-- Expose une API REST pour toutes les actions
-
-### Routes API principales
-
-#### Authentification
-| Méthode | Route | Description |
-|---------|-------|-------------|
-| POST | `/api/auth/register` | Créer un compte |
-| POST | `/api/auth/login` | Se connecter |
-| POST | `/api/auth/logout` | Se déconnecter |
-| GET | `/api/auth/me` | Profil de l'utilisateur connecté |
-| POST | `/api/auth/google/token` | Connexion Google OAuth |
-| GET | `/api/auth/2fa/status` | Vérifier si 2FA activée |
-| POST | `/api/auth/2fa/setup` | Configurer la 2FA |
-
-#### SaaS — Dossiers
-| Méthode | Route | Description |
-|---------|-------|-------------|
-| GET | `/api/saas/folders` | Lister les dossiers (crée les 7 phases auto) |
-| POST | `/api/saas/folders` | Créer un dossier personnalisé |
-| PUT | `/api/saas/folders/:id` | Renommer un dossier |
-| DELETE | `/api/saas/folders/:id` | Supprimer un dossier |
-| PUT | `/api/saas/folders/:id/checklist` | Lier un document à un point de checklist |
-| PUT | `/api/saas/documents/:id/folder` | Déplacer un document dans un dossier |
-
-#### SaaS — Documents
-| Méthode | Route | Description |
-|---------|-------|-------------|
-| GET | `/api/saas/documents` | Lister tous les documents |
-| POST | `/api/saas/termsheets` | Créer un nouveau document (term sheet) |
-| PUT | `/api/saas/termsheets/:id` | Sauvegarder les modifications |
-| GET | `/api/saas/termsheets/:id` | Charger un document |
-| POST | `/api/saas/documents` | Importer un fichier (PDF, DOCX, XLSX…) |
-| GET | `/api/saas/documents/:id/download` | Télécharger un fichier |
-| DELETE | `/api/saas/documents/:id` | Supprimer un document |
-| POST | `/api/saas/documents/:id/convert` | Convertir PDF ↔ DOCX |
-| POST | `/api/saas/termsheets/:id/export` | Exporter en DOCX/PDF |
-| POST | `/api/saas/documents/:id/to-editor` | Ouvrir un fichier importé dans l'éditeur |
-
-#### SaaS — Intelligence artificielle
-| Méthode | Route | Description |
-|---------|-------|-------------|
-| POST | `/api/saas/clause-chat` | L'assistant réécrit une clause (streaming) |
-| POST | `/api/saas/clause-explain` | Explique une clause en langage simple |
-| POST | `/api/saas/clause-verify` | Vérifie si une clause est favorable |
-| POST | `/api/saas/doc-advice` | Conseils globaux sur le document |
-| POST | `/api/saas/doc-analyze` | Analyse complète du document (bibliothèque + conseils) |
-| POST | `/api/saas/clauses-explain` | Explique toutes les clauses d'un coup |
-| GET | `/api/saas/usage` | Compteur d'utilisation de l'IA |
+**Guards :**
+- `requireAuth` — vérifie `cookie auth_token` OU header `Authorization: Bearer <token>`
+- `requireAdmin` — vérifie requireAuth + email dans `ADMIN_EMAILS`
+- `requireStartupAuth` — vérifie `cookie startup_token`
 
 ---
 
-## 8. Les pages publiques
+## 5. Authentification
 
-### `index.html` — Page d'accueil
-La page principale de LIQUID+. Sections : héro (accroche), proposition de valeur, statistiques (3 000+ investisseurs, 0 € si vous ne levez pas…), étapes du service, témoignages, plans tarifaires, prise de contact via Calendly.
+### Flux email/password
+```
+POST /api/auth/login
+  → bcrypt.compare(password, user.password)
+  → si 2FA inactive : jwt.sign({id, email}, JWT_SECRET, {expiresIn:'7d'})
+                      → res.cookie('auth_token', token, {httpOnly, secure (prod), sameSite})
+  → si 2FA active : jwt.sign({id, email, purpose:'verify_2fa'}, JWT_SECRET, {expiresIn:'5m'})
+                    → { requires2FA: true, tempToken }
+POST /api/auth/2fa/verify  (tempToken + code TOTP 6 chiffres)
+  → speakeasy.totp.verify(secret, token, window=1)
+  → si ok : pose le cookie auth_token long durée
+```
 
-### `marche.html` — Analyse de marché
-Grande page (~140 Ko) avec une analyse détaillée du marché de la levée de fonds en France : données statistiques, types d'investisseurs, étapes d'une levée, clauses types. Sert de contenu éducatif pour les startups.
+### Google OAuth (implicit flow modifié)
+Le front récupère un `id_token` Google via la librairie Google Identity Services, puis :
+```
+POST /api/auth/google/token { token }
+  → fetch https://oauth2.googleapis.com/tokeninfo?id_token=
+  → vérifie aud === GOOGLE_CLIENT_ID
+  → createUser si inexistant, puis pose le cookie auth_token
+```
 
-### `startups.html` — Catalogue
-Liste des startups disponibles dans le catalogue LIQUID+ pour les investisseurs.
+### 2FA (TOTP)
+```
+POST /api/auth/2fa/setup
+  → speakeasy.generateSecret({ name: 'LIQUID+:email' })
+  → stocke base32 en mémoire (totpSetupStore Map)
+  → renvoie { otpauth, secret, qr } (QR code data-URL)
+POST /api/auth/2fa/confirm { code }
+  → vérifie le code TOTP avec le secret en mémoire
+  → si ok : persiste totp_secret (chiffré base32) + twofa_method:'totp' en base
+```
 
-### `admin.html` — Panel administrateur
-Interface réservée aux admins pour gérer le catalogue de startups : ajouter, modifier, supprimer, télécharger des images.
-
----
-
-## 9. Le SaaS — gestion des dossiers
-
-**Fichier clé : `Saas/dossiers.html`**
-
-C'est la page centrale du SaaS. Elle affiche :
-
-### Les 7 phases de levée (dossiers système)
-Chaque fois que l'utilisateur ouvre cette page, le serveur **crée automatiquement** ces 7 dossiers s'ils n'existent pas encore, dans l'ordre chronologique d'une levée de fonds :
-
-| Phase | Contenu de la checklist |
-|-------|------------------------|
-| **1 · Mise en ordre juridique** | Statuts, Kbis, cap table, RBE, PV d'AG, pacte existant… |
-| **2 · Confidentialité & approche** | NDA, engagement de confidentialité data room |
-| **3 · Lettre d'intention / Term sheet** | Term sheet, clause d'exclusivité |
-| **4 · Audit juridique (due diligence)** | Data room, questionnaire DD, rapport d'audit, litiges |
-| **5 · Documentation de l'opération** | Pacte d'associés, statuts modifiés, bulletin de souscription, GAP… |
-| **6 · Closing** | PV d'AGE, certificat dépositaire, registre mis à jour, cap table post-money |
-| **7 · Formalités & post-closing** | Dépôt au greffe, RBE mis à jour, reporting investisseurs… |
-
-### Comment fonctionne la checklist
-Chaque dossier contient une liste de points à compléter. Pour chaque point, l'utilisateur peut :
-1. **Créer un document depuis un modèle** ("Modèle") → ouvre l'éditeur avec le template pré-rempli
-2. **Importer un fichier existant** (glisser-déposer ou sélection)
-3. **Marquer comme finalisé** (coche verte)
-
-Une fois un document lié à un point, il apparaît **uniquement** sur ce point (et non pas en double dans la liste de fichiers du dossier).
-
-### Dossiers personnalisés
-L'utilisateur peut aussi créer ses propres dossiers (sans checklist), pour organiser librement ses autres documents.
-
-### "Fichiers importés"
-Un dossier virtuel qui regroupe tous les documents sans dossier assigné.
+### JWT structure
+```json
+{ "id": 7, "email": "alice@startup.fr", "iat": 1718000000, "exp": 1718604800 }
+```
+Le secret (`JWT_SECRET`) doit être changé en production.
 
 ---
 
-## 10. L'éditeur de documents
+## 6. SaaS — Gestion des dossiers & checklist
 
-**Fichiers clés : `Saas/editor.html` + `Saas/editor.js`**
+### Initialisation automatique des dossiers système
 
-`editor.js` fait ~2 700 lignes. C'est un éditeur de texte riche complet.
+À chaque `GET /api/saas/folders`, la fonction `ensureUserFolders(userId)` s'exécute. Elle compare les dossiers `system: true` existants avec `FUNDRAISING_PHASES` (tableau constant dans server.js). Si un dossier manque ou a un `seed_version` périmé, il est créé/mis à jour. Les dossiers utilisateur (`system: false`) ne sont jamais touchés.
 
-### Fonctionnalités de l'éditeur
+`FOLDERS_SEED_VERSION = 2` — incrémenter pour forcer la re-sync chez tous les utilisateurs.
 
-**Mise en forme**
-- Styles de paragraphe : Normal, Titre 1/2/3, Citation
-- Polices : Libre Franklin, Archivo, Georgia, Times New Roman, Arial, Courier New
-- Taille, gras, italique, souligné, barré
-- Couleur du texte, surlignage
-- Alignement (gauche, centre, droite, justifié)
-- Listes à puces et numérotées
-- Annuler / Rétablir
+### Les 7 phases (clés de référence)
+```
+mise-en-ordre      → 10 documents (statuts, Kbis, cap table, RBE…)
+confidentialite    → 2  documents (NDA, engagement data room)
+term-sheet         → 2  documents (term sheet, clause exclusivité)
+due-diligence      → 4  documents (data room, DD questionnaire, rapport, contentieux)
+documentation      → 6  documents (pacte, statuts modifiés, bulletin souscription…)
+closing            → 5  documents (PV AGE, certificat dépositaire, registre MàJ…)
+post-closing       → 5  documents (greffe, RBE MàJ, reporting investors, covenants…)
+```
 
-**Documents juridiques**
-- **Bibliothèque** : liste toutes les clauses du document actif ; clic sur une clause pour y aller
-- **Priorités** : liste des points à négocier par ordre de priorité, côté fondateur
-- **Bouton Analyser** : envoie le document à Claude pour remplir la bibliothèque et les priorités
+### Linking checklist ↔ document
+```
+PUT /api/saas/folders/:id/checklist
+Body: { slug: "accord-de-confidentialite-nda", document_id: 42 }
+```
+Le `slug` est la clé de l'item dans `items_state`. Lors du link :
+1. Vérifie que `document_id` appartient au user
+2. `$set` `saas_documents.folder_id = id` (range le doc dans la phase)
+3. `$set` `saas_folders.items_state[slug].document_id = docId`
 
-**Sauvegarde & export**
-- Sauvegarde automatique en base de données
-- Export en **DOCX** (Word, via CloudConvert)
-- Export en **PDF** (impression navigateur)
+Pour délier : `{ document_id: null }` → supprime le champ `document_id` et remet `final: false`.
 
-**Import**
-- Importer un PDF, DOCX, XLSX, JPG/PNG
-- Les DOCX peuvent être convertis en HTML et ouverts dans l'éditeur
-- Les PDF peuvent être convertis en DOCX via CloudConvert
+### Anti-doublon dans le rendu
+`dossiers.html` construit pour chaque dossier un `Set checklistLinked` à partir des `items_state[*].document_id`. La liste de fichiers du dossier filtre ensuite ces IDs pour éviter l'affichage double.
 
-### Comment l'éditeur charge un document
-1. L'URL contient `?doc=ID` (et optionnellement `?folder=ID`)
-2. L'éditeur fait `GET /api/saas/termsheets/ID` et affiche le HTML dans la zone éditable
-3. Quand l'utilisateur clique "Enregistrer", l'éditeur fait `PUT /api/saas/termsheets/ID`
+```js
+const checklistLinked = new Set(
+  Object.values(f.items_state || {}).map(st => st.document_id).filter(id => id != null)
+);
+const inFolder = docs.filter(d =>
+  (f.id == null ? d.folder_id == null : d.folder_id === f.id) && !checklistLinked.has(d.id)
+);
+```
 
-### Le contenu éditable
-Le texte est directement éditable dans le navigateur grâce à `contenteditable`. Le HTML produit est stocké tel quel dans MongoDB.
-
----
-
-## 11. L'assistant IA (Claude)
-
-Le SaaS intègre **Claude** (d'Anthropic) dans deux contextes différents.
-
-### Assistant de clause (panneau de gauche)
-Dans l'éditeur, si l'utilisateur sélectionne une clause et clique sur "Réécrire" :
-- Le texte sélectionné + une instruction (ex. "rends cette clause plus favorable au fondateur") sont envoyés à l'API Claude
-- La réponse arrive **en streaming** (mot par mot, comme ChatGPT) et remplace la clause dans l'éditeur
-
-Routes concernées :
-- `/api/saas/clause-chat` — Réécriture interactive
-- `/api/saas/clause-explain` — Explication en langage simple
-- `/api/saas/clause-verify` — Vérification de la balance des pouvoirs
-
-### Analyse globale du document
-Bouton "Analyser" dans la topbar :
-- Envoie le HTML complet du document à Claude
-- Claude identifie les clauses, les explique, les note (favorable / neutre / défavorable au fondateur) et génère des priorités de négociation
-- Résultat : la bibliothèque de clauses et le panneau "Priorités" se remplissent
-
-Routes concernées :
-- `/api/saas/doc-analyze` — Analyse complète (streaming)
-- `/api/saas/doc-advice` — Conseils spécifiques
-- `/api/saas/clauses-explain` — Explication de toutes les clauses
-
-### Modèle utilisé
-Claude Sonnet (le modèle par défaut d'Anthropic). Si la clé `ANTHROPIC_API_KEY` n'est pas définie dans `.env`, toutes les fonctionnalités IA sont désactivées silencieusement.
-
-### Compteur d'utilisation
-`GET /api/saas/usage` retourne le nombre d'appels IA du mois en cours pour l'utilisateur connecté. Permet d'afficher un indicateur de consommation.
+### Correspondance slug ↔ fichier template
+`dossiers.html` contient un dictionnaire `MODELS` (Set de slugs) indiquant quels points de checklist ont un fichier template dans `Saas/ressources/modeles/`. La conversion nom → slug utilise `slugify()` (accents normalisés, espaces→tirets, caractères spéciaux→vides).
 
 ---
 
-## 12. Authentification & sécurité
+## 7. SaaS — Éditeur de documents
 
-### Mot de passe classique
-1. L'utilisateur entre email + mot de passe
-2. Le serveur vérifie le mot de passe avec **bcrypt** (algorithme de hachage : le mot de passe n'est jamais stocké en clair)
-3. Si correct, le serveur génère un **JWT** (JSON Web Token) — un jeton signé qui prouve l'identité
-4. Ce jeton est stocké dans un **cookie HTTP-only** (inaccessible au JavaScript, protège contre les attaques XSS)
-5. Le cookie dure **7 jours**
+### Flux de création depuis un modèle (`useTemplate`)
+```
+1. dossiers.html : fetch('/saas/ressources/modeles/<slug>.html')
+2. POST /api/saas/termsheets { name, html, folder_id }
+   → stocke le doc en base, renvoie { id }
+3. PUT /api/saas/folders/:folderId/checklist { slug, document_id: id }
+4. window.location.href = 'editor.html?doc=' + id + '&folder=' + folderId
+```
 
-### Connexion Google OAuth
-1. L'utilisateur clique "Continuer avec Google"
-2. Google renvoie un token d'identité
-3. Le serveur vérifie le token auprès de Google, récupère l'email, et connecte ou crée le compte
+### Flux de sauvegarde (`saveTermsheet`)
+```js
+// editor.js
+const urlFolderId = new URLSearchParams(location.search).get('folder');
+const body = { name, html };
+if (urlFolderId) body.folder_id = Number(urlFolderId);
 
-### Double authentification (2FA — TOTP)
-Optionnelle. L'utilisateur peut l'activer dans ses paramètres :
-1. Le serveur génère un **secret TOTP** (code 32 caractères)
-2. Un QR code est affiché — l'utilisateur le scanne avec Google Authenticator ou Authy
-3. À chaque connexion, un code à 6 chiffres (valable 30 secondes) est demandé
+currentDocId
+  ? PUT  /api/saas/termsheets/:id  { name, html, folder_id }
+  : POST /api/saas/termsheets      { name, html, folder_id }
+```
 
-### Niveaux d'accès
-| Niveau | Condition | Pages accessibles |
-|--------|-----------|-------------------|
-| Anonyme | Pas connecté | Site public, page de connexion |
-| Utilisateur | JWT valide | SaaS complet, investments, settings |
-| Startup | Cookie `startup_token` valide | Portail startup uniquement |
-| Admin | JWT + email dans `ADMIN_EMAILS` | Panel admin |
+Côté serveur, le `PUT` n'écrase `folder_id` que si le document n'en a pas encore un (évite de le déplacer accidentellement lors des sauvegardes suivantes).
 
----
+### Éditeur de texte riche
+Zone `contenteditable` pilotée par `document.execCommand` (gras, listes, alignement…). Le HTML résultant est stocké brut en base. L'éditeur parse aussi la structure spécifique des templates (`.ts-clause`, `.ts-label`, `.ts-content`, `.ts-group`) pour alimenter la bibliothèque de clauses dans le panneau latéral.
 
-## 13. Les modèles de documents juridiques
-
-**Dossier : `Saas/ressources/modeles/`**
-
-Il y a **35+ modèles** de documents juridiques pré-rédigés, un pour chaque point de checklist des 7 phases. Chaque modèle est un fichier HTML avec une structure spéciale.
-
-### Structure d'un modèle
+### Structure d'un document juridique édité
 ```html
-<!-- Titre du document -->
 <h1 class="doc-title">ACCORD DE CONFIDENTIALITÉ (NDA)</h1>
 <p class="doc-sub">Accord de non-divulgation bilatéral — droit français</p>
 
-<!-- Groupe de clauses (section) -->
-<div class="ts-group">Entre les soussignés</div>
+<div class="ts-group" contenteditable="false">Entre les soussignés</div>
 
-<!-- Clause individuelle -->
-<div class="ts-clause" data-key="duree"
-     data-plain="Le secret tient pendant 3 ou 5 ans...">
+<div class="ts-clause" data-key="duree" data-plain="Explication en langage courant…">
   <div class="ts-label">Article 8 — Durée</div>
-  <div class="ts-content">
-    <p>Les obligations... [DURÉE] ans...</p>
-  </div>
+  <div class="ts-content"><p>…[3 / 5] ans…</p></div>
 </div>
 
-<!-- Options alternatives (remplacements de clauses) -->
+<!-- Options alternatives embarquées dans le template -->
 <script type="application/json" data-conditions>
+{ "duree": [{"id":"nda_duree_3","label":"3 ans","html":"…"}, …] }
+</script>
+
+<!-- Priorités de négociation spécifiques à ce type de document -->
+<script type="application/json" data-advice>
+[{"title":"Choisir la durée","body":"…"}, …]
+</script>
+```
+
+`data-key` : référence une clé dans `data-conditions` pour les variantes alternatives.
+`data-plain` : explication pré-baked affichée dans l'encart "Pour bien comprendre" (avant l'appel IA).
+
+---
+
+## 8. SaaS — Intégration Claude (Anthropic)
+
+**Modèle :** `claude-opus-4-8` avec `thinking: { type: 'adaptive' }` (extended thinking activé).
+
+**Output structuré :** Toutes les routes IA utilisent `output_config.format.type = 'json_schema'` (structured outputs d'Anthropic) plutôt que du parsing regex fragile.
+
+### `POST /api/saas/clause-chat` — Assistant de clause
+
+Entrée :
+```json
 {
-  "duree": [
-    {"id": "nda_duree_3", "label": "3 ans", "html": "..."},
-    {"id": "nda_duree_5", "label": "5 ans", "html": "..."}
+  "clauseLabel": "Article 8 — Durée",
+  "clauseHtml": "<p>…[3/5] ans…</p>",
+  "plain": "Le secret tient pendant 3 ou 5 ans…",
+  "documentContext": "Plan complet de la term sheet…",
+  "messages": [
+    { "role": "user", "content": "Passe à 5 ans" }
   ]
 }
-</script>
-
-<!-- Priorités spécifiques à CE document -->
-<script type="application/json" data-advice>
-[
-  {"title": "Choisir la durée", "body": "Fixez 3 ou 5 ans..."},
-  {"title": "Compléter les parties", "body": "..."}
-]
-</script>
 ```
 
-### Attributs importants
-- `data-key` : identifie les clauses qui ont des variantes alternatives
-- `data-plain` : explication en langage courant (affichée dans la bulle d'info)
-- `data-conditions` : variantes alternatives (ex. durée 3 ans vs 5 ans)
-- `data-advice` : priorités de négociation pré-baked pour ce modèle spécifique
-
-### Liste des modèles disponibles
-- Accord de confidentialité (NDA)
-- Term sheet / lettre d'intention
-- Pacte d'associés (shareholders agreement)
-- Statuts à jour / modifiés
-- Cap table / registre des mouvements de titres
-- Convention de GAP (garantie d'actif et passif)
-- PV d'AGE, PV de constatation
-- Questionnaire de due diligence
-- Data room structurée
-- Bulletin de souscription
-- … et 25+ autres
-
----
-
-## 14. Variables d'environnement (.env)
-
-Le fichier `.env` contient tous les secrets. **Il ne doit jamais être partagé ni mis sur Git.**
-
-| Variable | Valeur par défaut | Description |
-|----------|------------------|-------------|
-| `MONGODB_URI` | *(obligatoire)* | URI de connexion MongoDB Atlas |
-| `ANTHROPIC_API_KEY` | *(vide = IA désactivée)* | Clé API Claude pour l'assistant IA |
-| `CLOUDCONVERT_API_KEY` | *(vide = conversion désactivée)* | Clé CloudConvert pour PDF ↔ DOCX |
-| `GOOGLE_CLIENT_ID` | *(obligatoire pour OAuth)* | Client ID Google OAuth |
-| `GOOGLE_CLIENT_SECRET` | *(obligatoire pour OAuth)* | Secret Google OAuth |
-| `BASE_URL` | `http://localhost:3000` | URL de base du site |
-| `JWT_SECRET` | `invest_bg_dev_secret_CHANGE_IN_PROD` | Secret de signature des JWT — **changer en prod !** |
-| `STARTUP_SECRET` | `startup_post_secret_2026` | Secret pour l'API startup |
-| `PORT` | `3000` | Port d'écoute du serveur |
-
----
-
-## 15. Déploiement sur Railway
-
-**Railway** est la plateforme cloud qui fait tourner le projet en production. C'est l'équivalent de "l'ordinateur dans le cloud" qui tourne 24h/24 et rend le site accessible à tous.
-
-### Pourquoi Railway ?
-- Déploiement en **un clic** depuis le dépôt Git : dès qu'on pousse du code, Railway reconstruit et redémarre le serveur automatiquement
-- Gère le **HTTPS** et le **nom de domaine** personnalisé sans configuration manuelle
-- Injecte les **variables d'environnement** (clés API, secrets) de façon sécurisée, sans toucher au code
-- Facture à l'usage — pas de serveur à gérer, pas de VPS à maintenir
-
-### Comment Railway lance le projet
-Railway lit `package.json` et exécute la commande `start` :
+Output structuré Claude :
 ```json
-"scripts": {
-  "start": "node server.js"
+{
+  "reply": "J'ai modifié la durée de 3 à 5 ans…",
+  "edits": [{ "find": "[3 / 5] ans", "replace": "5 ans" }],
+  "updatedClause": ""
 }
 ```
-Il suffit que le serveur écoute sur `process.env.PORT` (Railway injecte ce port automatiquement), ce qui est déjà le cas :
-```javascript
-const PORT = process.env.PORT || 3000;
+
+Logique de patch côté client : si `edits` est non-vide, l'éditeur fait des find/replace ciblés dans le HTML de la clause. Si `updatedClause` est non-vide, il remplace la clause entière. Les deux ne sont jamais remplis simultanément.
+
+L'historique de conversation est limité aux 16 derniers tours (`messages.slice(-16)`) pour borner le contexte.
+
+### `POST /api/saas/doc-analyze` — Analyse du document
+
+Entrée : `{ title, text }` (texte brut extrait du HTML, tronqué à 14 000 caractères).
+Output : `{ todos: ["Compléter les parties…", "…"] }` (4 à 12 items ordonnés).
+
+Les `todos` sont persistés dans `items_state[slug].todos` lors de l'appel suivant à `/api/saas/folders/:id/checklist`.
+
+### `POST /api/saas/clauses-explain` — Explication groupée
+
+Entrée : `{ title, clauses: [{key, label, html}, …] }` (max 60 clauses, HTML tronqué à 4 000 chars chacun).
+Output : `{ explanations: [{key, plain}, …] }`.
+
+Utilisé lors du bouton "Analyser" pour pré-remplir les `data-plain` de chaque clause dans le DOM.
+
+### Compteur d'usage — `recordClaudeUsage`
+
+Après chaque appel Claude, la fonction incrémente `saas_claude_usage` :
+```js
+await col('saas_claude_usage').updateOne(
+  { user_id },
+  { $inc: { requests: 1, input_tokens, output_tokens, total_tokens }, $set: { updated_at } },
+  { upsert: true }
+);
 ```
 
-### Variables d'environnement sur Railway
-Toutes les variables du fichier `.env` local doivent être **saisies dans le panel Railway** (section "Variables" du service) :
+---
 
-| Variable Railway | Valeur |
-|-----------------|--------|
-| `MONGODB_URI` | L'URI MongoDB Atlas (non-SRV) |
-| `ANTHROPIC_API_KEY` | Clé Anthropic pour l'IA |
-| `CLOUDCONVERT_API_KEY` | Clé CloudConvert |
-| `GOOGLE_CLIENT_ID` | Client ID Google OAuth |
-| `GOOGLE_CLIENT_SECRET` | Secret Google OAuth |
-| `BASE_URL` | L'URL publique Railway (ex. `https://liquidplus.up.railway.app`) |
-| `JWT_SECRET` | Une longue chaîne aléatoire secrète |
-| `NODE_ENV` | `production` |
+## 9. SaaS — Export / conversion de fichiers
 
-> **Important :** Quand `NODE_ENV=production`, le cookie de session passe en `secure: true` et `sameSite: none`, ce qui est requis pour fonctionner en HTTPS.
+### Export termsheet (HTML → DOCX ou PDF)
+```
+POST /api/saas/termsheets/:id/export { to: "docx" | "pdf" }
+```
+1. Charge le HTML du document depuis la base
+2. `buildExportHtml()` enveloppe le HTML dans un squelette de page complet avec CSS print-friendly
+3. Soumet un job CloudConvert (HTML→DOCX ou HTML→PDF)
+4. Télécharge le fichier résultant dans `uploads/`
+5. Crée un nouveau `saas_documents` avec `exported_from: originalId`
+6. Renvoie `{ document }` au client
+
+### Conversion import DOCX → éditeur
+```
+POST /api/saas/documents/:id/to-editor
+```
+1. mammoth convertit le fichier DOCX en HTML brut
+2. `topLevelBlocks()` découpe le HTML en blocs de premier niveau (parser de balises maison, pas de DOM)
+3. Chaque bloc est wrappé en `.ts-clause` si précédé d'un heading ou d'un titre d'article (`SECTION_RE`)
+4. Renvoie `{ id, name, html }` — le client redirige vers `editor.html?doc=id`
+
+### Conversion PDF → DOCX
+```
+POST /api/saas/documents/:id/convert { to: "docx" }
+```
+Soumet un job CloudConvert. Le fichier converti est stocké dans `uploads/` et un nouveau `saas_documents` est créé.
+
+---
+
+## 10. Frontend — Architecture sans framework
+
+Pas de bundler, pas de build step. Les pages sont des fichiers HTML servis statiquement. Le JS est chargé via `<script src="…">` classique.
+
+### Pattern d'authentification côté client
+`auth.js` est inclus en premier dans le `<head>` de toutes les pages SaaS :
+```js
+// Vérifie GET /api/auth/me — si 401, redirige vers login.html
+// Sinon injecte le nom de l'utilisateur dans le DOM
+```
+
+### État applicatif dans `dossiers.html`
+Pas de store centralisé. L'état est maintenu dans des variables de module et le DOM est rechargé par une fonction `render()` après chaque mutation. Les données sont fetché une seule fois au chargement via `Promise.all([fetch('/api/saas/folders'), fetch('/api/saas/documents')])`.
+
+### État dans `editor.js`
+```js
+let currentDocId = null;          // null → POST sur save, sinon PUT
+const urlFolderId = new URLSearchParams(location.search).get('folder');
+```
+
+L'éditeur expose ses fonctions sur `window` pour l'interopérabilité (certains handlers HTML appellent des fonctions globales).
+
+### Drag & drop
+`dossiers.html` implémente un drag & drop natif (`dragstart`, `dragover`, `drop`) pour :
+- Réordonner les points de checklist (ordre local uniquement, non persisté)
+- Déposer des fichiers locaux sur un dossier ou un point de checklist
+
+---
+
+## 11. Déploiement Railway
+
+Railway lit `package.json#scripts.start` et exécute `node server.js`. Le port est injecté via `process.env.PORT`.
+
+### Variables à configurer dans Railway
+```
+MONGODB_URI           # URI standard (non-SRV) — voir note ci-dessous
+ANTHROPIC_API_KEY
+CLOUDCONVERT_API_KEY
+GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_SECRET
+BASE_URL              # https://votre-domaine.railway.app ou domaine custom
+JWT_SECRET            # Longue chaîne aléatoire (openssl rand -hex 32)
+NODE_ENV              # production
+```
+
+**Note MongoDB SRV :** Railway résout correctement les SRV (`mongodb+srv://`) mais le réseau de développement local ne le fait pas. La `MONGODB_URI` dans `.env` liste donc les 3 hôtes Atlas explicitement. En production sur Railway, on peut utiliser l'URI SRV standard.
+
+**Uploads éphémères :** Railway ne persiste pas le système de fichiers entre déploiements. Les fichiers dans `uploads/` disparaissent à chaque push. Pour une persistance réelle, migrer vers un stockage objet (S3, Cloudflare R2) et remplacer `multer.diskStorage` par un upload direct en mémoire (`multer.memoryStorage`) avec un client S3.
 
 ### Domaine personnalisé
-Dans Railway > Settings > Networking, on peut lier un domaine comme `www.liquidplus.fr`. Railway gère le certificat SSL automatiquement.
+Railway Settings → Networking → Custom Domain. Certificat TLS géré automatiquement. Penser à mettre à jour `BASE_URL` et la redirect URI dans la console Google OAuth.
 
-### Fichiers uploadés
-Les fichiers déposés par les utilisateurs (dossier `uploads/`) sont **éphémères sur Railway** : ils disparaissent à chaque redéploiement. Si des uploads persistants sont nécessaires, il faut migrer vers un stockage externe (ex. AWS S3, Cloudflare R2).
+### HTTPS & cookies
+```js
+const isProd = process.env.NODE_ENV === 'production';
+res.cookie('auth_token', token, {
+  httpOnly: true,
+  secure:   isProd,         // HTTPS obligatoire en prod
+  sameSite: isProd ? 'none' : 'lax',
+  maxAge:   7 * 24 * 60 * 60 * 1000,
+});
+```
+`sameSite: 'none'` est requis si le SaaS est servi sur un sous-domaine différent de l'API. Ici ils sont sur la même origine, `'lax'` suffirait — mais `'none'` fonctionne aussi avec `secure: true`.
 
 ---
 
-## 16. Lancer le projet en local
+## 12. Variables d'environnement
 
-### Prérequis
-- **Node.js** version 18+ ([nodejs.org](https://nodejs.org))
-- Un compte **MongoDB Atlas** avec une base nommée `liquidplus`
-- Accès internet (pour MongoDB Atlas et les APIs externes)
+| Variable | Requis | Défaut | Note |
+|----------|--------|--------|------|
+| `MONGODB_URI` | ✅ | `mongodb://localhost:27017` | URI non-SRV en local |
+| `ANTHROPIC_API_KEY` | IA | — | Si absent, routes `/api/saas/*-chat`, `*-explain`, `*-analyze` renvoient 503 |
+| `CLOUDCONVERT_API_KEY` | Export | — | Si absent, export DOCX/PDF et conversion renvoient 503 |
+| `GOOGLE_CLIENT_ID` | OAuth | — | |
+| `GOOGLE_CLIENT_SECRET` | OAuth | — | Non utilisé côté serveur (flow token-only) |
+| `BASE_URL` | — | `http://localhost:3000` | Utilisé dans les redirects OAuth |
+| `JWT_SECRET` | — | `invest_bg_dev_secret_CHANGE_IN_PROD` | Changer en prod |
+| `STARTUP_SECRET` | — | `startup_post_secret_2026` | Auth portail startup |
+| `PORT` | — | `3000` | Injecté par Railway |
+| `NODE_ENV` | — | — | `production` active HTTPS cookies |
 
-### Installation
+---
+
+## 13. Lancer en local
 
 ```bash
-# 1. Aller dans le dossier du projet
-cd "invest-startup"
+# Prérequis : Node.js 18+, accès MongoDB Atlas
 
-# 2. Installer les dépendances Node.js
+cd invest-startup
 npm install
 
-# 3. Remplir le fichier .env avec tes vraies clés
+# Éditer .env avec les bonnes valeurs (copier depuis .env.example si présent)
 
-# 4. Démarrer le serveur
-node server.js
-# ou en mode développement (redémarre automatiquement à chaque modification) :
+# Développement (hot reload)
 npx nodemon server.js
+
+# Ou production locale
+node server.js
 ```
 
-### Sur Windows
-Double-cliquer sur `start.bat` — il lance le serveur et configure automatiquement le port pour les tests sur émulateur Android.
+Accès :
+- `http://localhost:3000` → site public
+- `http://localhost:3000/saas` → SaaS (connexion requise)
+- `http://localhost:3000/admin.html` → panel admin (email `ADMIN_EMAILS` requis)
 
-### Accès
-- Site public : `http://localhost:3000`
-- SaaS : `http://localhost:3000/saas`
-- Panel admin : `http://localhost:3000/admin.html` (email admin requis)
-
----
-
-## 16. Flux utilisateur — parcours type
-
-### Scénario : une startup prépare son NDA
-
-```
-1. L'utilisateur ouvre http://localhost:3000/saas/login.html
-   → Entre son email + mot de passe
-   → Le serveur vérifie et pose un cookie "auth_token"
-
-2. Redirection vers /saas/dossiers.html
-   → Le serveur crée automatiquement les 7 dossiers de phases (si premier accès)
-   → La page affiche les 7 dossiers pliés
-
-3. L'utilisateur ouvre le dossier "2 · Confidentialité & approche"
-   → Il voit la checklist : "Accord de confidentialité (NDA)" et "Engagement data room"
-
-4. Il clique sur "Modèle" à côté de "Accord de confidentialité (NDA)"
-   → dossiers.html récupère le template HTML du NDA
-   → Crée un nouveau document en base : POST /api/saas/termsheets
-   → Lie ce document au point de checklist : PUT /api/saas/folders/2/checklist
-   → Redirige vers editor.html?doc=42&folder=2
-
-5. L'éditeur s'ouvre avec le NDA pré-rempli
-   → L'utilisateur remplace les [CROCHETS] par les vraies informations
-   → Il peut cliquer "Analyser" pour que Claude lise le document et
-     génère les priorités de négociation
-
-6. L'utilisateur clique "Enregistrer"
-   → PUT /api/saas/termsheets/42 envoie le HTML en base de données
-
-7. Retour sur dossiers.html
-   → Le point "Accord de confidentialité (NDA)" affiche maintenant
-     "Mon NDA avec InvestCorp" avec un bouton "Éditer"
-   → Le document n'apparaît PAS en double dans la liste de fichiers du dossier
-```
-
----
-
-## 17. Lexique technique
-
-| Terme | Explication simple |
-|-------|--------------------|
-| **API REST** | Un ensemble d'URLs que le navigateur peut appeler pour obtenir ou envoyer des données (ex. `GET /api/saas/documents` retourne la liste des documents en JSON) |
-| **JSON** | Format de données texte lisible par les humains et les machines : `{"nom": "Alice", "age": 30}` |
-| **JWT** | Jeton numérique signé qui prouve l'identité d'un utilisateur. Comme un badge magnétique. |
-| **Cookie HTTP-only** | Petit fichier stocké dans le navigateur, inaccessible au JavaScript — plus sécurisé |
-| **bcrypt** | Algorithme qui transforme un mot de passe en une suite incompréhensible. Même le serveur ne peut pas retrouver le mot de passe original. |
-| **TOTP** | "Time-based One-Time Password" — les codes à 6 chiffres qui changent toutes les 30 secondes (Google Authenticator) |
-| **MongoDB** | Base de données qui stocke les données sous forme de documents JSON plutôt que de lignes/colonnes |
-| **Atlas** | La version cloud hébergée de MongoDB (pas besoin d'installer MongoDB sur le serveur) |
-| **contenteditable** | Attribut HTML qui rend une zone de texte directement éditable dans le navigateur |
-| **streaming** | Technique où la réponse de l'IA arrive mot par mot plutôt qu'en un seul bloc, comme si quelqu'un tapait en direct |
-| **NDA** | Non-Disclosure Agreement = Accord de confidentialité |
-| **Term sheet** | Lettre d'intention d'investissement, résume les conditions de la levée avant les contrats définitifs |
-| **Cap table** | Tableau de capitalisation : qui détient combien de % de la startup |
-| **Due diligence** | Audit de vérification que fait l'investisseur avant d'investir |
-| **Closing** | Le jour où les fonds sont officiellement virés et l'augmentation de capital constatée |
-| **GAP** | Convention de garantie d'actif et de passif : le fondateur garantit qu'il n'a pas caché de dettes |
-| **BSPCE / BSA** | Bons de souscription de parts de créateur d'entreprise / Bons de souscription d'actions — options pour les salariés |
-| **ADP** | Actions de préférence — actions avec des droits spéciaux pour les investisseurs |
-| **RBE** | Registre des bénéficiaires effectifs — document légal qui identifie qui contrôle vraiment la société |
-| **greffe** | Tribunal de commerce — où on dépose les actes officiels de la société |
-| **success fee** | Commission payée uniquement en cas de succès (ici : LIQUID+ est payé seulement si la startup lève) |
-| **SaaS** | "Software as a Service" — logiciel accessible via un navigateur, sans installation |
-| **multer** | Bibliothèque Node.js qui gère les envois de fichiers depuis le navigateur |
-| **CloudConvert** | Service externe qui convertit des fichiers entre formats (PDF, DOCX, etc.) via une API |
-| **OAuth** | Protocole qui permet de se connecter avec un compte Google/Facebook sans donner son mot de passe au site |
-
----
-
-*README généré le 26 juin 2026 — reflète l'état du code à cette date.*
+**Windows :** `start.bat` lance `node server.js` + `adb reverse tcp:3000 tcp:3000` si un émulateur Android est connecté.

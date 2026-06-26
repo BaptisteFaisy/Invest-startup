@@ -158,6 +158,15 @@
     .raise-soon__title { font-size: 22px; letter-spacing: -0.02em; margin: 14px 0 8px; }
     .raise-soon__text { color: var(--text-2); font-size: 15px; max-width: 540px; margin: 0 auto 18px; line-height: 1.6; }
 
+    /* Parcours BSA-AIR : roadlist numérotée des documents par étape */
+    .bsa-intro { color: var(--text-2); font-size: 14.5px; line-height: 1.65; margin: 6px 0 18px; }
+    .bsa-list { list-style: decimal; margin: 6px 0 2px; padding-left: 26px; display: flex; flex-direction: column; gap: 9px; }
+    .bsa-list li { font-size: 14px; color: var(--text); line-height: 1.45; padding-left: 4px; }
+    .bsa-list li::marker { color: var(--text-3); font-family: 'Archivo', sans-serif; font-weight: 700; }
+    .bsa-item__note { display: inline-block; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 7px; border-radius: 99px; margin-left: 8px; vertical-align: middle; }
+    .bsa-item__note--req { background: rgba(220,38,38,0.1); color: #dc2626; }
+    .bsa-item__note--opt { background: rgba(8,9,12,0.06); color: var(--text-2); }
+
     @media (max-width: 680px) {
       .file__actions .fbtn { padding: 7px 9px; }
       .file__meta { display: none; }
@@ -230,14 +239,14 @@
       <div id="folders"></div>
       </div><!-- /classic-view -->
 
-      <!-- Vue : BSA-AIR (parcours non encore implémenté) -->
+      <!-- Vue : BSA-AIR (roadlist des documents par étape) -->
       <div id="bsa-air-view" hidden>
-        <div class="raise-soon">
-          <span class="raise-soon__badge">Bientôt disponible</span>
-          <h2 class="raise-soon__title">Parcours BSA-AIR en préparation</h2>
-          <p class="raise-soon__text">Le parcours BSA-AIR (accord d'investissement rapide : décote et/ou plafond de valorisation au prochain tour) arrive prochainement, avec ses propres phases et modèles. En attendant, utilisez la <strong>levée classique</strong> en actions de préférence.</p>
-          <button class="btn btn--primary btn--lg" type="button" id="bsa-to-classic">Utiliser la levée classique</button>
+        <div class="section-label">
+          <span>Parcours BSA-AIR — documents par étape</span>
+          <span style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--text-3)">Accord d'investissement rapide (décote / plafond de valorisation)</span>
         </div>
+        <p class="bsa-intro">Le <strong>BSA-AIR</strong> (Bon de Souscription d'Actions — Accord d'Investissement Rapide) permet d'investir vite : les fonds sont versés dès la souscription des bons, qui se convertissent en actions lors du prochain tour qualifié, avec une décote et/ou un plafond de valorisation. Voici l'ensemble des documents nécessaires, étape par étape. <em>Les modèles éditables et l'import de fichiers pour ce parcours arriveront prochainement ; cette vue liste le processus complet.</em></p>
+        <div id="bsa-air-list"></div>
       </div>
     </main>
   </div>
@@ -313,7 +322,84 @@
     }
     document.querySelectorAll('.seg__btn[data-raise]').forEach(b =>
       b.addEventListener('click', () => setRaiseType(b.dataset.raise)));
-    document.getElementById('bsa-to-classic').addEventListener('click', () => setRaiseType('classic'));
+
+    /* ---- Roadlist du parcours BSA-AIR : tous les documents, par étape ---- */
+    const BSA_AIR_PHASES = [
+      { n: 1, name: 'Préparation & mise en ordre juridique (pré-levée)', docs: [
+        ['Statuts à jour', 'req'],
+        ['Extrait Kbis (moins de 3 mois)', 'req'],
+        ['Table de capitalisation (cap table) actuelle', 'req'],
+        ['Registre des mouvements de titres', ''],
+        ['Registre des bénéficiaires effectifs (RBE)', ''],
+        ["Pacte d'associés existant", 'opt'],
+        ['Cessions de propriété intellectuelle & dépôts (marques, brevets)', ''],
+      ]},
+      { n: 2, name: 'Confidentialité & approche des investisseurs', docs: [
+        ['Accord de confidentialité (NDA)', ''],
+        ['Support de présentation (deck) investisseurs', ''],
+      ]},
+      { n: 3, name: 'Négociation des termes du BSA-AIR', docs: [
+        ['Term sheet BSA-AIR (montant, décote, plafond et/ou plancher de valorisation)', 'req'],
+        ['Tableau de simulation de la conversion et de la dilution', ''],
+      ]},
+      { n: 4, name: 'Documentation du BSA-AIR', docs: [
+        ["Contrat d'émission de BSA-AIR (termes et conditions des bons)", 'req'],
+        ['Bulletin de souscription des BSA-AIR', 'req'],
+        ["Lettre d'investissement / side letter", 'opt'],
+        ['Convention entre investisseurs', 'opt'],
+      ]},
+      { n: 5, name: 'Décision sociale & émission des bons', docs: [
+        ["Rapport du président (et du commissaire aux comptes le cas échéant) sur l'émission de BSA avec suppression du DPS", 'req'],
+        ['PV de la décision collective / AGE autorisant l’émission des BSA-AIR', 'req'],
+        ['Constatation de la souscription des BSA-AIR par le président', ''],
+      ]},
+      { n: 6, name: 'Versement des fonds & formalités', docs: [
+        ['Attestation de versement des fonds par le(s) souscripteur(s)', 'req'],
+        ['Inscription des BSA-AIR au registre des valeurs mobilières / mouvements de titres', 'req'],
+        ["Dépôt de la formalité d'émission au greffe", 'opt'],
+      ]},
+      { n: 7, name: 'Suivi jusqu’à la conversion', docs: [
+        ['Information / reporting des investisseurs (info rights)', ''],
+        ['Suivi des engagements (BSA-AIR en cours, échéances, événements déclencheurs)', ''],
+      ]},
+      { n: 8, name: 'Conversion au tour qualifié (ou échéance / liquidité)', docs: [
+        ['Calcul du prix de conversion (application de la décote et/ou du plafond)', 'req'],
+        ["PV d'AGE actant l'augmentation de capital par conversion des BSA-AIR", 'req'],
+        ['Bulletins de souscription des actions issues de la conversion', 'req'],
+        ['Statuts modifiés (actions de préférence, le cas échéant)', 'opt'],
+        ['Mise à jour de la cap table, du registre des mouvements de titres et du RBE', 'req'],
+      ]},
+    ];
+
+    function bsaEsc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+    function renderBsaAir() {
+      const host = document.getElementById('bsa-air-list');
+      if (!host) return;
+      host.innerHTML = BSA_AIR_PHASES.map(p => {
+        const items = p.docs.map(([name, kind]) => {
+          const note = kind === 'req'
+            ? '<span class="bsa-item__note bsa-item__note--req">Indispensable</span>'
+            : kind === 'opt'
+              ? '<span class="bsa-item__note bsa-item__note--opt">Le cas échéant</span>'
+              : '';
+          return '<li>' + bsaEsc(name) + note + '</li>';
+        }).join('');
+        const n = p.docs.length;
+        return '<div class="folder open">'
+          + '<div class="folder__head" style="cursor:default">'
+          +   '<span class="folder__chevron" style="visibility:hidden">▶</span>'
+          +   '<div class="folder__ic">' + p.n + '</div>'
+          +   '<div class="folder__main">'
+          +     '<div class="folder__name">' + p.n + ' · ' + bsaEsc(p.name) + '</div>'
+          +     '<div class="folder__count">' + n + ' document' + (n > 1 ? 's' : '') + '</div>'
+          +   '</div>'
+          + '</div>'
+          + '<div class="folder__body" style="display:block"><ol class="bsa-list">' + items + '</ol></div>'
+          + '</div>';
+      }).join('');
+    }
+    renderBsaAir();
 
     let folders = [];
     let docs    = [];
