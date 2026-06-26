@@ -143,6 +143,21 @@
     .empty { font-size: 14px; color: var(--text-3); text-align: center; padding: 26px; background: var(--card); border: 1px dashed var(--line); border-radius: 12px; line-height: 1.6; }
     .err { font-size: 13px; color: #dc2626; background: rgba(220,38,38,0.06); border: 1px solid rgba(220,38,38,0.2); border-radius: 10px; padding: 10px 14px; margin-top: 12px; }
 
+    /* Sélecteur du type de levée (Levée classique / BSA-AIR) */
+    .raise-switch { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; margin: 22px 0 6px; }
+    .raise-switch__label { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3); }
+    .raise-switch__hint { font-size: 13px; color: var(--text-2); margin-left: auto; }
+    .seg { display: inline-flex; background: var(--bg, #f4f2ee); border: 1px solid var(--line); border-radius: 99px; padding: 3px; gap: 3px; }
+    .seg__btn { font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 600; color: var(--text-2); background: transparent; border: 0; border-radius: 99px; padding: 8px 16px; cursor: pointer; transition: background .15s, color .15s; }
+    .seg__btn:hover { color: var(--text); }
+    .seg__btn.is-active { background: var(--dark); color: var(--on-dark, #fff); }
+
+    /* Vue « bientôt disponible » pour un parcours non encore implémenté */
+    .raise-soon { text-align: center; padding: 52px 24px; background: var(--card); border: 1px dashed var(--line); border-radius: 16px; }
+    .raise-soon__badge { display: inline-block; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--blue); background: #eef4ff; padding: 4px 10px; border-radius: 99px; }
+    .raise-soon__title { font-size: 22px; letter-spacing: -0.02em; margin: 14px 0 8px; }
+    .raise-soon__text { color: var(--text-2); font-size: 15px; max-width: 540px; margin: 0 auto 18px; line-height: 1.6; }
+
     @media (max-width: 680px) {
       .file__actions .fbtn { padding: 7px 9px; }
       .file__meta { display: none; }
@@ -157,7 +172,7 @@
     <header class="topbar">
       <div class="topbar__left">
         <a href="index.html" class="brand">liquid <span class="brand__plus">+</span></a>
-        <span class="topbar__doc">Espace de travail</span>
+        <span class="topbar__doc">Tableau de bord</span>
       </div>
       <div class="topbar__actions">
         <a href="editor.html" class="btn btn--ghost">Éditeur</a>
@@ -169,9 +184,9 @@
     <main class="dossiers">
       <div class="dossiers__head">
         <div>
-          <div class="dossiers__eyebrow">Dossiers</div>
-          <h1 class="dossiers__title">Mes documents juridiques</h1>
-          <p class="dossiers__sub">Vos documents juridiques classés par phase de la levée — liés à votre compte.</p>
+          <div class="dossiers__eyebrow">Tableau de bord</div>
+          <h1 class="dossiers__title">Pilotez votre levée</h1>
+          <p class="dossiers__sub">Choisissez votre type de levée et suivez vos documents juridiques par phase — liés à votre compte.</p>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <button class="btn btn--ghost btn--lg" id="new-folder-btn">+ Nouveau dossier</button>
@@ -182,6 +197,19 @@
       </div>
 
       <div id="error" class="err" hidden></div>
+
+      <!-- Choix du type de levée -->
+      <div class="raise-switch">
+        <span class="raise-switch__label">Type de levée</span>
+        <div class="seg" role="tablist" aria-label="Type de levée">
+          <button class="seg__btn is-active" type="button" data-raise="classic" role="tab">Levée classique</button>
+          <button class="seg__btn" type="button" data-raise="bsa-air" role="tab">BSA-AIR</button>
+        </div>
+        <span class="raise-switch__hint" id="raise-hint">Actions de préférence · parcours en 7 phases</span>
+      </div>
+
+      <!-- Vue : levée classique (actions de préférence) -->
+      <div id="classic-view">
 
       <!-- Document vivant (éditeur) -->
       <div class="section-label">Document en cours</div>
@@ -200,6 +228,17 @@
         <span style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--text-3)">Documents juridiques attendus par étape</span>
       </div>
       <div id="folders"></div>
+      </div><!-- /classic-view -->
+
+      <!-- Vue : BSA-AIR (parcours non encore implémenté) -->
+      <div id="bsa-air-view" hidden>
+        <div class="raise-soon">
+          <span class="raise-soon__badge">Bientôt disponible</span>
+          <h2 class="raise-soon__title">Parcours BSA-AIR en préparation</h2>
+          <p class="raise-soon__text">Le parcours BSA-AIR (accord d'investissement rapide : décote et/ou plafond de valorisation au prochain tour) arrive prochainement, avec ses propres phases et modèles. En attendant, utilisez la <strong>levée classique</strong> en actions de préférence.</p>
+          <button class="btn btn--primary btn--lg" type="button" id="bsa-to-classic">Utiliser la levée classique</button>
+        </div>
+      </div>
     </main>
   </div>
 
@@ -232,7 +271,9 @@
   <script>
     requireAuth().then((user) => {
       if (!user) return;
+      raiseUser = (user && (user.id || user.email)) || 'me';
       document.querySelector('.app').classList.add('ready');
+      applyRaiseType(getRaiseType());
       load();
     });
     document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); logout(); });
@@ -242,6 +283,37 @@
     const fileInput = document.getElementById('file-input');
     document.getElementById('import-btn').addEventListener('click', () => fileInput.click());
     document.getElementById('new-folder-btn').addEventListener('click', createFolder);
+
+    /* ---- Type de levée : Levée classique (implémentée) / BSA-AIR (à venir) ---- */
+    let raiseUser = 'me';
+    const RAISE_HINTS = {
+      'classic': 'Actions de préférence · parcours en 7 phases',
+      'bsa-air': 'Accord rapide (décote / plafond) · bientôt disponible',
+    };
+    function raiseKey() { return 'liquid_raise_type_' + raiseUser; }
+    function getRaiseType() {
+      try { return localStorage.getItem(raiseKey()) === 'bsa-air' ? 'bsa-air' : 'classic'; }
+      catch { return 'classic'; }
+    }
+    function applyRaiseType(type) {
+      const t = type === 'bsa-air' ? 'bsa-air' : 'classic';
+      document.querySelectorAll('.seg__btn[data-raise]').forEach(b =>
+        b.classList.toggle('is-active', b.dataset.raise === t));
+      const classic = document.getElementById('classic-view');
+      const bsa = document.getElementById('bsa-air-view');
+      if (classic) classic.hidden = (t !== 'classic');
+      if (bsa) bsa.hidden = (t !== 'bsa-air');
+      const hint = document.getElementById('raise-hint');
+      if (hint) hint.textContent = RAISE_HINTS[t];
+    }
+    function setRaiseType(type) {
+      const t = type === 'bsa-air' ? 'bsa-air' : 'classic';
+      try { localStorage.setItem(raiseKey(), t); } catch {}
+      applyRaiseType(t);
+    }
+    document.querySelectorAll('.seg__btn[data-raise]').forEach(b =>
+      b.addEventListener('click', () => setRaiseType(b.dataset.raise)));
+    document.getElementById('bsa-to-classic').addEventListener('click', () => setRaiseType('classic'));
 
     let folders = [];
     let docs    = [];
