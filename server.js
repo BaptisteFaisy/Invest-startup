@@ -1404,6 +1404,13 @@ app.put('/api/saas/folders/:id/checklist', requireAuth, async (req, res) => {
   if ('document_id' in (req.body || {})) {
     const raw = req.body.document_id;
     if (raw === null || raw === '' || raw === undefined) {
+      // Remettre le document dans « Fichiers importés » (folder_id → null).
+      if (cur.document_id != null) {
+        await col('saas_documents').updateOne(
+          { id: cur.document_id, user_id: req.user.id },
+          { $set: { folder_id: null } }
+        );
+      }
       delete cur.document_id;
       cur.final = false;
     } else {

@@ -83,6 +83,7 @@
     .cli-todos ul { margin: 0; padding-left: 18px; }
     .cli-todos li { font-size: 13px; color: var(--text-2); line-height: 1.5; margin: 4px 0; }
     .cli-todos__date { font-family: 'Archivo', sans-serif; font-size: 11px; color: var(--text-3); margin-top: 6px; }
+    .bsa-item.is-dragging { opacity: 0.45; cursor: grabbing !important; }
     .file { cursor: grab; }
     .file.is-dragging { opacity: 0.45; }
     /* Section « À faire » (récap des tâches restantes) */
@@ -574,12 +575,14 @@
         acts.appendChild(b);
       }
 
-      // Ajouter / remplacer un document (ordinateur ou compte).
-      const add = document.createElement('button');
-      add.className = 'fbtn fbtn--mini';
-      add.textContent = linked ? 'Remplacer' : 'Ajouter';
-      add.addEventListener('click', () => openPicker(f.id, slug, item));
-      acts.appendChild(add);
+      // Ajouter un document (seulement si aucun n'est encore lié).
+      if (!linked) {
+        const add = document.createElement('button');
+        add.className = 'fbtn fbtn--mini';
+        add.textContent = 'Ajouter';
+        add.addEventListener('click', () => openPicker(f.id, slug, item));
+        acts.appendChild(add);
+      }
 
       if (linked) {
         if (doc.kind === 'termsheet') {
@@ -601,6 +604,21 @@
         un.title = 'Détacher ce document';
         un.addEventListener('click', () => linkDoc(f.id, slug, null));
         acts.appendChild(un);
+
+        // Drag depuis ce slot vers un autre slot : l'icône change en "grab" pour
+        // signaler que l'élément est déplaçable.
+        li.draggable = true;
+        li.style.cursor = 'grab';
+        li.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('application/x-liquid-doc', String(doc.id));
+          e.dataTransfer.setData('application/x-liquid-src', JSON.stringify({ folderId: f.id, slug }));
+          e.dataTransfer.effectAllowed = 'move';
+          li.classList.add('is-dragging');
+        });
+        li.addEventListener('dragend', () => {
+          li.classList.remove('is-dragging');
+          li.style.cursor = 'grab';
+        });
       }
 
       // Glisser-déposer SUR la ligne → rattache à ce document précis :
@@ -622,7 +640,18 @@
           return;
         }
         const did = Number(e.dataTransfer.getData('application/x-liquid-doc'));
-        if (did) await linkDoc(f.id, slug, did);
+        if (!did) return;
+        const srcRaw = e.dataTransfer.getData('application/x-liquid-src');
+        await linkDoc(f.id, slug, did);
+        // Délie automatiquement le slot source (déplacement, pas copie).
+        if (srcRaw) {
+          try {
+            const src = JSON.parse(srcRaw);
+            if (src && (src.folderId !== f.id || src.slug !== slug)) {
+              await linkDoc(src.folderId, src.slug, null);
+            }
+          } catch (_) {}
+        }
       });
 
       return li;
