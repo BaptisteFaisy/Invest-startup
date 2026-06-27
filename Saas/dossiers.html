@@ -623,6 +623,15 @@
           op.href = 'editor.html?doc=' + doc.id;
           acts.appendChild(op);
         } else {
+          const docExt = ext(doc.originalname || doc.name);
+          if (docExt === 'docx' || docExt === 'doc') {
+            const ed = document.createElement('button');
+            ed.className = 'fbtn fbtn--mini fbtn--accent';
+            ed.textContent = 'Éditer';
+            ed.title = 'Ouvrir ce document dans l\'éditeur';
+            ed.addEventListener('click', () => editInEditor(doc.id, ed));
+            acts.appendChild(ed);
+          }
           const dl = document.createElement('a');
           dl.className = 'fbtn fbtn--mini';
           dl.textContent = 'Télécharger';
