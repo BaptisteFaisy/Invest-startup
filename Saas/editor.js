@@ -1851,43 +1851,85 @@ async function renderDocAdvice() {
   }
 }
 
+function findPlaceholders() {
+  const result = [];
+  page.querySelectorAll('.ts-clause[data-key]').forEach(clause => {
+    const content = clause.querySelector('.ts-content');
+    const label   = clause.querySelector('.ts-label');
+    if (!content) return;
+    const matches = [...content.innerText.matchAll(/\[[^\]\n]{1,80}\]/g)];
+    matches.forEach(m => result.push({
+      key:         clause.dataset.key,
+      clauseLabel: (label ? label.textContent : clause.dataset.key).trim(),
+      text:        m[0],
+    }));
+  });
+  return result;
+}
+
 function renderAdvice() {
-  // Document libre : conseils spécifiques au document (IA).
   if (isCustom) { renderDocAdvice(); return; }
-  // On ne conseille que sur les clauses présentes au contrat et qui méritent
-  // une négociation (point sensible/à surveiller, ou penché en faveur des fonds).
-  const items = TERMSHEET
+
+  const placeholders = findPlaceholders();
+  const toNegotiate  = TERMSHEET
     .filter(c => c.inDoc && c.watch && (c.risk !== 'low' || (BIAS[c.key] || 3) >= 3))
     .sort((a, b) => {
       const ta = priorityTier(a), tb = priorityTier(b);
-      if (ta !== tb) return ta - tb;                       // priorité décroissante
-      const ba = BIAS[a.key] || 3, bb = BIAS[b.key] || 3;
-      if (ba !== bb) return bb - ba;                        // biais investisseur d'abord
-      return masterIndex(a.key) - masterIndex(b.key);       // ordre du document
+      if (ta !== tb) return ta - tb;
+      return (BIAS[b.key] || 3) - (BIAS[a.key] || 3);
     });
+  const toAdd = TERMSHEET.filter(c => !c.inDoc && c.watch && (c.risk === 'high' || c.risk === 'mid'));
 
-  adviceCount.textContent = items.length
-    ? `${items.length} point${items.length > 1 ? 's' : ''} à négocier, du plus au moins prioritaire`
-    : 'Aucune clause au contrat à analyser';
+  const total = placeholders.length + toNegotiate.length + toAdd.length;
+  adviceCount.textContent = total
+    ? `${total} action${total > 1 ? 's' : ''} à réaliser`
+    : 'Aucune action requise pour ce document.';
 
-  if (!items.length) {
-    adviceList.innerHTML = `<p class="library__empty">Ajoutez des clauses au contrat pour obtenir des conseils de négociation priorisés.</p>`;
+  if (!total) {
+    adviceList.innerHTML = `<p class="library__empty">Tout est en ordre — aucune action requise.</p>`;
     return;
   }
 
-  adviceList.innerHTML = items.map((c, i) => {
-    const pr = PRIORITY[priorityTier(c)];
-    return `<div class="advitem" data-key="${c.key}" style="border-left-color:${pr.color}">
-      <div class="advitem__top">
-        <span class="advitem__rank">${i + 1}</span>
-        <span class="advitem__pri" style="color:${pr.color}">${pr.label}</span>
-        <span class="advitem__group">${c.group}</span>
-      </div>
-      <div class="advitem__label">${c.label}</div>
-      <p class="advitem__watch">${c.watch}</p>
-      <button class="advitem__go" data-go="${c.key}" type="button">Voir la clause</button>
-    </div>`;
-  }).join('');
+  let html = '';
+
+  if (placeholders.length) {
+    html += `<div class="lib-sep">Champs à renseigner — ${placeholders.length}</div>`;
+    html += placeholders.map(p => `
+      <div class="advitem" style="border-left-color:#dc2626">
+        <div class="advitem__label">${advEsc(p.text)}</div>
+        <p class="advitem__watch">Clause « ${advEsc(p.clauseLabel)} »</p>
+        <button class="advitem__go" data-go="${p.key}" type="button">Aller à la clause →</button>
+      </div>`).join('');
+  }
+
+  if (toNegotiate.length) {
+    html += `<div class="lib-sep">Points à négocier — ${toNegotiate.length}</div>`;
+    html += toNegotiate.map((c, i) => {
+      const pr = PRIORITY[priorityTier(c)];
+      return `<div class="advitem" style="border-left-color:${pr.color}">
+        <div class="advitem__top">
+          <span class="advitem__rank">${i + 1}</span>
+          <span class="advitem__pri" style="color:${pr.color}">${pr.label}</span>
+          <span class="advitem__group">${c.group}</span>
+        </div>
+        <div class="advitem__label">${c.label}</div>
+        <p class="advitem__watch">${c.watch}</p>
+        <button class="advitem__go" data-go="${c.key}" type="button">Voir la clause →</button>
+      </div>`;
+    }).join('');
+  }
+
+  if (toAdd.length) {
+    html += `<div class="lib-sep">Clauses recommandées à ajouter — ${toAdd.length}</div>`;
+    html += toAdd.map(c => `
+      <div class="advitem" style="border-left-color:#6b7280">
+        <div class="advitem__label">${advEsc(c.label)}</div>
+        <p class="advitem__watch">${advEsc(c.watch)}</p>
+        <button class="advitem__go" data-add-adv="${c.key}" type="button">+ Ajouter au contrat</button>
+      </div>`).join('');
+  }
+
+  adviceList.innerHTML = html;
 }
 
 function flashClause(el) {
@@ -1899,6 +1941,9 @@ function flashClause(el) {
 }
 
 adviceList.addEventListener('click', (e) => {
+  const addBtn = e.target.closest('[data-add-adv]');
+  if (addBtn) { addToContract(addBtn.dataset.addAdv); return; }
+
   const btn = e.target.closest('[data-go]');
   if (btn) {
     const el = page.querySelector(`.ts-clause[data-key="${btn.dataset.go}"]`);
