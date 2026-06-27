@@ -579,15 +579,6 @@
         acts.appendChild(b);
       }
 
-      // Ajouter un document (seulement si aucun n'est encore lié).
-      if (!linked) {
-        const add = document.createElement('button');
-        add.className = 'fbtn fbtn--mini';
-        add.textContent = 'Ajouter';
-        add.addEventListener('click', () => openPicker(f.id, slug, item));
-        acts.appendChild(add);
-      }
-
       if (linked) {
         if (doc.kind === 'termsheet') {
           const op = document.createElement('a');
@@ -707,15 +698,6 @@
           ed.title = 'Ouvrir ce document dans l\'éditeur';
           ed.addEventListener('click', () => editInEditor(d.id, ed));
           actions.appendChild(ed);
-        }
-        if (target) {
-          const cv = document.createElement('button');
-          // « Éditer » est l'action principale d'un DOCX ; ici la conversion reste secondaire.
-          cv.className = 'fbtn' + (e === 'docx' ? '' : ' fbtn--accent');
-          cv.textContent = target.toUpperCase();
-          cv.title = 'Convertir en ' + target.toUpperCase();
-          cv.addEventListener('click', () => convert(d.id, target, cv));
-          actions.appendChild(cv);
         }
         const dl = document.createElement('a');
         dl.className = 'fbtn';
