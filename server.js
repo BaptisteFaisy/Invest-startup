@@ -1452,9 +1452,9 @@ function publicDoc(d) {
 }
 
 app.get('/api/saas/documents', requireAuth, async (req, res) => {
-  // On exclut le HTML des term sheets (volumineux) de la liste.
+  // On exclut html (term sheets) et data (binaire importé) : trop volumineux pour la liste.
   const docs = await col('saas_documents')
-    .find({ user_id: req.user.id }, { projection: { _id: 0, filename: 0, user_id: 0, html: 0 } })
+    .find({ user_id: req.user.id }, { projection: { _id: 0, filename: 0, user_id: 0, html: 0, data: 0 } })
     .sort({ updated_at: -1, created_at: -1 })
     .toArray();
   res.json({ documents: docs });

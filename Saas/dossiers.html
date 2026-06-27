@@ -1350,10 +1350,22 @@
           method: 'POST', credentials: 'include',
         });
         const data = await r.json().catch(() => ({}));
-        if (!r.ok) { showErr(data.error || 'Ouverture impossible.'); btnEl.disabled = false; btnEl.textContent = old; return; }
+        if (!r.ok) {
+          const msg = data.error || 'Impossible d\'ouvrir ce document dans l\'éditeur.';
+          showErr(msg);
+          errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          btnEl.disabled = false; btnEl.textContent = old;
+          return;
+        }
+        if (!data.id) {
+          showErr('Réponse inattendue du serveur. Réessayez.');
+          btnEl.disabled = false; btnEl.textContent = old;
+          return;
+        }
         window.location.href = 'editor.html?doc=' + data.id;
       } catch {
         showErr('Impossible de joindre le serveur.');
+        errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
         btnEl.disabled = false; btnEl.textContent = old;
       }
     }

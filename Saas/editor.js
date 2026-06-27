@@ -1247,13 +1247,21 @@ async function loadTermsheet(id) {
   } catch { /* pas de pré-chargement : chargement réseau normal */ }
   try {
     const res = await fetch('/api/saas/termsheets/' + id, { credentials: 'include' });
-    if (!res.ok) return;
+    if (!res.ok) {
+      setSaveStatus('Erreur : document introuvable (' + res.status + ')');
+      return;
+    }
     const data = await res.json();
-    if (!data.html) return;
+    if (!data.html) {
+      setSaveStatus('Erreur : document vide ou illisible');
+      return;
+    }
     // Déjà affiché à l'identique via le pré-chargement : rien à refaire.
     if (preHtml !== null && data.html === preHtml) { currentDocId = data.id; return; }
     applyTermsheet(data.id, data.html, data.name);
-  } catch { /* on garde la term sheet de démonstration */ }
+  } catch (err) {
+    setSaveStatus('Erreur de chargement : ' + (err.message || 'réseau'));
+  }
 }
 
 // Rend une term sheet dans la page et (ré)initialise l'analyse codée en dur
