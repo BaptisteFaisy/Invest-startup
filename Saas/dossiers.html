@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>liquid + — Dossiers</title>
   <meta name="description" content="Tous vos documents juridiques de levée de fonds, au même endroit." />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -172,6 +173,7 @@
     .bsa-item__file { font-size: 12.5px; color: var(--text-2); margin-top: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .bsa-item--done .bsa-item__name { color: var(--text); }
     .bsa-item--drop { outline: 2px dashed var(--blue, #3b82f6); outline-offset: 4px; border-radius: 6px; background: rgba(59,130,246,0.06); }
+    .bsa-files__h { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); margin: 16px 0 8px; }
     @media (max-width: 680px) {
       .bsa-item__head { flex-wrap: wrap; }
       .bsa-item__actions { width: 100%; justify-content: flex-end; margin-top: 6px; }
@@ -405,34 +407,118 @@
     }
 
     function render() {
-      // Mise en page « roadlist » interactive : chaque phase est une carte, ses
-      // documents sont numérotés (1. 2. 3.) avec badge « Indispensable » / « Le cas
-      // échéant », un bouton « Modèle » (génération) et le glisser-déposer de fichiers.
-      // Même rendu pour la levée classique et le BSA-AIR (parcours actif filtré).
+      // Mise en page « roadlist » interactive : une carte « Fichiers importés »
+      // (dépôt libre), puis une carte par phase avec ses documents numérotés
+      // (1. 2. 3.), badges, bouton « Modèle », glisser-déposer par document ET sur
+      // toute la phase. Même rendu pour la levée classique et le BSA-AIR.
       const track = getRaiseType();
       const container = track === 'bsa-air' ? bsaFoldersEl : foldersEl;
       const phases = folders.filter(f => (f.track || 'classic') === track);
       container.innerHTML = '';
-      if (!phases.length) { container.innerHTML = '<p class="empty">Aucune phase pour le moment.</p>'; return; }
+      // Carte de dépôt des fichiers non classés (cible du bouton « Importer un fichier »).
+      container.appendChild(importCard());
+      phases.forEach((f, pi) => container.appendChild(phaseCard(f, pi)));
+    }
 
-      phases.forEach((f, pi) => {
-        const list = Array.isArray(f.checklist) ? f.checklist : [];
-        const card = document.createElement('div');
-        card.className = 'folder open';
-        card.innerHTML = `
-          <div class="folder__head" style="cursor:default">
-            <div class="folder__ic">${pi + 1}</div>
-            <div class="folder__main">
-              <div class="folder__name">${esc(f.name)}</div>
-              <div class="folder__count">${list.length} document${list.length > 1 ? 's' : ''}</div>
-            </div>
+    // Carte d'une phase : checklist numérotée + fichiers libres de la phase + dépôt.
+    function phaseCard(f, pi) {
+      const list = Array.isArray(f.checklist) ? f.checklist : [];
+      const linkedIds = new Set(
+        Object.values(f.items_state || {}).map(st => st.document_id).filter(id => id != null)
+      );
+      const extra = docs.filter(d => d.folder_id === f.id && !linkedIds.has(d.id));
+
+      const card = document.createElement('div');
+      card.className = 'folder open';
+      card.innerHTML = `
+        <div class="folder__head" style="cursor:default">
+          <div class="folder__ic">${pi + 1}</div>
+          <div class="folder__main">
+            <div class="folder__name">${esc(f.name)}</div>
+            <div class="folder__count">${list.length} document${list.length > 1 ? 's' : ''}</div>
           </div>
-          <div class="folder__body" style="display:block"><ol class="bsa-list"></ol></div>`;
-        const ol = card.querySelector('.bsa-list');
-        list.forEach((item, idx) => ol.appendChild(roadItem(f, item, idx)));
-        container.appendChild(card);
+        </div>
+        <div class="folder__body" style="display:block"><ol class="bsa-list"></ol></div>`;
+      const ol   = card.querySelector('.bsa-list');
+      const body = card.querySelector('.folder__body');
+      list.forEach((item, idx) => ol.appendChild(roadItem(f, item, idx)));
+
+      if (extra.length) {
+        const h = document.createElement('div');
+        h.className = 'bsa-files__h';
+        h.textContent = 'Autres fichiers de cette phase';
+        body.appendChild(h);
+        const fl = document.createElement('div');
+        fl.className = 'files';
+        extra
+          .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))
+          .forEach(d => fl.appendChild(fileRow(d)));
+        body.appendChild(fl);
+      }
+
+      attachCardDrop(card, f.id);
+      return card;
+    }
+
+    // Carte « Fichiers importés » : fichiers non rattachés à une phase précise.
+    function importCard() {
+      const unclassified = docs.filter(d => d.folder_id == null);
+      const card = document.createElement('div');
+      card.className = 'folder folder--import open';
+      card.innerHTML = `
+        <div class="folder__head" style="cursor:default">
+          <div class="folder__ic">⬆</div>
+          <div class="folder__main">
+            <div class="folder__name">Fichiers importés</div>
+            <div class="folder__count">${unclassified.length} fichier${unclassified.length > 1 ? 's' : ''}</div>
+          </div>
+        </div>
+        <div class="folder__body" style="display:block"></div>`;
+      const body = card.querySelector('.folder__body');
+      if (!unclassified.length) {
+        body.innerHTML = '<div class="folder__drop">⬆ Glissez-déposez vos fichiers ici, ou cliquez sur « Importer un fichier »<br /><span>(PDF, Word, Excel, images…)</span><br /><span>Astuce : glissez ensuite un fichier sur un document de la roadlist pour le rattacher.</span></div>';
+      } else {
+        const fl = document.createElement('div');
+        fl.className = 'files';
+        unclassified
+          .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))
+          .forEach(d => fl.appendChild(fileRow(d)));
+        body.appendChild(fl);
+      }
+      attachCardDrop(card, null);
+      return card;
+    }
+
+    // Dépôt sur toute une carte : fichier de l'ordinateur → téléversé dans la phase ;
+    // document existant glissé → déplacé dans la phase (folderId null = non classé).
+    function attachCardDrop(card, folderId) {
+      let depth = 0;
+      card.addEventListener('dragenter', (e) => {
+        if (!hasFiles(e) && !hasInternal(e)) return;
+        e.preventDefault(); depth++; card.classList.add('is-drag');
+      });
+      card.addEventListener('dragover', (e) => {
+        if (!hasFiles(e) && !hasInternal(e)) return;
+        e.preventDefault(); e.dataTransfer.dropEffect = hasFiles(e) ? 'copy' : 'move';
+      });
+      card.addEventListener('dragleave', () => { if (--depth <= 0) { depth = 0; card.classList.remove('is-drag'); } });
+      card.addEventListener('drop', (e) => {
+        if (!hasFiles(e) && !hasInternal(e)) return;
+        e.preventDefault(); depth = 0; card.classList.remove('is-drag');
+        if (hasFiles(e)) {
+          const files = e.dataTransfer.files;
+          if (files && files.length) uploadFiles(files, folderId);
+          return;
+        }
+        const did = Number(e.dataTransfer.getData('application/x-liquid-doc'));
+        if (did) moveDoc(did, folderId == null ? '' : folderId);
       });
     }
+
+    // Garde globale : empêche le navigateur d'OUVRIR le fichier quand on le dépose
+    // ailleurs que sur une zone prévue (sinon le glisser-déposer « ne marche pas »).
+    ['dragover', 'drop'].forEach(ev =>
+      window.addEventListener(ev, (e) => { if (hasFiles(e)) e.preventDefault(); }, false));
 
     // Une ligne « document attendu » : numéro (via <ol>), nom + badge, document lié,
     // boutons (Modèle / Ajouter / Ouvrir / détacher) et glisser-déposer pour rattacher

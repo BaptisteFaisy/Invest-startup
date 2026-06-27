@@ -1089,7 +1089,7 @@ app.get('/api/saas/usage', requireAuth, async (req, res) => {
 // documents juridiques attendus à cette étape (droit français, SAS).
 // `FOLDERS_SEED_VERSION` est incrémentée à chaque évolution de cette liste pour
 // re-synchroniser automatiquement les dossiers système des utilisateurs.
-const FOLDERS_SEED_VERSION = 4;
+const FOLDERS_SEED_VERSION = 5;
 const FUNDRAISING_PHASES = [
   {
     key: 'mise-en-ordre',
@@ -1140,7 +1140,7 @@ const FUNDRAISING_PHASES = [
       'Pacte d’associés (shareholders agreement)',
       'Statuts modifiés (actions de préférence)',
       'Contrat / bulletin de souscription',
-      'Convention de garantie d’actif et de passif (GAP)',
+      ‘Déclarations & garanties — R&W (intégrées au pacte)’,
       'Termes des valeurs mobilières émises (ADP, BSA, OC)',
       'Rapport du commissaire aux comptes / aux apports',
     ],
@@ -1183,6 +1183,8 @@ const BSA_AIR_PHASES = [
       'Registre des bénéficiaires effectifs (RBE)',
       "Pacte d'associés existant",
       'Cessions de propriété intellectuelle & dépôts (marques, brevets)',
+      'Comptes annuels (dernier exercice clos)',
+      'BSPCE / BSA / management package existants',
     ],
   },
   {
@@ -1261,12 +1263,12 @@ const PHASE_MARKS = {
   'documentation':     ['req', 'req', 'req', 'opt', 'opt', 'opt'],
   'closing':           ['req', 'req', 'req', 'req', 'req'],
   'post-closing':      ['req', 'req', 'opt', 'opt', 'opt'],
-  'air-preparation':   ['req', 'req', 'req', '', '', 'opt', ''],
+  'air-preparation':   ['req', 'req', 'req', '', '', 'opt', '', 'req', 'opt'],
   'air-approche':      ['req', ''],
   'air-termes':        ['req', ''],
   'air-documentation': ['req', 'req', 'opt', 'opt'],
-  'air-emission':      ['', 'req', ''],
-  'air-versement':     ['req', 'req', 'opt'],
+  'air-emission':      ['req', 'req', ''],
+  'air-versement':     ['req', 'req', 'req'],
   'air-suivi':         ['', ''],
   'air-conversion':    ['req', 'req', 'req', 'opt', 'req'],
 };
