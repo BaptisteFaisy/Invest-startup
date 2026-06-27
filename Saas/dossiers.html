@@ -66,6 +66,8 @@
     .cli__name { font-size: 13.5px; font-weight: 600; color: var(--text); }
     .cli__badge { display: inline-block; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 7px; border-radius: 99px; margin-left: 6px; background: rgba(22,163,74,0.12); color: #16a34a; vertical-align: middle; }
     .cli__badge--req { background: rgba(220,38,38,0.1); color: #dc2626; }
+    .cli__badge--opt { background: rgba(8,9,12,0.06); color: var(--text-2); }
+    .cli__num { font-family: 'Archivo', sans-serif; font-weight: 700; color: var(--text-3); margin-right: 2px; }
     .cli__doc { font-size: 12px; color: var(--text-2); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .cli__actions { display: flex; gap: 6px; flex: none; align-items: center; }
     .fbtn--ok { color: #16a34a; border-color: rgba(22,163,74,0.4); }
@@ -220,17 +222,6 @@
 
       <!-- Vue : levée classique (actions de préférence) -->
       <div id="classic-view">
-
-      <!-- Document vivant (éditeur) -->
-      <div class="section-label">Document en cours</div>
-      <div class="feature-doc">
-        <div class="feature-doc__ic">TS</div>
-        <div class="feature-doc__main">
-          <div class="feature-doc__name">Term Sheet — Lumio SAS</div>
-          <div class="feature-doc__meta">Lettre d'intention · Série A · éditable dans le traitement de texte</div>
-        </div>
-        <a href="editor.html" class="btn btn--light">Ouvrir l'éditeur</a>
-      </div>
 
       <!-- Dossiers juridiques de la levée (backend, par compte) -->
       <div class="section-label">
@@ -413,19 +404,45 @@
       const buckets = folders
         .filter(f => (f.track || 'classic') === track)
         .map(f => ({ ...f, virtual: false }));
-      buckets.unshift({ id: null, name: 'Fichiers importés', system: true, virtual: true });
+      // « Fichiers importés » en dernier, après « Document en cours »
+      buckets.push({ id: null, name: 'Fichiers importés', system: true, virtual: true });
 
       // Section « À faire » : récapitulatif des tâches restantes du parcours actif.
       container.appendChild(todoSummaryEl(track));
 
       buckets.forEach(f => {
+        // Avant de rendre « Fichiers importés », insérer le dernier document modifié.
+        if (f.virtual) {
+          const lastDoc = docs
+            .filter(d => d.kind === 'termsheet')
+            .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))[0];
+          if (lastDoc) {
+            const lbl = document.createElement('div');
+            lbl.className = 'section-label';
+            lbl.textContent = 'Document en cours';
+            container.appendChild(lbl);
+            const feat = document.createElement('div');
+            feat.className = 'feature-doc';
+            feat.innerHTML = `
+              <div class="feature-doc__ic">TS</div>
+              <div class="feature-doc__main">
+                <div class="feature-doc__name">${esc(lastDoc.name)}</div>
+                <div class="feature-doc__meta">Term sheet · ${fmtSize(lastDoc.size)} · modifié le ${fmtDate(lastDoc.updated_at || lastDoc.created_at)}</div>
+              </div>
+              <a href="editor.html?doc=${lastDoc.id}" class="btn btn--light">Ouvrir</a>`;
+            container.appendChild(feat);
+          }
+        }
         // IDs des documents déjà liés à un point de checklist de CE dossier
         // → on les exclut de la liste de fichiers pour éviter le doublon.
         const checklistLinked = new Set(
           Object.values(f.items_state || {}).map(st => st.document_id).filter(id => id != null)
         );
         const inFolder = docs.filter(d =>
-          (f.id == null ? d.folder_id == null : d.folder_id === f.id) && !checklistLinked.has(d.id)
+          (f.id == null ? d.folder_id == null : d.folder_id === f.id)
+          && !checklistLinked.has(d.id)
+          // Les termsheets non classés sont affichés dans « Document en cours », pas ici.
+          && !(f.virtual && d.kind === 'termsheet')
         );
         const key = String(f.id);
         // Le dossier « Fichiers importés » est ouvert par défaut (zone de dépôt).
@@ -738,13 +755,18 @@
       ul.className = 'checklist__list';
       const state = f.items_state || {};
 
-      f.checklist.forEach(item => {
+      f.checklist.forEach((item, idx) => {
         const slug   = slugify(item);
         const st     = state[slug] || {};
         const doc    = st.document_id != null ? docs.find(d => d.id === st.document_id) : null;
         const linked = !!doc;
         const final  = linked && !!st.final;
-        const req    = Array.isArray(f.required) && f.required.includes(item);
+        const mark   = (f.marks || [])[idx] || '';
+        const markBadge = mark === 'req'
+          ? '<span class="cli__badge cli__badge--req">Indispensable</span>'
+          : mark === 'opt'
+            ? '<span class="cli__badge cli__badge--opt">Le cas échéant</span>'
+            : '';
 
         const li = document.createElement('li');
         li.className = 'cli';
@@ -753,7 +775,7 @@
         li.innerHTML = `
           <span class="cli__status cli__status--${iconCls}" aria-hidden="true">${icon}</span>
           <div class="cli__main">
-            <div class="cli__name">${esc(item)}${req ? '<span class="cli__badge cli__badge--req">Indispensable</span>' : ''}${final ? '<span class="cli__badge">Final</span>' : ''}</div>
+            <div class="cli__name"><span class="cli__num">${idx + 1}.</span> ${esc(item)}${markBadge}${final ? '<span class="cli__badge">Final</span>' : ''}</div>
             ${linked ? `<div class="cli__doc" title="${esc(doc.name)}">${esc(doc.name)}</div>` : ''}
           </div>
           <div class="cli__actions"></div>`;

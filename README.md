@@ -41,7 +41,7 @@ Plateforme d'accompagnement à la levée de fonds pour startups françaises. Deu
 | `jsonwebtoken` | Sessions via JWT signé (cookie HTTP-only, 7j) |
 | `speakeasy` | TOTP 2FA (compatible Google Authenticator) |
 | `qrcode` | Génération QR pour la config 2FA |
-| `multer` | Upload multipart (PDF, DOCX, XLSX, images, 20 Mo max) |
+| `multer` | Upload multipart SaaS en mémoire (15 Mo max) + portail startup sur disque (20 Mo max) |
 | `cookie-parser` | Lecture des cookies dans Express |
 | `dotenv` | Variables d'environnement depuis `.env` |
 
@@ -128,24 +128,43 @@ Pas d'ODM — accès direct via `db.collection(name)`. Helper `nextId(colName)` 
 ```
 
 ### `saas_documents`
+
+Deux sous-types coexistent dans la même collection, distingués par le champ `kind` :
+
+**Termsheet (document éditable, HTML stocké en base) :**
 ```json
 {
   "id": 42,
   "user_id": 7,
-  "kind": "termsheet",              // "termsheet" = édité dans l'éditeur
-                                    // undefined = fichier importé (PDF, DOCX…)
+  "kind": "termsheet",
   "name": "NDA — InvestCorp",
-  "html": "<h1>ACCORD…</h1>",      // contenu HTML brut (stocké côté serveur)
-  "folder_id": 3,                   // null = "Fichiers importés"
-  "size": 18420,                    // en bytes
-  "filename": "1718885100000_nda.docx",  // chemin relatif dans uploads/ (fichiers importés)
-  "originalname": "nda.docx",
-  "mimetype": "application/pdf",
-  "exported_from": 41,              // id source si généré par export
+  "html": "<h1>ACCORD…</h1>",      // HTML complet, stocké en base
+  "folder_id": 3,                   // null = non classé
+  "size": 18420,
+  "editor_source": 11,              // présent si ouvert depuis un fichier DOCX importé
   "created_at": "…",
   "updated_at": "…"
 }
 ```
+
+**Fichier importé (PDF, DOCX, XLSX…, binaire stocké en base) :**
+```json
+{
+  "id": 43,
+  "user_id": 7,
+  "name": "contrat.pdf",
+  "originalname": "contrat.pdf",
+  "mimetype": "application/pdf",
+  "size": 245120,
+  "data": "<Binary>",              // contenu binaire du fichier, stocké dans MongoDB
+  "folder_id": 3,
+  "converted_from": 42,            // présent si issu d'une conversion CloudConvert
+  "exported_from": 42,             // présent si issu d'un export de termsheet
+  "created_at": "…"
+}
+```
+
+> **Stockage binaire :** Les fichiers importés et les exports CloudConvert sont stockés directement dans MongoDB sous le champ `data` (BSON Binary). Limite : 15 Mo par fichier (en dessous du plafond de 16 Mo par document MongoDB). Le champ `data` est systématiquement exclu des réponses JSON par `publicDoc()` — seules les métadonnées sont envoyées au client.
 
 ### `saas_claude_usage`
 ```json

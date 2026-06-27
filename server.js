@@ -1089,7 +1089,7 @@ app.get('/api/saas/usage', requireAuth, async (req, res) => {
 // documents juridiques attendus à cette étape (droit français, SAS).
 // `FOLDERS_SEED_VERSION` est incrémentée à chaque évolution de cette liste pour
 // re-synchroniser automatiquement les dossiers système des utilisateurs.
-const FOLDERS_SEED_VERSION = 3;
+const FOLDERS_SEED_VERSION = 4;
 const FUNDRAISING_PHASES = [
   {
     key: 'mise-en-ordre',
@@ -1170,8 +1170,7 @@ const FUNDRAISING_PHASES = [
 ];
 
 // Parcours BSA-AIR (Bon de Souscription d'Actions — Accord d'Investissement Rapide).
-// Même structure que FUNDRAISING_PHASES, avec un champ `required` listant les
-// documents indispensables (affichés avec un badge « Indispensable » côté front).
+// Même structure que FUNDRAISING_PHASES.
 const BSA_AIR_PHASES = [
   {
     key: 'air-preparation',
@@ -1185,11 +1184,6 @@ const BSA_AIR_PHASES = [
       "Pacte d'associés existant",
       'Cessions de propriété intellectuelle & dépôts (marques, brevets)',
     ],
-    required: [
-      'Statuts à jour',
-      'Extrait Kbis (moins de 3 mois)',
-      'Table de capitalisation (cap table) actuelle',
-    ],
   },
   {
     key: 'air-approche',
@@ -1198,7 +1192,6 @@ const BSA_AIR_PHASES = [
       'Accord de confidentialité (NDA)',
       'Support de présentation (deck) investisseurs',
     ],
-    required: ['Accord de confidentialité (NDA)'],
   },
   {
     key: 'air-termes',
@@ -1207,7 +1200,6 @@ const BSA_AIR_PHASES = [
       'Term sheet BSA-AIR (montant, décote, plafond et/ou plancher de valorisation)',
       'Tableau de simulation de la conversion et de la dilution',
     ],
-    required: ['Term sheet BSA-AIR (montant, décote, plafond et/ou plancher de valorisation)'],
   },
   {
     key: 'air-documentation',
@@ -1218,10 +1210,6 @@ const BSA_AIR_PHASES = [
       "Lettre d'investissement / side letter",
       'Convention entre investisseurs',
     ],
-    required: [
-      "Contrat d'émission de BSA-AIR (termes et conditions des bons)",
-      'Bulletin de souscription des BSA-AIR',
-    ],
   },
   {
     key: 'air-emission',
@@ -1231,7 +1219,6 @@ const BSA_AIR_PHASES = [
       "PV de la décision collective / AGE autorisant l'émission des BSA-AIR",
       'Constatation de la souscription des BSA-AIR par le président',
     ],
-    required: ["PV de la décision collective / AGE autorisant l'émission des BSA-AIR"],
   },
   {
     key: 'air-versement',
@@ -1241,10 +1228,6 @@ const BSA_AIR_PHASES = [
       'Inscription des BSA-AIR au registre des valeurs mobilières / mouvements de titres',
       "Dépôt de la formalité d'émission au greffe",
     ],
-    required: [
-      'Attestation de versement des fonds par le(s) souscripteur(s)',
-      'Inscription des BSA-AIR au registre des valeurs mobilières / mouvements de titres',
-    ],
   },
   {
     key: 'air-suivi',
@@ -1253,7 +1236,6 @@ const BSA_AIR_PHASES = [
       'Information / reporting des investisseurs (info rights)',
       'Suivi des engagements (BSA-AIR en cours, échéances, événements déclencheurs)',
     ],
-    required: [],
   },
   {
     key: 'air-conversion',
@@ -1265,20 +1247,35 @@ const BSA_AIR_PHASES = [
       'Statuts modifiés (actions de préférence, le cas échéant)',
       'Mise à jour de la cap table, du registre des mouvements de titres et du RBE',
     ],
-    required: [
-      'Calcul du prix de conversion (application de la décote et/ou du plafond)',
-      "PV d'AGE actant l'augmentation de capital par conversion des BSA-AIR",
-      'Bulletins de souscription des actions issues de la conversion',
-      'Mise à jour de la cap table, du registre des mouvements de titres et du RBE',
-    ],
   },
 ];
+
+// Marque chaque document attendu : 'req' = indispensable, 'opt' = le cas échéant,
+// '' = standard. Tableau parallèle à la checklist de chaque phase (repéré par sa clé),
+// pour afficher les badges côté front — sur la levée classique ET le BSA-AIR.
+const PHASE_MARKS = {
+  'mise-en-ordre':     ['req', 'req', 'req', 'req', 'req', '', 'opt', 'opt', 'req', 'opt'],
+  'confidentialite':   ['req', 'opt'],
+  'term-sheet':        ['req', 'opt'],
+  'due-diligence':     ['req', 'req', 'opt', 'opt'],
+  'documentation':     ['req', 'req', 'req', 'opt', 'opt', 'opt'],
+  'closing':           ['req', 'req', 'req', 'req', 'req'],
+  'post-closing':      ['req', 'req', 'opt', 'opt', 'opt'],
+  'air-preparation':   ['req', 'req', 'req', '', '', 'opt', ''],
+  'air-approche':      ['req', ''],
+  'air-termes':        ['req', ''],
+  'air-documentation': ['req', 'req', 'opt', 'opt'],
+  'air-emission':      ['', 'req', ''],
+  'air-versement':     ['req', 'req', 'opt'],
+  'air-suivi':         ['', ''],
+  'air-conversion':    ['req', 'req', 'req', 'opt', 'req'],
+};
 
 // Liste combinée des phases à provisionner pour un compte, avec leur « track ».
 function allSeedPhases() {
   return [
-    ...FUNDRAISING_PHASES.map(p => ({ key: p.key, name: p.name, checklist: p.checklist, required: p.required || [], track: 'classic' })),
-    ...BSA_AIR_PHASES.map(p => ({ key: p.key, name: p.name, checklist: p.checklist, required: p.required || [], track: 'bsa-air' })),
+    ...FUNDRAISING_PHASES.map(p => ({ key: p.key, name: p.name, checklist: p.checklist, marks: PHASE_MARKS[p.key] || [], track: 'classic' })),
+    ...BSA_AIR_PHASES.map(p => ({ key: p.key, name: p.name, checklist: p.checklist, marks: PHASE_MARKS[p.key] || [], track: 'bsa-air' })),
   ];
 }
 
@@ -1318,9 +1315,9 @@ async function ensureUserFolders(userId) {
   for (let i = 0; i < PHASES.length; i++) {
     const p   = PHASES[i];
     const cur = byKey[p.key];
-    const set = { name: p.name, order: i, checklist: p.checklist, required: p.required, track: p.track, system: true, seed_version: FOLDERS_SEED_VERSION };
+    const set = { name: p.name, order: i, checklist: p.checklist, marks: p.marks, track: p.track, system: true, seed_version: FOLDERS_SEED_VERSION };
     if (cur) {
-      await col('saas_folders').updateOne({ id: cur.id, user_id: userId }, { $set: set });
+      await col('saas_folders').updateOne({ id: cur.id, user_id: userId }, { $set: set, $unset: { required: '' } });
     } else {
       const id = await nextId('saas_folders');
       await col('saas_folders').insertOne({ id, user_id: userId, key: p.key, created_at: now, ...set });
