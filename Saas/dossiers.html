@@ -1026,6 +1026,14 @@
           }
           acts.appendChild(ed);
 
+          // Marquer comme finalisé / annuler la validation.
+          const fin = document.createElement('button');
+          fin.className = 'fbtn fbtn--mini' + (final ? '' : ' fbtn--ok');
+          fin.textContent = final ? 'Annuler' : 'Fini';
+          fin.title = final ? 'Marquer comme non finalisé' : 'Marquer comme finalisé';
+          fin.addEventListener('click', () => setFinal(f.id, slug, !final));
+          acts.appendChild(fin);
+
           // Détacher le document de cet élément.
           const un = document.createElement('button');
           un.className = 'fbtn fbtn--mini';
