@@ -461,19 +461,6 @@
       const body = card.querySelector('.folder__body');
       list.forEach((item, idx) => ol.appendChild(roadItem(f, item, idx)));
 
-      if (extra.length) {
-        const h = document.createElement('div');
-        h.className = 'bsa-files__h';
-        h.textContent = 'Autres fichiers de cette phase';
-        body.appendChild(h);
-        const fl = document.createElement('div');
-        fl.className = 'files';
-        extra
-          .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))
-          .forEach(d => fl.appendChild(fileRow(d)));
-        body.appendChild(fl);
-      }
-
       attachCardDrop(card, f.id);
       return card;
     }
