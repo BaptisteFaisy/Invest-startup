@@ -3,6 +3,7 @@ const express          = require('express');
 const path             = require('path');
 const fs               = require('fs');
 const https            = require('https');
+const { Readable }     = require('stream');
 const cookieParser     = require('cookie-parser');
 const bcrypt           = require('bcryptjs');
 const jwt              = require('jsonwebtoken');
@@ -141,6 +142,30 @@ const imageUpload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => cb(null, file.mimetype.startsWith('image/')),
 });
+
+// Uploads SaaS : stockés en mémoire puis dans MongoDB (pas de fichier sur disque).
+// Limite à 15 Mo pour rester sous le plafond de 16 Mo par document MongoDB.
+const saasUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 15 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    fixOriginalName(file);
+    const allowed = ['application/pdf', 'image/png', 'image/jpeg',
+                     'application/vnd.ms-excel',
+                     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                     'application/msword',
+                     'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    cb(null, allowed.includes(file.mimetype));
+  },
+});
+
+// Convertit le BSON Binary renvoyé par MongoDB en Buffer Node.js utilisable.
+function toBuffer(data) {
+  if (!data) return null;
+  if (Buffer.isBuffer(data)) return data;
+  if (data.buffer) return Buffer.from(data.buffer);
+  return Buffer.from(data);
+}
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(express.json());
@@ -1064,7 +1089,7 @@ app.get('/api/saas/usage', requireAuth, async (req, res) => {
 // documents juridiques attendus à cette étape (droit français, SAS).
 // `FOLDERS_SEED_VERSION` est incrémentée à chaque évolution de cette liste pour
 // re-synchroniser automatiquement les dossiers système des utilisateurs.
-const FOLDERS_SEED_VERSION = 2;
+const FOLDERS_SEED_VERSION = 3;
 const FUNDRAISING_PHASES = [
   {
     key: 'mise-en-ordre',
@@ -1144,6 +1169,119 @@ const FUNDRAISING_PHASES = [
   },
 ];
 
+// Parcours BSA-AIR (Bon de Souscription d'Actions — Accord d'Investissement Rapide).
+// Même structure que FUNDRAISING_PHASES, avec un champ `required` listant les
+// documents indispensables (affichés avec un badge « Indispensable » côté front).
+const BSA_AIR_PHASES = [
+  {
+    key: 'air-preparation',
+    name: '1 · Préparation & mise en ordre juridique (pré-levée)',
+    checklist: [
+      'Statuts à jour',
+      'Extrait Kbis (moins de 3 mois)',
+      'Table de capitalisation (cap table) actuelle',
+      'Registre des mouvements de titres',
+      'Registre des bénéficiaires effectifs (RBE)',
+      "Pacte d'associés existant",
+      'Cessions de propriété intellectuelle & dépôts (marques, brevets)',
+    ],
+    required: [
+      'Statuts à jour',
+      'Extrait Kbis (moins de 3 mois)',
+      'Table de capitalisation (cap table) actuelle',
+    ],
+  },
+  {
+    key: 'air-approche',
+    name: '2 · Confidentialité & approche des investisseurs',
+    checklist: [
+      'Accord de confidentialité (NDA)',
+      'Support de présentation (deck) investisseurs',
+    ],
+    required: ['Accord de confidentialité (NDA)'],
+  },
+  {
+    key: 'air-termes',
+    name: '3 · Négociation des termes du BSA-AIR',
+    checklist: [
+      'Term sheet BSA-AIR (montant, décote, plafond et/ou plancher de valorisation)',
+      'Tableau de simulation de la conversion et de la dilution',
+    ],
+    required: ['Term sheet BSA-AIR (montant, décote, plafond et/ou plancher de valorisation)'],
+  },
+  {
+    key: 'air-documentation',
+    name: '4 · Documentation du BSA-AIR',
+    checklist: [
+      "Contrat d'émission de BSA-AIR (termes et conditions des bons)",
+      'Bulletin de souscription des BSA-AIR',
+      "Lettre d'investissement / side letter",
+      'Convention entre investisseurs',
+    ],
+    required: [
+      "Contrat d'émission de BSA-AIR (termes et conditions des bons)",
+      'Bulletin de souscription des BSA-AIR',
+    ],
+  },
+  {
+    key: 'air-emission',
+    name: '5 · Décision sociale & émission des bons',
+    checklist: [
+      "Rapport du président (et du commissaire aux comptes le cas échéant) sur l'émission de BSA avec suppression du DPS",
+      "PV de la décision collective / AGE autorisant l'émission des BSA-AIR",
+      'Constatation de la souscription des BSA-AIR par le président',
+    ],
+    required: ["PV de la décision collective / AGE autorisant l'émission des BSA-AIR"],
+  },
+  {
+    key: 'air-versement',
+    name: '6 · Versement des fonds & formalités',
+    checklist: [
+      'Attestation de versement des fonds par le(s) souscripteur(s)',
+      'Inscription des BSA-AIR au registre des valeurs mobilières / mouvements de titres',
+      "Dépôt de la formalité d'émission au greffe",
+    ],
+    required: [
+      'Attestation de versement des fonds par le(s) souscripteur(s)',
+      'Inscription des BSA-AIR au registre des valeurs mobilières / mouvements de titres',
+    ],
+  },
+  {
+    key: 'air-suivi',
+    name: '7 · Suivi jusqu’à la conversion',
+    checklist: [
+      'Information / reporting des investisseurs (info rights)',
+      'Suivi des engagements (BSA-AIR en cours, échéances, événements déclencheurs)',
+    ],
+    required: [],
+  },
+  {
+    key: 'air-conversion',
+    name: '8 · Conversion au tour qualifié (ou échéance / liquidité)',
+    checklist: [
+      'Calcul du prix de conversion (application de la décote et/ou du plafond)',
+      "PV d'AGE actant l'augmentation de capital par conversion des BSA-AIR",
+      'Bulletins de souscription des actions issues de la conversion',
+      'Statuts modifiés (actions de préférence, le cas échéant)',
+      'Mise à jour de la cap table, du registre des mouvements de titres et du RBE',
+    ],
+    required: [
+      'Calcul du prix de conversion (application de la décote et/ou du plafond)',
+      "PV d'AGE actant l'augmentation de capital par conversion des BSA-AIR",
+      'Bulletins de souscription des actions issues de la conversion',
+      'Mise à jour de la cap table, du registre des mouvements de titres et du RBE',
+    ],
+  },
+];
+
+// Liste combinée des phases à provisionner pour un compte, avec leur « track ».
+function allSeedPhases() {
+  return [
+    ...FUNDRAISING_PHASES.map(p => ({ key: p.key, name: p.name, checklist: p.checklist, required: p.required || [], track: 'classic' })),
+    ...BSA_AIR_PHASES.map(p => ({ key: p.key, name: p.name, checklist: p.checklist, required: p.required || [], track: 'bsa-air' })),
+  ];
+}
+
 function publicFolder(f) {
   const { _id, user_id, ...rest } = f;
   return rest;
@@ -1155,15 +1293,16 @@ function publicFolder(f) {
 // l'utilisateur (non système) ne sont jamais touchés. Idempotent et sans écriture
 // inutile une fois la dernière version appliquée.
 async function ensureUserFolders(userId) {
+  const PHASES = allSeedPhases();
   const sys = await col('saas_folders')
     .find({ user_id: userId, system: true }, { projection: { id: 1, key: 1, seed_version: 1 } })
     .toArray();
 
-  const upToDate = sys.length === FUNDRAISING_PHASES.length
-    && FUNDRAISING_PHASES.every(p => sys.some(f => f.key === p.key && f.seed_version === FOLDERS_SEED_VERSION));
+  const upToDate = sys.length === PHASES.length
+    && PHASES.every(p => sys.some(f => f.key === p.key && f.seed_version === FOLDERS_SEED_VERSION));
   if (upToDate) return;
 
-  const wantedKeys = new Set(FUNDRAISING_PHASES.map(p => p.key));
+  const wantedKeys = new Set(PHASES.map(p => p.key));
   const byKey      = {};
   sys.forEach(f => { if (f.key) byKey[f.key] = f; });
   const now = new Date().toISOString();
@@ -1175,11 +1314,11 @@ async function ensureUserFolders(userId) {
     await col('saas_documents').updateMany({ user_id: userId, folder_id: f.id }, { $unset: { folder_id: '' } });
   }
 
-  // Crée ou met à jour les dossiers juridiques attendus, dans l'ordre.
-  for (let i = 0; i < FUNDRAISING_PHASES.length; i++) {
-    const p   = FUNDRAISING_PHASES[i];
+  // Crée ou met à jour les dossiers juridiques attendus (classique + BSA-AIR), dans l'ordre.
+  for (let i = 0; i < PHASES.length; i++) {
+    const p   = PHASES[i];
     const cur = byKey[p.key];
-    const set = { name: p.name, order: i, checklist: p.checklist, system: true, seed_version: FOLDERS_SEED_VERSION };
+    const set = { name: p.name, order: i, checklist: p.checklist, required: p.required, track: p.track, system: true, seed_version: FOLDERS_SEED_VERSION };
     if (cur) {
       await col('saas_folders').updateOne({ id: cur.id, user_id: userId }, { $set: set });
     } else {
@@ -1302,7 +1441,7 @@ app.put('/api/saas/folders/:id/checklist', requireAuth, async (req, res) => {
 
 // ─── SaaS : stockage de documents (par utilisateur) ───────────────────────────
 function publicDoc(d) {
-  const { _id, filename, user_id, ...rest } = d; // on masque le nom de fichier interne
+  const { _id, filename, user_id, data, ...rest } = d;
   return rest;
 }
 
@@ -1364,17 +1503,17 @@ app.get('/api/saas/termsheets/:id', requireAuth, async (req, res) => {
   res.json({ id: doc.id, name: doc.name, html: doc.html || '' });
 });
 
-app.post('/api/saas/documents', requireAuth, upload.single('file'), async (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'Aucun fichier reçu ou format non supporté' });
+app.post('/api/saas/documents', requireAuth, saasUpload.single('file'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Aucun fichier reçu ou format non supporté (max 15 Mo)' });
   const id  = await nextId('saas_documents');
   const doc = {
     id, user_id: req.user.id,
     name: (req.body.name || req.file.originalname).trim(),
-    filename: req.file.filename, originalname: req.file.originalname,
+    originalname: req.file.originalname,
     mimetype: req.file.mimetype, size: req.file.size,
+    data: req.file.buffer,     // binaire stocké dans MongoDB Atlas
     created_at: new Date().toISOString(),
   };
-  // Rangement direct dans un dossier de l'utilisateur si fourni.
   if (req.body.folder_id) {
     const folderId = Number(req.body.folder_id);
     if (await col('saas_folders').findOne({ id: folderId, user_id: req.user.id })) doc.folder_id = folderId;
@@ -1387,19 +1526,21 @@ app.get('/api/saas/documents/:id/download', requireAuth, async (req, res) => {
   const id  = Number(req.params.id);
   const doc = await col('saas_documents').findOne({ id, user_id: req.user.id });
   if (!doc) return res.status(404).json({ error: 'Document introuvable' });
-  const filepath = path.join(UPLOADS_DIR, doc.filename);
-  if (!fs.existsSync(filepath)) return res.status(404).json({ error: 'Fichier introuvable' });
-  res.download(filepath, doc.originalname || doc.name);
+
+  const buf = toBuffer(doc.data);
+  if (!buf) return res.status(404).json({ error: 'Fichier introuvable' });
+
+  const filename = encodeURIComponent(doc.originalname || doc.name || 'document');
+  res.setHeader('Content-Type', doc.mimetype || 'application/octet-stream');
+  res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${filename}`);
+  res.setHeader('Content-Length', buf.length);
+  res.send(buf);
 });
 
 app.delete('/api/saas/documents/:id', requireAuth, async (req, res) => {
   const id  = Number(req.params.id);
   const doc = await col('saas_documents').findOne({ id, user_id: req.user.id });
   if (!doc) return res.status(404).json({ error: 'Document introuvable' });
-  if (doc.filename) { // term sheets stockées en base : pas de fichier à supprimer
-    const filepath = path.join(UPLOADS_DIR, doc.filename);
-    if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
-  }
   await col('saas_documents').deleteOne({ id, user_id: req.user.id });
   // Détache le document de toute checklist de phase qui le référence.
   const folders = await col('saas_folders').find({ user_id: req.user.id }).toArray();
@@ -1416,7 +1557,7 @@ app.delete('/api/saas/documents/:id', requireAuth, async (req, res) => {
 });
 
 // ─── SaaS : conversion PDF ⇄ DOCX via CloudConvert ────────────────────────────
-async function convertViaCloudConvert(inputPath, inputFilename, outputFormat) {
+async function convertViaCloudConvert(inputBuffer, inputFilename, outputFormat) {
   let job = await cloudConvert.jobs.create({
     tasks: {
       'upload-file':  { operation: 'import/upload' },
@@ -1425,7 +1566,7 @@ async function convertViaCloudConvert(inputPath, inputFilename, outputFormat) {
     },
   });
   const uploadTask = job.tasks.find(t => t.name === 'upload-file');
-  await cloudConvert.tasks.upload(uploadTask, fs.createReadStream(inputPath), inputFilename);
+  await cloudConvert.tasks.upload(uploadTask, Readable.from(inputBuffer), inputFilename);
   job = await cloudConvert.jobs.wait(job.id);
   const exportTask = job.tasks.find(t => t.name === 'export-file');
   if (!exportTask || exportTask.status !== 'finished' || !exportTask.result?.files?.length)
@@ -1433,10 +1574,10 @@ async function convertViaCloudConvert(inputPath, inputFilename, outputFormat) {
   return exportTask.result.files[0]; // { filename, url, size }
 }
 
-async function downloadTo(url, destPath) {
+async function downloadToBuffer(url) {
   const r = await fetch(url);
   if (!r.ok) throw new Error(`téléchargement échoué (${r.status})`);
-  fs.writeFileSync(destPath, Buffer.from(await r.arrayBuffer()));
+  return Buffer.from(await r.arrayBuffer());
 }
 
 app.post('/api/saas/documents/:id/convert', requireAuth, async (req, res) => {
@@ -1451,31 +1592,30 @@ app.post('/api/saas/documents/:id/convert', requireAuth, async (req, res) => {
   const doc = await col('saas_documents').findOne({ id, user_id: req.user.id });
   if (!doc) return res.status(404).json({ error: 'Document introuvable' });
 
-  const srcExt = path.extname(doc.originalname || doc.filename).toLowerCase();
+  const srcExt = path.extname(doc.originalname || doc.name || '').toLowerCase();
   if (srcExt === '.' + target)
     return res.status(400).json({ error: `Ce document est déjà au format ${target.toUpperCase()}.` });
 
-  const filepath = path.join(UPLOADS_DIR, doc.filename);
-  if (!fs.existsSync(filepath)) return res.status(404).json({ error: 'Fichier introuvable' });
+  const inputBuf = toBuffer(doc.data);
+  if (!inputBuf) return res.status(404).json({ error: 'Fichier introuvable' });
 
   try {
-    const out       = await convertViaCloudConvert(filepath, doc.originalname || doc.filename, target);
-    const baseName  = (doc.name || doc.originalname || 'document').replace(/\.[^.]+$/, '');
-    const safe      = (out.filename || `${baseName}.${target}`).replace(/[^a-zA-Z0-9._-]/g, '_');
-    const storedName = `${Date.now()}_${safe}`;
-    const destPath  = path.join(UPLOADS_DIR, storedName);
-    await downloadTo(out.url, destPath);
+    const out      = await convertViaCloudConvert(inputBuf, doc.originalname || doc.name, target);
+    const baseName = (doc.name || doc.originalname || 'document').replace(/\.[^.]+$/, '');
+    const fileBuf  = await downloadToBuffer(out.url);
 
     const newId  = await nextId('saas_documents');
     const newDoc = {
       id: newId, user_id: req.user.id,
-      name: `${baseName}.${target}`, filename: storedName, originalname: `${baseName}.${target}`,
+      name: `${baseName}.${target}`, originalname: `${baseName}.${target}`,
       mimetype: target === 'pdf'
         ? 'application/pdf'
         : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      size: fs.statSync(destPath).size, created_at: new Date().toISOString(),
+      size: fileBuf.length, data: fileBuf,
+      created_at: new Date().toISOString(),
       converted_from: doc.id,
     };
+    if (doc.folder_id != null) newDoc.folder_id = doc.folder_id;
     await col('saas_documents').insertOne(newDoc);
     res.status(201).json({ document: publicDoc(newDoc) });
   } catch (err) {
@@ -1526,14 +1666,8 @@ function buildExportHtml(inner, title) {
 }
 
 async function convertHtmlToFile(html, baseName, outputFormat) {
-  const tmpName = `${Date.now()}_${Math.random().toString(36).slice(2)}.html`;
-  const tmpPath = path.join(UPLOADS_DIR, tmpName);
-  fs.writeFileSync(tmpPath, html, 'utf8');
-  try {
-    return await convertViaCloudConvert(tmpPath, baseName + '.html', outputFormat);
-  } finally {
-    if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath);
-  }
+  const buffer = Buffer.from(html, 'utf8');
+  return convertViaCloudConvert(buffer, baseName + '.html', outputFormat);
 }
 
 app.post('/api/saas/termsheets/:id/export', requireAuth, async (req, res) => {
@@ -1553,20 +1687,18 @@ app.post('/api/saas/termsheets/:id/export', requireAuth, async (req, res) => {
   const html     = buildExportHtml(doc.html, baseName);
 
   try {
-    const out        = await convertHtmlToFile(html, baseName, target);
-    const safe       = `${baseName}.${target}`.replace(/[^a-zA-Z0-9._-]/g, '_');
-    const storedName = `${Date.now()}_${safe}`;
-    const destPath   = path.join(UPLOADS_DIR, storedName);
-    await downloadTo(out.url, destPath);
+    const out     = await convertHtmlToFile(html, baseName, target);
+    const fileBuf = await downloadToBuffer(out.url);
 
     const newId  = await nextId('saas_documents');
     const newDoc = {
       id: newId, user_id: req.user.id, folder_id: doc.folder_id,
-      name: `${baseName}.${target}`, filename: storedName, originalname: `${baseName}.${target}`,
+      name: `${baseName}.${target}`, originalname: `${baseName}.${target}`,
       mimetype: target === 'pdf'
         ? 'application/pdf'
         : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      size: fs.statSync(destPath).size, created_at: new Date().toISOString(),
+      size: fileBuf.length, data: fileBuf,
+      created_at: new Date().toISOString(),
       exported_from: doc.id,
     };
     await col('saas_documents').insertOne(newDoc);
@@ -1667,20 +1799,20 @@ app.post('/api/saas/documents/:id/to-editor', requireAuth, async (req, res) => {
   const doc = await col('saas_documents').findOne({ id, user_id: req.user.id });
   if (!doc) return res.status(404).json({ error: 'Document introuvable' });
 
-  const srcExt = path.extname(doc.originalname || doc.filename || doc.name || '').toLowerCase();
+  const srcExt = path.extname(doc.originalname || doc.name || '').toLowerCase();
   if (srcExt !== '.docx')
     return res.status(400).json({ error: 'Seuls les fichiers .docx peuvent être édités. Convertissez d\'abord le document en DOCX.' });
-  if (!doc.filename) return res.status(400).json({ error: 'Ce document n\'est pas éditable.' });
+  if (!doc.data) return res.status(400).json({ error: 'Ce document n\'est pas éditable.' });
 
   // Déjà ouvert dans l'éditeur ? On rouvre la term sheet existante (pas de doublon).
   const existing = await col('saas_documents').findOne({ user_id: req.user.id, kind: 'termsheet', editor_source: id });
   if (existing) return res.json({ id: existing.id, reused: true });
 
-  const filepath = path.join(UPLOADS_DIR, doc.filename);
-  if (!fs.existsSync(filepath)) return res.status(404).json({ error: 'Fichier introuvable' });
+  const docBuf = toBuffer(doc.data);
+  if (!docBuf) return res.status(404).json({ error: 'Fichier introuvable' });
 
   try {
-    const result   = await mammoth.convertToHtml({ path: filepath });
+    const result   = await mammoth.convertToHtml({ buffer: docBuf });
     const pageHtml  = docxHtmlToEditorPage(result.value || '', doc.name);
     const baseName  = (doc.name || doc.originalname || 'Document').replace(/\.[^.]+$/, '');
     const now       = new Date().toISOString();
