@@ -653,7 +653,7 @@
         valBadge.textContent = final ? 'Validé' : 'En attente';
 
         const valBtn = document.createElement('button');
-        valBtn.className = 'fbtn fbtn--mini' + (final ? '' : ' fbtn--ok');
+        valBtn.className = 'fbtn fbtn--mini' + (final ? '' : ' fbtn--accent');
         valBtn.textContent = final ? 'Annuler' : 'Valider';
         valBtn.addEventListener('click', () => setFinal(f.id, slug, !final));
         acts.appendChild(valBadge);
@@ -1052,12 +1052,17 @@
           }
           acts.appendChild(ed);
 
-          // Marquer comme finalisé / annuler la validation.
+          // Valider la progression juridique du document lié.
+          const valBadgeC = document.createElement('span');
+          valBadgeC.className = 'fbtn--status' + (final ? ' fbtn--status--ok' : '');
+          valBadgeC.textContent = final ? 'Validé' : 'En attente';
+
           const fin = document.createElement('button');
-          fin.className = 'fbtn fbtn--mini' + (final ? '' : ' fbtn--ok');
-          fin.textContent = final ? 'Annuler' : 'Fini';
-          fin.title = final ? 'Marquer comme non finalisé' : 'Marquer comme finalisé';
+          fin.className = 'fbtn fbtn--mini' + (final ? '' : ' fbtn--accent');
+          fin.textContent = final ? 'Annuler' : 'Valider';
+          fin.title = final ? 'Marquer comme non finalisé' : 'Valider ce document';
           fin.addEventListener('click', () => setFinal(f.id, slug, !final));
+          acts.appendChild(valBadgeC);
           acts.appendChild(fin);
 
           // Détacher le document de cet élément.
