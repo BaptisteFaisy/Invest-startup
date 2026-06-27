@@ -1316,6 +1316,15 @@ function scheduleAutosave() {
 }
 page.addEventListener('input', scheduleAutosave);
 
+// Rafraîchit dynamiquement les boutons de champs à remplir sur chaque frappe.
+page.addEventListener('input', () => {
+  updateNextFieldBtn();
+  const vFill   = document.getElementById('view-fill');
+  const vAdvice = document.getElementById('view-advice');
+  if (vFill   && !vFill.hidden)            renderFill();
+  if (vAdvice && !vAdvice.hidden && isCustom) _paintDocAdvice();
+});
+
 // Ctrl/Cmd + S force une sauvegarde immédiate.
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
@@ -1771,6 +1780,7 @@ const adviceList  = document.getElementById('advice-list');
 const adviceCount = document.getElementById('advice-count');
 const fillList    = document.getElementById('fill-list');
 const fillCount   = document.getElementById('fill-count');
+const nextFieldWrap = document.getElementById('next-field-wrap');
 
 const PRIORITY = [
   { label: 'Priorité haute',   color: '#dc2626' },
@@ -1904,14 +1914,22 @@ fillList.addEventListener('click', (e) => {
   else renderFill();
 });
 
-// Conseils SPÉCIFIQUES au document, générés par l'IA (champs déplacés dans "À remplir").
+// Conseils SPÉCIFIQUES au document, générés par l'IA. Les champs à remplir
+// sont affichés en premier ; ils disparaissent dès que remplis (re-render sur input).
+function _paintDocAdvice() {
+  const ph = findPlaceholders();
+  const aiHtml = buildAiHtml(docAdviceCache) || '';
+  const phHtml = buildPhHtml(ph);
+  adviceList.innerHTML = phHtml + (aiHtml || '<p class="library__empty">Aucun conseil pour ce document.</p>');
+  const nc = (docAdviceCache || []).length;
+  adviceCount.textContent = nc
+    ? `${nc} conseil${nc !== 1 ? 's' : ''}${ph.length ? ` · ${ph.length} champ${ph.length > 1 ? 's' : ''} à remplir` : ''}`
+    : ph.length ? `${ph.length} champ${ph.length > 1 ? 's' : ''} à remplir` : '';
+  updateNextFieldBtn();
+}
+
 async function renderDocAdvice() {
-  if (docAdviceCache) {
-    adviceList.innerHTML = buildAiHtml(docAdviceCache)
-      || '<p class="library__empty">Aucun conseil pour ce document.</p>';
-    adviceCount.textContent = `${docAdviceCache.length} conseil${docAdviceCache.length !== 1 ? 's' : ''}`;
-    return;
-  }
+  if (docAdviceCache) { _paintDocAdvice(); return; }
 
   adviceCount.textContent = 'Analyse du document…';
   adviceList.innerHTML = '<p class="library__empty" style="padding:10px 0">Analyse en cours…</p>';
@@ -1928,11 +1946,7 @@ async function renderDocAdvice() {
   } catch {}
 
   if (!isCustom) return;
-  adviceList.innerHTML = buildAiHtml(docAdviceCache)
-    || '<p class="library__empty">Conseils indisponibles pour le moment.</p>';
-  adviceCount.textContent = docAdviceCache && docAdviceCache.length
-    ? `${docAdviceCache.length} conseil${docAdviceCache.length !== 1 ? 's' : ''}`
-    : '';
+  _paintDocAdvice();
 }
 
 function findPlaceholders() {
@@ -2003,6 +2017,7 @@ function renderAdvice() {
   }
 
   adviceList.innerHTML = html;
+  updateNextFieldBtn();
 }
 
 function flashClause(el) {
@@ -2011,6 +2026,31 @@ function flashClause(el) {
   void el.offsetWidth; // force reflow pour relancer l'animation si déjà active
   el.classList.add('is-highlight');
   setTimeout(() => el.classList.remove('is-highlight'), 1400);
+}
+
+let _nextPhIdx = 0;
+
+function updateNextFieldBtn() {
+  if (!nextFieldWrap) return;
+  const ph = findPlaceholders();
+  if (!ph.length) { nextFieldWrap.innerHTML = ''; return; }
+  const n = ph.length;
+  nextFieldWrap.innerHTML =
+    `<button class="next-ph-btn" id="next-ph-btn" type="button">
+       → Prochain champ à remplir
+       <span class="next-ph-btn__count">${n} restant${n > 1 ? 's' : ''}</span>
+     </button>`;
+  document.getElementById('next-ph-btn').addEventListener('click', goNextPlaceholder);
+}
+
+function goNextPlaceholder() {
+  const ph = findPlaceholders();
+  if (!ph.length) { updateNextFieldBtn(); return; }
+  if (_nextPhIdx >= ph.length) _nextPhIdx = 0;
+  const p = ph[_nextPhIdx];
+  navigateToPlaceholder(p.key, p.text);
+  _nextPhIdx = (_nextPhIdx + 1) % ph.length;
+  updateNextFieldBtn();
 }
 
 adviceList.addEventListener('click', (e) => {
@@ -2059,13 +2099,14 @@ libTabs.forEach(tab => tab.addEventListener('click', () => {
   libTabs.forEach(t => t.classList.toggle('is-active', t === tab));
   const which = tab.dataset.tab;
   Object.entries(libViews).forEach(([k, v]) => { v.hidden = k !== which; });
-  if (which === 'advice') renderAdvice();
+  if (which === 'advice') { renderAdvice(); updateNextFieldBtn(); }
   if (which === 'fill')   renderFill();
 }));
 
 /* ---------- Init ---------- */
 renderLibrary();
 renderAdvice();
+updateNextFieldBtn();
 updateClauseCount();
 showEmptyPanel();
 
