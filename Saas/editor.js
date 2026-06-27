@@ -1128,10 +1128,11 @@ function termsheetHtml() {
   return clone.innerHTML;
 }
 
+const saveStatusEl = () => document.getElementById('save-status');
+function setSaveStatus(msg) { const el = saveStatusEl(); if (el) el.textContent = msg; }
+
 async function saveTermsheet() {
-  const btn = document.getElementById('save-btn');
-  const label = btn ? btn.textContent : '';
-  if (btn) { btn.disabled = true; btn.textContent = 'Enregistrement…'; }
+  setSaveStatus('Enregistrement…');
   const name = termsheetName();
   const html = termsheetHtml();
   const body = { name, html };
@@ -1148,16 +1149,15 @@ async function saveTermsheet() {
     if (res.ok) {
       if (data.id) { currentDocId = data.id; history.replaceState(null, '', '?doc=' + currentDocId); }
       if (docNameEl) docNameEl.textContent = name;
-      if (btn) btn.textContent = 'Enregistré';
+      setSaveStatus('Enregistré');
+      setTimeout(() => setSaveStatus(''), 2000);
     } else if (res.status === 401) {
       window.location.href = 'login.html';
     } else {
-      if (btn) btn.textContent = 'Échec';
+      setSaveStatus('Échec de l\'enregistrement');
     }
   } catch {
-    if (btn) btn.textContent = 'Erreur réseau';
-  } finally {
-    if (btn) setTimeout(() => { btn.disabled = false; btn.textContent = label || 'Enregistrer'; }, 1600);
+    setSaveStatus('Erreur réseau');
   }
 }
 
@@ -1297,11 +1297,22 @@ function readBakedConditions() {
   catch { return {}; }
 }
 
-const saveBtn = document.getElementById('save-btn');
-if (saveBtn) saveBtn.addEventListener('click', saveTermsheet);
-// Ctrl/Cmd + S enregistre aussi.
+// Autosave : enregistre 1,5 s après la dernière modification du contenu.
+let _saveTimer = null;
+function scheduleAutosave() {
+  clearTimeout(_saveTimer);
+  setSaveStatus('…');
+  _saveTimer = setTimeout(saveTermsheet, 1500);
+}
+page.addEventListener('input', scheduleAutosave);
+
+// Ctrl/Cmd + S force une sauvegarde immédiate.
 document.addEventListener('keydown', e => {
-  if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) { e.preventDefault(); saveTermsheet(); }
+  if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+    e.preventDefault();
+    clearTimeout(_saveTimer);
+    saveTermsheet();
+  }
 });
 
 // Ouvre la term sheet enregistrée passée dans l'URL (?doc=ID).

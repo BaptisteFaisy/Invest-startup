@@ -35,7 +35,6 @@
         <input type="file" id="docs-file" accept=".pdf,.docx,.doc,.xlsx,.xls,.png,.jpg,.jpeg" hidden />
         <button class="btn btn--ghost" id="docs-btn">+ Ajouter un document</button>
         <button class="btn btn--primary" id="analyze-btn" title="Analyser le document avec Claude : remplit la bibliothèque, le conseil et les explications">Analyser</button>
-        <button class="btn btn--ghost" id="save-btn">Enregistrer</button>
         <button class="btn btn--ghost" id="export-docx-btn">Exporter en Word</button>
         <button class="btn btn--white" id="export-btn">Exporter en PDF</button>
         <button class="btn btn--ghost" id="logout-btn">Déconnexion</button>
@@ -195,6 +194,7 @@
       <span id="caret-clause">Document prêt</span>
       <div class="statusbar__right">
         <span id="wordcount">0 mot</span>
+        <span id="save-status"></span>
         <span>liquid + · traitement de texte</span>
       </div>
     </div>
