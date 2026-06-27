@@ -1890,12 +1890,20 @@ function renderAdvice() {
   }).join('');
 }
 
+function flashClause(el) {
+  if (!el) return;
+  el.classList.remove('is-highlight');
+  void el.offsetWidth; // force reflow pour relancer l'animation si déjà active
+  el.classList.add('is-highlight');
+  setTimeout(() => el.classList.remove('is-highlight'), 1400);
+}
+
 adviceList.addEventListener('click', (e) => {
   const btn = e.target.closest('[data-go]');
   if (btn) {
     const el = page.querySelector(`.ts-clause[data-key="${btn.dataset.go}"]`);
     selectClauseByKey(btn.dataset.go, el);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); flashClause(el); }
     return;
   }
   const scrollBtn = e.target.closest('[data-scroll-to]');
@@ -1907,6 +1915,7 @@ adviceList.addEventListener('click', (e) => {
       page.querySelectorAll('.ts-clause').forEach(c => c.classList.toggle('is-active', c === el));
       activeKey = key;
       renderPanel(key);
+      flashClause(el);
     }
   }
 });

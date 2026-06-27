@@ -142,6 +142,12 @@
 .page .ts-clause { display: grid; grid-template-columns: 172px 1fr; gap: 24px; padding: 13px 12px; margin: 0 -12px; border-radius: 8px; transition: background .15s ease, box-shadow .15s ease; }
 .page .ts-clause + .ts-clause { border-top: 1px solid rgba(8,9,12,0.05); }
 .page .ts-clause.is-active { background: #f6f9ff; box-shadow: inset 3px 0 0 var(--blue); }
+@keyframes clause-flash {
+  0%   { background: #fef9c3; box-shadow: inset 3px 0 0 #eab308; }
+  60%  { background: #fef9c3; box-shadow: inset 3px 0 0 #eab308; }
+  100% { background: #f6f9ff; box-shadow: inset 3px 0 0 var(--blue); }
+}
+.page .ts-clause.is-highlight { animation: clause-flash 1.4s ease forwards; }
 .page .ts-label { font-weight: 700; font-size: 14px; line-height: 1.45; }
 .page .ts-added-tag { display: inline-block; font-family: 'Archivo', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--up); background: rgba(22,163,74,0.1); padding: 2px 6px; border-radius: 5px; margin-top: 7px; }
 .page .ts-content { font-size: 14px; }
