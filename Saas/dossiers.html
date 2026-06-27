@@ -736,13 +736,21 @@
         open.href = 'editor.html?doc=' + d.id;
         actions.appendChild(open);
       } else {
-        if (e === 'docx') {
+        if (e === 'docx' || e === 'doc') {
           const ed = document.createElement('button');
           ed.className = 'fbtn fbtn--accent';
           ed.textContent = 'Éditer';
           ed.title = 'Ouvrir ce document dans l\'éditeur';
           ed.addEventListener('click', () => editInEditor(d.id, ed));
           actions.appendChild(ed);
+        }
+        if (e === 'pdf') {
+          const cv = document.createElement('button');
+          cv.className = 'fbtn fbtn--accent';
+          cv.textContent = 'Convertir en DOCX';
+          cv.title = 'Convertir ce PDF en Word pour pouvoir l\'éditer';
+          cv.addEventListener('click', () => convert(d.id, 'docx', cv));
+          actions.appendChild(cv);
         }
         const dl = document.createElement('a');
         dl.className = 'fbtn';

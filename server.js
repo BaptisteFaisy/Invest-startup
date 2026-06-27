@@ -1840,8 +1840,8 @@ app.post('/api/saas/documents/:id/to-editor', requireAuth, async (req, res) => {
   if (!doc) return res.status(404).json({ error: 'Document introuvable' });
 
   const srcExt = path.extname(doc.originalname || doc.name || '').toLowerCase();
-  if (srcExt !== '.docx')
-    return res.status(400).json({ error: 'Seuls les fichiers .docx peuvent être édités. Convertissez d\'abord le document en DOCX.' });
+  if (srcExt !== '.docx' && srcExt !== '.doc')
+    return res.status(400).json({ error: 'Seuls les fichiers Word (.docx / .doc) peuvent être édités. Convertissez d\'abord le document en DOCX.' });
   if (!doc.data) return res.status(400).json({ error: 'Ce document n\'est pas éditable.' });
 
   // Déjà ouvert dans l'éditeur ? On rouvre la term sheet existante (pas de doublon).
