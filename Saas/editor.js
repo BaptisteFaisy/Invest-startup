@@ -1725,23 +1725,30 @@ function renderLibrary() {
       </div>`).join('') || '<p class="library__empty">Ce document ne contient pas encore de paragraphe.</p>';
     return;
   }
-  const items = TERMSHEET.filter(c => !c.inDoc);
-  libraryCount.textContent = items.length
-    ? `${items.length} clause${items.length > 1 ? 's' : ''} à ajouter`
-    : 'Toutes les clauses sont au contrat';
-  if (!items.length) {
-    libraryList.innerHTML = `<p class="library__empty">Toutes les clauses sont déjà dans le contrat.<br />Retirez-en une pour la voir réapparaître ici.</p>`;
-    return;
+  const inDoc = TERMSHEET.filter(c => c.inDoc);
+  const notIn = TERMSHEET.filter(c => !c.inDoc);
+  libraryCount.textContent = `${inDoc.length} clause${inDoc.length > 1 ? 's' : ''} au contrat`;
+  let html = '';
+  if (inDoc.length) {
+    html += `<div class="lib-sep">Dans ce document — ${inDoc.length} clause${inDoc.length > 1 ? 's' : ''}</div>`;
+    html += inDoc.map(c => `
+      <div class="libitem">
+        <div class="libitem__top"><span class="libitem__group">${c.group}</span></div>
+        <div class="libitem__label">${c.label}</div>
+        <button class="libitem__add libitem__add--see" data-jump="${c.key}" type="button">Voir dans le document</button>
+      </div>`).join('');
   }
-  libraryList.innerHTML = items.map(c => `
-    <div class="libitem" data-key="${c.key}">
-      <div class="libitem__top">
-        <span class="libitem__group">${c.group}</span>
-      </div>
-      <div class="libitem__label">${c.label}</div>
-      <p class="libitem__desc">${c.plain}</p>
-      <button class="libitem__add" data-add="${c.key}">+ Ajouter au contrat</button>
-    </div>`).join('');
+  if (notIn.length) {
+    html += `<div class="lib-sep">Clauses disponibles — ${notIn.length}</div>`;
+    html += notIn.map(c => `
+      <div class="libitem" data-key="${c.key}">
+        <div class="libitem__top"><span class="libitem__group">${c.group}</span></div>
+        <div class="libitem__label">${c.label}</div>
+        <p class="libitem__desc">${c.plain}</p>
+        <button class="libitem__add" data-add="${c.key}">+ Ajouter au contrat</button>
+      </div>`).join('');
+  }
+  libraryList.innerHTML = html || `<p class="library__empty">Toutes les clauses sont déjà dans le contrat.</p>`;
 }
 
 libraryList.addEventListener('click', (e) => {
@@ -1781,14 +1788,33 @@ function placeholderTip() {
 
 function advEsc(s) { return String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
 
+function findClauseForTip(tipText) {
+  const words = (tipText || '').toLowerCase().split(/\s+/).filter(w => w.length > 3);
+  if (!words.length) return null;
+  const clauses = [...page.querySelectorAll('.ts-clause[data-key]')];
+  let best = null, bestScore = 0;
+  for (const el of clauses) {
+    const txt = el.textContent.toLowerCase();
+    const score = words.filter(w => txt.includes(w)).length;
+    if (score > bestScore) { best = el; bestScore = score; }
+  }
+  return bestScore >= 2 ? best : null;
+}
+
 function paintAdvice(tips, note) {
   adviceCount.textContent = note || `${tips.length} conseil${tips.length > 1 ? 's' : ''} pour améliorer ce document`;
   adviceList.innerHTML = tips.length
-    ? tips.map(t => `
-      <div class="advitem" style="border-left-color:#1f8e7a">
-        <div class="advitem__label">${advEsc(t.title)}</div>
-        <p class="advitem__watch">${advEsc(t.body)}</p>
-      </div>`).join('')
+    ? tips.map(t => {
+        const target = findClauseForTip(t.title + ' ' + t.body);
+        const goBtn  = target
+          ? `<button class="advitem__go" data-scroll-to="${target.dataset.key}" type="button">Aller au paragraphe</button>`
+          : '';
+        return `<div class="advitem" style="border-left-color:#1f8e7a">
+          <div class="advitem__label">${advEsc(t.title)}</div>
+          <p class="advitem__watch">${advEsc(t.body)}</p>
+          ${goBtn}
+        </div>`;
+      }).join('')
     : '<p class="library__empty">Aucun conseil pour ce document.</p>';
 }
 
@@ -1858,10 +1884,23 @@ function renderAdvice() {
 
 adviceList.addEventListener('click', (e) => {
   const btn = e.target.closest('[data-go]');
-  if (!btn) return;
-  const el = page.querySelector(`.ts-clause[data-key="${btn.dataset.go}"]`);
-  selectClauseByKey(btn.dataset.go, el);
-  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  if (btn) {
+    const el = page.querySelector(`.ts-clause[data-key="${btn.dataset.go}"]`);
+    selectClauseByKey(btn.dataset.go, el);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  const scrollBtn = e.target.closest('[data-scroll-to]');
+  if (scrollBtn) {
+    const key = scrollBtn.dataset.scrollTo;
+    const el = page.querySelector(`.ts-clause[data-key="${key}"]`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      page.querySelectorAll('.ts-clause').forEach(c => c.classList.toggle('is-active', c === el));
+      activeKey = key;
+      renderPanel(key);
+    }
+  }
 });
 
 // Bascule entre les onglets Bibliothèque / Conseil.
