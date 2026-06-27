@@ -72,6 +72,8 @@
     .cli__doc { font-size: 12px; color: var(--text); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .cli__actions { display: flex; gap: 6px; flex: none; align-items: center; }
     .fbtn--ok { color: #16a34a; border-color: rgba(22,163,74,0.4); }
+    .fbtn--status { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; border: 1px solid rgba(8,9,12,0.15); background: rgba(8,9,12,0.05); color: var(--text-2); cursor: default; pointer-events: none; }
+    .fbtn--status--ok { background: rgba(22,163,74,0.12); border-color: rgba(22,163,74,0.4); color: #16a34a; }
     .cli__name--link { cursor: pointer; }
     .cli__name--link:hover { text-decoration: underline; }
     .cli__caret { font-size: 10px; color: var(--text); margin-left: 4px; }
@@ -769,6 +771,26 @@
         dl.href = '/api/saas/documents/' + d.id + '/download';
         actions.appendChild(dl);
       }
+
+      // Badge statut + bouton Valider / Annuler.
+      const badge = document.createElement('span');
+      badge.className = 'fbtn fbtn--status' + (d.validated ? ' fbtn--status--ok' : '');
+      badge.textContent = d.validated ? 'Validé' : 'En attente';
+
+      const valBtn = document.createElement('button');
+      valBtn.className = 'fbtn' + (d.validated ? '' : ' fbtn--ok');
+      valBtn.textContent = d.validated ? 'Annuler' : 'Valider';
+      valBtn.addEventListener('click', async () => {
+        valBtn.disabled = true;
+        const newVal = !d.validated;
+        const r = await fetch('/api/saas/documents/' + d.id + '/validate', {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', body: JSON.stringify({ validated: newVal }),
+        });
+        if (r.ok) { d.validated = newVal; render(); } else valBtn.disabled = false;
+      });
+      actions.appendChild(badge);
+      actions.appendChild(valBtn);
 
       const del = document.createElement('button');
       del.className = 'fbtn fbtn--del';

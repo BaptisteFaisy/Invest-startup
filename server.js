@@ -1554,6 +1554,15 @@ app.get('/api/saas/documents/:id/download', requireAuth, async (req, res) => {
   res.send(buf);
 });
 
+app.patch('/api/saas/documents/:id/validate', requireAuth, async (req, res) => {
+  const id        = Number(req.params.id);
+  const validated = req.body && req.body.validated === true;
+  const doc = await col('saas_documents').findOne({ id, user_id: req.user.id });
+  if (!doc) return res.status(404).json({ error: 'Document introuvable' });
+  await col('saas_documents').updateOne({ id, user_id: req.user.id }, { $set: { validated } });
+  res.json({ ok: true, validated });
+});
+
 app.delete('/api/saas/documents/:id', requireAuth, async (req, res) => {
   const id  = Number(req.params.id);
   const doc = await col('saas_documents').findOne({ id, user_id: req.user.id });
