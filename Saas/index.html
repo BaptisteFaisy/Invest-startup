@@ -4,172 +4,335 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>liquid + — Votre term sheet, sans avocat</title>
-  <meta name="description" content="liquid + décode votre term sheet de levée de fonds clause par clause : ce que chaque ligne veut dire, les pièges à négocier et votre dilution calculée. Plus besoin d'avocat pour comprendre et négocier." />
+  <meta name="description" content="liquid + traduit votre term sheet clause par clause, calcule votre dilution et vous dit exactement quoi négocier — sans avocat." />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Libre Franklin', system-ui, sans-serif;
+      background: #08090c; color: #fff; min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { text-decoration: none; }
+
+    /* NAV */
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(8,9,12,0.88); backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 0 40px; height: 62px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .brand { font-weight: 800; font-size: 1.45rem; letter-spacing: -0.02em; color: #fff; }
+    .brand span { color: #3b82f6; }
+    .nav__links { display: flex; gap: 32px; font-size: 14px; font-weight: 500; }
+    .nav__links a { color: rgba(255,255,255,0.45); transition: color .15s; }
+    .nav__links a:hover { color: #fff; }
+    .nav__cta { display: flex; gap: 10px; align-items: center; }
+    .btn-ghost {
+      font-family: 'Archivo', sans-serif; font-size: 13.5px; font-weight: 600;
+      color: rgba(255,255,255,0.55); background: transparent;
+      border: 1px solid rgba(255,255,255,0.14); border-radius: 9px;
+      padding: 8px 16px; cursor: pointer; transition: color .15s, border-color .15s;
+      display: inline-block;
+    }
+    .btn-ghost:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
+    .btn-solid {
+      font-family: 'Archivo', sans-serif; font-size: 13.5px; font-weight: 700;
+      color: #08090c; background: #fff; border: none; border-radius: 9px;
+      padding: 8px 18px; cursor: pointer; transition: opacity .15s; display: inline-block;
+    }
+    .btn-solid:hover { opacity: 0.88; }
+
+    /* HERO */
+    .hero {
+      position: relative; overflow: hidden;
+      padding: 110px 40px 90px; text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .hero__bg {
+      position: absolute; top: -120px; left: 50%; transform: translateX(-50%);
+      width: 640px; opacity: 0.04; pointer-events: none; user-select: none;
+    }
+    .hero__badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.1);
+      padding: 6px 14px; border-radius: 999px; margin-bottom: 36px;
+    }
+    .hero__dot { width: 6px; height: 6px; border-radius: 50%; background: #3b82f6; flex: none; }
+    .hero h1 {
+      font-size: clamp(2.4rem, 5.5vw, 4.2rem); font-weight: 800;
+      letter-spacing: -0.045em; line-height: 1.08;
+      max-width: 780px; margin: 0 auto 28px;
+    }
+    .hero h1 em { font-style: normal; color: #3b82f6; }
+    .hero__sub {
+      font-size: 18px; color: rgba(255,255,255,0.48);
+      max-width: 520px; margin: 0 auto 48px; line-height: 1.72;
+    }
+    .hero__actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-lg {
+      font-family: 'Archivo', sans-serif; font-size: 15px; font-weight: 700;
+      border-radius: 12px; padding: 15px 32px; cursor: pointer;
+      transition: opacity .15s; display: inline-block;
+    }
+    .btn-lg--white { color: #08090c; background: #fff; border: none; }
+    .btn-lg--white:hover { opacity: 0.88; }
+    .btn-lg--outline {
+      color: rgba(255,255,255,0.65); background: transparent;
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+    .btn-lg--outline:hover { color: #fff; border-color: rgba(255,255,255,0.5); }
+    .hero__img { margin: 70px auto 0; width: 90px; opacity: 0.14; display: block; }
+
+    /* STATS */
+    .stats {
+      display: flex; justify-content: center;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 56px 40px;
+    }
+    .stat { text-align: center; padding: 0 56px; }
+    .stat + .stat { border-left: 1px solid rgba(255,255,255,0.07); }
+    .stat__num { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; letter-spacing: -0.045em; }
+    .stat p { font-size: 13px; color: rgba(255,255,255,0.38); margin-top: 8px; max-width: 160px; line-height: 1.55; }
+
+    /* SECTION COMMONS */
+    .section { padding: 88px 40px; }
+    .section__inner { max-width: 1080px; margin: 0 auto; }
+    .eyebrow {
+      font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: rgba(255,255,255,0.32); display: block; text-align: center; margin-bottom: 16px;
+    }
+    .section__title {
+      font-size: clamp(1.7rem, 3.2vw, 2.5rem); font-weight: 800;
+      letter-spacing: -0.035em; text-align: center; margin-bottom: 14px;
+    }
+    .section__sub {
+      font-size: 16px; color: rgba(255,255,255,0.42); text-align: center;
+      max-width: 520px; margin: 0 auto 60px; line-height: 1.7;
+    }
+
+    /* WHITE BUBBLE CARDS */
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .card {
+      background: #fff; border-radius: 22px; padding: 32px 28px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+    }
+    .card__num {
+      font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: rgba(8,9,12,0.3); margin-bottom: 18px;
+    }
+    .card h3 { font-size: 1.05rem; font-weight: 700; color: #08090c; margin-bottom: 10px; letter-spacing: -0.01em; }
+    .card p { font-size: 14px; color: #6b6b78; line-height: 1.68; }
+
+    /* HOW IT WORKS */
+    .how { border-top: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .how .section__inner { max-width: 640px; }
+    .steps { margin-top: 52px; }
+    .step {
+      display: flex; gap: 28px; padding: 32px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .step:last-child { border-bottom: none; }
+    .step__num {
+      font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 1.05rem;
+      color: rgba(255,255,255,0.15); flex: none; width: 32px; padding-top: 3px;
+    }
+    .step h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+    .step p { font-size: 14px; color: rgba(255,255,255,0.45); line-height: 1.7; }
+
+    /* PRICING */
+    .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .plan {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 22px; padding: 32px 28px;
+    }
+    .plan--featured {
+      background: #fff; border-color: transparent;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+    }
+    .plan__badge {
+      display: inline-block; font-family: 'Archivo', sans-serif; font-size: 10px;
+      font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      background: rgba(59,130,246,0.15); color: #3b82f6;
+      padding: 3px 10px; border-radius: 99px; margin-bottom: 14px;
+    }
+    .plan h3 { font-size: 1rem; font-weight: 700; color: rgba(255,255,255,0.75); margin-bottom: 6px; }
+    .plan--featured h3 { color: #08090c; }
+    .plan__price { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.045em; color: #fff; margin: 14px 0 6px; }
+    .plan--featured .plan__price { color: #08090c; }
+    .plan__price span { font-size: 1rem; font-weight: 500; color: rgba(255,255,255,0.35); letter-spacing: 0; }
+    .plan--featured .plan__price span { color: rgba(8,9,12,0.4); }
+    .plan__desc { font-size: 13px; color: rgba(255,255,255,0.38); margin-bottom: 22px; line-height: 1.55; }
+    .plan--featured .plan__desc { color: rgba(8,9,12,0.5); }
+    .plan ul { list-style: none; padding: 0; margin: 0 0 28px; display: flex; flex-direction: column; gap: 9px; }
+    .plan li { font-size: 13.5px; color: rgba(255,255,255,0.6); padding-left: 16px; position: relative; line-height: 1.45; }
+    .plan li::before { content: '·'; position: absolute; left: 4px; color: rgba(255,255,255,0.25); }
+    .plan li.muted { color: rgba(255,255,255,0.2); }
+    .plan--featured li { color: rgba(8,9,12,0.7); }
+    .plan--featured li::before { color: rgba(8,9,12,0.25); }
+    .plan--featured li.muted { color: rgba(8,9,12,0.25); }
+    .btn-plan {
+      display: block; text-align: center; font-family: 'Archivo', sans-serif;
+      font-size: 14px; font-weight: 700; padding: 12px 20px; border-radius: 11px;
+      border: 1px solid rgba(255,255,255,0.14); color: rgba(255,255,255,0.6);
+      background: transparent; transition: border-color .15s, color .15s;
+    }
+    .btn-plan:hover { color: #fff; border-color: rgba(255,255,255,0.45); }
+    .plan--featured .btn-plan { background: #08090c; color: #fff; border-color: transparent; }
+    .plan--featured .btn-plan:hover { background: #1a1d24; }
+
+    /* CTA BOTTOM */
+    .cta {
+      padding: 100px 40px; text-align: center;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .cta__img { width: 72px; margin: 0 auto 36px; opacity: 0.16; display: block; }
+    .cta h2 {
+      font-size: clamp(1.7rem, 3.2vw, 2.6rem); font-weight: 800;
+      letter-spacing: -0.04em; margin-bottom: 16px;
+    }
+    .cta p { font-size: 16px; color: rgba(255,255,255,0.45); margin-bottom: 40px; }
+
+    /* FOOTER */
+    .footer { border-top: 1px solid rgba(255,255,255,0.06); padding: 56px 40px 0; }
+    .footer__inner { max-width: 1080px; margin: 0 auto; display: flex; gap: 64px; flex-wrap: wrap; padding-bottom: 48px; }
+    .footer__brand { flex: 2; }
+    .footer__brand p { font-size: 13px; color: rgba(255,255,255,0.3); margin-top: 12px; max-width: 220px; line-height: 1.65; }
+    .footer__col { display: flex; flex-direction: column; gap: 9px; }
+    .footer__col h4 {
+      font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.28); margin-bottom: 6px;
+    }
+    .footer__col a { font-size: 14px; color: rgba(255,255,255,0.4); transition: color .15s; }
+    .footer__col a:hover { color: #fff; }
+    .footer__bottom {
+      max-width: 1080px; margin: 0 auto;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 22px 0 32px; font-size: 12px; color: rgba(255,255,255,0.2); line-height: 1.65;
+    }
+
+    @media (max-width: 820px) {
+      .nav { padding: 0 20px; }
+      .nav__links { display: none; }
+      .hero { padding: 80px 20px 70px; }
+      .stats { flex-direction: column; padding: 44px 20px; }
+      .stat + .stat { border-left: none; border-top: 1px solid rgba(255,255,255,0.07); padding-top: 32px; }
+      .stat { padding: 0; }
+      .section { padding: 64px 20px; }
+      .cards, .plans { grid-template-columns: 1fr; }
+      .how { padding: 64px 20px; }
+      .footer { padding: 48px 20px 0; }
+      .footer__inner { gap: 36px; }
+      .footer__bottom { padding: 20px 0 28px; }
+      .cta { padding: 72px 20px; }
+    }
+  </style>
 </head>
 <body>
+
   <!-- NAV -->
-  <header class="nav" id="top">
-    <div class="container nav__inner">
-      <a href="#top" class="brand">liquid <span class="brand__plus">+</span></a>
-      <nav class="nav__links">
-        <a href="#features">Ce que liquid + fait</a>
-        <a href="#how">Comment ça marche</a>
-        <a href="#pricing">Tarifs</a>
-        <a href="#faq">FAQ</a>
-      </nav>
-      <div class="nav__cta">
-        <a href="login.html" class="btn btn--ghost" id="nav-login">Connexion</a>
-        <a href="register.html" class="btn btn--primary" id="nav-cta-primary">Essai gratuit</a>
-      </div>
-      <button class="nav__burger" aria-label="Menu" id="burger">☰</button>
+  <nav class="nav">
+    <a href="#" class="brand">liquid <span>+</span></a>
+    <div class="nav__links">
+      <a href="#features">Fonctionnalités</a>
+      <a href="#how">Comment ça marche</a>
+      <a href="#pricing">Tarifs</a>
     </div>
-  </header>
+    <div class="nav__cta">
+      <a href="login.html" class="btn-ghost" id="nav-login">Connexion</a>
+      <a href="register.html" class="btn-solid" id="nav-cta-primary">Essai gratuit</a>
+    </div>
+  </nav>
 
   <!-- HERO -->
   <section class="hero">
-    <div class="container hero__inner">
-      <div class="hero__copy">
-        <span class="pill"><span class="dotmark"></span> Éditeur de term sheet — chaque clause décodée</span>
-        <h1>Comprenez et négociez votre term sheet. Sans avocat.</h1>
-        <p class="hero__sub">
-          Recevoir une term sheet ne devrait pas vous obliger à payer un avocat 400 €/h
-          pour la décrypter. liquid + traduit chaque clause en langage courant, vous montre
-          votre dilution réelle et vous signale exactement ce qu'un avocat vous dirait de
-          négocier — directement dans l'éditeur.
-        </p>
-        <div class="hero__actions">
-          <a href="editor.html" class="btn btn--primary btn--lg">Décoder ma term sheet</a>
-          <a href="#how" class="btn btn--ghost btn--lg">Comment ça marche</a>
-        </div>
-        <div class="hero__trust">
-          <span>Adopté par <strong>4 200+ fondateurs</strong></span>
-          <span class="sep"></span>
-          <span>Sans avocat · sans carte bancaire</span>
-        </div>
-      </div>
-
-      <div class="hero__card">
-        <div class="chatcard">
-          <div class="chatcard__head">
-            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-            <span class="chatcard__title">Term Sheet — Série A · liquid +</span>
-          </div>
-          <div class="chatcard__body">
-            <div class="msg msg--user" style="max-width:100%">
-              <span style="color:var(--on-dark-mut);font-size:12px;font-family:'Archivo',sans-serif;letter-spacing:.06em">07 — LIQUIDATION PREFERENCE</span><br />
-              L'investisseur bénéficie d'une <strong>liquidation preference 1x non-participating</strong>.
-            </div>
-            <div class="msg msg--bot">
-              <strong>Ce qu'un avocat vous dirait —</strong> en cas de revente, l'investisseur récupère
-              d'abord sa mise (1x) avant tout partage. « Non-participating » = il choisit sa mise <em>ou</em>
-              sa part, pas les deux. C'est le standard sain.
-              <div class="msg__actions">
-                <span class="chip chip--accent">Refusez le « participating »</span>
-                <span class="chip">Multiple > 1x ?</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <img class="hero__bg" src="goutte.png" alt="" aria-hidden="true" />
+    <div class="hero__badge"><span class="hero__dot"></span>Éditeur de term sheet · chaque clause décodée</div>
+    <h1>Comprenez et négociez<br>votre term sheet. <em>Sans avocat.</em></h1>
+    <p class="hero__sub">Chaque clause traduite en langage courant. Votre dilution calculée. Les points à négocier signalés — directement dans l'éditeur.</p>
+    <div class="hero__actions">
+      <a href="editor.html" class="btn-lg btn-lg--white">Décoder ma term sheet</a>
+      <a href="#how" class="btn-lg btn-lg--outline">Comment ça marche</a>
     </div>
+    <img class="hero__img" src="goutte.png" alt="" aria-hidden="true" />
   </section>
 
-  <!-- LOGOS -->
-  <section class="logos">
-    <div class="container">
-      <p class="logos__label">Ils ont négocié leur levée sans cabinet d'avocats</p>
-      <div class="logos__row">
-        <span>NovaPay</span><span>Bloom AI</span><span>Greenleaf</span><span>Korta</span><span>Studio Nine</span><span>Mistral.io</span>
-      </div>
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat">
+      <div class="stat__num">400 €/h</div>
+      <p>Le tarif moyen d'un avocat pour décortiquer une term sheet</p>
     </div>
-  </section>
-
-  <!-- PROBLEM -->
-  <section class="section">
-    <div class="container">
-      <div class="section__head">
-        <span class="eyebrow">Le constat</span>
-        <h2>Pourquoi payer un avocat pour relire votre term sheet ?</h2>
-        <p>Une term sheet, c'est 3 pages de jargon qui décident de votre dilution, de votre contrôle et de ce que vous toucherez à la sortie. Aujourd'hui vous payez un avocat pour vous l'expliquer. Plus maintenant.</p>
-      </div>
-      <div class="grid grid--3">
-        <div class="stat">
-          <div class="stat__num">400 €/h</div>
-          <p>le tarif moyen d'un avocat pour décortiquer et commenter une term sheet.</p>
-        </div>
-        <div class="stat">
-          <div class="stat__num">5–10 j</div>
-          <p>d'attente pour qu'un cabinet vous renvoie ses remarques — pendant que l'investisseur attend votre réponse.</p>
-        </div>
-        <div class="stat">
-          <div class="stat__num">73 %</div>
-          <p>des fondateurs signent une term sheet sans comprendre toutes les clauses qu'elle contient.</p>
-        </div>
-      </div>
+    <div class="stat">
+      <div class="stat__num">5–10 j</div>
+      <p>D'attente pour les remarques d'un cabinet juridique</p>
     </div>
-  </section>
+    <div class="stat">
+      <div class="stat__num">73 %</div>
+      <p>Des fondateurs signent sans comprendre toutes les clauses</p>
+    </div>
+  </div>
 
   <!-- FEATURES -->
-  <section class="section" id="features" style="padding-top:0;">
-    <div class="container">
-      <div class="section__head">
-        <span class="eyebrow">Ce que liquid + fait</span>
-        <h2>Tout ce qu'un avocat ferait sur votre term sheet</h2>
-        <p>Sauf que c'est instantané, illimité, et que ça ne vous coûte pas une facture par clause.</p>
-      </div>
-      <div class="grid grid--3">
-        <article class="feature">
-          <div class="feature__icon">01 — TRADUCTION</div>
+  <section class="section" id="features">
+    <div class="section__inner">
+      <span class="eyebrow">Ce que liquid + fait</span>
+      <h2 class="section__title">Tout ce qu'un avocat ferait sur votre term sheet</h2>
+      <p class="section__sub">Sauf que c'est instantané, illimité, et que ça ne coûte pas une facture par clause.</p>
+      <div class="cards">
+        <div class="card">
+          <div class="card__num">01 — Traduction</div>
           <h3>Chaque clause en clair</h3>
           <p>Liquidation preference, anti-dilution, vesting, drag-along… Chaque clause traduite en une phrase que vous comprenez vraiment.</p>
-        </article>
-        <article class="feature">
-          <div class="feature__icon">02 — VIGILANCE</div>
+        </div>
+        <div class="card">
+          <div class="card__num">02 — Vigilance</div>
           <h3>Les pièges signalés</h3>
           <p>liquid + pointe exactement ce qu'un avocat surlignerait : clauses agressives, multiples cachés, formulations à votre désavantage.</p>
-        </article>
-        <article class="feature">
-          <div class="feature__icon">03 — DILUTION</div>
+        </div>
+        <div class="card">
+          <div class="card__num">03 — Dilution</div>
           <h3>Votre dilution calculée</h3>
           <p>Pre-money, post-money, pool d'options : voyez en temps réel le pourcentage que vous cédez réellement.</p>
-        </article>
-        <article class="feature">
-          <div class="feature__icon">04 — NÉGOCIATION</div>
+        </div>
+        <div class="card">
+          <div class="card__num">04 — Négociation</div>
           <h3>Quoi négocier, et comment</h3>
           <p>Pour chaque point sensible, l'argument à renvoyer à l'investisseur et le standard de marché à invoquer.</p>
-        </article>
-        <article class="feature">
-          <div class="feature__icon">05 — ÉDITEUR</div>
+        </div>
+        <div class="card">
+          <div class="card__num">05 — Éditeur</div>
           <h3>Modifiez directement le texte</h3>
           <p>Un vrai traitement de texte : amendez les clauses, contre-proposez, exportez la version révisée en PDF.</p>
-        </article>
-        <article class="feature">
-          <div class="feature__icon">06 — GLOSSAIRE</div>
-          <h3>Le vocabulaire VC démystifié</h3>
-          <p>SAFE, BSA-AIR, ratchet, ESOP : un glossaire intégré pour ne plus jamais hocher la tête sans comprendre.</p>
-        </article>
+        </div>
+        <div class="card">
+          <div class="card__num">06 — Dossiers</div>
+          <h3>Tous vos documents, en ordre</h3>
+          <p>BSA-AIR, levée classique — suivez chaque étape juridique et glissez-déposez vos fichiers par phase.</p>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- HOW IT WORKS (dark) -->
-  <section class="section section--dark" id="how">
-    <div class="container">
-      <div class="section__head">
-        <span class="eyebrow" style="color:var(--on-dark-mut)">Comment ça marche</span>
-        <h2>Votre term sheet décodée en 3 étapes</h2>
-      </div>
+  <!-- HOW IT WORKS -->
+  <section class="section how" id="how">
+    <div class="section__inner">
+      <span class="eyebrow">Comment ça marche</span>
+      <h2 class="section__title">Votre term sheet décodée en 3 étapes</h2>
       <div class="steps">
         <div class="step">
           <span class="step__num">01</span>
           <div>
             <h3>Collez votre term sheet</h3>
-            <p>Copiez le texte reçu de l'investisseur dans l'éditeur, ou partez d'un modèle.</p>
+            <p>Copiez le texte reçu de l'investisseur dans l'éditeur, ou partez d'un modèle pré-rempli.</p>
           </div>
         </div>
         <div class="step">
@@ -183,46 +346,20 @@
           <span class="step__num">03</span>
           <div>
             <h3>Négociez et signez en confiance</h3>
-            <p>Amendez le texte, renvoyez votre contre-proposition à l'investisseur et signez en sachant exactement ce que vous signez.</p>
+            <p>Amendez le texte, renvoyez votre contre-proposition et signez en sachant exactement ce que vous signez.</p>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- TESTIMONIALS -->
-  <section class="section">
-    <div class="container">
-      <div class="section__head">
-        <span class="eyebrow">Témoignages</span>
-        <h2>Des fondateurs qui ont négocié seuls</h2>
-      </div>
-      <div class="grid grid--3 grid--plain">
-        <figure class="quote">
-          <blockquote>« J'ai compris ma liquidation preference et fait sauter le "participating" en relisant l'explication de liquid +. Mon avocat m'aurait facturé ça 800 €. »</blockquote>
-          <figcaption><span class="avatar">CM</span> Camille M. — CEO, NovaPay</figcaption>
-        </figure>
-        <figure class="quote">
-          <blockquote>« Reçu la term sheet à 23h, tout décodé avant minuit. J'ai renvoyé mes contre-propositions le lendemain matin, sans attendre un cabinet. »</blockquote>
-          <figcaption><span class="avatar">TL</span> Thomas L. — Fondateur, Bloom AI</figcaption>
-        </figure>
-        <figure class="quote">
-          <blockquote>« Pour la première fois j'ai signé une levée en comprenant chaque ligne. Zéro avocat, zéro angle mort. »</blockquote>
-          <figcaption><span class="avatar">SR</span> Sofia R. — COO, Greenleaf</figcaption>
-        </figure>
-      </div>
-    </div>
-  </section>
-
   <!-- PRICING -->
-  <section class="section" id="pricing" style="padding-top:0;">
-    <div class="container">
-      <div class="section__head">
-        <span class="eyebrow">Tarifs</span>
-        <h2>Le prix d'une heure d'avocat. Pour toutes vos term sheets.</h2>
-        <p>Annulable à tout moment. 14 jours d'essai gratuit, sans carte bancaire.</p>
-      </div>
-      <div class="grid grid--3 pricing">
+  <section class="section" id="pricing">
+    <div class="section__inner">
+      <span class="eyebrow">Tarifs</span>
+      <h2 class="section__title">Le prix d'une heure d'avocat. Pour toutes vos term sheets.</h2>
+      <p class="section__sub">14 jours d'essai gratuit, sans carte bancaire. Annulable à tout moment.</p>
+      <div class="plans">
         <div class="plan">
           <h3>Découverte</h3>
           <div class="plan__price">0 €<span>/mois</span></div>
@@ -234,7 +371,7 @@
             <li class="muted">Conseils de négociation</li>
             <li class="muted">Export PDF</li>
           </ul>
-          <a href="register.html" class="btn btn--ghost btn--block">Commencer</a>
+          <a href="register.html" class="btn-plan">Commencer</a>
         </div>
         <div class="plan plan--featured">
           <span class="plan__badge">Le plus choisi</span>
@@ -248,7 +385,7 @@
             <li>Éditeur + export PDF</li>
             <li>Glossaire VC intégré</li>
           </ul>
-          <a href="register.html" class="btn btn--light btn--block">Démarrer l'essai gratuit</a>
+          <a href="register.html" class="btn-plan">Démarrer l'essai gratuit</a>
         </div>
         <div class="plan">
           <h3>Scale</h3>
@@ -258,69 +395,39 @@
             <li>Tout le plan Founder</li>
             <li>Multi-utilisateurs</li>
             <li>Comparaison de term sheets</li>
-            <li>Validation par avocat partenaire (option)</li>
+            <li>Validation par avocat partenaire</li>
             <li>Support prioritaire</li>
           </ul>
-          <a href="#" class="btn btn--ghost btn--block">Contacter l'équipe</a>
+          <a href="#" class="btn-plan">Contacter l'équipe</a>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- FAQ -->
-  <section class="section" id="faq" style="padding-top:0;">
-    <div class="container container--narrow">
-      <div class="section__head">
-        <span class="eyebrow">FAQ</span>
-        <h2>Questions fréquentes</h2>
-      </div>
-      <div class="faq">
-        <details>
-          <summary>liquid + remplace-t-il vraiment mon avocat sur la term sheet ?</summary>
-          <p>Pour comprendre et négocier votre term sheet, oui : vous obtenez la même lecture clause par clause, les mêmes points de vigilance et les standards de marché — instantanément. Pour le closing juridique final d'un tour complexe, vous pouvez activer en option une validation par un avocat partenaire.</p>
-        </details>
-        <details>
-          <summary>Les explications sont-elles fiables ?</summary>
-          <p>Nos décodages de clauses sont rédigés et tenus à jour par des juristes et des experts du financement de startups, en s'appuyant sur les standards de marché des levées en France et en Europe.</p>
-        </details>
-        <details>
-          <summary>Mes données sont-elles sécurisées ?</summary>
-          <p>Votre term sheet est chiffrée, hébergée en Europe et conforme au RGPD. Vous restez l'unique propriétaire de vos documents.</p>
-        </details>
-        <details>
-          <summary>Puis-je annuler à tout moment ?</summary>
-          <p>Oui, sans engagement. Vous gardez l'accès à vos term sheets décodées même après résiliation.</p>
-        </details>
       </div>
     </div>
   </section>
 
   <!-- CTA -->
   <section class="cta">
-    <div class="container cta__inner">
-      <h2>Votre prochaine term sheet, négociée sans avocat.</h2>
-      <p>Rejoignez les milliers de fondateurs qui comprennent et négocient leur levée en autonomie.</p>
-      <a href="register.html" class="btn btn--light btn--lg">Décoder ma term sheet</a>
-    </div>
+    <img class="cta__img" src="goutte.png" alt="" aria-hidden="true" />
+    <h2>Votre prochaine term sheet,<br>négociée sans avocat.</h2>
+    <p>Rejoignez les fondateurs qui comprennent et négocient leur levée en autonomie.</p>
+    <a href="register.html" class="btn-lg btn-lg--white">Décoder ma term sheet</a>
   </section>
 
   <!-- FOOTER -->
   <footer class="footer">
-    <div class="container footer__inner">
-      <div class="footer__brand">
-        <a href="#top" class="brand">liquid <span class="brand__plus">+</span></a>
+    <div class="footer__inner">
+      <div class="footer__col footer__brand">
+        <a href="#" class="brand">liquid <span>+</span></a>
         <p>Le décrypteur de term sheet des fondateurs de startup.</p>
       </div>
       <div class="footer__col">
         <h4>Produit</h4>
-        <a href="#features">Ce que liquid + fait</a>
+        <a href="#features">Fonctionnalités</a>
         <a href="#pricing">Tarifs</a>
-        <a href="#how">Démo</a>
+        <a href="#how">Comment ça marche</a>
       </div>
       <div class="footer__col">
         <h4>Ressources</h4>
         <a href="#">Guide de la term sheet</a>
-        <a href="#faq">FAQ</a>
         <a href="#">Glossaire VC</a>
       </div>
       <div class="footer__col">
@@ -330,13 +437,13 @@
         <a href="#">CGU</a>
       </div>
     </div>
-    <div class="container footer__bottom">
-      <span>© 2026 liquid +. liquid + vous rend autonome sur la lecture et la négociation de votre term sheet ; il ne se substitue pas à un conseil juridique personnalisé pour les cas complexes.</span>
+    <div class="footer__bottom">
+      © 2026 liquid +. liquid + vous rend autonome sur la lecture et la négociation de votre term sheet ; il ne se substitue pas à un conseil juridique personnalisé pour les cas complexes.
     </div>
   </footer>
 
   <script src="script.js"></script>
   <script src="auth.js"></script>
-  <script>refreshNav();</script>
+  <script>if (typeof refreshNav === 'function') refreshNav();</script>
 </body>
 </html>
