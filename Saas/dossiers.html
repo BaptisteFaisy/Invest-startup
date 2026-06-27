@@ -589,6 +589,7 @@
       const st     = (f.items_state || {})[slug] || {};
       const doc    = st.document_id != null ? docs.find(d => d.id === st.document_id) : null;
       const linked = !!doc;
+      const final  = linked && !!st.final;
       const mark   = (f.marks || [])[idx] || '';
       const badge  = mark === 'req'
         ? '<span class="bsa-item__note bsa-item__note--req">Indispensable</span>'
@@ -646,6 +647,18 @@
           dl.href = '/api/saas/documents/' + doc.id + '/download';
           acts.appendChild(dl);
         }
+        // Valider / Annuler la validation du document lié.
+        const valBadge = document.createElement('span');
+        valBadge.className = 'fbtn--status' + (final ? ' fbtn--status--ok' : '');
+        valBadge.textContent = final ? 'Validé' : 'En attente';
+
+        const valBtn = document.createElement('button');
+        valBtn.className = 'fbtn fbtn--mini' + (final ? '' : ' fbtn--ok');
+        valBtn.textContent = final ? 'Annuler' : 'Valider';
+        valBtn.addEventListener('click', () => setFinal(f.id, slug, !final));
+        acts.appendChild(valBadge);
+        acts.appendChild(valBtn);
+
         const un = document.createElement('button');
         un.className = 'fbtn fbtn--mini fbtn--del';
         un.textContent = '✕';
@@ -771,26 +784,6 @@
         dl.href = '/api/saas/documents/' + d.id + '/download';
         actions.appendChild(dl);
       }
-
-      // Badge statut + bouton Valider / Annuler.
-      const badge = document.createElement('span');
-      badge.className = 'fbtn fbtn--status' + (d.validated ? ' fbtn--status--ok' : '');
-      badge.textContent = d.validated ? 'Validé' : 'En attente';
-
-      const valBtn = document.createElement('button');
-      valBtn.className = 'fbtn' + (d.validated ? '' : ' fbtn--ok');
-      valBtn.textContent = d.validated ? 'Annuler' : 'Valider';
-      valBtn.addEventListener('click', async () => {
-        valBtn.disabled = true;
-        const newVal = !d.validated;
-        const r = await fetch('/api/saas/documents/' + d.id + '/validate', {
-          method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-          credentials: 'include', body: JSON.stringify({ validated: newVal }),
-        });
-        if (r.ok) { d.validated = newVal; render(); } else valBtn.disabled = false;
-      });
-      actions.appendChild(badge);
-      actions.appendChild(valBtn);
 
       const del = document.createElement('button');
       del.className = 'fbtn fbtn--del';
