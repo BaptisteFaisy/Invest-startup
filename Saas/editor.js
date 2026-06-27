@@ -1826,29 +1826,91 @@ function paintAdvice(tips, note) {
     : '<p class="library__empty">Aucun conseil pour ce document.</p>';
 }
 
+function navigateToPlaceholder(clauseKey, placeholderText) {
+  const clauseEl = page.querySelector(`.ts-clause[data-key="${clauseKey}"]`);
+  if (clauseEl) {
+    const walker = document.createTreeWalker(clauseEl, NodeFilter.SHOW_TEXT, null, false);
+    let node;
+    while ((node = walker.nextNode())) {
+      const idx = node.textContent.indexOf(placeholderText);
+      if (idx !== -1) {
+        const range = document.createRange();
+        range.setStart(node, idx);
+        range.setEnd(node, idx + placeholderText.length);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        clauseEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+    }
+  }
+  // Champ déjà rempli → aller au prochain champ non rempli
+  const next = findPlaceholders()[0];
+  if (next) navigateToPlaceholder(next.key, next.text);
+  else if (isCustom) renderDocAdvice();
+}
+
+function buildPhHtml(pList) {
+  if (!pList.length) return '';
+  return `<div class="lib-sep">Champs à renseigner — ${pList.length}</div>` +
+    pList.map((p, i) => `
+      <div class="advitem" style="border-left-color:#dc2626">
+        <div class="advitem__label">${advEsc(p.text)}</div>
+        <p class="advitem__watch">→ ${advEsc(p.clauseLabel)}</p>
+        <button class="advitem__go" data-ph-idx="${i}" type="button">Aller à ce champ →</button>
+      </div>`).join('');
+}
+
+function buildAiHtml(tips) {
+  if (!tips || !tips.length) return '';
+  return `<div class="lib-sep">Conseils IA — ${tips.length}</div>` +
+    tips.map(t => {
+      const target = findClauseForTip(t.title + ' ' + t.body);
+      const goBtn  = target
+        ? `<button class="advitem__go" data-scroll-to="${target.dataset.key}" type="button">Aller au paragraphe →</button>`
+        : '';
+      return `<div class="advitem" style="border-left-color:#1f8e7a">
+        <div class="advitem__label">${advEsc(t.title)}</div>
+        <p class="advitem__watch">${advEsc(t.body)}</p>
+        ${goBtn}
+      </div>`;
+    }).join('');
+}
+
 // Conseils SPÉCIFIQUES au document, générés par l'IA à partir de son contenu réel.
 async function renderDocAdvice() {
-  const local = placeholderTip();
-  if (docAdviceCache) { paintAdvice(local.concat(docAdviceCache)); return; }
-  paintAdvice(local, 'Analyse du document en cours…');
+  const ph = findPlaceholders();
+  adviceCount.textContent = ph.length
+    ? `${ph.length} champ${ph.length > 1 ? 's' : ''} à renseigner`
+    : 'Analyse du document…';
+
+  if (docAdviceCache) {
+    adviceList.innerHTML = buildPhHtml(ph) + buildAiHtml(docAdviceCache)
+      || '<p class="library__empty">Aucun conseil pour ce document.</p>';
+    adviceCount.textContent = `${ph.length} champ${ph.length !== 1 ? 's' : ''} à renseigner · ${docAdviceCache.length} conseil${docAdviceCache.length !== 1 ? 's' : ''}`;
+    return;
+  }
+
+  adviceList.innerHTML = buildPhHtml(ph) +
+    `<div class="lib-sep">Conseils IA</div><p class="library__empty" style="padding:10px 0">Analyse en cours…</p>`;
+
   try {
     const title = (docNameEl && docNameEl.textContent)
       || (page.querySelector('.doc-title') ? page.querySelector('.doc-title').textContent : 'Document');
-    const text = page.innerText || '';
     const r = await fetch('/api/saas/doc-advice', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', body: JSON.stringify({ title, text }),
+      credentials: 'include', body: JSON.stringify({ title, text: page.innerText || '' }),
     });
     const data = await r.json().catch(() => ({}));
-    if (r.ok && Array.isArray(data.tips) && data.tips.length) {
-      docAdviceCache = data.tips;
-      if (isCustom) paintAdvice(local.concat(data.tips));
-    } else if (isCustom) {
-      paintAdvice(local, local.length ? null : 'Conseils indisponibles pour le moment.');
-    }
-  } catch {
-    if (isCustom) paintAdvice(local, local.length ? null : 'Conseils indisponibles pour le moment.');
-  }
+    if (r.ok && Array.isArray(data.tips) && data.tips.length) docAdviceCache = data.tips;
+  } catch {}
+
+  if (!isCustom) return;
+  const freshPh = findPlaceholders();
+  adviceList.innerHTML = buildPhHtml(freshPh) + buildAiHtml(docAdviceCache)
+    || '<p class="library__empty">Aucun conseil pour ce document.</p>';
+  adviceCount.textContent = `${freshPh.length} champ${freshPh.length !== 1 ? 's' : ''} à renseigner` +
+    (docAdviceCache && docAdviceCache.length ? ` · ${docAdviceCache.length} conseil${docAdviceCache.length !== 1 ? 's' : ''}` : '');
 }
 
 function findPlaceholders() {
@@ -1943,6 +2005,16 @@ function flashClause(el) {
 adviceList.addEventListener('click', (e) => {
   const addBtn = e.target.closest('[data-add-adv]');
   if (addBtn) { addToContract(addBtn.dataset.addAdv); return; }
+
+  const phBtn = e.target.closest('[data-ph-idx]');
+  if (phBtn) {
+    const idx = parseInt(phBtn.dataset.phIdx, 10);
+    const ph  = findPlaceholders();
+    const p   = ph[idx] ?? ph[0];
+    if (p) navigateToPlaceholder(p.key, p.text);
+    else if (isCustom) renderDocAdvice();
+    return;
+  }
 
   const btn = e.target.closest('[data-go]');
   if (btn) {
