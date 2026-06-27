@@ -223,6 +223,9 @@
 
       <div id="error" class="err" hidden></div>
 
+      <!-- Reprendre : dernier document ouvert (accès rapide) -->
+      <div id="resume"></div>
+
       <!-- Choix du type de levée -->
       <div class="raise-switch">
         <span class="raise-switch__label">Type de levée</span>
@@ -433,12 +436,45 @@
         if (fr.status === 401 || dr.status === 401) { window.location.href = 'login.html'; return; }
         folders = (await fr.json()).folders || [];
         docs    = (await dr.json()).documents || [];
+        renderResume();
         render();
         loaded = true;
       } catch {
         foldersEl.innerHTML = '';
         showErr('Impossible de charger vos dossiers.');
       }
+    }
+
+    // Carte « Reprendre » : accès rapide au dernier document ouvert dans l'éditeur.
+    // On privilégie le document mémorisé par l'éditeur (liquid_last_doc), sinon le
+    // dernier termsheet modifié. Affichée en haut, indépendamment du parcours.
+    function renderResume() {
+      const host = document.getElementById('resume');
+      if (!host) return;
+      let target = null;
+      try {
+        const raw = localStorage.getItem('liquid_last_doc');
+        if (raw) {
+          const o = JSON.parse(raw);
+          if (o && o.id != null) target = docs.find(d => d.id === o.id && d.kind === 'termsheet') || null;
+        }
+      } catch { /* pas de dernier doc mémorisé */ }
+      if (!target) {
+        target = docs
+          .filter(d => d.kind === 'termsheet')
+          .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))[0] || null;
+      }
+      if (!target) { host.innerHTML = ''; return; }
+      host.innerHTML = `
+        <div class="section-label">Reprendre où vous en étiez</div>
+        <div class="feature-doc">
+          <div class="feature-doc__ic">TS</div>
+          <div class="feature-doc__main">
+            <div class="feature-doc__name">${esc(target.name)}</div>
+            <div class="feature-doc__meta">Dernier document ouvert · modifié le ${fmtDate(target.updated_at || target.created_at)}</div>
+          </div>
+          <a href="editor.html?doc=${target.id}" class="btn btn--light">Ouvrir</a>
+        </div>`;
     }
 
     function render() {

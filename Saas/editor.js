@@ -1264,6 +1264,8 @@ function applyTermsheet(id, html, name) {
   isCustom = false;
   docAdviceCache = null;
   if (docNameEl) docNameEl.textContent = name || 'Term sheet';
+  // Mémorise le dernier document ouvert pour l'accès rapide « Reprendre » des dossiers.
+  if (id != null) { try { localStorage.setItem('liquid_last_doc', JSON.stringify({ id, name: name || 'Term sheet' })); } catch {} }
   if (isCustomDocument()) adoptDocumentClauses();
   else syncModelFromDOM();
 
