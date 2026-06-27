@@ -1790,7 +1790,7 @@ function clauseBlock(key, label, bodyHtml) {
 
 function docxHtmlToEditorPage(rawHtml, docName) {
   const blocks = topLevelBlocks(rawHtml).filter(b => stripHtml(b) || /<(img|table)/i.test(b));
-  if (!blocks.length) return clauseBlock('c1', docName || 'Document', '<p></p>');
+  if (!blocks.length) return clauseBlock('c1', (docName || 'Document').replace(/\.[^.]+$/, '') || 'Document', '<p></p>');
 
   let cur = null, n = 0;
 
@@ -1850,7 +1850,10 @@ app.post('/api/saas/documents/:id/to-editor', requireAuth, async (req, res) => {
 
   try {
     const result   = await mammoth.convertToHtml({ buffer: docBuf });
-    const pageHtml  = docxHtmlToEditorPage(result.value || '', doc.name);
+    const rawHtml  = result.value || '';
+    if (!rawHtml.trim())
+      return res.status(422).json({ error: 'Le fichier DOCX est vide ou illisible. Vérifiez qu\'il s\'agit bien d\'un fichier Word (.docx) valide.' });
+    const pageHtml  = docxHtmlToEditorPage(rawHtml, doc.name);
     const baseName  = (doc.name || doc.originalname || 'Document').replace(/\.[^.]+$/, '');
     const now       = new Date().toISOString();
     const newId     = await nextId('saas_documents');
