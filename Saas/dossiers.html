@@ -473,7 +473,8 @@
             <div class="feature-doc__name">${esc(target.name)}</div>
             <div class="feature-doc__meta">Dernier document ouvert · modifié le ${fmtDate(target.updated_at || target.created_at)}</div>
           </div>
-          <a href="editor.html?doc=${target.id}" class="btn btn--light">Ouvrir</a>
+          <a href="editor.html?doc=${target.id}" class="btn btn--light">Éditer</a>
+          <a href="/api/saas/documents/${target.id}/download" class="btn btn--light">Télécharger</a>
         </div>`;
     }
 
@@ -619,9 +620,14 @@
         if (doc.kind === 'termsheet') {
           const op = document.createElement('a');
           op.className = 'fbtn fbtn--mini fbtn--accent';
-          op.textContent = 'Ouvrir';
+          op.textContent = 'Éditer';
           op.href = 'editor.html?doc=' + doc.id;
           acts.appendChild(op);
+          const dl = document.createElement('a');
+          dl.className = 'fbtn fbtn--mini';
+          dl.textContent = 'Télécharger';
+          dl.href = '/api/saas/documents/' + doc.id + '/download';
+          acts.appendChild(dl);
         } else {
           const docExt = ext(doc.originalname || doc.name);
           if (docExt === 'docx' || docExt === 'doc') {
@@ -732,9 +738,14 @@
       if (isTermsheet) {
         const open = document.createElement('a');
         open.className = 'fbtn fbtn--accent';
-        open.textContent = 'Ouvrir';
+        open.textContent = 'Éditer';
         open.href = 'editor.html?doc=' + d.id;
         actions.appendChild(open);
+        const dl = document.createElement('a');
+        dl.className = 'fbtn';
+        dl.textContent = 'Télécharger';
+        dl.href = '/api/saas/documents/' + d.id + '/download';
+        actions.appendChild(dl);
       } else {
         if (e === 'docx' || e === 'doc') {
           const ed = document.createElement('button');

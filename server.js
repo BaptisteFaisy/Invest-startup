@@ -1533,6 +1533,17 @@ app.get('/api/saas/documents/:id/download', requireAuth, async (req, res) => {
   const doc = await col('saas_documents').findOne({ id, user_id: req.user.id });
   if (!doc) return res.status(404).json({ error: 'Document introuvable' });
 
+  // Term sheet : pas de fichier binaire, on génère un HTML téléchargeable.
+  if (doc.kind === 'termsheet') {
+    if (!doc.html) return res.status(404).json({ error: 'Document vide.' });
+    const baseName = (doc.name || 'document').replace(/\.[^.]+$/, '');
+    const html = buildExportHtml(doc.html, baseName);
+    const filename = encodeURIComponent(baseName + '.html');
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${filename}`);
+    return res.send(html);
+  }
+
   const buf = toBuffer(doc.data);
   if (!buf) return res.status(404).json({ error: 'Fichier introuvable' });
 
