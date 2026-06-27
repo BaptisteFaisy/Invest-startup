@@ -1639,6 +1639,9 @@ app.post('/api/saas/documents/:id/convert', requireAuth, async (req, res) => {
 // que la ré-importation puisse redécouper le document à l'identique.
 function editorHtmlToSemantic(html) {
   let s = String(html || '');
+  // Retire les blocs techniques de l'analyse bakée (conditions / conseils embarqués)
+  // pour qu'ils n'apparaissent pas dans le fichier exporté.
+  s = s.replace(/<script[\s\S]*?<\/script>/gi, '');
   // Clause : label -> <h2>, contenu déballé.
   s = s.replace(/<div class="ts-clause"[^>]*>\s*<div class="ts-label">([\s\S]*?)<\/div>\s*<div class="ts-content">([\s\S]*?)<\/div>\s*<\/div>/gi,
     (m, label, body) => `<h2>${label}</h2>\n${body}`);
@@ -1676,10 +1679,20 @@ async function convertHtmlToFile(html, baseName, outputFormat) {
   return convertViaCloudConvert(buffer, baseName + '.html', outputFormat);
 }
 
-app.post('/api/saas/termsheets/:id/export', requireAuth, async (req, res) => {
-  if (!cloudConvert)
-    return res.status(503).json({ error: 'Conversion non configurée : ajoutez CLOUDCONVERT_API_KEY dans le .env du serveur.' });
+// Enregistre un fichier exporté comme document de l'utilisateur et renvoie sa vue publique.
+async function saveExportedDoc(userId, srcDoc, baseName, ext, mimetype, fileBuf) {
+  const newId  = await nextId('saas_documents');
+  const newDoc = {
+    id: newId, user_id: userId, folder_id: srcDoc.folder_id,
+    name: `${baseName}.${ext}`, originalname: `${baseName}.${ext}`,
+    mimetype, size: fileBuf.length, data: fileBuf,
+    created_at: new Date().toISOString(), exported_from: srcDoc.id,
+  };
+  await col('saas_documents').insertOne(newDoc);
+  return publicDoc(newDoc);
+}
 
+app.post('/api/saas/termsheets/:id/export', requireAuth, async (req, res) => {
   const id     = Number(req.params.id);
   const target = String(req.body?.to || '').toLowerCase();
   if (!['pdf', 'docx'].includes(target))
@@ -1692,26 +1705,44 @@ app.post('/api/saas/termsheets/:id/export', requireAuth, async (req, res) => {
   const baseName = (doc.name || 'document').replace(/\.[^.]+$/, '').trim() || 'document';
   const html     = buildExportHtml(doc.html, baseName);
 
-  try {
-    const out     = await convertHtmlToFile(html, baseName, target);
-    const fileBuf = await downloadToBuffer(out.url);
+  // PDF : nécessite CloudConvert (le bouton « Exporter en PDF » de l'éditeur passe,
+  // lui, par l'impression du navigateur et ne dépend pas de cet endpoint).
+  if (target === 'pdf') {
+    if (!cloudConvert)
+      return res.status(503).json({ error: 'Export PDF serveur non configuré : utilisez le bouton « Exporter en PDF ».' });
+    try {
+      const out     = await convertHtmlToFile(html, baseName, 'pdf');
+      const fileBuf = await downloadToBuffer(out.url);
+      return res.status(201).json({ document: await saveExportedDoc(req.user.id, doc, baseName, 'pdf', 'application/pdf', fileBuf) });
+    } catch (err) {
+      console.error('CloudConvert export error (pdf):', err.message);
+      return res.status(502).json({ error: 'L\'export PDF a échoué. Réessayez.' });
+    }
+  }
 
-    const newId  = await nextId('saas_documents');
-    const newDoc = {
-      id: newId, user_id: req.user.id, folder_id: doc.folder_id,
-      name: `${baseName}.${target}`, originalname: `${baseName}.${target}`,
-      mimetype: target === 'pdf'
-        ? 'application/pdf'
-        : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      size: fileBuf.length, data: fileBuf,
-      created_at: new Date().toISOString(),
-      exported_from: doc.id,
-    };
-    await col('saas_documents').insertOne(newDoc);
-    res.status(201).json({ document: publicDoc(newDoc) });
+  // Word : vrai .docx via CloudConvert si disponible (ré-importable dans l'éditeur)…
+  if (cloudConvert) {
+    try {
+      const out     = await convertHtmlToFile(html, baseName, 'docx');
+      const fileBuf = await downloadToBuffer(out.url);
+      return res.status(201).json({
+        document: await saveExportedDoc(req.user.id, doc, baseName, 'docx',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document', fileBuf),
+      });
+    } catch (err) {
+      console.error('CloudConvert export error (docx → repli .doc):', err.message);
+      // on bascule vers le repli ci-dessous plutôt que d'échouer
+    }
+  }
+
+  // … sinon repli sans dépendance externe : fichier .doc (HTML balisé) que Word ouvre
+  // nativement en conservant titres, tableaux et mise en forme.
+  try {
+    const fileBuf = Buffer.from(html, 'utf8');
+    return res.status(201).json({ document: await saveExportedDoc(req.user.id, doc, baseName, 'doc', 'application/msword', fileBuf) });
   } catch (err) {
-    console.error('CloudConvert export error:', err.message);
-    res.status(502).json({ error: 'L\'export a échoué. Réessayez.' });
+    console.error('Export .doc error:', err.message);
+    return res.status(502).json({ error: 'L\'export Word a échoué. Réessayez.' });
   }
 });
 
