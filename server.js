@@ -1825,7 +1825,10 @@ function docxHtmlToEditorPage(rawHtml, docName) {
     const txt = stripHtml(b);
     if (!cur || SECTION_RE.test(txt)) {
       const label = txt.split(/[.:—–]/)[0].split(/\s+/).slice(0, 9).join(' ');
-      push(label || ('Paragraphe ' + (n + 1)), b);
+      // N'inclure le bloc dans le corps que s'il contient plus que le seul titre
+      // (évite d'afficher le titre à la fois dans la colonne label et dans le texte).
+      const hasBody = txt.length > label.length + 5;
+      push(label || ('Paragraphe ' + (n + 1)), hasBody ? b : null);
     } else cur.body.push(b);
   });
   return clauses.map(c => clauseBlock(c.key, c.label, c.body.join('\n'))).join('\n');

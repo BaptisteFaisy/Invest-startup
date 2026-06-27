@@ -54,7 +54,7 @@ let TERMSHEET = [
   /* ----- DROITS FINANCIERS ----- */
   {
     key: 'liquidation', group: 'Droits financiers des Investisseurs', label: 'Clause de liquidation préférentielle', risk: 'high',
-    html: `<p>Clause de liquidation préférentielle des Investisseurs par laquelle, en cas de cession de la Société, le prix de cession serait réparti comme suit :</p>
+    html: `<p>En cas de cession de la Société, le prix de cession est réparti entre les Investisseurs comme suit :</p>
            <ol type="i">
              <li>en premier lieu, à hauteur de 10% entre tous les Associés au prorata de leur participation dans le capital de la Société ;</li>
              <li>en second lieu, remboursement du prix de souscription ou d'acquisition des actions détenues par les Investisseurs, déduction faite des versements reçus en premier lieu ;</li>
@@ -75,7 +75,7 @@ let TERMSHEET = [
   },
   {
     key: 'antidilution', group: 'Droits financiers des Investisseurs', label: 'Clause d’anti-dilution', risk: 'low',
-    html: `<p>Clause d'anti-dilution de l'Investisseur Majoritaire lui permettant, lors des financements futurs de la Société, de conserver sa détention en participant auxdits financements.</p>`,
+    html: `<p>L'Investisseur Majoritaire dispose d'un droit lui permettant, lors des financements futurs de la Société, de conserver sa détention en participant auxdits financements.</p>`,
     plain: `Droit de l'Investisseur Majoritaire de participer aux futures levées pour maintenir son pourcentage (droit de pro rata / souscription préférentielle).`,
     why: `Lui permet de ne pas être dilué aux tours suivants en réinvestissant à ses côtés.`,
     watch: `Peu risqué : c'est un droit de « suivre », pas une compensation gratuite. Vérifiez qu'il se limite à son pro rata et ne lui réserve pas une part disproportionnée des prochains tours.`,
