@@ -1140,7 +1140,7 @@ const FUNDRAISING_PHASES = [
       'Pacte d’associés (shareholders agreement)',
       'Statuts modifiés (actions de préférence)',
       'Contrat / bulletin de souscription',
-      ‘Déclarations & garanties — R&W (intégrées au pacte)’,
+      'Déclarations & garanties — R&W (intégrées au pacte)',
       'Termes des valeurs mobilières émises (ADP, BSA, OC)',
       'Rapport du commissaire aux comptes / aux apports',
     ],
