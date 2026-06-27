@@ -1769,6 +1769,8 @@ libraryList.addEventListener('click', (e) => {
 /* ---------- Onglet « Conseil » : points à négocier, par priorité ---------- */
 const adviceList  = document.getElementById('advice-list');
 const adviceCount = document.getElementById('advice-count');
+const fillList    = document.getElementById('fill-list');
+const fillCount   = document.getElementById('fill-count');
 
 const PRIORITY = [
   { label: 'Priorité haute',   color: '#dc2626' },
@@ -1847,7 +1849,7 @@ function navigateToPlaceholder(clauseKey, placeholderText) {
   // Champ déjà rempli → aller au prochain champ non rempli
   const next = findPlaceholders()[0];
   if (next) navigateToPlaceholder(next.key, next.text);
-  else if (isCustom) renderDocAdvice();
+  else renderFill();
 }
 
 function buildPhHtml(pList) {
@@ -1877,22 +1879,42 @@ function buildAiHtml(tips) {
     }).join('');
 }
 
-// Conseils SPÉCIFIQUES au document, générés par l'IA à partir de son contenu réel.
-async function renderDocAdvice() {
+function renderFill() {
   const ph = findPlaceholders();
-  adviceCount.textContent = ph.length
-    ? `${ph.length} champ${ph.length > 1 ? 's' : ''} à renseigner`
-    : 'Analyse du document…';
+  fillCount.textContent = ph.length
+    ? `${ph.length} champ${ph.length > 1 ? 's' : ''} à compléter`
+    : 'Tous les champs sont renseignés';
+  fillList.innerHTML = ph.length
+    ? ph.map((p, i) => `
+        <div class="libitem">
+          <div class="libitem__top"><span class="libitem__group">${advEsc(p.clauseLabel)}</span></div>
+          <div class="libitem__label">${advEsc(p.text)}</div>
+          <button class="libitem__add libitem__add--see" data-ph-fill="${i}" type="button">Aller à ce champ →</button>
+        </div>`).join('')
+    : '<p class="library__empty">Tous les champs ont été renseignés.</p>';
+}
 
+fillList.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-ph-fill]');
+  if (!btn) return;
+  const idx = parseInt(btn.dataset.phFill, 10);
+  const ph  = findPlaceholders();
+  const p   = ph[idx] ?? ph[0];
+  if (p) navigateToPlaceholder(p.key, p.text);
+  else renderFill();
+});
+
+// Conseils SPÉCIFIQUES au document, générés par l'IA (champs déplacés dans "À remplir").
+async function renderDocAdvice() {
   if (docAdviceCache) {
-    adviceList.innerHTML = buildPhHtml(ph) + buildAiHtml(docAdviceCache)
+    adviceList.innerHTML = buildAiHtml(docAdviceCache)
       || '<p class="library__empty">Aucun conseil pour ce document.</p>';
-    adviceCount.textContent = `${ph.length} champ${ph.length !== 1 ? 's' : ''} à renseigner · ${docAdviceCache.length} conseil${docAdviceCache.length !== 1 ? 's' : ''}`;
+    adviceCount.textContent = `${docAdviceCache.length} conseil${docAdviceCache.length !== 1 ? 's' : ''}`;
     return;
   }
 
-  adviceList.innerHTML = buildPhHtml(ph) +
-    `<div class="lib-sep">Conseils IA</div><p class="library__empty" style="padding:10px 0">Analyse en cours…</p>`;
+  adviceCount.textContent = 'Analyse du document…';
+  adviceList.innerHTML = '<p class="library__empty" style="padding:10px 0">Analyse en cours…</p>';
 
   try {
     const title = (docNameEl && docNameEl.textContent)
@@ -1906,11 +1928,11 @@ async function renderDocAdvice() {
   } catch {}
 
   if (!isCustom) return;
-  const freshPh = findPlaceholders();
-  adviceList.innerHTML = buildPhHtml(freshPh) + buildAiHtml(docAdviceCache)
-    || '<p class="library__empty">Aucun conseil pour ce document.</p>';
-  adviceCount.textContent = `${freshPh.length} champ${freshPh.length !== 1 ? 's' : ''} à renseigner` +
-    (docAdviceCache && docAdviceCache.length ? ` · ${docAdviceCache.length} conseil${docAdviceCache.length !== 1 ? 's' : ''}` : '');
+  adviceList.innerHTML = buildAiHtml(docAdviceCache)
+    || '<p class="library__empty">Conseils indisponibles pour le moment.</p>';
+  adviceCount.textContent = docAdviceCache && docAdviceCache.length
+    ? `${docAdviceCache.length} conseil${docAdviceCache.length !== 1 ? 's' : ''}`
+    : '';
 }
 
 function findPlaceholders() {
@@ -1932,8 +1954,7 @@ function findPlaceholders() {
 function renderAdvice() {
   if (isCustom) { renderDocAdvice(); return; }
 
-  const placeholders = findPlaceholders();
-  const toNegotiate  = TERMSHEET
+  const toNegotiate = TERMSHEET
     .filter(c => c.inDoc && c.watch && (c.risk !== 'low' || (BIAS[c.key] || 3) >= 3))
     .sort((a, b) => {
       const ta = priorityTier(a), tb = priorityTier(b);
@@ -1942,27 +1963,17 @@ function renderAdvice() {
     });
   const toAdd = TERMSHEET.filter(c => !c.inDoc && c.watch && (c.risk === 'high' || c.risk === 'mid'));
 
-  const total = placeholders.length + toNegotiate.length + toAdd.length;
+  const total = toNegotiate.length + toAdd.length;
   adviceCount.textContent = total
-    ? `${total} action${total > 1 ? 's' : ''} à réaliser`
-    : 'Aucune action requise pour ce document.';
+    ? `${total} point${total > 1 ? 's' : ''} à traiter`
+    : 'Aucun point à négocier.';
 
   if (!total) {
-    adviceList.innerHTML = `<p class="library__empty">Tout est en ordre — aucune action requise.</p>`;
+    adviceList.innerHTML = `<p class="library__empty">Aucun point à négocier pour ce document.</p>`;
     return;
   }
 
   let html = '';
-
-  if (placeholders.length) {
-    html += `<div class="lib-sep">Champs à renseigner — ${placeholders.length}</div>`;
-    html += placeholders.map(p => `
-      <div class="advitem" style="border-left-color:#dc2626">
-        <div class="advitem__label">${advEsc(p.text)}</div>
-        <p class="advitem__watch">Clause « ${advEsc(p.clauseLabel)} »</p>
-        <button class="advitem__go" data-go="${p.key}" type="button">Aller à la clause →</button>
-      </div>`).join('');
-  }
 
   if (toNegotiate.length) {
     html += `<div class="lib-sep">Points à négocier — ${toNegotiate.length}</div>`;
@@ -2037,18 +2048,19 @@ adviceList.addEventListener('click', (e) => {
   }
 });
 
-// Bascule entre les onglets Bibliothèque / Conseil.
+// Bascule entre les onglets Bibliothèque / À remplir / Priorités.
 const libTabs = document.querySelectorAll('.lib-tab');
 const libViews = {
   library: document.getElementById('view-library'),
-  advice: document.getElementById('view-advice'),
+  fill:    document.getElementById('view-fill'),
+  advice:  document.getElementById('view-advice'),
 };
 libTabs.forEach(tab => tab.addEventListener('click', () => {
   libTabs.forEach(t => t.classList.toggle('is-active', t === tab));
   const which = tab.dataset.tab;
-  libViews.library.hidden = which !== 'library';
-  libViews.advice.hidden = which !== 'advice';
+  Object.entries(libViews).forEach(([k, v]) => { v.hidden = k !== which; });
   if (which === 'advice') renderAdvice();
+  if (which === 'fill')   renderFill();
 }));
 
 /* ---------- Init ---------- */

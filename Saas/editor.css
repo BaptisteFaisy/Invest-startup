@@ -56,7 +56,7 @@
 
 /* Onglets Bibliothèque / Conseil */
 .lib-tabs { flex: none; display: flex; border-bottom: 1px solid var(--line); }
-.lib-tab { flex: 1; font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 700; color: var(--text-3); background: var(--bg-2); border: 0; border-bottom: 2px solid transparent; padding: 13px 8px; cursor: pointer; transition: color .15s ease, border-color .15s ease, background .15s ease; }
+.lib-tab { flex: 1; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; color: var(--text-3); background: var(--bg-2); border: 0; border-bottom: 2px solid transparent; padding: 11px 4px; cursor: pointer; transition: color .15s ease, border-color .15s ease, background .15s ease; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lib-tab:hover { color: var(--text-2); }
 .lib-tab.is-active { color: var(--navy); border-bottom-color: var(--navy); background: var(--bg); }
 .lib-view { flex: 1; min-height: 0; display: flex; flex-direction: column; }
