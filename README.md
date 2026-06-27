@@ -298,15 +298,28 @@ Le `slug` est la clé de l'item dans `items_state`. Lors du link :
 
 Pour délier : `{ document_id: null }` → supprime le champ `document_id` et remet `final: false`.
 
+### Ordre d'affichage dans `dossiers.html`
+
+```
+1. « Document en cours » (dernier termsheet modifié, carte sombre dynamique)
+2. Section « À faire »   (récap tâches restantes)
+3. Phases 1→7            (dossiers système)
+4. « Fichiers importés » (PDF/DOCX non classés — les termsheets en sont exclus)
+```
+
+Le "Document en cours" est rendu dynamiquement en tête de `render()` : il trouve le termsheet avec le `updated_at` le plus récent parmi tous les docs du user.
+
 ### Anti-doublon dans le rendu
-`dossiers.html` construit pour chaque dossier un `Set checklistLinked` à partir des `items_state[*].document_id`. La liste de fichiers du dossier filtre ensuite ces IDs pour éviter l'affichage double.
+`dossiers.html` construit pour chaque dossier un `Set checklistLinked` à partir des `items_state[*].document_id`. La liste de fichiers du dossier filtre ensuite ces IDs pour éviter l'affichage double. Les termsheets non classés sont en plus exclus du dossier "Fichiers importés" (ils s'affichent dans "Document en cours").
 
 ```js
 const checklistLinked = new Set(
   Object.values(f.items_state || {}).map(st => st.document_id).filter(id => id != null)
 );
 const inFolder = docs.filter(d =>
-  (f.id == null ? d.folder_id == null : d.folder_id === f.id) && !checklistLinked.has(d.id)
+  (f.id == null ? d.folder_id == null : d.folder_id === f.id)
+  && !checklistLinked.has(d.id)
+  && !(f.virtual && d.kind === 'termsheet')  // termsheets → "Document en cours"
 );
 ```
 
@@ -434,31 +447,44 @@ await col('saas_claude_usage').updateOne(
 
 ## 9. SaaS — Export / conversion de fichiers
 
+### Stockage des fichiers — tout dans MongoDB
+
+Tous les fichiers binaires du SaaS (imports, conversions, exports) sont stockés dans MongoDB sous le champ `data` (BSON Binary). Aucun fichier n'est écrit sur le disque du serveur Railway.
+
+| Multer config | Usage | Stockage |
+|---|---|---|
+| `saasUpload` (memoryStorage, 15 Mo) | Imports SaaS | `doc.data` en MongoDB |
+| `upload` (diskStorage, 20 Mo) | Portail startup (collection `documents`) | `uploads/` sur disque |
+| `imageUpload` (diskStorage, 5 Mo) | Images admin publiques | `uploads/public/` sur disque |
+
 ### Export termsheet (HTML → DOCX ou PDF)
 ```
 POST /api/saas/termsheets/:id/export { to: "docx" | "pdf" }
 ```
-1. Charge le HTML du document depuis la base
-2. `buildExportHtml()` enveloppe le HTML dans un squelette de page complet avec CSS print-friendly
-3. Soumet un job CloudConvert (HTML→DOCX ou HTML→PDF)
-4. Télécharge le fichier résultant dans `uploads/`
-5. Crée un nouveau `saas_documents` avec `exported_from: originalId`
-6. Renvoie `{ document }` au client
+1. Charge le HTML depuis la base
+2. `buildExportHtml()` l'enveloppe dans un squelette CSS print-friendly
+3. `convertHtmlToFile()` encode en Buffer UTF-8 et soumet à CloudConvert via `Readable.from(buffer)`
+4. `downloadToBuffer(url)` récupère le résultat en mémoire (pas d'écriture disque)
+5. Crée un `saas_documents` avec `data: fileBuf, exported_from: originalId`
+6. Renvoie `{ document }` (sans le champ `data`)
 
 ### Conversion import DOCX → éditeur
 ```
 POST /api/saas/documents/:id/to-editor
 ```
-1. mammoth convertit le fichier DOCX en HTML brut
-2. `topLevelBlocks()` découpe le HTML en blocs de premier niveau (parser de balises maison, pas de DOM)
-3. Chaque bloc est wrappé en `.ts-clause` si précédé d'un heading ou d'un titre d'article (`SECTION_RE`)
-4. Renvoie `{ id, name, html }` — le client redirige vers `editor.html?doc=id`
+1. Lit `doc.data` (BSON Binary) depuis MongoDB, convertit en Buffer via `toBuffer()`
+2. `mammoth.convertToHtml({ buffer })` produit du HTML brut
+3. `topLevelBlocks()` découpe le HTML (parser de balises maison, sans DOM)
+4. Chaque bloc wrappé en `.ts-clause` si précédé d'un heading ou d'un `SECTION_RE`
+5. Crée un termsheet (`kind: 'termsheet'`, `editor_source: originalId`), renvoie `{ id }`
 
-### Conversion PDF → DOCX
+### Conversion PDF → DOCX (ou DOCX → PDF)
 ```
-POST /api/saas/documents/:id/convert { to: "docx" }
+POST /api/saas/documents/:id/convert { to: "docx" | "pdf" }
 ```
-Soumet un job CloudConvert. Le fichier converti est stocké dans `uploads/` et un nouveau `saas_documents` est créé.
+1. Lit `doc.data` depuis MongoDB
+2. Upload vers CloudConvert via `Readable.from(buffer)`
+3. Résultat téléchargé en mémoire → `data: fileBuf` dans un nouveau `saas_documents`
 
 ---
 
@@ -509,7 +535,9 @@ NODE_ENV              # production
 
 **Note MongoDB SRV :** Railway résout correctement les SRV (`mongodb+srv://`) mais le réseau de développement local ne le fait pas. La `MONGODB_URI` dans `.env` liste donc les 3 hôtes Atlas explicitement. En production sur Railway, on peut utiliser l'URI SRV standard.
 
-**Uploads éphémères :** Railway ne persiste pas le système de fichiers entre déploiements. Les fichiers dans `uploads/` disparaissent à chaque push. Pour une persistance réelle, migrer vers un stockage objet (S3, Cloudflare R2) et remplacer `multer.diskStorage` par un upload direct en mémoire (`multer.memoryStorage`) avec un client S3.
+**Fichiers SaaS :** Les fichiers importés et exportés par les utilisateurs du SaaS sont stockés dans MongoDB Atlas (champ `data` Binary, 15 Mo max). Ils survivent aux redéploiements Railway sans configuration supplémentaire.
+
+**Fichiers portail startup :** Les uploads du portail startup (collection `documents`) utilisent encore `multer.diskStorage` → `uploads/`. Ces fichiers sont éphémères sur Railway. Si la feature devient critique, migrer vers S3/Cloudflare R2.
 
 ### Domaine personnalisé
 Railway Settings → Networking → Custom Domain. Certificat TLS géré automatiquement. Penser à mettre à jour `BASE_URL` et la redirect URI dans la console Google OAuth.
