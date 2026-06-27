@@ -1859,14 +1859,28 @@ app.post('/api/saas/documents/:id/to-editor', requireAuth, async (req, res) => {
   const existing = await col('saas_documents').findOne({ user_id: req.user.id, kind: 'termsheet', editor_source: id });
   if (existing) return res.json({ id: existing.id, reused: true });
 
-  const docBuf = toBuffer(doc.data);
-  if (!docBuf) return res.status(404).json({ error: 'Fichier introuvable' });
+  let docBuf;
+  try { docBuf = toBuffer(doc.data); } catch (e) { docBuf = null; }
+  if (!docBuf) return res.status(404).json({ error: 'Fichier introuvable en base.' });
 
   try {
-    const result   = await mammoth.convertToHtml({ buffer: docBuf });
-    const rawHtml  = result.value || '';
+    let rawHtml = '';
+
+    // Détecter si le fichier est en réalité du HTML (export .doc de secours sans CloudConvert).
+    const sample = docBuf.slice(0, 300).toString('utf8');
+    if (/<html|<!DOCTYPE/i.test(sample)) {
+      const fullHtml = docBuf.toString('utf8');
+      const m = /<body[^>]*>([\s\S]*?)<\/body>/i.exec(fullHtml);
+      rawHtml = m ? m[1] : fullHtml;
+    } else {
+      // Vrai DOCX/DOC binaire → conversion via mammoth.
+      const result = await mammoth.convertToHtml({ buffer: docBuf });
+      rawHtml = result.value || '';
+    }
+
     if (!rawHtml.trim())
-      return res.status(422).json({ error: 'Le fichier DOCX est vide ou illisible. Vérifiez qu\'il s\'agit bien d\'un fichier Word (.docx) valide.' });
+      return res.status(422).json({ error: 'Le fichier est vide ou illisible.' });
+
     const pageHtml  = docxHtmlToEditorPage(rawHtml, doc.name);
     const baseName  = (doc.name || doc.originalname || 'Document').replace(/\.[^.]+$/, '');
     const now       = new Date().toISOString();
@@ -1881,7 +1895,7 @@ app.post('/api/saas/documents/:id/to-editor', requireAuth, async (req, res) => {
     res.status(201).json({ id: newId });
   } catch (err) {
     console.error('DOCX→éditeur error:', err.message);
-    res.status(502).json({ error: 'La conversion du DOCX a échoué. Réessayez.' });
+    res.status(502).json({ error: 'La conversion du document a échoué : ' + err.message });
   }
 });
 
