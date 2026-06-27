@@ -1,0 +1,38 @@
+<h1 class="doc-title">LETTRE D'INVESTISSEMENT / SIDE LETTER</h1>
+<p class="doc-sub">[DÉNOMINATION] — droits particuliers accordés à un investisseur</p>
+
+<div class="ts-group" contenteditable="false">Comprendre</div>
+
+<div class="ts-clause" data-plain="Une side letter est une lettre annexe qui accorde à UN investisseur des droits particuliers (info renforcée, pro rata, MFN…) en plus du contrat principal. Elle évite d'alourdir le contrat commun tout en répondant à ses demandes."><div class="ts-label">Rôle de la side letter</div><div class="ts-content"><p>La lettre d'investissement (« side letter ») complète le contrat d'émission des BSA-AIR en accordant à un investisseur déterminé des droits spécifiques, sans modifier les conditions applicables aux autres souscripteurs. Elle doit rester cohérente avec le contrat d'émission et le pacte, et préciser sa portée et sa durée.</p></div></div>
+
+<div class="ts-group" contenteditable="false">Parties &amp; objet</div>
+
+<div class="ts-clause" data-plain="Identifie la société et l'investisseur bénéficiaire de la lettre, et rappelle le contrat principal auquel elle se rattache."><div class="ts-label">Parties</div><div class="ts-content"><p>Entre <strong>[DÉNOMINATION]</strong>, SAS, RCS [VILLE / SIREN], représentée par [NOM] (la « Société »), et <strong>[NOM / FONDS]</strong> (l'« Investisseur »), en complément du contrat d'émission des BSA-AIR du [DATE].</p></div></div>
+
+<div class="ts-clause" data-plain="Droit d'information renforcé : l'investisseur peut recevoir plus que le minimum (reporting détaillé, accès à des indicateurs, échanges réguliers)."><div class="ts-label">Information renforcée</div><div class="ts-content"><p>La Société s'engage à fournir à l'Investisseur un reporting [mensuel / trimestriel] détaillé (trésorerie, KPIs, faits marquants), ses comptes annuels et son budget, ainsi qu'un point d'échange périodique. Ces droits s'ajoutent à l'information de droit commun.</p></div></div>
+
+<div class="ts-clause" data-key="pro-rata" data-plain="Droit de pro rata : l'investisseur peut participer aux futurs tours pour maintenir son pourcentage et ne pas être dilué."><div class="ts-label">Droit de participation (pro rata)</div><div class="ts-content"><p>L'Investisseur bénéficie d'un droit de participation prioritaire lui permettant de souscrire, lors des futures émissions, au prorata de sa participation pleinement diluée, afin de maintenir son pourcentage. [Variante : droit de sur-souscription au-delà du prorata.]</p></div></div>
+
+<div class="ts-clause" data-key="mfn" data-plain="Clause « MFN » (nation la plus favorisée) : si un autre investisseur AIR obtient de meilleures conditions plus tard, celui-ci peut s'en prévaloir. Protège contre une inégalité de traitement."><div class="ts-label">Clause de la nation la plus favorisée (MFN)</div><div class="ts-content"><p>Si la Société consent à un autre souscripteur de BSA-AIR des conditions plus favorables (décote, plafond, droits), l'Investisseur pourra, par notification, se prévaloir de tout ou partie de ces conditions, la documentation étant amendée en conséquence.</p></div></div>
+
+<div class="ts-clause" data-plain="Portée et durée : précise que ces droits sont personnels à cet investisseur et jusqu'à quand ils s'appliquent (souvent jusqu'à la conversion ou tant qu'il détient un seuil)."><div class="ts-label">Portée, durée &amp; confidentialité</div><div class="ts-content"><p>Les droits consentis sont personnels à l'Investisseur, non transférables sauf à un affilié, et demeurent en vigueur jusqu'à [la conversion des BSA-AIR / tant que l'Investisseur détient au moins [...] %]. La présente lettre est confidentielle et prévaut, entre les Parties, sur toute disposition contraire du contrat d'émission. Droit français ; [Tribunal de commerce de VILLE].</p></div></div>
+
+<div class="ts-sign"><p>Fait à [VILLE], le [DATE], en deux exemplaires.</p><p>Pour la Société — [NOM, QUALITÉ]　　　　　L'Investisseur — [NOM]</p></div>
+<script type="application/json" data-conditions>{
+"pro-rata": [
+{"id":"sl_pr_prorata","type":"option","label":"Pro rata simple","preview":"Maintien du pourcentage au prorata","html":"<p>L'Investisseur peut souscrire <mark class='cond-val'>au prorata</mark> de sa participation pleinement diluée lors des futures émissions.</p>"},
+{"id":"sl_pr_super","type":"option","label":"Pro rata + sur-souscription","preview":"Au-delà du prorata si disponible","html":"<p>L'Investisseur bénéficie d'un droit de <mark class='cond-val'>sur-souscription</mark> au-delà de son prorata, sur les titres non souscrits par les autres.</p>"},
+{"id":"sl_pr_none","type":"exception","label":"Pas de droit de pro rata","preview":"Aucun droit de participation garanti","html":"<p>La lettre n'accorde <mark class='cond-val'>aucun droit de participation</mark> prioritaire aux futurs tours.</p>"}
+],
+"mfn": [
+{"id":"sl_mfn_oui","type":"option","label":"Clause MFN incluse","preview":"Alignement sur les meilleures conditions","html":"<p>L'Investisseur peut se prévaloir des <mark class='cond-val'>conditions plus favorables</mark> consenties à un autre souscripteur de BSA-AIR (clause MFN).</p>"},
+{"id":"sl_mfn_non","type":"exception","label":"Sans clause MFN","preview":"Pas d'alignement automatique","html":"<p>La lettre ne comporte <mark class='cond-val'>pas de clause MFN</mark> : les conditions consenties à d'autres ne s'appliquent pas automatiquement.</p>"}
+]
+}</script>
+<script type="application/json" data-advice>[
+{"title":"Garder la side letter cohérente avec le contrat","body":"Vérifiez qu'elle ne contredit pas le contrat d'émission ni le pacte ; précisez qu'elle prévaut entre les Parties en cas de divergence."},
+{"title":"Borner la durée des droits","body":"Limitez les droits à la période pertinente (jusqu'à conversion, ou tant qu'un seuil de détention est atteint) pour éviter des engagements perpétuels."},
+{"title":"Maîtriser la clause MFN","body":"La MFN peut propager des concessions futures : mesurez son effet avant de l'accorder, surtout avec plusieurs souscripteurs AIR."},
+{"title":"Rendre les droits personnels","body":"Stipulez que les droits ne sont pas transférables (sauf affilié) pour qu'ils ne suivent pas une revente des bons."},
+{"title":"Documenter et centraliser","body":"Tenez un registre des side letters accordées : en multiplier sans suivi crée des incohérences difficiles à gérer au tour suivant."}
+]</script>

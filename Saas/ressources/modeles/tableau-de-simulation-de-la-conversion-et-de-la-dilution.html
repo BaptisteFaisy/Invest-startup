@@ -1,0 +1,47 @@
+<h1 class="doc-title">SIMULATION — CONVERSION &amp; DILUTION (BSA-AIR)</h1>
+<p class="doc-sub">[DÉNOMINATION] — impact de la conversion des bons</p>
+
+<div class="ts-group" contenteditable="false">Comprendre</div>
+
+<div class="ts-clause" data-plain="Ce tableau sert à anticiper, AVANT de signer, combien d'actions l'investisseur AIR obtiendra à la conversion et quelle sera la dilution de chacun, selon plusieurs hypothèses de valorisation du prochain tour. C'est l'outil de décision clé."><div class="ts-label">Rôle de la simulation</div><div class="ts-content"><p>Le BSA-AIR ne fixe pas la valorisation aujourd'hui : son effet réel dépend du prix du futur tour qualifié. Cette simulation modélise, sous différentes hypothèses, le prix de conversion (décote et/ou plafond), le nombre d'actions émises à l'Investisseur et la dilution des associés. Elle éclaire la négociation de la décote et du plafond et doit être cohérente avec la cap table pleinement diluée.</p></div></div>
+
+<div class="ts-group" contenteditable="false">Hypothèses</div>
+
+<div class="ts-clause" data-plain="Les paramètres de départ : montant investi en AIR, décote, plafond, et l'état actuel du capital. On fait ensuite varier la valorisation du prochain tour."><div class="ts-label">Paramètres</div><div class="ts-content"><table>
+<tr><th>Paramètre</th><th>Valeur</th></tr>
+<tr><td>Montant investi en BSA-AIR</td><td>[…] €</td></tr>
+<tr><td>Décote</td><td>[…] %</td></tr>
+<tr><td>Plafond de valorisation (cap)</td><td>[…] €</td></tr>
+<tr><td>Nombre d'actions pleinement diluées avant le tour</td><td>[…]</td></tr>
+<tr><td>Montant du tour qualifié</td><td>[…] €</td></tr>
+</table></div></div>
+
+<div class="ts-group" contenteditable="false">Scénarios de conversion</div>
+
+<div class="ts-clause" data-plain="Le cœur de l'outil : pour plusieurs valorisations du prochain tour, on calcule le prix retenu (décote vs plafond), les actions reçues par l'investisseur et son pourcentage. On voit où le plafond devient plus avantageux que la décote."><div class="ts-label">Prix de conversion &amp; actions reçues</div><div class="ts-content"><table>
+<tr><th>Valo pre-money du tour</th><th>Prix décoté</th><th>Prix via plafond</th><th>Prix retenu (le + bas)</th><th>Actions Investisseur</th><th>% post-conversion</th></tr>
+<tr><td>[faible] €</td><td>[…] €</td><td>[…] €</td><td>[…] €</td><td>[…]</td><td>[…] %</td></tr>
+<tr><td>[médiane] €</td><td>[…] €</td><td>[…] €</td><td>[…] €</td><td>[…]</td><td>[…] %</td></tr>
+<tr><td>[élevée] €</td><td>[…] €</td><td>[…] €</td><td>[…] €</td><td>[…]</td><td>[…] %</td></tr>
+</table>
+<p>Rappel : prix décoté = prix du tour × (1 − décote) ; prix via plafond = plafond ÷ nombre d'actions pleinement diluées avant le tour ; on retient le plus bas (le plus favorable à l'Investisseur).</p>
+</div></div>
+
+<div class="ts-clause" data-plain="L'effet sur la répartition du capital : qui détient quoi après conversion + tour, pour chaque scénario. Montre la dilution des fondateurs."><div class="ts-label">Dilution post-conversion</div><div class="ts-content"><table>
+<tr><th>Détenteur</th><th>% avant</th><th>% après (scénario médian)</th><th>Dilution</th></tr>
+<tr><td>Fondateurs</td><td>[…] %</td><td>[…] %</td><td>[…] pts</td></tr>
+<tr><td>Investisseur BSA-AIR (converti)</td><td>—</td><td>[…] %</td><td>—</td></tr>
+<tr><td>Nouvel investisseur (tour qualifié)</td><td>—</td><td>[…] %</td><td>—</td></tr>
+<tr><td>Pool d'options</td><td>[…] %</td><td>[…] %</td><td>[…] pts</td></tr>
+</table></div></div>
+
+<div class="ts-clause" data-plain="Note méthodo : la simulation est indicative ; les chiffres définitifs dépendront du tour réel. À recouper avec la cap table et le contrat d'émission."><div class="ts-label">Méthodologie &amp; limites</div><div class="ts-content"><p>La simulation est indicative et repose sur les hypothèses retenues ; les valeurs définitives dépendront des conditions réelles du tour qualifié (montant, valorisation, pool). Elle doit être recoupée avec la cap table pleinement diluée et la formule de conversion du contrat d'émission.</p></div></div>
+
+<div class="ts-sign"><p>Simulation arrêtée au [DATE] — à titre indicatif.</p><p>[NOM, QUALITÉ]</p></div>
+<script type="application/json" data-advice>[
+{"title":"Tester plusieurs valorisations","body":"Simulez des scénarios bas / médian / haut : c'est là qu'on voit à partir de quand le plafond devient plus avantageux que la décote."},
+{"title":"Aligner avec la formule du contrat","body":"Utilisez exactement la formule de conversion du contrat d'émission (le plus bas entre prix décoté et prix au plafond) pour des résultats fiables."},
+{"title":"Raisonner en pleinement dilué","body":"Intégrez pool d'options et autres instruments : la dilution réelle se mesure en base pleinement diluée."},
+{"title":"Mesurer la dilution fondateurs","body":"Un plafond bas combiné à une forte valorisation du tour est très dilutif pour les fondateurs : objectivez l'impact avant de signer."},
+{"title":"Mettre à jour au moment du tour","body":"Recalculez la simulation avec les chiffres réels du tour qualifié avant de figer la conversion."}
+]</script>
