@@ -163,9 +163,19 @@
 
     /* Parcours BSA-AIR : roadlist numérotée des documents par étape */
     .bsa-intro { color: var(--text-2); font-size: 14.5px; line-height: 1.65; margin: 6px 0 18px; }
-    .bsa-list { list-style: decimal; margin: 6px 0 2px; padding-left: 26px; display: flex; flex-direction: column; gap: 9px; }
-    .bsa-list li { font-size: 14px; color: var(--text); line-height: 1.45; padding-left: 4px; }
-    .bsa-list li::marker { color: var(--text-3); font-family: 'Archivo', sans-serif; font-weight: 700; }
+    .bsa-list { list-style: decimal; margin: 6px 0 2px; padding-left: 26px; }
+    .bsa-list > li { font-size: 14px; color: var(--text); line-height: 1.45; padding-left: 4px; margin: 11px 0; }
+    .bsa-list > li::marker { color: var(--text-3); font-family: 'Archivo', sans-serif; font-weight: 700; }
+    .bsa-item__head { display: flex; align-items: center; gap: 10px; }
+    .bsa-item__label { flex: 1; min-width: 0; }
+    .bsa-item__actions { display: flex; gap: 6px; flex: none; align-items: center; }
+    .bsa-item__file { font-size: 12.5px; color: var(--text-2); margin-top: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bsa-item--done .bsa-item__name { color: var(--text); }
+    .bsa-item--drop { outline: 2px dashed var(--blue, #3b82f6); outline-offset: 4px; border-radius: 6px; background: rgba(59,130,246,0.06); }
+    @media (max-width: 680px) {
+      .bsa-item__head { flex-wrap: wrap; }
+      .bsa-item__actions { width: 100%; justify-content: flex-end; margin-top: 6px; }
+    }
     .bsa-item__note { display: inline-block; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 7px; border-radius: 99px; margin-left: 8px; vertical-align: middle; }
     .bsa-item__note--req { background: rgba(220,38,38,0.1); color: #dc2626; }
     .bsa-item__note--opt { background: rgba(8,9,12,0.06); color: var(--text-2); }
@@ -395,39 +405,122 @@
     }
 
     function render() {
-      // Mise en page « roadlist » : chaque phase est une carte, ses documents sont
-      // numérotés (1. 2. 3.) avec un badge « Indispensable » / « Le cas échéant ».
-      // Même rendu pour la levée classique et le BSA-AIR (parcours actif filtré par
-      // `track`). Le glisser-déposer des fichiers sera ajouté ensuite.
+      // Mise en page « roadlist » interactive : chaque phase est une carte, ses
+      // documents sont numérotés (1. 2. 3.) avec badge « Indispensable » / « Le cas
+      // échéant », un bouton « Modèle » (génération) et le glisser-déposer de fichiers.
+      // Même rendu pour la levée classique et le BSA-AIR (parcours actif filtré).
       const track = getRaiseType();
       const container = track === 'bsa-air' ? bsaFoldersEl : foldersEl;
       const phases = folders.filter(f => (f.track || 'classic') === track);
+      container.innerHTML = '';
       if (!phases.length) { container.innerHTML = '<p class="empty">Aucune phase pour le moment.</p>'; return; }
 
-      container.innerHTML = phases.map((f, pi) => {
-        const list  = Array.isArray(f.checklist) ? f.checklist : [];
-        const marks = Array.isArray(f.marks) ? f.marks : [];
-        const items = list.map((item, idx) => {
-          const mark = marks[idx] || '';
-          const badge = mark === 'req'
-            ? '<span class="bsa-item__note bsa-item__note--req">Indispensable</span>'
-            : mark === 'opt'
-              ? '<span class="bsa-item__note bsa-item__note--opt">Le cas échéant</span>'
-              : '';
-          return '<li>' + esc(item) + badge + '</li>';
-        }).join('');
-        const n = list.length;
-        return '<div class="folder open">'
-          + '<div class="folder__head" style="cursor:default">'
-          +   '<div class="folder__ic">' + (pi + 1) + '</div>'
-          +   '<div class="folder__main">'
-          +     '<div class="folder__name">' + esc(f.name) + '</div>'
-          +     '<div class="folder__count">' + n + ' document' + (n > 1 ? 's' : '') + '</div>'
-          +   '</div>'
-          + '</div>'
-          + '<div class="folder__body" style="display:block"><ol class="bsa-list">' + items + '</ol></div>'
-          + '</div>';
-      }).join('');
+      phases.forEach((f, pi) => {
+        const list = Array.isArray(f.checklist) ? f.checklist : [];
+        const card = document.createElement('div');
+        card.className = 'folder open';
+        card.innerHTML = `
+          <div class="folder__head" style="cursor:default">
+            <div class="folder__ic">${pi + 1}</div>
+            <div class="folder__main">
+              <div class="folder__name">${esc(f.name)}</div>
+              <div class="folder__count">${list.length} document${list.length > 1 ? 's' : ''}</div>
+            </div>
+          </div>
+          <div class="folder__body" style="display:block"><ol class="bsa-list"></ol></div>`;
+        const ol = card.querySelector('.bsa-list');
+        list.forEach((item, idx) => ol.appendChild(roadItem(f, item, idx)));
+        container.appendChild(card);
+      });
+    }
+
+    // Une ligne « document attendu » : numéro (via <ol>), nom + badge, document lié,
+    // boutons (Modèle / Ajouter / Ouvrir / détacher) et glisser-déposer pour rattacher
+    // un fichier (ordinateur) ou un document existant à ce point précis.
+    function roadItem(f, item, idx) {
+      const slug   = slugify(item);
+      const st     = (f.items_state || {})[slug] || {};
+      const doc    = st.document_id != null ? docs.find(d => d.id === st.document_id) : null;
+      const linked = !!doc;
+      const mark   = (f.marks || [])[idx] || '';
+      const badge  = mark === 'req'
+        ? '<span class="bsa-item__note bsa-item__note--req">Indispensable</span>'
+        : mark === 'opt'
+          ? '<span class="bsa-item__note bsa-item__note--opt">Le cas échéant</span>'
+          : '';
+
+      const li = document.createElement('li');
+      li.className = 'bsa-item' + (linked ? ' bsa-item--done' : '');
+      li.innerHTML = `
+        <div class="bsa-item__head">
+          <div class="bsa-item__label"><span class="bsa-item__name">${esc(item)}</span>${badge}</div>
+          <div class="bsa-item__actions"></div>
+        </div>
+        ${linked ? `<div class="bsa-item__file" title="${esc(doc.name)}">📎 ${esc(doc.name)}</div>` : ''}`;
+      const acts = li.querySelector('.bsa-item__actions');
+
+      // Générer un modèle pré-rempli (si un modèle existe et qu'aucun document n'est lié).
+      if (!linked && MODELS.has(slug)) {
+        const b = document.createElement('button');
+        b.className = 'fbtn fbtn--mini fbtn--accent';
+        b.textContent = 'Modèle';
+        b.title = 'Générer un document pré-rempli à partir d\'un modèle et l\'éditer';
+        b.addEventListener('click', () => useTemplate(f.id, slug, item, b));
+        acts.appendChild(b);
+      }
+
+      // Ajouter / remplacer un document (ordinateur ou compte).
+      const add = document.createElement('button');
+      add.className = 'fbtn fbtn--mini';
+      add.textContent = linked ? 'Remplacer' : 'Ajouter';
+      add.addEventListener('click', () => openPicker(f.id, slug, item));
+      acts.appendChild(add);
+
+      if (linked) {
+        if (doc.kind === 'termsheet') {
+          const op = document.createElement('a');
+          op.className = 'fbtn fbtn--mini fbtn--accent';
+          op.textContent = 'Ouvrir';
+          op.href = 'editor.html?doc=' + doc.id;
+          acts.appendChild(op);
+        } else {
+          const dl = document.createElement('a');
+          dl.className = 'fbtn fbtn--mini';
+          dl.textContent = 'Télécharger';
+          dl.href = '/api/saas/documents/' + doc.id + '/download';
+          acts.appendChild(dl);
+        }
+        const un = document.createElement('button');
+        un.className = 'fbtn fbtn--mini fbtn--del';
+        un.textContent = '✕';
+        un.title = 'Détacher ce document';
+        un.addEventListener('click', () => linkDoc(f.id, slug, null));
+        acts.appendChild(un);
+      }
+
+      // Glisser-déposer SUR la ligne → rattache à ce document précis :
+      // fichier de l'ordinateur (téléversé puis lié) ou document existant (lié).
+      li.addEventListener('dragover', (e) => {
+        if (!hasFiles(e) && !hasInternal(e)) return;
+        e.preventDefault(); e.stopPropagation();
+        e.dataTransfer.dropEffect = hasFiles(e) ? 'copy' : 'move';
+        li.classList.add('bsa-item--drop');
+      });
+      li.addEventListener('dragleave', () => li.classList.remove('bsa-item--drop'));
+      li.addEventListener('drop', async (e) => {
+        if (!hasFiles(e) && !hasInternal(e)) return;
+        e.preventDefault(); e.stopPropagation();
+        li.classList.remove('bsa-item--drop');
+        if (hasFiles(e)) {
+          const file = e.dataTransfer.files && e.dataTransfer.files[0];
+          if (file) await uploadDocToSlot(file, f.id, slug);
+          return;
+        }
+        const did = Number(e.dataTransfer.getData('application/x-liquid-doc'));
+        if (did) await linkDoc(f.id, slug, did);
+      });
+
+      return li;
     }
 
     function fileRow(d) {
