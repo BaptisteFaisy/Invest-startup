@@ -12,8 +12,8 @@
 .topbar__actions { display: flex; gap: 8px; align-items: center; flex: none; }
 .topbar .btn { padding: 8px 14px; font-size: 13px; color: #fff; border-color: #444; }
 .topbar .btn:hover { border-color: #888; background: #1a1a1a; }
-.topbar .btn--primary { background: var(--blue); border-color: #444; color: #fff; }
-.topbar .btn--primary:hover { background: #2563eb; border-color: #888; }
+.topbar .btn--primary { background: #fff; border-color: #fff; color: #0a0a0a; }
+.topbar .btn--primary:hover { background: #e5e5e5; border-color: #e5e5e5; }
 .topbar .btn--white { background: #fff; border-color: #444; color: #0a0a0a; }
 .topbar .btn--white:hover { background: #e5e5e5; border-color: #888; }
 
