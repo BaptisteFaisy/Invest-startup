@@ -247,6 +247,21 @@
     .folder__drop { background: #f4f2ee !important; border-color: rgba(8,9,12,0.15) !important; color: #6b6b78 !important; }
     .todo { background: #fff !important; }
     .todo__name { color: #08090c !important; }
+    .todo__chevron { color: #6b6b78 !important; }
+    .todo__count { color: #6b6b78 !important; }
+    .todo__phase { color: #6b6b78 !important; }
+    .todo__item { color: #08090c !important; }
+    .todo__dot--todo { color: #9ca3af !important; }
+    .cli-todos__h { color: #6b6b78 !important; }
+    .cli-todos li { color: #08090c !important; }
+    .cli-todos__date { color: #6b6b78 !important; }
+    .bsa-list > li { color: #08090c !important; }
+    .bsa-list > li::marker { color: #08090c !important; }
+    .bsa-item__name { color: #08090c !important; }
+    .bsa-item__file { color: #6b6b78 !important; }
+    .bsa-item--done .bsa-item__name { color: #6b6b78 !important; }
+    .bsa-files__h { color: #6b6b78 !important; }
+    .bsa-item__note--opt { background: rgba(8,9,12,0.06) !important; color: #6b6b78 !important; }
     .raise-soon { background: #fff !important; }
     .raise-soon__title { color: #08090c !important; }
     .raise-soon__text { color: #6b6b78 !important; }
@@ -256,23 +271,30 @@
     .file__name { color: #08090c !important; }
     .empty { background: rgba(255,255,255,0.04) !important; border-color: rgba(255,255,255,0.1) !important; color: rgba(255,255,255,0.45) !important; }
 
-    /* Boutons blancs dans les zones sombres (en-tête + bandeau uniquement) */
+    /* Boutons dans l'en-tête (fond noir) */
     .dossiers__head .btn--ghost,
-    .dossiers__head .btn--lg { color: rgba(255,255,255,0.65) !important; border-color: rgba(255,255,255,0.2) !important; }
+    .dossiers__head .btn--lg { color: #fff !important; border-color: rgba(255,255,255,0.35) !important; }
     .dossiers__head .btn--ghost:hover,
-    .dossiers__head .btn--lg:hover { color: #fff !important; border-color: rgba(255,255,255,0.5) !important; }
+    .dossiers__head .btn--lg:hover { color: #fff !important; border-color: rgba(255,255,255,0.65) !important; }
     .dossiers__head .btn--primary { background: #fff !important; color: #08090c !important; border-color: transparent !important; }
+
+    /* Boutons topbar (fond noir) */
+    .topbar .btn--ghost { color: #fff !important; border-color: rgba(255,255,255,0.35) !important; }
+    .topbar .btn--ghost:hover { color: #fff !important; border-color: rgba(255,255,255,0.65) !important; }
 
     /* Boutons à l'intérieur des bulles blanches — texte noir */
     .folder .btn, .folder .btn--ghost { color: #08090c !important; border-color: rgba(8,9,12,0.2) !important; }
     .folder .btn:hover, .folder .btn--ghost:hover { background: rgba(8,9,12,0.06) !important; }
 
-    /* Tous les fbtn — bordure uniforme */
+    /* Tous les fbtn dans les bulles blanches */
     .fbtn, .fbtn--accent { color: #08090c !important; border-color: rgba(8,9,12,0.22) !important; }
     .fbtn:hover, .fbtn--accent:hover { border-color: rgba(8,9,12,0.55) !important; }
     .fbtn--del { color: #dc2626 !important; border-color: rgba(220,38,38,0.3) !important; }
     .fbtn--status { color: #6b6b78 !important; border-color: rgba(8,9,12,0.15) !important; }
     .fbtn--status--ok { color: #16a34a !important; border-color: rgba(22,163,74,0.4) !important; }
+
+    /* Zone "vide" (sans documents) sur fond noir */
+    .empty { color: rgba(255,255,255,0.75) !important; }
 
     /* Erreur */
     .err { color: #f87171 !important; background: rgba(220,38,38,0.1) !important; border-color: rgba(220,38,38,0.25) !important; }
@@ -339,7 +361,7 @@
       <div id="bsa-air-view" hidden>
         <div class="section-label">
           <span>Parcours BSA-AIR — documents par étape</span>
-          <span style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--text-3)">Accord d'investissement rapide (décote / plafond de valorisation)</span>
+          <span style="text-transform:none;letter-spacing:0;font-weight:500;color:rgba(255,255,255,0.65)">Accord d'investissement rapide (décote / plafond de valorisation)</span>
         </div>
         <p class="bsa-intro">Le <strong>BSA-AIR</strong> (Bon de Souscription d'Actions — Accord d'Investissement Rapide) permet d'investir vite : les fonds sont versés dès la souscription des bons, qui se convertissent en actions lors du prochain tour qualifié, avec une décote et/ou un plafond de valorisation. Glissez-déposez vos fichiers dans chaque phase ; les documents <strong>indispensables</strong> sont signalés.</p>
         <div id="bsa-folders"></div>
