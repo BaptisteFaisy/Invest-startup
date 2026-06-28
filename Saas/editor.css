@@ -137,11 +137,11 @@
 /* Styles du contenu */
 .page h1.doc-title { text-align: center; font-size: 22px; letter-spacing: 0.04em; margin: 0 0 2px; }
 .page .doc-sub { text-align: center; font-weight: 700; letter-spacing: 0.06em; margin: 0 0 20px; }
-.page .doc-preamble { font-style: italic; color: var(--text-2); margin: 0 0 8px; text-align: justify; }
+.page .doc-preamble { font-style: italic; color: var(--text); margin: 0 0 8px; text-align: justify; }
 .page p { margin: 0 0 11px; }
 .page ol, .page ul { margin: 6px 0 11px; padding-left: 24px; }
 .page li { margin-bottom: 5px; }
-.page blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--blue); color: var(--text-2); background: #f8fafd; }
+.page blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--blue); color: var(--text); background: #f8fafd; }
 .page hr { border: 0; border-top: 1px solid var(--line); margin: 16px 0 22px; }
 
 /* En-tête de groupe */
@@ -166,7 +166,7 @@
 /* Signatures */
 .page .ts-sign { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; margin-top: 40px; }
 .page .ts-sign .box { font-size: 13px; }
-.page .ts-sign .line { margin-top: 50px; border-top: 1px solid var(--text); padding-top: 6px; color: var(--text-2); font-size: 12px; }
+.page .ts-sign .line { margin-top: 50px; border-top: 1px solid var(--text); padding-top: 6px; color: var(--text); font-size: 12px; }
 
 /* Annexe : table de capitalisation */
 .page .ts-annexe { margin-top: 46px; }
