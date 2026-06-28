@@ -256,11 +256,23 @@
     .file__name { color: #08090c !important; }
     .empty { background: rgba(255,255,255,0.04) !important; border-color: rgba(255,255,255,0.1) !important; color: rgba(255,255,255,0.45) !important; }
 
-    /* Boutons de la page */
-    .btn--ghost { color: rgba(255,255,255,0.6) !important; border-color: rgba(255,255,255,0.16) !important; }
-    .btn--ghost:hover { color: #fff !important; border-color: rgba(255,255,255,0.45) !important; }
-    .btn--primary { background: #fff !important; color: #08090c !important; }
-    .btn--primary:hover { opacity: 0.88; }
+    /* Boutons blancs dans les zones sombres (en-tête + bandeau uniquement) */
+    .dossiers__head .btn--ghost,
+    .dossiers__head .btn--lg { color: rgba(255,255,255,0.65) !important; border-color: rgba(255,255,255,0.2) !important; }
+    .dossiers__head .btn--ghost:hover,
+    .dossiers__head .btn--lg:hover { color: #fff !important; border-color: rgba(255,255,255,0.5) !important; }
+    .dossiers__head .btn--primary { background: #fff !important; color: #08090c !important; border-color: transparent !important; }
+
+    /* Boutons à l'intérieur des bulles blanches — texte noir */
+    .folder .btn, .folder .btn--ghost { color: #08090c !important; border-color: rgba(8,9,12,0.2) !important; }
+    .folder .btn:hover, .folder .btn--ghost:hover { background: rgba(8,9,12,0.06) !important; }
+
+    /* Autres fbtn dans les cartes */
+    .fbtn { color: #08090c !important; }
+    .fbtn--accent { color: #08090c !important; border-color: rgba(8,9,12,0.35) !important; }
+    .fbtn--del { color: #dc2626 !important; }
+    .fbtn--status { color: #6b6b78 !important; }
+    .fbtn--status--ok { color: #16a34a !important; }
 
     /* Erreur */
     .err { color: #f87171 !important; background: rgba(220,38,38,0.1) !important; border-color: rgba(220,38,38,0.25) !important; }
