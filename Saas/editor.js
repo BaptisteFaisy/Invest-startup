@@ -727,7 +727,7 @@ function renderPanel(key) {
       ${biasMeter(BIAS[key] || 3)}
     </div>` : ''}
     ${c.watch ? `<div class="callout callout--advice">
-      <div class="block__h">Priorités — côté fondateur</div>
+      <div class="block__h">À vérifier — côté fondateur</div>
       <p>${c.watch}</p>
     </div>` : ''}
     <div class="cond-section" id="cond-section">
@@ -1218,9 +1218,9 @@ function adoptDocumentClauses() {
   const libTitle = document.querySelector('#view-library .library__title');
   if (libTitle) libTitle.textContent = 'Paragraphes du document';
   const advEyebrow = document.querySelector('#view-advice .library__eyebrow');
-  if (advEyebrow) advEyebrow.textContent = 'Priorités';
+  if (advEyebrow) advEyebrow.textContent = 'Conseils';
   const advTitle = document.querySelector('#view-advice .library__title');
-  if (advTitle) advTitle.textContent = 'Améliorer ce document';
+  if (advTitle) advTitle.textContent = 'À vérifier';
   const chatTitle = document.querySelector('.chat__title');
   if (chatTitle) chatTitle.textContent = 'Assistant IA — modifier ce paragraphe';
   const chatExplainBtn = document.getElementById('chat-explain');
@@ -1318,7 +1318,7 @@ page.addEventListener('input', scheduleAutosave);
 
 // Rafraîchit dynamiquement les boutons de champs à remplir sur chaque frappe.
 page.addEventListener('input', () => {
-  updateNextFieldBtn();
+  updateFillNextBtn();
   const vFill   = document.getElementById('view-fill');
   const vAdvice = document.getElementById('view-advice');
   if (vFill   && !vFill.hidden)            renderFill();
@@ -1778,9 +1778,9 @@ libraryList.addEventListener('click', (e) => {
 /* ---------- Onglet « Conseil » : points à négocier, par priorité ---------- */
 const adviceList  = document.getElementById('advice-list');
 const adviceCount = document.getElementById('advice-count');
-const fillList    = document.getElementById('fill-list');
-const fillCount   = document.getElementById('fill-count');
-const nextFieldWrap = document.getElementById('next-field-wrap');
+const fillList      = document.getElementById('fill-list');
+const fillCount     = document.getElementById('fill-count');
+const fillNextWrap  = document.getElementById('fill-next-wrap');
 
 const PRIORITY = [
   { label: 'Priorité haute',   color: '#dc2626' },
@@ -1839,21 +1839,23 @@ function paintAdvice(tips, note) {
 }
 
 function navigateToPlaceholder(clauseKey, placeholderText) {
-  const clauseEl = page.querySelector(`.ts-clause[data-key="${clauseKey}"]`);
-  if (clauseEl) {
-    const walker = document.createTreeWalker(clauseEl, NodeFilter.SHOW_TEXT, null, false);
-    let node;
-    while ((node = walker.nextNode())) {
-      const idx = node.textContent.indexOf(placeholderText);
-      if (idx !== -1) {
-        const range = document.createRange();
-        range.setStart(node, idx);
-        range.setEnd(node, idx + placeholderText.length);
-        window.getSelection().removeAllRanges();
-        window.getSelection().addRange(range);
-        clauseEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return;
-      }
+  // Docs structurés : cherche dans la clause ; docs personnalisés : cherche dans toute la page
+  const searchRoot = clauseKey.startsWith('__ph__')
+    ? page
+    : (page.querySelector(`.ts-clause[data-key="${clauseKey}"]`) || page);
+
+  const walker = document.createTreeWalker(searchRoot, NodeFilter.SHOW_TEXT, null, false);
+  let node;
+  while ((node = walker.nextNode())) {
+    const idx = node.textContent.indexOf(placeholderText);
+    if (idx !== -1) {
+      const range = document.createRange();
+      range.setStart(node, idx);
+      range.setEnd(node, idx + placeholderText.length);
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+      (node.parentElement || searchRoot).scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
     }
   }
   // Champ déjà rempli → aller au prochain champ non rempli
@@ -1889,17 +1891,36 @@ function buildAiHtml(tips) {
     }).join('');
 }
 
+function updateFillNextBtn() {
+  if (!fillNextWrap) return;
+  const ph = findPlaceholders();
+  if (!ph.length) {
+    fillNextWrap.innerHTML = '<div class="fill-next fill-next--done">✓ Tous les champs sont renseignés</div>';
+    return;
+  }
+  const idx   = Math.min(_nextPhIdx, ph.length - 1);
+  const pos   = idx + 1;
+  const total = ph.length;
+  fillNextWrap.innerHTML =
+    `<button class="fill-next-btn" id="fill-next-btn" type="button">
+       <span class="fill-next-btn__label">Champ suivant →</span>
+       <span class="fill-next-btn__count">${pos} / ${total}</span>
+     </button>`;
+  document.getElementById('fill-next-btn').addEventListener('click', goNextPlaceholder);
+}
+
 function renderFill() {
   const ph = findPlaceholders();
   fillCount.textContent = ph.length
     ? `${ph.length} champ${ph.length > 1 ? 's' : ''} à compléter`
     : 'Tous les champs sont renseignés';
+  updateFillNextBtn();
   fillList.innerHTML = ph.length
     ? ph.map((p, i) => `
         <div class="libitem">
           <div class="libitem__top"><span class="libitem__group">${advEsc(p.clauseLabel)}</span></div>
           <div class="libitem__label">${advEsc(p.text)}</div>
-          <button class="libitem__add libitem__add--see" data-ph-fill="${i}" type="button">Aller à ce champ →</button>
+          <button class="libitem__add libitem__add--see" data-ph-fill="${i}" type="button">Aller →</button>
         </div>`).join('')
     : '<p class="library__empty">Tous les champs ont été renseignés.</p>';
 }
@@ -1914,18 +1935,12 @@ fillList.addEventListener('click', (e) => {
   else renderFill();
 });
 
-// Conseils SPÉCIFIQUES au document, générés par l'IA. Les champs à remplir
-// sont affichés en premier ; ils disparaissent dès que remplis (re-render sur input).
+// Conseils IA pour les documents personnalisés — les champs à remplir sont dans "À remplir".
 function _paintDocAdvice() {
-  const ph = findPlaceholders();
   const aiHtml = buildAiHtml(docAdviceCache) || '';
-  const phHtml = buildPhHtml(ph);
-  adviceList.innerHTML = phHtml + (aiHtml || '<p class="library__empty">Aucun conseil pour ce document.</p>');
+  adviceList.innerHTML = aiHtml || '<p class="library__empty">Cliquez sur « Analyser » pour obtenir des conseils sur ce document.</p>';
   const nc = (docAdviceCache || []).length;
-  adviceCount.textContent = nc
-    ? `${nc} conseil${nc !== 1 ? 's' : ''}${ph.length ? ` · ${ph.length} champ${ph.length > 1 ? 's' : ''} à remplir` : ''}`
-    : ph.length ? `${ph.length} champ${ph.length > 1 ? 's' : ''} à remplir` : '';
-  updateNextFieldBtn();
+  adviceCount.textContent = nc ? `${nc} conseil${nc !== 1 ? 's' : ''}` : '';
 }
 
 async function renderDocAdvice() {
@@ -1949,19 +1964,54 @@ async function renderDocAdvice() {
   _paintDocAdvice();
 }
 
+function _nearestHeading(textNode) {
+  let el = textNode.parentElement;
+  while (el && el !== page) {
+    let prev = el.previousElementSibling;
+    while (prev) {
+      if (/^H[1-6]$/.test(prev.tagName)) return prev.textContent.trim().slice(0, 60);
+      prev = prev.previousElementSibling;
+    }
+    el = el.parentElement;
+  }
+  return '';
+}
+
 function findPlaceholders() {
   const result = [];
-  page.querySelectorAll('.ts-clause[data-key]').forEach(clause => {
-    const content = clause.querySelector('.ts-content');
-    const label   = clause.querySelector('.ts-label');
-    if (!content) return;
-    const matches = [...content.innerText.matchAll(/\[[^\]\n]{1,80}\]/g)];
-    matches.forEach(m => result.push({
-      key:         clause.dataset.key,
-      clauseLabel: (label ? label.textContent : clause.dataset.key).trim(),
-      text:        m[0],
-    }));
-  });
+  const structuredClauses = page.querySelectorAll('.ts-clause[data-key]');
+
+  if (structuredClauses.length) {
+    // Term sheet structurée : cherche dans chaque clause
+    structuredClauses.forEach(clause => {
+      const content = clause.querySelector('.ts-content');
+      const label   = clause.querySelector('.ts-label');
+      if (!content) return;
+      const matches = [...content.innerText.matchAll(/\[[^\]\n]{1,80}\]/g)];
+      matches.forEach(m => result.push({
+        key:         clause.dataset.key,
+        clauseLabel: (label ? label.textContent : clause.dataset.key).trim(),
+        text:        m[0],
+      }));
+    });
+  } else {
+    // Document personnalisé (importé) : scanne tout le texte de la page
+    const walker = document.createTreeWalker(page, NodeFilter.SHOW_TEXT, null, false);
+    let node;
+    let idx = 0;
+    while ((node = walker.nextNode())) {
+      const matches = [...node.textContent.matchAll(/\[[^\]\n]{1,80}\]/g)];
+      if (!matches.length) continue;
+      const heading  = _nearestHeading(node);
+      const fallback = (node.parentElement ? node.parentElement.textContent : '').trim().slice(0, 60);
+      const clauseLabel = heading || fallback || 'Document';
+      matches.forEach(m => result.push({
+        key:         '__ph__' + (idx++),
+        clauseLabel,
+        text:        m[0],
+      }));
+    }
+  }
   return result;
 }
 
@@ -1979,18 +2029,18 @@ function renderAdvice() {
 
   const total = toNegotiate.length + toAdd.length;
   adviceCount.textContent = total
-    ? `${total} point${total > 1 ? 's' : ''} à traiter`
-    : 'Aucun point à négocier.';
+    ? `${total} conseil${total > 1 ? 's' : ''}`
+    : 'Tout est en ordre.';
 
   if (!total) {
-    adviceList.innerHTML = `<p class="library__empty">Aucun point à négocier pour ce document.</p>`;
+    adviceList.innerHTML = `<p class="library__empty">Aucun conseil pour ce document.</p>`;
     return;
   }
 
   let html = '';
 
   if (toNegotiate.length) {
-    html += `<div class="lib-sep">Points à négocier — ${toNegotiate.length}</div>`;
+    html += `<div class="lib-sep">Conseils de négociation — ${toNegotiate.length}</div>`;
     html += toNegotiate.map((c, i) => {
       const pr = PRIORITY[priorityTier(c)];
       return `<div class="advitem" style="border-left-color:${pr.color}">
@@ -2007,7 +2057,7 @@ function renderAdvice() {
   }
 
   if (toAdd.length) {
-    html += `<div class="lib-sep">Clauses recommandées à ajouter — ${toAdd.length}</div>`;
+    html += `<div class="lib-sep">Clauses à ajouter — ${toAdd.length}</div>`;
     html += toAdd.map(c => `
       <div class="advitem" style="border-left-color:#6b7280">
         <div class="advitem__label">${advEsc(c.label)}</div>
@@ -2017,7 +2067,6 @@ function renderAdvice() {
   }
 
   adviceList.innerHTML = html;
-  updateNextFieldBtn();
 }
 
 function flashClause(el) {
@@ -2030,27 +2079,14 @@ function flashClause(el) {
 
 let _nextPhIdx = 0;
 
-function updateNextFieldBtn() {
-  if (!nextFieldWrap) return;
-  const ph = findPlaceholders();
-  if (!ph.length) { nextFieldWrap.innerHTML = ''; return; }
-  const n = ph.length;
-  nextFieldWrap.innerHTML =
-    `<button class="next-ph-btn" id="next-ph-btn" type="button">
-       → Prochain champ à remplir
-       <span class="next-ph-btn__count">${n} restant${n > 1 ? 's' : ''}</span>
-     </button>`;
-  document.getElementById('next-ph-btn').addEventListener('click', goNextPlaceholder);
-}
-
 function goNextPlaceholder() {
   const ph = findPlaceholders();
-  if (!ph.length) { updateNextFieldBtn(); return; }
+  if (!ph.length) { updateFillNextBtn(); return; }
   if (_nextPhIdx >= ph.length) _nextPhIdx = 0;
   const p = ph[_nextPhIdx];
   navigateToPlaceholder(p.key, p.text);
   _nextPhIdx = (_nextPhIdx + 1) % ph.length;
-  updateNextFieldBtn();
+  updateFillNextBtn();
 }
 
 adviceList.addEventListener('click', (e) => {
@@ -2099,14 +2135,13 @@ libTabs.forEach(tab => tab.addEventListener('click', () => {
   libTabs.forEach(t => t.classList.toggle('is-active', t === tab));
   const which = tab.dataset.tab;
   Object.entries(libViews).forEach(([k, v]) => { v.hidden = k !== which; });
-  if (which === 'advice') { renderAdvice(); updateNextFieldBtn(); }
+  if (which === 'advice') renderAdvice();
   if (which === 'fill')   renderFill();
 }));
 
 /* ---------- Init ---------- */
 renderLibrary();
 renderAdvice();
-updateNextFieldBtn();
 updateClauseCount();
 showEmptyPanel();
 

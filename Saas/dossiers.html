@@ -271,11 +271,17 @@
     .file__name { color: #08090c !important; }
     .empty { background: rgba(255,255,255,0.04) !important; border-color: rgba(255,255,255,0.1) !important; color: rgba(255,255,255,0.45) !important; }
 
-    /* Boutons dans l'en-tête (fond noir) */
-    .dossiers__head .btn--ghost,
-    .dossiers__head .btn--lg { color: #fff !important; border-color: rgba(255,255,255,0.35) !important; }
-    .dossiers__head .btn--ghost:hover,
-    .dossiers__head .btn--lg:hover { color: #fff !important; border-color: rgba(255,255,255,0.65) !important; }
+    /* Boutons dans l'en-tête (fond noir) — ID pour garantir la priorité */
+    #new-folder-btn, #import-btn {
+      color: #fff !important;
+      border-color: rgba(255,255,255,0.35) !important;
+      background: transparent !important;
+    }
+    #new-folder-btn:hover, #import-btn:hover {
+      color: #fff !important;
+      border-color: rgba(255,255,255,0.65) !important;
+      background: rgba(255,255,255,0.06) !important;
+    }
     .dossiers__head .btn--primary { background: #fff !important; color: #08090c !important; border-color: transparent !important; }
 
     /* Boutons topbar (fond noir) */
