@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="editor.css" />
+  <link rel="stylesheet" href="styles.css?v=6" />
+  <link rel="stylesheet" href="editor.css?v=6" />
   <style>
     .app { visibility: hidden; }
     .app.ready { visibility: visible; }
@@ -71,7 +71,7 @@
     .cli__num { font-family: 'Archivo', sans-serif; font-weight: 700; color: #fff; margin-right: 2px; }
     .cli__doc { font-size: 12px; color: #fff; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .cli__actions { display: flex; gap: 6px; flex: none; align-items: center; }
-    .fbtn--ok { color: #16a34a; border-color: rgba(22,163,74,0.4); }
+    .fbtn--ok { color: #16a34a; border-color: var(--line); }
     .fbtn--status { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; border: 1px solid rgba(8,9,12,0.15); background: rgba(8,9,12,0.05); color: var(--text-2); cursor: default; pointer-events: none; }
     .fbtn--status--ok { background: rgba(22,163,74,0.12); border-color: rgba(22,163,74,0.4); color: #16a34a; }
     .cli__name--link { cursor: pointer; }
@@ -142,8 +142,8 @@
     .file__actions { display: flex; gap: 8px; flex: none; align-items: center; }
     .fbtn { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; color: #fff; background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; cursor: pointer; white-space: nowrap; text-decoration: none; }
     .fbtn:hover { border-color: #fff; }
-    .fbtn--accent { color: var(--dark); border-color: rgba(8,9,12,0.35); }
-    .fbtn--del { color: #dc2626; border-color: rgba(220,38,38,0.3); }
+    .fbtn--accent { color: var(--dark); border-color: var(--line); }
+    .fbtn--del { color: #dc2626; border-color: var(--line); }
     .fbtn--mini { padding: 5px 9px; font-size: 12px; }
     .fselect { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; color: #fff; background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; cursor: pointer; max-width: 160px; }
 
