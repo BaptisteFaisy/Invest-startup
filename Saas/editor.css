@@ -56,7 +56,11 @@
 .tcolor input[type=color] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 
 /* ---------- Workspace ---------- */
-.workspace { flex: 1; display: grid; grid-template-columns: 290px 1fr 400px; min-height: 0; }
+.workspace { flex: 1; display: grid; grid-template-columns: var(--lib-w, 290px) 6px minmax(0, 1fr) 6px var(--panel-w, 400px); min-height: 0; }
+
+/* Poignées de redimensionnement (colonnes gauche / droite) */
+.gutter { background: var(--line); cursor: col-resize; transition: background .12s ease; }
+.gutter:hover, .gutter.is-drag { background: var(--blue); }
 
 /* ---------- Bibliothèque de clauses (gauche) ---------- */
 .library { border-right: 1px solid var(--line); background: var(--bg-2); display: flex; flex-direction: column; min-height: 0; }
@@ -270,12 +274,12 @@
 
 /* ---------- Responsive ---------- */
 @media (max-width: 1280px) {
-  .workspace { grid-template-columns: 1fr 380px; }
-  .library { display: none; }
+  .workspace { grid-template-columns: minmax(0, 1fr) 6px var(--panel-w, 380px); }
+  .library, #gutter-left { display: none; }
 }
 @media (max-width: 1040px) {
   .workspace { grid-template-columns: 1fr; }
-  .panel { display: none; }
+  .panel, #gutter-left, #gutter-right { display: none; }
   .page { padding: 48px 40px 60px; }
 }
 

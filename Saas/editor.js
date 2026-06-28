@@ -1338,6 +1338,55 @@ document.addEventListener('keydown', e => {
 const urlDocId = new URLSearchParams(location.search).get('doc');
 if (urlDocId && /^\d+$/.test(urlDocId)) loadTermsheet(Number(urlDocId));
 
+/* ---------- Redimensionnement des colonnes (gauche / droite) ---------- */
+(function setupResize() {
+  const ws = document.querySelector('.workspace');
+  if (!ws) return;
+  // Restaure les largeurs mémorisées.
+  try {
+    const lw = localStorage.getItem('liquid_lib_w');
+    const pw = localStorage.getItem('liquid_panel_w');
+    if (lw) ws.style.setProperty('--lib-w', lw);
+    if (pw) ws.style.setProperty('--panel-w', pw);
+  } catch { /* pas de largeur mémorisée */ }
+
+  function bind(gutterId, varName, storeKey, side, min, max) {
+    const g = document.getElementById(gutterId);
+    if (!g) return;
+    g.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      g.classList.add('is-drag');
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+      const rect = ws.getBoundingClientRect();
+      const move = (ev) => {
+        let w = side === 'left' ? (ev.clientX - rect.left) : (rect.right - ev.clientX);
+        w = Math.max(min, Math.min(max, Math.round(w)));
+        ws.style.setProperty(varName, w + 'px');
+      };
+      const up = () => {
+        g.classList.remove('is-drag');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        document.removeEventListener('mousemove', move);
+        document.removeEventListener('mouseup', up);
+        try { localStorage.setItem(storeKey, ws.style.getPropertyValue(varName)); } catch {}
+        if (typeof paginate === 'function') paginate(); // recale la mise en page
+      };
+      document.addEventListener('mousemove', move);
+      document.addEventListener('mouseup', up);
+    });
+    // Double-clic : réinitialise la colonne à sa largeur par défaut.
+    g.addEventListener('dblclick', () => {
+      ws.style.removeProperty(varName);
+      try { localStorage.removeItem(storeKey); } catch {}
+      if (typeof paginate === 'function') paginate();
+    });
+  }
+  bind('gutter-left',  '--lib-w',   'liquid_lib_w',   'left',  200, 520);
+  bind('gutter-right', '--panel-w', 'liquid_panel_w', 'right', 260, 640);
+})();
+
 /* ---------- 7. Assistant IA (Claude) : modifier la clause active ---------- */
 const chatBox   = document.getElementById('chat');
 const chatLog   = document.getElementById('chat-log');
