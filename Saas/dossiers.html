@@ -271,16 +271,16 @@
     .file__name { color: #08090c !important; }
     .empty { background: rgba(255,255,255,0.04) !important; border-color: rgba(255,255,255,0.1) !important; color: rgba(255,255,255,0.45) !important; }
 
-    /* Boutons dans l'en-tête (fond noir) — ID pour garantir la priorité */
+    /* Boutons dans l'en-tête (fond noir) — en blanc. ID pour garantir la priorité */
     #new-folder-btn, #import-btn {
-      color: #fff !important;
-      border-color: rgba(255,255,255,0.35) !important;
-      background: transparent !important;
+      color: var(--dark) !important;
+      border-color: #fff !important;
+      background: #fff !important;
     }
     #new-folder-btn:hover, #import-btn:hover {
-      color: #fff !important;
-      border-color: rgba(255,255,255,0.65) !important;
-      background: rgba(255,255,255,0.06) !important;
+      color: var(--dark) !important;
+      border-color: #e5e5e5 !important;
+      background: #e5e5e5 !important;
     }
     .dossiers__head .btn--primary { background: #fff !important; color: #08090c !important; border-color: transparent !important; }
 
@@ -332,7 +332,6 @@
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <button class="btn btn--ghost btn--lg" id="new-folder-btn">+ Nouveau dossier</button>
           <button class="btn btn--ghost btn--lg" id="import-btn">Importer un fichier</button>
-          <a href="editor.html" class="btn btn--primary btn--lg">+ Nouvelle term sheet</a>
         </div>
         <input type="file" id="file-input" accept=".pdf,.doc,.docx" hidden />
       </div>
