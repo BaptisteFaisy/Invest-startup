@@ -808,13 +808,125 @@ page.addEventListener('input', () => {
 countWords();
 panelCount.textContent = `${TERMSHEET.length} clauses`;
 
+/* ---------- 4 bis. Expliquer la sélection (bouton flottant IA) ----------
+   L'utilisateur sélectionne du texte dans le document : un bouton « Expliquer »
+   apparaît au-dessus de la sélection. Au clic, on appelle l'IA avec l'extrait
+   sélectionné + le contexte complet de la page, et on affiche l'explication
+   dans un popover ancré à la sélection. */
+const selxBtn   = document.getElementById('selx-btn');
+const selxPop   = document.getElementById('selx-pop');
+const selxQuote = document.getElementById('selx-quote');
+const selxBody  = document.getElementById('selx-body');
+const selxClose = document.getElementById('selx-close');
+const editorCanvas = document.querySelector('.editor-canvas');
+
+function selectionInsidePage() {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return null;
+  const text = sel.toString().trim();
+  if (!text) return null;
+  const range = sel.getRangeAt(0);
+  if (!page.contains(range.commonAncestorContainer)) return null;
+  return { text, range };
+}
+
+function escapeSelx(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function positionSelxBtn() {
+  const info = selectionInsidePage();
+  if (!info) { selxBtn.hidden = true; return; }
+  const rect = info.range.getBoundingClientRect();
+  if (rect.width === 0 && rect.height === 0) { selxBtn.hidden = true; return; }
+  selxBtn.hidden = false;
+  const btnW = selxBtn.offsetWidth;
+  const btnH = selxBtn.offsetHeight;
+  let left = rect.right - btnW;
+  let top  = rect.top - btnH - 6;
+  if (top < 6) top = rect.bottom + 6;
+  left = Math.max(6, Math.min(left, window.innerWidth - btnW - 6));
+  selxBtn.style.left = left + 'px';
+  selxBtn.style.top  = top + 'px';
+}
+
+function positionSelxPop() {
+  if (selxPop.hidden) return;
+  const btnRect = selxBtn.getBoundingClientRect();
+  const popH = selxPop.offsetHeight || 220;
+  const popW = selxPop.offsetWidth || 360;
+  let left = btnRect.right - popW;
+  let top  = btnRect.bottom + 6;
+  if (top + popH > window.innerHeight - 6) top = btnRect.top - popH - 6;
+  left = Math.max(6, Math.min(left, window.innerWidth - popW - 6));
+  if (top < 6) top = 6;
+  selxPop.style.left = left + 'px';
+  selxPop.style.top  = top + 'px';
+}
+
+let selxAbort = null;
+async function explainSelection() {
+  const info = selectionInsidePage();
+  if (!info) return;
+  const { text } = info;
+
+  selxQuote.textContent = '« ' + (text.length > 160 ? text.slice(0, 160) + '…' : text) + ' »';
+  selxBody.innerHTML = '<p class="selx-loading">Analyse en cours…</p>';
+  selxPop.hidden = false;
+  positionSelxPop();
+  selxBtn.hidden = true;
+
+  if (selxAbort) selxAbort.abort();
+  const ctrl = new AbortController();
+  selxAbort = ctrl;
+
+  try {
+    const res = await fetch('/api/saas/explain-selection', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      signal: ctrl.signal,
+      body: JSON.stringify({ selection: text, documentContext: page.innerText }),
+    });
+    const data = await res.json();
+    if (selxAbort !== ctrl) return;
+    if (!res.ok || !data.explanation) throw new Error(data.error || 'Erreur');
+    selxBody.innerHTML = '<p>' + escapeSelx(data.explanation) + '</p>';
+  } catch (e) {
+    if (e.name === 'AbortError') return;
+    if (selxAbort !== ctrl) return;
+    selxBody.innerHTML = '<p class="selx-err">Explication indisponible pour le moment.</p>';
+  }
+}
+
+// Empêche le clic sur le bouton / popover de vider la sélection en cours.
+selxBtn.addEventListener('mousedown', e => e.preventDefault());
+selxPop.addEventListener('mousedown', e => { if (e.target.tagName !== 'BUTTON') e.preventDefault(); });
+selxBtn.addEventListener('click', explainSelection);
+selxClose.addEventListener('click', () => { selxPop.hidden = true; if (selxAbort) selxAbort.abort(); });
+
+document.addEventListener('mousedown', (e) => {
+  if (selxPop.hidden) return;
+  if (selxPop.contains(e.target) || selxBtn.contains(e.target)) return;
+  selxPop.hidden = true; if (selxAbort) selxAbort.abort();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !selxPop.hidden) { selxPop.hidden = true; if (selxAbort) selxAbort.abort(); }
+});
+
+document.addEventListener('selectionchange', () => {
+  if (document.activeElement !== page) { selxBtn.hidden = true; return; }
+  positionSelxBtn();
+});
+if (editorCanvas) editorCanvas.addEventListener('scroll', () => { positionSelxBtn(); positionSelxPop(); });
+window.addEventListener('resize', () => { positionSelxBtn(); positionSelxPop(); });
+
 /* ---------- 5 bis. Pagination écran (mise en page façon Word) ----------
-   Le contenu est réparti sur des feuilles A4. On découpe à un grain fin :
-   les blocs de premier niveau, mais aussi les paragraphes et les puces À
-   L'INTÉRIEUR d'une clause longue. Tout élément qui déborde de la feuille
-   courante est repoussé en haut de la suivante, donc une clause plus grande
-   qu'une page se coupe proprement entre deux paragraphes au lieu de
-   chevaucher l'espace gris. */
+   Le contenu est réparti sur des feuilles A4. Chaque bloc de premier niveau
+   (titre, paragraphe, clause…) est insécable : s'il déborde de la feuille
+   courante il est repoussé en haut de la suivante. Une clause plus grande
+   qu'une page entière déborde (cas rare) plutôt que de voir son conteneur
+   s'étirer à travers la gouttière entre deux feuilles. */
 const PAGE_H = 1160;       // hauteur d'une feuille A4 à 820 px de large
 const SHEET_GAP = 28;      // espace gris entre deux feuilles
 const CONTENT_TOP = 76;    // marge haute imprimable d'une feuille
@@ -823,41 +935,21 @@ const sheetBg = document.getElementById('sheet-bg');
 const paper = document.getElementById('paper');
 let paginating = false;
 
-// Décompose le contenu d'une clause en éléments coupables (paragraphes, puces…).
-// Les listes sont éclatées en <li> ; les autres blocs (ex. encadré de condition)
-// restent insécables.
-function flattenContent(content) {
-  const out = [];
-  for (const child of content.children) {
-    if ((child.tagName === 'UL' || child.tagName === 'OL') && child.children.length) {
-      for (const li of child.children) out.push(li);
-    } else {
-      out.push(child);
-    }
-  }
-  return out;
-}
-
 // Construit la liste ordonnée des unités à placer.
 //  · m = élément mesuré (position/hauteur réelles)
 //  · t = élément sur lequel agir (marge) pour déplacer l'unité
 //  · group = vrai pour un titre de section (règle « garder avec la suivante »)
+//
+// Chaque bloc de premier niveau — y compris les clauses (grille étiquette |
+// contenu) — est traité comme une unité INSÉCABLE. Une clause qui ne tient pas
+// dans l'espace restant de la feuille courante bascule entièrement sur la
+// suivante. On évite ainsi d'injecter des marges sur des paragraphes internes :
+// cela étirait le conteneur de la clause à travers le saut de page et faisait
+// apparaître du texte dans la gouttière grise entre deux feuilles.
 function buildLeaves() {
   const leaves = [];
   for (const top of Array.from(page.children)) {
-    if (top.classList.contains('ts-clause')) {
-      const content = top.querySelector('.ts-content');
-      const parts = content ? flattenContent(content) : [];
-      if (parts.length) {
-        // La 1re unité entraîne toute la clause (étiquette + 1er paragraphe).
-        leaves.push({ m: parts[0], t: top, group: false });
-        for (let k = 1; k < parts.length; k++) leaves.push({ m: parts[k], t: parts[k], group: false });
-      } else {
-        leaves.push({ m: top, t: top, group: false });
-      }
-    } else {
-      leaves.push({ m: top, t: top, group: top.classList.contains('ts-group') });
-    }
+    leaves.push({ m: top, t: top, group: top.classList.contains('ts-group') });
   }
   return leaves;
 }
