@@ -13,7 +13,7 @@ Plateforme d'accompagnement à la levée de fonds pour startups françaises. Deu
 5. [Authentification](#5-authentification)
 6. [SaaS — Gestion des dossiers & checklist](#6-saas--gestion-des-dossiers--checklist)
 7. [SaaS — Éditeur de documents](#7-saas--éditeur-de-documents)
-8. [SaaS — Intégration Claude (Anthropic)](#8-saas--intégration-claude-anthropic)
+  8. [SaaS — Intégration GLM-5.2 (Z.AI)](#8-saas--intégration-glm-52-zai)
 9. [SaaS — Export / conversion de fichiers](#9-saas--export--conversion-de-fichiers)
 10. [Frontend — Architecture sans framework](#10-frontend--architecture-sans-framework)
 11. [Déploiement Railway](#11-déploiement-railway)
@@ -34,7 +34,7 @@ Plateforme d'accompagnement à la levée de fonds pour startups françaises. Deu
 
 | Package | Usage |
 |---------|-------|
-| `@anthropic-ai/sdk` | IA juridique (Claude Opus 4.8 avec extended thinking) |
+| `openai` | IA juridique (GLM-5.2 via Z.AI, endpoint Coding Plan OpenAI-compatible) |
 | `cloudconvert` | Conversion HTML→DOCX, PDF→DOCX, DOCX→PDF |
 | `mammoth` | Parse DOCX → HTML brut pour l'éditeur |
 | `bcryptjs` | Hachage des mots de passe (10 rounds) |
@@ -384,11 +384,13 @@ Zone `contenteditable` pilotée par `document.execCommand` (gras, listes, aligne
 
 ---
 
-## 8. SaaS — Intégration Claude (Anthropic)
+## 8. SaaS — Intégration GLM-5.2 (Z.AI)
 
-**Modèle :** `claude-opus-4-8` avec `thinking: { type: 'adaptive' }` (extended thinking activé).
+**Modèle :** `glm-5.2` via Z.AI, avec `thinking: { type: 'enabled' }` + `reasoning_effort: 'high'` (raisonnement activé sur les routes qui en bénéficient).
 
-**Output structuré :** Toutes les routes IA utilisent `output_config.format.type = 'json_schema'` (structured outputs d'Anthropic) plutôt que du parsing regex fragile.
+**Endpoint :** `https://api.z.ai/api/coding/paas/v4` (abonnement *GLM Coding Plan*, compatible SDK OpenAI). Clé : variable d'environnement `ZAI_API_KEY`.
+
+**Output structuré :** les routes IA renvoient du JSON via le mode `response_format: { type: 'json_object' }` + une instruction de format injectée dans le prompt système, puis un parsing robuste (gestion des éventuels fences markdown). Le thinking consommant des tokens de sortie, `max_tokens` est dimensionné en conséquence.
 
 ### `POST /api/saas/clause-chat` — Assistant de clause
 
@@ -524,7 +526,7 @@ Railway lit `package.json#scripts.start` et exécute `node server.js`. Le port e
 ### Variables à configurer dans Railway
 ```
 MONGODB_URI           # URI standard (non-SRV) — voir note ci-dessous
-ANTHROPIC_API_KEY
+ZAI_API_KEY            # Clé Z.AI (GLM Coding Plan) — endpoint /api/coding/paas/v4
 CLOUDCONVERT_API_KEY
 GOOGLE_CLIENT_ID
 GOOGLE_CLIENT_SECRET
@@ -561,7 +563,7 @@ res.cookie('auth_token', token, {
 | Variable | Requis | Défaut | Note |
 |----------|--------|--------|------|
 | `MONGODB_URI` | ✅ | `mongodb://localhost:27017` | URI non-SRV en local |
-| `ANTHROPIC_API_KEY` | IA | — | Si absent, routes `/api/saas/*-chat`, `*-explain`, `*-analyze` renvoient 503 |
+| `ZAI_API_KEY` | IA | — | Clé Z.AI (GLM Coding Plan). Si absent, routes `/api/saas/*-chat`, `*-explain`, `*-analyze` renvoient 503 |
 | `CLOUDCONVERT_API_KEY` | Export | — | Si absent, export DOCX/PDF et conversion renvoient 503 |
 | `GOOGLE_CLIENT_ID` | OAuth | — | |
 | `GOOGLE_CLIENT_SECRET` | OAuth | — | Non utilisé côté serveur (flow token-only) |

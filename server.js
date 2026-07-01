@@ -11,7 +11,7 @@ const speakeasy        = require('speakeasy');
 const QRCode           = require('qrcode');
 const multer           = require('multer');
 const { MongoClient }  = require('mongodb');
-const Anthropic        = require('@anthropic-ai/sdk');
+const OpenAI           = require('openai');
 const CloudConvert     = require('cloudconvert');
 const mammoth          = require('mammoth');
 
@@ -27,8 +27,53 @@ const STARTUP_SECRET       = process.env.STARTUP_SECRET       || 'startup_post_s
 
 const ADMIN_EMAILS = ['baptiste.faisy@gmail.com', 'bg.fsg.invest@gmail.com'];
 
-// ─── Claude (assistant IA term sheet du SaaS) ─────────────────────────────────
-const anthropic = process.env.ANTHROPIC_API_KEY ? new Anthropic() : null; // lit ANTHROPIC_API_KEY
+// ─── Assistant IA du SaaS (GLM-5.2 via Z.AI, API OpenAI-compatible) ───────────
+// L'assistant juridique du term sheet utilise GLM-5.2 sur la plateforme Z.AI.
+// Endpoint Coding Plan (abonnement) : https://api.z.ai/api/coding/paas/v4 —
+// compatible SDK OpenAI. (L'endpoint /api/paas/v4 facture au solde et renvoie
+// 1113 « Insufficient balance » tant qu'il n'est pas rechargé.)
+const GLM_MODEL = 'glm-5.2';
+const zaiClient = (process.env.ZAI_API_KEY || process.env.ANTHROPIC_API_KEY)
+  ? new OpenAI({ apiKey: process.env.ZAI_API_KEY || process.env.ANTHROPIC_API_KEY, baseURL: 'https://api.z.ai/api/coding/paas/v4' })
+  : null;
+
+// Appel unifié GLM-5.2. `thinking` active le raisonnement, `json` force une
+// sortie JSON (mode json_object + instruction injectée dans le prompt système
+// + parsing robuste côté routeur, car GLM peut sinon enrober le JSON de texte).
+async function glmChat({ system, messages, maxTokens, thinking, json, jsonHint }) {
+  let sys = system;
+  if (json) {
+    sys = (sys || '') + '\n\nFORMAT DE RÉPONSE IMPÉRATIF : renvoie UNIQUEMENT un objet JSON valide et complet, sans aucun texte autour, sans balise markdown, sans commentaire.'
+      + (jsonHint ? ' ' + jsonHint : '');
+  }
+  const payload = {
+    model: GLM_MODEL,
+    max_tokens: maxTokens,
+    messages: [
+      ...(sys ? [{ role: 'system', content: sys }] : []),
+      ...messages,
+    ],
+    thinking: { type: thinking ? 'enabled' : 'disabled' },
+  };
+  if (thinking) payload.reasoning_effort = 'high';
+  if (json) payload.response_format = { type: 'json_object' };
+  return zaiClient.chat.completions.create(payload);
+}
+// Texte brut d'une réponse GLM.
+function glmText(response) {
+  return (response?.choices?.[0]?.message?.content ?? '').trim();
+}
+// JSON robuste depuis une réponse GLM (gère le markdown ```json éventuel).
+function glmJson(response) {
+  const raw = glmText(response);
+  if (!raw) return {};
+  const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  const src = fenced ? fenced[1] : raw;
+  try { return JSON.parse(src); } catch {}
+  const m = src.match(/\{[\s\S]*\}/);
+  if (m) { try { return JSON.parse(m[0]); } catch {} }
+  return {};
+}
 
 // ─── CloudConvert (conversion PDF ⇄ DOCX du SaaS) ─────────────────────────────
 const cloudConvert = process.env.CLOUDCONVERT_API_KEY ? new CloudConvert(process.env.CLOUDCONVERT_API_KEY) : null;
@@ -647,8 +692,8 @@ app.delete('/api/admin/startups/:id', requireAdmin, async (req, res) => {
 async function recordClaudeUsage(userId, response) {
   try {
     const u = response?.usage || {};
-    const input  = (u.input_tokens || 0) + (u.cache_read_input_tokens || 0) + (u.cache_creation_input_tokens || 0);
-    const output = u.output_tokens || 0;
+    const input  = u.prompt_tokens ?? u.input_tokens ?? 0;
+    const output = u.completion_tokens ?? u.output_tokens ?? 0;
     await col('saas_claude_usage').updateOne(
       { user_id: userId },
       {
@@ -678,8 +723,8 @@ async function aiCacheSet(hash, data) {
 }
 
 app.post('/api/saas/clause-chat', requireAuth, async (req, res) => {
-  if (!anthropic)
-    return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ANTHROPIC_API_KEY dans le .env du serveur.' });
+  if (!zaiClient)
+    return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
   const { clauseLabel, clauseHtml, plain, documentContext, messages } = req.body ?? {};
   if (!clauseHtml || !Array.isArray(messages) || messages.length === 0)
@@ -716,44 +761,16 @@ Règles :
 - N'invente jamais de chiffres non demandés et ne touche pas aux autres clauses. Signale brièvement dans "reply" l'impact de ta modification (point de vigilance).`;
 
   try {
-    const response = await anthropic.messages.create({
-      model: 'claude-opus-4-8',
-      max_tokens: 4000,
-      thinking: { type: 'adaptive' },
+    const response = await glmChat({
       system,
       messages: convo,
-      output_config: {
-        format: {
-          type: 'json_schema',
-          schema: {
-            type: 'object',
-            properties: {
-              reply: { type: 'string', description: 'Réponse de chat en français pour le fondateur.' },
-              edits: {
-                type: 'array',
-                description: 'Modifications ciblées (find/replace) sur le HTML de la clause. Vide si aucune.',
-                items: {
-                  type: 'object',
-                  properties: {
-                    find:    { type: 'string', description: 'Extrait exact à remplacer, copié depuis le HTML de la clause.' },
-                    replace: { type: 'string', description: 'Texte de remplacement.' },
-                  },
-                  required: ['find', 'replace'],
-                  additionalProperties: false,
-                },
-              },
-              updatedClause: { type: 'string', description: 'Clause entière réécrite en HTML, ou "" si on utilise edits / aucune modification.' },
-            },
-            required: ['reply', 'edits', 'updatedClause'],
-            additionalProperties: false,
-          },
-        },
-      },
+      maxTokens: 8000,
+      thinking: true,
+      json: true,
+      jsonHint: 'Format : {"reply":"texte","edits":[{"find":"extrait exact","replace":"remplacement"}],"updatedClause":""} — "edits" pour une modif ciblée, OU "updatedClause" pour une réécriture totale, jamais les deux.',
     });
     await recordClaudeUsage(req.user.id, response);
-
-    const textBlock = response.content.find(b => b.type === 'text');
-    const data = JSON.parse(textBlock ? textBlock.text : '{}');
+    const data = glmJson(response);
     res.json({
       reply:         data.reply || '',
       edits:         Array.isArray(data.edits) ? data.edits.filter(e => e && typeof e.find === 'string' && typeof e.replace === 'string' && e.find) : [],
@@ -770,8 +787,8 @@ Règles :
 // son texte RÉEL (valeurs comprises) — pas un texte générique. Le front la
 // réactualise dès que la clause change.
 app.post('/api/saas/clause-explain', requireAuth, async (req, res) => {
-  if (!anthropic)
-    return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ANTHROPIC_API_KEY dans le .env du serveur.' });
+  if (!zaiClient)
+    return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
   const { clauseLabel, clauseHtml, plain } = req.body ?? {};
   if (!clauseHtml || typeof clauseHtml !== 'string')
@@ -793,15 +810,14 @@ Règles :
 - Utilise une analogie simple et concrète de la vie quotidienne, du point de vue du fondateur. Pas de jargon juridique.`;
 
   try {
-    const response = await anthropic.messages.create({
-      model: 'claude-opus-4-8',
-      max_tokens: 600,
+    const response = await glmChat({
       system,
       messages: [{ role: 'user', content: 'Rédige le bloc « Pour bien comprendre » pour cette clause.' }],
+      maxTokens: 600,
+      thinking: false,
     });
     await recordClaudeUsage(req.user.id, response);
-    const textBlock = response.content.find(b => b.type === 'text');
-    const simple = (textBlock ? textBlock.text : '').trim();
+    const simple = glmText(response);
     res.json({ simple });
   } catch (err) {
     console.error('Claude clause-explain error:', err.message);
@@ -811,8 +827,8 @@ Règles :
 
 // ─── SaaS : vérification d'UNE clause + de ses contenus pédagogiques ────────────
 app.post('/api/saas/clause-verify', requireAuth, async (req, res) => {
-  if (!anthropic)
-    return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ANTHROPIC_API_KEY dans le .env du serveur.' });
+  if (!zaiClient)
+    return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
   const { clauseLabel, clauseHtml, plain, simple, watch } = req.body ?? {};
   if (!clauseHtml || typeof clauseHtml !== 'string')
@@ -840,15 +856,14 @@ Conseil fondateur : ${watch || '(non fourni)'}
 Réponds en français, en texte continu, 3 à 6 phrases. Commence par un verdict sur la clause (OK / à surveiller / problématique), puis tes observations sur les explications pédagogiques, puis une suggestion concrète si nécessaire. Pas de titre, pas de liste, texte fluide.`;
 
   try {
-    const response = await anthropic.messages.create({
-      model: 'claude-opus-4-8',
-      max_tokens: 800,
+    const response = await glmChat({
       system,
       messages: [{ role: 'user', content: 'Analyse cette clause et ses contenus pédagogiques.' }],
+      maxTokens: 800,
+      thinking: false,
     });
     await recordClaudeUsage(req.user.id, response);
-    const textBlock = response.content.find(b => b.type === 'text');
-    const analysis = (textBlock ? textBlock.text : '').trim();
+    const analysis = glmText(response);
     res.json({ analysis });
   } catch (err) {
     console.error('Claude clause-verify error:', err.message);
@@ -856,10 +871,63 @@ Réponds en français, en texte continu, 3 à 6 phrases. Commence par un verdict
   }
 });
 
+// ─── SaaS : explication d'un EXTRAIT sélectionné (contexte : toute la page) ────
+// L'utilisateur sélectionne du texte dans l'éditeur et demande à l'IA de le lui
+// expliquer. On envoie à Claude l'extrait + le contexte complet de la page pour
+// qu'il interprète l'extrait en fonction du reste du document.
+app.post('/api/saas/explain-selection', requireAuth, async (req, res) => {
+  if (!zaiClient)
+    return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
+
+  const { selection, documentContext } = req.body ?? {};
+  if (!selection || typeof selection !== 'string' || !selection.trim())
+    return res.status(400).json({ error: 'selection est requis' });
+
+  const system =
+`Tu es l'assistant juridique IA de « liquid + », un éditeur de documents juridiques pour fondateurs de startup.
+L'utilisateur a SÉLECTIONNÉ un extrait précis dans son document et veut que tu le lui expliques.
+
+Extrait sélectionné à expliquer :
+"""
+${String(selection).slice(0, 4000)}
+"""
+
+Contexte complet du document (pour interpréter l'extrait, les renvois et la cohérence) :
+"""
+${String(documentContext || '').slice(0, 12000)}
+"""
+
+Règles :
+- Réponds en français, du point de vue du fondateur, en 2 à 5 phrases, texte fluide (pas de liste, pas de titre, pas de balises HTML).
+- Explique d'abord ce que veut dire l'extrait en langage simple et concret.
+- Précise, si utile, comment l'extrait s'articule avec le reste du document (utilise le contexte fourni).
+- Termine par un point de vigilance ou un conseil court si l'extrait présente un risque ou une opportunité de négociation.`;
+
+  const cacheHash = aiHash('explain-selection', [String(selection).slice(0, 4000), String(documentContext || '').slice(0, 12000)]);
+  const cached = await aiCacheGet(cacheHash);
+  if (cached) return res.json({ explanation: cached, cached: true });
+
+  try {
+    const response = await glmChat({
+      system,
+      messages: [{ role: 'user', content: 'Explique cet extrait au fondateur.' }],
+      maxTokens: 800,
+      thinking: false,
+    });
+    await recordClaudeUsage(req.user.id, response);
+    const explanation = glmText(response);
+    if (explanation) await aiCacheSet(cacheHash, explanation);
+    res.json({ explanation });
+  } catch (err) {
+    console.error('Claude explain-selection error:', err.message);
+    res.status(502).json({ error: 'L\'assistant IA est momentanément indisponible.' });
+  }
+});
+
 // ─── SaaS : conseils d'amélioration SPÉCIFIQUES à un document ──────────────────
 app.post('/api/saas/doc-advice', requireAuth, async (req, res) => {
-  if (!anthropic)
-    return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ANTHROPIC_API_KEY dans le .env du serveur.' });
+  if (!zaiClient)
+    return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
   const { title, text } = req.body ?? {};
   if (!text || typeof text !== 'string')
@@ -885,41 +953,16 @@ Règles :
   if (cached) return res.json({ tips: cached, cached: true });
 
   try {
-    const response = await anthropic.messages.create({
-      model: 'claude-opus-4-8',
-      max_tokens: 1200,
-      thinking: { type: 'adaptive' },
+    const response = await glmChat({
       system,
       messages: [{ role: 'user', content: 'Donne les conseils d\'amélioration spécifiques à ce document.' }],
-      output_config: {
-        format: {
-          type: 'json_schema',
-          schema: {
-            type: 'object',
-            properties: {
-              tips: {
-                type: 'array',
-                description: 'Conseils spécifiques au document (3 à 5).',
-                items: {
-                  type: 'object',
-                  properties: {
-                    title: { type: 'string', description: 'Titre court du conseil.' },
-                    body:  { type: 'string', description: 'Explication en une phrase.' },
-                  },
-                  required: ['title', 'body'],
-                  additionalProperties: false,
-                },
-              },
-            },
-            required: ['tips'],
-            additionalProperties: false,
-          },
-        },
-      },
+      maxTokens: 6000,
+      thinking: true,
+      json: true,
+      jsonHint: 'Format : {"tips":[{"title":"titre court","body":"une phrase"}]} — 3 à 5 conseils.',
     });
     await recordClaudeUsage(req.user.id, response);
-    const textBlock = response.content.find(b => b.type === 'text');
-    const data = JSON.parse(textBlock ? textBlock.text : '{}');
+    const data = glmJson(response);
     const tips = Array.isArray(data.tips) ? data.tips.filter(t => t && t.title && t.body) : [];
     if (tips.length) await aiCacheSet(cacheHash, tips);
     res.json({ tips });
@@ -931,8 +974,8 @@ Règles :
 
 // ─── SaaS : analyse d'un document → liste des « choses à faire » ───────────────
 app.post('/api/saas/doc-analyze', requireAuth, async (req, res) => {
-  if (!anthropic)
-    return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ANTHROPIC_API_KEY dans le .env du serveur.' });
+  if (!zaiClient)
+    return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
   const { title, text } = req.body ?? {};
   if (!text || typeof text !== 'string')
@@ -954,33 +997,16 @@ Règles :
 - Donne entre 4 et 12 items, ordonnés du plus important au moins important.`;
 
   try {
-    const response = await anthropic.messages.create({
-      model: 'claude-opus-4-8',
-      max_tokens: 1500,
-      thinking: { type: 'adaptive' },
+    const response = await glmChat({
       system,
       messages: [{ role: 'user', content: 'Analyse ce document et liste les choses à faire.' }],
-      output_config: {
-        format: {
-          type: 'json_schema',
-          schema: {
-            type: 'object',
-            properties: {
-              todos: {
-                type: 'array',
-                description: 'Les choses à faire, spécifiques au document (4 à 12).',
-                items: { type: 'string' },
-              },
-            },
-            required: ['todos'],
-            additionalProperties: false,
-          },
-        },
-      },
+      maxTokens: 8000,
+      thinking: true,
+      json: true,
+      jsonHint: 'Format : {"todos":["action 1","action 2", ...]} — 4 à 12 items, chaque action commençant par un verbe à l\'infinitif.',
     });
     await recordClaudeUsage(req.user.id, response);
-    const textBlock = response.content.find(b => b.type === 'text');
-    const data = JSON.parse(textBlock ? textBlock.text : '{}');
+    const data = glmJson(response);
     const todos = Array.isArray(data.todos) ? data.todos.filter(t => typeof t === 'string' && t.trim()).map(t => t.trim()) : [];
     res.json({ todos });
   } catch (err) {
@@ -991,8 +1017,8 @@ Règles :
 
 // ─── SaaS : explication « Pour bien comprendre » de TOUS les paragraphes (groupée) ─
 app.post('/api/saas/clauses-explain', requireAuth, async (req, res) => {
-  if (!anthropic)
-    return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ANTHROPIC_API_KEY dans le .env du serveur.' });
+  if (!zaiClient)
+    return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
   const { title, clauses } = req.body ?? {};
   if (!Array.isArray(clauses) || !clauses.length)
@@ -1022,40 +1048,16 @@ Renvoie une explication pour chaque identifiant fourni.`;
   if (cached) return res.json({ explanations: cached, cached: true });
 
   try {
-    const response = await anthropic.messages.create({
-      model: 'claude-opus-4-8',
-      max_tokens: 8000,
-      thinking: { type: 'adaptive' },
+    const response = await glmChat({
       system,
       messages: [{ role: 'user', content: 'Explique chaque paragraphe.' }],
-      output_config: {
-        format: {
-          type: 'json_schema',
-          schema: {
-            type: 'object',
-            properties: {
-              items: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    key:    { type: 'string', description: 'Identifiant du paragraphe.' },
-                    simple: { type: 'string', description: 'Explication en langage courant.' },
-                  },
-                  required: ['key', 'simple'],
-                  additionalProperties: false,
-                },
-              },
-            },
-            required: ['items'],
-            additionalProperties: false,
-          },
-        },
-      },
+      maxTokens: 16000,
+      thinking: true,
+      json: true,
+      jsonHint: 'Format : {"items":[{"key":"<id du paragraphe>","simple":"explication 1 à 3 phrases"}]} — un objet par identifiant fourni.',
     });
     await recordClaudeUsage(req.user.id, response);
-    const textBlock = response.content.find(b => b.type === 'text');
-    const data = JSON.parse(textBlock ? textBlock.text : '{}');
+    const data = glmJson(response);
     const explanations = {};
     if (Array.isArray(data.items)) {
       data.items.forEach(it => { if (it && it.key && it.simple) explanations[String(it.key)] = String(it.simple).trim(); });
