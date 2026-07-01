@@ -418,6 +418,6 @@ mark.cond-val { background: rgba(251,191,36,0.38); border-radius: 3px; padding: 
   .page .ts-clause.is-active { background: transparent !important; box-shadow: none !important; }
 
   /* Sécurité : ne jamais scinder ces éléments au milieu d'une page. */
-  .clause-cond, .ts-sign, table.captable,
+  .ts-clause, .clause-cond, .ts-sign, table.captable,
   .page p, .page li, .page ol, .page ul { break-inside: avoid; page-break-inside: avoid; }
 }
