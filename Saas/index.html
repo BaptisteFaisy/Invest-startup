@@ -22,9 +22,10 @@
     .nav__links a { color: rgba(255,255,255,0.42); transition: color .15s; }
     .nav__links a:hover { color: #fff; }
     .nav__cta { display: flex; gap: 10px; align-items: center; }
-    .btn-ghost { font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.55); background: transparent; border: 1px solid rgba(255,255,255,0.14); border-radius: 9px; padding: 8px 16px; cursor: pointer; transition: color .15s, border-color .15s; display: inline-block; }
+    .btn-ghost, .btn-solid { font-family: 'Archivo', sans-serif; font-size: 13px; border-radius: 9px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; min-height: 38px; min-width: 108px; padding: 9px 18px; border: 1px solid rgba(255,255,255,0.14); transition: color .15s, border-color .15s, opacity .15s; }
+    .btn-ghost { font-weight: 600; color: rgba(255,255,255,0.55); background: transparent; }
     .btn-ghost:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
-    .btn-solid { font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 700; color: #08090c; background: #fff; border: none; border-radius: 9px; padding: 8px 18px; cursor: pointer; transition: opacity .15s; display: inline-block; }
+    .btn-solid { font-weight: 700; color: #08090c; background: #fff; border-color: transparent; }
     .btn-solid:hover { opacity: 0.88; }
 
     /* HERO */
@@ -35,7 +36,7 @@
     .hero h1 em { font-style: normal; color: #3b82f6; }
     .hero__sub { font-size: 17px; color: rgba(255,255,255,0.44); max-width: 520px; margin: 0 auto 40px; line-height: 1.75; }
     .hero__actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 70px; }
-    .btn-lg { font-family: 'Archivo', sans-serif; font-size: 14.5px; font-weight: 700; border-radius: 12px; padding: 14px 30px; cursor: pointer; transition: opacity .15s; display: inline-block; }
+    .btn-lg { font-family: 'Archivo', sans-serif; font-size: 14.5px; font-weight: 700; border-radius: 12px; padding: 14px 30px; cursor: pointer; transition: opacity .15s; display: inline-flex; align-items: center; justify-content: center; min-height: 50px; min-width: 200px; }
     .btn-lg--white { color: #08090c; background: #fff; border: none; }
     .btn-lg--white:hover { opacity: 0.88; }
     .btn-lg--outline { color: rgba(255,255,255,0.6); background: transparent; border: 1px solid rgba(255,255,255,0.18); }
@@ -170,7 +171,7 @@
     .plan--featured li { color: rgba(8,9,12,0.7); }
     .plan--featured li::before { color: rgba(8,9,12,0.25); }
     .plan--featured li.muted { color: rgba(8,9,12,0.22); }
-    .btn-plan { display: block; text-align: center; font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; padding: 12px 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.55); background: transparent; transition: border-color .15s, color .15s; }
+    .btn-plan { display: flex; align-items: center; justify-content: center; min-height: 48px; text-align: center; font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; padding: 12px 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.55); background: transparent; transition: border-color .15s, color .15s; }
     .btn-plan:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
     .plan--featured .btn-plan { background: #08090c; color: #fff; border-color: transparent; }
     .plan--featured .btn-plan:hover { background: #1a1d24; }
