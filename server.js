@@ -805,7 +805,7 @@ Contenu HTML actuel de la clause (c'est CE texte précis que tu dois expliquer, 
 ${clauseHtml}
 
 Règles :
-- Réponds UNIQUEMENT par le texte de l'explication, en français. 2 PHRASES MAXIMUM, environ 20 à 30 mots : sois bref et direct.
+- Réponds UNIQUEMENT par le texte de l'explication, en français. 10 PHRASES MAXIMUM : sois concis et direct, va à l'essentiel.
 - JAMAIS de tableau (ni HTML ni Markdown), jamais de liste, jamais de puce, jamais de titre, jamais de balise. UNIQUEMENT du texte brut continu.
 - Sois fidèle aux valeurs réellement écrites dans la clause : si une durée, un montant ou un pourcentage change, l'explication doit changer en conséquence.
 - Utilise une analogie simple et concrète de la vie quotidienne, du point de vue du fondateur. Pas de jargon juridique.`;
@@ -1034,7 +1034,7 @@ app.post('/api/saas/clauses-explain', requireAuth, async (req, res) => {
 
   const system =
 `Tu es l'assistant pédagogique de « liquid + », un outil juridique pour fondateurs de startup.
-On te donne la liste des paragraphes d'UN document juridique. Pour CHAQUE paragraphe, rédige une explication « Pour bien comprendre » : 2 PHRASES MAXIMUM (~20-30 mots) en français, simples et imagées, fidèles aux valeurs réelles du texte (durées, montants, pourcentages), du point de vue du fondateur, sans jargon. UNIQUEMENT du texte brut : JAMAIS de tableau, de liste, de puce, de titre ou de balise (HTML/Markdown).
+On te donne la liste des paragraphes d'UN document juridique. Pour CHAQUE paragraphe, rédige une explication « Pour bien comprendre » : 10 PHRASES MAXIMUM en français, simples et imagées, fidèles aux valeurs réelles du texte (durées, montants, pourcentages), du point de vue du fondateur, sans jargon. UNIQUEMENT du texte brut : JAMAIS de tableau, de liste, de puce, de titre ou de balise (HTML/Markdown).
 
 Type / titre du document : « ${title || 'Document'} »
 
@@ -1044,7 +1044,7 @@ ${list.map(c => `--- ${c.key} | ${c.label}\n${c.html}`).join('\n\n')}
 Renvoie une explication pour chaque identifiant fourni.`;
 
   // Cache par contenu : on n'explique un même ensemble de paragraphes qu'une fois.
-  const cacheHash = aiHash('clauses-explain-v2', [title || '', ...list.map(c => c.key + '|' + c.html)]);
+  const cacheHash = aiHash('clauses-explain-v3', [title || '', ...list.map(c => c.key + '|' + c.html)]);
   const cached = await aiCacheGet(cacheHash);
   if (cached) return res.json({ explanations: cached, cached: true });
 
@@ -1055,7 +1055,7 @@ Renvoie une explication pour chaque identifiant fourni.`;
       maxTokens: 16000,
       thinking: true,
       json: true,
-      jsonHint: 'Format : {"items":[{"key":"<id du paragraphe>","simple":"explication en 2 phrases max, texte brut sans tableau ni liste"}]} — un objet par identifiant fourni.',
+      jsonHint: 'Format : {"items":[{"key":"<id du paragraphe>","simple":"explication en 10 phrases max, texte brut sans tableau ni liste"}]} — un objet par identifiant fourni.',
     });
     await recordClaudeUsage(req.user.id, response);
     const data = glmJson(response);
@@ -1586,7 +1586,10 @@ async function convertViaCloudConvert(inputBuffer, inputFilename, outputFormat) 
     },
   });
   const uploadTask = job.tasks.find(t => t.name === 'upload-file');
-  await cloudConvert.tasks.upload(uploadTask, Readable.from(inputBuffer), inputFilename);
+  // cloudconvert v3 ne sait pas deviner la taille d'un Readable : il faut la passer
+  // explicitement (sinon : "Could not determine the number of bytes").
+  const size = inputBuffer.length || inputBuffer.byteLength || inputBuffer.size;
+  await cloudConvert.tasks.upload(uploadTask, Readable.from(inputBuffer), inputFilename, size);
   job = await cloudConvert.jobs.wait(job.id);
   const exportTask = job.tasks.find(t => t.name === 'export-file');
   if (!exportTask || exportTask.status !== 'finished' || !exportTask.result?.files?.length)
