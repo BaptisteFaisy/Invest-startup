@@ -1339,30 +1339,64 @@ const urlDocId = new URLSearchParams(location.search).get('doc');
 if (urlDocId && /^\d+$/.test(urlDocId)) loadTermsheet(Number(urlDocId));
 
 /* ---------- Redimensionnement des colonnes (gauche / droite) ---------- */
+/* En dessous d'un seuil (collapseAt), la colonne se replie entièrement.
+   On la rouvre en cliquant ou en glissant la poignée. */
 (function setupResize() {
   const ws = document.querySelector('.workspace');
   if (!ws) return;
-  // Restaure les largeurs mémorisées.
-  try {
-    const lw = localStorage.getItem('liquid_lib_w');
-    const pw = localStorage.getItem('liquid_panel_w');
-    if (lw) ws.style.setProperty('--lib-w', lw);
-    if (pw) ws.style.setProperty('--panel-w', pw);
-  } catch { /* pas de largeur mémorisée */ }
 
-  function bind(gutterId, varName, storeKey, side, min, max) {
+  function bind(gutterId, varName, storeKey, side, min, max, collapseAt) {
     const g = document.getElementById(gutterId);
     if (!g) return;
+    const collClass = side === 'left' ? 'is-collapsed-left' : 'is-collapsed-right';
+
+    let openWidth = '';
+    let collapsed = false;
+    try {
+      openWidth = localStorage.getItem(storeKey) || '';
+      collapsed = localStorage.getItem(storeKey + '_collapsed') === '1';
+    } catch {}
+
+    function render() {
+      if (collapsed) {
+        ws.style.setProperty(varName, '0px');
+        ws.classList.add(collClass);
+        g.classList.add('is-collapsed');
+        g.title = 'Cliquez ou glissez pour rouvrir';
+      } else {
+        if (openWidth) ws.style.setProperty(varName, openWidth);
+        else ws.style.removeProperty(varName);
+        ws.classList.remove(collClass);
+        g.classList.remove('is-collapsed');
+        g.title = 'Redimensionner (double-clic pour réinitialiser)';
+      }
+    }
+    function persist() {
+      try {
+        localStorage.setItem(storeKey + '_collapsed', collapsed ? '1' : '0');
+        if (openWidth) localStorage.setItem(storeKey, openWidth);
+      } catch {}
+    }
+    function reflow() { if (typeof paginate === 'function') paginate(); }
+
+    render();
+
     g.addEventListener('mousedown', (e) => {
       e.preventDefault();
+      let dragged = false;
+      let lastW = 0;
       g.classList.add('is-drag');
       document.body.style.cursor = 'col-resize';
       document.body.style.userSelect = 'none';
+      // Reouvre immédiatement si la colonne était repliée.
+      if (collapsed) { collapsed = false; render(); persist(); }
       const rect = ws.getBoundingClientRect();
       const move = (ev) => {
+        dragged = true;
         let w = side === 'left' ? (ev.clientX - rect.left) : (rect.right - ev.clientX);
-        w = Math.max(min, Math.min(max, Math.round(w)));
-        ws.style.setProperty(varName, w + 'px');
+        w = Math.round(w);
+        lastW = w;
+        ws.style.setProperty(varName, Math.max(0, Math.min(max, w)) + 'px');
       };
       const up = () => {
         g.classList.remove('is-drag');
@@ -1370,21 +1404,75 @@ if (urlDocId && /^\d+$/.test(urlDocId)) loadTermsheet(Number(urlDocId));
         document.body.style.userSelect = '';
         document.removeEventListener('mousemove', move);
         document.removeEventListener('mouseup', up);
-        try { localStorage.setItem(storeKey, ws.style.getPropertyValue(varName)); } catch {}
-        if (typeof paginate === 'function') paginate(); // recale la mise en page
+        if (!dragged) { reflow(); return; } // simple clic : déjà réouvert
+        if (lastW < collapseAt) {
+          collapsed = true;
+          render(); persist(); reflow();
+        } else {
+          const w = lastW < min ? min : Math.min(max, lastW);
+          openWidth = w + 'px';
+          ws.style.setProperty(varName, openWidth);
+          persist(); reflow();
+        }
       };
       document.addEventListener('mousemove', move);
       document.addEventListener('mouseup', up);
     });
-    // Double-clic : réinitialise la colonne à sa largeur par défaut.
+
     g.addEventListener('dblclick', () => {
-      ws.style.removeProperty(varName);
+      if (collapsed) { collapsed = false; render(); persist(); reflow(); return; }
+      openWidth = '';
       try { localStorage.removeItem(storeKey); } catch {}
-      if (typeof paginate === 'function') paginate();
+      ws.style.removeProperty(varName);
+      reflow();
     });
   }
-  bind('gutter-left',  '--lib-w',   'liquid_lib_w',   'left',  200, 520);
-  bind('gutter-right', '--panel-w', 'liquid_panel_w', 'right', 260, 640);
+  bind('gutter-left',  '--lib-w',   'liquid_lib_w',   'left',  200, 520, 120);
+  bind('gutter-right', '--panel-w', 'liquid_panel_w', 'right', 260, 640, 150);
+
+  /* --- Redimensionnement vertical de l'assistant IA (chat Claude) --- */
+  const chatEl = document.getElementById('chat');
+  const chatG  = document.getElementById('gutter-chat');
+  if (chatEl && chatG) {
+    // Restaure la hauteur mémorisée.
+    try {
+      const ch = localStorage.getItem('liquid_chat_h');
+      if (ch) { chatEl.style.maxHeight = 'none'; chatEl.style.height = ch; }
+    } catch { /* rien */ }
+
+    chatG.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      chatG.classList.add('is-drag');
+      document.body.style.cursor = 'row-resize';
+      document.body.style.userSelect = 'none';
+      const panel = document.querySelector('.panel');
+      const rect = panel.getBoundingClientRect();
+      const move = (ev) => {
+        // Hauteur = distance entre le curseur et le bas du panneau.
+        let h = rect.bottom - ev.clientY;
+        h = Math.max(140, Math.min(rect.height - 160, Math.round(h)));
+        chatEl.style.maxHeight = 'none';
+        chatEl.style.height = h + 'px';
+      };
+      const up = () => {
+        chatG.classList.remove('is-drag');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        document.removeEventListener('mousemove', move);
+        document.removeEventListener('mouseup', up);
+        try { localStorage.setItem('liquid_chat_h', chatEl.style.height); } catch {}
+      };
+      document.addEventListener('mousemove', move);
+      document.addEventListener('mouseup', up);
+    });
+
+    // Double-clic : réinitialise à la hauteur par défaut.
+    chatG.addEventListener('dblclick', () => {
+      chatEl.style.removeProperty('height');
+      chatEl.style.removeProperty('max-height');
+      try { localStorage.removeItem('liquid_chat_h'); } catch {}
+    });
+  }
 })();
 
 /* ---------- 7. Assistant IA (Claude) : modifier la clause active ---------- */
@@ -1393,15 +1481,17 @@ const chatLog   = document.getElementById('chat-log');
 const chatForm  = document.getElementById('chat-form');
 const chatInput = document.getElementById('chat-input');
 const chatSend  = document.getElementById('chat-send');
+const chatGutter = document.getElementById('gutter-chat');
 
 const chatHistory = {};   // { [clauseKey]: [{ role, content }] }
 let   chatKey     = null; // clause actuellement liée au chat
 
-function hideChat() { chatBox.hidden = true; chatKey = null; }
+function hideChat() { chatBox.hidden = true; if (chatGutter) chatGutter.hidden = true; chatKey = null; }
 
 function mountChat(key) {
   chatKey = key;
   chatBox.hidden = false;
+  if (chatGutter) chatGutter.hidden = false;
   renderChatLog();
 }
 

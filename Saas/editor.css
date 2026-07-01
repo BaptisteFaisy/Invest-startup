@@ -62,6 +62,12 @@
 .gutter { background: var(--line); cursor: col-resize; transition: background .12s ease; }
 .gutter:hover, .gutter.is-drag { background: var(--blue); }
 
+/* Colonnes repliées (glissées sous le seuil) : contenu masqué, poignée conservée pour rouvrir. */
+.workspace.is-collapsed-left .library,
+.workspace.is-collapsed-right .panel { display: none; }
+.gutter.is-collapsed { background: var(--blue); }
+.gutter.is-collapsed:hover { background: var(--blue); }
+
 /* ---------- Bibliothèque de clauses (gauche) ---------- */
 .library { border-right: 1px solid var(--line); background: var(--bg-2); display: flex; flex-direction: column; min-height: 0; }
 
@@ -250,6 +256,8 @@
 .panel__empty p { font-size: 14px; max-width: 230px; line-height: 1.6; }
 
 /* ---------- Assistant IA (chat Claude) ---------- */
+.gutter-h { flex: none; height: 6px; cursor: row-resize; background: var(--line); border-top: 1px solid var(--line); transition: background .12s ease; }
+.gutter-h:hover, .gutter-h.is-drag { background: var(--blue); }
 .chat { flex: none; display: flex; flex-direction: column; border-top: 1px solid var(--line); background: var(--card); max-height: 46%; }
 .chat__head { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 24px 8px; }
 .chat__title { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--navy); }
@@ -329,6 +337,45 @@ mark.cond-val { background: rgba(251,191,36,0.38); border-radius: 3px; padding: 
 
 /* En-tête / pied de page d'impression : masqués (l'aperçu n'en comporte pas) */
 .print-head, .print-foot { display: none !important; }
+
+/* ---------- Bouton flottant « Expliquer la sélection » + popover ---------- */
+.selx-btn {
+  position: fixed; z-index: 60;
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700;
+  color: #fff; background: var(--dark); border: 1px solid var(--dark-muted);
+  border-radius: 8px; padding: 6px 11px; cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.22); transition: background .15s, transform .1s;
+}
+.selx-btn:hover { background: #1a1d24; }
+.selx-btn:active { transform: translateY(1px); }
+.selx-btn[hidden] { display: none; }
+
+.selx-pop {
+  position: fixed; z-index: 61; width: 360px; max-width: calc(100vw - 32px);
+  background: #fff; border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.22); overflow: hidden;
+  font-family: 'Libre Franklin', sans-serif;
+}
+.selx-pop[hidden] { display: none; }
+.selx-pop__head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 12px; background: var(--card); border-bottom: 1px solid var(--line);
+}
+.selx-pop__title { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-2); }
+.selx-pop__close { background: transparent; border: 0; font-size: 20px; line-height: 1; color: var(--text-3); cursor: pointer; padding: 0 2px; }
+.selx-pop__close:hover { color: var(--text); }
+.selx-pop__quote {
+  padding: 10px 14px 0; font-size: 12.5px; line-height: 1.55; color: var(--text-2);
+  font-style: italic; border-left: 3px solid var(--blue); margin: 0 14px;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.selx-pop__body { padding: 11px 14px 14px; font-size: 13.5px; line-height: 1.65; color: var(--text); }
+.selx-pop__body p { margin: 0; }
+.selx-pop__body .selx-loading { color: var(--text-3); }
+.selx-pop__body .selx-err { color: #dc2626; }
+
+@media print { .selx-btn, .selx-pop { display: none !important; } }
 
 /* ---------- Impression / Export PDF — STRICTEMENT identique à l'aperçu ----------
    La page PDF a exactement la taille d'une feuille de l'aperçu (820×1160 px). La
