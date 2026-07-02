@@ -143,6 +143,16 @@
 .lib-sep { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-3); padding: 14px 0 8px; border-bottom: 1px solid var(--line); margin-bottom: 10px; }
 .libitem .risk { font-size: 9px; padding: 4px 8px; }
 
+/* Saisie directe des champs dans « À remplir » */
+.fill-row { display: flex; gap: 6px; margin-top: 10px; }
+.fill-row__input { flex: 1; min-width: 0; font-family: 'Archivo', sans-serif; font-size: 12.5px; color: var(--dark); background: #fff; border: 1.5px solid var(--line); border-radius: 8px; padding: 8px 10px; transition: border-color .15s ease; }
+.fill-row__input::placeholder { color: var(--text-3); }
+.fill-row__input:focus { outline: none; border-color: var(--dark); }
+.fill-row__ok { flex: none; font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; color: #fff; background: var(--dark); border: 0; border-radius: 8px; padding: 0 14px; cursor: pointer; transition: background .15s ease; }
+.fill-row__ok:hover { background: var(--dark-muted); }
+.fill-see { flex: none; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 600; color: var(--text-3); background: none; border: 0; padding: 0; cursor: pointer; white-space: nowrap; transition: color .15s ease; }
+.fill-see:hover { color: var(--dark); text-decoration: underline; }
+
 /* Action « Retirer » dans le décrypteur */
 .clause-remove { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; color: #dc2626; background: rgba(220,38,38,0.06); border: 1px solid rgba(220,38,38,0.2); border-radius: 8px; padding: 7px 11px; cursor: pointer; transition: background .15s ease; }
 .clause-remove:hover { background: rgba(220,38,38,0.12); }

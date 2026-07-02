@@ -2465,6 +2465,19 @@ function updateFillNextBtn() {
   document.getElementById('fill-next-btn').addEventListener('click', goNextPlaceholder);
 }
 
+// Brouillons de saisie directe : texte tapé dans la colonne, conservé entre
+// deux rendus de la liste (clé = texte du champ + n° d'occurrence dans le document).
+const _fillDrafts = new Map();
+
+function _fillDraftKeys(ph) {
+  const seen = Object.create(null);
+  return ph.map(p => {
+    const occ = seen[p.text] || 0;
+    seen[p.text] = occ + 1;
+    return p.text + '#' + occ;
+  });
+}
+
 function renderFill() {
   const ph = findPlaceholders();
   fillCount.textContent = ph.length
@@ -2475,14 +2488,68 @@ function renderFill() {
   fillList.innerHTML = ph.length
     ? ph.map((p, i) => `
         <div class="libitem">
-          <div class="libitem__top"><span class="libitem__group">${advEsc(p.clauseLabel)}</span></div>
+          <div class="libitem__top">
+            <span class="libitem__group">${advEsc(p.clauseLabel)}</span>
+            <button class="fill-see" data-ph-fill="${i}" type="button" title="Voir ce champ dans le document">Voir ↗</button>
+          </div>
           <div class="libitem__label">${advEsc(p.text)}</div>
-          <button class="libitem__add libitem__add--see" data-ph-fill="${i}" type="button">Aller →</button>
+          <div class="fill-row">
+            <input class="fill-row__input" type="text" data-ph-input="${i}" placeholder="Saisir la valeur…" autocomplete="off">
+            <button class="fill-row__ok" data-ph-apply="${i}" type="button" title="Insérer la valeur dans le document">OK</button>
+          </div>
         </div>`).join('')
     : '<p class="library__empty">Tous les champs ont été renseignés.</p>';
+
+  // Restaure le texte déjà tapé (la liste est re-rendue à chaque modification du document).
+  const keys = _fillDraftKeys(ph);
+  fillList.querySelectorAll('input[data-ph-input]').forEach((inp, i) => {
+    inp._draftKey = keys[i];
+    const draft = _fillDrafts.get(keys[i]);
+    if (draft) inp.value = draft;
+  });
+}
+
+// Insère la valeur tapée à la place du champ [entre crochets] correspondant.
+function applyFillInput(idx) {
+  const inp   = fillList.querySelector(`input[data-ph-input="${idx}"]`);
+  const value = inp ? inp.value.trim() : '';
+  const ph    = findPlaceholders();
+  const p     = ph[idx];
+  if (!p) { renderFill(); return; }
+  if (!value) { if (inp) inp.focus(); return; }
+
+  // n° d'occurrence de ce texte dans le document, pour viser le bon champ répété
+  let occ = 0;
+  for (let k = 0; k < idx; k++) if (ph[k].text === p.text) occ++;
+  const fields  = Array.from({ length: occ + 1 }, (_, k) => ({ id: k, text: p.text, clause: p.clauseLabel, context: '' }));
+  const applied = applyAutofill([{ id: occ, value }], fields);
+  if (!applied.length) { renderFill(); return; }
+
+  // Le champ n'existe plus : supprime son brouillon et décale ceux des occurrences suivantes.
+  const prefix = p.text + '#';
+  _fillDrafts.delete(prefix + occ);
+  const shifted = [];
+  for (const [key, val] of _fillDrafts) {
+    if (!key.startsWith(prefix)) continue;
+    const k = parseInt(key.slice(prefix.length), 10);
+    if (k > occ) { shifted.push([k, val]); _fillDrafts.delete(key); }
+  }
+  shifted.forEach(([k, val]) => _fillDrafts.set(prefix + (k - 1), val));
+
+  if (!isCustom) syncModelFromDOM();
+  paginate();
+  scheduleAutosave();
+  renderFill();
+
+  // Montre la valeur insérée (surlignée quelques secondes par applyAutofill).
+  const flash = [...page.querySelectorAll('span.af-flash')].find(s => s.textContent === value);
+  if (flash) flash.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 fillList.addEventListener('click', (e) => {
+  const ok = e.target.closest('[data-ph-apply]');
+  if (ok) { applyFillInput(parseInt(ok.dataset.phApply, 10)); return; }
+
   const btn = e.target.closest('[data-ph-fill]');
   if (!btn) return;
   const idx = parseInt(btn.dataset.phFill, 10);
@@ -2490,6 +2557,21 @@ fillList.addEventListener('click', (e) => {
   const p   = ph[idx] ?? ph[0];
   if (p) navigateToPlaceholder(p.key, p.text);
   else renderFill();
+});
+
+fillList.addEventListener('input', (e) => {
+  const inp = e.target.closest('input[data-ph-input]');
+  if (!inp || !inp._draftKey) return;
+  if (inp.value) _fillDrafts.set(inp._draftKey, inp.value);
+  else _fillDrafts.delete(inp._draftKey);
+});
+
+fillList.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+  const inp = e.target.closest('input[data-ph-input]');
+  if (!inp) return;
+  e.preventDefault();
+  applyFillInput(parseInt(inp.dataset.phInput, 10));
 });
 
 /* ---------- Remplissage automatique depuis les documents importés ----------
