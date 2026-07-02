@@ -3,127 +3,218 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>LIQUID+ — Levée de fonds pour startups | Accompagnement A à Z</title>
-    <meta name="description" content="Vous ne nous payez que si vous levez. Accès à 3000+ VC et business angels, pitch deck et analyse complète pour réussir votre levée de fonds." />
+    <title>LIQUID+ — Éditeur de documents juridiques pour fondateurs</title>
+    <meta name="description" content="Rédigez, complétez et négociez vos term sheets, BSA-AIR et statuts avec un éditeur IA qui analyse chaque clause en temps réel." />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://www.liquidplus.fr/" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://www.liquidplus.fr/" />
-    <meta property="og:title" content="LIQUID+ — Accompagnement levée de fonds pour startups" />
-    <meta property="og:description" content="Vous ne nous payez que si vous levez. Accès à 3000+ VC et business angels, pitch deck et analyse complète pour votre levée de fonds." />
+    <meta property="og:title" content="LIQUID+ — Éditeur de documents juridiques pour fondateurs" />
+    <meta property="og:description" content="Rédigez, complétez et négociez vos term sheets, BSA-AIR et statuts avec un éditeur IA qui analyse chaque clause en temps réel." />
     <meta property="og:image" content="https://www.liquidplus.fr/ressourcegraphique/Goutte%20blanche.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Libre+Franklin:wght@300;400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Libre+Franklin:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="icon" type="image/svg+xml" href="/ressourcegraphique/favicon-drop.svg?v=2" />
     <link rel="stylesheet" href="styles.css?v=20260613" />
-    <link href="https://assets.calendly.com/assets/external/widget.css" rel="stylesheet">
-    <script src="https://assets.calendly.com/assets/external/widget.js" type="text/javascript" async></script>
     <style>
-      :root {
-        --gutter: clamp(16px, 5vw, 40px);
-        --line: rgba(0,0,0,0.1);
-        --text: #080c14;
-        --muted: #666;
-        --accent: #3b82f6;
-      }
+      /* ── Landing SaaS servie en page d'accueil — le bandeau (site-header)
+         vient de styles.css, le reste du style vient de la home SaaS. ── */
+      body { font-family: 'Libre Franklin', system-ui, sans-serif; background: #08090c; color: #fff; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+      main#top { display: block; padding: 0; gap: 0; }
+      a { text-decoration: none; }
 
-      body {
-        font-family: 'Archivo', sans-serif;
-        background: #ffffff;
-        color: var(--text);
-        line-height: 1.6;
-      }
-
-      .button {
-        display: inline-block;
-        padding: 12px 28px;
-        border-radius: 12px;
-        text-decoration: none;
+      /* Bouton « Créer un compte » du bandeau (fond sombre) */
+      .button.light {
+        background: #fff;
+        color: #08090c;
+        font-family: "Archivo", sans-serif;
+        font-size: 1.05rem;
         font-weight: 600;
-        border: none;
-        cursor: pointer;
-        transition: all 0.2s;
-        font-family: inherit;
-        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 12px 28px;
       }
+      .button.light:hover { box-shadow: none; opacity: 0.88; }
 
-      .button.primary {
-        background: #080c14;
-        color: white;
-      }
+      /* HERO */
+      .hero { padding: 80px 40px 0; text-align: center; }
+      .hero__badge { display: inline-flex; align-items: center; gap: 8px; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.38); border: 1px solid rgba(255,255,255,0.1); padding: 6px 14px; border-radius: 999px; margin-bottom: 32px; }
+      .hero__dot { width: 6px; height: 6px; border-radius: 50%; background: #3b82f6; flex: none; }
+      .hero h1 { font-size: clamp(2.2rem, 5vw, 3.8rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1.1; max-width: 800px; margin: 0 auto 22px; }
+      .hero h1 em { font-style: normal; color: #3b82f6; }
+      .hero__sub { font-size: 17px; color: rgba(255,255,255,0.44); max-width: 520px; margin: 0 auto 40px; line-height: 1.75; }
+      .hero__actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 70px; }
+      .btn-lg { font-family: 'Archivo', sans-serif; font-size: 14.5px; font-weight: 700; border-radius: 12px; padding: 14px 30px; cursor: pointer; transition: opacity .15s; display: inline-flex; align-items: center; justify-content: center; min-height: 50px; min-width: 200px; }
+      .btn-lg--white { color: #08090c; background: #fff; border: none; }
+      .btn-lg--white:hover { opacity: 0.88; }
+      .btn-lg--outline { color: rgba(255,255,255,0.6); background: transparent; border: 1px solid rgba(255,255,255,0.18); }
+      .btn-lg--outline:hover { color: #fff; border-color: rgba(255,255,255,0.5); }
 
-      .button.primary:hover {
-        background: #1a1f2e;
-        transform: translateY(-2px);
-      }
+      /* EDITOR PREVIEW MOCKUP */
+      .preview-wrap { position: relative; max-width: 1100px; margin: 0 auto; }
+      .preview-wrap::before { content: ''; position: absolute; top: -60px; left: 50%; transform: translateX(-50%); width: 800px; height: 400px; background: radial-gradient(ellipse at center, rgba(59,130,246,0.12) 0%, transparent 70%); pointer-events: none; }
+      .preview { background: #111; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px 16px 0 0; overflow: hidden; box-shadow: 0 40px 80px rgba(0,0,0,0.7); }
 
-      .button.secondary {
-        background: var(--accent);
-        color: white;
-      }
+      /* Fake topbar */
+      .preview-top { background: #0a0a0a; border-bottom: 1px solid #222; height: 44px; display: flex; align-items: center; padding: 0 16px; gap: 12px; }
+      .preview-top__brand { font-weight: 800; font-size: 13px; color: #fff; letter-spacing: -0.01em; }
+      .preview-top__brand span { color: #3b82f6; }
+      .preview-top__doc { font-size: 11px; color: rgba(255,255,255,0.35); padding-left: 12px; border-left: 1px solid #333; }
+      .preview-top__btns { margin-left: auto; display: flex; gap: 6px; }
+      .preview-top__btn { font-size: 10px; padding: 4px 10px; border-radius: 6px; border: 1px solid #444; color: rgba(255,255,255,0.6); background: transparent; }
+      .preview-top__btn--blue { background: #3b82f6; border-color: #3b82f6; color: #fff; }
 
-      .button.secondary:hover {
-        background: #2563eb;
-      }
+      /* Fake ribbon */
+      .preview-ribbon { background: #1a1a1a; border-bottom: 1px solid #2a2a2a; height: 36px; display: flex; align-items: center; padding: 0 12px; gap: 10px; }
+      .preview-ribbon__item { width: 28px; height: 20px; background: rgba(255,255,255,0.07); border-radius: 4px; }
+      .preview-ribbon__sep { width: 1px; height: 16px; background: #333; margin: 0 4px; }
+      .preview-ribbon__sel { width: 90px; height: 20px; background: rgba(255,255,255,0.05); border-radius: 4px; border: 1px solid #333; }
 
-      .button.ghost {
-        background: transparent;
-        color: white;
-        border: 1px solid rgba(255,255,255,0.3);
-      }
+      /* Fake workspace */
+      .preview-ws { display: grid; grid-template-columns: 220px 1fr 260px; height: 400px; }
 
-      .button.ghost:hover {
-        border-color: rgba(255,255,255,0.6);
-        background: rgba(255,255,255,0.05);
-      }
+      /* Left panel */
+      .preview-lib { background: #141414; border-right: 1px solid #222; display: flex; flex-direction: column; }
+      .preview-tabs { display: flex; border-bottom: 1px solid #222; }
+      .preview-tab { flex: 1; font-size: 9px; font-family: 'Archivo', sans-serif; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: rgba(255,255,255,0.25); padding: 9px 4px; text-align: center; }
+      .preview-tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; }
+      .preview-lib__head { padding: 12px 14px 8px; border-bottom: 1px solid #1e1e1e; }
+      .preview-lib__eye { font-size: 8px; font-family: 'Archivo', sans-serif; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.2); }
+      .preview-lib__title { font-size: 13px; font-weight: 700; color: #fff; margin-top: 3px; letter-spacing: -0.01em; }
+      .preview-lib__sub { font-size: 10px; color: rgba(255,255,255,0.3); margin-top: 2px; }
+      .preview-lib__list { flex: 1; padding: 10px; display: flex; flex-direction: column; gap: 7px; overflow: hidden; }
+      .preview-clause { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 9px 10px; }
+      .preview-clause__g { font-size: 8px; font-family: 'Archivo', sans-serif; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: rgba(255,255,255,0.2); margin-bottom: 4px; }
+      .preview-clause__l { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.8); margin-bottom: 6px; }
+      .preview-clause__btn { font-size: 9px; font-weight: 600; font-family: 'Archivo', sans-serif; color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.1); border: none; border-radius: 4px; padding: 4px 8px; width: 100%; }
+      .preview-sep { font-size: 8px; font-family: 'Archivo', sans-serif; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.15); padding: 6px 0 4px; border-bottom: 1px solid #222; margin-bottom: 4px; }
 
-      main#top {
-        display: block;
-        padding: 0;
-        gap: 0;
-      }
+      /* Center: editor */
+      .preview-canvas { background: #e8e6e0; display: flex; align-items: flex-start; justify-content: center; padding: 20px; overflow: hidden; }
+      .preview-page { background: #fff; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); width: 100%; max-width: 380px; padding: 24px 28px; }
+      .preview-page__title { font-size: 14px; font-weight: 800; color: #08090c; margin-bottom: 16px; letter-spacing: -0.02em; }
+      .preview-row { display: grid; grid-template-columns: 90px 1fr; gap: 10px; margin-bottom: 12px; align-items: start; }
+      .preview-row__lbl { font-size: 10px; font-weight: 700; color: #08090c; line-height: 1.5; }
+      .preview-row__val { font-size: 10px; color: #333; line-height: 1.5; }
+      .preview-row__val .ph { background: #fef3c7; color: #92400e; border-radius: 2px; padding: 0 3px; font-size: 9px; }
+      .preview-row.active { background: rgba(59,130,246,0.06); border-radius: 4px; padding: 4px; margin: -4px; }
+      .preview-divider { height: 1px; background: #f0eee9; margin: 10px 0; }
+      .preview-group { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(8,9,12,0.3); margin-bottom: 10px; }
 
-      .section {
-        padding: 80px var(--gutter);
-      }
+      /* Right panel */
+      .preview-panel { background: #141414; border-left: 1px solid #222; display: flex; flex-direction: column; padding: 14px; }
+      .preview-panel__eye { font-size: 8px; font-family: 'Archivo', sans-serif; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.2); margin-bottom: 4px; }
+      .preview-panel__title { font-size: 14px; font-weight: 800; color: #fff; letter-spacing: -0.01em; margin-bottom: 10px; }
+      .preview-callout { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-left: 3px solid #3b82f6; border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+      .preview-callout__h { font-size: 9px; font-family: 'Archivo', sans-serif; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 5px; }
+      .preview-callout__t { font-size: 10px; color: rgba(255,255,255,0.65); line-height: 1.5; }
+      .preview-callout--warn { border-left-color: #dc2626; }
+      .preview-callout--ok { border-left-color: #16a34a; }
+      .preview-chat { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 8px 10px; margin-top: auto; }
+      .preview-chat__input { font-size: 10px; color: rgba(255,255,255,0.3); }
 
-      .chip {
-        display: inline-block;
-        padding: 8px 16px;
-        background: white;
-        border: 1px solid var(--line);
-        border-radius: 22px;
-        font-size: 0.88rem;
-        font-weight: 500;
-        color: #080c14;
-      }
+      /* FEATURES */
+      .section { padding: 88px 40px; }
+      .section__inner { max-width: 1080px; margin: 0 auto; }
+      .eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.28); display: block; text-align: center; margin-bottom: 14px; }
+      .section__title { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 800; letter-spacing: -0.035em; text-align: center; margin-bottom: 12px; }
+      .section__sub { font-size: 16px; color: rgba(255,255,255,0.4); text-align: center; max-width: 500px; margin: 0 auto 56px; line-height: 1.7; }
 
-      .container {
-        max-width: 1380px;
-        margin: 0 auto;
-      }
+      .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; border: 1px solid rgba(255,255,255,0.07); border-radius: 20px; overflow: hidden; }
+      .feat { padding: 32px 28px; background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.06); transition: background .2s; }
+      .feat:hover { background: rgba(255,255,255,0.05); }
+      .feat__icon { font-size: 24px; margin-bottom: 16px; }
+      .feat__title { font-size: 1rem; font-weight: 700; margin-bottom: 9px; letter-spacing: -0.01em; }
+      .feat__desc { font-size: 13.5px; color: rgba(255,255,255,0.42); line-height: 1.68; }
+      .feat__tag { display: inline-block; margin-top: 12px; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #3b82f6; background: rgba(59,130,246,0.1); padding: 3px 9px; border-radius: 99px; }
 
-      h2 {
-        font-size: clamp(2rem, 4vw, 3.2rem);
-        color: var(--text);
-        margin-bottom: 60px;
-        font-weight: 800;
-      }
+      /* HOW */
+      .how { border-top: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06); }
+      .how .section__inner { max-width: 680px; }
+      .steps { margin-top: 48px; }
+      .step { display: flex; gap: 24px; padding: 28px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+      .step:last-child { border-bottom: none; }
+      .step__num { font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 1rem; color: rgba(255,255,255,0.12); flex: none; width: 32px; padding-top: 2px; }
+      .step h3 { font-size: 1rem; font-weight: 700; margin-bottom: 7px; }
+      .step p { font-size: 14px; color: rgba(255,255,255,0.42); line-height: 1.7; }
 
-      h3 {
-        font-size: 1.4rem;
-        color: var(--text);
-        margin-bottom: 16px;
-        font-weight: 700;
-      }
+      /* PANELS HIGHLIGHT */
+      .panels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 0; }
+      .panel-card { border-radius: 18px; padding: 28px 24px; overflow: hidden; position: relative; }
+      .panel-card--lib  { background: linear-gradient(135deg, #1a1f2e 0%, #111827 100%); border: 1px solid rgba(59,130,246,0.2); }
+      .panel-card--fill { background: linear-gradient(135deg, #1e1414 0%, #18110f 100%); border: 1px solid rgba(220,38,38,0.2); }
+      .panel-card--adv  { background: linear-gradient(135deg, #131e13 0%, #0f1a0f 100%); border: 1px solid rgba(22,163,74,0.2); }
+      .panel-card__tab { display: inline-block; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 99px; margin-bottom: 16px; }
+      .panel-card--lib  .panel-card__tab { background: rgba(59,130,246,0.15); color: #3b82f6; }
+      .panel-card--fill .panel-card__tab { background: rgba(220,38,38,0.12); color: #f87171; }
+      .panel-card--adv  .panel-card__tab { background: rgba(22,163,74,0.12); color: #4ade80; }
+      .panel-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.01em; }
+      .panel-card p { font-size: 13.5px; color: rgba(255,255,255,0.42); line-height: 1.65; }
+      .panel-card__items { margin-top: 18px; display: flex; flex-direction: column; gap: 7px; }
+      .panel-item { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; padding: 9px 12px; }
+      .panel-item__dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+      .panel-card--lib  .panel-item__dot { background: #3b82f6; }
+      .panel-card--fill .panel-item__dot { background: #f87171; }
+      .panel-card--adv  .panel-item__dot { background: #4ade80; }
+      .panel-item__text { font-size: 11.5px; color: rgba(255,255,255,0.65); flex: 1; }
+      .panel-item__btn { font-size: 9px; font-family: 'Archivo', sans-serif; font-weight: 700; color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.08); border-radius: 4px; padding: 3px 8px; white-space: nowrap; }
 
-      p {
-        color: var(--muted);
-        line-height: 1.8;
+      /* PRICING */
+      .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+      .plan { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 30px 26px; }
+      .plan--featured { background: #fff; border-color: transparent; box-shadow: 0 12px 40px rgba(0,0,0,0.45); }
+      .plan__badge { display: inline-block; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(59,130,246,0.15); color: #3b82f6; padding: 3px 10px; border-radius: 99px; margin-bottom: 14px; }
+      .plan h3 { font-size: 1rem; font-weight: 700; color: rgba(255,255,255,0.7); margin-bottom: 6px; }
+      .plan--featured h3 { color: #08090c; }
+      .plan__price { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.045em; color: #fff; margin: 12px 0 6px; }
+      .plan--featured .plan__price { color: #08090c; }
+      .plan__price span { font-size: 1rem; font-weight: 500; color: rgba(255,255,255,0.3); letter-spacing: 0; }
+      .plan--featured .plan__price span { color: rgba(8,9,12,0.4); }
+      .plan__desc { font-size: 13px; color: rgba(255,255,255,0.35); margin-bottom: 20px; line-height: 1.55; }
+      .plan--featured .plan__desc { color: rgba(8,9,12,0.5); }
+      .plan ul { list-style: none; margin: 0 0 26px; display: flex; flex-direction: column; gap: 8px; }
+      .plan li { font-size: 13px; color: rgba(255,255,255,0.55); padding-left: 16px; position: relative; line-height: 1.45; }
+      .plan li::before { content: '·'; position: absolute; left: 4px; color: rgba(255,255,255,0.2); }
+      .plan li.muted { color: rgba(255,255,255,0.18); }
+      .plan--featured li { color: rgba(8,9,12,0.7); }
+      .plan--featured li::before { color: rgba(8,9,12,0.25); }
+      .plan--featured li.muted { color: rgba(8,9,12,0.22); }
+      .btn-plan { display: flex; align-items: center; justify-content: center; min-height: 48px; text-align: center; font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; padding: 12px 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.55); background: transparent; transition: border-color .15s, color .15s; }
+      .btn-plan:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
+      .plan--featured .btn-plan { background: #08090c; color: #fff; border-color: transparent; }
+      .plan--featured .btn-plan:hover { background: #1a1d24; }
+
+      /* CTA */
+      .cta { padding: 90px 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.06); }
+      .cta h2 { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 800; letter-spacing: -0.04em; margin-bottom: 14px; }
+      .cta p { font-size: 16px; color: rgba(255,255,255,0.4); margin-bottom: 36px; }
+
+      /* FOOTER */
+      .brand { font-weight: 800; font-size: 1.4rem; letter-spacing: -0.02em; color: #fff; }
+      .brand span { color: #3b82f6; }
+      .footer { border-top: 1px solid rgba(255,255,255,0.06); padding: 52px 40px 0; position: relative; z-index: 1; }
+      .footer__inner { max-width: 1080px; margin: 0 auto; display: flex; gap: 60px; flex-wrap: wrap; padding-bottom: 44px; }
+      .footer__brand { flex: 2; }
+      .footer__brand p { font-size: 13px; color: rgba(255,255,255,0.28); margin-top: 10px; max-width: 220px; line-height: 1.65; }
+      .footer__col { display: flex; flex-direction: column; gap: 9px; }
+      .footer__col h4 { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.24); margin-bottom: 5px; }
+      .footer__col a { font-size: 14px; color: rgba(255,255,255,0.38); transition: color .15s; }
+      .footer__col a:hover { color: #fff; }
+      .footer__bottom { max-width: 1080px; margin: 0 auto; border-top: 1px solid rgba(255,255,255,0.06); padding: 20px 0 30px; font-size: 12px; color: rgba(255,255,255,0.18); line-height: 1.65; }
+
+      @media (max-width: 860px) {
+        .hero { padding: 64px 20px 0; }
+        .preview-ws { grid-template-columns: 1fr; }
+        .preview-lib, .preview-panel { display: none; }
+        .section { padding: 64px 20px; }
+        .features, .plans, .panels { grid-template-columns: 1fr; }
+        .footer { padding: 40px 20px 0; }
+        .footer__inner { gap: 32px; }
+        .cta { padding: 64px 20px; }
       }
     </style>
   </head>
@@ -136,6 +227,7 @@
         <div class="nav-links" id="nav-links">
           <a class="nav-link" href="marche.html">Ressources</a>
           <a class="button ghost" href="login.html">Se connecter</a>
+          <a class="button light" href="register.html">Créer un compte</a>
         </div>
       <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button></nav>
     </header>
@@ -145,6 +237,7 @@
       <a href="index.html">Accueil</a>
       <a href="marche.html">Ressources</a>
       <a href="login.html" style="margin-top:16px; font-size:1.1rem; color:rgba(255,255,255,0.5);">Se connecter</a>
+      <a href="register.html" style="font-size:1.1rem; color:rgba(255,255,255,0.5);">Créer un compte</a>
     </div>
 
     <script>
@@ -200,215 +293,395 @@
     </script>
 
     <main id="top">
-      <!-- HERO SECTION -->
-      <section style="padding: 110px var(--gutter) 90px; background: #ffffff;">
-        <div class="container" style="text-align: center;">
-          <p style="font-size: clamp(5rem, 16vw, 11rem); font-weight: 800; color: #080c14; line-height: 0.95; margin: 0 0 4px; letter-spacing: -0.04em;">3&nbsp;000+</p>
-          <p style="font-size: clamp(1rem, 2.5vw, 1.4rem); text-transform: uppercase; letter-spacing: .2em; font-weight: 700; color: var(--muted); margin: 0 0 40px;">VC &amp; business angels dans notre réseau</p>
-          <h1 style="font-size: clamp(1.8rem, 4.5vw, 2.8rem); font-weight: 800; color: var(--text); line-height: 1.2; margin: 0 auto 28px; max-width: 800px;">
-            Vous n'avez pas le temps de contacter 3&nbsp;000 personnes.<br>Nous, si.
-          </h1>
-          <p style="font-size: 1.2rem; color: var(--muted); max-width: 680px; margin: 0 auto 40px; line-height: 1.7;">
-            Vous ne nous payez que si vous levez. Zéro résultat, zéro facture.
-          </p>
-          <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-            <a class="button primary" href="#contact" style="padding: 16px 40px; font-size: 1.05rem;">Parlons de votre projet</a>
-          </div>
+
+      <!-- HERO -->
+      <section class="hero">
+        <div class="hero__badge"><span class="hero__dot"></span>Éditeur de documents juridiques · assisté par IA</div>
+        <h1>Rédigez, complétez et négociez<br>vos docs juridiques. <em>En autonomie.</em></h1>
+        <p class="hero__sub">Un traitement de texte conçu pour les levées de fonds. Chaque clause analysée, chaque champ guidé, chaque point de négociation signalé — en temps réel.</p>
+        <div class="hero__actions">
+          <a href="/saas/dossiers.html" class="btn-lg btn-lg--white">Ouvrir l'éditeur</a>
+          <a href="#how" class="btn-lg btn-lg--outline">Voir le workflow</a>
         </div>
-      </section>
 
-      <!-- LA RÉALITÉ SECTION -->
-      <section class="section" style="background: #ffffff;">
-        <div class="container">
-          <h2 style="text-align: center; margin-bottom: 60px;">La levée de fonds, c'est un sport d'équipe</h2>
+        <!-- EDITOR PREVIEW MOCKUP -->
+        <div class="preview-wrap">
+          <div class="preview">
 
-          <div style="max-width: 900px; margin: 0 auto; display: grid; gap: 28px;">
-            <div style="border-left: 3px solid #080c14; padding-left: 24px;">
-              <h3 style="margin: 0; color: #080c14;">Les investisseurs voient 100 pitchs par mois. Il faut sortir du lot.</h3>
-            </div>
-            <div style="border-left: 3px solid #080c14; padding-left: 24px;">
-              <h3 style="margin: 0; color: #080c14;">Les VCs évaluent 50+ critères. Vous en maîtrisez combien ?</h3>
-            </div>
-            <div style="border-left: 3px solid #080c14; padding-left: 24px;">
-              <h3 style="margin: 0; color: #080c14;">Une intro qui vient de nous, c'est une porte qui s'ouvre. On a les bons contacts.</h3>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- NOTRE APPROCHE SECTION -->
-      <section class="section" style="background: white;">
-        <div class="container">
-          <h2 style="text-align: center; margin-bottom: 60px;">On fait trois choses. On les fait bien.</h2>
-
-          <div style="max-width: 1000px; margin: 0 auto; display: grid; gap: 44px;">
-            <div style="display: grid; grid-template-columns: 80px 1fr; gap: 28px; align-items: center;">
-              <div style="font-size: 2.5rem; font-weight: 800; color: #080c14;">1.</div>
-              <h3 style="margin: 0;">On vous dit exactement où vous en êtes.</h3>
-            </div>
-            <div style="display: grid; grid-template-columns: 80px 1fr; gap: 28px; align-items: center;">
-              <div style="font-size: 2.5rem; font-weight: 800; color: #080c14;">2.</div>
-              <h3 style="margin: 0;">On refait votre pitch deck pour les investisseurs.</h3>
-            </div>
-            <div style="display: grid; grid-template-columns: 80px 1fr; gap: 28px; align-items: center;">
-              <div style="font-size: 2.5rem; font-weight: 800; color: #080c14;">3.</div>
-              <h3 style="margin: 0;">On vous introduit aux bons investisseurs.</h3>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- BANDEAU SUCCESS FEE -->
-      <section style="padding: 70px var(--gutter); background: #080c14; text-align: center;">
-        <div class="container">
-          <p style="font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; color: white; margin: 0; line-height: 1.3;">Vous ne nous payez que si vous levez.</p>
-          <p style="font-size: clamp(1.1rem, 2vw, 1.4rem); color: rgba(255,255,255,0.7); margin: 16px 0 0;">Pas de levée, pas de facture. Le risque est sur nous, pas sur vous.</p>
-        </div>
-      </section>
-
-      <!-- PROCESSUS -->
-      <section id="process" class="section" style="background: white;">
-        <div class="container">
-          <h2 style="text-align: center; margin-bottom: 60px;">4-6 semaines. 5 étapes. Un résultat.</h2>
-
-          <div style="max-width: 1000px; margin: 0 auto;">
-            <div style="display: grid; gap: 24px;">
-              <div style="display: grid; grid-template-columns: 60px 1fr; gap: 24px; align-items: center;">
-                <div style="width: 60px; height: 60px; border-radius: 50%; background: #080c14; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 800;">1</div>
-                <h3 style="margin: 0;">On s'assoit avec vous 2-3 heures pour tout comprendre.</h3>
-              </div>
-              <div style="display: grid; grid-template-columns: 60px 1fr; gap: 24px; align-items: center;">
-                <div style="width: 60px; height: 60px; border-radius: 50%; background: #080c14; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 800;">2</div>
-                <h3 style="margin: 0;">On analyse votre marché, vos concurrents, vos chiffres.</h3>
-              </div>
-              <div style="display: grid; grid-template-columns: 60px 1fr; gap: 24px; align-items: center;">
-                <div style="width: 60px; height: 60px; border-radius: 50%; background: #080c14; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 800;">3</div>
-                <h3 style="margin: 0;">On rédige votre pitch deck, slide par slide.</h3>
-              </div>
-              <div style="display: grid; grid-template-columns: 60px 1fr; gap: 24px; align-items: center;">
-                <div style="width: 60px; height: 60px; border-radius: 50%; background: #080c14; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 800;">4</div>
-                <h3 style="margin: 0;">On vous introduit aux investisseurs qui correspondent.</h3>
-              </div>
-              <div style="display: grid; grid-template-columns: 60px 1fr; gap: 24px; align-items: center;">
-                <div style="width: 60px; height: 60px; border-radius: 50%; background: #080c14; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 800;">5</div>
-                <h3 style="margin: 0;">On vous accompagne jusqu'à la signature.</h3>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- CE QU'ON REGARDE -->
-      <section class="section" style="background: #ffffff;">
-        <div class="container">
-          <h2 style="text-align: center; margin-bottom: 16px;">Ce qu'on regarde avec vous, concrètement</h2>
-          <p style="text-align: center; max-width: 640px; margin: 0 auto 60px; font-size: 1.1rem;">Chaque point passé au crible. Rien laissé au hasard.</p>
-
-          <div style="max-width: 1100px; margin: 0 auto; display: grid; gap: 44px;">
-
-            <div>
-              <h3 style="font-size: 1.1rem; text-transform: uppercase; letter-spacing: .1em; color: #080c14; margin: 0 0 20px;">Fondateurs &amp; équipe</h3>
-              <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                <span class="chip">Qui êtes-vous</span><span class="chip">Votre expérience &amp; compétences</span><span class="chip">Répartition des compétences</span><span class="chip">Market-founder fit</span><span class="chip">Votre mindset</span><span class="chip">Personnalité</span><span class="chip">Votre relationnel</span><span class="chip">Management &amp; délégation</span><span class="chip">Flexibilité &amp; adaptabilité</span><span class="chip">Résolution de problèmes</span><span class="chip">Passion &amp; dynamisme</span><span class="chip">Ténacité &amp; persévérance</span><span class="chip">Conviction dans votre projet</span><span class="chip">Votre réseau</span><span class="chip">Pourquoi voulez-vous réussir</span><span class="chip">Votre image</span><span class="chip">Engagement temporel</span><span class="chip">Entente entre associés</span><span class="chip">Répartition des parts</span>
+            <!-- Topbar -->
+            <div class="preview-top">
+              <div class="preview-top__brand">liquid <span>+</span></div>
+              <div class="preview-top__doc">Term Sheet — Acme SAS · Série A</div>
+              <div class="preview-top__btns">
+                <div class="preview-top__btn">+ Ajouter</div>
+                <div class="preview-top__btn preview-top__btn--blue">Analyser</div>
+                <div class="preview-top__btn">Exporter PDF</div>
               </div>
             </div>
 
-            <div>
-              <h3 style="font-size: 1.1rem; text-transform: uppercase; letter-spacing: .1em; color: #080c14; margin: 0 0 20px;">Marché</h3>
-              <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                <span class="chip">TAM / SAM / SOM</span><span class="chip">Sous-catégorie</span><span class="chip">Concurrents directs &amp; indirects</span><span class="chip">Benchmark</span><span class="chip">Barrières (présentes &amp; futures)</span><span class="chip">Moat</span><span class="chip">Caractère innovant</span><span class="chip">Proximité de marché</span><span class="chip">Pourquoi maintenant</span>
-              </div>
+            <!-- Ribbon -->
+            <div class="preview-ribbon">
+              <div class="preview-ribbon__item"></div>
+              <div class="preview-ribbon__item"></div>
+              <div class="preview-ribbon__sep"></div>
+              <div class="preview-ribbon__sel"></div>
+              <div class="preview-ribbon__sel" style="width:110px"></div>
+              <div class="preview-ribbon__sep"></div>
+              <div class="preview-ribbon__item"></div>
+              <div class="preview-ribbon__item"></div>
+              <div class="preview-ribbon__item"></div>
             </div>
 
-            <div>
-              <h3 style="font-size: 1.1rem; text-transform: uppercase; letter-spacing: .1em; color: #080c14; margin: 0 0 20px;">Produit &amp; service</h3>
-              <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                <span class="chip">Votre offre (produit / service)</span><span class="chip">MVP</span><span class="chip">Démo live / vidéo</span><span class="chip">Prix</span><span class="chip">Persona client</span><span class="chip">Réplicabilité</span><span class="chip">Image de marque</span><span class="chip">Capacité d'automatisation</span><span class="chip">Rapport à l'IA</span><span class="chip">Propriété intellectuelle</span>
-              </div>
-            </div>
+            <!-- Workspace -->
+            <div class="preview-ws">
 
-            <div>
-              <h3 style="font-size: 1.1rem; text-transform: uppercase; letter-spacing: .1em; color: #080c14; margin: 0 0 20px;">Finances &amp; métriques</h3>
-              <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                <span class="chip">KPI</span><span class="chip">CA &amp; croissance</span><span class="chip">Bénéfices</span><span class="chip">Marges brutes</span><span class="chip">Marges nettes</span><span class="chip">Nombre de clients</span><span class="chip">CAC</span><span class="chip">LTV</span><span class="chip">Payback</span><span class="chip">Rétention &amp; churn</span><span class="chip">Burn rate</span><span class="chip">Runway</span><span class="chip">Coûts fixes</span><span class="chip">Dépenses (types &amp; à venir)</span><span class="chip">Bilan &amp; compte de résultat</span><span class="chip">Relevés bancaires</span><span class="chip">Gestion de l'argent</span><span class="chip">Tracking</span><span class="chip">Rentabilité future</span>
-              </div>
-            </div>
-
-            <div>
-              <h3 style="font-size: 1.1rem; text-transform: uppercase; letter-spacing: .1em; color: #080c14; margin: 0 0 20px;">Stratégie &amp; croissance</h3>
-              <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                <span class="chip">Objectifs &amp; ambitions</span><span class="chip">Internationalisation</span><span class="chip">Plan de croissance &amp; scaling</span><span class="chip">Cible de croissance</span><span class="chip">Acquisition client</span><span class="chip">Tunnel de vente</span><span class="chip">Stratégie marketing</span><span class="chip">Systèmes &amp; process</span><span class="chip">Pérennité</span><span class="chip">Moyens &amp; ressources</span><span class="chip">Priorités</span><span class="chip">Process de priorisation</span><span class="chip">Besoins futurs</span><span class="chip">Réinvestissement du capital</span><span class="chip">Avantages compétitifs</span><span class="chip">Défis actuels &amp; futurs</span>
-              </div>
-            </div>
-
-            <div>
-              <h3 style="font-size: 1.1rem; text-transform: uppercase; letter-spacing: .1em; color: #080c14; margin: 0 0 20px;">Levée &amp; juridique</h3>
-              <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                <span class="chip">Projets de levée</span><span class="chip">Raisons de lever</span><span class="chip">Montant levé</span><span class="chip">Utilisation des fonds</span><span class="chip">Valorisation</span><span class="chip">Actionnaires actuels</span><span class="chip">Date de création</span><span class="chip">Structure &amp; nature juridique</span><span class="chip">Évolution juridique</span><span class="chip">Conditions de cession de parts</span><span class="chip">Table de capitalisation</span><span class="chip">Statut, Kbis, pacte d'actionnaire</span><span class="chip">Types de financement (BSA, OCA…)</span><span class="chip">BSPCE &amp; intéressement</span><span class="chip">Réseau juridique</span><span class="chip">Fiscalité</span><span class="chip">Expatriation</span><span class="chip">Dépendances</span><span class="chip">ESG</span><span class="chip">Rapport au rachat</span>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      <!-- PRÊT À LEVER + CONTACT -->
-      <section id="contact" class="section" style="background: #ffffff;">
-        <div class="container">
-          <div style="text-align: center; max-width: 700px; margin: 0 auto 60px;">
-            <h2 style="margin-bottom: 16px;">Prêt à lever des fonds ?</h2>
-            <p style="font-size: 1.15rem; font-weight: 700; color: #080c14; margin: 0;">
-              Vous ne nous payez que si vous levez. On répond en moins de 4h.
-            </p>
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-            <!-- Colonne gauche : Calendly -->
-            <div style="display: grid; gap: 20px;">
-              <div style="border-radius: 20px; border: 1px solid var(--line); background: #ffffff; overflow: hidden;">
-                <div class="calendly-inline-widget" data-url="https://calendly.com/liquidplus-contact/30min?hide_gdpr_banner=1" style="min-width: 280px; height: 660px;"></div>
-              </div>
-            </div>
-
-            <!-- Colonne droite : WhatsApp × 2 + Email -->
-            <div style="display: grid; gap: 20px;">
-              <div style="border-radius: 20px; border: 1px solid var(--line); background: #ffffff; padding: 28px 32px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
-                <div style="display: grid; gap: 4px;">
-                  <p style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: .14em; font-weight: 600; color: var(--muted); margin: 0;">WhatsApp</p>
-                  <span style="font-size: 1.1rem; font-weight: 700; color: #080c14;">+33 6 48 17 63 23</span>
+              <!-- Left: Bibliothèque -->
+              <div class="preview-lib">
+                <div class="preview-tabs">
+                  <div class="preview-tab active">Bibliothèque</div>
+                  <div class="preview-tab">À remplir</div>
+                  <div class="preview-tab">Priorités</div>
                 </div>
-                <a href="https://wa.me/33648176323" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 8px; background: #25D366; color: #fff; border-radius: 10px; padding: 10px 18px; font-size: 0.88rem; font-weight: 700; text-decoration: none; white-space: nowrap;">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.122 1.522 5.858L0 24l6.335-1.498A11.93 11.93 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.794 9.794 0 01-5.001-1.373l-.359-.214-3.72.879.936-3.617-.234-.372A9.787 9.787 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182S21.818 6.578 21.818 12 17.422 21.818 12 21.818z"/></svg>
-                  Message
-                </a>
+                <div class="preview-lib__head">
+                  <div class="preview-lib__eye">Bibliothèque</div>
+                  <div class="preview-lib__title">Clauses disponibles</div>
+                  <div class="preview-lib__sub">4 clauses au contrat</div>
+                </div>
+                <div class="preview-lib__list">
+                  <div class="preview-sep">Dans ce document — 4</div>
+                  <div class="preview-clause">
+                    <div class="preview-clause__g">Droits financiers</div>
+                    <div class="preview-clause__l">Liquidation préférentielle</div>
+                    <div class="preview-clause__btn">Voir dans le document</div>
+                  </div>
+                  <div class="preview-clause">
+                    <div class="preview-clause__g">Gouvernance</div>
+                    <div class="preview-clause__l">Droit de vote renforcé</div>
+                    <div class="preview-clause__btn">Voir dans le document</div>
+                  </div>
+                  <div class="preview-sep">Clauses disponibles — 12</div>
+                  <div class="preview-clause">
+                    <div class="preview-clause__g">Transferts</div>
+                    <div class="preview-clause__l">Anti-dilution</div>
+                    <div class="preview-clause__btn">+ Ajouter au contrat</div>
+                  </div>
+                </div>
               </div>
 
-              <div style="border-radius: 20px; border: 1px solid var(--line); background: #ffffff; padding: 28px 32px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
-                <div style="display: grid; gap: 4px;">
-                  <p style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: .14em; font-weight: 600; color: var(--muted); margin: 0;">WhatsApp</p>
-                  <span style="font-size: 1.1rem; font-weight: 700; color: #080c14;">+33 7 69 66 45 31</span>
+              <!-- Center: document -->
+              <div class="preview-canvas">
+                <div class="preview-page">
+                  <div class="preview-page__title">Term Sheet — Série A</div>
+                  <div class="preview-group">Parties</div>
+                  <div class="preview-row active">
+                    <div class="preview-row__lbl">Société</div>
+                    <div class="preview-row__val"><span class="ph">[NOM SOCIÉTÉ]</span></div>
+                  </div>
+                  <div class="preview-row">
+                    <div class="preview-row__lbl">Investisseur</div>
+                    <div class="preview-row__val">Sequoia Capital France</div>
+                  </div>
+                  <div class="preview-divider"></div>
+                  <div class="preview-group">L'opération</div>
+                  <div class="preview-row">
+                    <div class="preview-row__lbl">Montant</div>
+                    <div class="preview-row__val"><span class="ph">[MONTANT €]</span></div>
+                  </div>
+                  <div class="preview-row">
+                    <div class="preview-row__lbl">Valorisation</div>
+                    <div class="preview-row__val">8 000 000 € pre-money</div>
+                  </div>
+                  <div class="preview-divider"></div>
+                  <div class="preview-group">Droits financiers</div>
+                  <div class="preview-row">
+                    <div class="preview-row__lbl">Liquidation</div>
+                    <div class="preview-row__val">Préférentielle 1× non participante, rang senior</div>
+                  </div>
                 </div>
-                <a href="https://wa.me/33769664531" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 8px; background: #25D366; color: #fff; border-radius: 10px; padding: 10px 18px; font-size: 0.88rem; font-weight: 700; text-decoration: none; white-space: nowrap;">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.122 1.522 5.858L0 24l6.335-1.498A11.93 11.93 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.794 9.794 0 01-5.001-1.373l-.359-.214-3.72.879.936-3.617-.234-.372A9.787 9.787 0 012.182 12C2.182 6.578 6.578 2.182 12 2.182S21.818 6.578 21.818 12 17.422 21.818 12 21.818z"/></svg>
-                  Message
-                </a>
               </div>
 
-              <div style="border-radius: 20px; border: 1px solid var(--line); background: #ffffff; padding: 28px 32px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
-                <div style="display: grid; gap: 4px;">
-                  <p style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: .14em; font-weight: 600; color: var(--muted); margin: 0;">Email</p>
-                  <a href="mailto:liquidplus.contact@gmail.com" style="font-size: 1.1rem; font-weight: 700; color: #080c14; text-decoration: none;">liquidplus.contact@gmail.com</a>
+              <!-- Right: Décrypteur -->
+              <div class="preview-panel">
+                <div class="preview-panel__eye">Décrypteur IA</div>
+                <div class="preview-panel__title">Liquidation préférentielle</div>
+                <div class="preview-callout">
+                  <div class="preview-callout__h">En clair</div>
+                  <div class="preview-callout__t">En cas de cession, l'investisseur récupère son capital en premier, avant les fondateurs.</div>
                 </div>
-                <a href="mailto:liquidplus.contact@gmail.com" style="display: inline-flex; align-items: center; gap: 8px; border: 2px solid #080c14; border-radius: 10px; padding: 10px 18px; font-size: 0.88rem; font-weight: 700; color: #080c14; text-decoration: none; white-space: nowrap;">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
-                  Écrire
-                </a>
+                <div class="preview-callout preview-callout--warn">
+                  <div class="preview-callout__h">Point de vigilance</div>
+                  <div class="preview-callout__t">Clause standard à 1×. Refusez tout multiple > 1 ou clause participante.</div>
+                </div>
+                <div class="preview-callout preview-callout--ok">
+                  <div class="preview-callout__h">Conseil négociation</div>
+                  <div class="preview-callout__t">Le 1× non participant est le standard marché en 2026. Tenez cette position.</div>
+                </div>
+                <div class="preview-chat">
+                  <div class="preview-chat__input">Ex : passe la liquidation en 0,5×…</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FEATURES -->
+      <section class="section" id="features">
+        <div class="section__inner">
+          <span class="eyebrow">Fonctionnalités</span>
+          <h2 class="section__title">Un éditeur pensé pour les docs juridiques</h2>
+          <p class="section__sub">Pas un Google Docs. Un outil qui connaît la structure d'une term sheet, d'un BSA-AIR ou de statuts — et vous guide à chaque étape.</p>
+          <div class="features">
+            <div class="feat">
+              <div class="feat__icon">📄</div>
+              <div class="feat__title">Éditeur de texte professionnel</div>
+              <p class="feat__desc">Mise en page juridique two-column, styles de paragraphe, import DOCX/DOC — tout ce qu'un traitement de texte doit faire.</p>
+            </div>
+            <div class="feat">
+              <div class="feat__icon">📚</div>
+              <div class="feat__title">Bibliothèque de clauses</div>
+              <p class="feat__desc">Toutes les clauses de votre document à portée de main. Ajoutez, retirez, naviguez — le document se restructure automatiquement.</p>
+              <span class="feat__tag">Onglet Bibliothèque</span>
+            </div>
+            <div class="feat">
+              <div class="feat__icon">✏️</div>
+              <div class="feat__title">Champs à compléter, guidés</div>
+              <p class="feat__desc">Chaque champ <code style="font-size:11px;background:rgba(255,255,255,0.08);padding:1px 5px;border-radius:3px">[à renseigner]</code> listé avec un bouton qui vous y amène directement et passe au suivant une fois rempli.</p>
+              <span class="feat__tag">Onglet À remplir</span>
+            </div>
+            <div class="feat">
+              <div class="feat__icon">⚡</div>
+              <div class="feat__title">Priorités de négociation</div>
+              <p class="feat__desc">Les clauses défavorables triées par urgence, avec l'argument à renvoyer à l'investisseur et le standard de marché à invoquer.</p>
+              <span class="feat__tag">Onglet Priorités</span>
+            </div>
+            <div class="feat">
+              <div class="feat__icon">🤖</div>
+              <div class="feat__title">Décrypteur IA par clause</div>
+              <p class="feat__desc">Cliquez sur une clause : traduction en clair, point de vigilance et conseil de négociation générés par Claude IA en temps réel.</p>
+            </div>
+            <div class="feat">
+              <div class="feat__icon">📁</div>
+              <div class="feat__title">Dossiers par phase</div>
+              <p class="feat__desc">BSA-AIR, levée classique — organisez tous vos documents par étape juridique avec une checklist des pièces attendues.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PANELS DETAIL -->
+      <section class="section" id="panels" style="padding-top: 0;">
+        <div class="section__inner">
+          <div class="panels">
+            <div class="panel-card panel-card--lib">
+              <span class="panel-card__tab">Bibliothèque</span>
+              <h3>Toutes les clauses du document</h3>
+              <p>Naviguez entre les clauses présentes et ajoutez celles qui manquent en un clic.</p>
+              <div class="panel-card__items">
+                <div class="panel-item">
+                  <div class="panel-item__dot"></div>
+                  <div class="panel-item__text">Liquidation préférentielle</div>
+                  <div class="panel-item__btn">Voir →</div>
+                </div>
+                <div class="panel-item">
+                  <div class="panel-item__dot"></div>
+                  <div class="panel-item__text">Droit de vote renforcé</div>
+                  <div class="panel-item__btn">Voir →</div>
+                </div>
+                <div class="panel-item">
+                  <div class="panel-item__dot"></div>
+                  <div class="panel-item__text">Anti-dilution</div>
+                  <div class="panel-item__btn">+ Ajouter</div>
+                </div>
+              </div>
+            </div>
+            <div class="panel-card panel-card--fill">
+              <span class="panel-card__tab">À remplir</span>
+              <h3>Zéro champ oublié</h3>
+              <p>Chaque <code style="font-size:11px;background:rgba(255,255,255,0.08);padding:1px 4px;border-radius:3px">[valeur]</code> détecté, listé, accessible d'un clic. Avance automatiquement au suivant.</p>
+              <div class="panel-card__items">
+                <div class="panel-item">
+                  <div class="panel-item__dot"></div>
+                  <div class="panel-item__text">[NOM DE LA SOCIÉTÉ]</div>
+                  <div class="panel-item__btn">Aller →</div>
+                </div>
+                <div class="panel-item">
+                  <div class="panel-item__dot"></div>
+                  <div class="panel-item__text">[MONTANT DE L'INVESTISSEMENT]</div>
+                  <div class="panel-item__btn">Aller →</div>
+                </div>
+                <div class="panel-item">
+                  <div class="panel-item__dot"></div>
+                  <div class="panel-item__text">[DATE DE RÉALISATION]</div>
+                  <div class="panel-item__btn">Aller →</div>
+                </div>
+              </div>
+            </div>
+            <div class="panel-card panel-card--adv">
+              <span class="panel-card__tab">Priorités</span>
+              <h3>Quoi négocier en premier</h3>
+              <p>Les clauses les plus défavorables en haut de liste, avec un bouton pour y aller directement.</p>
+              <div class="panel-card__items">
+                <div class="panel-item">
+                  <div class="panel-item__dot"></div>
+                  <div class="panel-item__text">Liquidation participante 2×</div>
+                  <div class="panel-item__btn">Voir →</div>
+                </div>
+                <div class="panel-item">
+                  <div class="panel-item__dot"></div>
+                  <div class="panel-item__text">Clause de ratchet</div>
+                  <div class="panel-item__btn">Voir →</div>
+                </div>
+                <div class="panel-item">
+                  <div class="panel-item__dot"></div>
+                  <div class="panel-item__text">Non-concurrence 3 ans</div>
+                  <div class="panel-item__btn">Voir →</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
+      </section>
+
+      <!-- HOW IT WORKS -->
+      <section class="section how" id="how">
+        <div class="section__inner">
+          <span class="eyebrow">Workflow</span>
+          <h2 class="section__title">De la réception du doc à la signature</h2>
+          <div class="steps">
+            <div class="step">
+              <span class="step__num">01</span>
+              <div>
+                <h3>Importez ou choisissez un modèle</h3>
+                <p>Glissez-déposez votre term sheet, BSA-AIR ou statuts en DOCX — ou partez d'un modèle pré-structuré pour votre type de levée.</p>
+              </div>
+            </div>
+            <div class="step">
+              <span class="step__num">02</span>
+              <div>
+                <h3>Complétez les champs guidés</h3>
+                <p>L'onglet « À remplir » liste chaque <code style="font-size:12px;background:rgba(255,255,255,0.08);padding:1px 5px;border-radius:3px">[valeur à renseigner]</code> et vous y amène directement. Passez de champ en champ sans en oublier un seul.</p>
+              </div>
+            </div>
+            <div class="step">
+              <span class="step__num">03</span>
+              <div>
+                <h3>Analysez chaque clause avec l'IA</h3>
+                <p>Cliquez « Analyser » : liquid + utilise Claude pour décrire chaque clause en langage courant, signaler les pièges et remplir l'onglet Priorités.</p>
+              </div>
+            </div>
+            <div class="step">
+              <span class="step__num">04</span>
+              <div>
+                <h3>Négociez et amendez directement</h3>
+                <p>Modifiez le texte dans l'éditeur, demandez à l'assistant IA de reformuler une clause, contre-proposez dans la foulée.</p>
+              </div>
+            </div>
+            <div class="step">
+              <span class="step__num">05</span>
+              <div>
+                <h3>Exportez en PDF ou Word</h3>
+                <p>Exportez votre version révisée en PDF ou en DOCX en un clic, prête à envoyer à l'investisseur ou à votre avocat.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PRICING -->
+      <section class="section" id="pricing">
+        <div class="section__inner">
+          <span class="eyebrow">Tarifs</span>
+          <h2 class="section__title">Commencez gratuitement, scalez quand vous levez.</h2>
+          <p class="section__sub">14 jours d'essai gratuit, sans carte bancaire. Annulable à tout moment.</p>
+          <div class="plans">
+            <div class="plan">
+              <h3>Découverte</h3>
+              <div class="plan__price">0 €<span>/mois</span></div>
+              <p class="plan__desc">Pour découvrir l'éditeur sur un premier document.</p>
+              <ul>
+                <li>1 document</li>
+                <li>Éditeur complet</li>
+                <li>Onglet À remplir</li>
+                <li class="muted">Analyse IA</li>
+                <li class="muted">Export PDF/Word</li>
+                <li class="muted">Dossiers illimités</li>
+              </ul>
+              <a href="register.html" class="btn-plan">Commencer</a>
+            </div>
+            <div class="plan plan--featured">
+              <span class="plan__badge">Le plus choisi</span>
+              <h3>Founder</h3>
+              <div class="plan__price">49 €<span>/mois</span></div>
+              <p class="plan__desc">Pour piloter toute votre levée de A à Z.</p>
+              <ul>
+                <li>Documents illimités</li>
+                <li>Éditeur + bibliothèque complète</li>
+                <li>Onglets À remplir & Priorités</li>
+                <li>Analyse IA clause par clause</li>
+                <li>Export PDF + Word</li>
+                <li>Dossiers BSA-AIR & levée classique</li>
+              </ul>
+              <a href="register.html" class="btn-plan">Démarrer l'essai gratuit</a>
+            </div>
+            <div class="plan">
+              <h3>Scale</h3>
+              <div class="plan__price">149 €<span>/mois</span></div>
+              <p class="plan__desc">Pour les tours complexes et les équipes.</p>
+              <ul>
+                <li>Tout le plan Founder</li>
+                <li>Multi-utilisateurs</li>
+                <li>Comparaison de documents</li>
+                <li>Validation par avocat partenaire</li>
+                <li>Support prioritaire</li>
+              </ul>
+              <a href="#" class="btn-plan">Contacter l'équipe</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section class="cta">
+        <h2>Votre prochain document juridique,<br>rédigé et négocié en autonomie.</h2>
+        <p>Rejoignez les fondateurs qui pilotent leur levée sans attendre un avocat.</p>
+        <a href="/saas/dossiers.html" class="btn-lg btn-lg--white">Ouvrir l'éditeur</a>
       </section>
 
     </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer__inner">
+        <div class="footer__col footer__brand">
+          <a href="index.html" class="brand">liquid <span>+</span></a>
+          <p>L'éditeur de documents juridiques pour fondateurs de startup.</p>
+        </div>
+        <div class="footer__col">
+          <h4>Produit</h4>
+          <a href="#features">Fonctionnalités</a>
+          <a href="#panels">Les 3 panneaux</a>
+          <a href="#pricing">Tarifs</a>
+        </div>
+        <div class="footer__col">
+          <h4>Ressources</h4>
+          <a href="marche.html">Données de marché</a>
+          <a href="comment-ca-marche.html">Comment ça marche</a>
+        </div>
+        <div class="footer__col">
+          <h4>Légal</h4>
+          <a href="#">Mentions légales</a>
+          <a href="#">Confidentialité</a>
+          <a href="#">CGU</a>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        © 2026 liquid +. liquid + vous rend autonome sur la lecture et la négociation de vos documents juridiques ; il ne se substitue pas à un conseil juridique personnalisé pour les cas complexes.
+      </div>
+    </footer>
+
+    <script src="/saas/script.js"></script>
     <script src="nav.js"></script>
   </body>
 </html>
