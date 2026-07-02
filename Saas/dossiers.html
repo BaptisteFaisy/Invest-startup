@@ -88,6 +88,9 @@
     .bsa-item.is-dragging { opacity: 0.45; cursor: grabbing !important; }
     .file { cursor: grab; }
     .file.is-dragging { opacity: 0.45; }
+    /* Ligne temporaire pendant un téléversement (affichage optimiste). */
+    .file--pending, .bsa-item__file--pending { animation: pendpulse 1.2s ease-in-out infinite; cursor: default; }
+    @keyframes pendpulse { 0%, 100% { opacity: 0.65; } 50% { opacity: 0.35; } }
     /* Section « À faire » (récap des tâches restantes) */
     .todo { background: var(--card, #fff); border: 1px solid var(--line); border-radius: 14px; margin-bottom: 12px; overflow: hidden; }
     .todo__head { display: flex; align-items: center; gap: 14px; padding: 15px 18px; cursor: pointer; }
@@ -452,6 +455,8 @@
     let folders = [];
     let docs    = [];
     const openState = {}; // mémorise les dossiers dépliés entre deux rendus
+    const pendingUploads = []; // fichiers en cours de téléversement ({ name, size, folderId })
+    const pendingSlots   = {}; // téléversements en cours vers un slot précis (clé folderId:slug → nom)
     const todosOpen = {}; // mémorise les listes « choses à faire » dépliées (clé folderId:slug)
 
     // Modèles juridiques disponibles : slug d'élément de roadlist -> fichier modèle.
@@ -523,7 +528,8 @@
 
     let loaded = false;
     async function load() {
-      showErr('');
+      // Ne pas effacer l'erreur ici : load() sert aussi de resynchronisation
+      // après un échec d'action optimiste, dont le message doit rester visible.
       if (!loaded) foldersEl.innerHTML = '<p class="empty">Chargement…</p>';
       try {
         const [fr, dr] = await Promise.all([
@@ -619,6 +625,8 @@
     // Carte « Fichiers importés » : fichiers non rattachés à une phase précise.
     function importCard() {
       const unclassified = docs.filter(d => d.folder_id == null);
+      const pendings = pendingUploads.filter(p => p.folderId == null);
+      const total = unclassified.length + pendings.length;
       const card = document.createElement('div');
       card.className = 'folder folder--import open';
       card.innerHTML = `
@@ -626,16 +634,17 @@
           <div class="folder__ic">⬆</div>
           <div class="folder__main">
             <div class="folder__name">Fichiers importés</div>
-            <div class="folder__count">${unclassified.length} fichier${unclassified.length > 1 ? 's' : ''}</div>
+            <div class="folder__count">${total} fichier${total > 1 ? 's' : ''}</div>
           </div>
         </div>
         <div class="folder__body" style="display:block"></div>`;
       const body = card.querySelector('.folder__body');
-      if (!unclassified.length) {
+      if (!total) {
         body.innerHTML = '<div class="folder__drop">⬆ Glissez-déposez vos fichiers ici, ou cliquez sur « Importer un fichier »<br /><span>(PDF, Word, Excel, images…)</span><br /><span>Astuce : glissez ensuite un fichier sur un document de la roadlist pour le rattacher.</span></div>';
       } else {
         const fl = document.createElement('div');
         fl.className = 'files';
+        pendings.forEach(p => fl.appendChild(pendingRow(p)));
         unclassified
           .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))
           .forEach(d => fl.appendChild(fileRow(d)));
@@ -692,6 +701,7 @@
           ? '<span class="bsa-item__note bsa-item__note--opt">Si applicable</span>'
           : '';
 
+      const pendingName = !linked ? pendingSlots[f.id + ':' + slug] : null;
       const li = document.createElement('li');
       li.className = 'bsa-item' + (linked ? ' bsa-item--done' : '');
       li.innerHTML = `
@@ -699,7 +709,8 @@
           <div class="bsa-item__label"><span class="bsa-item__name">${esc(item)}</span>${badge}</div>
           <div class="bsa-item__actions"></div>
         </div>
-        ${linked ? `<div class="bsa-item__file" title="${esc(doc.name)}">📎 ${esc(doc.name)}</div>` : ''}`;
+        ${linked ? `<div class="bsa-item__file" title="${esc(doc.name)}">📎 ${esc(doc.name)}</div>`
+          : pendingName ? `<div class="bsa-item__file bsa-item__file--pending">📎 Import de « ${esc(pendingName)} »…</div>` : ''}`;
       const acts = li.querySelector('.bsa-item__actions');
 
       // Générer un modèle pré-rempli (si un modèle existe — alias inclus — et qu'aucun
@@ -786,28 +797,23 @@
         li.classList.add('bsa-item--drop');
       });
       li.addEventListener('dragleave', () => li.classList.remove('bsa-item--drop'));
-      li.addEventListener('drop', async (e) => {
+      li.addEventListener('drop', (e) => {
         if (!hasFiles(e) && !hasInternal(e)) return;
         e.preventDefault(); e.stopPropagation();
         li.classList.remove('bsa-item--drop');
         if (hasFiles(e)) {
           const file = e.dataTransfer.files && e.dataTransfer.files[0];
-          if (file) await uploadDocToSlot(file, f.id, slug);
+          if (file) uploadDocToSlot(file, f.id, slug);
           return;
         }
         const did = Number(e.dataTransfer.getData('application/x-liquid-doc'));
         if (!did) return;
-        const srcRaw = e.dataTransfer.getData('application/x-liquid-src');
-        await linkDoc(f.id, slug, did);
-        // Délie automatiquement le slot source (déplacement, pas copie).
-        if (srcRaw) {
-          try {
-            const src = JSON.parse(srcRaw);
-            if (src && (src.folderId !== f.id || src.slug !== slug)) {
-              await linkDoc(src.folderId, src.slug, null);
-            }
-          } catch (_) {}
-        }
+        let src = null;
+        try { src = JSON.parse(e.dataTransfer.getData('application/x-liquid-src') || 'null'); } catch (_) {}
+        // Déplacement depuis un autre slot : détache la source ET lie la cible
+        // (affichage immédiat, requêtes en arrière-plan). Sinon simple liaison.
+        if (src && (src.folderId !== f.id || src.slug !== slug)) moveBetweenSlots(src, f.id, slug, did);
+        else linkDoc(f.id, slug, did);
       });
 
       return li;
@@ -883,9 +889,22 @@
       const del = document.createElement('button');
       del.className = 'fbtn fbtn--del';
       del.textContent = 'Suppr.';
-      del.addEventListener('click', () => remove(d.id, del));
+      del.addEventListener('click', () => remove(d.id));
       actions.appendChild(del);
 
+      return row;
+    }
+
+    // Ligne temporaire affichée pendant le téléversement d'un fichier déposé.
+    function pendingRow(p) {
+      const row = document.createElement('div');
+      row.className = 'file file--pending';
+      row.innerHTML = `
+        <div class="file__ic">…</div>
+        <div class="file__main">
+          <div class="file__name" title="${esc(p.name)}">${esc(p.name)}</div>
+          <div class="file__meta">${fmtSize(p.size)} · Import en cours…</div>
+        </div>`;
       return row;
     }
 
@@ -1222,14 +1241,15 @@
     pick.addEventListener('click', (e) => { if (e.target.hasAttribute('data-pick-close')) closePicker(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && pick.classList.contains('is-open')) closePicker(); });
 
-    // Depuis le compte : lier le document sélectionné.
-    document.getElementById('pick-link').addEventListener('click', async () => {
+    // Depuis le compte : lier le document sélectionné (fermeture immédiate,
+    // la liaison est affichée tout de suite et sauvegardée en arrière-plan).
+    document.getElementById('pick-link').addEventListener('click', () => {
       if (!pickCtx) return;
       const docId = pickSelect.value;
       if (!docId) { pickShowErr('Choisissez un document.'); return; }
       const ctx = pickCtx;
-      const ok = await linkDoc(ctx.folderId, ctx.slug, Number(docId));
-      if (ok) closePicker();
+      closePicker();
+      linkDoc(ctx.folderId, ctx.slug, Number(docId));
     });
 
     // Depuis l'ordinateur : téléverser dans la phase puis lier.
@@ -1252,17 +1272,62 @@
       finally { pickFile.value = ''; }
     });
 
+    // Applique localement une liaison / un détachement, en miroir de ce que fait
+    // le serveur : lier range le document dans la phase, détacher le remet en
+    // « Fichiers importés ». Permet un affichage immédiat sans attendre le réseau.
+    function applyLink(folderId, slug, documentId) {
+      const f = folders.find(x => x.id === folderId);
+      if (!f) return;
+      f.items_state = f.items_state || {};
+      if (documentId == null) {
+        const cur = f.items_state[slug];
+        if (cur && cur.document_id != null) {
+          const d = docs.find(x => x.id === cur.document_id);
+          if (d) d.folder_id = null;
+        }
+        delete f.items_state[slug];
+      } else {
+        f.items_state[slug] = { ...(f.items_state[slug] || {}), document_id: documentId };
+        const d = docs.find(x => x.id === documentId);
+        if (d) d.folder_id = folderId;
+      }
+    }
+
+    function putChecklist(folderId, slug, documentId) {
+      return fetch('/api/saas/folders/' + folderId + '/checklist', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', body: JSON.stringify({ slug, document_id: documentId }),
+      });
+    }
+
+    // Liaison optimiste : l'interface est mise à jour immédiatement, la requête
+    // part en arrière-plan ; en cas d'échec on resynchronise depuis le serveur.
     async function linkDoc(folderId, slug, documentId) {
       showErr('');
+      applyLink(folderId, slug, documentId);
+      render();
       try {
-        const r = await fetch('/api/saas/folders/' + folderId + '/checklist', {
-          method: 'PUT', headers: { 'Content-Type': 'application/json' },
-          credentials: 'include', body: JSON.stringify({ slug, document_id: documentId }),
-        });
-        if (!r.ok) { const d = await r.json().catch(() => ({})); showErr(d.error || 'Action échouée.'); return false; }
-        await load();
+        const r = await putChecklist(folderId, slug, documentId);
+        if (!r.ok) { const d = await r.json().catch(() => ({})); showErr(d.error || 'Action échouée.'); load(); return false; }
         return true;
-      } catch { showErr('Impossible de joindre le serveur.'); return false; }
+      } catch { showErr('Impossible de joindre le serveur.'); load(); return false; }
+    }
+
+    // Déplacement d'un document d'un slot de roadlist vers un autre : les deux
+    // changements sont affichés immédiatement ; côté réseau le détachement part
+    // AVANT la liaison (sinon il remettrait le document en « non classé »).
+    function moveBetweenSlots(src, dstFolderId, dstSlug, docId) {
+      showErr('');
+      applyLink(src.folderId, src.slug, null);
+      applyLink(dstFolderId, dstSlug, docId);
+      render();
+      (async () => {
+        try {
+          const r1 = await putChecklist(src.folderId, src.slug, null);
+          const r2 = await putChecklist(dstFolderId, dstSlug, docId);
+          if (!r1.ok || !r2.ok) { showErr('Action échouée.'); load(); }
+        } catch { showErr('Impossible de joindre le serveur.'); load(); }
+      })();
     }
 
     // Crée une term sheet à partir d'un modèle, la range dans la phase, la lie à
@@ -1302,45 +1367,58 @@
       }
     }
 
-    async function setFinal(folderId, slug, final) {
+    // Validation optimiste : le badge change immédiatement, la sauvegarde part
+    // en arrière-plan (resynchronisation si échec).
+    function setFinal(folderId, slug, final) {
       showErr('');
-      try {
-        const r = await fetch('/api/saas/folders/' + folderId + '/checklist', {
-          method: 'PUT', headers: { 'Content-Type': 'application/json' },
-          credentials: 'include', body: JSON.stringify({ slug, final }),
-        });
-        if (!r.ok) { const d = await r.json().catch(() => ({})); showErr(d.error || 'Action échouée.'); return; }
-        await load();
-      } catch { showErr('Impossible de joindre le serveur.'); }
+      const f = folders.find(x => x.id === folderId);
+      if (f) {
+        f.items_state = f.items_state || {};
+        f.items_state[slug] = { ...(f.items_state[slug] || {}), final: !!final };
+        render();
+      }
+      fetch('/api/saas/folders/' + folderId + '/checklist', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', body: JSON.stringify({ slug, final }),
+      }).then(async (r) => {
+        if (!r.ok) { const d = await r.json().catch(() => ({})); showErr(d.error || 'Action échouée.'); load(); }
+      }).catch(() => { showErr('Impossible de joindre le serveur.'); load(); });
     }
 
     // Analyse d'un document par Claude → liste des « choses à faire », stockée et
-    // dépliable au clic sur le nom du document.
+    // dépliable au clic sur le nom du document. Pendant l'analyse, le bouton
+    // devient « Annuler » : un second clic interrompt la requête.
     async function analyzeDoc(folderId, slug, doc, btn) {
+      if (btn._abort) { btn._abort.abort(); return; }
       if (!doc || doc.kind !== 'termsheet') {
         showErr('L\'analyse est disponible pour les documents éditables (modèles / term sheets).');
         return;
       }
       const old = btn.textContent;
-      btn.disabled = true; btn.textContent = 'Analyse…';
+      const oldTitle = btn.title;
+      const ctrl = new AbortController();
+      btn._abort = ctrl;
+      btn.textContent = 'Annuler';
+      btn.classList.add('fbtn--del');
+      btn.title = 'Annuler l\'analyse en cours';
       showErr('');
       try {
         // Récupère le contenu du document, puis le convertit en texte.
-        const tr = await fetch('/api/saas/termsheets/' + doc.id, { credentials: 'include' });
+        const tr = await fetch('/api/saas/termsheets/' + doc.id, { credentials: 'include', signal: ctrl.signal });
         const td = await tr.json().catch(() => ({}));
         const tmp = document.createElement('div');
         tmp.innerHTML = td.html || '';
         const text = (tmp.innerText || tmp.textContent || '').trim();
-        if (!text) { showErr('Document vide : rien à analyser.'); btn.disabled = false; btn.textContent = old; return; }
+        if (!text) { showErr('Document vide : rien à analyser.'); return; }
 
         const ar = await fetch('/api/saas/doc-analyze', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          credentials: 'include', body: JSON.stringify({ title: doc.name, text }),
+          credentials: 'include', signal: ctrl.signal, body: JSON.stringify({ title: doc.name, text }),
         });
         const ad = await ar.json().catch(() => ({}));
         if (!ar.ok || !Array.isArray(ad.todos) || !ad.todos.length) {
           showErr(ad.error || 'Analyse indisponible pour le moment.');
-          btn.disabled = false; btn.textContent = old; return;
+          return;
         }
 
         // Sauvegarde des choses à faire dans l'état de la roadlist.
@@ -1357,9 +1435,13 @@
         }
         todosOpen[folderId + ':' + slug] = true;
         render();
-      } catch {
-        showErr('Impossible de joindre le serveur.');
-        btn.disabled = false; btn.textContent = old;
+      } catch (e) {
+        if (!(e && e.name === 'AbortError')) showErr('Impossible de joindre le serveur.');
+      } finally {
+        btn._abort = null;
+        btn.textContent = old;
+        btn.classList.remove('fbtn--del');
+        btn.title = oldTitle;
       }
     }
 
@@ -1404,16 +1486,19 @@
       } catch { showErr('Impossible de joindre le serveur.'); }
     }
 
-    async function moveDoc(id, folderId) {
+    // Déplacement optimiste : le document change de dossier à l'écran tout de
+    // suite, la requête part en arrière-plan (resynchronisation si échec).
+    function moveDoc(id, folderId) {
       showErr('');
-      try {
-        const r = await fetch('/api/saas/documents/' + id + '/folder', {
-          method: 'PUT', headers: { 'Content-Type': 'application/json' },
-          credentials: 'include', body: JSON.stringify({ folder_id: folderId || null }),
-        });
-        if (!r.ok) { const d = await r.json().catch(() => ({})); showErr(d.error || 'Déplacement échoué.'); return; }
-        load();
-      } catch { showErr('Impossible de joindre le serveur.'); }
+      const fid = folderId === '' || folderId == null ? null : Number(folderId);
+      const d = docs.find(x => x.id === id);
+      if (d) { d.folder_id = fid; render(); }
+      fetch('/api/saas/documents/' + id + '/folder', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', body: JSON.stringify({ folder_id: folderId || null }),
+      }).then(async (r) => {
+        if (!r.ok) { const dd = await r.json().catch(() => ({})); showErr(dd.error || 'Déplacement échoué.'); load(); }
+      }).catch(() => { showErr('Impossible de joindre le serveur.'); load(); });
     }
 
     // ---- Actions fichiers ----
@@ -1465,25 +1550,24 @@
       }
     }
 
-    async function remove(id, btnEl) {
-      btnEl.disabled = true;
-      try {
-        const r = await fetch('/api/saas/documents/' + id, { method: 'DELETE', credentials: 'include' });
-        if (!r.ok) { const d = await r.json().catch(() => ({})); showErr(d.error || 'Suppression échouée.'); btnEl.disabled = false; return; }
-        // Mise à jour locale (pas de rechargement complet du site) : on retire le
-        // document et on détache ses liens de checklist, puis on re-rend.
-        docs = docs.filter(d => d.id !== id);
-        folders.forEach(f => {
-          if (!f.items_state) return;
-          Object.keys(f.items_state).forEach(k => {
-            if (f.items_state[k] && f.items_state[k].document_id === id) delete f.items_state[k];
-          });
+    // Suppression optimiste : le fichier disparaît immédiatement de l'écran, la
+    // requête part en arrière-plan ; en cas d'échec on resynchronise et on
+    // affiche l'erreur (le fichier réapparaît alors).
+    function remove(id) {
+      showErr('');
+      docs = docs.filter(d => d.id !== id);
+      folders.forEach(f => {
+        if (!f.items_state) return;
+        Object.keys(f.items_state).forEach(k => {
+          if (f.items_state[k] && f.items_state[k].document_id === id) delete f.items_state[k];
         });
-        render();
-      } catch {
-        showErr('Impossible de joindre le serveur.');
-        btnEl.disabled = false;
-      }
+      });
+      render();
+      fetch('/api/saas/documents/' + id, { method: 'DELETE', credentials: 'include' })
+        .then(async (r) => {
+          if (!r.ok) { const d = await r.json().catch(() => ({})); showErr(d.error || 'Suppression échouée.'); load(); }
+        })
+        .catch(() => { showErr('Impossible de joindre le serveur.'); load(); });
     }
 
     // Vrai si l'évènement de drag transporte des fichiers (et non du texte/HTML).
@@ -1496,40 +1580,61 @@
       return !!e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('application/x-liquid-doc');
     }
 
-    // Téléverse un fichier dans une phase puis le lie à un élément précis de la roadlist.
+    // Téléverse un fichier dans une phase puis le lie à un élément précis de la
+    // roadlist. La ligne visée affiche « Import en cours… » dès le dépôt.
     async function uploadDocToSlot(file, folderId, slug) {
       if (!file) return;
       showErr('');
+      const key = folderId + ':' + slug;
+      pendingSlots[key] = file.name;
+      render();
       const fd = new FormData();
       fd.append('file', file);
       fd.append('folder_id', String(folderId));
       try {
         const r = await fetch('/api/saas/documents', { method: 'POST', credentials: 'include', body: fd });
         const data = await r.json().catch(() => ({}));
-        if (!r.ok) { showErr(data.error || 'Import échoué.'); return; }
+        delete pendingSlots[key];
+        if (!r.ok) { showErr(data.error || 'Import échoué.'); render(); return; }
+        if (data.document) docs.push(data.document);
         const newId = data.document && data.document.id;
-        if (newId != null) await linkDoc(folderId, slug, newId);
-        else await load();
-      } catch { showErr('Impossible de joindre le serveur.'); }
+        if (newId != null) linkDoc(folderId, slug, newId);
+        else load();
+      } catch {
+        delete pendingSlots[key];
+        showErr('Impossible de joindre le serveur.');
+        render();
+      }
     }
 
     // Téléverse un ou plusieurs fichiers, éventuellement dans un dossier précis
-    // (folderId null = « Documents importés », non classé).
+    // (folderId null = « Documents importés », non classé). Chaque fichier déposé
+    // apparaît immédiatement comme ligne « Import en cours… », remplacée par la
+    // vraie ligne dès que le serveur répond (pas de rechargement complet).
     async function uploadFiles(fileList, folderId) {
       const files = Array.from(fileList || []);
       if (!files.length) return false;
       showErr('');
-      let failed = 0;
-      for (const file of files) {
+      const pendings = files.map(f => ({ name: f.name, size: f.size, folderId: folderId == null ? null : folderId }));
+      pendingUploads.push(...pendings);
+      render();
+      let failed = 0, needSync = false;
+      for (let i = 0; i < files.length; i++) {
         const fd = new FormData();
-        fd.append('file', file);
+        fd.append('file', files[i]);
         if (folderId != null) fd.append('folder_id', String(folderId));
         try {
           const r = await fetch('/api/saas/documents', { method: 'POST', credentials: 'include', body: fd });
-          if (!r.ok) { const d = await r.json().catch(() => ({})); showErr(d.error || 'Import échoué.'); failed++; }
+          const data = await r.json().catch(() => ({}));
+          if (!r.ok) { showErr(data.error || 'Import échoué.'); failed++; }
+          else if (data.document) docs.push(data.document);
+          else needSync = true;
         } catch { showErr('Impossible de joindre le serveur.'); failed++; }
+        const at = pendingUploads.indexOf(pendings[i]);
+        if (at !== -1) pendingUploads.splice(at, 1);
+        render();
       }
-      await load();
+      if (failed || needSync) load();
       return failed === 0;
     }
 

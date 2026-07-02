@@ -1847,13 +1847,19 @@ async function refreshSimple(key) {
 
   const myReq  = ++simpleReq;
   const clause = EXPLAIN[key];
-  p.textContent = '…';
+  if (simpleAbort) simpleAbort.abort();
+  const ctrl = new AbortController();
+  simpleAbort = ctrl;
+  p.innerHTML = '… <button class="ai-cancel ai-cancel--inline" id="simple-cancel" type="button">Annuler</button>';
+  const simpleCancel = document.getElementById('simple-cancel');
+  if (simpleCancel) simpleCancel.addEventListener('click', () => ctrl.abort());
 
   try {
     const res = await fetch('/api/saas/clause-explain', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
+      signal: ctrl.signal,
       body: JSON.stringify({
         clauseLabel: clause ? clause.label : key,
         clauseHtml:  html,
@@ -1869,11 +1875,14 @@ async function refreshSimple(key) {
       const cur = document.getElementById('simple-text');
       if (cur) cur.textContent = text;
     }
-  } catch {
+  } catch (e) {
     if (myReq === simpleReq && key === activeKey) {
       const cur = document.getElementById('simple-text');
-      if (cur) cur.textContent = SIMPLE[key] || 'Explication indisponible pour le moment.';
+      if (cur) cur.textContent = SIMPLE[key]
+        || ((e && e.name === 'AbortError') ? 'Explication annulée.' : 'Explication indisponible pour le moment.');
     }
+  } finally {
+    if (simpleAbort === ctrl) simpleAbort = null;
   }
 }
 
@@ -1937,8 +1946,10 @@ const EXPLAIN_PROMPT =
 
 // Envoie un message à l'assistant. `apiText` part à Claude ; `displayText` est
 // affiché dans la bulle utilisateur (utile pour des prompts pré-écrits).
+// Pendant la requête, le bouton d'envoi devient un bouton « stop » qui annule.
+let chatAbort = null;
 async function sendMessage(apiText, displayText = apiText) {
-  if (!apiText || !chatKey) return;
+  if (!apiText || !chatKey || chatAbort) return;
 
   const key = chatKey;
   const clause = EXPLAIN[key];
@@ -1950,8 +1961,13 @@ async function sendMessage(apiText, displayText = apiText) {
   addBubble('user', displayText);
   chatInput.value = '';
   chatInput.disabled = true;
-  chatSend.disabled = true;
   chatExplain.disabled = true;
+  const ctrl = new AbortController();
+  chatAbort = ctrl;
+  chatSend.textContent = '✕';
+  chatSend.classList.add('chat__send--stop');
+  chatSend.setAttribute('aria-label', 'Annuler la requête');
+  chatSend.title = 'Annuler la requête';
 
   const thinking = addBubble('bot', '…');
 
@@ -1960,6 +1976,7 @@ async function sendMessage(apiText, displayText = apiText) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
+      signal: ctrl.signal,
       body: JSON.stringify({
         clauseLabel:     clause.label,
         clauseHtml:      contentEl.innerHTML,
@@ -1986,19 +2003,26 @@ async function sendMessage(apiText, displayText = apiText) {
     } else if (active && data.updatedClause) {
       addApplyButton('Réécrire toute la clause', btn => applyUpdatedClause(key, data.updatedClause, btn));
     }
-  } catch {
+  } catch (e) {
     thinking.remove();
-    if (key === chatKey) addBubble('err', 'Impossible de joindre le serveur.');
+    if (key === chatKey) {
+      addBubble('err', (e && e.name === 'AbortError') ? 'Demande annulée.' : 'Impossible de joindre le serveur.');
+    }
   } finally {
+    chatAbort = null;
     chatInput.disabled = false;
-    chatSend.disabled = false;
     chatExplain.disabled = false;
+    chatSend.textContent = '→';
+    chatSend.classList.remove('chat__send--stop');
+    chatSend.setAttribute('aria-label', 'Envoyer');
+    chatSend.title = '';
     chatInput.focus();
   }
 }
 
 chatForm.addEventListener('submit', (e) => {
   e.preventDefault();
+  if (chatAbort) { chatAbort.abort(); return; } // le bouton → est devenu un stop
   sendMessage(chatInput.value.trim());
 });
 
@@ -2504,23 +2528,39 @@ function _paintDocAdvice() {
   adviceCount.textContent = nc ? `${nc} conseil${nc !== 1 ? 's' : ''}` : '';
 }
 
-async function renderDocAdvice() {
+let adviceAbort = null; // requête « À vérifier » en cours (annulable)
+async function renderDocAdvice(extSignal) {
   if (docAdviceCache) { _paintDocAdvice(); return; }
 
+  if (adviceAbort) adviceAbort.abort();
+  const ctrl = new AbortController();
+  adviceAbort = ctrl;
+  // Relayée par la fenêtre de progression : « Annuler l'analyse » annule aussi cet appel.
+  if (extSignal) {
+    if (extSignal.aborted) ctrl.abort();
+    else extSignal.addEventListener('abort', () => ctrl.abort(), { once: true });
+  }
+
   adviceCount.textContent = 'Analyse du document…';
-  adviceList.innerHTML = '<p class="library__empty" style="padding:10px 0">Analyse en cours…</p>';
+  adviceList.innerHTML = '<p class="library__empty" style="padding:10px 0">Analyse en cours…</p>'
+    + '<button class="ai-cancel" id="advice-cancel" type="button">Annuler</button>';
+  const adviceCancel = document.getElementById('advice-cancel');
+  if (adviceCancel) adviceCancel.addEventListener('click', () => ctrl.abort());
 
   try {
     const title = (docNameEl && docNameEl.textContent)
       || (page.querySelector('.doc-title') ? page.querySelector('.doc-title').textContent : 'Document');
     const r = await fetch('/api/saas/doc-advice', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', body: JSON.stringify({ title, text: page.innerText || '' }),
+      credentials: 'include', signal: ctrl.signal, body: JSON.stringify({ title, text: page.innerText || '' }),
     });
     const data = await r.json().catch(() => ({}));
     if (r.ok && Array.isArray(data.tips) && data.tips.length) docAdviceCache = data.tips;
   } catch {}
 
+  // Une requête plus récente a pris la main : on la laisse peindre le résultat.
+  if (adviceAbort !== ctrl) return;
+  adviceAbort = null;
   if (!isCustom) return;
   _paintDocAdvice();
 }
