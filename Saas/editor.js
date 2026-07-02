@@ -1177,8 +1177,12 @@ function paginate(opts = {}) {
 // Recalcule à chaque changement de hauteur (saisie, ajout/retrait de clause…),
 // en ignorant les variations provoquées par paginate() lui-même ou par l'impression.
 let printing = false;
+// Vrai pendant le glissement d'une poignée de colonne : chaque mouvement change
+// la largeur du document, et repaginer à chaque frame rendait le glissement
+// saccadé. On suspend la pagination pendant le geste ; elle repart au relâchement.
+let colResizing = false;
 const pageResizeObs = new ResizeObserver(() => {
-  if (!paginating && !printing) requestAnimationFrame(() => paginate());
+  if (!paginating && !printing && !colResizing) requestAnimationFrame(() => paginate());
 });
 pageResizeObs.observe(page);
 
@@ -1815,10 +1819,12 @@ if (urlDocId && /^\d+$/.test(urlDocId)) loadTermsheet(Number(urlDocId));
       e.preventDefault();
       let dragged = false;
       let lastW = 0;
+      let rafId = 0;
       g.classList.add('is-drag');
       document.body.style.cursor = 'col-resize';
       document.body.style.userSelect = 'none';
       try { g.setPointerCapture(e.pointerId); } catch {}
+      colResizing = true; // suspend la repagination pendant le geste
       // Reouvre immédiatement si la colonne était repliée.
       if (collapsed) { collapsed = false; render(); persist(); }
       const rect = ws.getBoundingClientRect();
@@ -1827,12 +1833,18 @@ if (urlDocId && /^\d+$/.test(urlDocId)) loadTermsheet(Number(urlDocId));
         // Filet de sécurité : bouton relâché hors capture → on termine.
         if (ev.buttons === 0) { up(); return; }
         dragged = true;
-        let w = side === 'left' ? (ev.clientX - rect.left) : (rect.right - ev.clientX);
-        w = Math.round(w);
-        lastW = w;
-        ws.style.setProperty(varName, Math.max(0, Math.min(cap, w)) + 'px');
+        const w = side === 'left' ? (ev.clientX - rect.left) : (rect.right - ev.clientX);
+        lastW = Math.round(w);
+        // Une seule application par frame : les mouvements plus rapides que
+        // l'écran (souris haute fréquence) ne déclenchent pas de layout inutile.
+        if (!rafId) rafId = requestAnimationFrame(() => {
+          rafId = 0;
+          ws.style.setProperty(varName, Math.max(0, Math.min(cap, lastW)) + 'px');
+        });
       };
       const up = () => {
+        if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+        colResizing = false;
         g.classList.remove('is-drag');
         document.body.style.cursor = '';
         document.body.style.userSelect = '';
@@ -1877,9 +1889,10 @@ if (urlDocId && /^\d+$/.test(urlDocId)) loadTermsheet(Number(urlDocId));
   }
   // Glissement fluide : min == seuil de repli (aucun palier intermédiaire) et
   // plafond très large — la vraie limite est dynMax(), qui garde MIN_DOC px au
-  // document quelle que soit la taille de l'écran.
-  bind('gutter-left',  '--lib-w',   'liquid_lib_w',   'left',  120, 1400, 120);
-  bind('gutter-right', '--panel-w', 'liquid_panel_w', 'right', 150, 1400, 150);
+  // document quelle que soit la taille de l'écran. Le repli ne se déclenche
+  // qu'au ras du bord (40px) : toute autre largeur est conservée telle quelle.
+  bind('gutter-left',  '--lib-w',   'liquid_lib_w',   'left',  40, 1400, 40);
+  bind('gutter-right', '--panel-w', 'liquid_panel_w', 'right', 40, 1400, 40);
 
   /* --- Redimensionnement vertical de l'assistant IA (chat Claude) --- */
   const chatEl = document.getElementById('chat');
