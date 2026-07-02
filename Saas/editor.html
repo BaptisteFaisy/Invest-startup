@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=6" />
-  <link rel="stylesheet" href="editor.css?v=20" />
+  <link rel="stylesheet" href="editor.css?v=21" />
   <style>.app{visibility:hidden}.app.ready{visibility:visible}</style>
   <script src="auth.js"></script>
 </head>
@@ -118,6 +118,42 @@
       </div>
     </div>
 
+    <!-- Barre de progression de l'analyse : bandeau intégré sous la barre
+         d'outils, ne recouvre rien et laisse la navigation libre. -->
+    <div class="azm" id="azm" hidden role="status" aria-label="Progression de l'analyse">
+      <span class="azm__title" id="azm-title">Analyse du document…</span>
+      <div class="azm__bar"><div class="azm__bar-fill" id="azm-bar"></div></div>
+      <ul class="azm__rows">
+        <li class="azm__row" data-row="par">
+          <span class="azm__dot"></span>
+          <span class="azm__label">Paragraphes</span>
+          <span class="azm__val" id="azm-par">0 / 0</span>
+        </li>
+        <li class="azm__row" data-row="verif">
+          <span class="azm__dot"></span>
+          <span class="azm__label">À vérifier</span>
+          <span class="azm__val" id="azm-verif">En attente</span>
+        </li>
+        <li class="azm__row" data-row="cond">
+          <span class="azm__dot"></span>
+          <span class="azm__label">Conditions</span>
+          <span class="azm__val" id="azm-cond">—</span>
+        </li>
+        <li class="azm__row" data-row="lib">
+          <span class="azm__dot"></span>
+          <span class="azm__label">Bibliothèque</span>
+          <span class="azm__val" id="azm-lib">En attente</span>
+        </li>
+        <li class="azm__row" data-row="full">
+          <span class="azm__dot"></span>
+          <span class="azm__label">Fenêtre de droite</span>
+          <span class="azm__val" id="azm-full">En attente</span>
+        </li>
+      </ul>
+      <button class="azm__cancel" id="azm-cancel" type="button">Annuler l'analyse</button>
+      <button class="azm__close" id="azm-close" type="button" aria-label="Fermer">×</button>
+    </div>
+
     <!-- Workspace -->
     <div class="workspace">
       <!-- Panneau gauche : Bibliothèque de clauses / Conseil -->
@@ -166,47 +202,6 @@
 
       <!-- Canevas + page éditable -->
       <div class="editor-canvas">
-        <!-- Indicateur de progression de l'analyse : flotte en haut à droite du
-             document, suit le défilement et ne bloque pas la navigation. -->
-        <div class="azm" id="azm" hidden role="status" aria-label="Progression de l'analyse">
-          <div class="azm__card">
-            <div class="azm__head">
-              <span class="azm__title" id="azm-title">Analyse du document…</span>
-              <button class="azm__close" id="azm-close" type="button" aria-label="Fermer">×</button>
-            </div>
-            <div class="azm__bar"><div class="azm__bar-fill" id="azm-bar"></div></div>
-            <ul class="azm__rows">
-              <li class="azm__row" data-row="par">
-                <span class="azm__dot"></span>
-                <span class="azm__label">Paragraphes analysés</span>
-                <span class="azm__val" id="azm-par">0 / 0</span>
-              </li>
-              <li class="azm__row" data-row="verif">
-                <span class="azm__dot"></span>
-                <span class="azm__label">Colonne « À vérifier »</span>
-                <span class="azm__val" id="azm-verif">En attente</span>
-              </li>
-              <li class="azm__row" data-row="cond">
-                <span class="azm__dot"></span>
-                <span class="azm__label">Conditions pré-écrites</span>
-                <span class="azm__val" id="azm-cond">—</span>
-              </li>
-              <li class="azm__row" data-row="lib">
-                <span class="azm__dot"></span>
-                <span class="azm__label">Bibliothèque — clauses disponibles</span>
-                <span class="azm__val" id="azm-lib">En attente</span>
-              </li>
-              <li class="azm__row" data-row="full">
-                <span class="azm__dot"></span>
-                <span class="azm__label">Fenêtre de droite</span>
-                <span class="azm__val" id="azm-full">En attente</span>
-              </li>
-            </ul>
-            <div class="azm__foot">
-              <button class="azm__cancel" id="azm-cancel" type="button">Annuler l'analyse</button>
-            </div>
-          </div>
-        </div>
         <div class="paper" id="paper">
           <div class="sheet-bg" id="sheet-bg" aria-hidden="true"></div>
           <div class="page" id="page" contenteditable="true" spellcheck="false"></div>
