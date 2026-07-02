@@ -671,7 +671,6 @@ const panelActions = document.getElementById('panel-actions');
 const panelResult = document.getElementById('panel-result');
 const panelTitle = document.getElementById('panel-title');
 const panelEyebrow = document.getElementById('panel-eyebrow');
-const panelCount = document.getElementById('panel-count');
 const caretClause = document.getElementById('caret-clause');
 let activeKey = null;
 
@@ -806,7 +805,6 @@ page.addEventListener('input', () => {
 });
 
 countWords();
-panelCount.textContent = `${TERMSHEET.length} clauses`;
 
 /* ---------- 4 bis. Expliquer la sélection (bouton flottant IA) ----------
    L'utilisateur sélectionne du texte dans le document : un bouton « Expliquer »
@@ -1356,7 +1354,6 @@ function syncModelFromDOM() {
   });
   renderLibrary();
   renderAdvice();
-  updateClauseCount();
 }
 
 // Le document chargé est-il un autre type que la term sheet de démonstration ?
@@ -1413,7 +1410,6 @@ function adoptDocumentClauses() {
   if (chatExplainBtn) chatExplainBtn.textContent = 'Expliquer le paragraphe';
   renderLibrary();
   renderAdvice();
-  updateClauseCount();
 }
 
 async function loadTermsheet(id) {
@@ -2018,7 +2014,6 @@ function addToContract(key) {
   renderLibrary();
   renderAdvice();
   countWords();
-  updateClauseCount();
   paginate();                 // recalcule la mise en page AVANT de défiler (sinon tout se décale)
   selectClauseByKey(key, el);
   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -2032,14 +2027,8 @@ function removeFromContract(key) {
   renderLibrary();
   renderAdvice();
   countWords();
-  updateClauseCount();
   paginate();                 // recompose les pages après le retrait de la clause
   showEmptyPanel();
-}
-
-function updateClauseCount() {
-  const n = TERMSHEET.filter(c => c.inDoc).length;
-  panelCount.textContent = isCustom ? `${n} ${UNIT(n)}` : `${n} clauses au contrat`;
 }
 
 // Document libre : aller à un paragraphe depuis le sommaire.
@@ -2467,7 +2456,6 @@ libTabs.forEach(tab => tab.addEventListener('click', () => {
 /* ---------- Init ---------- */
 renderLibrary();
 renderAdvice();
-updateClauseCount();
 showEmptyPanel();
 
 /* =========================================================================
