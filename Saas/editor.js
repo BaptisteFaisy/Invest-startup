@@ -1937,16 +1937,22 @@ const chatGutter = document.getElementById('gutter-chat');
 
 const chatHistory = {};   // { [clauseKey]: [{ role, content }] }
 let   chatKey     = null; // clause actuellement liée au chat
+const DOC_CHAT_KEY = '__doc__'; // conversation générale, sans clause/paragraphe sélectionné
+let   attachDoc    = false;     // joindre le texte complet du document à l'IA
 
 // L'assistant reste TOUJOURS affiché (et donc redimensionnable), même sans clause
 // active : on le laisse simplement visible mais désactivé, avec une invite.
+// `on` = une clause/paragraphe est active. Le champ de saisie reste TOUJOURS
+// disponible : on peut poser une question générale sur le document sans rien
+// sélectionner. Seul le bouton « Expliquer » (qui agit sur la clause active)
+// dépend d'une sélection.
 function setChatEnabled(on) {
-  chatInput.disabled = !on;
-  chatSend.disabled  = !on;
-  if (chatExplain) chatExplain.disabled = !on;
+  chatInput.disabled = false;
+  chatSend.disabled  = false;
+  if (chatExplain) { chatExplain.disabled = !on; chatExplain.hidden = !on; }
   chatInput.placeholder = on
     ? 'Ex : raccourcis la non-concurrence à 6 mois'
-    : `Cliquez dans un${isCustom ? ' paragraphe' : 'e clause'} pour ${isCustom ? 'le' : 'la'} modifier…`;
+    : 'Posez une question sur l\'ensemble de votre document…';
 }
 
 function hideChat() {
@@ -1966,13 +1972,12 @@ function mountChat(key) {
 }
 
 function renderChatLog() {
-  if (!chatKey) {
-    chatLog.innerHTML = `<p class="chat__empty">Cliquez dans un${isCustom ? ' paragraphe' : 'e clause'} du document pour ${isCustom ? 'le' : 'la'} modifier ou l'expliquer avec l'assistant.</p>`;
-    return;
-  }
-  const history = chatHistory[chatKey] || [];
+  const histKey = chatKey || DOC_CHAT_KEY;
+  const history = chatHistory[histKey] || [];
   if (!history.length) {
-    chatLog.innerHTML = `<p class="chat__empty">Demandez une modification de cette clause (« raccourcis la durée », « plafonne le montant », « adoucis en faveur du fondateur ») ou posez une question.</p>`;
+    chatLog.innerHTML = chatKey
+      ? `<p class="chat__empty">Demandez une modification de cette ${isCustom ? 'partie' : 'clause'} (« raccourcis la durée », « plafonne le montant », « adoucis en faveur du fondateur ») ou posez une question.</p>`
+      : `<p class="chat__empty">Posez une question sur l'ensemble de votre document. Activez « Joindre le document » pour que l'assistant le lise en entier, ou cliquez dans un${isCustom ? ' paragraphe' : 'e clause'} pour ${isCustom ? 'le' : 'la'} modifier.</p>`;
     return;
   }
   chatLog.innerHTML = '';
@@ -2166,19 +2171,20 @@ const EXPLAIN_PROMPT =
 // Pendant la requête, le bouton d'envoi devient un bouton « stop » qui annule.
 let chatAbort = null;
 async function sendMessage(apiText, displayText = apiText) {
-  if (!apiText || !chatKey || chatAbort) return;
+  if (!apiText || chatAbort) return;
 
-  const key = chatKey;
-  const clause = EXPLAIN[key];
-  const contentEl = page.querySelector(`.ts-clause[data-key="${key}"] .ts-content`);
-  if (!clause || !contentEl) return;
+  const key = chatKey;                    // peut être null : question générale sur le document
+  const clause = key ? EXPLAIN[key] : null;
+  const contentEl = key ? page.querySelector(`.ts-clause[data-key="${key}"] .ts-content`) : null;
+  if (key && (!clause || !contentEl)) return;
 
-  const history = (chatHistory[key] = chatHistory[key] || []);
+  const histKey = key || DOC_CHAT_KEY;
+  const history = (chatHistory[histKey] = chatHistory[histKey] || []);
   history.push({ role: 'user', content: apiText });
   addBubble('user', displayText);
   chatInput.value = '';
   chatInput.disabled = true;
-  chatExplain.disabled = true;
+  if (chatExplain) chatExplain.disabled = true;
   const ctrl = new AbortController();
   chatAbort = ctrl;
   chatSend.textContent = '✕';
@@ -2195,11 +2201,12 @@ async function sendMessage(apiText, displayText = apiText) {
       credentials: 'include',
       signal: ctrl.signal,
       body: JSON.stringify({
-        clauseLabel:     clause.label,
-        clauseHtml:      contentEl.innerHTML,
-        plain:           clause.plain,
-        documentContext: buildDocOutline(),
-        messages:        history,
+        clauseLabel:      clause ? clause.label : '',
+        clauseHtml:       contentEl ? contentEl.innerHTML : '',
+        plain:            clause ? clause.plain : '',
+        documentContext:  buildDocOutline(),
+        attachedDocument: attachDoc ? page.innerText : '',
+        messages:         history,
       }),
     });
     const data = await res.json();
@@ -2232,7 +2239,7 @@ async function sendMessage(apiText, displayText = apiText) {
     chatSend.classList.remove('chat__send--stop');
     chatSend.setAttribute('aria-label', 'Envoyer');
     chatSend.title = '';
-    if (chatKey) chatInput.focus();
+    if (!chatInput.disabled) chatInput.focus();
   }
 }
 
@@ -2245,6 +2252,18 @@ chatForm.addEventListener('submit', (e) => {
 // Bouton « Expliquer la clause » : envoie un prompt d'explication à Claude.
 const chatExplain = document.getElementById('chat-explain');
 chatExplain.addEventListener('click', () => sendMessage(EXPLAIN_PROMPT, 'Explique-moi cette clause'));
+
+// Bouton « Joindre le document » : bascule l'envoi du texte complet du document à l'IA.
+const chatAttach = document.getElementById('chat-attach');
+if (chatAttach) {
+  const chatAttachLabel = chatAttach.querySelector('.chat__attach-label');
+  chatAttach.addEventListener('click', () => {
+    attachDoc = !attachDoc;
+    chatAttach.classList.toggle('is-on', attachDoc);
+    chatAttach.setAttribute('aria-pressed', attachDoc ? 'true' : 'false');
+    if (chatAttachLabel) chatAttachLabel.textContent = attachDoc ? 'Document joint' : 'Joindre le document';
+  });
+}
 
 /* ---------- 8. Bibliothèque de clauses + ajout / retrait dynamique ---------- */
 const libraryList  = document.getElementById('library-list');

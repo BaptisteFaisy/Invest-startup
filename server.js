@@ -727,9 +727,18 @@ app.post('/api/saas/clause-chat', requireAuth, async (req, res) => {
   if (!zaiClient)
     return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
-  const { clauseLabel, clauseHtml, plain, documentContext, messages } = req.body ?? {};
-  if (!clauseHtml || !Array.isArray(messages) || messages.length === 0)
-    return res.status(400).json({ error: 'clauseHtml et messages sont requis' });
+  const { clauseLabel, clauseHtml, plain, documentContext, attachedDocument, messages } = req.body ?? {};
+  if (!Array.isArray(messages) || messages.length === 0)
+    return res.status(400).json({ error: 'messages est requis' });
+
+  // Une clause précise est sélectionnée (mode édition ciblée) ou non (mode conversation
+  // générale sur tout le document). Le fondateur peut joindre le texte intégral du document.
+  const hasClause = !!(clauseHtml && typeof clauseHtml === 'string');
+  const attached  = (attachedDocument && typeof attachedDocument === 'string')
+    ? attachedDocument.slice(0, 20000).trim() : '';
+  const attachedBlock = attached
+    ? `\n\nDocument complet joint par le fondateur (texte intégral, pour référence) :\n${attached}`
+    : '';
 
   // On ne garde que les tours user/assistant textuels, plafonnés pour borner le contexte.
   const convo = messages
@@ -739,12 +748,12 @@ app.post('/api/saas/clause-chat', requireAuth, async (req, res) => {
   if (!convo.length || convo[convo.length - 1].role !== 'user')
     return res.status(400).json({ error: 'Le dernier message doit provenir de l\'utilisateur' });
 
-  const system =
+  const system = hasClause ?
 `Tu es l'assistant juridique IA de « liquid + », un éditeur de term sheet pour fondateurs de startup.
 Tu aides un fondateur à comprendre et à modifier UNE SEULE clause de sa term sheet — celle ci-dessous, et aucune autre.
 
 Plan complet de la term sheet (CONTEXTE seulement, pour comprendre les renvois entre clauses — tu ne dois RIEN y modifier) :
-${documentContext || '(non fourni)'}
+${documentContext || '(non fourni)'}${attachedBlock}
 
 Clause à traiter : « ${clauseLabel || 'Clause'} »
 Résumé en langage courant : ${plain || '(non fourni)'}
@@ -759,7 +768,18 @@ Règles :
 - N'utilise "updatedClause" (la clause entière réécrite en HTML, même format que l'original) QUE si la demande impose de restructurer l'essentiel de la clause. Dans ce cas, laisse "edits" vide ([]).
 - Ne remplis jamais "edits" ET "updatedClause" en même temps.
 - Si le fondateur pose seulement une question (pas de modification), laisse "edits" vide et "updatedClause" vide.
-- N'invente jamais de chiffres non demandés et ne touche pas aux autres clauses. Signale brièvement dans "reply" l'impact de ta modification (point de vigilance).`;
+- N'invente jamais de chiffres non demandés et ne touche pas aux autres clauses. Signale brièvement dans "reply" l'impact de ta modification (point de vigilance).`
+  :
+`Tu es l'assistant juridique IA de « liquid + », un éditeur de term sheet pour fondateurs de startup.
+Le fondateur discute avec toi de l'ENSEMBLE de son document — aucune clause précise n'est sélectionnée.
+
+Plan du document (contexte) :
+${documentContext || '(non fourni)'}${attachedBlock}
+
+Règles :
+- Réponds en français, de façon claire et concise, du point de vue du fondateur (jamais de l'investisseur).
+- Tu peux répondre aux questions, résumer, comparer des clauses, alerter sur des risques et donner des conseils de négociation sur l'ensemble du document.
+- Tu ne peux PAS modifier le document depuis cette vue générale : pour qu'une modification soit applicable, invite le fondateur à cliquer dans la clause ou le paragraphe concerné avant de te la redemander. Ici, laisse TOUJOURS "edits" vide ([]) et "updatedClause" vide ("").`;
 
   try {
     const response = await glmChat({
