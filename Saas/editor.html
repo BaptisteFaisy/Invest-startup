@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=6" />
-  <link rel="stylesheet" href="editor.css?v=14" />
+  <link rel="stylesheet" href="editor.css?v=15" />
   <style>.app{visibility:hidden}.app.ready{visibility:visible}</style>
   <script src="auth.js"></script>
 </head>
@@ -224,6 +224,39 @@
       <div class="selx-pop__body" id="selx-body"></div>
     </div>
 
+    <!-- Fenêtre de progression de l'analyse -->
+    <div class="azm" id="azm" hidden role="dialog" aria-label="Progression de l'analyse">
+      <div class="azm__card">
+        <div class="azm__head">
+          <span class="azm__title" id="azm-title">Analyse du document…</span>
+          <button class="azm__close" id="azm-close" type="button" aria-label="Fermer">×</button>
+        </div>
+        <div class="azm__bar"><div class="azm__bar-fill" id="azm-bar"></div></div>
+        <ul class="azm__rows">
+          <li class="azm__row" data-row="par">
+            <span class="azm__dot"></span>
+            <span class="azm__label">Paragraphes analysés</span>
+            <span class="azm__val" id="azm-par">0 / 0</span>
+          </li>
+          <li class="azm__row" data-row="verif">
+            <span class="azm__dot"></span>
+            <span class="azm__label">Colonne « À vérifier »</span>
+            <span class="azm__val" id="azm-verif">En attente</span>
+          </li>
+          <li class="azm__row" data-row="cond">
+            <span class="azm__dot"></span>
+            <span class="azm__label">Conditions pré-écrites</span>
+            <span class="azm__val" id="azm-cond">—</span>
+          </li>
+          <li class="azm__row" data-row="full">
+            <span class="azm__dot"></span>
+            <span class="azm__label">Fenêtre de droite</span>
+            <span class="azm__val" id="azm-full">En attente</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
     <!-- Status bar -->
     <div class="statusbar">
       <span id="caret-clause">Document prêt</span>
@@ -235,7 +268,7 @@
     </div>
   </div>
 
-  <script src="editor.js?v=30"></script>
+  <script src="editor.js?v=32"></script>
   <script src="documents.js?v=26"></script>
   <script>
     // Garde d'accès : l'éditeur est réservé aux utilisateurs connectés.

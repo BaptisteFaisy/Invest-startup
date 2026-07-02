@@ -914,10 +914,9 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !selxPop.hidden) { selxPop.hidden = true; if (selxAbort) selxAbort.abort(); }
 });
 
-document.addEventListener('selectionchange', () => {
-  if (document.activeElement !== page) { selxBtn.hidden = true; return; }
-  positionSelxBtn();
-});
+document.addEventListener('selectionchange', positionSelxBtn);
+document.addEventListener('mouseup', () => setTimeout(positionSelxBtn, 0));
+document.addEventListener('keyup', positionSelxBtn);
 if (editorCanvas) editorCanvas.addEventListener('scroll', () => { positionSelxBtn(); positionSelxPop(); });
 window.addEventListener('resize', () => { positionSelxBtn(); positionSelxPop(); });
 
@@ -1152,9 +1151,68 @@ if (exportDocxBtn) exportDocxBtn.addEventListener('click', () => exportToFile('d
 // Remplit en une fois : le « Pour bien comprendre » de chaque paragraphe (requête
 // groupée), et l'onglet Conseil (pistes d'amélioration). La bibliothèque est déjà
 // alimentée par les paragraphes du document.
+/* ---------- Fenêtre de progression de l'analyse ---------- */
+const azm = document.getElementById('azm');
+const azmRows = {};
+if (azm) azm.querySelectorAll('.azm__row').forEach(r => { azmRows[r.dataset.row] = r; });
+const azmVal = {
+  title: document.getElementById('azm-title'),
+  bar:   document.getElementById('azm-bar'),
+  par:   document.getElementById('azm-par'),
+  verif: document.getElementById('azm-verif'),
+  cond:  document.getElementById('azm-cond'),
+  full:  document.getElementById('azm-full'),
+};
+function azmSetRow(name, state, val) {
+  const row = azmRows[name]; if (!row) return;
+  row.classList.remove('is-pending', 'is-progress', 'is-done', 'is-error');
+  row.classList.add('is-' + (state || 'pending'));
+  if (val != null && azmVal[name]) azmVal[name].textContent = val;
+}
+function azmBar(pct) { if (azmVal.bar) azmVal.bar.style.width = Math.max(0, Math.min(100, pct)) + '%'; }
+function azmTitle(t) { if (azmVal.title) azmVal.title.textContent = t; }
+function azmOpen() {
+  if (!azm) return;
+  azm.hidden = false;
+  azmTitle('Analyse du document…');
+  azmBar(0);
+  azmSetRow('par',   'progress', '0 / 0');
+  azmSetRow('verif', 'pending',  'En attente');
+  azmSetRow('cond',  'pending',  '—');
+  azmSetRow('full',  'pending',  'En attente');
+}
+function azmClose() { if (azm) azm.hidden = true; }
+const azmCloseBtn = document.getElementById('azm-close');
+if (azmCloseBtn) azmCloseBtn.addEventListener('click', azmClose);
+
+// Stats live pour la fenêtre de progression.
+function azmExplainedCount() {
+  let n = 0;
+  page.querySelectorAll('.ts-clause[data-key]').forEach(el => {
+    if (SIMPLE_CACHE[el.dataset.key] && SIMPLE_CACHE[el.dataset.key].text) n++;
+  });
+  return n;
+}
+function azmCondStats() {
+  let inserted = 0, available = 0;
+  page.querySelectorAll('.ts-clause[data-key]').forEach(el => {
+    const key = el.dataset.key;
+    available += (COND_TEMPLATES[key] || []).length + (BAKED_COND[key] || []).length;
+    const c = el.querySelector('.ts-content');
+    if (c) inserted += c.querySelectorAll('[data-tpl]').length;
+  });
+  return { inserted, available };
+}
+function azmRefreshCond() {
+  const s = azmCondStats();
+  const state = !s.available ? 'done' : (s.inserted >= s.available ? 'done' : 'progress');
+  azmSetRow('cond', state, s.available ? `${s.inserted} / ${s.available}` : 'Aucune');
+}
+
 async function analyzeFull(btn) {
   const old = btn ? btn.textContent : '';
   if (btn) { btn.disabled = true; btn.textContent = 'Analyse…'; }
+  azmOpen();
   try {
     const clauses = [];
     page.querySelectorAll('.ts-clause').forEach(el => {
@@ -1164,31 +1222,67 @@ async function analyzeFull(btn) {
       if (!key || !contentEl) return;
       clauses.push({ key, label: labelEl ? labelEl.textContent.trim() : key, html: contentEl.innerHTML });
     });
+    const total = clauses.length;
     const title = (docNameEl && docNameEl.textContent)
       || (page.querySelector('.doc-title') ? page.querySelector('.doc-title').textContent : 'Document');
 
-    // 1) « Pour bien comprendre » pour chaque paragraphe (une seule requête).
-    if (clauses.length) {
-      const r = await fetch('/api/saas/clauses-explain', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', body: JSON.stringify({ title, clauses }),
-      });
-      const d = await r.json().catch(() => ({}));
-      if (r.ok && d.explanations) {
-        clauses.forEach(c => {
-          const t = d.explanations[c.key];
+    // Conditions pré-écrites (info statique : déjà insérées vs disponibles).
+    azmRefreshCond();
+
+    // 1) « Pour bien comprendre » — par morceaux pour afficher une progression réelle
+    //    du nombre de paragraphes analysés (chaque morceau est mis en cache côté serveur).
+    if (total) {
+      azmSetRow('par', 'progress', `0 / ${total}`);
+      const CHUNK = 7;
+      for (let i = 0; i < clauses.length; i += CHUNK) {
+        const slice = clauses.slice(i, i + CHUNK);
+        let explanations = {};
+        try {
+          const r = await fetch('/api/saas/clauses-explain', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            credentials: 'include', body: JSON.stringify({ title, clauses: slice }),
+          });
+          const d = await r.json().catch(() => ({}));
+          if (r.ok && d.explanations) explanations = d.explanations;
+        } catch {}
+        slice.forEach(c => {
+          const t = explanations[c.key];
           if (t) SIMPLE_CACHE[c.key] = { sig: clauseSig(c.html), text: t };
         });
-        if (activeKey) refreshSimple(activeKey);   // met à jour la bulle ouverte
+        const done = azmExplainedCount();
+        azmSetRow('par', done >= total ? 'done' : 'progress', `${done} / ${total}`);
+        azmBar(Math.round((done / total) * 75));
+        if (activeKey) refreshSimple(activeKey);   // met à jour la bulle ouverte en direct
       }
+    } else {
+      azmSetRow('par', 'done', '0 / 0');
     }
 
-    // 2) Onglet Conseil : pistes d'amélioration spécifiques au document.
-    docAdviceCache = null;
-    await renderDocAdvice();
+    // 2) Colonne « À vérifier » : doc personnalisé → doc-advice ; modèle → déjà pré-remplie.
+    if (isCustom) {
+      azmSetRow('verif', 'progress', 'Analyse…');
+      azmBar(85);
+      docAdviceCache = null;
+      await renderDocAdvice();
+      const ok = !!(docAdviceCache && docAdviceCache.length);
+      azmSetRow('verif', ok ? 'done' : 'error', ok ? 'Remplie' : 'Vide');
+    } else {
+      azmSetRow('verif', 'done', 'Pré-remplie');
+    }
+    azmRefreshCond();
+    azmBar(90);
+
+    // 3) Fenêtre de droite complète = tous les paragraphes expliqués ET « À vérifier » traitée.
+    const parDone = azmExplainedCount();
+    const verifOk = isCustom ? !!(docAdviceCache && docAdviceCache.length) : true;
+    const fullOk = total > 0 && parDone >= total && verifOk;
+    azmSetRow('full', fullOk ? 'done' : 'error', fullOk ? 'Complète' : `${parDone}/${total}`);
+    azmBar(100);
+    azmTitle(fullOk ? '✓ Analyse terminée' : 'Analyse terminée (partielle)');
 
     if (btn) btn.textContent = '✓ Analysé';
   } catch {
+    azmTitle('Analyse interrompue');
     if (btn) btn.textContent = 'Échec';
   } finally {
     if (btn) setTimeout(() => { btn.disabled = false; btn.textContent = old || 'Analyser'; }, 1600);
