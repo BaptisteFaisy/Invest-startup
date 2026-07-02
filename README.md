@@ -273,17 +273,19 @@ Le secret (`JWT_SECRET`) doit être changé en production.
 
 À chaque `GET /api/saas/folders`, la fonction `ensureUserFolders(userId)` s'exécute. Elle compare les dossiers `system: true` existants avec `FUNDRAISING_PHASES` (tableau constant dans server.js). Si un dossier manque ou a un `seed_version` périmé, il est créé/mis à jour. Les dossiers utilisateur (`system: false`) ne sont jamais touchés.
 
-`FOLDERS_SEED_VERSION = 2` — incrémenter pour forcer la re-sync chez tous les utilisateurs.
+`FOLDERS_SEED_VERSION = 6` — incrémenter pour forcer la re-sync chez tous les utilisateurs.
+
+Les checklists ne listent que les documents côté investisseurs : ceux que les VC demandent (due diligence) ou qui sont négociés avec eux. Les formalités internes (PV, dépôts au greffe, registres, attestations) n'y figurent plus.
 
 ### Les 7 phases (clés de référence)
 ```
 mise-en-ordre      → 10 documents (statuts, Kbis, cap table, RBE…)
 confidentialite    → 2  documents (NDA, engagement data room)
 term-sheet         → 2  documents (term sheet, clause exclusivité)
-due-diligence      → 4  documents (data room, DD questionnaire, rapport, contentieux)
-documentation      → 6  documents (pacte, statuts modifiés, bulletin souscription…)
-closing            → 5  documents (PV AGE, certificat dépositaire, registre MàJ…)
-post-closing       → 5  documents (greffe, RBE MàJ, reporting investors, covenants…)
+due-diligence      → 3  documents (data room, DD questionnaire, contentieux)
+documentation      → 5  documents (pacte, statuts modifiés, bulletin souscription…)
+closing            → 1  document  (cap table post-money)
+post-closing       → 1  document  (reporting investisseurs / info rights)
 ```
 
 ### Linking checklist ↔ document

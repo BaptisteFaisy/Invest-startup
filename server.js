@@ -1116,9 +1116,13 @@ app.get('/api/saas/usage', requireAuth, async (req, res) => {
 // Le SaaS se concentre sur le volet juridique d'une levée. Chaque dossier
 // correspond à une phase juridique de l'opération et porte la checklist des
 // documents juridiques attendus à cette étape (droit français, SAS).
+// Les checklists ne contiennent que les documents côté investisseurs : ceux que
+// les VC demandent (due diligence) ou qui sont négociés avec eux — les
+// formalités internes (PV, dépôts au greffe, registres, attestations) en sont
+// exclues.
 // `FOLDERS_SEED_VERSION` est incrémentée à chaque évolution de cette liste pour
 // re-synchroniser automatiquement les dossiers système des utilisateurs.
-const FOLDERS_SEED_VERSION = 5;
+const FOLDERS_SEED_VERSION = 6;
 const FUNDRAISING_PHASES = [
   {
     key: 'mise-en-ordre',
@@ -1158,7 +1162,6 @@ const FUNDRAISING_PHASES = [
     checklist: [
       'Data room structurée',
       'Questionnaire de due diligence (réponses)',
-      'Rapport d’audit juridique',
       'État des contentieux et litiges en cours',
     ],
   },
@@ -1171,29 +1174,20 @@ const FUNDRAISING_PHASES = [
       'Contrat / bulletin de souscription',
       'Déclarations & garanties — R&W (intégrées au pacte)',
       'Termes des valeurs mobilières émises (ADP, BSA, OC)',
-      'Rapport du commissaire aux comptes / aux apports',
     ],
   },
   {
     key: 'closing',
     name: '6 · Closing (augmentation de capital)',
     checklist: [
-      'PV de l’AGE actant l’augmentation de capital',
-      'Certificat du dépositaire des fonds',
-      'PV de constatation de la réalisation définitive',
-      'Registre des mouvements de titres mis à jour',
       'Cap table post-money mise à jour',
     ],
   },
   {
     key: 'post-closing',
-    name: '7 · Formalités & post-closing',
+    name: '7 · Post-closing (information des investisseurs)',
     checklist: [
-      'Dépôt au greffe (statuts modifiés, formulaire M2)',
-      'Déclaration des bénéficiaires effectifs mise à jour',
       'Information / reporting des investisseurs (info rights)',
-      'PV de conseil / comité de surveillance',
-      'Suivi des engagements du pacte (covenants)',
     ],
   },
 ];
@@ -1243,40 +1237,19 @@ const BSA_AIR_PHASES = [
     ],
   },
   {
-    key: 'air-emission',
-    name: '5 · Décision sociale & émission des bons',
-    checklist: [
-      "Rapport du président (et du commissaire aux comptes le cas échéant) sur l'émission de BSA avec suppression du DPS",
-      "PV de la décision collective / AGE autorisant l'émission des BSA-AIR",
-      'Constatation de la souscription des BSA-AIR par le président',
-    ],
-  },
-  {
-    key: 'air-versement',
-    name: '6 · Versement des fonds & formalités',
-    checklist: [
-      'Attestation de versement des fonds par le(s) souscripteur(s)',
-      'Inscription des BSA-AIR au registre des valeurs mobilières / mouvements de titres',
-      "Dépôt de la formalité d'émission au greffe",
-    ],
-  },
-  {
     key: 'air-suivi',
-    name: '7 · Suivi jusqu’à la conversion',
+    name: '5 · Suivi jusqu’à la conversion',
     checklist: [
       'Information / reporting des investisseurs (info rights)',
-      'Suivi des engagements (BSA-AIR en cours, échéances, événements déclencheurs)',
     ],
   },
   {
     key: 'air-conversion',
-    name: '8 · Conversion au tour qualifié (ou échéance / liquidité)',
+    name: '6 · Conversion au tour qualifié (ou échéance / liquidité)',
     checklist: [
       'Calcul du prix de conversion (application de la décote et/ou du plafond)',
-      "PV d'AGE actant l'augmentation de capital par conversion des BSA-AIR",
       'Bulletins de souscription des actions issues de la conversion',
       'Statuts modifiés (actions de préférence, le cas échéant)',
-      'Mise à jour de la cap table, du registre des mouvements de titres et du RBE',
     ],
   },
 ];
@@ -1288,18 +1261,16 @@ const PHASE_MARKS = {
   'mise-en-ordre':     ['req', 'req', 'req', 'req', 'req', '', 'opt', 'opt', 'req', 'opt'],
   'confidentialite':   ['req', 'opt'],
   'term-sheet':        ['req', 'opt'],
-  'due-diligence':     ['req', 'req', 'opt', 'opt'],
-  'documentation':     ['req', 'req', 'req', 'opt', 'opt', 'opt'],
-  'closing':           ['req', 'req', 'req', 'req', 'req'],
-  'post-closing':      ['req', 'req', 'opt', 'opt', 'opt'],
+  'due-diligence':     ['req', 'req', 'opt'],
+  'documentation':     ['req', 'req', 'req', 'opt', 'opt'],
+  'closing':           ['req'],
+  'post-closing':      ['req'],
   'air-preparation':   ['req', 'req', 'req', '', '', 'opt', '', 'req', 'opt'],
   'air-approche':      ['req', ''],
   'air-termes':        ['req', ''],
   'air-documentation': ['req', 'req', 'opt', 'opt'],
-  'air-emission':      ['req', 'req', ''],
-  'air-versement':     ['req', 'req', 'req'],
-  'air-suivi':         ['', ''],
-  'air-conversion':    ['req', 'req', 'req', 'opt', 'req'],
+  'air-suivi':         ['req'],
+  'air-conversion':    ['req', 'req', 'opt'],
 };
 
 // Liste combinée des phases à provisionner pour un compte, avec leur « track ».
