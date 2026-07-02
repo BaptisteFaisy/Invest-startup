@@ -373,6 +373,9 @@ const ORIGINAL_TS_KEYS = new Set(TERMSHEET.map(c => c.key));
 // de « paragraphes » et l'onglet Conseil propose des pistes d'amélioration.
 let isCustom = false;
 let docAdviceCache = null; // conseils IA spécifiques au document chargé
+let docAdviceIsBaked = false; // true si les conseils proviennent du modèle (data-advice)
+const AI_BIAS = {};   // { [key]: 1..5 } — niveau « Avantage pour les investisseurs » généré par l'IA
+const AI_COND = {};   // { [key]: [{id,label,preview,html}] } — conditions pré-écrites générées par l'IA
 const UNIT  = (n = 1) => (isCustom ? 'paragraphe' : 'clause') + (n > 1 ? 's' : '');
 
 /* Clauses indispensables (non supprimables) et ordre d'affichage des groupes. */
@@ -704,12 +707,13 @@ function renderPanel(key) {
     ? `<span class="clause-essential">Clause essentielle</span>`
     : `<button class="clause-remove" id="clause-remove" title="Déplacer cette clause vers la bibliothèque">Retirer du contrat</button>`;
 
-  panelActions.innerHTML = `${removeCtrl}
-    <button class="btn btn--primary" id="verify-btn" title="Analyser cette clause avec Claude">Analyser</button>`;
-  panelActions.hidden = false;
+  panelActions.innerHTML = removeCtrl;
+  panelActions.hidden = !removeCtrl;
 
   const vr = document.getElementById('verify-result');
   if (vr) { vr.innerHTML = ''; panelResult.hidden = true; }
+
+  const biasLevel = AI_BIAS[key] ?? BIAS[key];
 
   panelBody.innerHTML = `
     ${c.plain ? `<div class="block">
@@ -718,12 +722,12 @@ function renderPanel(key) {
     </div>` : ''}
     <div class="block block--simple" id="block-simple">
       <div class="block__h">Pour bien comprendre</div>
-      <p id="simple-text">${SIMPLE[key] || '…'}</p>
+      <p id="simple-text">${SIMPLE[key] || (SIMPLE_CACHE[key] && SIMPLE_CACHE[key].text) || '…'}</p>
     </div>
     ${exampleBlock}
-    ${BIAS[key] !== undefined ? `<div class="block">
+    ${biasLevel !== undefined ? `<div class="block">
       <div class="block__h">Avantage pour les investisseurs</div>
-      ${biasMeter(BIAS[key] || 3)}
+      ${biasMeter(biasLevel || 3)}
     </div>` : ''}
     ${c.watch ? `<div class="callout callout--advice">
       <div class="block__h">À vérifier — côté fondateur</div>
@@ -742,9 +746,6 @@ function renderPanel(key) {
   if (rb) rb.addEventListener('click', () => removeFromContract(key));
 
   renderCondTemplates(key);
-
-  const vb = document.getElementById('verify-btn');
-  if (vb) vb.addEventListener('click', () => verifyClause(key));
 
   mountChat(key);
   refreshSimple(key);
@@ -1227,11 +1228,15 @@ async function analyzeFull(btn) {
     // Conditions pré-écrites (info statique : déjà insérées vs disponibles).
     azmRefreshCond();
 
-    // 1) « Pour bien comprendre » — par morceaux pour afficher une progression réelle
-    //    du nombre de paragraphes analysés (chaque morceau est mis en cache côté serveur).
+    // 1) Analyse enrichie de chaque paragraphe : « En langage courant », « Pour bien
+    //    comprendre », « Avantage pour les investisseurs », « À vérifier — côté fondateur »
+    //    et « Conditions pré-écrites ». On appelle l'IA par morceaux (progression réelle)
+    //    puis on fusionne en préservant le contenu curated du modèle (data-plain, BIAS,
+    //    BAKED_COND) : l'IA ne fait que combler les champs vides.
     if (total) {
+      const analyzed = new Set();
       azmSetRow('par', 'progress', `0 / ${total}`);
-      const CHUNK = 7;
+      const CHUNK = 6;
       for (let i = 0; i < clauses.length; i += CHUNK) {
         const slice = clauses.slice(i, i + CHUNK);
         let explanations = {};
@@ -1244,20 +1249,52 @@ async function analyzeFull(btn) {
           if (r.ok && d.explanations) explanations = d.explanations;
         } catch {}
         slice.forEach(c => {
-          const t = explanations[c.key];
-          if (t) SIMPLE_CACHE[c.key] = { sig: clauseSig(c.html), text: t };
+          const e = explanations[c.key];
+          if (!e) return;
+          analyzed.add(c.key);
+          const sig = clauseSig(c.html);
+          const prev = SIMPLE_CACHE[c.key];
+          // « Pour bien comprendre » : on conserve la version bakée du modèle.
+          if (e.simple && !(prev && prev.baked && prev.sig === sig)) {
+            SIMPLE_CACHE[c.key] = { sig, text: e.simple };
+          }
+          const ex = EXPLAIN[c.key];
+          if (ex) {
+            if (e.plain && !ex.plain) ex.plain = e.plain;       // En langage courant
+            if (e.watch && !ex.watch) ex.watch = e.watch;       // À vérifier — côté fondateur
+          }
+          // Avantage pour les investisseurs : on garde le niveau curated s'il existe.
+          if (Number.isInteger(e.bias) && BIAS[c.key] === undefined) {
+            AI_BIAS[c.key] = Math.max(1, Math.min(5, e.bias));
+          }
+          // Conditions pré-écrites : l'IA comble seulement les paragraphes sans condition curated.
+          const hasCuratedCond =
+            (COND_TEMPLATES[c.key] && COND_TEMPLATES[c.key].length) ||
+            (BAKED_COND[c.key] && BAKED_COND[c.key].length);
+          if (!hasCuratedCond && Array.isArray(e.conditions) && e.conditions.length) {
+            AI_COND[c.key] = e.conditions.slice(0, 2).map((t, idx) => ({
+              id:      'ai_' + c.key + '_' + idx,
+              type:    'option',
+              label:   String(t.label || 'Variante').slice(0, 80),
+              preview: String(t.preview || '').slice(0, 200),
+              html:    String(t.html || '<p></p>'),
+            }));
+          }
         });
-        const done = azmExplainedCount();
+        const done = analyzed.size;
         azmSetRow('par', done >= total ? 'done' : 'progress', `${done} / ${total}`);
         azmBar(Math.round((done / total) * 75));
-        if (activeKey) refreshSimple(activeKey);   // met à jour la bulle ouverte en direct
+        if (activeKey && slice.some(c => c.key === activeKey)) renderPanel(activeKey);
       }
+      if (activeKey) renderPanel(activeKey);
     } else {
       azmSetRow('par', 'done', '0 / 0');
     }
 
     // 2) Colonne « À vérifier » : doc personnalisé → doc-advice ; modèle → déjà pré-remplie.
-    if (isCustom) {
+    //    On conserve le conseil « codé en dur » du modèle (data-advice) : on ne rappelle
+    //    l'IA que pour les documents sans conseil embarqué.
+    if (isCustom && !docAdviceIsBaked) {
       azmSetRow('verif', 'progress', 'Analyse…');
       azmBar(85);
       docAdviceCache = null;
@@ -1270,11 +1307,11 @@ async function analyzeFull(btn) {
     azmRefreshCond();
     azmBar(90);
 
-    // 3) Fenêtre de droite complète = tous les paragraphes expliqués ET « À vérifier » traitée.
-    const parDone = azmExplainedCount();
+    // 3) Fenêtre de droite complète = paragraphes enrichis ET « À vérifier » traitée.
+    const enriched = clauses.filter(c => EXPLAIN[c.key] && EXPLAIN[c.key].plain).length;
     const verifOk = isCustom ? !!(docAdviceCache && docAdviceCache.length) : true;
-    const fullOk = total > 0 && parDone >= total && verifOk;
-    azmSetRow('full', fullOk ? 'done' : 'error', fullOk ? 'Complète' : `${parDone}/${total}`);
+    const fullOk = total > 0 && enriched >= total && verifOk;
+    azmSetRow('full', fullOk ? 'done' : 'error', fullOk ? 'Complète' : `${enriched}/${total}`);
     azmBar(100);
     azmTitle(fullOk ? '✓ Analyse terminée' : 'Analyse terminée (partielle)');
 
@@ -1391,7 +1428,7 @@ function adoptDocumentClauses() {
     // Explication « Pour bien comprendre » codée en dur dans le modèle (data-plain)
     // → on amorce le cache pour un affichage instantané, sans appel Claude.
     const baked = el.getAttribute('data-plain');
-    if (baked) SIMPLE_CACHE[key] = { sig: clauseSig(html), text: baked };
+    if (baked) SIMPLE_CACHE[key] = { sig: clauseSig(html), text: baked, baked: true };
   });
   if (!derived.length) return;
   isCustom = true;
@@ -1453,6 +1490,9 @@ function applyTermsheet(id, html, name) {
   currentDocId = id;
   isCustom = false;
   docAdviceCache = null;
+  docAdviceIsBaked = false;
+  Object.keys(AI_BIAS).forEach(k => delete AI_BIAS[k]);
+  Object.keys(AI_COND).forEach(k => delete AI_COND[k]);
   if (docNameEl) docNameEl.textContent = name || 'Term sheet';
   // Mémorise le dernier document ouvert pour l'accès rapide « Reprendre » des dossiers.
   if (id != null) { try { localStorage.setItem('liquid_last_doc', JSON.stringify({ id, name: name || 'Term sheet' })); } catch {} }
@@ -1461,7 +1501,7 @@ function applyTermsheet(id, html, name) {
 
   // Conseil + conditions codés en dur dans le modèle (blocs embarqués).
   const bakedAdvice = readBakedAdvice();
-  if (bakedAdvice) docAdviceCache = bakedAdvice;
+  if (bakedAdvice) { docAdviceCache = bakedAdvice; docAdviceIsBaked = true; }
   BAKED_COND = readBakedConditions();
   // Le modèle est-il déjà analysé en dur (explications et/ou conseil embarqués) ?
   const isBaked = !!bakedAdvice || !!page.querySelector('.ts-clause[data-plain]');
@@ -3127,6 +3167,7 @@ const COND_TEMPLATES = {
 function condTplById(key, id) {
   return (COND_TEMPLATES[key] || []).find(t => t.id === id)
       || (BAKED_COND[key] || []).find(t => t.id === id)
+      || (AI_COND[key] || []).find(t => t.id === id)
       || null;
 }
 
@@ -3154,7 +3195,12 @@ function insertCondTemplate(key, tplId) {
 function renderCondTemplates(key) {
   const listEl = document.getElementById('cond-tpl-list');
   if (!listEl) return;
-  const allTpls = [...(COND_TEMPLATES[key] || []), ...(BAKED_COND[key] || [])];
+  // Les conditions curated (bibliothèque + bakées) priment ; l'IA ne comble que
+  // les paragraphes qui n'en ont aucune, pour éviter les doublons.
+  const library = COND_TEMPLATES[key] || [];
+  const baked   = BAKED_COND[key] || [];
+  const ai      = (library.length || baked.length) ? [] : (AI_COND[key] || []);
+  const allTpls = [...library, ...baked, ...ai];
   const content = page.querySelector(`.ts-clause[data-key="${key}"] .ts-content`);
 
   if (!allTpls.length) {

@@ -1033,35 +1033,61 @@ app.post('/api/saas/clauses-explain', requireAuth, async (req, res) => {
   }));
 
   const system =
-`Tu es l'assistant pédagogique de « liquid + », un outil juridique pour fondateurs de startup.
-On te donne la liste des paragraphes d'UN document juridique. Pour CHAQUE paragraphe, rédige une explication « Pour bien comprendre » : 10 PHRASES MAXIMUM en français, simples et imagées, fidèles aux valeurs réelles du texte (durées, montants, pourcentages), du point de vue du fondateur, sans jargon. UNIQUEMENT du texte brut : JAMAIS de tableau, de liste, de puce, de titre ou de balise (HTML/Markdown).
+`Tu es l'assistant pédagogique de « liquid + », un outil juridique pour fondateurs de startup en levée de fonds.
+On te donne la liste des paragraphes d'UN document juridique. Pour CHAQUE paragraphe, tu produis 5 choses, du point de vue du FONDATEUR :
+
+1. "plain" : une phrase TRÈS courte (20 mots max) qui résume ce que dit la clause en langage courant.
+2. "simple" : explication « Pour bien comprendre », 10 phrases max, simples et imagées, fidèles aux valeurs réelles du texte (durées, montants, pourcentages), sans jargon. UNIQUEMENT du texte brut (jamais de tableau, liste, puce ou balise).
+3. "bias" : un entier de 1 à 5 mesurant l'avantage pour l'investisseur : 1 = neutre/équilibré, 2 = légèrement favorable, 3 = favorable, 4 = très favorable, 5 = fortement favorable aux investisseurs.
+4. "watch" : 1 à 3 phrases sur les points de vigilance et ce qu'il faut négocier, côté fondateur.
+5. "conditions" : 0 à 2 variantes rédigées de cette clause (uniquement si pertinent : montant, durée, seuil, option, alternative). Chaque variante : "label" (≤ 6 mots), "preview" (1 phrase), "html" (texte de la variante en HTML, avec des balises <p> ; valeurs modifiables entourées de <mark class="cond-val">).
 
 Type / titre du document : « ${title || 'Document'} »
 
 Paragraphes (identifiant + libellé + contenu) :
 ${list.map(c => `--- ${c.key} | ${c.label}\n${c.html}`).join('\n\n')}
 
-Renvoie une explication pour chaque identifiant fourni.`;
+Renvoie un objet par identifiant fourni, avec les 5 champs (omets "conditions" ou mets [] s'il n'y a pas de variante pertinente).`;
 
   // Cache par contenu : on n'explique un même ensemble de paragraphes qu'une fois.
-  const cacheHash = aiHash('clauses-explain-v3', [title || '', ...list.map(c => c.key + '|' + c.html)]);
+  const cacheHash = aiHash('clauses-explain-v4', [title || '', ...list.map(c => c.key + '|' + c.html)]);
   const cached = await aiCacheGet(cacheHash);
   if (cached) return res.json({ explanations: cached, cached: true });
 
   try {
     const response = await glmChat({
       system,
-      messages: [{ role: 'user', content: 'Explique chaque paragraphe.' }],
-      maxTokens: 16000,
+      messages: [{ role: 'user', content: 'Analyse chaque paragraphe et remplis les 5 champs.' }],
+      maxTokens: 20000,
       thinking: true,
       json: true,
-      jsonHint: 'Format : {"items":[{"key":"<id du paragraphe>","simple":"explication en 10 phrases max, texte brut sans tableau ni liste"}]} — un objet par identifiant fourni.',
+      jsonHint: 'Format : {"items":[{"key":"<id>","plain":"phrase courte","simple":"explication 10 phrases max","bias":3,"watch":"points de vigilance","conditions":[{"label":"...","preview":"...","html":"<p>...</p>"}]}]} — un objet par identifiant fourni.',
     });
     await recordClaudeUsage(req.user.id, response);
     const data = glmJson(response);
     const explanations = {};
     if (Array.isArray(data.items)) {
-      data.items.forEach(it => { if (it && it.key && it.simple) explanations[String(it.key)] = String(it.simple).trim(); });
+      data.items.forEach(it => {
+        if (!it || it.key == null) return;
+        const k = String(it.key);
+        const entry = {};
+        if (typeof it.plain === 'string' && it.plain.trim()) entry.plain = it.plain.trim();
+        if (typeof it.simple === 'string' && it.simple.trim()) entry.simple = it.simple.trim();
+        if (Number.isInteger(it.bias)) entry.bias = Math.max(1, Math.min(5, it.bias));
+        if (typeof it.watch === 'string' && it.watch.trim()) entry.watch = it.watch.trim();
+        if (Array.isArray(it.conditions)) {
+          const conds = it.conditions
+            .filter(c => c && (c.html || c.label))
+            .slice(0, 2)
+            .map(c => ({
+              label:   String(c.label || 'Variante').slice(0, 80),
+              preview: String(c.preview || '').slice(0, 200),
+              html:    String(c.html || '<p></p>'),
+            }));
+          if (conds.length) entry.conditions = conds;
+        }
+        if (Object.keys(entry).length) explanations[k] = entry;
+      });
     }
     if (Object.keys(explanations).length) await aiCacheSet(cacheHash, explanations);
     res.json({ explanations });
