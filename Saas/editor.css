@@ -78,7 +78,7 @@
 .gutter.is-collapsed:hover { background: var(--blue); }
 
 /* ---------- Bibliothèque de clauses (gauche) ---------- */
-.library { border-right: 1px solid var(--line); background: var(--bg-2); display: flex; flex-direction: column; min-height: 0; }
+.library { border-right: 1px solid var(--line); background: var(--bg-2); display: flex; flex-direction: column; min-height: 0; min-width: 0; overflow: hidden; }
 
 /* Onglets Bibliothèque / Conseil */
 .lib-tabs { flex: none; display: flex; border-bottom: 1px solid var(--line); }
@@ -264,7 +264,7 @@
 .statusbar__right { display: flex; gap: 18px; }
 
 /* ---------- Panneau d'explication ---------- */
-.panel { border-left: 1px solid var(--line); background: var(--bg-2); display: flex; flex-direction: column; min-height: 0; }
+.panel { border-left: 1px solid var(--line); background: var(--bg-2); display: flex; flex-direction: column; min-height: 0; min-width: 0; overflow: hidden; }
 .panel__head { flex: none; padding: 18px 24px 16px; border-bottom: 1px solid var(--line); }
 .panel__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-3); }
 .panel__title { font-size: 19px; letter-spacing: -0.02em; margin-top: 7px; }

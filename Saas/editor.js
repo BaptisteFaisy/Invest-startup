@@ -1845,7 +1845,9 @@ if (urlDocId && /^\d+$/.test(urlDocId)) loadTermsheet(Number(urlDocId));
           collapsed = true;
           render(); persist(); reflow();
         } else {
-          const w = lastW < min ? min : Math.min(cap, lastW);
+          // Fluide : la largeur relâchée est conservée telle quelle — pas de
+          // palier minimum (min == seuil de repli), seul le plafond s'applique.
+          const w = Math.max(min, Math.min(cap, lastW));
           openWidth = w + 'px';
           ws.style.setProperty(varName, openWidth);
           persist(); reflow();
@@ -1873,8 +1875,11 @@ if (urlDocId && /^\d+$/.test(urlDocId)) loadTermsheet(Number(urlDocId));
       rzT = setTimeout(render, 120);
     });
   }
-  bind('gutter-left',  '--lib-w',   'liquid_lib_w',   'left',  200, 520, 120);
-  bind('gutter-right', '--panel-w', 'liquid_panel_w', 'right', 260, 640, 150);
+  // Glissement fluide : min == seuil de repli (aucun palier intermédiaire) et
+  // plafond très large — la vraie limite est dynMax(), qui garde MIN_DOC px au
+  // document quelle que soit la taille de l'écran.
+  bind('gutter-left',  '--lib-w',   'liquid_lib_w',   'left',  120, 1400, 120);
+  bind('gutter-right', '--panel-w', 'liquid_panel_w', 'right', 150, 1400, 150);
 
   /* --- Redimensionnement vertical de l'assistant IA (chat Claude) --- */
   const chatEl = document.getElementById('chat');
