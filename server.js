@@ -14,6 +14,7 @@ const { MongoClient }  = require('mongodb');
 const OpenAI           = require('openai');
 const CloudConvert     = require('cloudconvert');
 const mammoth          = require('mammoth');
+const pdfParse         = require('pdf-parse');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -1016,6 +1017,148 @@ Règles :
   }
 });
 
+// ─── SaaS : remplissage automatique des champs depuis les documents importés ───
+// Extrait (et met en cache dans le document) le texte brut d'un document importé
+// (PDF via pdf-parse, Word via mammoth, TXT tel quel). Renvoie '' si inexploitable.
+async function extractImportedText(doc) {
+  if (typeof doc.extracted_text === 'string') return doc.extracted_text;
+
+  const full = await col('saas_documents').findOne({ id: doc.id, user_id: doc.user_id }, { projection: { data: 1 } });
+  const buf  = toBuffer(full && full.data);
+  if (!buf) return '';
+
+  const ext = path.extname(doc.originalname || doc.name || '').toLowerCase();
+  let text = '';
+  try {
+    if (ext === '.pdf') {
+      text = (await pdfParse(buf)).text || '';
+    } else if (ext === '.docx' || ext === '.doc') {
+      // Un .doc « de secours » peut en réalité contenir du HTML (voir /to-editor).
+      const sample = buf.slice(0, 300).toString('utf8');
+      if (/<html|<!DOCTYPE/i.test(sample)) text = buf.toString('utf8').replace(/<[^>]+>/g, ' ');
+      else text = (await mammoth.extractRawText({ buffer: buf })).value || '';
+    } else if (ext === '.txt') {
+      text = buf.toString('utf8');
+    }
+  } catch (e) {
+    // Erreur de parsing (fichier corrompu…) : on ne met PAS en cache, pour réessayer plus tard.
+    console.error(`extraction texte du document ${doc.id} :`, e.message);
+    return '';
+  }
+
+  text = text.replace(/[ \t]+/g, ' ').replace(/\s*\n\s*/g, '\n').trim().slice(0, 20000);
+  await col('saas_documents').updateOne(
+    { id: doc.id, user_id: doc.user_id },
+    { $set: { extracted_text: text, extracted_at: new Date().toISOString() } }
+  );
+  return text;
+}
+
+// Reçoit la liste des champs [entre crochets] du document en cours d'édition,
+// lit les documents importés de l'utilisateur, et demande à l'IA la valeur
+// réelle de chaque champ trouvable dans ces documents (jamais d'invention).
+app.post('/api/saas/autofill', requireAuth, async (req, res) => {
+  if (!zaiClient)
+    return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
+
+  const { title, fields } = req.body ?? {};
+  if (!Array.isArray(fields) || !fields.length)
+    return res.status(400).json({ error: 'fields requis' });
+
+  const list = fields.slice(0, 80).map((f, i) => ({
+    id:      Number.isInteger(f && f.id) ? f.id : i,
+    text:    String((f && f.text) || '').slice(0, 120),
+    clause:  String((f && f.clause) || '').slice(0, 160),
+    context: String((f && f.context) || '').slice(0, 240),
+  })).filter(f => f.text);
+  if (!list.length) return res.status(400).json({ error: 'fields requis' });
+
+  // Documents importés (fichiers, pas les documents de travail), du plus récent au plus ancien.
+  const docs = await col('saas_documents')
+    .find(
+      { user_id: req.user.id, kind: { $ne: 'termsheet' } },
+      { projection: { _id: 0, id: 1, user_id: 1, name: 1, originalname: 1, extracted_text: 1, created_at: 1 } }
+    )
+    .sort({ created_at: -1 })
+    .limit(12)
+    .toArray();
+
+  if (!docs.length)
+    return res.status(422).json({ error: 'Aucun document importé : ajoutez d\'abord vos documents (Kbis, statuts, pacte…) depuis la page Dossiers ou le bouton « + Ajouter un document ».' });
+
+  const sources = [];
+  const unsupported = [];
+  for (const d of docs) {
+    if (sources.length >= 8) break;
+    const ext = path.extname(d.originalname || d.name || '').toLowerCase();
+    if (!['.pdf', '.docx', '.doc', '.txt'].includes(ext)) { unsupported.push(d.name); continue; }
+    const text = await extractImportedText(d);
+    if (text) sources.push({ name: d.name, text });
+    else unsupported.push(d.name);
+  }
+
+  if (!sources.length)
+    return res.status(422).json({ error: 'Aucun texte exploitable dans vos documents importés : le remplissage automatique lit les PDF, Word et TXT.' });
+
+  // Budget de contexte réparti entre les documents.
+  const PER_DOC = Math.max(2500, Math.floor(36000 / sources.length));
+  const corpus  = sources
+    .map(s => `=== DOCUMENT : « ${s.name} » ===\n${s.text.slice(0, PER_DOC)}`)
+    .join('\n\n');
+
+  const system =
+`Tu es l'assistant juridique de « liquid + », un outil pour fondateurs de startup en levée de fonds.
+L'utilisateur rédige le document « ${String(title || 'Document').slice(0, 120)} », qui contient des champs à compléter (textes entre crochets).
+On te fournit le contenu réel des documents qu'il a importés dans son espace (Kbis, statuts, pacte d'associés, term sheet, pièces administratives…). Ta mission : pour CHAQUE champ listé, trouver dans ces documents la valeur réelle qui doit remplacer le crochet.
+
+Documents importés :
+${corpus}
+
+Champs à compléter (id | champ | paragraphe | contexte de la phrase) :
+${list.map(f => `${f.id} | ${f.text} | ${f.clause}${f.context ? ' | …' + f.context + '…' : ''}`).join('\n')}
+
+Règles :
+- N'utilise QUE des informations réellement présentes dans les documents importés ci-dessus. Si l'information ne s'y trouve pas, OMETS le champ. N'invente JAMAIS de valeur.
+- "value" : la valeur seule, prête à être insérée à la place du crochet dans la phrase (sans crochets, sans commentaire), adaptée au contexte (majuscules, singulier/pluriel). Conventions françaises : dates « 12 mars 2026 », montants « 500 000 € ».
+- "source" : le nom exact du document d'où provient l'information.
+- Si plusieurs documents se contredisent, privilégie le plus officiel puis le plus récent (Kbis > statuts > autres).`;
+
+  // Cache par contenu : mêmes documents + mêmes champs → même réponse, sans rappeler l'IA.
+  const cacheHash = aiHash('autofill-v1', [
+    String(title || ''),
+    ...sources.map(s => s.name + '|' + s.text.slice(0, PER_DOC)),
+    ...list.map(f => f.id + '|' + f.text + '|' + f.clause + '|' + f.context),
+  ]);
+  const cached = await aiCacheGet(cacheHash);
+  if (cached) return res.json({ fills: cached, sources: sources.map(s => s.name), unsupported, cached: true });
+
+  try {
+    const response = await glmChat({
+      system,
+      messages: [{ role: 'user', content: 'Remplis les champs à partir des documents importés.' }],
+      maxTokens: 10000,
+      thinking: true,
+      json: true,
+      jsonHint: 'Format : {"fills":[{"id":0,"value":"valeur à insérer","source":"nom du document"}]} — uniquement les champs dont la valeur est réellement trouvée dans les documents.',
+    });
+    await recordClaudeUsage(req.user.id, response);
+    const data = glmJson(response);
+    const byId = new Map(list.map(f => [f.id, f]));
+    const fills = (Array.isArray(data.fills) ? data.fills : [])
+      .filter(f => f && byId.has(Number(f.id)) && typeof f.value === 'string' && f.value.trim())
+      .map(f => ({
+        id:     Number(f.id),
+        value:  f.value.trim().slice(0, 300),
+        source: String(f.source || '').trim().slice(0, 120),
+      }));
+    if (fills.length) await aiCacheSet(cacheHash, fills);
+    res.json({ fills, sources: sources.map(s => s.name), unsupported });
+  } catch (err) {
+    console.error('Claude autofill error:', err.message);
+    res.status(502).json({ error: 'L\'assistant IA est momentanément indisponible.' });
+  }
+});
+
 // ─── SaaS : explication « Pour bien comprendre » de TOUS les paragraphes (groupée) ─
 app.post('/api/saas/clauses-explain', requireAuth, async (req, res) => {
   if (!zaiClient)
@@ -1452,9 +1595,10 @@ function publicDoc(d) {
 }
 
 app.get('/api/saas/documents', requireAuth, async (req, res) => {
-  // On exclut html (term sheets) et data (binaire importé) : trop volumineux pour la liste.
+  // On exclut html (term sheets), data (binaire importé) et extracted_text (cache
+  // du remplissage automatique) : trop volumineux pour la liste.
   const docs = await col('saas_documents')
-    .find({ user_id: req.user.id }, { projection: { _id: 0, filename: 0, user_id: 0, html: 0, data: 0 } })
+    .find({ user_id: req.user.id }, { projection: { _id: 0, filename: 0, user_id: 0, html: 0, data: 0, extracted_text: 0 } })
     .sort({ updated_at: -1, created_at: -1 })
     .toArray();
   res.json({ documents: docs });

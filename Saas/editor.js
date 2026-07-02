@@ -1346,6 +1346,8 @@ function termsheetHtml() {
   clone.querySelectorAll('[data-pgspacer]').forEach(el => el.remove());
   clone.querySelectorAll('[data-pgpush]').forEach(el => { el.style.marginTop = ''; el.removeAttribute('data-pgpush'); });
   clone.querySelectorAll('.ts-clause.is-active').forEach(el => el.classList.remove('is-active'));
+  // Surlignage temporaire du remplissage automatique : on n'enregistre que le texte.
+  clone.querySelectorAll('span.af-flash').forEach(s => s.replaceWith(document.createTextNode(s.textContent)));
   return clone.innerHTML;
 }
 
@@ -1491,6 +1493,7 @@ function applyTermsheet(id, html, name) {
   isCustom = false;
   docAdviceCache = null;
   docAdviceIsBaked = false;
+  resetAutofillState();
   Object.keys(AI_BIAS).forEach(k => delete AI_BIAS[k]);
   Object.keys(AI_COND).forEach(k => delete AI_COND[k]);
   if (docNameEl) docNameEl.textContent = name || 'Term sheet';
@@ -2268,6 +2271,7 @@ function renderFill() {
   fillCount.textContent = ph.length
     ? `${ph.length} champ${ph.length > 1 ? 's' : ''} à compléter`
     : 'Tous les champs sont renseignés';
+  renderAutofill();
   updateFillNextBtn();
   fillList.innerHTML = ph.length
     ? ph.map((p, i) => `
@@ -2288,6 +2292,173 @@ fillList.addEventListener('click', (e) => {
   if (p) navigateToPlaceholder(p.key, p.text);
   else renderFill();
 });
+
+/* ---------- Remplissage automatique depuis les documents importés ----------
+   Le bouton « Remplir automatiquement » envoie les champs [entre crochets] du
+   document à /api/saas/autofill : le serveur lit les documents importés de
+   l'utilisateur (Kbis, statuts, pacte…), en extrait les informations et renvoie
+   la valeur réelle de chaque champ trouvable — appliquée ici avec un
+   récapitulatif (valeur + document source) et une annulation possible. */
+const autofillWrap = document.getElementById('autofill-wrap');
+// `var` : applyTermsheet() peut appeler resetAutofillState() avant cette section.
+var _afBusy = false;      // requête en cours
+var _afError = '';        // message d'information / d'erreur
+var _afRecap = null;      // { items:[{text,value,source,clause}] } dernier remplissage
+var _afSnapshot = null;   // HTML de la page avant remplissage (pour annuler)
+
+function resetAutofillState() {
+  _afBusy = false; _afError = ''; _afRecap = null; _afSnapshot = null;
+}
+
+function renderAutofill() {
+  if (!autofillWrap) return;
+  const ph = findPlaceholders();
+  let html = '';
+  if (_afBusy) {
+    html = `<div class="af-box af-box--busy">
+      <span class="af-spin" aria-hidden="true"></span>
+      <span>Lecture de vos documents importés…</span>
+    </div>`;
+  } else {
+    if (ph.length) {
+      html += `<button class="af-btn" id="autofill-btn" type="button"
+        title="Recherche la valeur de chaque champ dans les documents que vous avez importés (Kbis, statuts, pacte…)">
+        <span class="af-btn__ico" aria-hidden="true">✦</span>
+        <span class="af-btn__txt"><strong>Remplir automatiquement</strong><small>depuis mes documents importés</small></span>
+      </button>`;
+    }
+    if (_afError) html += `<div class="af-note">${advEsc(_afError)}</div>`;
+    if (_afRecap && _afRecap.items.length) {
+      const it = _afRecap.items;
+      html += `<div class="af-box af-box--recap">
+        <div class="af-recap__head">
+          <span>✓ ${it.length} champ${it.length > 1 ? 's' : ''} rempli${it.length > 1 ? 's' : ''}</span>
+          <button class="af-undo" id="autofill-undo" type="button">Annuler</button>
+        </div>
+        ${it.map(f => `<div class="af-recap__row">
+            <div class="af-recap__field">${advEsc(f.text)}</div>
+            <div class="af-recap__val">${advEsc(f.value)}</div>
+            ${f.source ? `<div class="af-recap__src">↳ ${advEsc(f.source)}</div>` : ''}
+          </div>`).join('')}
+      </div>`;
+    }
+  }
+  autofillWrap.innerHTML = html;
+  const btn  = document.getElementById('autofill-btn');
+  if (btn)  btn.addEventListener('click', runAutofill);
+  const undo = document.getElementById('autofill-undo');
+  if (undo) undo.addEventListener('click', undoAutofill);
+}
+
+async function runAutofill() {
+  if (_afBusy) return;
+  const ph = findPlaceholders();
+  if (!ph.length) return;
+  const fields = ph.slice(0, 80).map((p, i) => ({
+    id: i, text: p.text, clause: p.clauseLabel, context: p.context || '',
+  }));
+  _afBusy = true; _afError = ''; _afRecap = null;
+  renderAutofill();
+  try {
+    const res = await fetch('/api/saas/autofill', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ title: termsheetName(), fields }),
+    });
+    if (res.status === 401) { window.location.href = 'login.html'; return; }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Le remplissage automatique a échoué.');
+
+    const fills = Array.isArray(data.fills) ? data.fills : [];
+    if (!fills.length) {
+      _afError = 'Aucune valeur correspondante n\'a été trouvée dans vos documents importés.';
+    } else {
+      const snapshot = termsheetHtml();
+      const items = applyAutofill(fills, fields);
+      if (!items.length) {
+        _afError = 'Les champs n\'ont pas pu être localisés dans le document.';
+      } else {
+        _afSnapshot = snapshot;
+        _afRecap = { items };
+        if (!isCustom) syncModelFromDOM();
+        paginate();
+        scheduleAutosave();
+      }
+    }
+  } catch (err) {
+    _afError = (err && err.message) ? err.message : 'Erreur réseau. Réessayez.';
+  }
+  _afBusy = false;
+  renderFill();
+}
+
+// Remplace chaque champ [entre crochets] par sa valeur, dans l'ordre du document.
+// Les occurrences d'un même texte sont appariées dans l'ordre où elles ont été
+// collectées (= ordre du document), ce qui gère correctement les champs répétés.
+function applyAutofill(fills, fields) {
+  const byId  = new Map(fills.map(f => [f.id, f]));
+  const queue = new Map(); // texte du champ → occurrences restantes (dans l'ordre)
+  fields.forEach(f => {
+    if (!queue.has(f.text)) queue.set(f.text, []);
+    queue.get(f.text).push(f);
+  });
+
+  const applied = [];
+  const walker  = document.createTreeWalker(page, NodeFilter.SHOW_TEXT, null, false);
+  const nodes   = [];
+  let n;
+  while ((n = walker.nextNode())) nodes.push(n);
+
+  for (let i = 0; i < nodes.length && queue.size; i++) {
+    let node = nodes[i];
+    let pos = 0;
+    let guard = 0;
+    while (queue.size && guard++ < 40) {
+      let best = null;
+      for (const text of queue.keys()) {
+        const idx = node.textContent.indexOf(text, pos);
+        if (idx !== -1 && (!best || idx < best.idx)) best = { text, idx };
+      }
+      if (!best) break;
+      const occs  = queue.get(best.text);
+      const field = occs.shift();
+      if (!occs.length) queue.delete(best.text);
+      const fill = byId.get(field.id);
+      if (!fill || !fill.value) { pos = best.idx + best.text.length; continue; }
+
+      // Découpe le nœud texte et insère la valeur dans un <span> surligné temporaire.
+      const after = node.textContent.slice(best.idx + best.text.length);
+      node.textContent = node.textContent.slice(0, best.idx);
+      const span = document.createElement('span');
+      span.className = 'af-flash';
+      span.textContent = fill.value;
+      const afterNode = document.createTextNode(after);
+      node.after(span, afterNode);
+      applied.push({ text: best.text, value: fill.value, source: fill.source || '', clause: field.clause });
+      node = afterNode;
+      pos = 0;
+    }
+  }
+
+  // Retire le surlignage après l'animation : seul le texte reste dans le document.
+  if (applied.length) setTimeout(() => {
+    page.querySelectorAll('span.af-flash').forEach(s => s.replaceWith(document.createTextNode(s.textContent)));
+    page.normalize();
+  }, 3000);
+  return applied;
+}
+
+function undoAutofill() {
+  if (_afSnapshot == null) return;
+  page.innerHTML = _afSnapshot;
+  _afSnapshot = null;
+  _afRecap = null;
+  _afError = '';
+  if (!isCustom) syncModelFromDOM();
+  paginate();
+  scheduleAutosave();
+  renderFill();
+}
 
 // Conseils IA pour les documents personnalisés — les champs à remplir sont dans "À remplir".
 function _paintDocAdvice() {
@@ -2341,11 +2512,13 @@ function findPlaceholders() {
       const content = clause.querySelector('.ts-content');
       const label   = clause.querySelector('.ts-label');
       if (!content) return;
-      const matches = [...content.innerText.matchAll(/\[[^\]\n]{1,80}\]/g)];
+      const src     = content.innerText;
+      const matches = [...src.matchAll(/\[[^\]\n]{1,80}\]/g)];
       matches.forEach(m => result.push({
         key:         clause.dataset.key,
         clauseLabel: (label ? label.textContent : clause.dataset.key).trim(),
         text:        m[0],
+        context:     src.slice(Math.max(0, m.index - 80), m.index + m[0].length + 80).replace(/\s+/g, ' ').trim(),
       }));
     });
   } else {
@@ -2359,10 +2532,12 @@ function findPlaceholders() {
       const heading  = _nearestHeading(node);
       const fallback = (node.parentElement ? node.parentElement.textContent : '').trim().slice(0, 60);
       const clauseLabel = heading || fallback || 'Document';
+      const src = node.textContent;
       matches.forEach(m => result.push({
         key:         '__ph__' + (idx++),
         clauseLabel,
         text:        m[0],
+        context:     src.slice(Math.max(0, m.index - 80), m.index + m[0].length + 80).replace(/\s+/g, ' ').trim(),
       }));
     }
   }
