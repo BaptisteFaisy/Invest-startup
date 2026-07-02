@@ -91,13 +91,13 @@
         <div id="tab-profile" class="tab-panel active">
           <div class="setting-card" style="flex-direction:column;align-items:stretch;margin-bottom:20px;">
             <div>
-              <h3 style="font-size:1rem;font-weight:700;color:#080c14;margin:0 0 4px;">Consommation IA (assistant Claude)</h3>
+              <h3 style="font-size:1rem;font-weight:700;color:#080c14;margin:0 0 4px;">Consommation IA</h3>
               <p style="font-size:.88rem;color:var(--muted);margin:0 0 16px;line-height:1.5;">Suivi de votre utilisation de l'assistant IA du SaaS liquid +.</p>
             </div>
             <div id="usage-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
               <div style="background:#f6f8fc;border:1px solid rgba(0,0,0,.06);border-radius:10px;padding:14px;text-align:center;">
                 <div id="usage-requests" style="font-size:1.5rem;font-weight:800;color:#080c14;">—</div>
-                <div style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:4px;">Requêtes Claude</div>
+                <div style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:4px;">Requêtes IA</div>
               </div>
               <div style="background:#f6f8fc;border:1px solid rgba(0,0,0,.06);border-radius:10px;padding:14px;text-align:center;">
                 <div id="usage-total" style="font-size:1.5rem;font-weight:800;color:#080c14;">—</div>
@@ -405,7 +405,7 @@
 
       init();
 
-      // Consommation IA (tokens + nombre de requêtes Claude)
+      // Consommation IA (tokens + nombre de requêtes)
       (function () {
         const fmt = n => (n || 0).toLocaleString('fr-FR');
         fetch('/api/saas/usage', { credentials: 'include' })
