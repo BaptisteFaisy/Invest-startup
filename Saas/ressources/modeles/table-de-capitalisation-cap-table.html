@@ -3,108 +3,126 @@
 
 <div class="ts-group" contenteditable="false">Comprendre</div>
 
-<div class="ts-clause" data-plain="La cap table, c'est le tableau qui dit « qui possède quoi » dans la société : combien d'actions chacun détient, et donc quel pourcentage. C'est le document de référence d'une levée, recoupé en permanence avec le registre des mouvements de titres."><div class="ts-label">Rôle de la table de capitalisation</div><div class="ts-content"><p>La table de capitalisation recense l'ensemble des titres émis par la Société et leur répartition entre les détenteurs (fondateurs, investisseurs, salariés). Elle indique, pour chacun, le nombre de titres, le pourcentage de détention « au capital » et « pleinement dilué », ainsi que les montants investis. C'est l'outil central de toute levée : elle sert à mesurer la dilution, à fixer le prix par action et à modéliser l'opération. Elle doit rester en permanence cohérente avec le registre des mouvements de titres, les statuts et les comptes individuels d'associés.</p></div></div>
+<div class="ts-clause" data-plain="La cap table, c'est le tableau qui dit « qui possède quoi » dans la société : combien d'actions chacun détient, et donc quel pourcentage — aujourd'hui et après conversion de tous les instruments. C'est le document de référence d'une levée, recoupé en permanence avec le registre des mouvements de titres."><div class="ts-label">Rôle de la table de capitalisation</div><div class="ts-content"><p>La table de capitalisation recense l'ensemble des titres émis par la Société et leur répartition entre les détenteurs (fondateurs, investisseurs, salariés). Elle indique, pour chacun, le nombre de titres par catégorie, le pourcentage de détention « au capital » et « pleinement dilué », ainsi que les montants investis et les prix d'entrée. C'est l'outil central de toute levée : elle sert à mesurer la dilution, à fixer le prix par action, à modéliser l'opération et à simuler la répartition d'une sortie (waterfall). Elle doit rester en permanence cohérente avec le registre des mouvements de titres, le registre des valeurs mobilières (pour les bons), les statuts et les comptes individuels d'associés — c'est le premier recoupement que fait tout auditeur, et le plus impitoyable : une cap table fausse d'une action détruit la confiance sur tout le reste.</p></div></div>
 
-<div class="ts-clause" data-plain="Deux façons de compter les pourcentages. « Au capital » = sur les seules actions déjà émises. « Pleinement dilué » = comme si tous les bons, options et obligations convertibles étaient déjà transformés en actions. Les investisseurs raisonnent presque toujours en pleinement dilué."><div class="ts-label">« Au capital » vs « pleinement dilué »</div><div class="ts-content"><p>Le pourcentage <strong>au capital</strong> se calcule sur les seules actions effectivement émises. Le pourcentage <strong>pleinement dilué</strong> (« fully diluted ») intègre tous les instruments donnant accès au capital, comme s'ils étaient déjà convertis : options et BSPCE attribués <em>et</em> réservés (pool), BSA, BSA-AIR, obligations convertibles (OC), bons divers. Les investisseurs négocient leur participation et la valorisation en base pleinement diluée, pool d'options compris. Précisez toujours la base retenue pour éviter tout malentendu.</p></div></div>
+<div class="ts-clause" data-plain="Deux façons de compter les pourcentages. « Au capital » = sur les seules actions déjà émises. « Pleinement dilué » = comme si tous les bons, options et convertibles étaient déjà transformés en actions — y compris le pool réservé non attribué et les AIR à conversion variable (pris à l'hypothèse la plus dilutive). Les investisseurs raisonnent presque toujours en pleinement dilué."><div class="ts-label">« Au capital » vs « pleinement dilué »</div><div class="ts-content"><p>Le pourcentage <strong>au capital</strong> se calcule sur les seules actions effectivement émises. Le pourcentage <strong>pleinement dilué</strong> (« fully diluted ») intègre tous les instruments donnant accès au capital, comme s'ils étaient déjà convertis : BSPCE et options <em>attribués et réservés</em> (pool complet), BSA, actions gratuites en période d'acquisition, obligations convertibles et BSA-AIR. Pour les instruments à conversion <strong>variable</strong> (AIR, OC : le nombre d'actions dépendra du prochain tour), retenez l'hypothèse la plus dilutive (conversion au cap ou au floor selon la structure) et documentez-la — c'est celle que le prochain lead utilisera. Les investisseurs négocient leur participation et la valorisation en base pleinement diluée, pool compris : précisez toujours la base retenue et ses hypothèses, c'est la source n°1 de malentendus (et de renégociations de dernière minute) dans les levées.</p></div></div>
 
 <div class="ts-group" contenteditable="false">Synthèse</div>
 
-<div class="ts-clause" data-plain="Les chiffres clés en un coup d'œil : nombre total d'actions, capital, taille du pool d'options, et les valorisations pré/post-money. Ce sont les paramètres que l'investisseur vérifie en premier."><div class="ts-label">Paramètres clés</div><div class="ts-content">
+<div class="ts-clause" data-plain="Les chiffres clés en un coup d'œil : nombre total d'actions (émises et pleinement dilué), capital, taille du pool (attribué/réservé), valorisations et prix du dernier tour. Ce sont les paramètres que l'investisseur vérifie en premier — et qu'il recalcule lui-même."><div class="ts-label">Paramètres clés</div><div class="ts-content">
 <table>
 <tr><th>Paramètre</th><th>Valeur</th></tr>
-<tr><td>Nombre total d'actions émises</td><td>[…]</td></tr>
-<tr><td>Nombre total pleinement dilué (avec pool & instruments)</td><td>[…]</td></tr>
+<tr><td>Nombre total d'actions émises</td><td>[…] ([…] ordinaires + […] ADP A)</td></tr>
+<tr><td>Nombre total pleinement dilué (pool &amp; instruments inclus)</td><td>[…]</td></tr>
 <tr><td>Valeur nominale par action</td><td>[…] €</td></tr>
-<tr><td>Capital social</td><td>[…] €</td></tr>
-<tr><td>Pool d'options — attribué / réservé / total (%)</td><td>[…] / […] / […] %</td></tr>
-<tr><td>Valorisation pre-money / post-money</td><td>[…] € / […] €</td></tr>
+<tr><td>Capital social</td><td>[…] € (conforme statuts / Kbis)</td></tr>
+<tr><td>Pool d'options — attribué / réservé / total (% FD)</td><td>[…] % / […] % / […] %</td></tr>
+<tr><td>Instruments variables (AIR / OC) — hypothèse retenue</td><td>[conversion au cap de … € → … actions]</td></tr>
+<tr><td>Valorisation pre-money / post-money (dernier tour)</td><td>[…] € / […] €</td></tr>
 <tr><td>Prix par action du dernier tour</td><td>[…] € (nominal […] € + prime […] €)</td></tr>
+<tr><td>Total investi depuis l'origine</td><td>[…] €</td></tr>
 </table></div></div>
 
 <div class="ts-group" contenteditable="false">Répartition actuelle du capital</div>
 
-<div class="ts-clause" data-plain="Le tableau principal : chaque détenteur, son type de titres, son nombre, son montant investi et ses deux pourcentages. La ligne « Total » doit toujours boucler à 100 % et au nombre total d'actions."><div class="ts-label">Détail par détenteur</div><div class="ts-content">
+<div class="ts-clause" data-plain="Le tableau principal : chaque détenteur, son type de titres, son nombre, son prix d'entrée, son montant investi et ses deux pourcentages. Une ligne par détenteur ET par catégorie de titres. La ligne « Total » doit boucler à 100 % et au nombre total exact d'actions."><div class="ts-label">Détail par détenteur</div><div class="ts-content">
 <table>
-<tr><th>Détenteur</th><th>Type de titres</th><th>Nombre</th><th>Montant investi</th><th>% capital</th><th>% pleinement dilué</th></tr>
-<tr><td>[Fondateur 1]</td><td>Actions ordinaires</td><td>[…]</td><td>[…] €</td><td>[…]%</td><td>[…]%</td></tr>
-<tr><td>[Fondateur 2]</td><td>Actions ordinaires</td><td>[…]</td><td>[…] €</td><td>[…]%</td><td>[…]%</td></tr>
-<tr><td>[Holding fondateurs]</td><td>Actions ordinaires</td><td>[…]</td><td>[…] €</td><td>[…]%</td><td>[…]%</td></tr>
-<tr><td>[Investisseur — Série A]</td><td>Actions de préférence A</td><td>[…]</td><td>[…] €</td><td>[…]%</td><td>[…]%</td></tr>
-<tr><td>[Business angel]</td><td>Actions / BSA-AIR</td><td>[…]</td><td>[…] €</td><td>[…]%</td><td>[…]%</td></tr>
-<tr><td>[Salariés / managers]</td><td>BSPCE attribués</td><td>[…]</td><td>—</td><td>—</td><td>[…]%</td></tr>
-<tr><td>Pool non attribué</td><td>BSPCE / BSA réservés</td><td>[…]</td><td>—</td><td>—</td><td>[…]%</td></tr>
-<tr><td><strong>Total</strong></td><td></td><td><strong>[…]</strong></td><td><strong>[…] €</strong></td><td><strong>100 %</strong></td><td><strong>100 %</strong></td></tr>
+<tr><th>Détenteur</th><th>Type de titres</th><th>Nombre</th><th>Prix d'entrée</th><th>Montant investi</th><th>% capital</th><th>% pleinement dilué</th></tr>
+<tr><td>[Fondateur 1]</td><td>Actions ordinaires</td><td>[…]</td><td>[nominal]</td><td>[…] €</td><td>[…] %</td><td>[…] %</td></tr>
+<tr><td>[Fondateur 2 / Holding]</td><td>Actions ordinaires</td><td>[…]</td><td>[…]</td><td>[…] €</td><td>[…] %</td><td>[…] %</td></tr>
+<tr><td>[Business angels (seed)]</td><td>Actions ordinaires / ADP</td><td>[…]</td><td>[…] €</td><td>[…] €</td><td>[…] %</td><td>[…] %</td></tr>
+<tr><td>[Investisseur — Série A]</td><td>ADP A</td><td>[…]</td><td>[…] €</td><td>[…] €</td><td>[…] %</td><td>[…] %</td></tr>
+<tr><td>[Investisseurs AIR (non convertis)]</td><td>BSA-AIR</td><td>—</td><td>[décote/cap]</td><td>[…] €</td><td>—</td><td>[…] % (hyp. cap)</td></tr>
+<tr><td>[Salariés / managers]</td><td>BSPCE attribués</td><td>[…]</td><td>[prix d'exercice]</td><td>—</td><td>—</td><td>[…] %</td></tr>
+<tr><td>Pool non attribué</td><td>BSPCE / BSA réservés</td><td>[…]</td><td>—</td><td>—</td><td>—</td><td>[…] %</td></tr>
+<tr><td><strong>Total</strong></td><td></td><td><strong>[…]</strong></td><td></td><td><strong>[…] €</strong></td><td><strong>100 %</strong></td><td><strong>100 %</strong></td></tr>
 </table>
 </div></div>
 
-<div class="ts-clause" data-plain="Le détail des titres qui ne sont pas (encore) des actions : options, BSA, obligations convertibles. On précise le prix d'exercice et l'échéance, car ils diluent le capital quand ils seront exercés ou convertis."><div class="ts-label">Instruments donnant accès au capital</div><div class="ts-content">
+<div class="ts-clause" data-plain="Le détail des titres qui ne sont pas (encore) des actions : options, BSA, AIR, obligations convertibles. On précise le prix d'exercice, le vesting/l'échéance et le nombre d'actions sous-jacentes (avec l'hypothèse retenue pour les instruments variables), car ils dilueront le capital à l'exercice ou la conversion."><div class="ts-label">Instruments donnant accès au capital</div><div class="ts-content">
 <table>
-<tr><th>Instrument</th><th>Bénéficiaire</th><th>Nombre</th><th>Prix d'exercice / conversion</th><th>Échéance / vesting</th><th>Actions sous-jacentes</th></tr>
-<tr><td>BSPCE</td><td>[Salariés]</td><td>[…]</td><td>[…] €</td><td>[vesting 4 ans, cliff 1 an]</td><td>[…]</td></tr>
-<tr><td>BSA</td><td>[Conseil / advisor]</td><td>[…]</td><td>[…] €</td><td>[…]</td><td>[…]</td></tr>
-<tr><td>BSA-AIR / SAFE</td><td>[Business angel]</td><td>—</td><td>[décote …% / plafond … €]</td><td>[au prochain tour qualifié]</td><td>[…]</td></tr>
-<tr><td>Obligations convertibles (OC)</td><td>[Investisseur]</td><td>[…]</td><td>[ratio / décote …%]</td><td>[maturité …]</td><td>[…]</td></tr>
+<tr><th>Instrument</th><th>Bénéficiaire</th><th>Nombre</th><th>Prix d'exercice / formule de conversion</th><th>Échéance / vesting</th><th>Actions sous-jacentes</th><th>Source (décision)</th></tr>
+<tr><td>BSPCE (plan [ANNÉE])</td><td>[Salariés]</td><td>[…]</td><td>[…] €</td><td>[vesting 4 ans, cliff 1 an — acquis à date : …]</td><td>[…]</td><td>[AGE du …]</td></tr>
+<tr><td>BSA</td><td>[Advisor]</td><td>[…]</td><td>[…] € (souscrits à … €)</td><td>[…]</td><td>[…]</td><td>[AGE du …]</td></tr>
+<tr><td>BSA-AIR</td><td>[Business angels]</td><td>[…]</td><td>[décote … % / cap … € / floor … €]</td><td>[échéance … — tour qualifié ≥ … €]</td><td>[… (hyp. cap)]</td><td>[décision du …]</td></tr>
+<tr><td>Obligations convertibles</td><td>[Investisseur]</td><td>[… €]</td><td>[décote … % / cap … €]</td><td>[maturité …]</td><td>[… (hyp.)]</td><td>[contrat du …]</td></tr>
+<tr><td><strong>Total sous-jacent</strong></td><td></td><td></td><td></td><td></td><td><strong>[…]</strong></td><td></td></tr>
 </table>
 </div></div>
 
 <div class="ts-group" contenteditable="false">Évolution pré / post-money</div>
 
-<div class="ts-clause" data-key="pool" data-plain="Montre l'effet de la levée : qui détient quoi avant le tour, et après l'entrée de l'investisseur (et la création/extension du pool). Le point sensible : si le pool est créé avant le tour, il dilue surtout les fondateurs, pas l'investisseur."><div class="ts-label">Comparatif avant / après le tour</div><div class="ts-content">
+<div class="ts-clause" data-key="pool" data-plain="Montre l'effet de la levée : qui détient quoi avant le tour, et après l'entrée de l'investisseur, la conversion des AIR et la création/extension du pool. Le point sensible : un pool créé avant le tour (pre-money) dilue les seuls associés existants — c'est un vrai paramètre de négociation, pas un détail technique."><div class="ts-label">Comparatif avant / après le tour</div><div class="ts-content">
 <table>
-<tr><th>Détenteur</th><th>% avant (pre-money)</th><th>Actions après</th><th>% après (post-money)</th></tr>
-<tr><td>[Fondateurs]</td><td>[…]%</td><td>[…]</td><td>[…]%</td></tr>
-<tr><td>[Investisseurs historiques]</td><td>[…]%</td><td>[…]</td><td>[…]%</td></tr>
-<tr><td>[Nouvel investisseur — Série A]</td><td>—</td><td>[…]</td><td>[…]%</td></tr>
-<tr><td>Pool d'options</td><td>[…]%</td><td>[…]</td><td>[…]%</td></tr>
-<tr><td><strong>Total</strong></td><td><strong>100 %</strong></td><td><strong>[…]</strong></td><td><strong>100 %</strong></td></tr>
+<tr><th>Détenteur</th><th>% avant (FD)</th><th>Actions après</th><th>% après (FD)</th><th>Dilution</th></tr>
+<tr><td>[Fondateurs]</td><td>[…] %</td><td>[…]</td><td>[…] %</td><td>[−… pts]</td></tr>
+<tr><td>[Investisseurs historiques / BA]</td><td>[…] %</td><td>[…]</td><td>[…] %</td><td>[−… pts]</td></tr>
+<tr><td>[AIR convertis]</td><td>[latent]</td><td>[…]</td><td>[…] %</td><td>—</td></tr>
+<tr><td>[Nouvel investisseur — Série A]</td><td>—</td><td>[…]</td><td>[…] %</td><td>—</td></tr>
+<tr><td>Pool d'options</td><td>[…] %</td><td>[…]</td><td>[…] %</td><td>[…]</td></tr>
+<tr><td><strong>Total</strong></td><td><strong>100 %</strong></td><td><strong>[…]</strong></td><td><strong>100 %</strong></td><td></td></tr>
 </table>
-<p>Rappel de calcul : prix par action = valorisation pre-money ÷ nombre d'actions pleinement diluées avant le tour ; % de l'investisseur = montant investi ÷ valorisation post-money.</p>
+<p>Rappels de calcul : prix par action = valorisation pre-money ÷ nombre d'actions pleinement dilué avant le tour (pool et conversions inclus selon la définition négociée) ; % du nouvel investisseur = montant investi ÷ valorisation post-money ; post-money = pre-money + montant levé (y compris conversions d'AIR selon la convention retenue — à expliciter).</p>
 </div></div>
 
-<div class="ts-clause" data-plain="Tableau utile quand vous levez en plusieurs étapes (amorçage, Série A…) : il suit la dilution de chacun tour après tour, pour anticiper où vous en serez dans 2-3 ans."><div class="ts-label">Suivi de la dilution par tour</div><div class="ts-content">
+<div class="ts-clause" data-plain="Tableau utile quand vous levez en plusieurs étapes (amorçage, Série A, B…) : il suit la dilution de chacun tour après tour. Règle d'expérience : les fondateurs perdent 15-25 points par tour — anticiper cette trajectoire évite les mauvaises surprises de motivation au tour C."><div class="ts-label">Suivi de la dilution par tour</div><div class="ts-content">
 <table>
-<tr><th>Tour</th><th>Date</th><th>Montant levé</th><th>Valo post-money</th><th>Prix / action</th><th>% fondateurs après</th></tr>
-<tr><td>Création</td><td>[…]</td><td>—</td><td>—</td><td>[…] €</td><td>100 %</td></tr>
-<tr><td>Amorçage (BSA-AIR / OC)</td><td>[…]</td><td>[…] €</td><td>[…] €</td><td>[…] €</td><td>[…]%</td></tr>
-<tr><td>Série A</td><td>[…]</td><td>[…] €</td><td>[…] €</td><td>[…] €</td><td>[…]%</td></tr>
+<tr><th>Tour</th><th>Date</th><th>Montant levé</th><th>Valo post-money</th><th>Prix / action</th><th>% fondateurs après (FD)</th><th>% pool après</th></tr>
+<tr><td>Création</td><td>[…]</td><td>—</td><td>—</td><td>[nominal] €</td><td>100 %</td><td>—</td></tr>
+<tr><td>Amorçage (BSA-AIR)</td><td>[…]</td><td>[…] €</td><td>[latente — cap … €]</td><td>[—]</td><td>[…] % (hyp.)</td><td>[…] %</td></tr>
+<tr><td>Série A</td><td>[…]</td><td>[…] €</td><td>[…] €</td><td>[…] €</td><td>[…] %</td><td>[…] %</td></tr>
+<tr><td>[Série B — projection]</td><td>[…]</td><td>[…] €</td><td>[…] €</td><td>[…] €</td><td>[…] %</td><td>[…] %</td></tr>
 </table>
 </div></div>
 
 <div class="ts-group" contenteditable="false">Répartition du produit de cession (waterfall)</div>
 
-<div class="ts-clause" data-plain="Simule « qui touche quoi » le jour où la société est revendue, en tenant compte des préférences de liquidation des investisseurs (qui sont servis en premier). Important : avec une préférence, le partage n'est pas simplement proportionnel aux pourcentages."><div class="ts-label">Cascade de liquidation</div><div class="ts-content">
+<div class="ts-clause" data-key="waterfall" data-plain="Simule « qui touche quoi » le jour où la société est revendue, en tenant compte des préférences de liquidation (les investisseurs sont servis d'abord). Important : avec une préférence, le partage n'est PAS proportionnel aux pourcentages — simulez plusieurs prix de sortie pour voir les zones où fondateurs et investisseurs ont des intérêts divergents."><div class="ts-label">Cascade de liquidation</div><div class="ts-content">
 <table>
-<tr><th>Rang</th><th>Bénéficiaire</th><th>Base</th><th>Montant perçu</th></tr>
-<tr><td>1</td><td>[Investisseurs ADP A]</td><td>Préférence de liquidation [1x] non participative</td><td>[…] €</td></tr>
-<tr><td>2</td><td>[Porteurs d'OC non converties]</td><td>Remboursement nominal + intérêts</td><td>[…] €</td></tr>
-<tr><td>3</td><td>Tous les associés</td><td>Solde réparti au prorata (pari passu)</td><td>[…] €</td></tr>
-<tr><td><strong>Total</strong></td><td></td><td>Prix de cession</td><td><strong>[…] €</strong></td></tr>
+<tr><th>Rang</th><th>Bénéficiaire</th><th>Base</th><th>Sortie à [X] M€</th><th>Sortie à [Y] M€</th><th>Sortie à [Z] M€</th></tr>
+<tr><td>0</td><td>[Porteurs d'OC non converties]</td><td>Remboursement nominal + intérêts</td><td>[…] €</td><td>[…] €</td><td>[…] €</td></tr>
+<tr><td>1</td><td>[Investisseurs ADP A]</td><td>Préférence [1x] [non participative — option pour le prorata si plus favorable]</td><td>[…] €</td><td>[…] €</td><td>[prorata si &gt; préférence]</td></tr>
+<tr><td>2</td><td>Actions ordinaires (fondateurs, BA, BSPCE exercés)</td><td>Solde au prorata</td><td>[…] €</td><td>[…] €</td><td>[…] €</td></tr>
+<tr><td><strong>Total</strong></td><td></td><td>Prix de cession</td><td><strong>[X] M€</strong></td><td><strong>[Y] M€</strong></td><td><strong>[Z] M€</strong></td></tr>
 </table>
-<p>À adapter selon le caractère participating/non participating de la préférence et l'existence d'un plafond. Cette cascade éclaire l'intérêt réel de chaque catégorie de titres selon le prix de sortie.</p>
+<p>À adapter selon le caractère participating/non participating, l'existence d'un plafond et l'empilement des catégories (les préférences des tours successifs se cumulent, généralement en ordre inverse d'émission). Lecture clé : sur une sortie basse, la préférence absorbe l'essentiel et les ordinaires touchent peu ; le point de bascule (où l'investisseur non participating opte pour le prorata) se situe à [valorisation = mise ÷ % investisseur]. Cette cascade éclaire l'intérêt réel de chaque catégorie selon le prix de sortie — et les zones où les incitations divergent.</p>
 </div></div>
 
 <div class="ts-group" contenteditable="false">Méthodologie &amp; cohérence</div>
 
-<div class="ts-clause" data-plain="Les règles à respecter pour que la cap table soit fiable : tout doit boucler à 100 %, concorder avec le registre des titres et les statuts, et chaque ligne doit reposer sur un acte (PV, bulletin de souscription)."><div class="ts-label">Règles de cohérence</div><div class="ts-content"><ul>
-<li>La somme des pourcentages « au capital » et « pleinement dilué » doit faire <strong>exactement 100 %</strong>.</li>
-<li>Le nombre total d'actions et le capital social doivent <strong>concorder avec les statuts et le Kbis</strong>.</li>
-<li>Chaque ligne doit être <strong>justifiée par un acte</strong> : bulletin de souscription, PV d'AGE, ordre de mouvement inscrit au registre des mouvements de titres.</li>
-<li>Indiquez la <strong>date d'arrêté</strong> de la cap table et la base de calcul (au capital / pleinement dilué).</li>
-<li>Distinguez clairement les titres <strong>attribués</strong> des titres <strong>réservés</strong> (pool non encore attribué).</li>
+<div class="ts-clause" data-key="coherence" data-plain="Les règles pour une cap table fiable : boucler à 100 %, concorder avec registre/statuts/Kbis, chaque ligne justifiée par un acte, versions datées et archivées, hypothèses des instruments variables documentées. Les erreurs classiques sont listées — vérifiez-les avant chaque diffusion."><div class="ts-label">Règles de cohérence &amp; erreurs classiques</div><div class="ts-content"><ul>
+<li>La somme des pourcentages « au capital » et « pleinement dilué » doit faire <strong>exactement 100 %</strong> (attention aux arrondis : travaillez en nombre d'actions, pas en pourcentages).</li>
+<li>Le nombre total d'actions et le capital social doivent <strong>concorder avec les statuts et le Kbis</strong> ; les bons avec le registre des valeurs mobilières.</li>
+<li>Chaque ligne doit être <strong>justifiée par un acte</strong> : bulletin de souscription, PV, ordre de mouvement inscrit, lettre d'attribution.</li>
+<li>Indiquez la <strong>date d'arrêté</strong>, la base de calcul et les <strong>hypothèses de conversion</strong> des instruments variables (AIR au cap, OC).</li>
+<li>Distinguez titres <strong>attribués</strong> / <strong>réservés</strong> (pool), et suivez les <strong>caducités</strong> (BSPCE de salariés partis : ils retournent au pool).</li>
+<li><strong>Erreurs classiques :</strong> pool oublié dans le dénominateur du pleinement dilué ; AIR absents ou pris à une hypothèse optimiste ; BSPCE caducs jamais retirés ; pourcentages copiés au lieu d'être recalculés ; version « investisseur » divergente de la version interne.</li>
+<li><strong>Versionnage :</strong> une version figée, datée et archivée avant et après chaque opération ; une seule source de vérité (fichier maître ou outil de gestion de cap table).</li>
 </ul></div></div>
 
-<div class="ts-sign"><p>Cap table arrêtée au [DATE] — cohérente avec le registre des mouvements de titres et les statuts à jour.</p><p>Le Président — [NOM]</p></div>
+<div class="ts-sign"><p>Cap table arrêtée au [DATE] — cohérente avec le registre des mouvements de titres, le registre des valeurs mobilières et les statuts à jour.</p><p>Le Président — [NOM]</p></div>
 <script type="application/json" data-conditions>{
 "pool": [
-{"id":"cap_pool_pre","type":"option","label":"Pool créé avant le tour (dilue les fondateurs)","preview":"Le pool est inclus dans le pre-money","html":"<p>Le pool d'options est créé ou étendu <mark class='cond-val'>avant l'opération</mark> et inclus dans la valorisation pre-money : sa dilution est supportée par les associés existants, principalement les fondateurs.</p>"},
-{"id":"cap_pool_post","type":"option","label":"Pool créé après le tour (dilue tout le monde)","preview":"Le pool est créé après, dilution partagée","html":"<p>Le pool d'options est créé <mark class='cond-val'>après l'opération</mark> : sa dilution est supportée par l'ensemble des associés, investisseur compris, au prorata.</p>"},
-{"id":"cap_pool_10","type":"taille","label":"Pool dimensionné à 10 %","preview":"Pool représentant 10 % du pleinement dilué","html":"<p>Le pool d'options représente <mark class='cond-val'>10 %</mark> du capital pleinement dilué post-opération, réservé à l'intéressement des salariés et dirigeants.</p>"}
+{"id":"cap_pool_pre","type":"option","label":"Pool créé avant le tour (dilue les fondateurs)","preview":"Le pool est inclus dans le pre-money — position investisseur","html":"<p>Le pool d'options est créé ou étendu <mark class='cond-val'>avant l'opération</mark> et inclus dans la valorisation pre-money : sa dilution est supportée par les seuls associés existants — un pool pre-money de 10 % réduit d'autant la valorisation réelle des fondateurs.</p>"},
+{"id":"cap_pool_post","type":"option","label":"Pool créé après le tour (dilution partagée)","preview":"Position fondateurs : l'investisseur se dilue aussi","html":"<p>Le pool d'options est créé <mark class='cond-val'>après l'opération</mark> : sa dilution est supportée par l'ensemble des associés, nouvel investisseur compris, au prorata.</p>"},
+{"id":"cap_pool_10","type":"seuil","label":"Pool dimensionné à 10 % (au besoin réel)","preview":"Taille justifiée par le plan de recrutement","html":"<p>Le pool représente <mark class='cond-val'>10 %</mark> du capital pleinement dilué, dimensionné sur le <mark class='cond-val'>plan de recrutement réel</mark> des 18-24 prochains mois — contestez un pool surdimensionné « par principe », c'est de la dilution gratuite.</p>"}
+],
+"waterfall": [
+{"id":"cap_wf_scenarios","type":"option","label":"Waterfall multi-scénarios","preview":"3 prix de sortie minimum, dont le point de bascule","html":"<p>La cascade est simulée sur au moins <mark class='cond-val'>trois prix de sortie</mark> (bas, médian, haut), en identifiant le <mark class='cond-val'>point de bascule</mark> où l'investisseur non participating opte pour le prorata — la zone où les intérêts divergent.</p>"},
+{"id":"cap_wf_empilement","type":"seuil","label":"Empilement des préférences multi-tours","preview":"Les préférences se cumulent, dernier entré souvent premier servi","html":"<p>En présence de plusieurs catégories d'ADP, la cascade suit l'<mark class='cond-val'>ordre de rang</mark> défini aux statuts (souvent : dernier tour senior, ou pari passu) — le cumul des préférences peut absorber toute une sortie moyenne : chiffrez-le avant chaque nouveau tour.</p>"}
+],
+"coherence": [
+{"id":"cap_coh_actes","type":"option","label":"Chaque ligne sourcée par un acte","preview":"PV, bulletin, ODM, lettre d'attribution","html":"<p>Chaque ligne de la cap table renvoie à son <mark class='cond-val'>acte source</mark> (PV, bulletin, ordre de mouvement, lettre d'attribution) : la cap table est la synthèse des registres, jamais une source autonome.</p>"},
+{"id":"cap_coh_variable","type":"exception","label":"Hypothèses des instruments variables documentées","preview":"AIR au cap, OC : l'hypothèse est écrite noir sur blanc","html":"<p>Pour les instruments à conversion variable (<mark class='cond-val'>AIR, OC</mark>), l'hypothèse retenue (conversion au <mark class='cond-val'>cap</mark>, la plus dilutive) est documentée en note : c'est celle que le prochain lead utilisera pour calculer son pourcentage.</p>"},
+{"id":"cap_coh_versions","type":"option","label":"Versions figées et archivées","preview":"Une photo datée avant/après chaque opération","html":"<p>Une version est <mark class='cond-val'>figée, datée et archivée</mark> avant et après chaque opération sur le capital, avec une <mark class='cond-val'>source de vérité unique</mark> — les versions parallèles divergentes sont la cause n°1 des surprises de closing.</p>"}
 ]
 }</script>
 <script type="application/json" data-advice>[
-{"title":"Toujours raisonner en pleinement dilué","body":"Calculez prix par action et pourcentages en base pleinement diluée (pool et instruments inclus) ; c'est la base de référence des investisseurs et elle évite les écarts au closing."},
-{"title":"Négocier la place du pool d'options","body":"Si le pool est créé avant le tour, il dilue surtout les fondateurs ; discutez sa taille et son positionnement (pre ou post-money), car l'impact sur votre participation est majeur."},
-{"title":"Tenir la cap table synchronisée avec le registre","body":"Chaque mouvement doit figurer simultanément dans la cap table et le registre des mouvements de titres ; un écart bloque la due diligence et fragilise l'opération."},
-{"title":"Modéliser la cascade de liquidation","body":"Simulez la répartition du produit à différents prix de sortie : une préférence participative ou un multiple élevé peut fortement réduire la part des fondateurs sur une revente modeste."},
-{"title":"Dater et sourcer chaque version","body":"Indiquez la date d'arrêté et rattachez chaque ligne à un acte (PV, bulletin) ; conservez l'historique des versions pre/post chaque tour."}
+{"title":"Toujours raisonner en pleinement dilué","body":"Prix par action et pourcentages se calculent en base pleinement diluée : pool complet (attribué + réservé), BSA, et instruments variables à l'hypothèse la plus dilutive (AIR au cap). C'est la base des investisseurs — toute autre base crée un malentendu qui explose au closing."},
+{"title":"Négocier la place et la taille du pool","body":"Un pool pre-money de 10 % baisse d'autant la valorisation réelle des fondateurs. Dimensionnez-le sur le plan de recrutement réel des 18-24 mois et tentez le post-money — c'est un point de négociation à part entière de la term sheet."},
+{"title":"Tenir la cap table synchronisée avec les registres","body":"Chaque mouvement figure simultanément dans la cap table, le registre des mouvements de titres et le registre des valeurs mobilières ; les BSPCE caducs (départs) retournent au pool. Un écart d'une action bloque la due diligence."},
+{"title":"Modéliser la cascade sur plusieurs prix de sortie","body":"Avec une préférence de liquidation, le partage n'est pas proportionnel : simulez bas/médian/haut, identifiez le point de bascule, et mesurez ce que les fondateurs touchent réellement dans chaque scénario — avant de signer le tour, pas après."},
+{"title":"Travailler en nombres d'actions, pas en pourcentages","body":"Les pourcentages se recalculent, ils ne se copient jamais : les cap tables fausses viennent presque toujours d'arrondis propagés ou de pourcentages édités à la main."},
+{"title":"Documenter les hypothèses des instruments variables","body":"AIR et OC n'ont pas de nombre d'actions fixe avant conversion : écrivez l'hypothèse retenue (cap, floor) en note de la cap table — le lead du prochain tour prendra la plus dilutive, autant l'afficher vous-même."},
+{"title":"Verser chaque version au dossier","body":"Version figée, datée et signée avant/après chaque opération, archivée avec ses actes sources : l'historique des cap tables raconte la vie du capital et sera demandé tel quel en due diligence."}
 ]</script>

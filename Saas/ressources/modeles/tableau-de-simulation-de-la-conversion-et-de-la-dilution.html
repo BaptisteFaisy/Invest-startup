@@ -1,47 +1,81 @@
 <h1 class="doc-title">SIMULATION — CONVERSION &amp; DILUTION (BSA-AIR)</h1>
-<p class="doc-sub">[DÉNOMINATION] — impact de la conversion des bons</p>
+<p class="doc-sub">[DÉNOMINATION] — impact de la conversion des bons — version exhaustive</p>
 
 <div class="ts-group" contenteditable="false">Comprendre</div>
 
-<div class="ts-clause" data-plain="Ce tableau sert à anticiper, AVANT de signer, combien d'actions l'investisseur AIR obtiendra à la conversion et quelle sera la dilution de chacun, selon plusieurs hypothèses de valorisation du prochain tour. C'est l'outil de décision clé."><div class="ts-label">Rôle de la simulation</div><div class="ts-content"><p>Le BSA-AIR ne fixe pas la valorisation aujourd'hui : son effet réel dépend du prix du futur tour qualifié. Cette simulation modélise, sous différentes hypothèses, le prix de conversion (décote et/ou plafond), le nombre d'actions émises à l'Investisseur et la dilution des associés. Elle éclaire la négociation de la décote et du plafond et doit être cohérente avec la cap table pleinement diluée.</p></div></div>
+<div class="ts-clause" data-plain="Ce tableau sert à anticiper, AVANT de signer, combien d'actions l'investisseur AIR obtiendra à la conversion et quelle sera la dilution de chacun, selon plusieurs hypothèses de valorisation du prochain tour. C'est l'outil de décision clé — pour négocier le cap et la décote côté fondateurs, et pour mesurer son pourcentage futur côté investisseur."><div class="ts-label">Rôle de la simulation</div><div class="ts-content"><p>Le BSA-AIR ne fixe pas la valorisation aujourd'hui : son effet réel dépend du prix du futur tour qualifié. Cette simulation modélise, sous différentes hypothèses de valorisation, le prix de conversion (décote et/ou plafond), le nombre d'actions émises à l'Investisseur et la dilution de tous les associés — en cumulant l'effet de la conversion ET du nouveau tour, car les deux se produisent ensemble. Elle éclaire trois décisions : la négociation initiale du couple décote/cap, le suivi de la dilution latente pendant la vie des bons, et la vérification du calcul au moment du tour réel. Règle de lecture essentielle : <strong>le cap fixe la valorisation maximale à laquelle l'investisseur AIR paie ses actions</strong> — un cap de 3 M€ signifie que même si le tour se fait à 9 M€, l'AIR convertit comme si la société valait 3 M€, soit trois fois plus d'actions.</p></div></div>
 
 <div class="ts-group" contenteditable="false">Hypothèses</div>
 
-<div class="ts-clause" data-plain="Les paramètres de départ : montant investi en AIR, décote, plafond, et l'état actuel du capital. On fait ensuite varier la valorisation du prochain tour."><div class="ts-label">Paramètres</div><div class="ts-content"><table>
+<div class="ts-clause" data-key="parametres" data-plain="Les paramètres de départ : montant investi en AIR, décote, cap, floor, l'état actuel du capital (pleinement dilué), le pool à créer et le montant du prochain tour. La qualité de la simulation dépend entièrement de l'exactitude de ces entrées."><div class="ts-label">Paramètres</div><div class="ts-content"><table>
 <tr><th>Paramètre</th><th>Valeur</th></tr>
 <tr><td>Montant investi en BSA-AIR</td><td>[…] €</td></tr>
-<tr><td>Décote</td><td>[…] %</td></tr>
+<tr><td>Décote</td><td>[20] %</td></tr>
 <tr><td>Plafond de valorisation (cap)</td><td>[…] €</td></tr>
-<tr><td>Nombre d'actions pleinement diluées avant le tour</td><td>[…]</td></tr>
-<tr><td>Montant du tour qualifié</td><td>[…] €</td></tr>
+<tr><td>Plancher (floor), le cas échéant</td><td>[…] €</td></tr>
+<tr><td>Nombre d'actions pleinement diluées avant le tour (dénominateur du cap, selon contrat)</td><td>[…]</td></tr>
+<tr><td>Montant du prochain tour qualifié (hypothèse)</td><td>[…] €</td></tr>
+<tr><td>Pool BSPCE créé au tour (hypothèse)</td><td>[10] % [pre/post]-money</td></tr>
 </table></div></div>
 
 <div class="ts-group" contenteditable="false">Scénarios de conversion</div>
 
-<div class="ts-clause" data-plain="Le cœur de l'outil : pour plusieurs valorisations du prochain tour, on calcule le prix retenu (décote vs plafond), les actions reçues par l'investisseur et son pourcentage. On voit où le plafond devient plus avantageux que la décote."><div class="ts-label">Prix de conversion &amp; actions reçues</div><div class="ts-content"><table>
-<tr><th>Valo pre-money du tour</th><th>Prix décoté</th><th>Prix via plafond</th><th>Prix retenu (le + bas)</th><th>Actions Investisseur</th><th>% post-conversion</th></tr>
-<tr><td>[faible] €</td><td>[…] €</td><td>[…] €</td><td>[…] €</td><td>[…]</td><td>[…] %</td></tr>
-<tr><td>[médiane] €</td><td>[…] €</td><td>[…] €</td><td>[…] €</td><td>[…]</td><td>[…] %</td></tr>
-<tr><td>[élevée] €</td><td>[…] €</td><td>[…] €</td><td>[…] €</td><td>[…]</td><td>[…] %</td></tr>
+<div class="ts-clause" data-key="scenarios" data-plain="Le cœur de l'outil : pour plusieurs valorisations du prochain tour, on calcule le prix retenu (décote vs plafond), les actions reçues par l'investisseur AIR et son pourcentage. Le point d'inflexion se lit directement : le cap prend le relais de la décote quand valo du tour × (1 − décote) > cap."><div class="ts-label">Prix de conversion &amp; actions reçues</div><div class="ts-content"><table>
+<tr><th>Valo pre-money du tour</th><th>Prix du tour</th><th>Prix décoté</th><th>Prix via cap</th><th>Prix retenu</th><th>Actions AIR</th><th>% AIR post-tout</th></tr>
+<tr><td>[basse — ex. cap × 0,5] €</td><td>[…] €</td><td>[…] €</td><td>[…] €</td><td>[décoté] €</td><td>[…]</td><td>[…] %</td></tr>
+<tr><td>[= cap] €</td><td>[…] €</td><td>[…] €</td><td>[…] €</td><td>[≈ point d'inflexion] €</td><td>[…]</td><td>[…] %</td></tr>
+<tr><td>[médiane — ex. cap × 1,5] €</td><td>[…] €</td><td>[…] €</td><td>[…] €</td><td>[via cap] €</td><td>[…]</td><td>[…] %</td></tr>
+<tr><td>[haute — ex. cap × 3] €</td><td>[…] €</td><td>[…] €</td><td>[…] €</td><td>[via cap] €</td><td>[…]</td><td>[…] %</td></tr>
 </table>
-<p>Rappel : prix décoté = prix du tour × (1 − décote) ; prix via plafond = plafond ÷ nombre d'actions pleinement diluées avant le tour ; on retient le plus bas (le plus favorable à l'Investisseur).</p>
+<p>Formules : prix décoté = prix du tour × (1 − décote) ; prix via cap = cap ÷ dénominateur pleinement dilué ; prix retenu = min(prix décoté ; prix via cap) [borné par le floor] ; actions AIR = montant investi ÷ prix retenu. <strong>Point d'inflexion :</strong> le cap devient la formule active dès que la valorisation du tour dépasse cap ÷ (1 − décote) = [...] €.</p>
 </div></div>
 
-<div class="ts-clause" data-plain="L'effet sur la répartition du capital : qui détient quoi après conversion + tour, pour chaque scénario. Montre la dilution des fondateurs."><div class="ts-label">Dilution post-conversion</div><div class="ts-content"><table>
-<tr><th>Détenteur</th><th>% avant</th><th>% après (scénario médian)</th><th>Dilution</th></tr>
-<tr><td>Fondateurs</td><td>[…] %</td><td>[…] %</td><td>[…] pts</td></tr>
-<tr><td>Investisseur BSA-AIR (converti)</td><td>—</td><td>[…] %</td><td>—</td></tr>
-<tr><td>Nouvel investisseur (tour qualifié)</td><td>—</td><td>[…] %</td><td>—</td></tr>
-<tr><td>Pool d'options</td><td>[…] %</td><td>[…] %</td><td>[…] pts</td></tr>
+<div class="ts-clause" data-key="dilution" data-plain="L'effet sur la répartition du capital : qui détient quoi après conversion + nouveau tour + pool, pour chaque scénario. C'est ici que les fondateurs voient leur dilution réelle cumulée — souvent sous-estimée car trois effets se superposent (AIR, tour, pool)."><div class="ts-label">Dilution post-conversion (tableau complet)</div><div class="ts-content"><table>
+<tr><th>Détenteur</th><th>% avant</th><th>% après (scénario bas)</th><th>% après (médian)</th><th>% après (haut)</th></tr>
+<tr><td>Fondateurs</td><td>[…] %</td><td>[…] %</td><td>[…] %</td><td>[…] %</td></tr>
+<tr><td>Associés historiques / BA</td><td>[…] %</td><td>[…] %</td><td>[…] %</td><td>[…] %</td></tr>
+<tr><td>Investisseur(s) BSA-AIR (convertis)</td><td>—</td><td>[…] %</td><td>[…] %</td><td>[…] %</td></tr>
+<tr><td>Nouvel investisseur (tour qualifié)</td><td>—</td><td>[…] %</td><td>[…] %</td><td>[…] %</td></tr>
+<tr><td>Pool BSPCE</td><td>[…] %</td><td>[…] %</td><td>[…] %</td><td>[…] %</td></tr>
+<tr><td><strong>Total</strong></td><td><strong>100 %</strong></td><td><strong>100 %</strong></td><td><strong>100 %</strong></td><td><strong>100 %</strong></td></tr>
+</table><p>Lecture : paradoxe classique de l'AIR avec cap — <strong>plus la valorisation du tour est haute, plus l'AIR convertit « bon marché » relativement</strong> (au cap), donc son pourcentage baisse moins vite que celui du nouvel investisseur n'augmente. La dilution des fondateurs cumule trois effets : conversion des AIR + nouveau tour + création du pool.</p></div></div>
+
+<div class="ts-clause" data-key="cas-limites" data-plain="Les cas limites à simuler aussi : conversion à l'échéance sans tour (au floor), cession de la société avant conversion (multiple vs conversion au cap), et down round sous le floor. Ces scénarios « défavorables » sont précisément ceux où les clauses mal calibrées coûtent cher."><div class="ts-label">Cas limites</div><div class="ts-content"><table>
+<tr><th>Scénario</th><th>Traitement contractuel</th><th>Actions AIR / montant perçu</th><th>% résultant</th></tr>
+<tr><td>Échéance sans tour qualifié ([DATE])</td><td>Conversion à la valorisation de [floor] €</td><td>[…] actions</td><td>[…] %</td></tr>
+<tr><td>Cession de la société avant conversion</td><td>Max([1,5/2]x mise ; conversion au cap)</td><td>[… € / … actions]</td><td>—</td></tr>
+<tr><td>Tour sous le floor</td><td>Prix plancher appliqué</td><td>[…] actions</td><td>[…] %</td></tr>
+<tr><td>Tour non qualifié (sous le seuil)</td><td>Conversion optionnelle au choix du titulaire</td><td>[au choix]</td><td>—</td></tr>
 </table></div></div>
 
-<div class="ts-clause" data-plain="Note méthodo : la simulation est indicative ; les chiffres définitifs dépendront du tour réel. À recouper avec la cap table et le contrat d'émission."><div class="ts-label">Méthodologie &amp; limites</div><div class="ts-content"><p>La simulation est indicative et repose sur les hypothèses retenues ; les valeurs définitives dépendront des conditions réelles du tour qualifié (montant, valorisation, pool). Elle doit être recoupée avec la cap table pleinement diluée et la formule de conversion du contrat d'émission.</p></div></div>
+<div class="ts-clause" data-plain="Note méthodo : la simulation est indicative ; les chiffres définitifs dépendront du tour réel et de la définition contractuelle exacte du dénominateur. À recouper avec la cap table, le registre des valeurs mobilières et la formule du contrat d'émission — et à recalculer avec les chiffres réels au moment du tour."><div class="ts-label">Méthodologie &amp; limites</div><div class="ts-content"><p>La simulation est indicative et repose sur les hypothèses retenues ; les valeurs définitives dépendront des conditions réelles du tour qualifié (montant, valorisation, pool effectivement créé, autres instruments convertis simultanément). Points de méthode : (i) le dénominateur du cap suit la définition du contrat d'émission (pool inclus ou non — vérifier l'article exact) ; (ii) en présence de plusieurs AIR à des caps différents, chaque ligne se calcule séparément puis s'agrège ; (iii) si des OC se convertissent au même tour, les inclure dans le tableau de dilution ; (iv) les pourcentages sont exprimés en pleinement dilué post-opération. La simulation doit être recalculée avec les chiffres réels avant de figer la note de calcul officielle de conversion.</p></div></div>
 
 <div class="ts-sign"><p>Simulation arrêtée au [DATE] — à titre indicatif.</p><p>[NOM, QUALITÉ]</p></div>
+<script type="application/json" data-conditions>{
+"parametres": [
+{"id":"sim_par_cap_bas","type":"seuil","label":"Cap serré (proche de la valo actuelle)","preview":"Protecteur pour l'investisseur, dilutif pour les fondateurs","html":"<p>Le cap est fixé à <mark class='cond-val'>[MONTANT] €</mark>, proche de la valorisation implicite actuelle : l'Investisseur est fortement protégé, mais la dilution des fondateurs s'accroît vite si le tour se fait au-dessus.</p>"},
+{"id":"sim_par_cap_haut","type":"seuil","label":"Cap large (2-3x la valo actuelle)","preview":"Équilibré : le cap ne joue qu'en cas de forte réussite","html":"<p>Le cap est fixé à <mark class='cond-val'>[MONTANT] €</mark>, soit <mark class='cond-val'>[2-3]x</mark> la valorisation implicite actuelle : la décote reste la formule active dans les scénarios médians, le cap ne jouant qu'en cas de forte création de valeur.</p>"}
+],
+"scenarios": [
+{"id":"sim_sc_3","type":"option","label":"Trois scénarios (bas / médian / haut)","preview":"La grille minimale de décision","html":"<p>La simulation couvre au moins trois valorisations de tour : <mark class='cond-val'>basse</mark> (cap × 0,5), <mark class='cond-val'>médiane</mark> (cap × 1,5) et <mark class='cond-val'>haute</mark> (cap × 3), plus le point d'inflexion où le cap prend le relais de la décote.</p>"},
+{"id":"sim_sc_inflexion","type":"seuil","label":"Point d'inflexion décote → cap","preview":"La valorisation où le cap devient la formule active","html":"<p>Le cap devient la formule active dès que la valorisation du tour dépasse <mark class='cond-val'>cap ÷ (1 − décote)</mark> = <mark class='cond-val'>[MONTANT] €</mark> : en dessous, c'est la décote qui détermine le prix.</p>"}
+],
+"dilution": [
+{"id":"sim_dil_cumule","type":"option","label":"Dilution cumulée (AIR + tour + pool)","preview":"Les trois effets superposés, en pleinement dilué","html":"<p>Le tableau de dilution cumule les trois effets simultanés : conversion des <mark class='cond-val'>AIR</mark>, entrée du <mark class='cond-val'>nouvel investisseur</mark> et création du <mark class='cond-val'>pool BSPCE</mark>, en base pleinement diluée post-opération.</p>"},
+{"id":"sim_dil_multi_air","type":"exception","label":"Plusieurs AIR à caps différents","preview":"Chaque ligne AIR se calcule séparément","html":"<p>En présence de plusieurs émissions AIR à des <mark class='cond-val'>caps et décotes différents</mark>, chaque ligne se calcule séparément avec ses propres paramètres, puis s'agrège dans le tableau de dilution — c'est la configuration qui produit les plus mauvaises surprises.</p>"}
+],
+"cas-limites": [
+{"id":"sim_cl_echeance","type":"duree","label":"Échéance sans tour : conversion au floor","preview":"Scénario à simuler systématiquement","html":"<p>À l'échéance du <mark class='cond-val'>[DATE]</mark> sans tour qualifié, les bons convertissent à la valorisation de <mark class='cond-val'>[floor] €</mark> : simulez ce scénario — c'est souvent le plus dilutif de tous.</p>"},
+{"id":"sim_cl_cession","type":"milestone","label":"Cession avant conversion","preview":"Multiple de la mise vs conversion au cap","html":"<p>En cas de cession avant conversion, l'Investisseur perçoit le plus élevé entre <mark class='cond-val'>[1,5/2]x sa mise</mark> et la contre-valeur d'une conversion au <mark class='cond-val'>cap</mark> : chiffrez les deux branches pour plusieurs prix de cession.</p>"},
+{"id":"sim_cl_downround","type":"exception","label":"Tour sous le floor","preview":"Le plancher protège les fondateurs","html":"<p>Si le tour se fait sous le <mark class='cond-val'>floor</mark>, le prix plancher s'applique : l'Investisseur AIR paie alors <mark class='cond-val'>plus cher</mark> que le nouvel investisseur — vérifiez que le contrat traite ce paradoxe (option de conversion au prix du tour, ou maintien du floor).</p>"}
+]
+}</script>
 <script type="application/json" data-advice>[
-{"title":"Tester plusieurs valorisations","body":"Simulez des scénarios bas / médian / haut : c'est là qu'on voit à partir de quand le plafond devient plus avantageux que la décote."},
-{"title":"Aligner avec la formule du contrat","body":"Utilisez exactement la formule de conversion du contrat d'émission (le plus bas entre prix décoté et prix au plafond) pour des résultats fiables."},
-{"title":"Raisonner en pleinement dilué","body":"Intégrez pool d'options et autres instruments : la dilution réelle se mesure en base pleinement diluée."},
-{"title":"Mesurer la dilution fondateurs","body":"Un plafond bas combiné à une forte valorisation du tour est très dilutif pour les fondateurs : objectivez l'impact avant de signer."},
-{"title":"Mettre à jour au moment du tour","body":"Recalculez la simulation avec les chiffres réels du tour qualifié avant de figer la conversion."}
+{"title":"Simuler AVANT de signer, pas après","body":"Le couple décote/cap est irréversible une fois le contrat signé : cette simulation est l'outil de négociation — chaque partie doit voir sa dilution ou son pourcentage dans les scénarios bas, médian et haut."},
+{"title":"Identifier le point d'inflexion","body":"Calculez cap ÷ (1 − décote) : c'est la valorisation de tour au-delà de laquelle le cap prend le relais de la décote. Si toutes vos projections sont au-dessus, c'est le cap qui compte — négociez-le en priorité."},
+{"title":"Cumuler les trois effets de dilution","body":"AIR convertis + nouveau tour + pool BSPCE arrivent en même temps : la dilution des fondateurs se mesure sur le cumul, en pleinement dilué, pas effet par effet."},
+{"title":"Utiliser le dénominateur du contrat","body":"Le prix via cap dépend de la définition contractuelle du « pleinement dilué » (pool inclus ou non) : simulez avec la définition exacte du contrat d'émission, pas avec une approximation."},
+{"title":"Simuler aussi les cas limites","body":"Échéance sans tour (conversion au floor), cession avant conversion, tour sous le floor : les scénarios défavorables sont ceux où les clauses mal calibrées coûtent le plus — chiffrez-les tous."},
+{"title":"Gérer les AIR multiples ligne à ligne","body":"Plusieurs AIR à des caps différents se calculent séparément puis s'agrègent : tenez une ligne par émission dans la simulation et dans la cap table pleinement diluée."},
+{"title":"Recalculer au moment du tour réel","body":"La simulation prépare ; la note de calcul officielle fige. Recalculez avec les chiffres réels (valorisation, pool, dénominateur constaté) avant le closing, et notifiez le calcul aux titulaires."}
 ]</script>

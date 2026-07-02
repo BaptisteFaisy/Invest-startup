@@ -1,41 +1,72 @@
 <h1 class="doc-title">CALCUL DU PRIX DE CONVERSION — BSA-AIR</h1>
-<p class="doc-sub">[DÉNOMINATION] — application de la décote et/ou du plafond</p>
+<p class="doc-sub">[DÉNOMINATION] — application de la décote et/ou du plafond — version exhaustive</p>
 
 <div class="ts-group" contenteditable="false">Comprendre</div>
 
-<div class="ts-clause" data-plain="Au moment du tour qualifié, il faut calculer précisément le prix auquel l'investisseur AIR convertit ses bons en actions, et combien d'actions il reçoit. Cette note pose le calcul, pièce justificative de la conversion."><div class="ts-label">Rôle de la note de calcul</div><div class="ts-content"><p>Lors de la conversion, le prix par action de l'Investisseur résulte de l'application de la décote et/ou du plafond définis au contrat d'émission. La présente note détaille le calcul retenu et le nombre d'actions émises ; elle justifie la conversion et alimente le PV d'augmentation de capital et la mise à jour de la cap table.</p></div></div>
+<div class="ts-clause" data-plain="Au moment du tour qualifié, il faut calculer précisément le prix auquel l'investisseur AIR convertit ses bons en actions, et combien d'actions il reçoit. Cette note pose le calcul pas à pas : c'est la pièce justificative de la conversion, communiquée aux titulaires avant le closing pour validation."><div class="ts-label">Rôle de la note de calcul</div><div class="ts-content"><p>Lors de la conversion, le prix par action de l'Investisseur résulte de l'application de la décote et/ou du plafond définis au contrat d'émission. La présente note détaille le calcul retenu, ses données d'entrée (avec leurs justificatifs) et le nombre d'actions émises ; elle justifie la conversion, est notifiée aux titulaires [15] jours avant le closing conformément au contrat, et alimente le PV constatant l'augmentation de capital ainsi que la mise à jour de la cap table. Les litiges de conversion viennent presque toujours de deux points : le <strong>dénominateur du cap</strong> (quel « nombre d'actions pleinement dilué » ?) et le <strong>traitement des autres instruments</strong> convertis simultanément — cette note les traite explicitement.</p></div></div>
 
 <div class="ts-group" contenteditable="false">Données du tour qualifié</div>
 
-<div class="ts-clause" data-plain="Les chiffres réels du tour qui déclenche la conversion : valorisation, prix par action du nouvel investisseur, nombre d'actions avant le tour."><div class="ts-label">Paramètres constatés</div><div class="ts-content"><table>
-<tr><th>Donnée</th><th>Valeur</th></tr>
-<tr><td>Valorisation pre-money du tour qualifié</td><td>[…] €</td></tr>
-<tr><td>Prix par action du tour (nouvel investisseur)</td><td>[…] €</td></tr>
-<tr><td>Nombre d'actions pleinement diluées avant le tour</td><td>[…]</td></tr>
-<tr><td>Montant investi en BSA-AIR</td><td>[…] €</td></tr>
-<tr><td>Décote contractuelle / plafond contractuel</td><td>[…] % / [MONTANT] €</td></tr>
+<div class="ts-clause" data-plain="Les chiffres réels du tour qui déclenche la conversion : montant levé, valorisation, prix par action du nouvel investisseur — avec les pièces sources (term sheet du tour, projet de PV). Chaque donnée doit être traçable."><div class="ts-label">Paramètres constatés du tour</div><div class="ts-content"><table>
+<tr><th>Donnée</th><th>Valeur</th><th>Source</th></tr>
+<tr><td>Montant du tour qualifié (hors conversions)</td><td>[…] €</td><td>Term sheet / PV du [DATE]</td></tr>
+<tr><td>Seuil contractuel du tour qualifié</td><td>[…] € — <strong>atteint</strong></td><td>Contrat d'émission art. […]</td></tr>
+<tr><td>Valorisation pre-money du tour</td><td>[…] €</td><td>Term sheet du tour</td></tr>
+<tr><td>Prix par action du tour (nouvel investisseur)</td><td>[…] €</td><td>PV d'AGE du tour</td></tr>
+<tr><td>Date de réalisation prévue</td><td>[DATE]</td><td>—</td></tr>
+</table></div></div>
+
+<div class="ts-clause" data-key="denominateur" data-plain="Le point le plus sensible : le nombre d'actions « pleinement dilué » qui sert de dénominateur au calcul du prix via plafond. On liste ce qui est inclus (actions existantes, BSPCE/BSA en cours, pool autorisé) et exclu (actions du nouveau tour, les AIR eux-mêmes), conformément au contrat."><div class="ts-label">Base pleinement diluée (dénominateur du cap)</div><div class="ts-content"><table>
+<tr><th>Composante</th><th>Nombre d'actions</th><th>Inclus / exclu</th></tr>
+<tr><td>Actions ordinaires existantes</td><td>[…]</td><td>Inclus</td></tr>
+<tr><td>ADP existantes</td><td>[…]</td><td>Inclus</td></tr>
+<tr><td>BSPCE / BSA attribués (sous-jacent)</td><td>[…]</td><td>[Inclus — selon contrat]</td></tr>
+<tr><td>Pool d'intéressement autorisé non attribué</td><td>[…]</td><td>[Inclus / exclu — selon contrat]</td></tr>
+<tr><td>OC / autres instruments convertibles</td><td>[…]</td><td>[Inclus — selon contrat]</td></tr>
+<tr><td>Actions à émettre au titre du tour qualifié</td><td>—</td><td><strong>Exclu</strong></td></tr>
+<tr><td>Actions à émettre au titre des BSA-AIR</td><td>—</td><td><strong>Exclu</strong></td></tr>
+<tr><td><strong>Total retenu (dénominateur)</strong></td><td><strong>[…]</strong></td><td>Contrat d'émission art. […]</td></tr>
 </table></div></div>
 
 <div class="ts-group" contenteditable="false">Calcul</div>
 
-<div class="ts-clause" data-key="methode" data-plain="On calcule deux prix possibles : le prix décoté (prix du tour − décote) et le prix « plafond » (plafond ÷ actions avant tour). On retient le plus bas, qui donne le plus d'actions à l'investisseur."><div class="ts-label">Détermination du prix de conversion</div><div class="ts-content"><p><strong>Prix décoté</strong> = prix par action du tour × (1 − décote) = [...] × (1 − [...] %) = <strong>[…] €</strong>.<br /><strong>Prix via plafond</strong> = plafond ÷ nombre d'actions pleinement diluées avant le tour = [...] ÷ [...] = <strong>[…] €</strong>.<br /><strong>Prix de conversion retenu</strong> = le plus faible des deux = <strong>[…] €</strong> (le plus favorable à l'Investisseur). [Le cas échéant : prix plancher de [...] €.]</p></div></div>
+<div class="ts-clause" data-key="methode" data-plain="On calcule deux prix possibles : le prix décoté (prix du tour × (1 − décote)) et le prix « plafond » (cap ÷ dénominateur pleinement dilué). On retient le plus bas, qui donne le plus d'actions à l'investisseur — sauf si un plancher vient limiter."><div class="ts-label">Détermination du prix de conversion</div><div class="ts-content"><p><strong>1. Prix décoté</strong> = prix par action du tour × (1 − décote) = [PRIX] € × (1 − [20] %) = <strong>[…] €</strong>.</p><p><strong>2. Prix via plafond</strong> = plafond de valorisation ÷ dénominateur pleinement dilué = [MONTANT] € ÷ [NOMBRE] = <strong>[…] €</strong>.</p><p><strong>3. Prix de conversion retenu</strong> = le plus faible des deux (formule contractuelle « le plus favorable à l'Investisseur ») = <strong>[…] €</strong>.</p><p><strong>4. Contrôle du plancher</strong> [le cas échéant] : prix plancher = [MONTANT floor] € ÷ [NOMBRE] = [...] € ; le prix retenu [est supérieur au plancher — pas d'ajustement / est inférieur : le prix plancher de [...] € s'applique].</p><p><strong>Prix de conversion définitif : [...] €</strong>, arrondi conformément au contrat ([2] décimales / au centime).</p></div></div>
 
-<div class="ts-clause" data-plain="On en déduit le nombre d'actions reçues : montant investi ÷ prix de conversion. Ce nombre nourrit l'augmentation de capital et la cap table."><div class="ts-label">Nombre d'actions émises</div><div class="ts-content"><p>Nombre d'actions émises à l'Investisseur = montant investi ÷ prix de conversion retenu = [...] € ÷ [...] € = <strong>[…] actions</strong>, de catégorie [ordinaires / ADP de même catégorie que le tour]. La prime d'émission correspondante s'élève à [...] €.</p></div></div>
+<div class="ts-clause" data-key="actions" data-plain="On en déduit le nombre d'actions reçues par titulaire : montant investi ÷ prix de conversion, avec le traitement des rompus (arrondi à l'unité inférieure et remboursement du reliquat, en général). La ventilation nominal/prime nourrit le PV d'augmentation de capital."><div class="ts-label">Nombre d'actions émises par titulaire</div><div class="ts-content"><table>
+<tr><th>Titulaire</th><th>Montant investi</th><th>Prix de conversion</th><th>Actions (avant arrondi)</th><th>Actions émises</th><th>Rompu remboursé</th></tr>
+<tr><td>[NOM 1]</td><td>[…] €</td><td>[…] €</td><td>[…]</td><td>[…]</td><td>[…] €</td></tr>
+<tr><td>[NOM 2]</td><td>[…] €</td><td>[…] €</td><td>[…]</td><td>[…]</td><td>[…] €</td></tr>
+<tr><td><strong>Total</strong></td><td><strong>[…] €</strong></td><td></td><td></td><td><strong>[…]</strong></td><td><strong>[…] €</strong></td></tr>
+</table><p>Les actions émises sont de catégorie [ADP de même catégorie que le tour / ordinaires]. Ventilation par action : valeur nominale [NOMINAL] €, prime d'émission [PRIX − NOMINAL] €. <strong>Augmentation de capital corrélative :</strong> nominal total [NOMBRE × NOMINAL] €, prime totale [...] € — la libération s'effectuant par [imputation du Montant Investi / compensation], conformément au contrat.</p></div></div>
 
-<div class="ts-clause" data-plain="Vérifications de cohérence : le calcul doit concorder avec le contrat d'émission, le PV d'augmentation de capital et la cap table post-conversion."><div class="ts-label">Cohérence &amp; pièces</div><div class="ts-content"><p>Le calcul applique strictement la formule du contrat d'émission. Le nombre d'actions et la prime doivent concorder avec le PV d'AGE actant l'augmentation de capital par conversion, les bulletins de souscription des actions issues de la conversion et la cap table mise à jour.</p></div></div>
+<div class="ts-clause" data-plain="Vérifications de cohérence croisées : la note doit concorder avec le contrat d'émission (formule), la constatation d'émission des bons (montants investis), le PV du tour (prix, valorisation) et la cap table post-conversion. La cap table finale intègre AIR convertis + nouveau tour + pool."><div class="ts-label">Cohérence &amp; pièces justificatives</div><div class="ts-content"><p>Le calcul applique strictement la formule de l'article [—] du contrat d'émission du [DATE]. Contrôles effectués : (i) concordance des montants investis avec la constatation d'émission du [DATE] et l'attestation de versement ; (ii) concordance du prix et de la valorisation du tour avec [la term sheet / le projet de PV d'AGE] ; (iii) recalcul du dénominateur à partir du registre des valeurs mobilières et de la cap table certifiée au [DATE] ; (iv) vérification que le nombre total d'actions émises respecte le plafond nominal autorisé par la décision d'émission. Pièces annexées : contrat d'émission, cap table pleinement diluée, registre des valeurs mobilières (extrait), constatation d'émission des bons. [La présente note a été communiquée aux titulaires le [DATE] et n'a fait l'objet d'aucune contestation dans le délai contractuel de [15] jours.]</p></div></div>
 
-<div class="ts-sign"><p>Note de calcul arrêtée au [DATE].</p><p>Le Président — [NOM]</p></div>
+<div class="ts-sign"><p>Note de calcul arrêtée au [DATE], notifiée aux titulaires le [DATE].</p><p>Le Président — [NOM]　　　　　[Visée par le chef de file des Investisseurs — NOM]</p></div>
 <script type="application/json" data-conditions>{
+"denominateur": [
+{"id":"calc_den_large","type":"seuil","label":"Dénominateur large : pool et instruments inclus","preview":"Prix via cap plus bas → plus d'actions pour l'investisseur","html":"<p>Le dénominateur inclut les actions existantes, le sous-jacent des <mark class='cond-val'>BSPCE/BSA attribués</mark>, le <mark class='cond-val'>pool autorisé non attribué</mark> et les autres convertibles — configuration favorable à l'Investisseur (prix via cap plus bas).</p>"},
+{"id":"calc_den_etroit","type":"seuil","label":"Dénominateur étroit : actions existantes seules","preview":"Prix via cap plus haut → moins dilutif pour les fondateurs","html":"<p>Le dénominateur est limité aux <mark class='cond-val'>actions existantes</mark>, à l'exclusion du pool non attribué et des instruments non exercés — configuration favorable aux fondateurs (prix via cap plus élevé).</p>"},
+{"id":"calc_den_exclusions","type":"exception","label":"Exclusions systématiques","preview":"Tour qualifié et AIR eux-mêmes toujours exclus","html":"<p>Sont exclus du dénominateur, dans tous les cas : les actions à émettre au titre du <mark class='cond-val'>tour qualifié</mark> et celles à émettre au titre des <mark class='cond-val'>BSA-AIR eux-mêmes</mark> — les inclure créerait une circularité de calcul.</p>"}
+],
 "methode": [
-{"id":"calc_min","type":"option","label":"Le plus favorable (décote OU plafond)","preview":"On retient le prix le plus bas","html":"<p>Le prix de conversion est le <mark class='cond-val'>plus faible</mark> entre le prix décoté et le prix résultant du plafond.</p>"},
-{"id":"calc_decote","type":"option","label":"Décote seule","preview":"Seule la décote s'applique","html":"<p>Le prix de conversion résulte de la <mark class='cond-val'>seule décote</mark> appliquée au prix du tour.</p>"},
-{"id":"calc_cap","type":"option","label":"Plafond seul","preview":"Seul le plafond s'applique","html":"<p>Le prix de conversion résulte du <mark class='cond-val'>seul plafond de valorisation</mark>.</p>"}
+{"id":"calc_min","type":"option","label":"Le plus favorable (décote OU plafond) — standard","preview":"On retient le prix le plus bas","html":"<p>Le prix de conversion est le <mark class='cond-val'>plus faible</mark> entre le prix décoté et le prix résultant du plafond, conformément à la formule contractuelle.</p>"},
+{"id":"calc_decote","type":"option","label":"Décote seule","preview":"Seule la décote s'applique","html":"<p>Le prix de conversion résulte de la <mark class='cond-val'>seule décote de [20] %</mark> appliquée au prix du tour, le contrat ne stipulant pas de plafond.</p>"},
+{"id":"calc_cap","type":"option","label":"Plafond seul","preview":"Seul le plafond s'applique","html":"<p>Le prix de conversion résulte du <mark class='cond-val'>seul plafond de valorisation</mark>, le contrat ne stipulant pas de décote.</p>"},
+{"id":"calc_floor","type":"seuil","label":"Contrôle du plancher","preview":"Le prix retenu ne peut passer sous le floor","html":"<p>Le prix de conversion retenu ne peut être inférieur au prix résultant du <mark class='cond-val'>plancher de [MONTANT] €</mark> ; si le calcul aboutit en dessous, c'est le <mark class='cond-val'>prix plancher</mark> qui s'applique.</p>"}
+],
+"actions": [
+{"id":"calc_arrondi_inf","type":"option","label":"Arrondi à l'unité inférieure + rompu remboursé","preview":"Traitement standard des rompus","html":"<p>Le nombre d'actions est arrondi à l'<mark class='cond-val'>unité inférieure</mark>, le reliquat du Montant Investi (rompu) étant <mark class='cond-val'>remboursé</mark> au titulaire [ou porté en compte courant].</p>"},
+{"id":"calc_categorie_adp","type":"option","label":"Actions de la catégorie du tour","preview":"L'investisseur AIR reçoit les mêmes ADP que le lead","html":"<p>Les actions émises à la conversion sont des <mark class='cond-val'>ADP de même catégorie</mark> que celles du tour qualifié, avec les mêmes droits (préférence, anti-dilution, information).</p>"},
+{"id":"calc_verification","type":"option","label":"Validation contradictoire avant closing","preview":"Note notifiée 15 jours avant, contestable","html":"<p>La note de calcul est notifiée aux titulaires <mark class='cond-val'>15 jours</mark> avant le closing avec ses pièces ; à défaut de contestation motivée dans ce délai, le calcul est <mark class='cond-val'>réputé accepté</mark> ; en cas de désaccord persistant, un <mark class='cond-val'>expert indépendant</mark> tranche avant la réalisation.</p>"}
 ]
 }</script>
 <script type="application/json" data-advice>[
-{"title":"Appliquer la formule du contrat à la lettre","body":"Reprenez exactement la définition du prix de conversion du contrat d'émission (le plus bas entre décoté et plafond), sans interprétation."},
-{"title":"Fixer la base pleinement diluée","body":"Le prix au plafond dépend du nombre d'actions pleinement diluées avant le tour : précisez ce qui est inclus (pool, autres bons)."},
-{"title":"Documenter le calcul","body":"Conservez la note de calcul comme pièce justificative de la conversion : elle sera vérifiée en due diligence ultérieure."},
-{"title":"Faire concorder avec le PV et la cap table","body":"Nombre d'actions et prime doivent coïncider avec le PV d'augmentation de capital et la cap table post-conversion."},
-{"title":"Vérifier le plancher éventuel","body":"Si un plancher est stipulé, contrôlez qu'il n'est pas franchi avant de retenir le prix de conversion."}
+{"title":"Appliquer la formule du contrat à la lettre","body":"Reprenez mot à mot la définition du prix de conversion du contrat d'émission (articulation décote/cap/floor, arrondis) : toute « interprétation » sera contestée par la partie qu'elle défavorise."},
+{"title":"Documenter le dénominateur ligne à ligne","body":"Le prix via plafond dépend entièrement du nombre d'actions pleinement dilué retenu : listez chaque composante (incluse/exclue) avec sa source (registre, cap table), en suivant strictement la définition contractuelle."},
+{"title":"Exclure le tour et les AIR du dénominateur","body":"Inclure les actions du nouveau tour ou celles issues des AIR eux-mêmes crée une circularité mathématique : ces deux exclusions sont systématiques, quelle que soit la rédaction."},
+{"title":"Traiter les rompus proprement","body":"Arrondi à l'unité inférieure avec remboursement du reliquat : précisez le traitement et chiffrez-le par titulaire, ce sont de petits montants mais de vraies sources de friction."},
+{"title":"Notifier le calcul avant le closing","body":"Communiquez la note (avec pièces) aux titulaires 15 jours avant la réalisation : une contestation se règle mieux avant le closing qu'après l'émission des actions."},
+{"title":"Vérifier le plafond autorisé par l'AGE","body":"Le nombre total d'actions émises à la conversion doit tenir dans le plafond nominal pré-autorisé par la décision d'émission ; s'il est dépassé (tour très bas), une nouvelle décision collective est nécessaire AVANT le closing."},
+{"title":"Faire concorder avec le PV et la cap table","body":"Nombre d'actions, nominal, prime : la note alimente directement le PV constatant l'augmentation par conversion et la cap table post-closing — les trois documents doivent être générés ensemble."},
+{"title":"Conserver la note comme pièce d'audit","body":"Cette note sera vérifiée en due diligence des tours suivants : archivez-la avec ses annexes dans le dossier de conversion."}
 ]</script>

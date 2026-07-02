@@ -3,54 +3,68 @@
 
 <div class="ts-group" contenteditable="false">Comprendre</div>
 
-<div class="ts-clause" data-plain="La cap table « post-money » est la photo du capital juste après la levée : qui détient quoi une fois l'investisseur entré et le pool créé. C'est la référence pour la suite, à figer et à conserver."><div class="ts-label">Rôle de la cap table post-money</div><div class="ts-content"><p>La cap table post-money fige la répartition du capital à l'issue de l'opération : entrée de l'investisseur, création ou extension du pool d'options, exercices éventuels. Elle sert de référence pour tous les calculs ultérieurs (dilution, prochains tours, waterfall de liquidation) et doit concorder avec le PV de constatation de la réalisation définitive, les statuts modifiés et le registre des mouvements de titres mis à jour.</p></div></div>
+<div class="ts-clause" data-plain="La cap table « post-money » est la photo du capital juste après la levée : qui détient quoi une fois l'investisseur entré, les AIR convertis et le pool créé. C'est la version de référence à figer, dater et faire contresigner — elle servira de base à tous les calculs jusqu'au prochain tour."><div class="ts-label">Rôle de la cap table post-money</div><div class="ts-content"><p>La cap table post-money fige la répartition du capital à l'issue de l'opération : entrée du ou des investisseurs, conversion des instruments arrivés à échéance au closing (BSA-AIR, OC), création ou extension du pool d'options, exercices éventuels. Elle sert de référence pour tous les calculs ultérieurs (dilution, prix des attributions de BSPCE, prochains tours, waterfall) et doit concorder au titre près avec : le PV de constatation de la réalisation définitive, le certificat du dépositaire, les statuts modifiés, le registre des mouvements de titres mis à jour et les comptes individuels d'associés. Bonne pratique : la faire <strong>contresigner par le lead</strong> (ou l'annexer à la documentation de closing) — une cap table post-money acceptée par tous au closing coupe court à toute contestation ultérieure sur les pourcentages.</p></div></div>
 
-<div class="ts-clause" data-plain="Rappel : « au capital » se calcule sur les actions émises ; « pleinement dilué » intègre tous les bons et options comme s'ils étaient convertis. Les investisseurs raisonnent en pleinement dilué, pool compris."><div class="ts-label">« Au capital » vs « pleinement dilué »</div><div class="ts-content"><p>Le pourcentage <strong>au capital</strong> porte sur les seules actions émises ; le pourcentage <strong>pleinement dilué</strong> intègre les instruments donnant accès au capital (BSPCE, BSA, OC, pool réservé) comme s'ils étaient convertis. Précisez toujours la base retenue : la participation négociée de l'investisseur s'entend en pleinement dilué.</p></div></div>
+<div class="ts-clause" data-plain="Rappel : « au capital » se calcule sur les actions émises ; « pleinement dilué » intègre tous les bons et options comme s'ils étaient convertis — pool réservé compris, et instruments variables restants à l'hypothèse la plus dilutive. La participation négociée de l'investisseur s'entend en pleinement dilué."><div class="ts-label">« Au capital » vs « pleinement dilué »</div><div class="ts-content"><p>Le pourcentage <strong>au capital</strong> porte sur les seules actions émises ; le pourcentage <strong>pleinement dilué</strong> intègre les instruments donnant accès au capital (BSPCE attribués, pool réservé, BSA, AIR/OC restants pris à l'hypothèse la plus dilutive) comme s'ils étaient convertis. Précisez toujours la base : la participation négociée de l'investisseur (« X % post-money ») s'entend en <strong>pleinement dilué, pool inclus</strong> — vérifiez que le tableau ci-dessous reproduit exactement le pourcentage promis dans la term sheet, c'est le contrôle final du closing.</p></div></div>
 
 <div class="ts-group" contenteditable="false">Répartition post-money</div>
 
-<div class="ts-clause" data-plain="Le tableau principal après la levée : chaque détenteur, son type de titres et ses deux pourcentages. Le total doit boucler à 100 % et correspondre au nouveau nombre d'actions."><div class="ts-label">Détail par détenteur</div><div class="ts-content"><table>
-<tr><th>Détenteur</th><th>Type de titres</th><th>Nombre</th><th>Montant investi</th><th>% capital</th><th>% pleinement dilué</th></tr>
-<tr><td>[Fondateur 1]</td><td>Actions ordinaires</td><td>[…]</td><td>[…] €</td><td>[…]%</td><td>[…]%</td></tr>
-<tr><td>[Fondateur 2]</td><td>Actions ordinaires</td><td>[…]</td><td>[…] €</td><td>[…]%</td><td>[…]%</td></tr>
-<tr><td>[Investisseurs historiques]</td><td>Ordinaires / ADP</td><td>[…]</td><td>[…] €</td><td>[…]%</td><td>[…]%</td></tr>
-<tr><td>[Investisseur — Série A]</td><td>ADP A</td><td>[…]</td><td>[…] €</td><td>[…]%</td><td>[…]%</td></tr>
-<tr><td>[Salariés / managers]</td><td>BSPCE attribués</td><td>[…]</td><td>—</td><td>—</td><td>[…]%</td></tr>
-<tr><td>Pool non attribué</td><td>BSPCE / BSA réservés</td><td>[…]</td><td>—</td><td>—</td><td>[…]%</td></tr>
-<tr><td><strong>Total</strong></td><td></td><td><strong>[…]</strong></td><td><strong>[…] €</strong></td><td><strong>100 %</strong></td><td><strong>100 %</strong></td></tr>
+<div class="ts-clause" data-plain="Le tableau principal après la levée : chaque détenteur, son type de titres, son prix d'entrée et ses deux pourcentages. Une ligne par souscripteur (y compris chaque AIR converti avec son prix de conversion propre). Le total doit boucler à 100 % et correspondre au nouveau nombre d'actions des statuts."><div class="ts-label">Détail par détenteur</div><div class="ts-content"><table>
+<tr><th>Détenteur</th><th>Type de titres</th><th>Nombre</th><th>Prix d'entrée</th><th>Montant investi</th><th>% capital</th><th>% pleinement dilué</th></tr>
+<tr><td>[Fondateur 1]</td><td>Actions ordinaires</td><td>[…]</td><td>[nominal]</td><td>[…] €</td><td>[…] %</td><td>[…] %</td></tr>
+<tr><td>[Fondateur 2 / Holding]</td><td>Actions ordinaires</td><td>[…]</td><td>[…]</td><td>[…] €</td><td>[…] %</td><td>[…] %</td></tr>
+<tr><td>[Investisseurs historiques / BA]</td><td>Ordinaires / ADP</td><td>[…]</td><td>[…] €</td><td>[…] €</td><td>[…] %</td><td>[…] %</td></tr>
+<tr><td>[Investisseur lead — Série A]</td><td>ADP A</td><td>[…]</td><td>[prix du tour] €</td><td>[…] €</td><td>[…] %</td><td>[…] %</td></tr>
+<tr><td>[Co-investisseur]</td><td>ADP A</td><td>[…]</td><td>[prix du tour] €</td><td>[…] €</td><td>[…] %</td><td>[…] %</td></tr>
+<tr><td>[Investisseur AIR converti]</td><td>ADP A</td><td>[…]</td><td>[prix de conversion] €</td><td>[…] €</td><td>[…] %</td><td>[…] %</td></tr>
+<tr><td>[Salariés / managers]</td><td>BSPCE attribués</td><td>[…]</td><td>[prix d'exercice]</td><td>—</td><td>—</td><td>[…] %</td></tr>
+<tr><td>Pool non attribué</td><td>BSPCE / BSA réservés</td><td>[…]</td><td>—</td><td>—</td><td>—</td><td>[…] %</td></tr>
+<tr><td><strong>Total</strong></td><td></td><td><strong>[…]</strong></td><td></td><td><strong>[…] €</strong></td><td><strong>100 %</strong></td><td><strong>100 %</strong></td></tr>
 </table></div></div>
 
-<div class="ts-clause" data-plain="Le comparatif avant/après : montre concrètement l'effet de la levée sur la part de chacun. Utile pour vérifier que la dilution correspond bien à ce qui a été négocié."><div class="ts-label">Comparatif pre-money / post-money</div><div class="ts-content"><table>
-<tr><th>Détenteur</th><th>% avant (pre-money)</th><th>% après (post-money)</th><th>Dilution</th></tr>
-<tr><td>[Fondateurs]</td><td>[…]%</td><td>[…]%</td><td>[…] pts</td></tr>
-<tr><td>[Investisseurs historiques]</td><td>[…]%</td><td>[…]%</td><td>[…] pts</td></tr>
-<tr><td>[Nouvel investisseur]</td><td>—</td><td>[…]%</td><td>—</td></tr>
-<tr><td>Pool d'options</td><td>[…]%</td><td>[…]%</td><td>[…] pts</td></tr>
+<div class="ts-clause" data-plain="Le comparatif avant/après : montre concrètement l'effet de la levée sur la part de chacun (entrée du fonds + conversions + pool). Utile pour vérifier que la dilution correspond exactement à ce qui a été négocié — c'est ici que se détectent les écarts avec la term sheet."><div class="ts-label">Comparatif pre-money / post-money</div><div class="ts-content"><table>
+<tr><th>Détenteur</th><th>% avant (FD)</th><th>% après (FD)</th><th>Dilution</th><th>Conforme term sheet ?</th></tr>
+<tr><td>[Fondateurs]</td><td>[…] %</td><td>[…] %</td><td>[−… pts]</td><td>[oui / écart : …]</td></tr>
+<tr><td>[Investisseurs historiques]</td><td>[…] %</td><td>[…] %</td><td>[−… pts]</td><td>[…]</td></tr>
+<tr><td>[AIR convertis]</td><td>[latent]</td><td>[…] %</td><td>—</td><td>[conforme note de calcul]</td></tr>
+<tr><td>[Nouvel investisseur]</td><td>—</td><td>[…] %</td><td>—</td><td>[= % term sheet]</td></tr>
+<tr><td>Pool d'options</td><td>[…] %</td><td>[…] %</td><td>[…]</td><td>[…]</td></tr>
 </table></div></div>
 
 <div class="ts-group" contenteditable="false">Rappels &amp; cohérence</div>
 
-<div class="ts-clause" data-key="valorisation" data-plain="Les paramètres de référence de l'opération : valorisation post-money et prix par action. Ils figent la base de calcul pour les prochains tours."><div class="ts-label">Paramètres de l'opération</div><div class="ts-content"><p>Valorisation pre-money : [...] € ; montant levé : [...] € ; <strong>valorisation post-money : [...] €</strong> ; prix par action : [...] € (nominal [...] € + prime [...] €). La cap table post-money sert de base aux pourcentages et au prix des opérations futures.</p></div></div>
+<div class="ts-clause" data-key="valorisation" data-plain="Les paramètres de référence de l'opération : valorisations, prix par action, montants. Ils figent la base de calcul pour la suite — notamment le prix de référence des futurs BSPCE et le prix plancher éventuel du drag-along."><div class="ts-label">Paramètres de l'opération</div><div class="ts-content"><p>Valorisation pre-money : [...] € (pleinement diluée, pool inclus) ; montant levé : [...] € (dont [...] € de conversions d'AIR/OC) ; <strong>valorisation post-money : [...] €</strong> ; prix par action du tour : [...] € (nominal [...] € + prime [...] €) ; [prix de conversion des AIR : ... € (note de calcul du [DATE])]. Ces paramètres servent de référence : prix minimal des futures attributions de BSPCE ([sous réserve de décote documentée]), base du prix plancher du drag-along ([1,5x] pendant [24] mois selon le pacte), et point de comparaison du prochain tour (au-dessus : up round ; en dessous : down round déclenchant l'anti-dilution).</p></div></div>
 
-<div class="ts-clause" data-plain="La check-list de cohérence : la cap table post-money doit donner exactement les mêmes chiffres que le PV de constatation, les statuts modifiés et le registre à jour. À vérifier avant de la diffuser."><div class="ts-label">Cohérence à vérifier</div><div class="ts-content"><ul>
+<div class="ts-clause" data-key="coherence" data-plain="La check-list de cohérence : la cap table post-money doit donner exactement les mêmes chiffres que le PV de constatation, les statuts modifiés, le certificat du dépositaire et le registre à jour — et le pourcentage du lead doit être celui de la term sheet. À vérifier AVANT diffusion, ligne à ligne."><div class="ts-label">Cohérence à vérifier</div><div class="ts-content"><ul>
 <li>Total des actions et capital cohérents avec les <strong>statuts modifiés</strong> et le futur Kbis.</li>
-<li>Concordance avec le <strong>PV de constatation</strong> de la réalisation définitive et le certificat du dépositaire.</li>
+<li>Concordance avec le <strong>PV de constatation</strong>, le certificat du dépositaire et la note de calcul de conversion des AIR.</li>
 <li>Recoupement ligne à ligne avec le <strong>registre des mouvements de titres mis à jour</strong> et les comptes individuels.</li>
-<li>Pourcentages au capital et pleinement dilué bouclant à <strong>100 %</strong>.</li>
-<li>Date d'arrêté et base de calcul clairement indiquées.</li>
+<li>Le pourcentage pleinement dilué du lead correspond <strong>exactement à la term sheet</strong> ; celui des AIR convertis à la note de calcul.</li>
+<li>Pourcentages au capital et pleinement dilué bouclant à <strong>100 %</strong> (calculs en nombre d'actions, pas en pourcentages copiés).</li>
+<li>Pool : taille conforme au pacte, distinction attribué / réservé.</li>
+<li>Date d'arrêté, base de calcul et hypothèses des instruments restants clairement indiquées.</li>
+<li>Version <strong>figée et archivée</strong> (et contresignée par le lead ou annexée au closing).</li>
 </ul></div></div>
 
-<div class="ts-sign"><p>Cap table post-money arrêtée au [DATE], cohérente avec le PV de réalisation et le registre des mouvements de titres mis à jour.</p><p>Le Président — [NOM]</p></div>
+<div class="ts-sign"><p>Cap table post-money arrêtée au [DATE], cohérente avec le PV de réalisation, les statuts modifiés et le registre des mouvements de titres mis à jour.</p><p>Le Président — [NOM]　　　　　[Contresignée pour accord — l'Investisseur lead : NOM]</p></div>
 <script type="application/json" data-conditions>{
 "valorisation": [
-{"id":"capm_post","type":"option","label":"Pourcentages en pleinement dilué","preview":"Base de référence des investisseurs","html":"<p>Les pourcentages sont exprimés en base <mark class='cond-val'>pleinement diluée</mark> (pool et instruments inclus), conformément à la base de négociation de l'opération.</p>"},
-{"id":"capm_capital","type":"option","label":"Pourcentages au capital émis","preview":"Sur les seules actions émises","html":"<p>Les pourcentages sont exprimés <mark class='cond-val'>au capital émis</mark> (hors instruments non encore convertis), à distinguer de la base pleinement diluée.</p>"}
+{"id":"capm_post","type":"option","label":"Pourcentages en pleinement dilué (référence)","preview":"Base de négociation des investisseurs","html":"<p>Les pourcentages sont exprimés en base <mark class='cond-val'>pleinement diluée</mark> (pool complet et instruments restants inclus, à l'hypothèse la plus dilutive), conformément à la base de négociation de l'opération.</p>"},
+{"id":"capm_capital","type":"option","label":"Double lecture : au capital ET pleinement dilué","preview":"Les deux colonnes, pour éviter tout malentendu","html":"<p>La cap table présente les <mark class='cond-val'>deux bases</mark> côte à côte — au capital émis et pleinement dilué — la base pleinement diluée faisant référence pour les engagements du pacte.</p>"},
+{"id":"capm_reference","type":"seuil","label":"Prix du tour = référence des opérations futures","preview":"BSPCE, drag floor, up/down round","html":"<p>Le prix par action de <mark class='cond-val'>[…] €</mark> devient la référence : prix minimal des <mark class='cond-val'>BSPCE</mark> futurs, base du <mark class='cond-val'>prix plancher du drag</mark>, et seuil de déclenchement de l'<mark class='cond-val'>anti-dilution</mark> au prochain tour.</p>"}
+],
+"coherence": [
+{"id":"capm_coh_termsheet","type":"option","label":"Contrôle final vs term sheet","preview":"Le % du lead doit être exactement celui promis","html":"<p>Le pourcentage pleinement dilué du lead est comparé <mark class='cond-val'>au chiffre de la term sheet</mark> : c'est le contrôle final du closing — tout écart se règle avant la signature, jamais après.</p>"},
+{"id":"capm_coh_contresignature","type":"option","label":"Contresignature par le lead","preview":"Cap table acceptée = plus de contestation possible","html":"<p>La cap table post-money est <mark class='cond-val'>contresignée par l'investisseur lead</mark> ou annexée à la documentation de closing : acceptée par tous à date, elle coupe court à toute contestation ultérieure des pourcentages.</p>"},
+{"id":"capm_coh_registres","type":"option","label":"Réconciliation cinq documents","preview":"PV, certificat, statuts, registre, cap table","html":"<p>La réconciliation formelle porte sur <mark class='cond-val'>cinq documents</mark> : PV de constatation, certificat du dépositaire, statuts modifiés, registre mis à jour et cap table — mêmes nombres partout, au titre près.</p>"}
 ]
 }</script>
 <script type="application/json" data-advice>[
-{"title":"Figer la version post-money","body":"Conservez la cap table post-money datée et signée comme version de référence : c'est la base de tous les calculs jusqu'au prochain tour."},
-{"title":"Vérifier la concordance des chiffres","body":"Le total des actions et le capital doivent coïncider avec les statuts modifiés, le PV de constatation et le registre mis à jour ; tout écart doit être corrigé."},
-{"title":"Raisonner en pleinement dilué","body":"Présentez les pourcentages en base pleinement diluée (pool inclus) : c'est la base de négociation et celle qui sera reprise au tour suivant."},
-{"title":"Contrôler la dilution effective","body":"Comparez pre et post-money pour vérifier que la dilution de chacun correspond exactement à ce qui a été négocié dans la term sheet."},
-{"title":"Synchroniser avec le registre","body":"Tenez la cap table post-money et le registre des mouvements de titres parfaitement alignés : ils doivent se recouper ligne à ligne."}
+{"title":"Figer et faire contresigner la version post-money","body":"Datée, signée, contresignée par le lead (ou annexée au closing) : la cap table acceptée par tous au closing est la meilleure assurance contre les contestations de pourcentages — et la base incontestée du prochain tour."},
+{"title":"Faire le contrôle final contre la term sheet","body":"Le pourcentage pleinement dilué du lead doit être exactement celui négocié : c'est LE contrôle du closing. Un écart découvert après la signature ne se rattrape plus."},
+{"title":"Intégrer chaque AIR converti à son propre prix","body":"Chaque investisseur AIR entre à son prix de conversion (note de calcul à l'appui), distinct du prix du tour : une ligne par souscripteur, jamais de moyenne globale."},
+{"title":"Réconcilier les cinq documents du closing","body":"PV de constatation, certificat du dépositaire, statuts modifiés, registre mis à jour, cap table : mêmes chiffres au titre près — faites la réconciliation formelle avant de diffuser quoi que ce soit."},
+{"title":"Acter les nouvelles références de prix","body":"Le prix du tour devient la référence des BSPCE futurs, du prix plancher du drag et du seuil d'anti-dilution : consignez-le explicitement, ces chiffres reviendront pendant des années."},
+{"title":"Recalculer, ne jamais copier les pourcentages","body":"Travaillez en nombre d'actions et laissez les pourcentages se recalculer : les écarts d'arrondi copiés-collés sont la première source de cap tables fausses."},
+{"title":"Archiver la version avec ses actes sources","body":"La cap table post-money rejoint le dossier de closing avec le PV, le certificat et la note de calcul : c'est ce paquet complet qui sera rouvert au prochain tour."}
 ]</script>
