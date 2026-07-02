@@ -376,6 +376,8 @@ let docAdviceCache = null; // conseils IA spécifiques au document chargé
 let docAdviceIsBaked = false; // true si les conseils proviennent du modèle (data-advice)
 const AI_BIAS = {};   // { [key]: 1..5 } — niveau « Avantage pour les investisseurs » généré par l'IA
 const AI_COND = {};   // { [key]: [{id,label,preview,html}] } — conditions pré-écrites générées par l'IA
+let libSuggestLoading = false; // recherche IA des « clauses disponibles » en cours (bibliothèque)
+let libAbort = null;           // requête « clauses disponibles » en cours (annulable)
 const UNIT  = (n = 1) => (isCustom ? 'paragraphe' : 'clause') + (n > 1 ? 's' : '');
 
 /* Clauses indispensables (non supprimables) et ordre d'affichage des groupes. */
@@ -702,7 +704,9 @@ function renderPanel(key) {
     </div>` : '';
 
   const removeCtrl = isCustom
-    ? ''
+    ? (c._suggested
+      ? `<button class="clause-remove" id="clause-remove" title="Retirer cette clause du document">Retirer du document</button>`
+      : '')
     : ESSENTIAL.has(key)
     ? `<span class="clause-essential">Clause essentielle</span>`
     : `<button class="clause-remove" id="clause-remove" title="Déplacer cette clause vers la bibliothèque">Retirer du contrat</button>`;
@@ -1258,6 +1262,7 @@ const azmVal = {
   par:   document.getElementById('azm-par'),
   verif: document.getElementById('azm-verif'),
   cond:  document.getElementById('azm-cond'),
+  lib:   document.getElementById('azm-lib'),
   full:  document.getElementById('azm-full'),
 };
 function azmSetRow(name, state, val) {
@@ -1276,6 +1281,7 @@ function azmOpen() {
   azmSetRow('par',   'progress', '0 / 0');
   azmSetRow('verif', 'pending',  'En attente');
   azmSetRow('cond',  'pending',  '—');
+  azmSetRow('lib',   'pending',  'En attente');
   azmSetRow('full',  'pending',  'En attente');
 }
 function azmClose() { if (azm) azm.hidden = true; }
@@ -1355,6 +1361,9 @@ async function analyzeFull(btn) {
   };
   azmOpen();
   azmResetCancel(true);
+  // La bibliothèque (clauses du document + clauses disponibles) est l'écran de
+  // résultat de l'analyse : on l'affiche dès le lancement.
+  showLibTab('library');
   try {
     const clauses = [];
     page.querySelectorAll('.ts-clause').forEach(el => {
@@ -1436,7 +1445,23 @@ async function analyzeFull(btn) {
       azmSetRow('par', 'done', '0 / 0');
     }
 
-    // 2) Colonne « À vérifier » : doc personnalisé → doc-advice ; modèle → déjà pré-remplie.
+    // 2) Bibliothèque : clauses du document + clauses disponibles à ajouter.
+    //    Modèle : la bibliothèque embarque déjà ses clauses optionnelles ; document
+    //    libre : l'IA propose les clauses manquantes typiques de ce type de document.
+    bailIfCancelled();
+    if (isCustom) {
+      azmSetRow('lib', 'progress', 'Recherche…');
+      const nLib = await fetchSuggestedClauses(ctrl.signal);
+      bailIfCancelled();
+      azmSetRow('lib', nLib ? 'done' : 'error', nLib ? `${nLib} disponible${nLib > 1 ? 's' : ''}` : 'Aucune proposition');
+    } else {
+      renderLibrary();
+      const nLib = TERMSHEET.filter(c => !c.inDoc).length;
+      azmSetRow('lib', 'done', `${nLib} disponible${nLib > 1 ? 's' : ''}`);
+    }
+    azmBar(80);
+
+    // 3) Colonne « À vérifier » : doc personnalisé → doc-advice ; modèle → déjà pré-remplie.
     //    On conserve le conseil « codé en dur » du modèle (data-advice) : on ne rappelle
     //    l'IA que pour les documents sans conseil embarqué.
     if (isCustom && !docAdviceIsBaked) {
@@ -1453,7 +1478,7 @@ async function analyzeFull(btn) {
     azmRefreshCond();
     azmBar(90);
 
-    // 3) Fenêtre de droite complète = paragraphes enrichis ET « À vérifier » traitée.
+    // 4) Fenêtre de droite complète = paragraphes enrichis ET « À vérifier » traitée.
     const enriched = clauses.filter(c => EXPLAIN[c.key] && EXPLAIN[c.key].plain).length;
     const verifOk = isCustom ? !!(docAdviceCache && docAdviceCache.length) : true;
     const fullOk = total > 0 && enriched >= total && verifOk;
@@ -1652,6 +1677,10 @@ function applyTermsheet(id, html, name) {
   resetAutofillState();
   Object.keys(AI_BIAS).forEach(k => delete AI_BIAS[k]);
   Object.keys(AI_COND).forEach(k => delete AI_COND[k]);
+  // Une recherche de « clauses disponibles » lancée sur l'ancien document ne doit
+  // pas déverser ses suggestions dans le nouveau.
+  if (libAbort) { libAbort.abort(); libAbort = null; }
+  libSuggestLoading = false;
   if (docNameEl) docNameEl.textContent = name || 'Term sheet';
   // Mémorise le dernier document ouvert pour l'accès rapide « Reprendre » des dossiers.
   if (id != null) { try { localStorage.setItem('liquid_last_doc', JSON.stringify({ id, name: name || 'Term sheet' })); } catch {} }
@@ -2257,6 +2286,7 @@ function addToContract(key) {
   renderAdvice();
   countWords();
   paginate();                 // recalcule la mise en page AVANT de défiler (sinon tout se décale)
+  scheduleAutosave();         // insertion programmatique : ne déclenche pas l'événement input
   selectClauseByKey(key, el);
   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
@@ -2270,6 +2300,7 @@ function removeFromContract(key) {
   renderAdvice();
   countWords();
   paginate();                 // recompose les pages après le retrait de la clause
+  scheduleAutosave();         // retrait programmatique : ne déclenche pas l'événement input
   showEmptyPanel();
 }
 
@@ -2284,18 +2315,40 @@ function jumpToClause(key) {
 }
 
 function renderLibrary() {
-  // Document libre : la bibliothèque devient le sommaire des paragraphes (clic = aller au paragraphe).
+  // Document libre : clauses actuelles (clic = aller au paragraphe) + clauses
+  // disponibles proposées par l'analyse IA (clic = ajouter au document).
   if (isCustom) {
-    const list = TERMSHEET.filter(c => c.inDoc);
-    libraryCount.textContent = list.length
-      ? `${list.length} ${UNIT(list.length)} dans ce document`
+    const cur   = TERMSHEET.filter(c => c.inDoc);
+    const avail = TERMSHEET.filter(c => !c.inDoc);
+    libraryCount.textContent = cur.length
+      ? `${cur.length} ${UNIT(cur.length)} dans ce document`
       : 'Document vide';
-    libraryList.innerHTML = list.map(c => `
-      <div class="libitem" data-jump="${c.key}">
-        <div class="libitem__top"><span class="libitem__group">${c.group}</span></div>
-        <div class="libitem__label">${c.label}</div>
-        <button class="libitem__add" data-jump="${c.key}" type="button">Voir le paragraphe</button>
-      </div>`).join('') || '<p class="library__empty">Ce document ne contient pas encore de paragraphe.</p>';
+    let html = '';
+    if (cur.length) {
+      html += `<div class="lib-sep">Dans ce document — ${cur.length} ${UNIT(cur.length)}</div>`;
+      html += cur.map(c => `
+        <div class="libitem" data-jump="${c.key}">
+          <div class="libitem__top"><span class="libitem__group">${advEsc(c.group)}</span></div>
+          <div class="libitem__label">${advEsc(c.label)}</div>
+          <button class="libitem__add libitem__add--see" data-jump="${c.key}" type="button">Voir le paragraphe</button>
+        </div>`).join('');
+    }
+    if (avail.length) {
+      html += `<div class="lib-sep">Clauses disponibles — ${avail.length}</div>`;
+      html += avail.map(c => `
+        <div class="libitem" data-key="${c.key}">
+          <div class="libitem__top"><span class="libitem__group">${advEsc(c.group)}</span></div>
+          <div class="libitem__label">${advEsc(c.label)}</div>
+          ${c.plain ? `<p class="libitem__desc">${advEsc(c.plain)}</p>` : ''}
+          <button class="libitem__add" data-add="${c.key}" type="button">+ Ajouter au document</button>
+        </div>`).join('');
+    } else if (cur.length) {
+      html += `<div class="lib-sep">Clauses disponibles</div>
+        <p class="library__empty">${libSuggestLoading
+          ? 'Recherche de clauses à ajouter…'
+          : 'Cliquez sur « Analyser » pour voir les clauses à ajouter à ce document.'}</p>`;
+    }
+    libraryList.innerHTML = html || '<p class="library__empty">Ce document ne contient pas encore de paragraphe.</p>';
     return;
   }
   const inDoc = TERMSHEET.filter(c => c.inDoc);
@@ -2330,6 +2383,70 @@ libraryList.addEventListener('click', (e) => {
   const jump = e.target.closest('[data-jump]');
   if (jump) jumpToClause(jump.dataset.jump);
 });
+
+/* ---- Clauses disponibles proposées par l'IA (documents personnalisés) ------ */
+// L'analyse (« Analyser ») demande à l'IA les clauses manquantes typiques du
+// document ouvert ; elles apparaissent dans la bibliothèque, prêtes à ajouter.
+
+// Remplace les suggestions non encore ajoutées par la nouvelle liste de l'IA
+// (celles déjà insérées dans le document sont conservées).
+function setSuggestedClauses(items) {
+  TERMSHEET = TERMSHEET.filter(c => !(c._suggested && !c.inDoc));
+  const used = new Set(TERMSHEET.map(c => c.key));
+  (items || []).forEach((s, i) => {
+    if (!s || !s.label || !s.html) return;
+    let key = 'sug' + (i + 1);
+    while (used.has(key)) key += 'x';
+    used.add(key);
+    TERMSHEET.push({
+      key, _suggested: true, inDoc: false, risk: 'low',
+      group: String(s.group || 'Clauses proposées'),
+      label: String(s.label),
+      plain: String(s.plain || ''),
+      watch: String(s.watch || ''),
+      html:  String(s.html),
+    });
+  });
+  EXPLAIN = Object.fromEntries(TERMSHEET.map(c => [c.key, c]));
+  renderLibrary();
+}
+
+async function fetchSuggestedClauses(extSignal) {
+  if (libAbort) libAbort.abort();
+  const ctrl = new AbortController();
+  libAbort = ctrl;
+  // Relayée par la fenêtre de progression : « Annuler l'analyse » annule aussi cet appel.
+  if (extSignal) {
+    if (extSignal.aborted) ctrl.abort();
+    else extSignal.addEventListener('abort', () => ctrl.abort(), { once: true });
+  }
+  libSuggestLoading = true;
+  renderLibrary();
+  let count = 0;
+  try {
+    const title = (docNameEl && docNameEl.textContent)
+      || (page.querySelector('.doc-title') ? page.querySelector('.doc-title').textContent : 'Document');
+    const current = TERMSHEET.filter(c => c.inDoc).map(c => ({ label: c.label, group: c.group }));
+    const r = await fetch('/api/saas/doc-clauses', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', signal: ctrl.signal,
+      body: JSON.stringify({ title, clauses: current, text: (page.innerText || '').slice(0, 12000) }),
+    });
+    const d = await r.json().catch(() => ({}));
+    // Seule la requête encore « propriétaire » peint le résultat (ni annulée,
+    // ni remplacée par un changement de document ou une nouvelle analyse).
+    if (libAbort === ctrl && r.ok && Array.isArray(d.clauses) && d.clauses.length) {
+      libSuggestLoading = false;
+      setSuggestedClauses(d.clauses);
+      count = d.clauses.length;
+    }
+  } catch {}
+  if (libAbort === ctrl) {
+    libAbort = null;
+    if (libSuggestLoading) { libSuggestLoading = false; renderLibrary(); }
+  }
+  return count;
+}
 
 /* ---------- Onglet « Conseil » : points à négocier, par priorité ---------- */
 const adviceList  = document.getElementById('advice-list');
@@ -2957,13 +3074,13 @@ const libViews = {
   fill:    document.getElementById('view-fill'),
   advice:  document.getElementById('view-advice'),
 };
-libTabs.forEach(tab => tab.addEventListener('click', () => {
-  libTabs.forEach(t => t.classList.toggle('is-active', t === tab));
-  const which = tab.dataset.tab;
+function showLibTab(which) {
+  libTabs.forEach(t => t.classList.toggle('is-active', t.dataset.tab === which));
   Object.entries(libViews).forEach(([k, v]) => { v.hidden = k !== which; });
   if (which === 'advice') renderAdvice();
   if (which === 'fill')   renderFill();
-}));
+}
+libTabs.forEach(tab => tab.addEventListener('click', () => showLibTab(tab.dataset.tab)));
 
 /* ---------- Init ---------- */
 renderLibrary();

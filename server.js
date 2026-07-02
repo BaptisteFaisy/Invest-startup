@@ -974,6 +974,70 @@ Règles :
   }
 });
 
+// ─── SaaS : clauses disponibles à ajouter (bibliothèque de l'éditeur) ──────────
+// Reçoit les clauses actuelles du document ; l'IA propose des clauses MANQUANTES
+// typiques de ce type de document, rédigées et prêtes à insérer.
+app.post('/api/saas/doc-clauses', requireAuth, async (req, res) => {
+  if (!zaiClient)
+    return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
+
+  const { title, clauses, text } = req.body ?? {};
+  const current = (Array.isArray(clauses) ? clauses : []).slice(0, 80).map(c => ({
+    label: String(c && c.label ? c.label : '').slice(0, 200),
+    group: String(c && c.group ? c.group : '').slice(0, 120),
+  })).filter(c => c.label);
+
+  const system =
+`Tu es l'assistant juridique de « liquid + », un outil pour fondateurs de startup en levée de fonds.
+On te donne le titre d'UN document juridique, la liste de ses clauses/paragraphes ACTUELS et un extrait de son contenu. Tu proposes des clauses MANQUANTES, typiques de ce type de document, que le fondateur pourrait vouloir ajouter.
+
+Type / titre du document : « ${title || 'Document'} »
+
+Clauses déjà présentes :
+${current.map(c => `- ${c.label}${c.group ? ' (' + c.group + ')' : ''}`).join('\n') || '(aucune)'}
+
+Extrait du document :
+${String(text || '').slice(0, 8000)}
+
+Règles :
+- Propose 4 à 8 clauses ABSENTES du document, réellement utiles pour CE type de document précis (aucun doublon avec les clauses présentes).
+- Chaque clause : "label" (nom court, ≤ 8 mots), "group" (section du document où elle irait ; réutilise si possible un intitulé de section existant), "plain" (1 phrase en langage courant expliquant ce qu'elle fait), "watch" (1 phrase sur le point de vigilance côté fondateur), "html" (texte COMPLET de la clause, rédigé en français juridique, prêt à insérer, en HTML avec des balises <p> ; valeurs à personnaliser [entre crochets]).
+- Rédige des clauses complètes et directement utilisables, pas des résumés.`;
+
+  // Cache par contenu : mêmes clauses présentes + même texte → mêmes propositions.
+  const cacheHash = aiHash('doc-clauses', [title || '', current.map(c => c.label).join('|'), String(text || '').slice(0, 8000)]);
+  const cached = await aiCacheGet(cacheHash);
+  if (cached) return res.json({ clauses: cached, cached: true });
+
+  try {
+    const response = await glmChat({
+      system,
+      messages: [{ role: 'user', content: 'Propose les clauses manquantes à ajouter à ce document.' }],
+      maxTokens: 12000,
+      thinking: true,
+      json: true,
+      jsonHint: 'Format : {"clauses":[{"label":"...","group":"...","plain":"...","watch":"...","html":"<p>...</p>"}]} — 4 à 8 clauses.',
+    });
+    await recordClaudeUsage(req.user.id, response);
+    const data = glmJson(response);
+    const out = (Array.isArray(data.clauses) ? data.clauses : [])
+      .filter(c => c && c.label && c.html)
+      .slice(0, 8)
+      .map(c => ({
+        label: String(c.label).slice(0, 120),
+        group: String(c.group || 'Clauses proposées').slice(0, 120),
+        plain: String(c.plain || '').slice(0, 300),
+        watch: String(c.watch || '').slice(0, 400),
+        html:  String(c.html),
+      }));
+    if (out.length) await aiCacheSet(cacheHash, out);
+    res.json({ clauses: out });
+  } catch (err) {
+    console.error('Claude doc-clauses error:', err.message);
+    res.status(502).json({ error: 'L\'assistant IA est momentanément indisponible.' });
+  }
+});
+
 // ─── SaaS : analyse d'un document → liste des « choses à faire » ───────────────
 app.post('/api/saas/doc-analyze', requireAuth, async (req, res) => {
   if (!zaiClient)
