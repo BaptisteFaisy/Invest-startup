@@ -1512,11 +1512,17 @@ const docNameEl = document.querySelector('.topbar__doc');
 const urlFolderId = new URLSearchParams(location.search).get('folder');
 
 // Nom proposé pour le document (à partir du sous-titre LUMIO SAS, etc.).
+// Sans titre détecté dans la page (document importé), on garde le nom affiché
+// dans la barre du haut plutôt que de renommer le document « Term sheet ».
 function termsheetName() {
   const sub = page.querySelector('.doc-sub');
   const title = page.querySelector('.doc-title');
   const company = sub ? sub.textContent.trim() : '';
-  const t = title ? title.textContent.trim() : 'Term sheet';
+  const t = title ? title.textContent.trim() : '';
+  if (!t) {
+    const shown = docNameEl ? docNameEl.textContent.trim().replace(/\.[^.]+$/, '') : '';
+    return (shown || 'Term sheet').slice(0, 120);
+  }
   return (company ? `${t} — ${company}` : t).slice(0, 120);
 }
 

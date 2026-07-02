@@ -1999,9 +1999,33 @@ function topLevelBlocks(html) {
   return blocks;
 }
 
-const isHeadingBlock = (b) => /^<h[1-6]\b/i.test(b);
 // Début d'article numéroté (fallback : « ARTICLE 5 », « 5. », « 5.1 », « III. »).
 const SECTION_RE = /^\s*(ARTICLE\s+\d+|TITRE\s+[IVXLC\d]+|\d+(?:\.\d+)*[.)]\s|[IVXLC]+[.)]\s)/i;
+
+// Paragraphe court entièrement en gras = titre « visuel » (DOCX sans styles Titre
+// Word, typiquement issu d'une conversion PDF → DOCX) : traité comme un titre de
+// clause pour que ces titres ne tombent pas dans le corps du texte.
+function boldHeadingText(block) {
+  const m = /^<p\b[^>]*>([\s\S]*)<\/p>\s*$/i.exec(String(block).trim());
+  if (!m) return null;
+  const inner = m[1];
+  if (/<(img|br|table)\b/i.test(inner)) return null;
+  // Rien ne doit rester une fois les segments en gras retirés.
+  if (stripHtml(inner.replace(/<(strong|b)\b[^>]*>[\s\S]*?<\/\1>/gi, ''))) return null;
+  const text = stripHtml(inner);
+  if (!text || text.length > 100) return null;
+  // Une phrase complète (ponctuation finale) n'est pas un titre — sauf numérotée.
+  if (/[.;!?]$/.test(text) && !SECTION_RE.test(text)) return null;
+  return text;
+}
+
+// Niveau de titre effectif d'un bloc : 1-6 pour <h1>-<h6>, 2 pour un pseudo-titre
+// en gras, 0 pour le corps de texte.
+function headingLevel(block) {
+  const hm = /^<h([1-6])\b/i.exec(block);
+  if (hm) return +hm[1];
+  return boldHeadingText(block) ? 2 : 0;
+}
 
 function clauseBlock(key, label, bodyHtml) {
   const safeLabel = escapeHtml(label || 'Clause').slice(0, 120) || 'Clause';
@@ -2011,28 +2035,38 @@ function clauseBlock(key, label, bodyHtml) {
 }
 
 function docxHtmlToEditorPage(rawHtml, docName) {
+  const baseName = String(docName || 'Document').replace(/\.[^.]+$/, '').trim() || 'Document';
   const blocks = topLevelBlocks(rawHtml).filter(b => stripHtml(b) || /<(img|table)/i.test(b));
-  if (!blocks.length) return clauseBlock('c1', (docName || 'Document').replace(/\.[^.]+$/, '') || 'Document', '<p></p>');
+  if (!blocks.length) return clauseBlock('c1', baseName, '<p></p>');
 
   let cur = null, n = 0;
+  const levels = blocks.map(headingLevel);
 
-  if (blocks.some(isHeadingBlock)) {
-    // Document structuré (vrais titres Word). On reconstruit : 1er titre = titre du
-    // document ; <h1> suivants = sections ; <h2>..<h6> = clauses ; 1er paragraphe
-    // après le titre = sous-titre. Cela reflète l'export et conserve la structure.
+  if (levels.some(l => l > 0)) {
+    // Document structuré. Le 1er bloc, s'il est un titre, devient le titre du
+    // document, et le paragraphe qui le suit son sous-titre. Un niveau de titre ne
+    // devient un bandeau de section que si des titres PLUS PROFONDS existent aussi
+    // (export de l'éditeur : <h1> sections + <h2> clauses) ; si le document
+    // n'utilise qu'un seul niveau (Word « tout en Titre 1 », DOCX issu d'un PDF),
+    // chaque titre est un titre de clause — jamais le nom du fichier.
+    const hasDocTitle = levels[0] > 0;
+    const bodyLevels = [...new Set(levels.slice(hasDocTitle ? 1 : 0).filter(l => l > 0))];
+    const groupLevel = bodyLevels.length > 1 ? Math.min(...bodyLevels) : 0;
+
     const out = [];
-    let titleSet = false, subSet = false;
+    let subSet = false;
     const flush = () => { if (cur) { out.push(clauseBlock(cur.key, cur.label, cur.body.join('\n'))); cur = null; } };
-    blocks.forEach(b => {
-      const hm = /^<h([1-6])\b/i.exec(b);
-      if (hm) {
+    blocks.forEach((b, i) => {
+      const lvl = levels[i];
+      if (lvl > 0) {
         const text = stripHtml(b) || 'Section';
-        if (!titleSet) { out.push(`<h1 class="doc-title">${escapeHtml(text)}</h1>`); titleSet = true; return; }
-        if (+hm[1] === 1) { flush(); out.push(`<div class="ts-group" contenteditable="false">${escapeHtml(text)}</div>`); }
-        else { flush(); n++; cur = { key: 'c' + n, label: text, body: [] }; }
+        if (i === 0 && hasDocTitle) { out.push(`<h1 class="doc-title">${escapeHtml(text)}</h1>`); return; }
+        flush();
+        if (lvl === groupLevel) out.push(`<div class="ts-group" contenteditable="false">${escapeHtml(text)}</div>`);
+        else { n++; cur = { key: 'c' + n, label: text, body: [] }; }
       } else {
-        if (titleSet && !subSet && !cur) { out.push(`<p class="doc-sub">${escapeHtml(stripHtml(b))}</p>`); subSet = true; return; }
-        if (!cur) { n++; cur = { key: 'c' + n, label: docName || 'Préambule', body: [] }; }
+        if (hasDocTitle && !subSet && !cur && out.length === 1) { out.push(`<p class="doc-sub">${escapeHtml(stripHtml(b))}</p>`); subSet = true; return; }
+        if (!cur) { n++; cur = { key: 'c' + n, label: 'Préambule', body: [] }; }
         cur.body.push(b);
       }
     });
