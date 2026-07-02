@@ -1733,6 +1733,19 @@ if (urlDocId && /^\d+$/.test(urlDocId)) loadTermsheet(Number(urlDocId));
       collapsed = localStorage.getItem(storeKey + '_collapsed') === '1';
     } catch {}
 
+    // Plafond dynamique : la colonne peut prendre toute la place disponible
+    // tant que le document conserve au moins MIN_DOC px (l'autre colonne,
+    // masquée ou repliée, mesure 0).
+    const MIN_DOC = 300;
+    const otherSel = side === 'left' ? '.panel' : '.library';
+    function dynMax() {
+      const total = ws.clientWidth;
+      if (!total) return max;
+      const other = ws.querySelector(otherSel);
+      const room = total - 12 - MIN_DOC - (other ? other.offsetWidth : 0);
+      return Math.max(min, Math.min(max, room));
+    }
+
     function render() {
       if (collapsed) {
         ws.style.setProperty(varName, '0px');
@@ -1740,7 +1753,7 @@ if (urlDocId && /^\d+$/.test(urlDocId)) loadTermsheet(Number(urlDocId));
         g.classList.add('is-collapsed');
         g.title = 'Cliquez ou glissez pour rouvrir';
       } else {
-        if (openWidth) ws.style.setProperty(varName, openWidth);
+        if (openWidth) ws.style.setProperty(varName, Math.min(parseInt(openWidth, 10) || min, dynMax()) + 'px');
         else ws.style.removeProperty(varName);
         ws.classList.remove(collClass);
         g.classList.remove('is-collapsed');
@@ -1767,12 +1780,13 @@ if (urlDocId && /^\d+$/.test(urlDocId)) loadTermsheet(Number(urlDocId));
       // Reouvre immédiatement si la colonne était repliée.
       if (collapsed) { collapsed = false; render(); persist(); }
       const rect = ws.getBoundingClientRect();
+      const cap = dynMax();
       const move = (ev) => {
         dragged = true;
         let w = side === 'left' ? (ev.clientX - rect.left) : (rect.right - ev.clientX);
         w = Math.round(w);
         lastW = w;
-        ws.style.setProperty(varName, Math.max(0, Math.min(max, w)) + 'px');
+        ws.style.setProperty(varName, Math.max(0, Math.min(cap, w)) + 'px');
       };
       const up = () => {
         g.classList.remove('is-drag');
@@ -1785,7 +1799,7 @@ if (urlDocId && /^\d+$/.test(urlDocId)) loadTermsheet(Number(urlDocId));
           collapsed = true;
           render(); persist(); reflow();
         } else {
-          const w = lastW < min ? min : Math.min(max, lastW);
+          const w = lastW < min ? min : Math.min(cap, lastW);
           openWidth = w + 'px';
           ws.style.setProperty(varName, openWidth);
           persist(); reflow();
@@ -1801,6 +1815,15 @@ if (urlDocId && /^\d+$/.test(urlDocId)) loadTermsheet(Number(urlDocId));
       try { localStorage.removeItem(storeKey); } catch {}
       ws.style.removeProperty(varName);
       reflow();
+    });
+
+    // La place disponible change avec la fenêtre : on ré-applique la largeur
+    // mémorisée (plafonnée) une fois le redimensionnement terminé. La
+    // repagination globale (150 ms) passe juste après.
+    let rzT = 0;
+    window.addEventListener('resize', () => {
+      clearTimeout(rzT);
+      rzT = setTimeout(render, 120);
     });
   }
   bind('gutter-left',  '--lib-w',   'liquid_lib_w',   'left',  200, 520, 120);

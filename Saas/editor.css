@@ -307,20 +307,20 @@
 .chat__send:disabled { opacity: 0.5; cursor: default; }
 
 /* ---------- Responsive ----------
-   La bibliothèque (gauche) reste visible à toutes les largeurs : sa largeur est
-   simplement plafonnée pour préserver la place du document, et elle reste
-   repliable via sa poignée (#gutter-left). Seul le panneau droit disparaît
-   en dessous de 1040px. */
+   La bibliothèque (gauche) reste visible et librement redimensionnable à toutes
+   les largeurs : seules les largeurs PAR DÉFAUT changent par palier. La limite
+   haute réelle est calculée par le JS (setupResize), qui garantit ~300px au
+   document. Seul le panneau droit disparaît en dessous de 1040px. */
 @media (max-width: 1280px) {
-  .workspace { grid-template-columns: min(var(--lib-w, 290px), 240px) 6px minmax(0, 1fr) 6px min(var(--panel-w, 400px), 330px); }
+  .workspace { grid-template-columns: var(--lib-w, 240px) 6px minmax(0, 1fr) 6px var(--panel-w, 330px); }
 }
 @media (max-width: 1040px) {
-  .workspace { grid-template-columns: min(var(--lib-w, 290px), 220px) 6px minmax(0, 1fr); }
+  .workspace { grid-template-columns: var(--lib-w, 220px) 6px minmax(0, 1fr); }
   .panel, #gutter-right { display: none; }
   .page { padding: 48px 40px 60px; }
 }
 @media (max-width: 700px) {
-  .workspace { grid-template-columns: min(var(--lib-w, 290px), 190px) 6px minmax(0, 1fr); }
+  .workspace { grid-template-columns: var(--lib-w, 200px) 6px minmax(0, 1fr); }
   .editor-canvas { padding: 20px 12px 60px; }
   .page { padding: 40px 24px 50px; }
 }
