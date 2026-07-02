@@ -1101,6 +1101,93 @@ Règles :
   }
 });
 
+// ─── SaaS : comparaison IA de deux versions successives d'un document ──────────
+// Reçoit l'id d'une ANCIENNE et d'une NOUVELLE version (documents de l'utilisateur),
+// extrait le texte de chacune et demande à l'IA ce qui a changé, du point de vue
+// du fondateur. Résultat mis en cache par empreinte des deux contenus.
+app.post('/api/saas/doc-compare', requireAuth, async (req, res) => {
+  if (!zaiClient)
+    return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
+
+  const oldId = Number(req.body?.oldId);
+  const newId = Number(req.body?.newId);
+  if (!oldId || !newId) return res.status(400).json({ error: 'oldId et newId requis' });
+
+  const [oldDoc, newDoc] = await Promise.all([
+    col('saas_documents').findOne({ id: oldId, user_id: req.user.id }),
+    col('saas_documents').findOne({ id: newId, user_id: req.user.id }),
+  ]);
+  if (!oldDoc || !newDoc) return res.status(404).json({ error: 'Une des versions est introuvable.' });
+
+  const meta = {
+    old: { id: oldId, name: oldDoc.name, date: oldDoc.updated_at || oldDoc.created_at, kind: oldDoc.kind || 'file' },
+    new: { id: newId, name: newDoc.name, date: newDoc.updated_at || newDoc.created_at, kind: newDoc.kind || 'file' },
+  };
+
+  const [oldText, newText] = await Promise.all([docPlainText(oldDoc), docPlainText(newDoc)]);
+  if (!oldText || !newText)
+    return res.status(422).json({ error: 'Impossible d\'extraire le texte d\'une des versions (format non supporté — image, tableur — ou fichier vide). La comparaison IA fonctionne pour les PDF, les Word et les documents éditables.' });
+
+  const cacheHash = aiHash('doc-compare', [oldText.slice(0, 14000), newText.slice(0, 14000)]);
+  const cached = await aiCacheGet(cacheHash);
+  if (cached) return res.json({ ...cached, meta, cached: true });
+
+  const system =
+`Tu es l'assistant juridique de « liquid + », un outil pour fondateurs de startup en levée de fonds.
+On te donne DEUX versions successives d'UN MÊME document juridique : une ANCIENNE version et une NOUVELLE version. Tu compares les deux et expliques, du point de vue du fondateur, ce qui a changé et pourquoi c'est important.
+
+Titre du document : « ${newDoc.name || 'Document'} »
+
+=== ANCIENNE VERSION ===
+${oldText.slice(0, 14000)}
+
+=== NOUVELLE VERSION ===
+${newText.slice(0, 14000)}
+
+Règles :
+- Repère les changements RÉELS et concrets entre les deux versions : clauses ajoutées, supprimées, montants / dates / pourcentages / durées modifiés, formulations renforcées ou affaiblies, obligations nouvelles.
+- Ignore les différences purement cosmétiques (mise en page, ponctuation) SAUF si elles changent le sens.
+- Pour chaque changement : "heading" (titre court, ≤ 8 mots), "nature" ('ajout' | 'suppression' | 'modification'), "before" (ce que disait l'ancienne version, court ; "" si c'est un ajout), "after" (ce que dit la nouvelle version, court ; "" si c'est une suppression), "impact" (1 phrase sur la conséquence concrète côté fondateur), "severity" ('haute' | 'moyenne' | 'basse' selon l'importance du changement pour le fondateur).
+- "summary" : 2 à 3 phrases de synthèse de l'évolution entre les deux versions.
+- "verdict" : une expression courte parmi 'Favorable au fondateur', 'Plutôt neutre', 'Vigilance requise', 'Défavorable au fondateur'.
+- "recommendation" : 1 à 2 phrases de conseil concret pour le fondateur au vu de ces changements.
+- Classe les changements du plus important au moins important pour le fondateur.
+- Si les deux versions sont identiques ou quasi identiques, indique-le dans "summary" et renvoie "changes" vide.`;
+
+  try {
+    const response = await glmChat({
+      system,
+      messages: [{ role: 'user', content: 'Compare l\'ancienne et la nouvelle version, et détaille les changements.' }],
+      maxTokens: 8000,
+      thinking: true,
+      json: true,
+      jsonHint: 'Format : {"summary":"...","verdict":"Vigilance requise","changes":[{"heading":"...","nature":"modification","before":"...","after":"...","impact":"...","severity":"moyenne"}],"recommendation":"..."}',
+    });
+    await recordClaudeUsage(req.user.id, response);
+    const data = glmJson(response);
+    const natures    = new Set(['ajout', 'suppression', 'modification']);
+    const severities = new Set(['haute', 'moyenne', 'basse']);
+    const result = {
+      summary: typeof data.summary === 'string' ? data.summary : '',
+      verdict: typeof data.verdict === 'string' ? data.verdict : '',
+      changes: Array.isArray(data.changes) ? data.changes.filter(c => c && (c.heading || c.impact)).slice(0, 40).map(c => ({
+        heading:  String(c.heading || '').slice(0, 160),
+        nature:   natures.has(c.nature) ? c.nature : 'modification',
+        before:   String(c.before || '').slice(0, 600),
+        after:    String(c.after || '').slice(0, 600),
+        impact:   String(c.impact || '').slice(0, 600),
+        severity: severities.has(c.severity) ? c.severity : 'moyenne',
+      })) : [],
+      recommendation: typeof data.recommendation === 'string' ? data.recommendation : '',
+    };
+    if (result.summary || result.changes.length) await aiCacheSet(cacheHash, result);
+    res.json({ ...result, meta });
+  } catch (err) {
+    console.error('Claude doc-compare error:', err.message);
+    res.status(502).json({ error: 'L\'assistant IA est momentanément indisponible.' });
+  }
+});
+
 // ─── SaaS : remplissage automatique des champs depuis les documents importés ───
 // Extrait (et met en cache dans le document) le texte brut d'un document importé
 // (PDF via pdf-parse, Word via mammoth, TXT tel quel). Renvoie '' si inexploitable.
@@ -1136,6 +1223,22 @@ async function extractImportedText(doc) {
     { $set: { extracted_text: text, extracted_at: new Date().toISOString() } }
   );
   return text;
+}
+
+// Texte brut lisible d'un document, quel que soit son type : term sheet éditée
+// (HTML → texte) ou fichier importé (PDF / Word / TXT via extractImportedText).
+// Sert à la comparaison de versions par l'IA.
+async function docPlainText(doc) {
+  if (!doc) return '';
+  if (doc.kind === 'termsheet') {
+    return String(doc.html || '')
+      .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+      .replace(/\s+/g, ' ').trim().slice(0, 20000);
+  }
+  return await extractImportedText(doc);
 }
 
 // Reçoit la liste des champs [entre crochets] du document en cours d'édition,
@@ -1672,6 +1775,57 @@ app.put('/api/saas/folders/:id/checklist', requireAuth, async (req, res) => {
   res.json({ success: true, items_state: state });
 });
 
+// Déposer une NOUVELLE VERSION d'un document sur un élément de la roadlist :
+// l'ancien document lié est archivé dans `versions` (historique, le plus récent en
+// tête) et le nouveau devient le document courant. La validation « final » et
+// l'analyse précédente sont réinitialisées (le nouveau document est à re-vérifier).
+// L'ancienne version reste stockée (marquée `is_version`) pour la comparaison IA.
+app.put('/api/saas/folders/:id/checklist/version', requireAuth, async (req, res) => {
+  const id     = Number(req.params.id);
+  const slug   = (req.body?.slug ?? '').toString().trim();
+  const rawDoc = req.body?.document_id;
+  if (!slug) return res.status(400).json({ error: 'Élément de checklist requis' });
+  if (rawDoc == null || rawDoc === '') return res.status(400).json({ error: 'Document requis' });
+
+  const folder = await col('saas_folders').findOne({ id, user_id: req.user.id });
+  if (!folder) return res.status(404).json({ error: 'Dossier introuvable' });
+
+  const newId  = Number(rawDoc);
+  const newDoc = await col('saas_documents').findOne({ id: newId, user_id: req.user.id });
+  if (!newDoc) return res.status(404).json({ error: 'Document introuvable' });
+
+  const state = { ...(folder.items_state || {}) };
+  const cur   = { ...(state[slug] || {}) };
+  const oldId = cur.document_id;
+
+  const versions = Array.isArray(cur.versions) ? cur.versions.slice() : [];
+  if (oldId != null && oldId !== newId) {
+    const oldDoc = await col('saas_documents').findOne(
+      { id: oldId, user_id: req.user.id }, { projection: { name: 1 } });
+    versions.unshift({
+      document_id: oldId,
+      name: oldDoc ? oldDoc.name : ('Document #' + oldId),
+      archived_at: new Date().toISOString(),
+    });
+    // L'ancienne version reste rangée dans la phase mais marquée pour ne pas
+    // réapparaître comme fichier libre ni dans les sélecteurs.
+    await col('saas_documents').updateOne(
+      { id: oldId, user_id: req.user.id }, { $set: { is_version: true, folder_id: id } });
+  }
+
+  cur.document_id = newId;
+  cur.versions    = versions.slice(0, 30);
+  cur.final       = false;
+  delete cur.todos;
+  delete cur.analysis_at;
+  state[slug] = cur;
+
+  await col('saas_documents').updateOne(
+    { id: newId, user_id: req.user.id }, { $set: { folder_id: id }, $unset: { is_version: '' } });
+  await col('saas_folders').updateOne({ id, user_id: req.user.id }, { $set: { items_state: state } });
+  res.json({ success: true, items_state: state });
+});
+
 // ─── SaaS : stockage de documents (par utilisateur) ───────────────────────────
 function publicDoc(d) {
   const { _id, filename, user_id, data, ...rest } = d;
@@ -1794,7 +1948,16 @@ app.delete('/api/saas/documents/:id', requireAuth, async (req, res) => {
     let changed = false;
     const st = { ...f.items_state };
     for (const k of Object.keys(st)) {
-      if (st[k] && st[k].document_id === id) { delete st[k]; changed = true; }
+      if (!st[k]) continue;
+      if (st[k].document_id === id) { delete st[k]; changed = true; continue; }
+      // Retire aussi ce document de l'historique des versions le cas échéant.
+      if (Array.isArray(st[k].versions)) {
+        const kept = st[k].versions.filter(v => v && v.document_id !== id);
+        if (kept.length !== st[k].versions.length) {
+          st[k] = { ...st[k], versions: kept };
+          changed = true;
+        }
+      }
     }
     if (changed) await col('saas_folders').updateOne({ id: f.id, user_id: req.user.id }, { $set: { items_state: st } });
   }

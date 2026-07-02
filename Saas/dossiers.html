@@ -187,6 +187,8 @@
     .bsa-item__note { display: inline-block; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 7px; border-radius: 99px; margin-left: 8px; vertical-align: middle; }
     .bsa-item__note--req { background: rgba(220,38,38,0.1); color: #dc2626; }
     .bsa-item__note--opt { background: rgba(8,9,12,0.06); color: #fff; }
+    .bsa-item__ver { display: inline-block; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; padding: 1px 6px; border-radius: 99px; background: rgba(59,130,246,0.12); color: #2563eb; vertical-align: middle; }
+    .bsa-item__vermeta { font-size: 11.5px; }
 
     @media (max-width: 680px) {
       .file__actions .fbtn { padding: 7px 9px; }
@@ -701,7 +703,11 @@
           ? '<span class="bsa-item__note bsa-item__note--opt">Si applicable</span>'
           : '';
 
-      const pendingName = !linked ? pendingSlots[f.id + ':' + slug] : null;
+      const pendingName = pendingSlots[f.id + ':' + slug] || null;
+      const versions    = Array.isArray(st.versions) ? st.versions : [];
+      const verNote     = linked && versions.length
+        ? ` <span class="bsa-item__ver">v${versions.length + 1}</span> <span class="bsa-item__vermeta">· ${versions.length} version${versions.length > 1 ? 's' : ''} précédente${versions.length > 1 ? 's' : ''}</span>`
+        : '';
       const li = document.createElement('li');
       li.className = 'bsa-item' + (linked ? ' bsa-item--done' : '');
       li.innerHTML = `
@@ -709,8 +715,9 @@
           <div class="bsa-item__label"><span class="bsa-item__name">${esc(item)}</span>${badge}</div>
           <div class="bsa-item__actions"></div>
         </div>
-        ${linked ? `<div class="bsa-item__file" title="${esc(doc.name)}">📎 ${esc(doc.name)}</div>`
-          : pendingName ? `<div class="bsa-item__file bsa-item__file--pending">📎 Import de « ${esc(pendingName)} »…</div>` : ''}`;
+        ${linked ? `<div class="bsa-item__file" title="${esc(doc.name)}">📎 ${esc(doc.name)}${verNote}</div>` : ''}
+        ${linked && pendingName ? `<div class="bsa-item__file bsa-item__file--pending">⬆ Nouvelle version « ${esc(pendingName)} »…</div>` : ''}
+        ${!linked && pendingName ? `<div class="bsa-item__file bsa-item__file--pending">📎 Import de « ${esc(pendingName)} »…</div>` : ''}`;
       const acts = li.querySelector('.bsa-item__actions');
 
       // Générer un modèle pré-rempli (si un modèle existe — alias inclus — et qu'aucun
@@ -753,6 +760,18 @@
           dl.href = '/api/saas/documents/' + doc.id + '/download';
           acts.appendChild(dl);
         }
+        // Comparer avec la version précédente (analyse IA) — visible dès qu'un
+        // historique existe pour ce document.
+        if (versions.length) {
+          const cmp = document.createElement('a');
+          cmp.className = 'fbtn fbtn--mini fbtn--accent';
+          cmp.textContent = '⇄ Comparer';
+          cmp.title = 'Comparer cette version avec la précédente (analyse IA)';
+          cmp.href = 'compare.html?new=' + doc.id + '&old=' + versions[0].document_id
+            + '&folder=' + f.id + '&slug=' + encodeURIComponent(slug);
+          acts.appendChild(cmp);
+        }
+
         // Valider / Annuler la validation du document lié.
         const valBadge = document.createElement('span');
         valBadge.className = 'fbtn--status' + (final ? ' fbtn--status--ok' : '');
@@ -1230,7 +1249,7 @@
       pickCtx = { folderId, slug };
       pickTitle.textContent = 'Ajouter — ' + label;
       pickErr.classList.remove('is-shown'); pickErr.textContent = '';
-      const opts = docs.map(d => `<option value="${d.id}">${esc(d.name)}</option>`).join('');
+      const opts = docs.filter(d => !d.is_version).map(d => `<option value="${d.id}">${esc(d.name)}</option>`).join('');
       pickSelect.innerHTML = opts || '<option value="">Aucun document enregistré</option>';
       pickSelect.disabled = !opts;
       pick.classList.add('is-open');
@@ -1249,7 +1268,10 @@
       if (!docId) { pickShowErr('Choisissez un document.'); return; }
       const ctx = pickCtx;
       closePicker();
-      linkDoc(ctx.folderId, ctx.slug, Number(docId));
+      // Slot déjà rempli avec un autre document → nouvelle version (archivage) ;
+      // sinon simple liaison.
+      if (isSlotLinked(ctx.folderId, ctx.slug)) addVersion(ctx.folderId, ctx.slug, Number(docId));
+      else linkDoc(ctx.folderId, ctx.slug, Number(docId));
     });
 
     // Depuis l'ordinateur : téléverser dans la phase puis lier.
@@ -1265,8 +1287,12 @@
         const r = await fetch('/api/saas/documents', { method: 'POST', credentials: 'include', body: fd });
         const data = await r.json().catch(() => ({}));
         if (!r.ok) { pickShowErr(data.error || 'Import échoué.'); return; }
+        if (data.document) docs.push(data.document);
         const newId = data.document && data.document.id;
-        if (newId != null) await linkDoc(ctx.folderId, ctx.slug, newId);
+        if (newId != null) {
+          if (isSlotLinked(ctx.folderId, ctx.slug)) await addVersion(ctx.folderId, ctx.slug, newId);
+          else await linkDoc(ctx.folderId, ctx.slug, newId);
+        }
         closePicker();
       } catch { pickShowErr('Impossible de joindre le serveur.'); }
       finally { pickFile.value = ''; }
@@ -1309,6 +1335,57 @@
       try {
         const r = await putChecklist(folderId, slug, documentId);
         if (!r.ok) { const d = await r.json().catch(() => ({})); showErr(d.error || 'Action échouée.'); load(); return false; }
+        return true;
+      } catch { showErr('Impossible de joindre le serveur.'); load(); return false; }
+    }
+
+    // Vrai si l'élément de roadlist a déjà un document courant lié.
+    function isSlotLinked(folderId, slug) {
+      const f = folders.find(x => x.id === folderId);
+      const st = f && f.items_state && f.items_state[slug];
+      return !!(st && st.document_id != null);
+    }
+
+    // Miroir local de l'archivage d'une version (voir /checklist/version côté serveur) :
+    // le document courant est déplacé en tête de l'historique `versions`, le nouveau
+    // devient courant, et la validation / l'analyse précédentes sont réinitialisées.
+    function applyVersion(folderId, slug, newId) {
+      const f = folders.find(x => x.id === folderId);
+      if (!f) return;
+      f.items_state = f.items_state || {};
+      const cur   = { ...(f.items_state[slug] || {}) };
+      const oldId = cur.document_id;
+      const versions = Array.isArray(cur.versions) ? cur.versions.slice() : [];
+      if (oldId != null && oldId !== newId) {
+        const oldDoc = docs.find(d => d.id === oldId);
+        versions.unshift({
+          document_id: oldId,
+          name: oldDoc ? oldDoc.name : ('Document #' + oldId),
+          archived_at: new Date().toISOString(),
+        });
+      }
+      cur.document_id = newId;
+      cur.versions    = versions;
+      cur.final       = false;
+      delete cur.todos;
+      delete cur.analysis_at;
+      f.items_state[slug] = cur;
+      const nd = docs.find(d => d.id === newId);
+      if (nd) nd.folder_id = folderId;
+    }
+
+    // Enregistre une nouvelle version sur un slot déjà rempli : archivage optimiste
+    // à l'écran, requête en arrière-plan (resynchronisation depuis le serveur si échec).
+    async function addVersion(folderId, slug, newId) {
+      showErr('');
+      applyVersion(folderId, slug, newId);
+      render();
+      try {
+        const r = await fetch('/api/saas/folders/' + folderId + '/checklist/version', {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', body: JSON.stringify({ slug, document_id: newId }),
+        });
+        if (!r.ok) { const d = await r.json().catch(() => ({})); showErr(d.error || 'Enregistrement de la version échoué.'); load(); return false; }
         return true;
       } catch { showErr('Impossible de joindre le serveur.'); load(); return false; }
     }
@@ -1585,6 +1662,9 @@
     async function uploadDocToSlot(file, folderId, slug) {
       if (!file) return;
       showErr('');
+      // Un document est déjà lié ? Le fichier déposé est une NOUVELLE VERSION :
+      // l'ancien est archivé et le nouveau devient courant.
+      const replacing = isSlotLinked(folderId, slug);
       const key = folderId + ':' + slug;
       pendingSlots[key] = file.name;
       render();
@@ -1598,8 +1678,9 @@
         if (!r.ok) { showErr(data.error || 'Import échoué.'); render(); return; }
         if (data.document) docs.push(data.document);
         const newId = data.document && data.document.id;
-        if (newId != null) linkDoc(folderId, slug, newId);
-        else load();
+        if (newId == null) { load(); return; }
+        if (replacing) addVersion(folderId, slug, newId);
+        else linkDoc(folderId, slug, newId);
       } catch {
         delete pendingSlots[key];
         showErr('Impossible de joindre le serveur.');

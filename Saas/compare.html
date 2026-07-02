@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>liquid + — Comparer des versions</title>
+  <meta name="description" content="Comparaison de deux versions d'un document, alimentée par l'IA." />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=6" />
+  <link rel="stylesheet" href="editor.css?v=7" />
+  <style>
+    .app { visibility: hidden; }
+    .app.ready { visibility: visible; }
+    .app { height: auto; overflow: visible; display: block; }
+    body, .app { background: #08090c !important; }
+
+    /* Topbar noir (identique aux autres pages du SaaS) */
+    .topbar { background: #08090c !important; border-bottom: 1px solid rgba(255,255,255,0.07) !important; }
+    .topbar .brand { color: #fff !important; display: flex; align-items: center; gap: 8px; }
+    .topbar .brand__plus { color: #fff !important; }
+    .topbar .brand__logo { display: block; flex: none; }
+    .topbar__doc { color: #fff !important; border-left-color: rgba(255,255,255,0.2) !important; }
+    .topbar .btn--ghost { color: #fff !important; border-color: rgba(255,255,255,0.35) !important; }
+    .topbar .btn--ghost:hover { color: #fff !important; border-color: rgba(255,255,255,0.65) !important; }
+
+    .cmp { max-width: 940px; margin: 0 auto; padding: 40px 28px 90px; }
+    .cmp__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
+    .cmp__title { font-size: 30px; letter-spacing: -0.03em; color: #fff; margin-top: 6px; }
+    .cmp__sub { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 8px; }
+
+    /* Bandeau des deux versions (ancienne → nouvelle) */
+    .vsrow { display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; gap: 14px; margin: 26px 0 8px; }
+    .vscard { background: #fff; border-radius: 16px; padding: 16px 18px; box-shadow: 0 10px 34px rgba(0,0,0,0.35); display: flex; flex-direction: column; gap: 8px; }
+    .vscard__tag { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 9px; border-radius: 99px; align-self: flex-start; }
+    .vscard__tag--old { background: rgba(8,9,12,0.06); color: #6b6b78; }
+    .vscard__tag--new { background: rgba(59,130,246,0.12); color: #2563eb; }
+    .vscard__name { font-weight: 700; font-size: 15.5px; letter-spacing: -0.01em; color: #08090c; word-break: break-word; }
+    .vscard__meta { font-family: 'Archivo', sans-serif; font-size: 12.5px; color: #6b6b78; }
+    .vscard__dl { align-self: flex-start; margin-top: 4px; font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; color: #08090c; border: 1px solid rgba(8,9,12,0.2); border-radius: 8px; padding: 6px 11px; text-decoration: none; }
+    .vscard__dl:hover { border-color: rgba(8,9,12,0.55); }
+    .vsarrow { align-self: center; font-size: 24px; color: rgba(255,255,255,0.55); }
+    @media (max-width: 680px) {
+      .vsrow { grid-template-columns: 1fr; }
+      .vsarrow { transform: rotate(90deg); }
+    }
+
+    /* États chargement / erreur */
+    .cmp__loading { display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 26px 24px; color: rgba(255,255,255,0.85); font-size: 15px; margin-top: 22px; }
+    .spin { width: 22px; height: 22px; flex: none; border: 3px solid rgba(255,255,255,0.18); border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .cmp__err { font-size: 14px; color: #f87171; background: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.25); border-radius: 12px; padding: 14px 16px; margin-top: 22px; line-height: 1.55; }
+
+    /* Synthèse */
+    .verdict { display: inline-flex; align-items: center; gap: 8px; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 7px 14px; border-radius: 99px; }
+    .verdict--good { background: rgba(22,163,74,0.15); color: #4ade80; }
+    .verdict--warn { background: rgba(217,119,6,0.16); color: #fbbf24; }
+    .verdict--bad  { background: rgba(220,38,38,0.16); color: #f87171; }
+    .verdict--neutral { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.85); }
+    .summary { background: #fff; border-radius: 16px; padding: 22px 24px; margin-top: 22px; box-shadow: 0 10px 34px rgba(0,0,0,0.35); }
+    .summary__h { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #6b6b78; margin: 14px 0 8px; }
+    .summary__text { font-size: 15px; line-height: 1.65; color: #08090c; }
+
+    /* Liste des changements */
+    .changes { margin-top: 26px; }
+    .changes__h { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #fff; margin-bottom: 14px; }
+    .chg { background: #fff; border-radius: 14px; padding: 16px 18px; margin-bottom: 12px; box-shadow: 0 8px 26px rgba(0,0,0,0.3); border-left: 4px solid #cbd5e1; }
+    .chg--haute  { border-left-color: #ef4444; }
+    .chg--moyenne{ border-left-color: #f59e0b; }
+    .chg--basse  { border-left-color: #22c55e; }
+    .chg__top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .chg__nature { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; }
+    .chg__nature--ajout { background: rgba(22,163,74,0.12); color: #16a34a; }
+    .chg__nature--suppression { background: rgba(220,38,38,0.1); color: #dc2626; }
+    .chg__nature--modification { background: rgba(37,99,235,0.1); color: #2563eb; }
+    .chg__heading { font-weight: 700; font-size: 15px; color: #08090c; letter-spacing: -0.01em; }
+    .chg__sev { margin-left: auto; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #6b6b78; }
+    .chg__ba { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+    @media (max-width: 620px) { .chg__ba { grid-template-columns: 1fr; } }
+    .chg__col { border-radius: 10px; padding: 10px 12px; font-size: 13.5px; line-height: 1.5; }
+    .chg__col--before { background: rgba(220,38,38,0.05); color: #7f1d1d; }
+    .chg__col--after  { background: rgba(22,163,74,0.06); color: #14532d; }
+    .chg__col__lab { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.7; margin-bottom: 4px; }
+    .chg__impact { margin-top: 12px; font-size: 13.5px; line-height: 1.55; color: #374151; }
+    .chg__impact b { color: #08090c; }
+
+    /* Recommandation */
+    .reco { background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid rgba(59,130,246,0.25); border-radius: 16px; padding: 20px 22px; margin-top: 26px; }
+    .reco__h { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #93c5fd; margin-bottom: 8px; }
+    .reco__text { font-size: 15px; line-height: 1.65; color: #e2e8f0; }
+
+    .cmp__foot { margin-top: 30px; }
+  </style>
+  <script src="auth.js"></script>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="topbar__left">
+        <a href="index.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
+        <span class="topbar__doc">Comparaison de versions</span>
+      </div>
+      <div class="topbar__actions">
+        <a href="dossiers.html" class="btn btn--ghost">← Dossiers</a>
+        <a href="editor.html" class="btn btn--ghost">Éditeur</a>
+        <button class="btn btn--ghost" id="logout-btn">Déconnexion</button>
+      </div>
+    </header>
+
+    <main class="cmp">
+      <div class="cmp__eyebrow">Analyse IA</div>
+      <h1 class="cmp__title">Comparaison de versions</h1>
+      <p class="cmp__sub">Ce qui a changé entre les deux versions de ce document, expliqué du point de vue du fondateur.</p>
+
+      <div class="vsrow" id="vsrow" hidden>
+        <div class="vscard">
+          <span class="vscard__tag vscard__tag--old">Version précédente</span>
+          <div class="vscard__name" id="old-name">…</div>
+          <div class="vscard__meta" id="old-meta"></div>
+          <a class="vscard__dl" id="old-dl" href="#">Télécharger</a>
+        </div>
+        <div class="vsarrow" aria-hidden="true">→</div>
+        <div class="vscard">
+          <span class="vscard__tag vscard__tag--new">Nouvelle version</span>
+          <div class="vscard__name" id="new-name">…</div>
+          <div class="vscard__meta" id="new-meta"></div>
+          <a class="vscard__dl" id="new-dl" href="#">Télécharger</a>
+        </div>
+      </div>
+
+      <div class="cmp__loading" id="loading">
+        <div class="spin"></div>
+        <div>Analyse des deux versions par l'IA… cela peut prendre quelques secondes.</div>
+      </div>
+
+      <div class="cmp__err" id="error" hidden></div>
+
+      <div id="result" hidden>
+        <div id="verdict-wrap" style="margin-top:22px" hidden><span class="verdict" id="verdict"></span></div>
+        <div class="summary" id="summary-card" hidden>
+          <div class="summary__h">Synthèse</div>
+          <div class="summary__text" id="summary-text"></div>
+        </div>
+
+        <div class="changes" id="changes-wrap" hidden>
+          <div class="changes__h" id="changes-h">Changements détectés</div>
+          <div id="changes-list"></div>
+        </div>
+
+        <div class="reco" id="reco-card" hidden>
+          <div class="reco__h">Conseil fondateur</div>
+          <div class="reco__text" id="reco-text"></div>
+        </div>
+      </div>
+
+      <div class="cmp__foot">
+        <a href="dossiers.html" class="btn btn--ghost">← Retour aux dossiers</a>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); logout(); });
+
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+    function fmtDate(s) { try { return new Date(s).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return ''; } }
+    function qp(name) { return new URLSearchParams(location.search).get(name); }
+
+    const oldId = Number(qp('old'));
+    const newId = Number(qp('new'));
+
+    const loadingEl = document.getElementById('loading');
+    const errorEl   = document.getElementById('error');
+    const resultEl  = document.getElementById('result');
+
+    function showError(msg) {
+      loadingEl.hidden = true;
+      errorEl.hidden = false;
+      errorEl.textContent = msg;
+    }
+
+    const VERDICT_CLASS = [
+      { re: /favorable au fondateur/i,  cls: 'verdict--good' },
+      { re: /d[ée]favorable/i,           cls: 'verdict--bad' },
+      { re: /vigilance/i,                cls: 'verdict--warn' },
+    ];
+    function verdictClass(v) {
+      for (const { re, cls } of VERDICT_CLASS) if (re.test(v)) return cls;
+      return 'verdict--neutral';
+    }
+
+    function fillMeta(meta) {
+      if (!meta) return;
+      document.getElementById('vsrow').hidden = false;
+      if (meta.old) {
+        document.getElementById('old-name').textContent = meta.old.name || ('Document #' + oldId);
+        document.getElementById('old-meta').textContent = meta.old.date ? ('Archivée le ' + fmtDate(meta.old.date)) : '';
+        document.getElementById('old-dl').href = '/api/saas/documents/' + oldId + '/download';
+      }
+      if (meta.new) {
+        document.getElementById('new-name').textContent = meta.new.name || ('Document #' + newId);
+        document.getElementById('new-meta').textContent = meta.new.date ? ('Mise à jour le ' + fmtDate(meta.new.date)) : '';
+        document.getElementById('new-dl').href = '/api/saas/documents/' + newId + '/download';
+      }
+    }
+
+    function renderResult(data) {
+      loadingEl.hidden = true;
+      resultEl.hidden = false;
+
+      if (data.verdict) {
+        const vw = document.getElementById('verdict-wrap');
+        const v  = document.getElementById('verdict');
+        v.textContent = data.verdict;
+        v.classList.add(verdictClass(data.verdict));
+        vw.hidden = false;
+      }
+
+      if (data.summary) {
+        document.getElementById('summary-text').textContent = data.summary;
+        document.getElementById('summary-card').hidden = false;
+      }
+
+      const changes = Array.isArray(data.changes) ? data.changes : [];
+      const list = document.getElementById('changes-list');
+      if (changes.length) {
+        document.getElementById('changes-h').textContent =
+          changes.length + ' changement' + (changes.length > 1 ? 's' : '') + ' détecté' + (changes.length > 1 ? 's' : '');
+        changes.forEach(c => {
+          const sev = ['haute', 'moyenne', 'basse'].includes(c.severity) ? c.severity : 'moyenne';
+          const nat = ['ajout', 'suppression', 'modification'].includes(c.nature) ? c.nature : 'modification';
+          const card = document.createElement('div');
+          card.className = 'chg chg--' + sev;
+          const sevLabel = sev === 'haute' ? 'Priorité haute' : sev === 'basse' ? 'Priorité basse' : 'Priorité moyenne';
+          let ba = '';
+          if (c.before || c.after) {
+            ba = '<div class="chg__ba">'
+              + (c.before ? `<div class="chg__col chg__col--before"><div class="chg__col__lab">Avant</div>${esc(c.before)}</div>` : '')
+              + (c.after  ? `<div class="chg__col chg__col--after"><div class="chg__col__lab">Après</div>${esc(c.after)}</div>` : '')
+              + '</div>';
+          }
+          card.innerHTML =
+            `<div class="chg__top">
+               <span class="chg__nature chg__nature--${nat}">${nat}</span>
+               <span class="chg__heading">${esc(c.heading || 'Changement')}</span>
+               <span class="chg__sev">${sevLabel}</span>
+             </div>
+             ${ba}
+             ${c.impact ? `<div class="chg__impact"><b>Impact —</b> ${esc(c.impact)}</div>` : ''}`;
+          list.appendChild(card);
+        });
+        document.getElementById('changes-wrap').hidden = false;
+      }
+
+      if (data.recommendation) {
+        document.getElementById('reco-text').textContent = data.recommendation;
+        document.getElementById('reco-card').hidden = false;
+      }
+
+      // Aucun contenu exploitable renvoyé (les deux versions sont peut-être identiques).
+      if (!data.summary && !changes.length && !data.recommendation) {
+        showError('Aucune différence notable n\'a été détectée entre les deux versions.');
+        resultEl.hidden = true;
+      }
+    }
+
+    async function run() {
+      const user = await requireAuth();
+      if (!user) return;
+      document.querySelector('.app').classList.add('ready');
+
+      if (!oldId || !newId) {
+        showError('Comparaison impossible : versions non spécifiées. Revenez aux dossiers et relancez la comparaison.');
+        return;
+      }
+
+      try {
+        const r = await fetch('/api/saas/doc-compare', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', body: JSON.stringify({ oldId, newId }),
+        });
+        const data = await r.json().catch(() => ({}));
+        if (data && data.meta) fillMeta(data.meta);
+        if (!r.ok) { showError(data.error || 'La comparaison a échoué. Réessayez dans un instant.'); return; }
+        renderResult(data);
+      } catch {
+        showError('Impossible de joindre le serveur.');
+      }
+    }
+
+    run();
+  </script>
+</body>
+</html>
