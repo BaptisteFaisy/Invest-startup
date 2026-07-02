@@ -870,7 +870,8 @@ async function explainSelection() {
   const { text } = info;
 
   selxQuote.textContent = '« ' + (text.length > 160 ? text.slice(0, 160) + '…' : text) + ' »';
-  selxBody.innerHTML = '<p class="selx-loading">Analyse en cours…</p>';
+  selxBody.innerHTML = '<p class="selx-loading">Analyse en cours…</p>'
+    + '<button class="ai-cancel" id="selx-cancel" type="button">Annuler</button>';
   selxPop.hidden = false;
   positionSelxPop();
   selxBtn.hidden = true;
@@ -878,6 +879,8 @@ async function explainSelection() {
   if (selxAbort) selxAbort.abort();
   const ctrl = new AbortController();
   selxAbort = ctrl;
+  const selxCancel = document.getElementById('selx-cancel');
+  if (selxCancel) selxCancel.addEventListener('click', () => ctrl.abort());
 
   try {
     const res = await fetch('/api/saas/explain-selection', {
@@ -892,8 +895,11 @@ async function explainSelection() {
     if (!res.ok || !data.explanation) throw new Error(data.error || 'Erreur');
     selxBody.innerHTML = '<p>' + escapeSelx(data.explanation) + '</p>';
   } catch (e) {
-    if (e.name === 'AbortError') return;
     if (selxAbort !== ctrl) return;
+    if (e && e.name === 'AbortError') {
+      selxBody.innerHTML = '<p class="selx-loading">Analyse annulée.</p>';
+      return;
+    }
     selxBody.innerHTML = '<p class="selx-err">Explication indisponible pour le moment.</p>';
   }
 }
@@ -1184,6 +1190,22 @@ function azmClose() { if (azm) azm.hidden = true; }
 const azmCloseBtn = document.getElementById('azm-close');
 if (azmCloseBtn) azmCloseBtn.addEventListener('click', azmClose);
 
+// Annulation de l'analyse en cours (interrompt les appels IA restants).
+let azmAbort = null;
+const azmCancelBtn = document.getElementById('azm-cancel');
+if (azmCancelBtn) azmCancelBtn.addEventListener('click', () => {
+  if (!azmAbort) return;
+  azmAbort.abort();
+  azmCancelBtn.disabled = true;
+  azmCancelBtn.textContent = 'Annulation…';
+});
+function azmResetCancel(running) {
+  if (!azmCancelBtn) return;
+  azmCancelBtn.hidden = !running;
+  azmCancelBtn.disabled = false;
+  azmCancelBtn.textContent = 'Annuler l\'analyse';
+}
+
 // Stats live pour la fenêtre de progression.
 function azmExplainedCount() {
   let n = 0;
@@ -1196,7 +1218,10 @@ function azmCondStats() {
   let inserted = 0, available = 0;
   page.querySelectorAll('.ts-clause[data-key]').forEach(el => {
     const key = el.dataset.key;
-    available += (COND_TEMPLATES[key] || []).length + (BAKED_COND[key] || []).length;
+    const curated = (COND_TEMPLATES[key] || []).length + (BAKED_COND[key] || []).length;
+    // L'IA ne crée des conditions que pour les paragraphes sans condition curated.
+    const ai = curated ? 0 : (AI_COND[key] || []).length;
+    available += curated + ai;
     const c = el.querySelector('.ts-content');
     if (c) inserted += c.querySelectorAll('[data-tpl]').length;
   });
@@ -1211,7 +1236,16 @@ function azmRefreshCond() {
 async function analyzeFull(btn) {
   const old = btn ? btn.textContent : '';
   if (btn) { btn.disabled = true; btn.textContent = 'Analyse…'; }
+  if (azmAbort) azmAbort.abort();
+  const ctrl = new AbortController();
+  azmAbort = ctrl;
+  // Interrompt l'analyse dès que l'utilisateur clique sur « Annuler l'analyse ».
+  const bailIfCancelled = () => {
+    if (!ctrl.signal.aborted) return;
+    const e = new Error('cancelled'); e.name = 'AbortError'; throw e;
+  };
   azmOpen();
+  azmResetCancel(true);
   try {
     const clauses = [];
     page.querySelectorAll('.ts-clause').forEach(el => {
@@ -1238,16 +1272,18 @@ async function analyzeFull(btn) {
       azmSetRow('par', 'progress', `0 / ${total}`);
       const CHUNK = 6;
       for (let i = 0; i < clauses.length; i += CHUNK) {
+        bailIfCancelled();
         const slice = clauses.slice(i, i + CHUNK);
         let explanations = {};
         try {
           const r = await fetch('/api/saas/clauses-explain', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            credentials: 'include', body: JSON.stringify({ title, clauses: slice }),
+            credentials: 'include', signal: ctrl.signal, body: JSON.stringify({ title, clauses: slice }),
           });
           const d = await r.json().catch(() => ({}));
           if (r.ok && d.explanations) explanations = d.explanations;
         } catch {}
+        bailIfCancelled();
         slice.forEach(c => {
           const e = explanations[c.key];
           if (!e) return;
@@ -1298,7 +1334,8 @@ async function analyzeFull(btn) {
       azmSetRow('verif', 'progress', 'Analyse…');
       azmBar(85);
       docAdviceCache = null;
-      await renderDocAdvice();
+      await renderDocAdvice(ctrl.signal);
+      bailIfCancelled();
       const ok = !!(docAdviceCache && docAdviceCache.length);
       azmSetRow('verif', ok ? 'done' : 'error', ok ? 'Remplie' : 'Vide');
     } else {
@@ -1316,10 +1353,13 @@ async function analyzeFull(btn) {
     azmTitle(fullOk ? '✓ Analyse terminée' : 'Analyse terminée (partielle)');
 
     if (btn) btn.textContent = '✓ Analysé';
-  } catch {
-    azmTitle('Analyse interrompue');
-    if (btn) btn.textContent = 'Échec';
+  } catch (e) {
+    const cancelled = e && e.name === 'AbortError';
+    azmTitle(cancelled ? 'Analyse annulée' : 'Analyse interrompue');
+    if (btn) btn.textContent = cancelled ? 'Annulée' : 'Échec';
   } finally {
+    if (azmAbort === ctrl) azmAbort = null;
+    azmResetCancel(false);
     if (btn) setTimeout(() => { btn.disabled = false; btn.textContent = old || 'Analyser'; }, 1600);
   }
 }
@@ -1506,14 +1546,9 @@ function applyTermsheet(id, html, name) {
   const bakedAdvice = readBakedAdvice();
   if (bakedAdvice) { docAdviceCache = bakedAdvice; docAdviceIsBaked = true; }
   BAKED_COND = readBakedConditions();
-  // Le modèle est-il déjà analysé en dur (explications et/ou conseil embarqués) ?
-  const isBaked = !!bakedAdvice || !!page.querySelector('.ts-clause[data-plain]');
 
   showEmptyPanel();
   paginate();
-  // Sinon (document libre non baké, ex. DOCX importé), analyse à la demande,
-  // mise en cache serveur — pas de nouvel appel Claude à chaque génération.
-  if (isCustom && !isBaked) analyzeFull(document.getElementById('analyze-btn'));
 }
 
 // Lit le conseil « codé en dur » embarqué dans un modèle (<script data-advice>).
@@ -1794,6 +1829,7 @@ function applyUpdatedClause(key, html, btn) {
 // clause précise (et d'elle seule). Elle se réactualise dès que la clause change.
 const SIMPLE_CACHE = {}; // { [key]: { sig, text } } — évite de rappeler l'API si le texte n'a pas bougé
 let   simpleReq    = 0;  // jeton anti-course : on ignore les réponses devenues obsolètes
+let   simpleAbort  = null; // requête « Pour bien comprendre » en cours (annulable)
 
 // Signature compacte du contenu : on ne ré-appelle l'API que si le texte change vraiment.
 function clauseSig(html) { return (html || '').replace(/\s+/g, ' ').trim(); }

@@ -442,7 +442,30 @@ mark.cond-val { background: rgba(251,191,36,0.38); border-radius: 3px; padding: 
 .azm__row.is-done .azm__val { color: #16a34a; }
 .azm__row.is-error .azm__val { color: #dc2626; }
 @keyframes azm-pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.35); opacity: .55; } }
+.azm__foot { display: flex; justify-content: flex-end; padding: 0 20px 18px; }
+.azm__cancel {
+  font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600;
+  color: #dc2626; background: transparent; border: 1px solid rgba(220,38,38,0.35);
+  border-radius: 8px; padding: 7px 12px; cursor: pointer; transition: background .15s;
+}
+.azm__cancel:hover { background: rgba(220,38,38,0.08); }
+.azm__cancel:disabled { opacity: .55; cursor: default; }
+.azm__cancel[hidden] { display: none; }
 @media print { .azm { display: none !important; } }
+
+/* ---------- Bouton « Annuler » d'une requête IA en cours ---------- */
+.ai-cancel {
+  display: inline-block; margin-top: 8px;
+  font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600;
+  color: #dc2626; background: transparent; border: 1px solid rgba(220,38,38,0.35);
+  border-radius: 8px; padding: 5px 10px; cursor: pointer; transition: background .15s;
+}
+.ai-cancel:hover { background: rgba(220,38,38,0.08); }
+.ai-cancel--inline { margin: 0 0 0 8px; padding: 2px 8px; font-size: 11px; }
+
+/* Bouton d'envoi du chat transformé en « stop » pendant la requête */
+.chat__send--stop { background: #dc2626; font-size: 13px; }
+.chat__send--stop:hover { background: #b91c1c; }
 
 @media print { .selx-btn, .selx-pop { display: none !important; } }
 
