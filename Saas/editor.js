@@ -851,12 +851,21 @@ function positionSelxBtn() {
 
 function positionSelxPop() {
   if (selxPop.hidden) return;
-  const btnRect = selxBtn.getBoundingClientRect();
   const popH = selxPop.offsetHeight || 220;
   const popW = selxPop.offsetWidth || 360;
-  let left = btnRect.right - popW;
-  let top  = btnRect.bottom + 6;
-  if (top + popH > window.innerHeight - 6) top = btnRect.top - popH - 6;
+  let left, top;
+  if (!selxBtn.hidden) {
+    const btnRect = selxBtn.getBoundingClientRect();
+    left = btnRect.right - popW;
+    top  = btnRect.bottom + 6;
+    if (top + popH > window.innerHeight - 6) top = btnRect.top - popH - 6;
+  } else {
+    // Bouton masqué (explication en cours d'affichage) : on garde la position
+    // actuelle et on la ramène simplement dans la fenêtre si le contenu a grandi.
+    left = parseFloat(selxPop.style.left) || 6;
+    top  = parseFloat(selxPop.style.top)  || 6;
+  }
+  if (top + popH > window.innerHeight - 6) top = window.innerHeight - popH - 6;
   left = Math.max(6, Math.min(left, window.innerWidth - popW - 6));
   if (top < 6) top = 6;
   selxPop.style.left = left + 'px';
@@ -894,13 +903,16 @@ async function explainSelection() {
     if (selxAbort !== ctrl) return;
     if (!res.ok || !data.explanation) throw new Error(data.error || 'Erreur');
     selxBody.innerHTML = '<p>' + escapeSelx(data.explanation) + '</p>';
+    positionSelxPop();
   } catch (e) {
     if (selxAbort !== ctrl) return;
     if (e && e.name === 'AbortError') {
       selxBody.innerHTML = '<p class="selx-loading">Analyse annulée.</p>';
+      positionSelxPop();
       return;
     }
     selxBody.innerHTML = '<p class="selx-err">Explication indisponible pour le moment.</p>';
+    positionSelxPop();
   }
 }
 
@@ -973,6 +985,7 @@ function paginate(opts = {}) {
       el.style.marginTop = '';
       el.removeAttribute('data-pgpush');
     });
+    page.querySelectorAll('[data-pgsplit]').forEach(el => el.removeAttribute('data-pgsplit'));
     page.style.minHeight = '0px';
 
     // Mesures robustes via getBoundingClientRect : insensibles à l'offsetParent
@@ -1044,6 +1057,51 @@ function paginate(opts = {}) {
       }
     }
 
+    // Blocs internes d'une unité : pour une clause, les blocs de son contenu
+    // (l'étiquette reste en haut) ; sinon les enfants directs.
+    function innerBlocks(el) {
+      if (el.classList.contains('ts-clause')) {
+        const c = el.querySelector('.ts-content');
+        return c ? Array.from(c.children) : [];
+      }
+      return Array.from(el.children);
+    }
+    // On ne peut pas injecter de marge à l'intérieur d'un tableau.
+    const NO_SPLIT = /^(TABLE|THEAD|TBODY|TFOOT|TR|TD|TH)$/;
+
+    // Unité plus haute qu'une feuille entière : plutôt que de la laisser couler
+    // à travers la gouttière, on repousse chacun de ses blocs internes qui
+    // chevauche une fin de zone de texte en haut de la feuille suivante
+    // (récursif). Renvoie la feuille où se termine le dernier bloc placé.
+    function flowInside(el, startPage) {
+      el.setAttribute('data-pgsplit', '1'); // fond « clause active » neutralisé (l'unité chevauche deux feuilles)
+      let pg = startPage;
+      for (const k of innerBlocks(el)) {
+        const kh = heightOf(k);
+        if (!kh) continue;
+        const kt = topOf(k);
+        let kp = Math.max(pg, Math.floor(kt / pitch));
+        const kStart = kp * pitch + CONTENT_TOP;
+        const kEnd = kp * pitch + PAGE_H - CONTENT_BOTTOM;
+        let target = kt;
+        if (kt < kStart - 0.5) target = kStart;
+        if (target + kh > kEnd) {
+          if (kh <= usable) {
+            kp += 1;
+            target = kp * pitch + CONTENT_TOP;
+          } else {
+            // Bloc lui-même plus haut qu'une feuille → on descend d'un niveau.
+            if (target - kt > 0.5) pushTo(k, k, target);
+            pg = NO_SPLIT.test(k.tagName) ? kp : flowInside(k, kp);
+            continue;
+          }
+        }
+        if (target - kt > 0.5) pushTo(k, k, target);
+        pg = kp;
+      }
+      return pg;
+    }
+
     // 2. Écran : parcourir les unités ; chaque mesure voit déjà les marges
     //    injectées sur les précédentes (lecture de rect = reflow synchrone).
     let cursorPage = 0;
@@ -1060,13 +1118,19 @@ function paginate(opts = {}) {
       let targetTop = top;
       if (top < cStart - 0.5) targetTop = cStart;       // unité dans la marge → la caler
       if (targetTop > cEnd || targetTop + h > cEnd) {
-        // L'unité déborde de la feuille → saut en haut de la suivante, sauf si elle
-        // est plus grande qu'une feuille entière (on la laisse alors couler).
+        // L'unité déborde de la feuille → saut en haut de la suivante, sauf si
+        // elle est plus grande qu'une feuille entière : on pagine alors ses
+        // blocs internes pour qu'aucune ligne ne tombe dans la gouttière.
         if (h <= usable) {
           p += 1;
           targetTop = p * pitch + CONTENT_TOP;
         } else {
-          targetTop = Math.max(top, cStart);
+          // Si son haut tombe après la zone de texte (marge basse, gouttière),
+          // on le cale d'abord en haut de la feuille suivante (étiquette comprise).
+          if (targetTop > cEnd) { p += 1; targetTop = p * pitch + CONTENT_TOP; }
+          if (targetTop - top > 0.5) pushTo(t, m, targetTop);
+          cursorPage = flowInside(m, Math.max(p, Math.floor(topOf(m) / pitch)));
+          continue;
         }
       }
 
@@ -1113,11 +1177,39 @@ const pageResizeObs = new ResizeObserver(() => {
   if (!paginating && !printing) requestAnimationFrame(() => paginate());
 });
 pageResizeObs.observe(page);
+
+// La pile de feuilles impose une hauteur minimale à `page` : une frappe (ou une
+// suppression, ou une édition par script) au milieu du document décale tout le
+// texte suivant SANS changer la hauteur totale — le ResizeObserver ne voit rien
+// et le texte glissait dans les marges et la gouttière jusqu'au prochain
+// recalcul. On observe donc aussi les mutations du contenu. À l'écran,
+// paginate() ne modifie que des attributs (marges) : il ne se re-déclenche pas.
+let repagQueued = false;
+function queueRepaginate() {
+  if (repagQueued) return;
+  repagQueued = true;
+  requestAnimationFrame(() => {
+    repagQueued = false;
+    if (!printing) paginate();
+  });
+}
+const pageMutObs = new MutationObserver(() => {
+  if (!printing) queueRepaginate();
+});
+pageMutObs.observe(page, { childList: true, characterData: true, subtree: true });
 paginate();
 
 // Les polices web changent les hauteurs après coup → recalcul une fois prêtes.
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => paginate());
 window.addEventListener('load', () => paginate());
+
+// La largeur du document dépend des colonnes visibles (media queries) :
+// on repagine une fois le redimensionnement de la fenêtre terminé.
+let resizeRepagT = 0;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeRepagT);
+  resizeRepagT = setTimeout(queueRepaginate, 150);
+});
 
 // Avant impression : on insère les sauts de page (mode PDF). Le verrou `printing`
 // empêche l'observer de relancer une pagination écran (qui retirerait les sauts)
@@ -1170,7 +1262,7 @@ const azmVal = {
 };
 function azmSetRow(name, state, val) {
   const row = azmRows[name]; if (!row) return;
-  row.classList.remove('is-pending', 'is-progress', 'is-done', 'is-error');
+  row.classList.remove('is-pending', 'is-progress', 'is-done', 'is-error', 'is-cancelled');
   row.classList.add('is-' + (state || 'pending'));
   if (val != null && azmVal[name]) azmVal[name].textContent = val;
 }
@@ -1196,6 +1288,11 @@ const azmCancelBtn = document.getElementById('azm-cancel');
 if (azmCancelBtn) azmCancelBtn.addEventListener('click', () => {
   if (!azmAbort) return;
   azmAbort.abort();
+  // L'analyse déclenche aussi des requêtes annexes avec leur propre contrôleur
+  // (bulle « Pour bien comprendre » via renderPanel, colonne « À vérifier ») :
+  // on les coupe également, sinon elles continuent avec leur état « en cours ».
+  if (simpleAbort) simpleAbort.abort();
+  if (adviceAbort) adviceAbort.abort();
   azmCancelBtn.disabled = true;
   azmCancelBtn.textContent = 'Annulation…';
 });
@@ -1204,6 +1301,18 @@ function azmResetCancel(running) {
   azmCancelBtn.hidden = !running;
   azmCancelBtn.disabled = false;
   azmCancelBtn.textContent = 'Annuler l\'analyse';
+}
+// Fige les lignes encore « en cours » / « en attente » quand l'analyse s'arrête,
+// pour que la fenêtre ne donne plus l'impression de tourner. Les compteurs
+// (paragraphes, conditions) restent affichés ; les lignes d'attente prennent le
+// statut d'arrêt.
+function azmMarkStopped(label) {
+  Object.keys(azmRows).forEach(name => {
+    const row = azmRows[name];
+    if (!row || row.classList.contains('is-done')) return;
+    const keepVal = name === 'par' || name === 'cond';
+    azmSetRow(name, 'cancelled', keepVal ? null : label);
+  });
 }
 
 // Stats live pour la fenêtre de progression.
@@ -1355,11 +1464,17 @@ async function analyzeFull(btn) {
     if (btn) btn.textContent = '✓ Analysé';
   } catch (e) {
     const cancelled = e && e.name === 'AbortError';
-    azmTitle(cancelled ? 'Analyse annulée' : 'Analyse interrompue');
+    // Un run plus récent a pu prendre la main : seul le run actif pilote la fenêtre.
+    if (azmAbort === ctrl) {
+      azmTitle(cancelled ? 'Analyse annulée' : 'Analyse interrompue');
+      azmMarkStopped(cancelled ? 'Annulé' : 'Interrompu');
+    }
     if (btn) btn.textContent = cancelled ? 'Annulée' : 'Échec';
   } finally {
-    if (azmAbort === ctrl) azmAbort = null;
-    azmResetCancel(false);
+    if (azmAbort === ctrl) {
+      azmAbort = null;
+      azmResetCancel(false);
+    }
     if (btn) setTimeout(() => { btn.disabled = false; btn.textContent = old || 'Analyser'; }, 1600);
   }
 }
@@ -1385,6 +1500,7 @@ function termsheetHtml() {
   const clone = page.cloneNode(true);
   clone.querySelectorAll('[data-pgspacer]').forEach(el => el.remove());
   clone.querySelectorAll('[data-pgpush]').forEach(el => { el.style.marginTop = ''; el.removeAttribute('data-pgpush'); });
+  clone.querySelectorAll('[data-pgsplit]').forEach(el => el.removeAttribute('data-pgsplit'));
   clone.querySelectorAll('.ts-clause.is-active').forEach(el => el.classList.remove('is-active'));
   // Surlignage temporaire du remplissage automatique : on n'enregistre que le texte.
   clone.querySelectorAll('span.af-flash').forEach(s => s.replaceWith(document.createTextNode(s.textContent)));
