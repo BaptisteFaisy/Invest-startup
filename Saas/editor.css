@@ -59,7 +59,7 @@
 .workspace { flex: 1; display: grid; grid-template-columns: var(--lib-w, 290px) 6px minmax(0, 1fr) 6px var(--panel-w, 400px); min-height: 0; }
 
 /* Poignées de redimensionnement (colonnes gauche / droite) */
-.gutter { background: var(--line); cursor: col-resize; transition: background .12s ease; }
+.gutter { background: var(--line); cursor: col-resize; transition: background .12s ease; touch-action: none; }
 .gutter:hover, .gutter.is-drag { background: var(--blue); }
 
 /* Colonnes repliées (glissées sous le seuil) : contenu masqué, poignée conservée pour rouvrir. */
@@ -89,6 +89,22 @@
 .advitem__watch { font-size: 12.5px; color: var(--text); line-height: 1.55; margin-bottom: 12px; }
 .advitem__go { width: 100%; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; color: var(--dark); background: transparent; border: 1.5px solid var(--dark); border-radius: 8px; padding: 8px; cursor: pointer; transition: background .15s ease, color .15s ease; }
 .advitem__go:hover { background: var(--dark); color: #fff; }
+
+/* Bouton « Appliquer le conseil » : laisse l'IA modifier la clause concernée */
+.advitem__actions { display: flex; flex-direction: column; gap: 8px; }
+.advitem__apply { display: inline-flex; align-items: center; justify-content: center; gap: 7px; width: 100%; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; color: #fff; background: #0f172a; border: none; border-radius: 8px; padding: 9px 10px; cursor: pointer; transition: background .15s ease, opacity .15s ease; }
+.advitem__apply:hover { background: #1e293b; }
+.advitem__apply:disabled { cursor: default; }
+.advitem__apply.is-busy { opacity: 0.7; }
+.advitem__apply.is-done { background: #15803d; }
+.advitem__apply-ico { color: #ffd27a; font-size: 13px; line-height: 1; }
+.advitem__apply.is-done .advitem__apply-ico { color: #fff; }
+.advitem__apply.is-busy .advitem__apply-ico { animation: af-spin .8s linear infinite; }
+.advitem__result { margin-top: 10px; font-size: 12px; line-height: 1.5; border-radius: 8px; padding: 9px 11px; }
+.advitem__result[hidden] { display: none; }
+.advitem__result--ok  { background: rgba(21,128,61,0.08); border: 1px solid rgba(21,128,61,0.25); color: #14532d; }
+.advitem__result--info { background: #fef3c7; border: 1px solid rgba(217,119,6,0.3); color: #92400e; }
+.advitem__result--err { background: rgba(220,38,38,0.07); border: 1px solid rgba(220,38,38,0.3); color: #b91c1c; }
 #next-field-wrap { padding: 14px 14px 0; }
 .next-ph-btn { display: block; width: 100%; font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 700; color: #fff; background: var(--dark); border: none; border-radius: 10px; padding: 11px 14px; cursor: pointer; text-align: left; transition: background .15s; }
 .next-ph-btn:hover { background: #1a1d24; }
@@ -292,7 +308,7 @@
 .panel__empty p { font-size: 14px; max-width: 230px; line-height: 1.6; }
 
 /* ---------- Assistant IA (chat Claude) ---------- */
-.gutter-h { flex: none; height: 6px; cursor: row-resize; background: var(--line); border-top: 1px solid var(--line); transition: background .12s ease; }
+.gutter-h { flex: none; height: 6px; cursor: row-resize; background: var(--line); border-top: 1px solid var(--line); transition: background .12s ease; touch-action: none; }
 .gutter-h:hover, .gutter-h.is-drag { background: var(--blue); }
 .chat { flex: none; display: flex; flex-direction: column; border-top: 1px solid var(--line); background: var(--card); max-height: 46%; }
 .chat__head { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 24px 8px; }
@@ -312,6 +328,7 @@
 .chat__form { flex: none; display: flex; gap: 8px; padding: 10px 24px 14px; border-top: 1px solid var(--line); }
 .chat__input { flex: 1; height: 38px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg); padding: 0 12px; font-family: inherit; font-size: 13.5px; color: var(--text); outline: none; transition: border-color .15s ease; }
 .chat__input:focus { border-color: var(--blue); background: #fff; }
+.chat__input:disabled { opacity: 0.55; cursor: default; }
 .chat__send { flex: none; width: 38px; height: 38px; border: none; border-radius: 9px; background: var(--dark); color: #fff; font-size: 17px; cursor: pointer; transition: background .15s ease; }
 .chat__send:hover { background: var(--dark-muted); }
 .chat__send:disabled { opacity: 0.5; cursor: default; }

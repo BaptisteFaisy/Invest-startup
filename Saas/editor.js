@@ -1799,18 +1799,27 @@ if (urlDocId && /^\d+$/.test(urlDocId)) loadTermsheet(Number(urlDocId));
 
     render();
 
-    g.addEventListener('mousedown', (e) => {
+    // Pointer Events + setPointerCapture : garantit la réception de
+    // pointerup/pointercancel même si le bouton est relâché HORS de la fenêtre
+    // (barre des tâches, autre écran…). Sans capture, un mouseup manqué laissait
+    // le glissement « collé » — chaque mouvement continuait de redimensionner et
+    // tout l'écran restait bloqué (curseur col-resize, sélection désactivée).
+    g.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
       e.preventDefault();
       let dragged = false;
       let lastW = 0;
       g.classList.add('is-drag');
       document.body.style.cursor = 'col-resize';
       document.body.style.userSelect = 'none';
+      try { g.setPointerCapture(e.pointerId); } catch {}
       // Reouvre immédiatement si la colonne était repliée.
       if (collapsed) { collapsed = false; render(); persist(); }
       const rect = ws.getBoundingClientRect();
       const cap = dynMax();
       const move = (ev) => {
+        // Filet de sécurité : bouton relâché hors capture → on termine.
+        if (ev.buttons === 0) { up(); return; }
         dragged = true;
         let w = side === 'left' ? (ev.clientX - rect.left) : (rect.right - ev.clientX);
         w = Math.round(w);
@@ -1821,8 +1830,10 @@ if (urlDocId && /^\d+$/.test(urlDocId)) loadTermsheet(Number(urlDocId));
         g.classList.remove('is-drag');
         document.body.style.cursor = '';
         document.body.style.userSelect = '';
-        document.removeEventListener('mousemove', move);
-        document.removeEventListener('mouseup', up);
+        g.removeEventListener('pointermove', move);
+        g.removeEventListener('pointerup', up);
+        g.removeEventListener('pointercancel', up);
+        try { g.releasePointerCapture(e.pointerId); } catch {}
         if (!dragged) { reflow(); return; } // simple clic : déjà réouvert
         if (lastW < collapseAt) {
           collapsed = true;
@@ -1834,8 +1845,9 @@ if (urlDocId && /^\d+$/.test(urlDocId)) loadTermsheet(Number(urlDocId));
           persist(); reflow();
         }
       };
-      document.addEventListener('mousemove', move);
-      document.addEventListener('mouseup', up);
+      g.addEventListener('pointermove', move);
+      g.addEventListener('pointerup', up);
+      g.addEventListener('pointercancel', up);
     });
 
     g.addEventListener('dblclick', () => {
@@ -1868,14 +1880,17 @@ if (urlDocId && /^\d+$/.test(urlDocId)) loadTermsheet(Number(urlDocId));
       if (ch) { chatEl.style.maxHeight = 'none'; chatEl.style.height = ch; }
     } catch { /* rien */ }
 
-    chatG.addEventListener('mousedown', (e) => {
+    chatG.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
       e.preventDefault();
       chatG.classList.add('is-drag');
       document.body.style.cursor = 'row-resize';
       document.body.style.userSelect = 'none';
+      try { chatG.setPointerCapture(e.pointerId); } catch {}
       const panel = document.querySelector('.panel');
       const rect = panel.getBoundingClientRect();
       const move = (ev) => {
+        if (ev.buttons === 0) { up(); return; }
         // Hauteur = distance entre le curseur et le bas du panneau.
         let h = rect.bottom - ev.clientY;
         h = Math.max(140, Math.min(rect.height - 160, Math.round(h)));
@@ -1886,12 +1901,15 @@ if (urlDocId && /^\d+$/.test(urlDocId)) loadTermsheet(Number(urlDocId));
         chatG.classList.remove('is-drag');
         document.body.style.cursor = '';
         document.body.style.userSelect = '';
-        document.removeEventListener('mousemove', move);
-        document.removeEventListener('mouseup', up);
+        chatG.removeEventListener('pointermove', move);
+        chatG.removeEventListener('pointerup', up);
+        chatG.removeEventListener('pointercancel', up);
+        try { chatG.releasePointerCapture(e.pointerId); } catch {}
         try { localStorage.setItem('liquid_chat_h', chatEl.style.height); } catch {}
       };
-      document.addEventListener('mousemove', move);
-      document.addEventListener('mouseup', up);
+      chatG.addEventListener('pointermove', move);
+      chatG.addEventListener('pointerup', up);
+      chatG.addEventListener('pointercancel', up);
     });
 
     // Double-clic : réinitialise à la hauteur par défaut.
@@ -1914,16 +1932,38 @@ const chatGutter = document.getElementById('gutter-chat');
 const chatHistory = {};   // { [clauseKey]: [{ role, content }] }
 let   chatKey     = null; // clause actuellement liée au chat
 
-function hideChat() { chatBox.hidden = true; if (chatGutter) chatGutter.hidden = true; chatKey = null; }
+// L'assistant reste TOUJOURS affiché (et donc redimensionnable), même sans clause
+// active : on le laisse simplement visible mais désactivé, avec une invite.
+function setChatEnabled(on) {
+  chatInput.disabled = !on;
+  chatSend.disabled  = !on;
+  if (chatExplain) chatExplain.disabled = !on;
+  chatInput.placeholder = on
+    ? 'Ex : raccourcis la non-concurrence à 6 mois'
+    : `Cliquez dans un${isCustom ? ' paragraphe' : 'e clause'} pour ${isCustom ? 'le' : 'la'} modifier…`;
+}
+
+function hideChat() {
+  chatKey = null;
+  chatBox.hidden = false;                     // reste visible pour rester redimensionnable
+  if (chatGutter) chatGutter.hidden = false;
+  setChatEnabled(false);
+  renderChatLog();
+}
 
 function mountChat(key) {
   chatKey = key;
   chatBox.hidden = false;
   if (chatGutter) chatGutter.hidden = false;
+  setChatEnabled(true);
   renderChatLog();
 }
 
 function renderChatLog() {
+  if (!chatKey) {
+    chatLog.innerHTML = `<p class="chat__empty">Cliquez dans un${isCustom ? ' paragraphe' : 'e clause'} du document pour ${isCustom ? 'le' : 'la'} modifier ou l'expliquer avec l'assistant.</p>`;
+    return;
+  }
   const history = chatHistory[chatKey] || [];
   if (!history.length) {
     chatLog.innerHTML = `<p class="chat__empty">Demandez une modification de cette clause (« raccourcis la durée », « plafonne le montant », « adoucis en faveur du fondateur ») ou posez une question.</p>`;
@@ -1960,9 +2000,11 @@ function addApplyButton(label, onApply) {
 }
 
 // Édition ciblée : remplace seulement les extraits concernés, le reste de la clause est intact.
+// `btn` est optionnel (l'application d'un conseil depuis « À vérifier » gère son propre retour visuel).
+// Renvoie le nombre d'extraits effectivement appliqués.
 function applyEdits(key, edits, btn) {
   const content = page.querySelector(`.ts-clause[data-key="${key}"] .ts-content`);
-  if (!content) return;
+  if (!content) return 0;
   let html = content.innerHTML;
   let applied = 0;
   edits.forEach(e => {
@@ -1971,25 +2013,26 @@ function applyEdits(key, edits, btn) {
   if (applied) {
     content.innerHTML = html;
     if (EXPLAIN[key]) EXPLAIN[key].html = html;
-    btn.textContent = `Modification appliquée${applied > 1 ? ` (${applied})` : ''}`;
-    btn.disabled = true;
+    if (btn) { btn.textContent = `Modification appliquée${applied > 1 ? ` (${applied})` : ''}`; btn.disabled = true; }
     countWords();
     if (key === activeKey) refreshSimple(key); // la clause a changé → on réactualise sa bulle
-  } else {
+  } else if (btn) {
     btn.textContent = 'Extrait introuvable — non appliqué';
     btn.disabled = true;
   }
+  return applied;
 }
 
+// `btn` optionnel comme applyEdits. Renvoie true si la clause a bien été réécrite.
 function applyUpdatedClause(key, html, btn) {
   const content = page.querySelector(`.ts-clause[data-key="${key}"] .ts-content`);
-  if (!content) return;
+  if (!content) return false;
   content.innerHTML = html;
   if (EXPLAIN[key]) EXPLAIN[key].html = html; // garde le modèle cohérent
-  btn.textContent = 'Clause réécrite';
-  btn.disabled = true;
+  if (btn) { btn.textContent = 'Clause réécrite'; btn.disabled = true; }
   countWords();
   if (key === activeKey) refreshSimple(key); // la clause a changé → on réactualise sa bulle
+  return true;
 }
 
 // ─── Bloc « Pour bien comprendre » : explication dynamique de la clause réelle ──
@@ -2178,13 +2221,12 @@ async function sendMessage(apiText, displayText = apiText) {
     }
   } finally {
     chatAbort = null;
-    chatInput.disabled = false;
-    chatExplain.disabled = false;
+    setChatEnabled(!!chatKey);   // reste désactivé si l'utilisateur a quitté la clause entre-temps
     chatSend.textContent = '→';
     chatSend.classList.remove('chat__send--stop');
     chatSend.setAttribute('aria-label', 'Envoyer');
     chatSend.title = '';
-    chatInput.focus();
+    if (chatKey) chatInput.focus();
   }
 }
 
@@ -2994,7 +3036,15 @@ function renderAdvice() {
         </div>
         <div class="advitem__label">${c.label}</div>
         <p class="advitem__watch">${c.watch}</p>
-        <button class="advitem__go" data-go="${c.key}" type="button">Voir la clause →</button>
+        <div class="advitem__actions">
+          <button class="advitem__apply" data-apply-advice="${c.key}" type="button"
+            title="Laisser l'IA modifier la clause pour appliquer ce conseil">
+            <span class="advitem__apply-ico" aria-hidden="true">✦</span>
+            <span class="advitem__apply-txt">Appliquer le conseil</span>
+          </button>
+          <button class="advitem__go" data-go="${c.key}" type="button">Voir la clause →</button>
+        </div>
+        <div class="advitem__result" data-result-for="${c.key}" hidden></div>
       </div>`;
     }).join('');
   }
@@ -3010,6 +3060,109 @@ function renderAdvice() {
   }
 
   adviceList.innerHTML = html;
+}
+
+// Applique un conseil de « À vérifier » : demande à l'IA de modifier la clause
+// concernée pour mettre en œuvre le conseil, puis applique la modif au document.
+// Réutilise le moteur de l'assistant IA (/api/saas/clause-chat) et les fonctions
+// applyEdits / applyUpdatedClause.
+let _adviceApplyBusy = false;
+async function applyAdviceToClause(key, btn) {
+  if (_adviceApplyBusy) return;
+  const clause   = EXPLAIN[key];
+  const content  = page.querySelector(`.ts-clause[data-key="${key}"] .ts-content`);
+  const item     = btn.closest('.advitem');
+  const resultEl = item ? item.querySelector('[data-result-for]') : null;
+  if (!clause || !content) return;
+
+  // Texte brut du conseil (le champ watch peut contenir des entités / balises HTML).
+  const tmp = document.createElement('div'); tmp.innerHTML = clause.watch || '';
+  const adviceText = tmp.textContent.trim();
+
+  _adviceApplyBusy = true;
+  btn.disabled = true;
+  btn.classList.add('is-busy');
+  const label = btn.querySelector('.advitem__apply-txt');
+  const prevLabel = label ? label.textContent : '';
+  if (label) label.textContent = 'Application en cours…';
+  if (resultEl) { resultEl.hidden = true; resultEl.className = 'advitem__result'; resultEl.textContent = ''; }
+
+  const prompt =
+    `Voici un conseil de négociation concernant cette clause, formulé pour protéger le fondateur :\n`
+    + `« ${adviceText} »\n\n`
+    + `Modifie la clause pour appliquer concrètement ce conseil : rééquilibre la rédaction en faveur du `
+    + `fondateur, ajoute la protection, l'exception ou le plafond recommandé, ou ajuste la valeur concernée. `
+    + `Fais les modifications les plus ciblées possibles, directement dans le texte de la clause, sans `
+    + `dénaturer le reste. Si le conseil ne peut pas se traduire par une modification du texte (simple `
+    + `vérification à faire hors du document), n'effectue aucune modification et explique-le en une phrase.`;
+
+  try {
+    const res = await fetch('/api/saas/clause-chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        clauseLabel:     clause.label || key,
+        clauseHtml:      content.innerHTML,
+        plain:           clause.plain || '',
+        documentContext: buildDocOutline(),
+        messages:        [{ role: 'user', content: prompt }],
+      }),
+    });
+    if (res.status === 401) { window.location.href = 'login.html'; return; }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Erreur');
+
+    const proposed = (Array.isArray(data.edits) && data.edits.length) || !!data.updatedClause;
+    let applied = 0;
+    if (Array.isArray(data.edits) && data.edits.length) {
+      applied = applyEdits(key, data.edits, null);
+    } else if (data.updatedClause) {
+      applied = applyUpdatedClause(key, data.updatedClause, null) ? 1 : 0;
+    }
+
+    if (applied) {
+      if (!isCustom) syncModelFromDOM();
+      paginate();
+      scheduleAutosave();
+      const el = page.querySelector(`.ts-clause[data-key="${key}"]`);
+      selectClauseByKey(key, el);
+      if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); flashClause(el); }
+      btn.classList.remove('is-busy');
+      btn.classList.add('is-done');
+      if (label) label.textContent = '✓ Conseil appliqué';
+      if (resultEl && data.reply) {
+        resultEl.className = 'advitem__result advitem__result--ok';
+        resultEl.textContent = data.reply;
+        resultEl.hidden = false;
+      }
+    } else {
+      // Soit l'IA n'a proposé aucune modif (conseil = vérification), soit l'extrait
+      // proposé n'a pas pu être localisé dans la clause.
+      if (resultEl) {
+        resultEl.className = 'advitem__result advitem__result--info';
+        resultEl.textContent = data.reply
+          || (proposed
+              ? 'La modification proposée n\'a pas pu être localisée dans la clause. Ouvrez la clause et utilisez l\'assistant IA pour l\'ajuster.'
+              : 'Aucune modification automatique : ce conseil demande une vérification de votre part.');
+        resultEl.hidden = false;
+      }
+      btn.classList.remove('is-busy');
+      btn.disabled = false;
+      if (label) label.textContent = prevLabel;
+    }
+  } catch (err) {
+    if (resultEl) {
+      resultEl.className = 'advitem__result advitem__result--err';
+      resultEl.textContent = 'Impossible d\'appliquer le conseil pour le moment. Réessayez.';
+      resultEl.hidden = false;
+    }
+    btn.classList.remove('is-busy');
+    btn.disabled = false;
+    if (label) label.textContent = prevLabel;
+  } finally {
+    _adviceApplyBusy = false;
+  }
 }
 
 function flashClause(el) {
@@ -3033,6 +3186,9 @@ function goNextPlaceholder() {
 }
 
 adviceList.addEventListener('click', (e) => {
+  const applyBtn = e.target.closest('[data-apply-advice]');
+  if (applyBtn) { applyAdviceToClause(applyBtn.dataset.applyAdvice, applyBtn); return; }
+
   const addBtn = e.target.closest('[data-add-adv]');
   if (addBtn) { addToContract(addBtn.dataset.addAdv); return; }
 
