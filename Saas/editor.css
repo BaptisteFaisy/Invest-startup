@@ -320,9 +320,13 @@
 .gutter-h { flex: none; height: 6px; cursor: row-resize; background: var(--line); border-top: 1px solid var(--line); transition: background .12s ease; touch-action: none; }
 .gutter-h:hover, .gutter-h.is-drag { background: var(--blue); }
 .chat { flex: none; display: flex; flex-direction: column; border-top: 1px solid var(--line); background: var(--card); max-height: 46%; }
-.chat__head { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 24px 8px; }
-.chat__title { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--navy); }
-.chat__tools { flex: none; display: flex; align-items: center; gap: 8px; }
+/* En-tête du chat : passe à la ligne quand le panneau est étroit — sinon les
+   boutons « Joindre / Expliquer » débordent et sont rognés (panneau overflow:hidden). */
+.chat__head { flex: none; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 8px; padding: 10px 24px 8px; }
+.chat__title { flex: 1 1 auto; min-width: 90px; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--navy); }
+/* Les outils forment un groupe qui bascule sous le titre, et dont les deux boutons
+   peuvent eux-mêmes s'empiler si la largeur reste insuffisante. */
+.chat__tools { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
 .chat__explain { flex: none; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; color: var(--dark); background: rgba(8,9,12,0.06); border: 1px solid rgba(8,9,12,0.18); border-radius: 7px; padding: 5px 10px; cursor: pointer; transition: background .15s ease, color .15s ease; }
 .chat__explain:hover { background: var(--dark); color: #fff; }
 .chat__explain:disabled { opacity: .5; cursor: default; }
