@@ -355,10 +355,19 @@ app.use(helmet({
 app.use(express.json({ limit: '12mb' }));
 app.use(cookieParser());
 app.use('/uploads/public', express.static(PUBLIC_IMG_DIR));
+// Les pages HTML ne doivent jamais être servies depuis un cache périmé : sinon une
+// ancienne page masque les mises à jour (une modif inline HTML/JS/CSS reste
+// invisible). `no-cache` force la revalidation à chaque chargement (304 si le
+// fichier n'a pas changé). Les CSS/JS externes, eux, restent versionnés via ?v=.
+const staticHtmlNoCache = {
+  setHeaders(res, filePath) {
+    if (filePath.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache');
+  },
+};
 // Le SaaS (dossier interne au site) est servi sous /saas → même origine que l'API,
 // donc le cookie de session et les appels /api/auth/* fonctionnent sans CORS.
-app.use('/saas', express.static(path.join(__dirname, 'Saas')));
-app.use(express.static(__dirname));
+app.use('/saas', express.static(path.join(__dirname, 'Saas'), staticHtmlNoCache));
+app.use(express.static(__dirname, staticHtmlNoCache));
 
 // ─── Rate limiting ────────────────────────────────────────────────────────────
 // Limiteur strict pour l'authentification (anti-force brute).
@@ -2624,6 +2633,495 @@ app.post('/api/saas/documents/:id/to-editor', requireAuth, async (req, res) => {
     console.error('DOCX→éditeur error:', err.message);
     res.status(502).json({ error: 'La conversion du document a échoué : ' + err.message });
   }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── Tâches IA de fond (« se balader pendant l'analyse ») ──────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// Toute analyse IA lancée depuis le SaaS peut tourner en TÂCHE DE FOND côté serveur.
+// L'onglet du navigateur n'a plus besoin de rester ouvert : chaque page charge un
+// petit widget (tasks.js) qui interroge /api/saas/jobs et affiche l'avancement, avec
+// annulation, barre de progression et bouton « aller à l'endroit ». Comme le travail
+// vit dans le processus serveur, il survit à la navigation entre pages (rechargement).
+//
+// Stockage en mémoire (instance unique) : les tâches sont éphémères, purgées après
+// leur fin. Le résultat est conservé jusqu'à ce que la page d'origine le récupère
+// (GET /api/saas/jobs/:id) ou que l'utilisateur ferme la carte (dismiss), puis TTL.
+const AI_JOBS = new Map();               // id -> job interne
+const JOB_DONE_TTL   = 30 * 60 * 1000;   // 30 min après la fin
+const JOB_MAX_AGE    = 2  * 60 * 60 * 1000; // 2 h quoi qu'il arrive
+const JOB_MAX_PER_USER = 40;
+
+// Vue publique d'une tâche (sans le résultat, potentiellement lourd, ni l'interne).
+function publicJob(j) {
+  return {
+    id: j.id, type: j.type, label: j.label,
+    status: j.status, progress: j.progress, indeterminate: !!j.indeterminate,
+    steps: j.steps || [], location: j.location || null,
+    error: j.error || null, resultReady: j.status === 'done',
+    created_at: j.created_at, updated_at: j.updated_at,
+  };
+}
+function jobTouch(j)             { j.updated_at = new Date().toISOString(); }
+function jobProgress(j, pct)     { j.progress = Math.max(0, Math.min(100, Math.round(pct))); jobTouch(j); }
+function jobStep(j, key, state, detail) {
+  if (!j.steps) j.steps = [];
+  let s = j.steps.find(x => x.key === key);
+  if (!s) { s = { key, label: key, state: 'pending', detail: '' }; j.steps.push(s); }
+  if (state != null)  s.state = state;
+  if (detail != null) s.detail = detail;
+  jobTouch(j);
+}
+// Lève une AbortError si l'utilisateur a demandé l'annulation entre deux appels IA.
+function jobBailIfCancelled(j) {
+  if (j.cancelRequested) { const e = new Error('cancelled'); e.name = 'AbortError'; throw e; }
+}
+function pruneJobs() {
+  const now = Date.now();
+  for (const [id, j] of AI_JOBS) {
+    const age = now - new Date(j.created_at).getTime();
+    const finishedAge = (j.status === 'done' || j.status === 'error' || j.status === 'cancelled')
+      ? now - new Date(j.updated_at).getTime() : 0;
+    if (age > JOB_MAX_AGE || finishedAge > JOB_DONE_TTL) AI_JOBS.delete(id);
+  }
+}
+setInterval(pruneJobs, 5 * 60 * 1000).unref?.();
+
+// ─── Fonctions de calcul réutilisables (mêmes prompts que les endpoints) ───────
+// Chacune renvoie une Promise du résultat structuré ; `signal` interrompt l'appel.
+
+async function computeDocAnalyze(userId, { title, text }, signal) {
+  const system =
+`Tu es l'assistant juridique de « liquid + », un outil pour fondateurs de startup en levée de fonds.
+On te donne le contenu réel d'UN document juridique. Tu dois l'analyser et lister TOUTES les « choses à faire » concrètes pour que ce document précis soit complet, exact et prêt à l'emploi, du point de vue du fondateur.
+
+Type / titre du document : « ${title || 'Document'} »
+
+Contenu réel du document :
+${String(text).slice(0, 14000)}
+
+Règles :
+- Liste des actions concrètes et SPÉCIFIQUES À CE DOCUMENT : champs à compléter (cite-les), valeurs/dates/montants manquants, clauses à préciser ou à ajouter typiques de ce type de document, incohérences à corriger, vérifications à faire.
+- N'invente pas d'actions génériques applicables à n'importe quel document (ex. « faire relire par un avocat »).
+- Chaque item : une phrase d'action commençant par un verbe à l'infinitif, en français.
+- Donne entre 4 et 12 items, ordonnés du plus important au moins important.`;
+  const response = await glmChat({
+    system, messages: [{ role: 'user', content: 'Analyse ce document et liste les choses à faire.' }],
+    maxTokens: 8000, thinking: true, json: true,
+    jsonHint: 'Format : {"todos":["action 1","action 2", ...]} — 4 à 12 items, chaque action commençant par un verbe à l\'infinitif.',
+    signal,
+  });
+  await recordClaudeUsage(userId, response);
+  const data = glmJson(response);
+  return Array.isArray(data.todos) ? data.todos.filter(t => typeof t === 'string' && t.trim()).map(t => t.trim()) : [];
+}
+
+async function computeDocAdvice(userId, { title, text }, signal) {
+  const cacheHash = aiHash('doc-advice', [title || '', String(text).slice(0, 12000)]);
+  const cached = await aiCacheGet(cacheHash);
+  if (cached) return cached;
+  const system =
+`Tu es l'assistant de « liquid + », un outil juridique pour fondateurs de startup en levée de fonds.
+On te donne le contenu réel d'UN document juridique. Tu dois proposer des conseils CONCRETS et SPÉCIFIQUES À CE DOCUMENT pour l'améliorer / le compléter, du point de vue du fondateur.
+
+Type / titre du document : « ${title || 'Document'} »
+
+Contenu réel du document :
+${String(text).slice(0, 12000)}
+
+Règles :
+- 3 à 5 conseils, propres à CE document précis (cite des éléments réels : un article, un champ à compléter, une valeur, une incohérence, une clause manquante typique de ce type de document).
+- N'invente pas de conseils génériques applicables à n'importe quel document (ex. « faites relire par un avocat », « datez le document »). Sois spécifique au contenu.
+- Chaque conseil : un "title" court (max ~6 mots) et un "body" d'une phrase, en français, ton clair et utile.`;
+  const response = await glmChat({
+    system, messages: [{ role: 'user', content: 'Donne les conseils d\'amélioration spécifiques à ce document.' }],
+    maxTokens: 6000, thinking: true, json: true,
+    jsonHint: 'Format : {"tips":[{"title":"titre court","body":"une phrase"}]} — 3 à 5 conseils.',
+    signal,
+  });
+  await recordClaudeUsage(userId, response);
+  const data = glmJson(response);
+  const tips = Array.isArray(data.tips) ? data.tips.filter(t => t && t.title && t.body) : [];
+  if (tips.length) await aiCacheSet(cacheHash, tips);
+  return tips;
+}
+
+async function computeDocClauses(userId, { title, clauses, text }, signal) {
+  const current = (Array.isArray(clauses) ? clauses : []).slice(0, 80).map(c => ({
+    label: String(c && c.label ? c.label : '').slice(0, 200),
+    group: String(c && c.group ? c.group : '').slice(0, 120),
+  })).filter(c => c.label);
+  const cacheHash = aiHash('doc-clauses', [title || '', current.map(c => c.label).join('|'), String(text || '').slice(0, 8000)]);
+  const cached = await aiCacheGet(cacheHash);
+  if (cached) return cached;
+  const system =
+`Tu es l'assistant juridique de « liquid + », un outil pour fondateurs de startup en levée de fonds.
+On te donne le titre d'UN document juridique, la liste de ses clauses/paragraphes ACTUELS et un extrait de son contenu. Tu proposes des clauses MANQUANTES, typiques de ce type de document, que le fondateur pourrait vouloir ajouter.
+
+Type / titre du document : « ${title || 'Document'} »
+
+Clauses déjà présentes :
+${current.map(c => `- ${c.label}${c.group ? ' (' + c.group + ')' : ''}`).join('\n') || '(aucune)'}
+
+Extrait du document :
+${String(text || '').slice(0, 8000)}
+
+Règles :
+- Propose 4 à 8 clauses ABSENTES du document, réellement utiles pour CE type de document précis (aucun doublon avec les clauses présentes).
+- Chaque clause : "label" (nom court, ≤ 8 mots), "group" (section du document où elle irait ; réutilise si possible un intitulé de section existant), "plain" (1 phrase en langage courant expliquant ce qu'elle fait), "watch" (1 phrase sur le point de vigilance côté fondateur), "html" (texte COMPLET de la clause, rédigé en français juridique, prêt à insérer, en HTML avec des balises <p> ; valeurs à personnaliser [entre crochets]).
+- Rédige des clauses complètes et directement utilisables, pas des résumés.`;
+  const response = await glmChat({
+    system, messages: [{ role: 'user', content: 'Propose les clauses manquantes à ajouter à ce document.' }],
+    maxTokens: 12000, thinking: true, json: true,
+    jsonHint: 'Format : {"clauses":[{"label":"...","group":"...","plain":"...","watch":"...","html":"<p>...</p>"}]} — 4 à 8 clauses.',
+    signal,
+  });
+  await recordClaudeUsage(userId, response);
+  const data = glmJson(response);
+  const out = (Array.isArray(data.clauses) ? data.clauses : [])
+    .filter(c => c && c.label && c.html)
+    .slice(0, 8)
+    .map(c => ({
+      label: String(c.label).slice(0, 120),
+      group: String(c.group || 'Clauses proposées').slice(0, 120),
+      plain: String(c.plain || '').slice(0, 300),
+      watch: String(c.watch || '').slice(0, 400),
+      html:  String(c.html),
+    }));
+  if (out.length) await aiCacheSet(cacheHash, out);
+  return out;
+}
+
+async function computeClausesExplain(userId, { title, clauses }, signal) {
+  const list = (Array.isArray(clauses) ? clauses : []).slice(0, 60).map((c, i) => ({
+    key:   String(c && c.key != null ? c.key : 'c' + (i + 1)),
+    label: String(c && c.label ? c.label : 'Paragraphe ' + (i + 1)).slice(0, 200),
+    html:  String(c && c.html ? c.html : '').slice(0, 4000),
+  }));
+  if (!list.length) return {};
+  const cacheHash = aiHash('clauses-explain-v4', [title || '', ...list.map(c => c.key + '|' + c.html)]);
+  const cached = await aiCacheGet(cacheHash);
+  if (cached) return cached;
+  const system =
+`Tu es l'assistant pédagogique de « liquid + », un outil juridique pour fondateurs de startup en levée de fonds.
+On te donne la liste des paragraphes d'UN document juridique. Pour CHAQUE paragraphe, tu produis 5 choses, du point de vue du FONDATEUR :
+
+1. "plain" : une phrase TRÈS courte (20 mots max) qui résume ce que dit la clause en langage courant.
+2. "simple" : explication « Pour bien comprendre », 10 phrases max, simples et imagées, fidèles aux valeurs réelles du texte (durées, montants, pourcentages), sans jargon. UNIQUEMENT du texte brut (jamais de tableau, liste, puce ou balise).
+3. "bias" : un entier de 1 à 5 mesurant l'avantage pour l'investisseur : 1 = neutre/équilibré, 2 = légèrement favorable, 3 = favorable, 4 = très favorable, 5 = fortement favorable aux investisseurs.
+4. "watch" : 1 à 3 phrases sur les points de vigilance et ce qu'il faut négocier, côté fondateur.
+5. "conditions" : 0 à 2 variantes rédigées de cette clause (uniquement si pertinent : montant, durée, seuil, option, alternative). Chaque variante : "label" (≤ 6 mots), "preview" (1 phrase), "html" (texte de la variante en HTML, avec des balises <p> ; valeurs modifiables entourées de <mark class="cond-val">).
+
+Type / titre du document : « ${title || 'Document'} »
+
+Paragraphes (identifiant + libellé + contenu) :
+${list.map(c => `--- ${c.key} | ${c.label}\n${c.html}`).join('\n\n')}
+
+Renvoie un objet par identifiant fourni, avec les 5 champs (omets "conditions" ou mets [] s'il n'y a pas de variante pertinente).`;
+  const response = await glmChat({
+    system, messages: [{ role: 'user', content: 'Analyse chaque paragraphe et remplis les 5 champs.' }],
+    maxTokens: 20000, thinking: true, json: true,
+    jsonHint: 'Format : {"items":[{"key":"<id>","plain":"phrase courte","simple":"explication 10 phrases max","bias":3,"watch":"points de vigilance","conditions":[{"label":"...","preview":"...","html":"<p>...</p>"}]}]} — un objet par identifiant fourni.',
+    signal,
+  });
+  await recordClaudeUsage(userId, response);
+  const data = glmJson(response);
+  const explanations = {};
+  if (Array.isArray(data.items)) {
+    data.items.forEach(it => {
+      if (!it || it.key == null) return;
+      const k = String(it.key);
+      const entry = {};
+      if (typeof it.plain === 'string' && it.plain.trim()) entry.plain = it.plain.trim();
+      if (typeof it.simple === 'string' && it.simple.trim()) entry.simple = it.simple.trim();
+      if (Number.isInteger(it.bias)) entry.bias = Math.max(1, Math.min(5, it.bias));
+      if (typeof it.watch === 'string' && it.watch.trim()) entry.watch = it.watch.trim();
+      if (Array.isArray(it.conditions)) {
+        const conds = it.conditions.filter(c => c && (c.html || c.label)).slice(0, 2).map(c => ({
+          label:   String(c.label || 'Variante').slice(0, 80),
+          preview: String(c.preview || '').slice(0, 200),
+          html:    String(c.html || '<p></p>'),
+        }));
+        if (conds.length) entry.conditions = conds;
+      }
+      if (Object.keys(entry).length) explanations[k] = entry;
+    });
+  }
+  if (Object.keys(explanations).length) await aiCacheSet(cacheHash, explanations);
+  return explanations;
+}
+
+// Comparaison de deux versions : résout chaque côté (document ou version validée),
+// extrait le texte, appelle l'IA. Renvoie { ...result, meta } ou lève {status,message}.
+async function computeDocCompare(userId, body, signal) {
+  async function resolveSide(docIdRaw, versionIdRaw) {
+    const versionId = Number(versionIdRaw);
+    if (versionId) {
+      const v = await col('saas_doc_versions').findOne({ id: versionId, user_id: userId });
+      if (!v) return null;
+      const name = v.label || ('Version du ' + new Date(v.created_at).toLocaleDateString('fr-FR'));
+      return { doc: { kind: 'termsheet', html: v.html, name }, meta: { id: versionId, version: true, name, date: v.created_at, kind: 'version' } };
+    }
+    const docId = Number(docIdRaw);
+    if (!docId) return null;
+    const d = await col('saas_documents').findOne({ id: docId, user_id: userId });
+    if (!d) return null;
+    return { doc: d, meta: { id: docId, name: d.name, date: d.updated_at || d.created_at, kind: d.kind || 'file' } };
+  }
+  const [oldSide, newSide] = await Promise.all([
+    resolveSide(body?.oldId, body?.oldVersionId),
+    resolveSide(body?.newId, body?.newVersionId),
+  ]);
+  if (!oldSide || !newSide) {
+    const provided = body && (body.oldId || body.newId || body.oldVersionId || body.newVersionId);
+    const e = new Error(provided ? 'Une des versions est introuvable.' : 'oldId et newId (ou oldVersionId / newVersionId) requis');
+    e.status = provided ? 404 : 400; throw e;
+  }
+  const oldDoc = oldSide.doc, newDoc = newSide.doc;
+  const meta = { old: oldSide.meta, new: newSide.meta };
+  const [oldText, newText] = await Promise.all([docPlainText(oldDoc), docPlainText(newDoc)]);
+  if (!oldText || !newText) {
+    const e = new Error('Impossible d\'extraire le texte d\'une des versions (format non supporté — image, tableur — ou fichier vide). La comparaison IA fonctionne pour les PDF, les Word et les documents éditables.');
+    e.status = 422; throw e;
+  }
+  const cacheHash = aiHash('doc-compare', [oldText.slice(0, 14000), newText.slice(0, 14000)]);
+  const cached = await aiCacheGet(cacheHash);
+  if (cached) return { ...cached, meta, cached: true };
+  const system =
+`Tu es l'assistant juridique de « liquid + », un outil pour fondateurs de startup en levée de fonds.
+On te donne DEUX versions successives d'UN MÊME document juridique : une ANCIENNE version et une NOUVELLE version. Tu compares les deux et expliques, du point de vue du fondateur, ce qui a changé et pourquoi c'est important.
+
+Titre du document : « ${newDoc.name || 'Document'} »
+
+=== ANCIENNE VERSION ===
+${oldText.slice(0, 14000)}
+
+=== NOUVELLE VERSION ===
+${newText.slice(0, 14000)}
+
+Règles :
+- Repère les changements RÉELS et concrets entre les deux versions : clauses ajoutées, supprimées, montants / dates / pourcentages / durées modifiés, formulations renforcées ou affaiblies, obligations nouvelles.
+- Ignore les différences purement cosmétiques (mise en page, ponctuation) SAUF si elles changent le sens.
+- Pour chaque changement : "heading" (titre court, ≤ 8 mots), "nature" ('ajout' | 'suppression' | 'modification'), "before" (ce que disait l'ancienne version, court ; "" si c'est un ajout), "after" (ce que dit la nouvelle version, court ; "" si c'est une suppression), "impact" (1 phrase sur la conséquence concrète côté fondateur), "severity" ('haute' | 'moyenne' | 'basse' selon l'importance du changement pour le fondateur).
+- "summary" : 2 à 3 phrases de synthèse de l'évolution entre les deux versions.
+- "verdict" : une expression courte parmi 'Favorable au fondateur', 'Plutôt neutre', 'Vigilance requise', 'Défavorable au fondateur'.
+- "recommendation" : 1 à 2 phrases de conseil concret pour le fondateur au vu de ces changements.
+- Classe les changements du plus important au moins important pour le fondateur.
+- Si les deux versions sont identiques ou quasi identiques, indique-le dans "summary" et renvoie "changes" vide.`;
+  const response = await glmChat({
+    system, messages: [{ role: 'user', content: 'Compare l\'ancienne et la nouvelle version, et détaille les changements.' }],
+    maxTokens: 8000, thinking: true, json: true,
+    jsonHint: 'Format : {"summary":"...","verdict":"Vigilance requise","changes":[{"heading":"...","nature":"modification","before":"...","after":"...","impact":"...","severity":"moyenne"}],"recommendation":"..."}',
+    signal,
+  });
+  await recordClaudeUsage(userId, response);
+  const data = glmJson(response);
+  const natures    = new Set(['ajout', 'suppression', 'modification']);
+  const severities = new Set(['haute', 'moyenne', 'basse']);
+  const result = {
+    summary: typeof data.summary === 'string' ? data.summary : '',
+    verdict: typeof data.verdict === 'string' ? data.verdict : '',
+    changes: Array.isArray(data.changes) ? data.changes.filter(c => c && (c.heading || c.impact)).slice(0, 40).map(c => ({
+      heading:  String(c.heading || '').slice(0, 160),
+      nature:   natures.has(c.nature) ? c.nature : 'modification',
+      before:   String(c.before || '').slice(0, 600),
+      after:    String(c.after || '').slice(0, 600),
+      impact:   String(c.impact || '').slice(0, 600),
+      severity: severities.has(c.severity) ? c.severity : 'moyenne',
+    })) : [],
+    recommendation: typeof data.recommendation === 'string' ? data.recommendation : '',
+  };
+  if (result.summary || result.changes.length) await aiCacheSet(cacheHash, result);
+  return { ...result, meta };
+}
+
+// ─── Exécuteurs par type de tâche ──────────────────────────────────────────────
+const JOB_RUNNERS = {
+  // Analyse « choses à faire » d'un document (depuis la liste des dossiers).
+  async 'doc-analyze'(job) {
+    const { title, text, folderId, slug } = job.payload || {};
+    job.indeterminate = true;
+    jobStep(job, 'analyse', 'progress', 'Analyse du document…');
+    jobProgress(job, 12);
+    const todos = await computeDocAnalyze(job.userId, { title, text }, job._abort.signal);
+    jobBailIfCancelled(job);
+    if (!todos.length) { const e = new Error('Analyse indisponible pour le moment.'); throw e; }
+    // Sauvegarde côté serveur : la checklist du dossier est mise à jour même si
+    // l'utilisateur a navigué ailleurs pendant l'analyse.
+    if (folderId != null && slug) {
+      try {
+        const folder = await col('saas_folders').findOne({ id: Number(folderId), user_id: job.userId });
+        if (folder) {
+          const state = { ...(folder.items_state || {}) };
+          const cur   = { ...(state[slug] || {}) };
+          cur.todos = todos.slice(0, 60).map(x => String(x).slice(0, 500));
+          cur.analysis_at = new Date().toISOString();
+          state[slug] = cur;
+          await col('saas_folders').updateOne({ id: Number(folderId), user_id: job.userId }, { $set: { items_state: state } });
+        }
+      } catch (e) { console.error('doc-analyze job checklist save:', e.message); }
+    }
+    job.result = { todos };
+    jobStep(job, 'analyse', 'done', `${todos.length} chose${todos.length > 1 ? 's' : ''} à faire`);
+    jobProgress(job, 100);
+  },
+
+  // Comparaison IA de deux versions.
+  async 'doc-compare'(job) {
+    job.indeterminate = true;
+    jobStep(job, 'compare', 'progress', 'Comparaison des deux versions…');
+    jobProgress(job, 12);
+    const result = await computeDocCompare(job.userId, job.payload || {}, job._abort.signal);
+    jobBailIfCancelled(job);
+    job.result = result;
+    const n = (result.changes || []).length;
+    jobStep(job, 'compare', 'done', n ? `${n} changement${n > 1 ? 's' : ''}` : 'Aucun changement notable');
+    jobProgress(job, 100);
+  },
+
+  // Analyse complète d'un document dans l'éditeur : explication de chaque paragraphe
+  // (par lots), clauses proposées, colonne « À vérifier ». Le résultat brut est
+  // renvoyé ; l'éditeur applique la fusion dans la page à son retour.
+  async 'full-analyze'(job) {
+    const p = job.payload || {};
+    const explainClauses = Array.isArray(p.explainClauses) ? p.explainClauses : [];
+    const total = explainClauses.length;
+    job.result = { explanations: {}, suggested: null, tips: null };
+    jobStep(job, 'par',   total ? 'progress' : 'done', `0 / ${total}`);
+    jobStep(job, 'lib',   p.suggest ? 'pending' : 'done', p.suggest ? 'En attente' : 'Pré-remplie');
+    jobStep(job, 'verif', p.advice  ? 'pending' : 'done', p.advice  ? 'En attente' : 'Pré-remplie');
+
+    // 1) Explication des paragraphes, par lots de 6 (progression réelle 0 → 75 %).
+    const CHUNK = 6;
+    let done = 0;
+    for (let i = 0; i < total; i += CHUNK) {
+      jobBailIfCancelled(job);
+      const slice = explainClauses.slice(i, i + CHUNK);
+      const title = p.title || 'Document';
+      const explanations = await computeClausesExplain(job.userId, { title, clauses: slice }, job._abort.signal);
+      Object.assign(job.result.explanations, explanations);
+      done = Math.min(total, i + slice.length);
+      jobStep(job, 'par', done >= total ? 'done' : 'progress', `${done} / ${total}`);
+      jobProgress(job, Math.round((done / total) * 75));
+    }
+    if (!total) jobProgress(job, 75);
+
+    // 2) Clauses proposées (documents libres uniquement).
+    if (p.suggest) {
+      jobBailIfCancelled(job);
+      jobStep(job, 'lib', 'progress', 'Recherche…');
+      jobProgress(job, 82);
+      const suggested = await computeDocClauses(job.userId, { title: p.title, clauses: p.suggest.clauses, text: p.suggest.text }, job._abort.signal);
+      job.result.suggested = suggested;
+      jobStep(job, 'lib', 'done', suggested.length ? `${suggested.length} proposée${suggested.length > 1 ? 's' : ''}` : 'Aucune proposition');
+    }
+
+    // 3) Colonne « À vérifier » (documents libres sans conseil embarqué).
+    if (p.advice) {
+      jobBailIfCancelled(job);
+      jobStep(job, 'verif', 'progress', 'Analyse…');
+      jobProgress(job, 92);
+      const tips = await computeDocAdvice(job.userId, { title: p.title, text: p.advice.text }, job._abort.signal);
+      job.result.tips = tips;
+      jobStep(job, 'verif', 'done', tips.length ? 'Remplie' : 'Vide');
+    }
+    jobProgress(job, 100);
+  },
+};
+const JOB_TYPES = new Set(Object.keys(JOB_RUNNERS));
+
+// Lance l'exécuteur d'une tâche (non attendu) et met à jour son statut final.
+function startJob(job) {
+  const runner = JOB_RUNNERS[job.type];
+  Promise.resolve()
+    .then(() => runner(job))
+    .then(() => {
+      if (job.status === 'running') { job.status = 'done'; jobProgress(job, 100); }
+    })
+    .catch(err => {
+      const cancelled = err && (err.name === 'AbortError' || job.cancelRequested);
+      job.status = cancelled ? 'cancelled' : 'error';
+      if (!cancelled) {
+        job.error = 'L\'analyse a échoué. Réessayez dans un instant.';
+        console.error(`Job ${job.type} error:`, err.message);
+      }
+      (job.steps || []).forEach(s => { if (s.state === 'progress' || s.state === 'pending') s.state = cancelled ? 'cancelled' : 'error'; });
+      jobTouch(job);
+    });
+}
+
+// ─── Endpoints des tâches IA ───────────────────────────────────────────────────
+// Créer une tâche : renvoie son id ; le travail tourne en fond.
+app.post('/api/saas/jobs', requireAuth, enforceDailyCap, (req, res) => {
+  if (!zaiClient)
+    return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
+  const { type, payload, label, location } = req.body ?? {};
+  if (!JOB_TYPES.has(type)) return res.status(400).json({ error: 'Type de tâche inconnu.' });
+
+  // Plafond par utilisateur : on purge d'abord, puis on refuse au-delà de la limite.
+  pruneJobs();
+  const mine = [...AI_JOBS.values()].filter(j => j.userId === req.user.id);
+  if (mine.filter(j => j.status === 'running').length >= 8)
+    return res.status(429).json({ error: 'Trop d\'analyses en cours. Attendez qu\'elles se terminent.' });
+  if (mine.length >= JOB_MAX_PER_USER) {
+    // Retire les plus anciennes tâches terminées de cet utilisateur.
+    mine.filter(j => j.status !== 'running')
+      .sort((a, b) => new Date(a.updated_at) - new Date(b.updated_at))
+      .slice(0, mine.length - JOB_MAX_PER_USER + 1)
+      .forEach(j => AI_JOBS.delete(j.id));
+  }
+
+  const now = new Date().toISOString();
+  const job = {
+    id: crypto.randomUUID(), userId: req.user.id, type,
+    label: (typeof label === 'string' && label.trim()) ? label.trim().slice(0, 140) : 'Analyse IA',
+    status: 'running', progress: 0, indeterminate: false, steps: [],
+    location: (location && typeof location.url === 'string') ? { url: location.url.slice(0, 300) } : null,
+    payload: payload || {}, result: null, error: null,
+    cancelRequested: false, _abort: new AbortController(),
+    created_at: now, updated_at: now,
+  };
+  AI_JOBS.set(job.id, job);
+  startJob(job);
+  res.status(201).json({ id: job.id, job: publicJob(job) });
+});
+
+// Liste des tâches de l'utilisateur (widget de suivi). Actives + terminées récentes.
+app.get('/api/saas/jobs', requireAuth, (req, res) => {
+  pruneJobs();
+  const jobs = [...AI_JOBS.values()]
+    .filter(j => j.userId === req.user.id)
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .slice(0, JOB_MAX_PER_USER)
+    .map(publicJob);
+  res.json({ jobs });
+});
+
+// Détail d'une tâche AVEC son résultat (récupéré par la page d'origine).
+app.get('/api/saas/jobs/:id', requireAuth, (req, res) => {
+  const job = AI_JOBS.get(req.params.id);
+  if (!job || job.userId !== req.user.id) return res.status(404).json({ error: 'Tâche introuvable.' });
+  res.json({ ...publicJob(job), result: job.result });
+});
+
+// Annuler une tâche en cours.
+app.post('/api/saas/jobs/:id/cancel', requireAuth, (req, res) => {
+  const job = AI_JOBS.get(req.params.id);
+  if (!job || job.userId !== req.user.id) return res.status(404).json({ error: 'Tâche introuvable.' });
+  if (job.status === 'running') {
+    job.cancelRequested = true;
+    try { job._abort.abort(); } catch {}
+  }
+  res.json({ ok: true, job: publicJob(job) });
+});
+
+// Fermer une tâche terminée (retire sa carte du widget).
+app.post('/api/saas/jobs/:id/dismiss', requireAuth, (req, res) => {
+  const job = AI_JOBS.get(req.params.id);
+  if (!job || job.userId !== req.user.id) return res.status(404).json({ error: 'Tâche introuvable.' });
+  if (job.status === 'running') { job.cancelRequested = true; try { job._abort.abort(); } catch {} }
+  AI_JOBS.delete(req.params.id);
+  res.json({ ok: true });
 });
 
 // ─── Démarrage ────────────────────────────────────────────────────────────────
