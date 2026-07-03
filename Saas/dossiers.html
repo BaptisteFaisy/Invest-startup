@@ -603,7 +603,12 @@
       const linkedIds = new Set(
         Object.values(f.items_state || {}).map(st => st.document_id).filter(id => id != null)
       );
-      const extra = docs.filter(d => d.folder_id === f.id && !linkedIds.has(d.id));
+      // Fichiers rangés dans la phase mais non rattachés à une ligne précise de la
+      // roadlist (dépôt libre sur la phase, ou nouvelle version dont l'archivage n'a
+      // pas encore abouti). Les versions archivées (is_version) sont exclues : elles
+      // restent accessibles via « Comparer ». On les affiche pour qu'aucun fichier
+      // importé ne disparaisse silencieusement de la page.
+      const extra = docs.filter(d => d.folder_id === f.id && !linkedIds.has(d.id) && !d.is_version);
 
       const card = document.createElement('div');
       card.className = 'folder open';
@@ -619,6 +624,22 @@
       const ol   = card.querySelector('.bsa-list');
       const body = card.querySelector('.folder__body');
       list.forEach((item, idx) => ol.appendChild(roadItem(f, item, idx)));
+
+      // Filet de sécurité : les fichiers de la phase non rattachés à une ligne sont
+      // affichés ici (sinon ils seraient téléversés mais invisibles). On peut les
+      // glisser sur une ligne de la roadlist pour les rattacher, ou les supprimer.
+      if (extra.length) {
+        const h = document.createElement('div');
+        h.className = 'bsa-files__h';
+        h.textContent = 'Autres fichiers de cette phase';
+        body.appendChild(h);
+        const fl = document.createElement('div');
+        fl.className = 'files';
+        extra
+          .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))
+          .forEach(d => fl.appendChild(fileRow(d)));
+        body.appendChild(fl);
+      }
 
       attachCardDrop(card, f.id);
       return card;
@@ -1363,6 +1384,9 @@
           name: oldDoc ? oldDoc.name : ('Document #' + oldId),
           archived_at: new Date().toISOString(),
         });
+        // Marquée archivée localement pour ne pas réapparaître comme fichier libre
+        // avant la resynchronisation serveur.
+        if (oldDoc) oldDoc.is_version = true;
       }
       cur.document_id = newId;
       cur.versions    = versions;
