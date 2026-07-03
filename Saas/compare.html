@@ -62,6 +62,7 @@
     .cmp-btn--go:hover { background: #2563eb; }
     .cmp-btn--cancel { background: transparent; color: rgba(255,255,255,0.85); border-color: rgba(255,255,255,0.35); }
     .cmp-btn--cancel:hover { border-color: rgba(255,255,255,0.65); color: #fff; }
+    .cmp-btn:disabled { opacity: 0.4; cursor: default; pointer-events: none; }
 
     /* Synthèse */
     .verdict { display: inline-flex; align-items: center; gap: 8px; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 7px 14px; border-radius: 99px; }
@@ -144,7 +145,7 @@
         <p class="cmp__introtext">Lancez l'analyse pour comparer les deux versions avec l'IA et obtenir la synthèse des changements. Cela peut prendre quelques secondes.</p>
         <div class="cmp__actions">
           <button class="cmp-btn cmp-btn--go" id="analyze-btn">Analyser</button>
-          <button class="cmp-btn cmp-btn--cancel" id="cancel-btn">Annuler</button>
+          <button class="cmp-btn cmp-btn--cancel" id="cancel-btn" disabled>Annuler</button>
         </div>
       </div>
 
@@ -297,18 +298,24 @@
     const analyzeBtn = document.getElementById('analyze-btn');
     const cancelBtn  = document.getElementById('cancel-btn');
 
-    // « Annuler » : revenir à la page d'origine (dossiers ou éditeur) sans lancer l'analyse.
-    function goBack() {
-      if (history.length > 1) history.back();
-      else location.href = 'dossiers.html';
+    // Requête en cours (null si aucune) — permet à « Annuler » de l'interrompre.
+    let currentAbort = null;
+
+    function setAnalyzing(on) {
+      analyzeBtn.disabled = on;
+      analyzeBtn.textContent = on ? 'Analyse…' : 'Analyser';
+      cancelBtn.disabled = !on;      // « Annuler » n'a de sens que pendant la requête
+      loadingEl.hidden = !on;
     }
 
     // « Analyser » : lance réellement la comparaison IA.
     async function analyze() {
-      introEl.hidden  = true;
+      if (currentAbort) return;      // déjà une analyse en cours
+      const ac = new AbortController();
+      currentAbort = ac;
       errorEl.hidden  = true;
       resultEl.hidden = true;
-      loadingEl.hidden = false;
+      setAnalyzing(true);
 
       const body = {};
       if (oldVid) body.oldVersionId = oldVid; else body.oldId = oldId;
@@ -317,16 +324,25 @@
       try {
         const r = await fetch('/api/saas/doc-compare', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          credentials: 'include', body: JSON.stringify(body),
+          credentials: 'include', body: JSON.stringify(body), signal: ac.signal,
         });
         const data = await r.json().catch(() => ({}));
         if (data && data.meta) fillMeta(data.meta);
-        if (!r.ok) { showError(data.error || 'La comparaison a échoué. Réessayez dans un instant.'); introEl.hidden = false; return; }
+        if (!r.ok) { showError(data.error || 'La comparaison a échoué. Réessayez dans un instant.'); return; }
+        introEl.hidden = true;       // on masque l'écran de confirmation une fois le résultat prêt
         renderResult(data);
-      } catch {
-        showError('Impossible de joindre le serveur.');
-        introEl.hidden = false;
+      } catch (err) {
+        // Annulation volontaire : on revient à l'écran de confirmation, sans erreur.
+        if (!(err && err.name === 'AbortError')) showError('Impossible de joindre le serveur.');
+      } finally {
+        currentAbort = null;
+        setAnalyzing(false);
       }
+    }
+
+    // « Annuler » : interrompt la requête en cours (sans quitter la page).
+    function cancelAnalyze() {
+      if (currentAbort) currentAbort.abort();
     }
 
     async function init() {
@@ -340,7 +356,7 @@
       }
 
       analyzeBtn.addEventListener('click', analyze);
-      cancelBtn.addEventListener('click', (e) => { e.preventDefault(); goBack(); });
+      cancelBtn.addEventListener('click', (e) => { e.preventDefault(); cancelAnalyze(); });
       introEl.hidden = false;
     }
 
