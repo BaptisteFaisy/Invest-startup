@@ -25,6 +25,10 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
 const BASE_URL             = process.env.BASE_URL             || 'http://localhost:3000';
 const MONGODB_URI          = process.env.MONGODB_URI          || 'mongodb://localhost:27017';
 const STARTUP_SECRET       = process.env.STARTUP_SECRET       || 'startup_post_secret_2026';
+// Plafond GLOBAL de tokens IA par jour (tout le SaaS confondu), pour borner la
+// facture. Réglable via la variable d'environnement DAILY_TOKEN_CAP (Railway →
+// service → onglet Variables). Défaut : 5 000 000 tokens/jour.
+const DAILY_TOKEN_CAP      = Number(process.env.DAILY_TOKEN_CAP) || 5_000_000;
 
 const ADMIN_EMAILS = ['baptiste.faisy@gmail.com', 'bg.fsg.invest@gmail.com'];
 
@@ -214,7 +218,10 @@ function toBuffer(data) {
 }
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
-app.use(express.json());
+// Limite relevée à 12 Mo : les documents de l'éditeur peuvent embarquer des images
+// en data-URI (signatures manuscrites, images d'un DOCX importé). La valeur par
+// défaut (100 Ko) ferait échouer l'enregistrement de ces documents.
+app.use(express.json({ limit: '12mb' }));
 app.use(cookieParser());
 app.use('/uploads/public', express.static(PUBLIC_IMG_DIR));
 // Le SaaS (dossier interne au site) est servi sous /saas → même origine que l'API,
@@ -689,21 +696,60 @@ app.delete('/api/admin/startups/:id', requireAdmin, async (req, res) => {
 });
 
 // ─── SaaS : assistant IA Claude pour modifier une clause de term sheet ─────────
-// Comptabilise les tokens Claude consommés par un utilisateur (cumul + nb requêtes).
+// Jour courant au format YYYY-MM-DD dans le fuseau de Paris : le « par jour » du
+// plafond suit l'heure française et non UTC.
+function parisDay(d = new Date()) {
+  return d.toLocaleDateString('fr-CA', { timeZone: 'Europe/Paris' });
+}
+
+// Comptabilise les tokens IA consommés par un utilisateur (cumul + nb requêtes)
+// ET dans le compteur GLOBAL du jour, qui sert de base au plafond quotidien.
 async function recordClaudeUsage(userId, response) {
   try {
     const u = response?.usage || {};
     const input  = u.prompt_tokens ?? u.input_tokens ?? 0;
     const output = u.completion_tokens ?? u.output_tokens ?? 0;
+    const inc = { requests: 1, input_tokens: input, output_tokens: output, total_tokens: input + output };
+    const now = new Date().toISOString();
     await col('saas_claude_usage').updateOne(
       { user_id: userId },
-      {
-        $inc: { requests: 1, input_tokens: input, output_tokens: output, total_tokens: input + output },
-        $set: { updated_at: new Date().toISOString() },
-      },
+      { $inc: inc, $set: { updated_at: now } },
+      { upsert: true }
+    );
+    // Compteur global par jour (base du plafond DAILY_TOKEN_CAP).
+    await col('saas_usage_daily').updateOne(
+      { day: parisDay() },
+      { $inc: inc, $set: { updated_at: now } },
       { upsert: true }
     );
   } catch (e) { console.error('recordClaudeUsage error:', e.message); }
+}
+
+// Total de tokens IA consommés aujourd'hui, tout le SaaS confondu.
+async function globalTokensToday() {
+  try {
+    const d = await col('saas_usage_daily').findOne(
+      { day: parisDay() }, { projection: { total_tokens: 1 } }
+    );
+    return d?.total_tokens || 0;
+  } catch { return 0; }
+}
+
+// Middleware : refuse les appels IA une fois le plafond quotidien global atteint.
+// En cas d'erreur de lecture du compteur, on laisse passer (fail-open) pour ne
+// pas couper l'assistant sur un simple incident de base de données.
+async function enforceDailyCap(req, res, next) {
+  try {
+    const used = await globalTokensToday();
+    if (used >= DAILY_TOKEN_CAP) {
+      return res.status(429).json({
+        error: `Plafond quotidien de l'assistant IA atteint (${DAILY_TOKEN_CAP.toLocaleString('fr-FR')} tokens/jour). L'assistant sera de nouveau disponible demain.`,
+        cap:  DAILY_TOKEN_CAP,
+        used,
+      });
+    }
+  } catch (e) { console.error('enforceDailyCap error:', e.message); }
+  next();
 }
 
 // ─── Cache d'analyse IA par contenu ────────────────────────────────────────────
@@ -723,7 +769,7 @@ async function aiCacheSet(hash, data) {
   catch (e) { console.error('aiCacheSet error:', e.message); }
 }
 
-app.post('/api/saas/clause-chat', requireAuth, async (req, res) => {
+app.post('/api/saas/clause-chat', requireAuth, enforceDailyCap, async (req, res) => {
   if (!zaiClient)
     return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
@@ -807,7 +853,7 @@ Règles :
 // Recalcule à la demande l'explication simple d'une clause précise, à partir de
 // son texte RÉEL (valeurs comprises) — pas un texte générique. Le front la
 // réactualise dès que la clause change.
-app.post('/api/saas/clause-explain', requireAuth, async (req, res) => {
+app.post('/api/saas/clause-explain', requireAuth, enforceDailyCap, async (req, res) => {
   if (!zaiClient)
     return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
@@ -848,7 +894,7 @@ Règles :
 });
 
 // ─── SaaS : vérification d'UNE clause + de ses contenus pédagogiques ────────────
-app.post('/api/saas/clause-verify', requireAuth, async (req, res) => {
+app.post('/api/saas/clause-verify', requireAuth, enforceDailyCap, async (req, res) => {
   if (!zaiClient)
     return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
@@ -897,7 +943,7 @@ Réponds en français, en texte continu, 3 à 6 phrases. Commence par un verdict
 // L'utilisateur sélectionne du texte dans l'éditeur et demande à l'IA de le lui
 // expliquer. On envoie à Claude l'extrait + le contexte complet de la page pour
 // qu'il interprète l'extrait en fonction du reste du document.
-app.post('/api/saas/explain-selection', requireAuth, async (req, res) => {
+app.post('/api/saas/explain-selection', requireAuth, enforceDailyCap, async (req, res) => {
   if (!zaiClient)
     return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
@@ -947,7 +993,7 @@ Règles :
 });
 
 // ─── SaaS : conseils d'amélioration SPÉCIFIQUES à un document ──────────────────
-app.post('/api/saas/doc-advice', requireAuth, async (req, res) => {
+app.post('/api/saas/doc-advice', requireAuth, enforceDailyCap, async (req, res) => {
   if (!zaiClient)
     return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
@@ -997,7 +1043,7 @@ Règles :
 // ─── SaaS : clauses disponibles à ajouter (bibliothèque de l'éditeur) ──────────
 // Reçoit les clauses actuelles du document ; l'IA propose des clauses MANQUANTES
 // typiques de ce type de document, rédigées et prêtes à insérer.
-app.post('/api/saas/doc-clauses', requireAuth, async (req, res) => {
+app.post('/api/saas/doc-clauses', requireAuth, enforceDailyCap, async (req, res) => {
   if (!zaiClient)
     return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
@@ -1059,7 +1105,7 @@ Règles :
 });
 
 // ─── SaaS : analyse d'un document → liste des « choses à faire » ───────────────
-app.post('/api/saas/doc-analyze', requireAuth, async (req, res) => {
+app.post('/api/saas/doc-analyze', requireAuth, enforceDailyCap, async (req, res) => {
   if (!zaiClient)
     return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
@@ -1105,7 +1151,7 @@ Règles :
 // Reçoit l'id d'une ANCIENNE et d'une NOUVELLE version (documents de l'utilisateur),
 // extrait le texte de chacune et demande à l'IA ce qui a changé, du point de vue
 // du fondateur. Résultat mis en cache par empreinte des deux contenus.
-app.post('/api/saas/doc-compare', requireAuth, async (req, res) => {
+app.post('/api/saas/doc-compare', requireAuth, enforceDailyCap, async (req, res) => {
   if (!zaiClient)
     return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
@@ -1244,7 +1290,7 @@ async function docPlainText(doc) {
 // Reçoit la liste des champs [entre crochets] du document en cours d'édition,
 // lit les documents importés de l'utilisateur, et demande à l'IA la valeur
 // réelle de chaque champ trouvable dans ces documents (jamais d'invention).
-app.post('/api/saas/autofill', requireAuth, async (req, res) => {
+app.post('/api/saas/autofill', requireAuth, enforceDailyCap, async (req, res) => {
   if (!zaiClient)
     return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
@@ -1446,13 +1492,15 @@ app.get('/api/saas/usage', requireAuth, async (req, res) => {
 // Le SaaS se concentre sur le volet juridique d'une levée. Chaque dossier
 // correspond à une phase juridique de l'opération et porte la checklist des
 // documents juridiques attendus à cette étape (droit français, SAS).
-// Les checklists ne contiennent que les documents côté investisseurs : ceux que
-// les VC demandent (due diligence) ou qui sont négociés avec eux — les
-// formalités internes (PV, dépôts au greffe, registres, attestations) en sont
-// exclues.
+// Sur la levée classique, les checklists ne contiennent que les documents côté
+// investisseurs (due diligence, documents négociés) ; les formalités internes
+// (PV, dépôts au greffe, registres, attestations) en sont exclues. Le parcours
+// BSA-AIR, lui, intègre les actes d'émission et de souscription (PV de décision
+// collective, contrat d'émission, inscription au registre, dépôt au greffe…),
+// car ils rythment concrètement l'opération au fil de l'eau.
 // `FOLDERS_SEED_VERSION` est incrémentée à chaque évolution de cette liste pour
 // re-synchroniser automatiquement les dossiers système des utilisateurs.
-const FOLDERS_SEED_VERSION = 6;
+const FOLDERS_SEED_VERSION = 7;
 const FUNDRAISING_PHASES = [
   {
     key: 'mise-en-ordre',
@@ -1524,6 +1572,10 @@ const FUNDRAISING_PHASES = [
 
 // Parcours BSA-AIR (Bon de Souscription d'Actions — Accord d'Investissement Rapide).
 // Même structure que FUNDRAISING_PHASES.
+// Ordre réel d'un BSA-AIR « au fil de l'eau » en France : le fondateur fixe les
+// termes puis ÉMET les BSA-AIR (décision collective, au profit d'une catégorie de
+// personnes) AVANT de rechercher les investisseurs, qui souscrivent ensuite à un
+// instrument déjà émis. L'émission précède donc la recherche d'investisseurs.
 const BSA_AIR_PHASES = [
   {
     key: 'air-preparation',
@@ -1541,41 +1593,54 @@ const BSA_AIR_PHASES = [
     ],
   },
   {
-    key: 'air-approche',
-    name: '2 · Confidentialité & approche des investisseurs',
-    checklist: [
-      'Accord de confidentialité (NDA)',
-      'Support de présentation (deck) investisseurs',
-    ],
-  },
-  {
     key: 'air-termes',
-    name: '3 · Négociation des termes du BSA-AIR',
+    name: '2 · Structuration & fixation des termes du BSA-AIR',
     checklist: [
       'Term sheet BSA-AIR (montant, décote, plafond et/ou plancher de valorisation)',
       'Tableau de simulation de la conversion et de la dilution',
     ],
   },
   {
-    key: 'air-documentation',
-    name: '4 · Documentation du BSA-AIR',
+    key: 'air-emission',
+    name: '3 · Émission des BSA-AIR (décision collective)',
     checklist: [
+      "Rapport du président et du commissaire aux comptes (le cas échéant) sur l'émission de BSA avec suppression du DPS",
+      "PV de la décision collective (AGE) autorisant l'émission des BSA-AIR",
       "Contrat d'émission de BSA-AIR (termes et conditions des bons)",
+    ],
+  },
+  {
+    key: 'air-approche',
+    name: '4 · Confidentialité & recherche des investisseurs',
+    checklist: [
+      'Accord de confidentialité (NDA)',
+      'Support de présentation (deck) investisseurs',
+    ],
+  },
+  {
+    key: 'air-souscription',
+    name: '5 · Souscription & versement des fonds (au fil de l’eau)',
+    checklist: [
       'Bulletin de souscription des BSA-AIR',
       "Lettre d'investissement / side letter",
       'Convention entre investisseurs',
+      'Attestation de versement des fonds par le(s) souscripteur(s)',
+      'Constatation de la souscription des BSA-AIR par le président',
+      'Inscription des BSA-AIR au registre des valeurs mobilières / mouvements de titres',
+      "Dépôt de la formalité d'émission au greffe",
     ],
   },
   {
     key: 'air-suivi',
-    name: '5 · Suivi jusqu’à la conversion',
+    name: '6 · Suivi jusqu’à la conversion',
     checklist: [
       'Information / reporting des investisseurs (info rights)',
+      'Suivi des engagements BSA-AIR en cours (échéances, événements déclencheurs)',
     ],
   },
   {
     key: 'air-conversion',
-    name: '6 · Conversion au tour qualifié (ou échéance / liquidité)',
+    name: '7 · Conversion au tour qualifié (ou échéance / liquidité)',
     checklist: [
       'Calcul du prix de conversion (application de la décote et/ou du plafond)',
       'Bulletins de souscription des actions issues de la conversion',
@@ -1596,10 +1661,11 @@ const PHASE_MARKS = {
   'closing':           ['req'],
   'post-closing':      ['req'],
   'air-preparation':   ['req', 'req', 'req', '', '', 'opt', '', 'req', 'opt'],
-  'air-approche':      ['req', ''],
   'air-termes':        ['req', ''],
-  'air-documentation': ['req', 'req', 'opt', 'opt'],
-  'air-suivi':         ['req'],
+  'air-emission':      ['req', 'req', 'req'],
+  'air-approche':      ['req', ''],
+  'air-souscription':  ['req', 'opt', 'opt', 'req', 'req', 'req', 'req'],
+  'air-suivi':         ['req', ''],
   'air-conversion':    ['req', 'req', 'opt'],
 };
 
