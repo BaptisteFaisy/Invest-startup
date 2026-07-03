@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<title>liquid + — Présentation &amp; Offre</title>
+<style>
+  :root{
+    --ink:#0b0d12; --blue:#2563eb; --blue-d:#1d4ed8;
+    --grey:#5b6470; --line:#e4e7ec; --soft:#f5f7fa; --softer:#fafbfc;
+    --ok:#16a34a; --warn:#dc2626;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{font-family:"Segoe UI",-apple-system,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);line-height:1.5;font-size:12.5px;background:#e9edf2}
+  h1,h2,h3,h4{letter-spacing:-.015em;line-height:1.12}
+  strong{font-weight:700}
+  em{font-style:normal;color:var(--blue)}
+
+  /* ── Fixed A4 sheets : 1 .sheet = 1 printed page ── */
+  @page{size:A4;margin:0}
+  .sheet{width:210mm;height:296mm;overflow:hidden;position:relative;background:#fff;page-break-after:always;margin:0 auto;display:flex;flex-direction:column}
+  .sheet:last-child{page-break-after:auto}
+  .hero{flex:none}
+  .pad{padding:14mm 16mm;flex:1;display:flex;flex-direction:column}
+  .end-anchor{margin-top:auto}
+
+  .eyebrow{font-size:9.5px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--blue)}
+  .sec__h{font-size:19px;font-weight:800;margin:7px 0 4px}
+  .sec__lead{font-size:12.5px;color:var(--grey);max-width:72ch}
+  .pagemark{position:absolute;bottom:8mm;right:16mm;font-size:9px;color:#b8c0cc;letter-spacing:.04em}
+  .pagemark b{color:var(--blue);font-weight:800}
+  .block{margin-top:20px}
+
+  /* ── HERO ── */
+  .hero{background:var(--ink);color:#fff;padding:15mm 16mm 12mm;position:relative;overflow:hidden}
+  .hero::after{content:"";position:absolute;right:-55mm;top:-45mm;width:150mm;height:150mm;background:radial-gradient(circle,rgba(37,99,235,.28),transparent 62%)}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:21px;letter-spacing:-.03em;position:relative}
+  .brand__mark{width:28px;height:28px}
+  .brand__plus{color:#60a5fa}
+  .hero__kicker{position:relative;margin-top:22px;font-size:9.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.22);display:inline-block;padding:6px 12px;border-radius:99px}
+  .hero h1{position:relative;font-size:31px;font-weight:800;margin:14px 0 11px;max-width:17ch}
+  .hero h1 em{color:#60a5fa}
+  .hero__sub{position:relative;font-size:13.5px;color:rgba(255,255,255,.74);max-width:64ch;line-height:1.6}
+  .hero__pills{position:relative;display:flex;gap:7px;flex-wrap:wrap;margin-top:17px}
+  .hpill{font-size:10.5px;font-weight:600;color:rgba(255,255,255,.85);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:8px;padding:7px 12px}
+  .hpill b{color:#fff}
+
+  /* need cards */
+  .cols2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+  .cardx{border:1px solid var(--line);border-radius:12px;padding:15px 17px;background:var(--softer)}
+  .cardx h4{font-size:13.5px;font-weight:800;margin-bottom:8px}
+  .cardx h4 .tag{font-size:8.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:99px;margin-left:5px;vertical-align:middle;color:var(--warn);background:rgba(220,38,38,.1)}
+  .cardx ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+  .cardx li{font-size:12px;color:var(--grey);padding-left:16px;position:relative;line-height:1.45}
+  .cardx li::before{content:"—";position:absolute;left:0;color:var(--warn)}
+
+  .answer{margin-top:12px;background:linear-gradient(135deg,#eff4ff,#f7faff);border:1px solid #cfe0ff;border-left:4px solid var(--blue);border-radius:12px;padding:15px 18px}
+  .answer h4{font-size:10.5px;font-weight:800;color:var(--blue-d);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+  .answer p{font-size:13px;color:#1e293b}
+  .answer p strong{color:var(--ink)}
+
+  /* pillars */
+  .pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+  .pillar{border:1px solid var(--line);border-radius:12px;padding:16px;background:#fff}
+  .pillar__ic{width:34px;height:34px;border-radius:9px;background:rgba(37,99,235,.1);color:var(--blue);display:flex;align-items:center;justify-content:center;margin-bottom:11px}
+  .pillar__ic svg{width:18px;height:18px}
+  .pillar h4{font-size:13px;font-weight:800;margin-bottom:5px}
+  .pillar p{font-size:11.5px;color:var(--grey);line-height:1.5}
+
+  /* bibliothèque incl */
+  .incl{border:1px solid var(--line);border-radius:14px;padding:17px 20px;background:var(--softer)}
+  .incl h4{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--grey);margin-bottom:12px}
+  .incl ul{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:9px 16px}
+  .incl li{font-size:12px;font-weight:600;padding-left:21px;position:relative;line-height:1.35}
+  .incl li::before{content:"";position:absolute;left:0;top:1px;width:15px;height:15px;border-radius:50%;background:rgba(22,163,74,.12)}
+  .incl li::after{content:"";position:absolute;left:5px;top:3px;width:4px;height:7px;border:solid var(--ok);border-width:0 2px 2px 0;transform:rotate(45deg)}
+  .foot-note{font-size:10px;color:#94a0ad;margin-top:9px;line-height:1.5}
+
+  /* A→Z paths */
+  .paths{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+  .path{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .path__h{padding:12px 16px;font-weight:800;font-size:13px;color:#fff}
+  .path--classic .path__h{background:var(--ink)}
+  .path--air .path__h{background:var(--blue)}
+  .path__steps{padding:8px 16px 10px}
+  .pstep{display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
+  .pstep:last-child{border-bottom:none}
+  .pstep__n{flex:none;width:21px;height:21px;border-radius:6px;background:var(--soft);color:var(--blue);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-top:1px}
+  .pstep__t{font-size:12.5px;font-weight:700}
+  .pstep__t span{display:block;font-weight:400;color:var(--grey);font-size:11px;margin-top:1px}
+  .strip{margin-top:16px;background:var(--ink);color:#fff;border-radius:12px;padding:15px 20px;display:flex;align-items:center;gap:13px;position:relative;overflow:hidden}
+  .strip::after{content:"";position:absolute;right:-20mm;top:-25mm;width:70mm;height:70mm;background:radial-gradient(circle,rgba(37,99,235,.32),transparent 60%)}
+  .strip svg{width:22px;height:22px;color:#60a5fa;flex:none;position:relative}
+  .strip p{position:relative;font-size:12.5px;color:rgba(255,255,255,.82)}
+  .strip p b{color:#fff}
+
+  /* offer / price */
+  .price-hero{display:grid;grid-template-columns:1.05fr 1.4fr;gap:14px;margin-top:14px;align-items:stretch}
+  .price-card{background:var(--ink);color:#fff;border-radius:16px;padding:26px 24px;position:relative;overflow:hidden}
+  .price-card::after{content:"";position:absolute;right:-28mm;bottom:-28mm;width:78mm;height:78mm;background:radial-gradient(circle,rgba(37,99,235,.3),transparent 60%)}
+  .price-card .k{position:relative;font-size:9.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.55)}
+  .price-card .amount{position:relative;font-size:34px;font-weight:800;letter-spacing:-.02em;margin:9px 0 3px;white-space:nowrap}
+  .price-card .amount span{color:#60a5fa}
+  .price-card .per{position:relative;font-size:11.5px;color:rgba(255,255,255,.6)}
+  .price-card .desc{position:relative;font-size:12px;color:rgba(255,255,255,.76);margin-top:11px;line-height:1.55}
+  .incl--offer ul{grid-template-columns:1fr 1fr}
+
+  /* comparison table */
+  .cmp-wrap{margin-top:12px;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  table.cmp{width:100%;border-collapse:collapse;font-size:11.5px}
+  table.cmp th,table.cmp td{padding:13px 13px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+  table.cmp thead th{background:var(--soft);font-size:10px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--grey)}
+  table.cmp thead th.us{background:var(--blue);color:#fff}
+  table.cmp td.crit{font-weight:700;color:var(--ink);width:26%}
+  table.cmp td.us{background:rgba(37,99,235,.05);font-weight:600}
+  table.cmp tr:last-child td{border-bottom:none}
+  .yes{color:var(--ok);font-weight:800}
+  .no{color:var(--warn);font-weight:800}
+  .mid{color:#b45309;font-weight:700}
+  .cell-sub{display:block;color:var(--grey);font-weight:400;font-size:10.5px;margin-top:2px}
+
+  /* closing */
+  .guarantee{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+  .g{border:1px solid var(--line);border-radius:12px;padding:15px 16px;background:var(--softer)}
+  .g h4{font-size:12.5px;font-weight:800;margin-bottom:5px;color:var(--blue-d)}
+  .g p{font-size:11.5px;color:var(--grey);line-height:1.5}
+  .summary{margin-top:22px;border:1px solid #cfe0ff;background:linear-gradient(135deg,#eff4ff,#f7faff);border-radius:14px;padding:18px 20px}
+  .summary h3{font-size:15px;font-weight:800;color:var(--blue-d)}
+  .summary p{font-size:12.5px;color:#1e293b;margin-top:6px}
+  .contact{margin-top:16px;background:var(--ink);color:#fff;border-radius:16px;padding:20px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px;position:relative;overflow:hidden}
+  .contact::after{content:"";position:absolute;right:-20mm;top:-20mm;width:70mm;height:70mm;background:radial-gradient(circle,rgba(37,99,235,.3),transparent 60%)}
+  .contact__l{position:relative}
+  .contact__l h3{font-size:18px;font-weight:800}
+  .contact__l h3 em{color:#60a5fa}
+  .contact__l p{font-size:12px;color:rgba(255,255,255,.7);margin-top:5px}
+  .contact__r{position:relative;text-align:right}
+  .contact__r a{color:#fff;text-decoration:none;font-weight:700;display:block;font-size:14px}
+  .contact__r span{color:rgba(255,255,255,.6);font-size:11px}
+  .legal{font-size:9.5px;color:#a4aebb;margin-top:14px;line-height:1.55;text-align:center}
+</style>
+</head>
+<body>
+
+<!-- ═════════ PAGE 1 — Hero + Le besoin ═════════ -->
+<section class="sheet">
+  <div class="hero">
+    <div class="brand">
+      <svg class="brand__mark" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+        <rect width="32" height="32" rx="7" fill="#111826" stroke="#3b82f6" stroke-opacity=".4"/>
+        <line x1="16" y1="8" x2="16" y2="24" stroke="#60a5fa" stroke-width="4" stroke-linecap="round"/>
+        <line x1="8" y1="16" x2="24" y2="16" stroke="#60a5fa" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+      liquid <span class="brand__plus">+</span>
+    </div>
+    <div class="hero__kicker">Présentation &amp; offre · levée de fonds</div>
+    <h1>On gère votre levée de fonds <em>de A à Z.</em></h1>
+    <p class="hero__sub">De la mise en ordre au closing — levée classique ou BSA-AIR. Tous les documents que vous faites signer sont produits et validés par un avocat, et notre plateforme rend chaque étape lisible, guidée et rapide.</p>
+    <div class="hero__pills">
+      <span class="hpill"><b>100 % des actes validés par un avocat</b></span>
+      <span class="hpill">Levée classique &amp; <b>BSA-AIR</b></span>
+      <span class="hpill">Forfait <b>700 – 1 500 €</b></span>
+    </div>
+  </div>
+
+  <div class="pad">
+    <span class="eyebrow">Le besoin</span>
+    <h2 class="sec__h">Boucler sa levée sans se ruiner en avocat — ni signer à l'aveugle.</h2>
+    <p class="sec__lead">Une levée impose une pile d'actes juridiques qui engagent le contrôle et la valeur de la société. Jusqu'ici, le fondateur devait choisir entre deux options imparfaites.</p>
+
+    <div class="cols2">
+      <div class="cardx">
+        <h4>L'avocat traditionnel <span class="tag">cher &amp; lent</span></h4>
+        <ul>
+          <li>Honoraires de plusieurs milliers d'euros par opération.</li>
+          <li>Délais rythmés par l'agenda du cabinet.</li>
+          <li>Le fondateur reste spectateur, sans outil de suivi.</li>
+        </ul>
+      </div>
+      <div class="cardx">
+        <h4>L'outil en self-service <span class="tag">seul face au droit</span></h4>
+        <ul>
+          <li>Des modèles à remplir soi-même, sans prise en charge réelle.</li>
+          <li>La validation par un avocat n'est pas incluse par défaut.</li>
+          <li>C'est à vous de tout piloter, de bout en bout.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="answer">
+      <h4>Ce que veulent vraiment les fondateurs</h4>
+      <p><strong>La sécurité juridique d'un avocat, la simplicité et le prix d'un outil — et quelqu'un qui s'occupe de tout.</strong> C'est exactement ce que liquid + réunit.</p>
+    </div>
+
+    <div class="block">
+      <span class="eyebrow">Le produit</span>
+      <h2 class="sec__h">liquid + — la levée prise en charge, du premier acte à la signature.</h2>
+      <div class="pillars">
+        <div class="pillar">
+          <div class="pillar__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg></div>
+          <h4>Sécurisé par un avocat</h4>
+          <p>Chaque document que vous faites signer — term sheet, pacte, statuts, BSA-AIR — est produit et validé par un avocat. Zéro acte hors contrôle juridique.</p>
+        </div>
+        <div class="pillar">
+          <div class="pillar__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v4H4zM4 12h10v8H4zM18 12h2v8h-2z"/></svg></div>
+          <h4>Pris en charge de A à Z</h4>
+          <p>On orchestre toute l'opération : mise en ordre, term sheet, due diligence, documentation, closing et post-closing. Vous avancez, on tient le fil.</p>
+        </div>
+        <div class="pillar">
+          <div class="pillar__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg></div>
+          <h4>Une plateforme qui décrypte</h4>
+          <p>Éditeur juridique + décrypteur IA : chaque clause traduite en clair, chaque champ guidé, chaque point de négociation signalé en temps réel.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pagemark">liquid <b>+</b> · 1 / 4</div>
+</section>
+
+<!-- ═════════ PAGE 2 — Prise en charge A→Z + Bibliothèque ═════════ -->
+<section class="sheet">
+  <div class="pad">
+    <span class="eyebrow">Notre prise en charge</span>
+    <h2 class="sec__h">De A à Z, quel que soit votre montage.</h2>
+    <p class="sec__lead">Deux parcours entièrement couverts. Chaque étape avec ses actes produits et validés par un avocat, et suivis dans la plateforme via une checklist des pièces attendues.</p>
+
+    <div class="paths">
+      <div class="path path--classic">
+        <div class="path__h">Levée classique — 7 étapes</div>
+        <div class="path__steps">
+          <div class="pstep"><div class="pstep__n">1</div><div class="pstep__t">Mise en ordre<span>Cap table, statuts, registres à jour</span></div></div>
+          <div class="pstep"><div class="pstep__n">2</div><div class="pstep__t">Confidentialité<span>NDA, accès data room</span></div></div>
+          <div class="pstep"><div class="pstep__n">3</div><div class="pstep__t">Term sheet<span>Négociation des termes clés</span></div></div>
+          <div class="pstep"><div class="pstep__n">4</div><div class="pstep__t">Due diligence<span>Questionnaire, réponses, audit</span></div></div>
+          <div class="pstep"><div class="pstep__n">5</div><div class="pstep__t">Documentation<span>Pacte, statuts modifiés, GAP</span></div></div>
+          <div class="pstep"><div class="pstep__n">6</div><div class="pstep__t">Closing<span>Souscription, versement, PV</span></div></div>
+          <div class="pstep"><div class="pstep__n">7</div><div class="pstep__t">Post-closing<span>Registres, reporting investisseurs</span></div></div>
+        </div>
+      </div>
+      <div class="path path--air">
+        <div class="path__h">BSA-AIR — 7 étapes</div>
+        <div class="path__steps">
+          <div class="pstep"><div class="pstep__n">1</div><div class="pstep__t">Préparation<span>Cadrage de l'opération</span></div></div>
+          <div class="pstep"><div class="pstep__n">2</div><div class="pstep__t">Termes des BSA-AIR<span>Montant, décote, plafond, plancher</span></div></div>
+          <div class="pstep"><div class="pstep__n">3</div><div class="pstep__t">Émission<span>Contrat d'émission, décisions</span></div></div>
+          <div class="pstep"><div class="pstep__n">4</div><div class="pstep__t">Approche investisseurs<span>Term sheet, side letter</span></div></div>
+          <div class="pstep"><div class="pstep__n">5</div><div class="pstep__t">Souscription<span>Bulletins, versement des fonds</span></div></div>
+          <div class="pstep"><div class="pstep__n">6</div><div class="pstep__t">Suivi<span>Registre, échéances, déclencheurs</span></div></div>
+          <div class="pstep"><div class="pstep__n">7</div><div class="pstep__t">Conversion<span>Calcul décote/plafond, dilution</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="strip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>
+      <p><b>À chaque étape, rien ne se signe sans avocat.</b> Vous gardez la main sur votre levée ; nous garantissons la solidité juridique de chaque acte transmis à vos investisseurs.</p>
+    </div>
+
+    <div class="block">
+      <span class="eyebrow">Ce qui est produit &amp; sécurisé</span>
+      <h2 class="sec__h">Tous les actes de votre levée, sous une seule main.</h2>
+      <div class="incl" style="margin-top:11px">
+        <h4>Une bibliothèque complète — chaque acte validé par avocat</h4>
+        <ul>
+          <li>Term sheet / lettre d'intention</li>
+          <li>Contrat &amp; termes des BSA-AIR</li>
+          <li>Pacte d'associés</li>
+          <li>Statuts &amp; statuts modifiés</li>
+          <li>Table de capitalisation</li>
+          <li>Bulletins de souscription</li>
+          <li>Convention de garantie (GAP)</li>
+          <li>PV &amp; décisions collectives</li>
+          <li>Registres de mouvements de titres</li>
+          <li>NDA &amp; engagements data room</li>
+          <li>Due diligence &amp; audit juridique</li>
+          <li>Reporting &amp; info-rights investisseurs</li>
+        </ul>
+      </div>
+      <p class="foot-note">Plus de 40 modèles d'actes couvrant l'intégralité des deux parcours — chacun produit et revu par un avocat avant signature.</p>
+    </div>
+  </div>
+  <div class="pagemark">liquid <b>+</b> · 2 / 4</div>
+</section>
+
+<!-- ═════════ PAGE 3 — L'offre + Comparatif ═════════ -->
+<section class="sheet">
+  <div class="pad">
+    <span class="eyebrow">L'offre</span>
+    <h2 class="sec__h">Un forfait tout compris, entre 700 et 1 500 €.</h2>
+    <p class="sec__lead">Un seul prix pour toute l'opération, ajusté à sa complexité (montant levé, nombre d'investisseurs, type de montage). Pas d'abonnement caché, pas d'honoraires au compteur.</p>
+
+    <div class="price-hero">
+      <div class="price-card">
+        <div class="k">Forfait levée · tout compris</div>
+        <div class="amount">700 – 1 500 <span>€</span></div>
+        <div class="per">par levée · selon la complexité de l'opération</div>
+        <div class="desc">Accompagnement de bout en bout, tous les actes validés par un avocat, et l'accès à la plateforme de A à Z.</div>
+      </div>
+      <div class="incl incl--offer">
+        <h4>Inclus dans le forfait</h4>
+        <ul>
+          <li>Prise en charge A→Z de l'opération</li>
+          <li>Tous les actes validés avocat</li>
+          <li>Levée classique ou BSA-AIR</li>
+          <li>Plateforme + décrypteur IA</li>
+          <li>Checklist &amp; suivi par étape</li>
+          <li>Négociation assistée des clauses</li>
+          <li>Exports PDF / Word illimités</li>
+          <li>Interlocuteur dédié</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="block" style="margin-top:26px">
+      <span class="eyebrow">Comparatif</span>
+      <h2 class="sec__h">liquid + face aux autres options.</h2>
+      <div class="cmp-wrap">
+        <table class="cmp">
+          <thead>
+            <tr>
+              <th>Critère</th>
+              <th class="us">liquid +</th>
+              <th>SeedLegals</th>
+              <th>BOLD (avocat)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="crit">Prix</td>
+              <td class="us">700 – 1 500 €<span class="cell-sub">forfait tout compris / levée</span></td>
+              <td>Abonnement + frais / opération<span class="cell-sub">souvent au-delà de 1 500 € au global</span></td>
+              <td>Honoraires d'avocat au dossier<span class="cell-sub">plusieurs milliers d'€</span></td>
+            </tr>
+            <tr>
+              <td class="crit">Actes validés par un avocat</td>
+              <td class="us"><span class="yes">Oui</span> — 100 % des actes</td>
+              <td><span class="mid">En option</span><span class="cell-sub">modèles en self-service</span></td>
+              <td><span class="yes">Oui</span> — c'est un cabinet</td>
+            </tr>
+            <tr>
+              <td class="crit">Levée classique &amp; BSA-AIR</td>
+              <td class="us"><span class="yes">Les deux</span></td>
+              <td><span class="mid">Selon le plan</span></td>
+              <td><span class="yes">Les deux</span></td>
+            </tr>
+            <tr>
+              <td class="crit">Plateforme + décryptage IA</td>
+              <td class="us"><span class="yes">Oui</span> — clause par clause</td>
+              <td><span class="mid">Outil</span><span class="cell-sub">sans décryptage IA par clause</span></td>
+              <td><span class="no">Non</span></td>
+            </tr>
+            <tr>
+              <td class="crit">Interlocuteur dédié</td>
+              <td class="us"><span class="yes">Oui</span></td>
+              <td><span class="mid">Support</span></td>
+              <td><span class="yes">Oui</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="foot-note">Positionnement des concurrents donné à titre indicatif, sur la base d'informations publiques ; tarifs susceptibles d'évoluer. SeedLegals est une plateforme legaltech en self-service ; BOLD est un cabinet d'avocats d'affaires.</p>
+    </div>
+  </div>
+  <div class="pagemark">liquid <b>+</b> · 3 / 4</div>
+</section>
+
+<!-- ═════════ PAGE 4 — Pourquoi + Contact ═════════ -->
+<section class="sheet">
+  <div class="pad">
+    <span class="eyebrow">Pourquoi liquid +</span>
+    <h2 class="sec__h">Le meilleur des deux mondes.</h2>
+    <p class="sec__lead">La rigueur d'un avocat, la fluidité d'un outil, un prix clair — et une équipe qui porte votre levée jusqu'à la signature.</p>
+
+    <div class="guarantee">
+      <div class="g">
+        <h4>Rien ne se signe sans avocat</h4>
+        <p>Chaque acte transmis à un investisseur est produit et validé par un avocat. Votre levée est juridiquement sûre.</p>
+      </div>
+      <div class="g">
+        <h4>Un seul prix, connu d'avance</h4>
+        <p>Entre 700 et 1 500 €, tout compris. Pas de compteur d'heures, pas d'abonnement obligatoire, pas de surprise.</p>
+      </div>
+      <div class="g">
+        <h4>On s'occupe de tout</h4>
+        <p>Classique ou BSA-AIR, de la mise en ordre au post-closing : vous vous concentrez sur votre boîte, on tient le dossier.</p>
+      </div>
+    </div>
+
+    <div class="summary">
+      <h3>liquid + = sécurité d'un avocat + simplicité d'un outil + prise en charge complète.</h3>
+      <p>Là où l'avocat traditionnel coûte plusieurs milliers d'euros et où l'outil self-service vous laisse seul, liquid + réunit les deux dans un forfait unique de 700 à 1 500 €.</p>
+    </div>
+
+    <div class="contact end-anchor">
+      <div class="contact__l">
+        <h3>Prêt à lancer votre <em>levée ?</em></h3>
+        <p>Un échange, une estimation, un document à cadrer — on vous répond vite.</p>
+      </div>
+      <div class="contact__r">
+        <a href="mailto:bg.fsg.invest@gmail.com">bg.fsg.invest@gmail.com</a>
+        <span>liquid + · accompagnement de levée de fonds</span>
+      </div>
+    </div>
+
+    <p class="legal">© 2026 liquid +. Offre indicative ; le périmètre et le tarif définitifs sont confirmés au cadrage de l'opération. Les documents sont produits et validés par un avocat partenaire ; liquid + ne se substitue pas à un conseil juridique personnalisé pour les cas complexes.</p>
+  </div>
+  <div class="pagemark">liquid <b>+</b> · 4 / 4</div>
+</section>
+
+</body>
+</html>

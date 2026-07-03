@@ -4,3 +4,6 @@ uploads/
 data/users.json
 data/startups.json
 *.log
+.mcp.json
+.agentsroom/handoff-transcript-*.txt
+.agentsroom/handoff-summary-*.md

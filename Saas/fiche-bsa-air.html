@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<title>liquid + — Fiche BSA-AIR</title>
+<style>
+  :root{
+    --ink:#0b0d12; --blue:#2563eb; --blue-d:#1d4ed8; --indigo:#6d28d9; --green:#16a34a; --amber:#b45309;
+    --grey:#5b6470; --line:#e4e7ec; --soft:#f5f7fa; --softer:#fafbfc;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{font-family:"Segoe UI",-apple-system,Roboto,Helvetica,Arial,sans-serif;color:var(--ink);line-height:1.5;font-size:12.5px;background:#e9edf2}
+  h1,h2,h3,h4{letter-spacing:-.015em;line-height:1.14}
+  strong{font-weight:700}
+  em{font-style:normal;color:var(--blue)}
+
+  @page{size:A4;margin:0}
+  .sheet{width:210mm;height:296mm;overflow:hidden;position:relative;background:#fff;page-break-after:always;margin:0 auto;display:flex;flex-direction:column}
+  .sheet:last-child{page-break-after:auto}
+  .hero{flex:none}
+  .pad{padding:13mm 16mm;flex:1;display:flex;flex-direction:column}
+  .end-anchor{margin-top:auto}
+
+  .eyebrow{font-size:9.5px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--blue)}
+  .sec__h{font-size:18px;font-weight:800;margin:6px 0 4px}
+  .sec__lead{font-size:12.5px;color:var(--grey);max-width:74ch}
+  .block{margin-top:14px}
+  .pagemark{position:absolute;bottom:8mm;right:16mm;font-size:9px;color:#b8c0cc;letter-spacing:.04em}
+  .pagemark b{color:var(--blue);font-weight:800}
+
+  /* HERO */
+  .hero{background:var(--ink);color:#fff;padding:14mm 16mm 12mm;position:relative;overflow:hidden}
+  .hero::after{content:"";position:absolute;right:-55mm;top:-45mm;width:150mm;height:150mm;background:radial-gradient(circle,rgba(37,99,235,.28),transparent 62%)}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;letter-spacing:-.03em;position:relative}
+  .brand__mark{width:26px;height:26px}
+  .brand__plus{color:#60a5fa}
+  .hero__kicker{position:relative;margin-top:18px;font-size:9.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.22);display:inline-block;padding:6px 12px;border-radius:99px}
+  .hero h1{position:relative;font-size:30px;font-weight:800;margin:13px 0 9px;max-width:20ch}
+  .hero h1 em{color:#60a5fa}
+  .hero__sub{position:relative;font-size:13px;color:rgba(255,255,255,.74);max-width:70ch;line-height:1.6}
+  .hero__pills{position:relative;display:flex;gap:7px;flex-wrap:wrap;margin-top:15px}
+  .hpill{font-size:10.5px;font-weight:600;color:rgba(255,255,255,.85);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:8px;padding:6px 11px}
+  .hpill b{color:#fff}
+
+  /* definition callout */
+  .def{display:grid;grid-template-columns:1.35fr 1fr;gap:14px;margin-top:14px;align-items:stretch}
+  .def__txt p{font-size:12.5px;color:#26303b;line-height:1.6}
+  .def__txt p + p{margin-top:8px}
+  .def__txt b{color:var(--ink)}
+  .def__box{background:linear-gradient(135deg,#eff4ff,#f7faff);border:1px solid #cfe0ff;border-left:4px solid var(--blue);border-radius:12px;padding:15px 17px}
+  .def__box h4{font-size:10px;font-weight:800;color:var(--blue-d);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px}
+  .def__box p{font-size:12px;color:#1e293b;line-height:1.55}
+  .def__box p b{color:var(--ink)}
+
+  /* levers */
+  .levers{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:13px}
+  .lever{border:1px solid var(--line);border-top:3px solid var(--blue);border-radius:12px;padding:15px 16px;background:#fff}
+  .lever--cap{border-top-color:var(--indigo)}
+  .lever--floor{border-top-color:var(--green)}
+  .lever__tag{font-size:9px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--blue)}
+  .lever--cap .lever__tag{color:var(--indigo)}
+  .lever--floor .lever__tag{color:var(--green)}
+  .lever h4{font-size:14px;font-weight:800;margin:4px 0 6px}
+  .lever p{font-size:11.5px;color:var(--grey);line-height:1.5}
+  .lever__std{margin-top:9px;font-size:10.5px;font-weight:700;color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:7px;padding:6px 9px}
+
+  /* formula */
+  .formula{margin-top:13px;background:var(--ink);color:#fff;border-radius:14px;padding:17px 20px;position:relative;overflow:hidden}
+  .formula::after{content:"";position:absolute;right:-25mm;bottom:-30mm;width:80mm;height:80mm;background:radial-gradient(circle,rgba(37,99,235,.3),transparent 60%)}
+  .formula .k{position:relative;font-size:9.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:9px}
+  .formula__eq{position:relative;font-size:14px;font-weight:700;line-height:1.6}
+  .formula__eq .op{color:#60a5fa;font-weight:800}
+  .formula p{position:relative;font-size:11.5px;color:rgba(255,255,255,.68);margin-top:10px;line-height:1.55}
+
+  /* process flow */
+  .flow{margin-top:12px;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .fstep{display:grid;grid-template-columns:30px 1fr;gap:13px;padding:9px 16px;border-bottom:1px solid var(--line)}
+  .fstep:last-child{border-bottom:none}
+  .fstep:nth-child(even){background:var(--softer)}
+  .fstep__n{width:26px;height:26px;border-radius:8px;background:var(--blue);color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
+  .fstep h4{font-size:13px;font-weight:800;margin-bottom:2px}
+  .fstep p{font-size:11.5px;color:var(--grey);line-height:1.5}
+  .fstep p b{color:var(--ink);font-weight:600}
+
+  /* triggers */
+  .trigs{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:13px}
+  .trig{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--softer)}
+  .trig__ic{width:32px;height:32px;border-radius:9px;background:rgba(37,99,235,.1);color:var(--blue);display:flex;align-items:center;justify-content:center;margin-bottom:9px}
+  .trig__ic svg{width:17px;height:17px}
+  .trig h4{font-size:12.5px;font-weight:800;margin-bottom:4px}
+  .trig p{font-size:11px;color:var(--grey);line-height:1.5}
+
+  /* example */
+  .example{margin-top:13px;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .example__h{background:var(--soft);padding:10px 16px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--grey)}
+  .example__body{padding:4px 16px 9px}
+  .exrow{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--line);font-size:12px}
+  .exrow:last-child{border-bottom:none}
+  .exrow .lbl{color:var(--grey)}
+  .exrow .val{font-weight:700;text-align:right}
+  .exrow--hl{background:rgba(37,99,235,.05);margin:0 -16px;padding:9px 16px;border-bottom:none}
+  .exrow--hl .lbl{color:var(--ink);font-weight:800}
+  .exrow--hl .val{color:var(--blue-d);font-weight:800;font-size:13px}
+
+  /* contact */
+  .contact{margin-top:12px;background:var(--ink);color:#fff;border-radius:14px;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:16px;position:relative;overflow:hidden}
+  .contact::after{content:"";position:absolute;right:-20mm;top:-20mm;width:70mm;height:70mm;background:radial-gradient(circle,rgba(37,99,235,.3),transparent 60%)}
+  .contact__l{position:relative}
+  .contact__l h3{font-size:16px;font-weight:800}
+  .contact__l h3 em{color:#60a5fa}
+  .contact__l p{font-size:11.5px;color:rgba(255,255,255,.7);margin-top:4px}
+  .contact__r{position:relative;text-align:right}
+  .contact__r a{color:#fff;text-decoration:none;font-weight:700;display:block;font-size:13.5px}
+  .contact__r span{color:rgba(255,255,255,.6);font-size:11px}
+  .legal{font-size:9.5px;color:#a4aebb;margin-top:12px;line-height:1.55;text-align:center}
+</style>
+</head>
+<body>
+
+<!-- ═════════ PAGE 1 — Comprendre le BSA-AIR ═════════ -->
+<section class="sheet">
+  <div class="hero">
+    <div class="brand">
+      <svg class="brand__mark" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+        <rect width="32" height="32" rx="7" fill="#111826" stroke="#3b82f6" stroke-opacity=".4"/>
+        <line x1="16" y1="8" x2="16" y2="24" stroke="#60a5fa" stroke-width="4" stroke-linecap="round"/>
+        <line x1="8" y1="16" x2="24" y2="16" stroke="#60a5fa" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+      liquid <span class="brand__plus">+</span>
+    </div>
+    <div class="hero__kicker">Fiche mémo · levée en BSA-AIR</div>
+    <h1>Le <em>BSA-AIR</em> en une fiche : l'essentiel &amp; le déroulé.</h1>
+    <p class="hero__sub">Bon de Souscription d'Actions – Accord d'Investissement Rapide : l'investisseur verse aujourd'hui, reçoit des bons qui se convertiront en actions lors de votre prochain tour. Rapide, peu coûteux, sans négocier de valorisation immédiate.</p>
+    <div class="hero__pills">
+      <span class="hpill"><b>Rapide</b> — peu de documents</span>
+      <span class="hpill"><b>Ni dette ni capital</b> — quasi-fonds propres</span>
+      <span class="hpill">Conversion au <b>prochain tour</b></span>
+    </div>
+  </div>
+
+  <div class="pad">
+    <span class="eyebrow">Qu'est-ce qu'un BSA-AIR ?</span>
+    <h2 class="sec__h">Un investissement encaissé maintenant, valorisé plus tard.</h2>
+    <div class="def">
+      <div class="def__txt">
+        <p>L'investisseur souscrit des <b>bons (BSA-AIR)</b> et verse immédiatement son montant. En contrepartie, il obtient le droit de recevoir des <b>actions de la société</b> lors d'un événement futur — le plus souvent votre prochain tour de financement.</p>
+        <p>On repousse ainsi la <b>négociation de la valorisation</b> au tour suivant, tout en récompensant l'investisseur de son antériorité par une <b>décote</b> et/ou un <b>plafond</b>. Avant conversion, il n'est <b>pas associé</b> : ni droit de vote, ni dividende.</p>
+      </div>
+      <div class="def__box">
+        <h4>Le point à retenir</h4>
+        <p>Le montant versé est <b>définitivement acquis</b> à la société (comptabilisé en prime d'émission) : ce n'est <b>ni un prêt ni une avance</b>. À la conversion, rien de plus à payer que la valeur nominale, imputée sur la mise.</p>
+      </div>
+    </div>
+
+    <div class="block">
+      <span class="eyebrow">Les 3 leviers économiques</span>
+      <h2 class="sec__h">Ce qui se négocie dans un BSA-AIR.</h2>
+      <div class="levers">
+        <div class="lever">
+          <div class="lever__tag">Décote</div>
+          <h4>La récompense du risque</h4>
+          <p>L'investisseur convertit au prix du tour <b>diminué d'un pourcentage</b>. Plus il est venu tôt, plus la décote est justifiée.</p>
+          <div class="lever__std">Standard marché : <b>20 %</b> (15 % à 25-30 %)</div>
+        </div>
+        <div class="lever lever--cap">
+          <div class="lever__tag">Plafond (cap)</div>
+          <h4>La valorisation max de conversion</h4>
+          <p>Si le tour se fait au-dessus du plafond, l'investisseur convertit <b>sur la base du plafond</b> — donc reçoit plus d'actions.</p>
+          <div class="lever__std">Protège l'investisseur si la valo s'envole</div>
+        </div>
+        <div class="lever lever--floor">
+          <div class="lever__tag">Plancher (floor)</div>
+          <h4>La protection des fondateurs</h4>
+          <p>La conversion ne peut se faire <b>en dessous d'un minimum</b>, ce qui limite la dilution des associés en cas de tour très bas. Optionnel.</p>
+          <div class="lever__std">Sert aussi de référence à l'échéance</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="formula">
+      <div class="k">Le prix de conversion</div>
+      <div class="formula__eq">Prix par action = <span class="op">le plus faible</span> entre&nbsp;&nbsp;( prix du tour × (1 − décote) )&nbsp;&nbsp;<span class="op">et</span>&nbsp;&nbsp;( plafond ÷ actions pleinement diluées )</div>
+      <p>On retient toujours le prix <b>le plus favorable à l'investisseur</b> — celui qui lui donne le plus d'actions. Nombre d'actions reçues = montant investi ÷ prix de conversion.</p>
+    </div>
+  </div>
+  <div class="pagemark">liquid <b>+</b> · 1 / 2</div>
+</section>
+
+<!-- ═════════ PAGE 2 — Comment ça se passe ═════════ -->
+<section class="sheet">
+  <div class="pad">
+    <span class="eyebrow">Comment ça se passe</span>
+    <h2 class="sec__h">Le déroulé, de la term sheet à la conversion.</h2>
+    <div class="flow">
+      <div class="fstep"><div class="fstep__n">1</div><div><h4>Termes (term sheet)</h4><p>On fixe le <b>montant</b>, la <b>décote</b>, le <b>plafond</b>, l'éventuel plancher, le <b>seuil du tour qualifié</b> et l'échéance.</p></div></div>
+      <div class="fstep"><div class="fstep__n">2</div><div><h4>Décision d'émission</h4><p>La <b>collectivité des associés (AGE)</b> autorise l'émission et <b>supprime le droit préférentiel de souscription</b> au profit des investisseurs (rapport du président, du CAC le cas échéant).</p></div></div>
+      <div class="fstep"><div class="fstep__n">3</div><div><h4>Contrat d'émission des bons</h4><p>Les <b>termes &amp; conditions</b> des BSA-AIR : formule de conversion, événements déclencheurs, droits d'information, cas de liquidité.</p></div></div>
+      <div class="fstep"><div class="fstep__n">4</div><div><h4>Souscription &amp; versement</h4><p><b>Bulletin de souscription</b> signé, fonds versés et <b>définitivement acquis</b> (prime d'émission) ; attestation de versement.</p></div></div>
+      <div class="fstep"><div class="fstep__n">5</div><div><h4>Inscription &amp; suivi</h4><p>Le président <b>constate la souscription</b> ; les bons sont inscrits au <b>registre des valeurs mobilières</b>. Reporting et pro rata jusqu'à conversion.</p></div></div>
+      <div class="fstep"><div class="fstep__n">6</div><div><h4>Conversion en actions</h4><p>Au tour qualifié : calcul du prix (le plus favorable), <b>émission des actions</b> et <b>adhésion au pacte d'associés</b>.</p></div></div>
+    </div>
+
+    <div class="block">
+      <span class="eyebrow">3 événements qui déclenchent la conversion</span>
+      <div class="trigs">
+        <div class="trig">
+          <div class="trig__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg></div>
+          <h4>Tour qualifié</h4>
+          <p>Une augmentation de capital ≥ seuil convenu (souvent <b>500 k€ à 1 M€</b>) : conversion automatique au closing.</p>
+        </div>
+        <div class="trig">
+          <div class="trig__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+          <h4>Échéance</h4>
+          <p>Pas de tour sous <b>18-24 mois</b> : conversion sur une valo de référence (ou prorogation). Le remboursement est déconseillé — il transforme l'AIR en dette.</p>
+        </div>
+        <div class="trig">
+          <div class="trig__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v13"/><path d="m4 7 3-3 3 3"/><path d="M17 20V7"/><path d="m14 17 3 3 3-3"/></svg></div>
+          <h4>Liquidité</h4>
+          <p>Cession / fusion avant conversion : l'investisseur prend le plus élevé entre <b>1,5-2× sa mise</b> ou la valeur des actions au plafond.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="block">
+      <span class="eyebrow">Exemple chiffré</span>
+      <div class="example">
+        <div class="example__h">100 000 € investis · décote 20 % · plafond 4 M€</div>
+        <div class="example__body">
+          <div class="exrow"><span class="lbl">Tour qualifié : prix par action</span><span class="val">6,00 €</span></div>
+          <div class="exrow"><span class="lbl">① Prix décoté &nbsp;= 6,00 € × (1 − 20 %)</span><span class="val">4,80 €</span></div>
+          <div class="exrow"><span class="lbl">② Prix via plafond &nbsp;= 4 M€ ÷ 1 000 000 actions</span><span class="val">4,00 €</span></div>
+          <div class="exrow exrow--hl"><span class="lbl">Prix de conversion retenu = min ①,②</span><span class="val">4,00 €</span></div>
+          <div class="exrow"><span class="lbl">Actions reçues = 100 000 € ÷ 4,00 €</span><span class="val">25 000 actions</span></div>
+        </div>
+      </div>
+      <p style="font-size:10.5px;color:#94a0ad;margin-top:8px;line-height:1.5">Sans instrument, au prix du tour, il aurait eu 100 000 ÷ 6,00 = 16 667 actions. Sa conversion préférentielle lui en procure 25 000, soit <b>~50 % de plus</b> — la prime de son antériorité.</p>
+    </div>
+
+    <div class="contact">
+      <div class="contact__l">
+        <h3>On gère votre <em>BSA-AIR</em> de A à Z.</h3>
+        <p>Termes, émission, souscription, conversion — chaque acte validé par un avocat.</p>
+      </div>
+      <div class="contact__r">
+        <a href="mailto:bg.fsg.invest@gmail.com">bg.fsg.invest@gmail.com</a>
+        <span>liquid + · accompagnement de levée de fonds</span>
+      </div>
+    </div>
+
+    <p class="legal">Fiche pédagogique liquid +. Les standards indiqués (décote, plafond, seuils, échéance) sont donnés à titre indicatif et se négocient au cas par cas ; ils ne constituent pas un conseil juridique personnalisé.</p>
+  </div>
+  <div class="pagemark">liquid <b>+</b> · 2 / 2</div>
+</section>
+
+</body>
+</html>
