@@ -4,7 +4,10 @@ const path             = require('path');
 const fs               = require('fs');
 const https            = require('https');
 const { Readable }     = require('stream');
+const crypto           = require('crypto');
 const cookieParser     = require('cookie-parser');
+const helmet           = require('helmet');
+const rateLimit        = require('express-rate-limit');
 const bcrypt           = require('bcryptjs');
 const jwt              = require('jsonwebtoken');
 const speakeasy        = require('speakeasy');
@@ -18,8 +21,9 @@ const pdfParse         = require('pdf-parse');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
+const IS_PROD              = process.env.NODE_ENV === 'production';
 const JWT_SECRET           = process.env.JWT_SECRET           || 'invest_bg_dev_secret_CHANGE_IN_PROD';
-const BCRYPT_ROUNDS        = 10;
+const BCRYPT_ROUNDS        = 12;
 const GOOGLE_CLIENT_ID     = process.env.GOOGLE_CLIENT_ID     || '';
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
 const BASE_URL             = process.env.BASE_URL             || 'http://localhost:3000';
@@ -83,6 +87,48 @@ function glmJson(response) {
 // ─── CloudConvert (conversion PDF ⇄ DOCX du SaaS) ─────────────────────────────
 const cloudConvert = process.env.CLOUDCONVERT_API_KEY ? new CloudConvert(process.env.CLOUDCONVERT_API_KEY) : null;
 
+// ─── Garde-fou des secrets en production ──────────────────────────────────────
+// Refuse de démarrer si des secrets forts ne sont pas fournis : sans cela des
+// jetons d'authentification pourraient être forgés ou les données déchiffrées.
+function assertSecretsOrExit() {
+  if (!IS_PROD) return;
+  const problems = [];
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32)
+    problems.push('JWT_SECRET — absent ou < 32 caractères');
+  if (!process.env.MONGODB_URI)
+    problems.push('MONGODB_URI — absent');
+  if (!process.env.ENCRYPTION_KEY || process.env.ENCRYPTION_KEY.length < 32)
+    problems.push('ENCRYPTION_KEY — absent ou < 32 caractères');
+  if (problems.length) {
+    console.error('\n  ✗  Démarrage refusé — secrets manquants/faibles en production :');
+    problems.forEach(p => console.error('       - ' + p));
+    console.error('     Définissez ces variables dans Railway avant de déployer.\n');
+    process.exit(1);
+  }
+}
+
+// ─── Chiffrement au repos (AES-256-GCM) des champs sensibles ──────────────────
+// Clé 32 octets dérivée de ENCRYPTION_KEY (sinon de JWT_SECRET en dev).
+const ENC_KEY = crypto.createHash('sha256')
+  .update(process.env.ENCRYPTION_KEY || JWT_SECRET).digest();
+
+function encryptSecret(plain) {
+  const iv     = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', ENC_KEY, iv);
+  const enc    = Buffer.concat([cipher.update(String(plain), 'utf8'), cipher.final()]);
+  const tag    = cipher.getAuthTag();
+  return `v1:${iv.toString('base64')}:${tag.toString('base64')}:${enc.toString('base64')}`;
+}
+
+function decryptSecret(value) {
+  // Rétro-compatibilité : les anciens secrets en clair ne portent pas le préfixe v1:
+  if (typeof value !== 'string' || !value.startsWith('v1:')) return value;
+  const [, ivB64, tagB64, dataB64] = value.split(':');
+  const decipher = crypto.createDecipheriv('aes-256-gcm', ENC_KEY, Buffer.from(ivB64, 'base64'));
+  decipher.setAuthTag(Buffer.from(tagB64, 'base64'));
+  return Buffer.concat([decipher.update(Buffer.from(dataB64, 'base64')), decipher.final()]).toString('utf8');
+}
+
 // ─── TOTP temporaire (mémoire) ────────────────────────────────────────────────
 const totpSetupStore = new Map();
 
@@ -141,6 +187,78 @@ async function readCatalog()          { return col('catalog').find({}, { project
 async function insertCatalogEntry(e)  { await col('catalog').insertOne(e); }
 async function updateCatalogById(id, data) { await col('catalog').replaceOne({ id }, { ...data, id }); }
 async function deleteCatalogById(id)  { await col('catalog').deleteOne({ id }); }
+
+// Pré-remplissage du catalogue avec des startups d'exemple si la collection est
+// vide. Modifiables/supprimables via /admin.html. Ne s'exécute qu'une seule fois.
+const SEED_STARTUPS = [
+  {
+    id: 1, name: 'Nuvo', tagline: 'L\'épargne automatisée pour la génération mobile',
+    sector: 'Fintech', stage: 'Seed', color: '#3b82f6', emoji: '💸',
+    founded: '2022', employees: '8', raised: '1,2 M€', ticket: '1 000 €', open: true,
+    website: 'https://example.com', linkedin: 'https://linkedin.com',
+    description: 'Nuvo aide les 18-35 ans à épargner sans y penser en arrondissant leurs achats et en investissant la différence dans des portefeuilles diversifiés.',
+    problem: '70 % des jeunes actifs déclarent ne pas réussir à épargner régulièrement faute d\'outils simples et automatisés.',
+    solution: 'Une application qui connecte le compte bancaire, arrondit chaque dépense et place automatiquement l\'épargne selon le profil de risque.',
+    market: 'Le marché européen de l\'épargne mobile représente 12 Md€ et croît de 24 % par an.',
+    kpis: [{ value: '18 k', label: 'Utilisateurs' }, { value: '+22 %', label: 'Croissance / mois' }, { value: '4,8★', label: 'Note App Store' }],
+    team: [
+      { name: 'Camille Roy', role: 'CEO — ex-Qonto', color: '#3b82f6' },
+      { name: 'Hugo Lefèvre', role: 'CTO — ex-Lydia', color: '#1f8e7a' },
+    ],
+  },
+  {
+    id: 2, name: 'Greenloop', tagline: 'La consigne réutilisable pour les commerces',
+    sector: 'Greentech', stage: 'Pré-seed', color: '#16a34a', emoji: '♻️',
+    founded: '2023', employees: '5', raised: '600 k€', ticket: '1 000 €', open: true,
+    website: 'https://example.com', linkedin: 'https://linkedin.com',
+    description: 'Greenloop remplace les emballages jetables des restaurants et épiceries par un système de contenants consignés et traçés.',
+    problem: 'La restauration à emporter génère 220 000 tonnes d\'emballages jetables par an en France.',
+    solution: 'Des contenants réutilisables avec QR code, une appli de retour et une logistique de lavage mutualisée.',
+    market: 'La réglementation AGEC impose le réemploi : un marché de 1,5 Md€ adressable d\'ici 2030.',
+    kpis: [{ value: '120', label: 'Commerces partenaires' }, { value: '85 k', label: 'Contenants en circulation' }, { value: '92 %', label: 'Taux de retour' }],
+    team: [
+      { name: 'Léa Martin', role: 'CEO — ex-Phenix', color: '#16a34a' },
+      { name: 'Tom Bernard', role: 'COO — ex-Back Market', color: '#f59e0b' },
+    ],
+  },
+  {
+    id: 3, name: 'Medika', tagline: 'Le suivi des maladies chroniques par IA',
+    sector: 'Healthtech', stage: 'Seed', color: '#8b5cf6', emoji: '🩺',
+    founded: '2021', employees: '14', raised: '3,1 M€', ticket: '1 000 €', open: false,
+    website: 'https://example.com', linkedin: 'https://linkedin.com',
+    description: 'Medika accompagne les patients diabétiques avec un assistant qui analyse leurs données et alerte les soignants en cas de dérive.',
+    problem: '4 millions de Français vivent avec le diabète et le suivi entre deux consultations reste fragmenté.',
+    solution: 'Une plateforme connectée aux capteurs de glycémie qui détecte les anomalies et facilite le lien ville-hôpital.',
+    market: 'Le marché de la santé numérique des maladies chroniques pèse 8 Md€ en Europe.',
+    kpis: [{ value: '9 k', label: 'Patients suivis' }, { value: '32', label: 'Établissements' }, { value: '−27 %', label: 'Hospitalisations évitées' }],
+    team: [
+      { name: 'Dr Sarah Cohen', role: 'CEO — endocrinologue', color: '#8b5cf6' },
+      { name: 'Yanis Khelifi', role: 'CTO — ex-Doctolib', color: '#3b82f6' },
+    ],
+  },
+  {
+    id: 4, name: 'Foodly', tagline: 'Les cuisines fantômes nouvelle génération',
+    sector: 'Foodtech', stage: 'Série A', color: '#ef4444', emoji: '🍜',
+    founded: '2020', employees: '46', raised: '7,5 M€', ticket: '1 000 €', open: true,
+    website: 'https://example.com', linkedin: 'https://linkedin.com',
+    description: 'Foodly opère un réseau de cuisines optimisées pour la livraison, avec ses propres marques culinaires data-driven.',
+    problem: 'Ouvrir un restaurant de livraison coûte cher et 60 % ferment dans les trois ans.',
+    solution: 'Des cuisines clé en main, des marques testées par la donnée et une logistique mutualisée pour les restaurateurs.',
+    market: 'La livraison de repas atteindra 25 Md€ en France d\'ici 2027.',
+    kpis: [{ value: '12', label: 'Cuisines' }, { value: '480 k', label: 'Commandes / an' }, { value: '+38 %', label: 'CA annuel' }],
+    team: [
+      { name: 'Marc Dubois', role: 'CEO — ex-Deliveroo', color: '#ef4444' },
+      { name: 'Inès Garcia', role: 'CMO — ex-Frichti', color: '#8b5cf6' },
+    ],
+  },
+];
+
+async function seedCatalogIfEmpty() {
+  const count = await col('catalog').countDocuments();
+  if (count > 0) return;
+  await col('catalog').insertMany(SEED_STARTUPS.map(s => ({ logo_url: '', ...s })));
+  console.log(`  ✓  Catalogue initialisé avec ${SEED_STARTUPS.length} startups d'exemple`);
+}
 
 // News
 async function readNews()       { return col('news').find({}, { projection: { _id: 0 } }).toArray(); }
@@ -218,6 +336,18 @@ function toBuffer(data) {
 }
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
+// Derrière le proxy Railway/Cloudflare : nécessaire pour les cookies `secure`
+// et pour que le rate-limit voie la vraie IP cliente.
+app.set('trust proxy', 1);
+
+// En-têtes de sécurité HTTP. CSP désactivée car le site utilise massivement des
+// styles/scripts inline et des ressources externes (Calendly, Google Fonts).
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
+
 // Limite relevée à 12 Mo : les documents de l'éditeur peuvent embarquer des images
 // en data-URI (signatures manuscrites, images d'un DOCX importé). La valeur par
 // défaut (100 Ko) ferait échouer l'enregistrement de ces documents.
@@ -228,6 +358,16 @@ app.use('/uploads/public', express.static(PUBLIC_IMG_DIR));
 // donc le cookie de session et les appels /api/auth/* fonctionnent sans CORS.
 app.use('/saas', express.static(path.join(__dirname, 'Saas')));
 app.use(express.static(__dirname));
+
+// ─── Rate limiting ────────────────────────────────────────────────────────────
+// Limiteur strict pour l'authentification (anti-force brute).
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,           // 15 minutes
+  max: 20,                            // 20 tentatives par IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Trop de tentatives. Réessayez dans quelques minutes.' },
+});
 
 // ─── Auth helpers ─────────────────────────────────────────────────────────────
 function setAuthCookie(res, user) {
@@ -270,7 +410,7 @@ function requireStartupAuth(req, res, next) {
 }
 
 // ─── POST /api/auth/register ──────────────────────────────────────────────────
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', authLimiter, async (req, res) => {
   const { email, password, full_name } = req.body ?? {};
   if (!email || !password) return res.status(400).json({ error: 'Email et mot de passe requis' });
 
@@ -289,7 +429,7 @@ app.post('/api/auth/register', async (req, res) => {
 });
 
 // ─── POST /api/auth/login ─────────────────────────────────────────────────────
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', authLimiter, async (req, res) => {
   const { email, password } = req.body ?? {};
   if (!email || !password) return res.status(400).json({ error: 'Email et mot de passe requis' });
 
@@ -351,7 +491,7 @@ app.post('/api/auth/2fa/confirm', requireAuth, async (req, res) => {
   if (!secret) return res.status(400).json({ error: 'Session expirée, recommencez la configuration' });
   if (!speakeasy.totp.verify({ secret, encoding: 'base32', token: (code || '').replace(/\s/g, ''), window: 1 }))
     return res.status(400).json({ error: 'Code incorrect — vérifiez l\'heure de votre téléphone' });
-  await updateUserById(req.user.id, { twofa_method: 'totp', totp_secret: secret });
+  await updateUserById(req.user.id, { twofa_method: 'totp', totp_secret: encryptSecret(secret) });
   totpSetupStore.delete(req.user.id);
   res.json({ success: true });
 });
@@ -365,7 +505,7 @@ app.delete('/api/auth/2fa', requireAuth, async (req, res) => {
 });
 
 // ─── POST /api/auth/2fa/verify ────────────────────────────────────────────────
-app.post('/api/auth/2fa/verify', async (req, res) => {
+app.post('/api/auth/2fa/verify', authLimiter, async (req, res) => {
   const { tempToken, code } = req.body ?? {};
   let payload;
   try {
@@ -375,7 +515,7 @@ app.post('/api/auth/2fa/verify', async (req, res) => {
 
   const user = await findByEmail(payload.email);
   if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
-  if (!speakeasy.totp.verify({ secret: user.totp_secret, encoding: 'base32', token: (code || '').replace(/\s/g, ''), window: 1 }))
+  if (!speakeasy.totp.verify({ secret: decryptSecret(user.totp_secret), encoding: 'base32', token: (code || '').replace(/\s/g, ''), window: 1 }))
     return res.status(400).json({ error: 'Code incorrect' });
 
   const token = setAuthCookie(res, user);
@@ -427,7 +567,7 @@ app.get('/api/investments', requireAuth, (_req, res) => {
 });
 
 // ─── Startup portal ───────────────────────────────────────────────────────────
-app.post('/api/startup/register', async (req, res) => {
+app.post('/api/startup/register', authLimiter, async (req, res) => {
   const { email, password, company_name } = req.body ?? {};
   if (!email || !password || !company_name)
     return res.status(400).json({ error: 'Email, mot de passe et nom requis' });
@@ -443,7 +583,7 @@ app.post('/api/startup/register', async (req, res) => {
   res.status(201).json({ success: true, startup: { id: startup.id, email: startup.email, company_name: startup.company_name } });
 });
 
-app.post('/api/startup/login', async (req, res) => {
+app.post('/api/startup/login', authLimiter, async (req, res) => {
   const { email, password } = req.body ?? {};
   if (!email || !password) return res.status(400).json({ error: 'Email et mot de passe requis' });
   const startup = await findStartupByEmail(email.trim().toLowerCase());
@@ -756,7 +896,7 @@ async function enforceDailyCap(req, res, next) {
 // Les modèles étant des documents identiques d'une génération à l'autre, on met en
 // cache le résultat de l'analyse Claude par empreinte du contenu : un modèle n'est
 // analysé qu'UNE fois, puis réutilisé sans rappeler Claude.
-const crypto = require('crypto');
+// (crypto est importé en tête de fichier.)
 function aiHash(kind, parts) {
   return crypto.createHash('sha256').update(kind + '' + parts.join('')).digest('hex');
 }
@@ -2486,7 +2626,9 @@ app.post('/api/saas/documents/:id/to-editor', requireAuth, async (req, res) => {
 });
 
 // ─── Démarrage ────────────────────────────────────────────────────────────────
-connectDB().then(() => {
+assertSecretsOrExit();
+connectDB().then(async () => {
+  await seedCatalogIfEmpty();
   app.listen(PORT, () => console.log(`\n  ✓  LIQUID+  →  http://localhost:${PORT}\n`));
 }).catch(err => {
   console.error('Impossible de se connecter à MongoDB :', err.message);
