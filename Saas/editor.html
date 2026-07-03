@@ -38,7 +38,7 @@
     .verrow__btn--del{color:#dc2626;border-color:rgba(220,38,38,0.25)}
   </style>
   <script src="auth.js"></script>
-  <script src="tasks.js?v=1" defer></script>
+  <script src="tasks.js?v=2" defer></script>
 </head>
 <body>
   <!-- En-tête et pied de page : visibles uniquement à l'impression / export PDF -->
@@ -61,6 +61,7 @@
         <a href="dossiers.html" class="btn btn--white">Dossiers</a>
         <input type="file" id="docs-file" accept=".pdf,.docx,.doc,.xlsx,.xls,.png,.jpg,.jpeg" hidden />
         <button class="btn btn--ghost" id="docs-btn">+ Ajouter un document</button>
+        <button type="button" class="aimax" data-aimax-toggle aria-pressed="false" title="Mode rapide. Cliquez pour une analyse approfondie « Max »."><span class="aimax__i" aria-hidden="true">✦</span><span>Max</span></button>
         <button class="btn btn--primary" id="analyze-btn" title="Analyser le document avec Claude : remplit la bibliothèque, le conseil et les explications">Analyser</button>
         <button class="btn btn--ghost" id="sign-btn" title="Signer le document à la souris">Signer</button>
         <button class="btn btn--ghost" id="versions-btn" title="Historique des versions validées du document">Versions</button>

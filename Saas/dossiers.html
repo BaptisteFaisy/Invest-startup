@@ -449,7 +449,7 @@
     }
   </style>
   <script src="auth.js"></script>
-  <script src="tasks.js?v=1" defer></script>
+  <script src="tasks.js?v=2" defer></script>
 </head>
 <body>
   <div class="app">
@@ -464,6 +464,7 @@
         <a href="guide.html" class="btn btn--ghost">Guide</a>
         <a href="index.html" class="btn btn--ghost">Accueil</a>
         <a href="compte.html" class="btn btn--ghost">Mon compte</a>
+        <button type="button" class="aimax" data-aimax-toggle aria-pressed="false" title="Mode rapide. Cliquez pour des analyses approfondies « Max »."><span class="aimax__i" aria-hidden="true">✦</span><span>Max</span></button>
         <button class="btn btn--ghost" id="logout-btn">Déconnexion</button>
       </div>
     </header>
@@ -2338,9 +2339,12 @@
     document.addEventListener('dragover', (e) => {
       if (!hasFiles(e) && !hasInternal(e)) return;
       dragScrollTs = performance.now();
-      const EDGE = 90, MAX = 24, h = window.innerHeight, y = e.clientY;
-      if (y < EDGE)          dragScrollV = -Math.ceil(MAX * (1 - y / EDGE));       // proche du haut → monte
-      else if (y > h - EDGE) dragScrollV =  Math.ceil(MAX * (1 - (h - y) / EDGE)); // proche du bas → descend
+      // Zone large (140px) + vitesse mini franche puis rampe jusqu'à un max élevé,
+      // pour un défilement rapide (r ∈ [0,1] : plus on est près du bord, plus ça va vite).
+      const EDGE = 140, MIN = 14, MAX = 70, h = window.innerHeight, y = e.clientY;
+      const speed = r => Math.ceil(MIN + (MAX - MIN) * r);
+      if (y < EDGE)          dragScrollV = -speed((EDGE - y) / EDGE);       // proche du haut → monte
+      else if (y > h - EDGE) dragScrollV =  speed((y - (h - EDGE)) / EDGE); // proche du bas → descend
       else                   dragScrollV = 0;
       if (dragScrollV !== 0 && !dragScrollRAF) dragScrollRAF = requestAnimationFrame(dragScrollTick);
     }, true);

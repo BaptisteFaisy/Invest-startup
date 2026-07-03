@@ -35,6 +35,36 @@
   var authOff = false;          // 401 : on cesse toute activité
   var collapsed = false;
 
+  /* ---------- Mode « Max » (réflexion approfondie vs rapidité) ----------
+     Préférence globale, mémorisée, partagée entre toutes les pages. Le raisonnement
+     approfondi est plus lent : par défaut OFF (rapide). Chaque bouton `[data-aimax-toggle]`
+     de la page reflète et bascule cette préférence ; `launch()` l'envoie au serveur. */
+  var MAX_KEY = 'liquid_ai_max';
+  function maxMode() { try { return localStorage.getItem(MAX_KEY) === '1'; } catch (e) { return false; } }
+  function setMaxMode(on) { try { localStorage.setItem(MAX_KEY, on ? '1' : '0'); } catch (e) {} syncMaxToggles(); }
+  function syncMaxToggles() {
+    var on = maxMode();
+    var list = document.querySelectorAll('[data-aimax-toggle]');
+    for (var i = 0; i < list.length; i++) {
+      var b = list[i];
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      b.title = on
+        ? 'Analyse approfondie activée (plus lente mais plus fouillée). Cliquez pour revenir au mode rapide.'
+        : 'Mode rapide activé. Cliquez pour une analyse approfondie « Max » (plus lente mais plus fouillée).';
+    }
+  }
+  function wireMaxToggles() {
+    var list = document.querySelectorAll('[data-aimax-toggle]');
+    for (var i = 0; i < list.length; i++) {
+      var b = list[i];
+      if (b._aimaxWired) continue;
+      b._aimaxWired = true;
+      b.addEventListener('click', function (e) { e.preventDefault(); setMaxMode(!maxMode()); });
+    }
+    syncMaxToggles();
+  }
+
   /* ---------- réseau ---------- */
   function api(path, opts) {
     return fetch(path, Object.assign({ credentials: 'include' }, opts || {}))
@@ -47,9 +77,12 @@
 
   function launch(opts) {
     opts = opts || {};
+    // Mode « Max » (analyse approfondie) : par défaut, on suit la préférence globale
+    // du bouton Max ; un appelant peut forcer via opts.max.
+    var wantMax = (opts.max != null) ? !!opts.max : maxMode();
     return api('/api/saas/jobs', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: opts.type, payload: opts.payload || {}, label: opts.label || '', location: opts.location || null }),
+      body: JSON.stringify({ type: opts.type, payload: opts.payload || {}, label: opts.label || '', location: opts.location || null, max: wantMax }),
     }).then(function (r) {
       if (!r.ok) throw new Error((r.data && r.data.error) || 'Impossible de lancer l\'analyse.');
       collapsed = false;
@@ -158,6 +191,7 @@
       return '<div class="lqt-card lqt-card--' + esc(j.status) + '">'
         + '<div class="lqt-card__top">'
         +   '<span class="lqt-card__label" title="' + esc(j.label) + '">' + esc(j.label) + '</span>'
+        +   (j.max ? '<span class="lqt-max" title="Analyse approfondie">Max</span>' : '')
         +   '<span class="lqt-card__status">' + esc(statusText(j)) + '</span>'
         + '</div>'
         + '<div class="lqt-track"><div class="' + barCls + '" style="width:' + pct + '%"></div></div>'
@@ -239,6 +273,7 @@
     '.lqt-card--done{border-color:#cfe8d6}',
     '.lqt-card__top{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}',
     '.lqt-card__label{font-weight:600;font-size:13px;color:#08090c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    '.lqt-max{flex:0 0 auto;font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#3b5b93;background:#eef1f6;border-radius:999px;padding:2px 6px}',
     '.lqt-card__status{margin-left:auto;font-size:11px;color:#8a867e;white-space:nowrap;flex:0 0 auto}',
     '.lqt-card--error .lqt-card__status{color:#c0392b}',
     '.lqt-card--done .lqt-card__status{color:#15803d}',
@@ -272,14 +307,33 @@
     '@media (max-width:640px){.lqt{top:8px;left:8px}}',
   ].join('\n');
 
+  // Styles du bouton « Max » — injectés dès le chargement (indépendamment du widget,
+  // qui n'est monté qu'à l'apparition d'une tâche).
+  var TOGGLE_CSS = [
+    '.aimax{display:inline-flex;align-items:center;gap:6px;font-family:inherit;font-weight:600;font-size:13px;line-height:1;padding:8px 12px;border-radius:999px;border:1px solid rgba(128,128,128,.45);background:transparent;color:inherit;cursor:pointer;transition:background .15s,border-color .15s,color .15s;-webkit-appearance:none}',
+    '.aimax:hover{border-color:rgba(128,128,128,.85)}',
+    '.aimax .aimax__i{font-size:12px;line-height:1;opacity:.6}',
+    '.aimax.is-on{background:#3b82f6;border-color:#3b82f6;color:#fff}',
+    '.aimax.is-on .aimax__i{opacity:1}',
+    '.aimax:focus-visible{outline:2px solid #3b82f6;outline-offset:2px}',
+  ].join('\n');
+  function injectToggleCSS() {
+    if (document.getElementById('lqt-toggle-css')) return;
+    var s = document.createElement('style');
+    s.id = 'lqt-toggle-css';
+    s.textContent = TOGGLE_CSS;
+    (document.head || document.documentElement).appendChild(s);
+  }
+
   /* ---------- API + démarrage ---------- */
   window.LiquidTasks = {
     launch: launch, list: list, fetchResult: fetchResult,
     cancel: cancel, dismiss: dismiss, on: on,
+    maxMode: maxMode, setMaxMode: setMaxMode,
     refresh: function () { schedule(50); },
   };
 
-  function start() { poll(); }
+  function start() { injectToggleCSS(); wireMaxToggles(); poll(); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
 })();
