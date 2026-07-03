@@ -506,6 +506,9 @@ Pas de bundler, pas de build step. Les pages sont des fichiers HTML servis stati
 ### État applicatif dans `dossiers.html`
 Pas de store centralisé. L'état est maintenu dans des variables de module et le DOM est rechargé par une fonction `render()` après chaque mutation. Les données sont fetché une seule fois au chargement via `Promise.all([fetch('/api/saas/folders'), fetch('/api/saas/documents')])`.
 
+### Frise — états des pastilles (`renderFrise`)
+Chaque étape n'a que **deux apparences** : neutre (gris) ou **verte**. Il n'y a plus d'état bleu « en cours ». Une pastille passe au vert (`is-done`) uniquement quand **tous les documents de l'étape sont terminés** *et* que toutes les étapes précédentes le sont aussi (vert « séquentiel » : `green = i < sealed`, où `sealed` est la longueur du préfixe d'étapes validées d'affilée depuis le début). Une étape complète mais « en avance » (une étape antérieure manque encore) reste donc neutre tant que la progression n'est pas continue.
+
 ### État dans `editor.js`
 ```js
 let currentDocId = null;          // null → POST sur save, sinon PUT
