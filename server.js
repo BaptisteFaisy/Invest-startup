@@ -982,7 +982,7 @@ Règles :
       system,
       messages: convo,
       maxTokens: 8000,
-      thinking: true,
+      thinking: false,
       json: true,
       jsonHint: 'Format : {"reply":"texte","edits":[{"find":"extrait exact","replace":"remplacement"}],"updatedClause":""} — "edits" pour une modif ciblée, OU "updatedClause" pour une réécriture totale, jamais les deux.',
     });
@@ -1175,7 +1175,7 @@ Règles :
       system,
       messages: [{ role: 'user', content: 'Donne les conseils d\'amélioration spécifiques à ce document.' }],
       maxTokens: 6000,
-      thinking: true,
+      thinking: false,
       json: true,
       jsonHint: 'Format : {"tips":[{"title":"titre court","body":"une phrase"}]} — 3 à 5 conseils.',
     });
@@ -1230,7 +1230,7 @@ Règles :
       system,
       messages: [{ role: 'user', content: 'Propose les clauses manquantes à ajouter à ce document.' }],
       maxTokens: 12000,
-      thinking: true,
+      thinking: false,
       json: true,
       jsonHint: 'Format : {"clauses":[{"label":"...","group":"...","plain":"...","watch":"...","html":"<p>...</p>"}]} — 4 à 8 clauses.',
     });
@@ -1283,7 +1283,7 @@ Règles :
       system,
       messages: [{ role: 'user', content: 'Analyse ce document et liste les choses à faire.' }],
       maxTokens: 8000,
-      thinking: true,
+      thinking: false,
       json: true,
       jsonHint: 'Format : {"todos":["action 1","action 2", ...]} — 4 à 12 items, chaque action commençant par un verbe à l\'infinitif.',
     });
@@ -1369,7 +1369,7 @@ Règles :
       system,
       messages: [{ role: 'user', content: 'Compare l\'ancienne et la nouvelle version, et détaille les changements.' }],
       maxTokens: 8000,
-      thinking: true,
+      thinking: false,
       json: true,
       jsonHint: 'Format : {"summary":"...","verdict":"Vigilance requise","changes":[{"heading":"...","nature":"modification","before":"...","after":"...","impact":"...","severity":"moyenne"}],"recommendation":"..."}',
     });
@@ -1534,7 +1534,7 @@ Règles :
       system,
       messages: [{ role: 'user', content: 'Remplis les champs à partir des documents importés.' }],
       maxTokens: 10000,
-      thinking: true,
+      thinking: false,
       json: true,
       jsonHint: 'Format : {"fills":[{"id":0,"value":"valeur à insérer","source":"nom du document"}]} — uniquement les champs dont la valeur est réellement trouvée dans les documents.',
     });
@@ -1599,7 +1599,7 @@ Renvoie un objet par identifiant fourni, avec les 5 champs (omets "conditions" o
       system,
       messages: [{ role: 'user', content: 'Analyse chaque paragraphe et remplis les 5 champs.' }],
       maxTokens: 20000,
-      thinking: true,
+      thinking: false,
       json: true,
       jsonHint: 'Format : {"items":[{"key":"<id>","plain":"phrase courte","simple":"explication 10 phrases max","bias":3,"watch":"points de vigilance","conditions":[{"label":"...","preview":"...","html":"<p>...</p>"}]}]} — un objet par identifiant fourni.',
     });
@@ -2691,6 +2691,11 @@ setInterval(pruneJobs, 5 * 60 * 1000).unref?.();
 // Chacune renvoie une Promise du résultat structuré ; `signal` interrompt l'appel.
 
 async function computeDocAnalyze(userId, { title, text }, signal) {
+  // Cache par contenu : un même document (texte inchangé) n'est analysé qu'une fois,
+  // puis servi instantanément.
+  const cacheHash = aiHash('doc-analyze', [title || '', String(text).slice(0, 14000)]);
+  const cached = await aiCacheGet(cacheHash);
+  if (cached) return cached;
   const system =
 `Tu es l'assistant juridique de « liquid + », un outil pour fondateurs de startup en levée de fonds.
 On te donne le contenu réel d'UN document juridique. Tu dois l'analyser et lister TOUTES les « choses à faire » concrètes pour que ce document précis soit complet, exact et prêt à l'emploi, du point de vue du fondateur.
@@ -2707,13 +2712,15 @@ Règles :
 - Donne entre 4 et 12 items, ordonnés du plus important au moins important.`;
   const response = await glmChat({
     system, messages: [{ role: 'user', content: 'Analyse ce document et liste les choses à faire.' }],
-    maxTokens: 8000, thinking: true, json: true,
+    maxTokens: 8000, thinking: false, json: true,
     jsonHint: 'Format : {"todos":["action 1","action 2", ...]} — 4 à 12 items, chaque action commençant par un verbe à l\'infinitif.',
     signal,
   });
   await recordClaudeUsage(userId, response);
   const data = glmJson(response);
-  return Array.isArray(data.todos) ? data.todos.filter(t => typeof t === 'string' && t.trim()).map(t => t.trim()) : [];
+  const todos = Array.isArray(data.todos) ? data.todos.filter(t => typeof t === 'string' && t.trim()).map(t => t.trim()) : [];
+  if (todos.length) await aiCacheSet(cacheHash, todos);
+  return todos;
 }
 
 async function computeDocAdvice(userId, { title, text }, signal) {
@@ -2735,7 +2742,7 @@ Règles :
 - Chaque conseil : un "title" court (max ~6 mots) et un "body" d'une phrase, en français, ton clair et utile.`;
   const response = await glmChat({
     system, messages: [{ role: 'user', content: 'Donne les conseils d\'amélioration spécifiques à ce document.' }],
-    maxTokens: 6000, thinking: true, json: true,
+    maxTokens: 6000, thinking: false, json: true,
     jsonHint: 'Format : {"tips":[{"title":"titre court","body":"une phrase"}]} — 3 à 5 conseils.',
     signal,
   });
@@ -2772,7 +2779,7 @@ Règles :
 - Rédige des clauses complètes et directement utilisables, pas des résumés.`;
   const response = await glmChat({
     system, messages: [{ role: 'user', content: 'Propose les clauses manquantes à ajouter à ce document.' }],
-    maxTokens: 12000, thinking: true, json: true,
+    maxTokens: 12000, thinking: false, json: true,
     jsonHint: 'Format : {"clauses":[{"label":"...","group":"...","plain":"...","watch":"...","html":"<p>...</p>"}]} — 4 à 8 clauses.',
     signal,
   });
@@ -2820,7 +2827,7 @@ ${list.map(c => `--- ${c.key} | ${c.label}\n${c.html}`).join('\n\n')}
 Renvoie un objet par identifiant fourni, avec les 5 champs (omets "conditions" ou mets [] s'il n'y a pas de variante pertinente).`;
   const response = await glmChat({
     system, messages: [{ role: 'user', content: 'Analyse chaque paragraphe et remplis les 5 champs.' }],
-    maxTokens: 20000, thinking: true, json: true,
+    maxTokens: 20000, thinking: false, json: true,
     jsonHint: 'Format : {"items":[{"key":"<id>","plain":"phrase courte","simple":"explication 10 phrases max","bias":3,"watch":"points de vigilance","conditions":[{"label":"...","preview":"...","html":"<p>...</p>"}]}]} — un objet par identifiant fourni.',
     signal,
   });
@@ -2910,7 +2917,7 @@ Règles :
 - Si les deux versions sont identiques ou quasi identiques, indique-le dans "summary" et renvoie "changes" vide.`;
   const response = await glmChat({
     system, messages: [{ role: 'user', content: 'Compare l\'ancienne et la nouvelle version, et détaille les changements.' }],
-    maxTokens: 8000, thinking: true, json: true,
+    maxTokens: 8000, thinking: false, json: true,
     jsonHint: 'Format : {"summary":"...","verdict":"Vigilance requise","changes":[{"heading":"...","nature":"modification","before":"...","after":"...","impact":"...","severity":"moyenne"}],"recommendation":"..."}',
     signal,
   });
@@ -2991,40 +2998,49 @@ const JOB_RUNNERS = {
     jobStep(job, 'lib',   p.suggest ? 'pending' : 'done', p.suggest ? 'En attente' : 'Pré-remplie');
     jobStep(job, 'verif', p.advice  ? 'pending' : 'done', p.advice  ? 'En attente' : 'Pré-remplie');
 
-    // 1) Explication des paragraphes, par lots de 6 (progression réelle 0 → 75 %).
-    const CHUNK = 6;
-    let done = 0;
-    for (let i = 0; i < total; i += CHUNK) {
-      jobBailIfCancelled(job);
-      const slice = explainClauses.slice(i, i + CHUNK);
-      const title = p.title || 'Document';
-      const explanations = await computeClausesExplain(job.userId, { title, clauses: slice }, job._abort.signal);
-      Object.assign(job.result.explanations, explanations);
-      done = Math.min(total, i + slice.length);
-      jobStep(job, 'par', done >= total ? 'done' : 'progress', `${done} / ${total}`);
-      jobProgress(job, Math.round((done / total) * 75));
-    }
-    if (!total) jobProgress(job, 75);
+    const title = p.title || 'Document';
 
-    // 2) Clauses proposées (documents libres uniquement).
-    if (p.suggest) {
+    // 1) Explication des paragraphes, par lots de 6 traités EN PARALLÈLE (pool borné
+    //    pour ne pas saturer l'API). Progression réelle 0 → 75 % au fil des lots.
+    const CHUNK = 6;
+    const CONCURRENCY = 3;
+    const chunks = [];
+    for (let i = 0; i < total; i += CHUNK) chunks.push(explainClauses.slice(i, i + CHUNK));
+    let done = 0, next = 0;
+    async function explainWorker() {
+      while (next < chunks.length) {
+        const slice = chunks[next++];
+        jobBailIfCancelled(job);
+        const explanations = await computeClausesExplain(job.userId, { title, clauses: slice }, job._abort.signal);
+        Object.assign(job.result.explanations, explanations);
+        done = Math.min(total, done + slice.length);
+        jobStep(job, 'par', done >= total ? 'done' : 'progress', `${done} / ${total}`);
+        jobProgress(job, Math.round((done / total) * 75));
+      }
+    }
+    if (total) await Promise.all(Array.from({ length: Math.min(CONCURRENCY, chunks.length) }, explainWorker));
+    else jobProgress(job, 75);
+
+    // 2) Clauses proposées + colonne « À vérifier » (documents libres) : les deux
+    //    dernières étapes tournent EN PARALLÈLE l'une de l'autre.
+    const suggestPhase = (async () => {
+      if (!p.suggest) return;
       jobBailIfCancelled(job);
       jobStep(job, 'lib', 'progress', 'Recherche…');
-      jobProgress(job, 82);
-      const suggested = await computeDocClauses(job.userId, { title: p.title, clauses: p.suggest.clauses, text: p.suggest.text }, job._abort.signal);
+      const suggested = await computeDocClauses(job.userId, { title, clauses: p.suggest.clauses, text: p.suggest.text }, job._abort.signal);
       job.result.suggested = suggested;
       jobStep(job, 'lib', 'done', suggested.length ? `${suggested.length} proposée${suggested.length > 1 ? 's' : ''}` : 'Aucune proposition');
-    }
-
-    // 3) Colonne « À vérifier » (documents libres sans conseil embarqué).
-    if (p.advice) {
+    })();
+    const advicePhase = (async () => {
+      if (!p.advice) return;
       jobBailIfCancelled(job);
       jobStep(job, 'verif', 'progress', 'Analyse…');
-      jobProgress(job, 92);
-      const tips = await computeDocAdvice(job.userId, { title: p.title, text: p.advice.text }, job._abort.signal);
+      const tips = await computeDocAdvice(job.userId, { title, text: p.advice.text }, job._abort.signal);
       job.result.tips = tips;
       jobStep(job, 'verif', 'done', tips.length ? 'Remplie' : 'Vide');
-    }
+    })();
+    jobProgress(job, 88);
+    await Promise.all([suggestPhase, advicePhase]);
     jobProgress(job, 100);
   },
 };
