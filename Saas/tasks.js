@@ -316,6 +316,18 @@
     '.aimax.is-on{background:#3b82f6;border-color:#3b82f6;color:#fff}',
     '.aimax.is-on .aimax__i{opacity:1}',
     '.aimax:focus-visible{outline:2px solid #3b82f6;outline-offset:2px}',
+    // Bouton « Max » dans la bannière sombre (.topbar) : deux états nets et lisibles.
+    //  - Inactif  → bouton NOIR (pas d'animation).
+    //  - Actif    → bouton BLANC + animation (halo pulsé + étincelle) pour signaler l'activation.
+    '.topbar .aimax{background:#000;border-color:rgba(255,255,255,.30);color:#fff}',
+    '.topbar .aimax:hover{background:#161616;border-color:rgba(255,255,255,.6)}',
+    '.topbar .aimax .aimax__i{opacity:.7}',
+    '.topbar .aimax.is-on{background:#fff;border-color:#fff;color:#0a0a0a;animation:aimax-glow 1.8s ease-in-out infinite}',
+    '.topbar .aimax.is-on:hover{background:#f0f0f0;border-color:#fff}',
+    '.topbar .aimax.is-on .aimax__i{opacity:1;animation:aimax-spark 1.8s ease-in-out infinite}',
+    '@keyframes aimax-glow{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.55)}50%{box-shadow:0 0 0 6px rgba(255,255,255,0)}}',
+    '@keyframes aimax-spark{0%,100%{transform:scale(1) rotate(0deg);opacity:1}50%{transform:scale(1.22) rotate(12deg);opacity:.7}}',
+    '@media (prefers-reduced-motion:reduce){.topbar .aimax.is-on,.topbar .aimax.is-on .aimax__i{animation:none}}',
   ].join('\n');
   function injectToggleCSS() {
     if (document.getElementById('lqt-toggle-css')) return;
