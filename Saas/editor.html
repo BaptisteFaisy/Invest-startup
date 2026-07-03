@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=6" />
-  <link rel="stylesheet" href="editor.css?v=29" />
+  <link rel="stylesheet" href="editor.css?v=30" />
   <style>.app{visibility:hidden}.app.ready{visibility:visible}</style>
   <style>
     /* Historique des versions validées (menu déroulant sous le bouton « Versions ») */
@@ -64,8 +64,13 @@
         <button class="btn btn--primary" id="analyze-btn" title="Analyser le document avec Claude : remplit la bibliothèque, le conseil et les explications">Analyser</button>
         <button class="btn btn--ghost" id="sign-btn" title="Signer le document à la souris">Signer</button>
         <button class="btn btn--ghost" id="versions-btn" title="Historique des versions validées du document">Versions</button>
-        <button class="btn btn--ghost" id="export-docx-btn">Exporter en Word</button>
-        <button class="btn btn--ghost" id="export-btn">Exporter en PDF</button>
+        <div class="export-menu" id="export-menu">
+          <button class="btn btn--ghost export-menu__toggle" id="export-btn" type="button" aria-haspopup="true" aria-expanded="false">Exporter</button>
+          <div class="export-menu__list" id="export-menu-list" role="menu" hidden>
+            <button class="export-menu__item" id="export-pdf-item" type="button" role="menuitem">PDF</button>
+            <button class="export-menu__item" id="export-docx-item" type="button" role="menuitem">Word (.docx)</button>
+          </div>
+        </div>
         <a href="compte.html" class="btn btn--ghost">Mon compte</a>
         <button class="btn btn--ghost" id="logout-btn">Déconnexion</button>
       </div>
@@ -351,7 +356,7 @@
     </div>
   </div>
 
-  <script src="editor.js?v=47"></script>
+  <script src="editor.js?v=48"></script>
   <script src="documents.js?v=26"></script>
   <script>
     // Garde d'accès : l'éditeur est réservé aux utilisateurs connectés.

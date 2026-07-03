@@ -17,6 +17,16 @@
 .topbar .btn--white { background: #fff; border-color: #444; color: #0a0a0a; }
 .topbar .btn--white:hover { background: #e5e5e5; border-color: #888; }
 
+/* Menu Exporter : un seul bouton, choix PDF ou Word */
+.export-menu { position: relative; display: inline-flex; }
+.export-menu__toggle::after { content: ''; display: inline-block; margin-left: 8px; vertical-align: middle; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid currentColor; transition: transform .15s ease; }
+.export-menu.open .export-menu__toggle::after { transform: rotate(180deg); }
+.export-menu__list { position: absolute; top: calc(100% + 6px); right: 0; z-index: 60; min-width: 170px; display: flex; flex-direction: column; gap: 2px; padding: 6px; background: #0f0f0f; border: 1px solid #333; border-radius: 10px; box-shadow: 0 12px 32px rgba(0, 0, 0, .5); }
+.export-menu__list[hidden] { display: none; }
+.export-menu__item { display: block; width: 100%; text-align: left; padding: 9px 12px; font: inherit; font-size: 13px; color: #fff; background: transparent; border: 0; border-radius: 7px; cursor: pointer; }
+.export-menu__item:hover { background: #1e1e1e; }
+.export-menu__item:disabled { opacity: .5; cursor: default; }
+
 /* ---------- Ribbon (barre d'outils) ---------- */
 .ribbon { flex: none; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 8px 16px; background: var(--card); border-bottom: 1px solid var(--line); }
 .tgroup { display: flex; align-items: center; gap: 3px; }

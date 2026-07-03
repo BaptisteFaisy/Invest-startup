@@ -1225,8 +1225,36 @@ window.addEventListener('resize', () => {
 window.addEventListener('beforeprint', () => { printing = true; paginate({ print: true }); });
 window.addEventListener('afterprint', () => { printing = false; paginate(); });
 
-/* ---------- 6. Export PDF / Word ---------- */
-document.getElementById('export-btn').addEventListener('click', () => window.print());
+/* ---------- 6. Export : un seul bouton, choix PDF ou Word ---------- */
+const exportMenu = document.getElementById('export-menu');
+const exportToggle = document.getElementById('export-btn');
+const exportList = document.getElementById('export-menu-list');
+
+function closeExportMenu() {
+  if (!exportMenu.classList.contains('open')) return;
+  exportMenu.classList.remove('open');
+  exportList.hidden = true;
+  exportToggle.setAttribute('aria-expanded', 'false');
+}
+function toggleExportMenu() {
+  const open = !exportMenu.classList.contains('open');
+  exportMenu.classList.toggle('open', open);
+  exportList.hidden = !open;
+  exportToggle.setAttribute('aria-expanded', String(open));
+}
+exportToggle.addEventListener('click', (e) => { e.stopPropagation(); toggleExportMenu(); });
+// Clic ailleurs ou touche Échap : on referme le menu.
+document.addEventListener('click', closeExportMenu);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeExportMenu(); });
+
+document.getElementById('export-pdf-item').addEventListener('click', () => {
+  closeExportMenu();
+  window.print();
+});
+document.getElementById('export-docx-item').addEventListener('click', () => {
+  closeExportMenu();
+  exportToFile('docx', exportToggle);
+});
 
 // Export direct du document (HTML structuré) → DOCX/PDF via le serveur : conserve
 // la mise en page, sans passer par un PDF reconverti.
@@ -1249,9 +1277,6 @@ async function exportToFile(format, btn) {
     if (btn) { btn.disabled = false; btn.textContent = old; }
   }
 }
-const exportDocxBtn = document.getElementById('export-docx-btn');
-if (exportDocxBtn) exportDocxBtn.addEventListener('click', () => exportToFile('docx', exportDocxBtn));
-
 /* ---------- 6 ter. Analyser tout le document (Claude) ---------- */
 // Remplit en une fois : le « Pour bien comprendre » de chaque paragraphe (requête
 // groupée), et l'onglet Conseil (pistes d'amélioration). La bibliothèque est déjà
