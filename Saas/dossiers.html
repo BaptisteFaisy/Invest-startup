@@ -631,13 +631,9 @@
     const MODELS = new Set([
       // Phase 1 — mise en ordre juridique
       'statuts-a-jour',
-      'extrait-kbis-moins-de-3-mois',
       'table-de-capitalisation-cap-table',
       'registre-des-mouvements-de-titres',
       'registre-des-beneficiaires-effectifs-rbe',
-      'pv-des-assemblees-generales-anterieures',
-      'pacte-d-associes-existant',
-      'contrats-cles-clients-fournisseurs-baux',
       'cessions-de-propriete-intellectuelle-depots-marques-brevets',
       'contrats-de-travail-bspce-bsa-management-package',
       // Phase 2 — confidentialité
@@ -647,7 +643,6 @@
       'term-sheet-lettre-d-intention',
       'clause-d-exclusivite-de-negociation',
       // Phase 4 — due diligence
-      'data-room-structuree',
       'questionnaire-de-due-diligence-reponses',
       'etat-des-contentieux-et-litiges-en-cours',
       // Phase 5 — documentation de l'opération
@@ -674,11 +669,9 @@
       'attestation-de-versement-des-fonds-par-le-s-souscripteur-s',
       'constatation-de-la-souscription-des-bsa-air-par-le-president',
       'inscription-des-bsa-air-au-registre-des-valeurs-mobilieres-mouvements-de-titres',
-      'depot-de-la-formalite-d-emission-au-greffe',
       // Suivi & conversion
       'suivi-des-engagements-bsa-air-en-cours-echeances-evenements-declencheurs',
       'calcul-du-prix-de-conversion-application-de-la-decote-et-ou-du-plafond',
-      'comptes-annuels-dernier-exercice-clos',
       'support-de-presentation-deck-investisseurs',
     ]);
 
@@ -2327,6 +2320,34 @@
     ['dragover', 'drop'].forEach(ev => document.addEventListener(ev, (e) => {
       if (hasFiles(e)) e.preventDefault();
     }));
+
+    // Auto-défilement pendant un glisser-déposer : approcher le curseur du haut ou
+    // du bas de la fenêtre fait défiler la page. Le drag natif bloque le scroll
+    // manuel — sans ça on ne peut pas atteindre une phase située hors écran.
+    let dragScrollV = 0, dragScrollRAF = null, dragScrollTs = 0;
+    function dragScrollTick() {
+      // Arrêt automatique si le drag a quitté la fenêtre ou s'est terminé
+      // (plus aucun évènement dragover reçu depuis un court instant).
+      if (dragScrollV === 0 || performance.now() - dragScrollTs > 250) {
+        dragScrollRAF = null; dragScrollV = 0; return;
+      }
+      window.scrollBy(0, dragScrollV);
+      dragScrollRAF = requestAnimationFrame(dragScrollTick);
+    }
+    // Capture (true) : on reçoit l'évènement même quand un slot appelle stopPropagation().
+    document.addEventListener('dragover', (e) => {
+      if (!hasFiles(e) && !hasInternal(e)) return;
+      dragScrollTs = performance.now();
+      const EDGE = 90, MAX = 24, h = window.innerHeight, y = e.clientY;
+      if (y < EDGE)          dragScrollV = -Math.ceil(MAX * (1 - y / EDGE));       // proche du haut → monte
+      else if (y > h - EDGE) dragScrollV =  Math.ceil(MAX * (1 - (h - y) / EDGE)); // proche du bas → descend
+      else                   dragScrollV = 0;
+      if (dragScrollV !== 0 && !dragScrollRAF) dragScrollRAF = requestAnimationFrame(dragScrollTick);
+    }, true);
+    ['drop', 'dragend'].forEach(ev => document.addEventListener(ev, () => {
+      dragScrollV = 0;
+      if (dragScrollRAF) { cancelAnimationFrame(dragScrollRAF); dragScrollRAF = null; }
+    }, true));
   </script>
 </body>
 </html>
