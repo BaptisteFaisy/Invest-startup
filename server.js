@@ -49,7 +49,7 @@ const zaiClient = (process.env.ZAI_API_KEY || process.env.ANTHROPIC_API_KEY)
 // Appel unifié GLM-5.2. `thinking` active le raisonnement, `json` force une
 // sortie JSON (mode json_object + instruction injectée dans le prompt système
 // + parsing robuste côté routeur, car GLM peut sinon enrober le JSON de texte).
-async function glmChat({ system, messages, maxTokens, thinking, json, jsonHint }) {
+async function glmChat({ system, messages, maxTokens, thinking, json, jsonHint, signal }) {
   let sys = system;
   if (json) {
     sys = (sys || '') + '\n\nFORMAT DE RÉPONSE IMPÉRATIF : renvoie UNIQUEMENT un objet JSON valide et complet, sans aucun texte autour, sans balise markdown, sans commentaire.'
@@ -66,7 +66,8 @@ async function glmChat({ system, messages, maxTokens, thinking, json, jsonHint }
   };
   if (thinking) payload.reasoning_effort = 'high';
   if (json) payload.response_format = { type: 'json_object' };
-  return zaiClient.chat.completions.create(payload);
+  // `signal` permet d'interrompre l'appel réseau quand une tâche de fond est annulée.
+  return zaiClient.chat.completions.create(payload, signal ? { signal } : undefined);
 }
 // Texte brut d'une réponse GLM.
 function glmText(response) {

@@ -1488,9 +1488,9 @@ async function analyzeFull(btn) {
     const fullOk = total > 0 && enriched >= total && verifOk;
     azmSetRow('full', fullOk ? 'done' : 'error', fullOk ? 'Complète' : `${enriched}/${total}`);
     azmBar(100);
-    azmTitle(fullOk ? '✓ Analyse terminée' : 'Analyse terminée (partielle)');
+    azmTitle(fullOk ? 'Analyse terminée' : 'Analyse terminée (partielle)');
 
-    if (btn) btn.textContent = '✓ Analysé';
+    if (btn) btn.textContent = 'Analysé';
   } catch (e) {
     const cancelled = e && e.name === 'AbortError';
     // Un run plus récent a pu prendre la main : seul le run actif pilote la fenêtre.
@@ -2665,7 +2665,7 @@ function updateFillNextBtn() {
   if (!fillNextWrap) return;
   const ph = findPlaceholders();
   if (!ph.length) {
-    fillNextWrap.innerHTML = '<div class="fill-next fill-next--done">✓ Tous les champs sont renseignés</div>';
+    fillNextWrap.innerHTML = '<div class="fill-next fill-next--done">Tous les champs sont renseignés</div>';
     return;
   }
   const idx   = Math.min(_nextPhIdx, ph.length - 1);
@@ -2827,7 +2827,7 @@ function renderAutofill() {
       const it = _afRecap.items;
       html += `<div class="af-box af-box--recap">
         <div class="af-recap__head">
-          <span>✓ ${it.length} champ${it.length > 1 ? 's' : ''} rempli${it.length > 1 ? 's' : ''}</span>
+          <span>${it.length} champ${it.length > 1 ? 's' : ''} rempli${it.length > 1 ? 's' : ''}</span>
           <button class="af-undo" id="autofill-undo" type="button">Annuler</button>
         </div>
         ${it.map(f => `<div class="af-recap__row">
@@ -3213,7 +3213,7 @@ async function applyAdviceToClause(key, btn) {
       if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); flashClause(el); }
       btn.classList.remove('is-busy');
       btn.classList.add('is-done');
-      if (label) label.textContent = '✓ Conseil appliqué';
+      if (label) label.textContent = 'Conseil appliqué';
       if (resultEl && data.reply) {
         resultEl.className = 'advitem__result advitem__result--ok';
         resultEl.textContent = data.reply;
