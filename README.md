@@ -519,6 +519,9 @@ L'éditeur expose ses fonctions sur `window` pour l'interopérabilité (certains
 - Réordonner les points de checklist (ordre local uniquement, non persisté)
 - Déposer des fichiers locaux sur un dossier ou un point de checklist
 
+### Import de fichiers (multi-fichiers)
+Les `<input type="file">` (`#file-input` du bouton « Importer des fichiers », `#pick-file` du sélecteur d'un point de checklist) portent l'attribut `multiple` : on peut sélectionner plusieurs fichiers d'un coup, comme le glisser-déposer. `uploadFiles(fileList, folderId)` téléverse chaque fichier en série (une requête `POST /api/saas/documents` par fichier) avec une ligne « Import en cours… » optimiste. Pour le sélecteur d'un point de checklist, le **premier** fichier importé remplit l'emplacement (lien/nouvelle version) et les suivants restent rangés dans la même phase.
+
 ---
 
 ## 11. Déploiement Railway

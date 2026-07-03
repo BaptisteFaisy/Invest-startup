@@ -478,9 +478,9 @@
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <button class="btn btn--ghost btn--lg" id="new-folder-btn">+ Nouveau dossier</button>
-          <button class="btn btn--ghost btn--lg" id="import-btn">Importer un fichier</button>
+          <button class="btn btn--ghost btn--lg" id="import-btn">Importer des fichiers</button>
         </div>
-        <input type="file" id="file-input" accept=".pdf,.doc,.docx" hidden />
+        <input type="file" id="file-input" accept=".pdf,.doc,.docx" multiple hidden />
       </div>
 
       <div id="error" class="err" hidden></div>
@@ -549,7 +549,7 @@
       </div>
     </div>
   </div>
-  <input type="file" id="pick-file" accept=".pdf,.doc,.docx,.xlsx,.xls,.png,.jpg,.jpeg" hidden />
+  <input type="file" id="pick-file" accept=".pdf,.doc,.docx,.xlsx,.xls,.png,.jpg,.jpeg" multiple hidden />
 
   <!-- Fenêtre d'une étape de la frise : explication + documents associés -->
   <div class="fmodal" id="fmodal" role="dialog" aria-modal="true" aria-labelledby="fmodal-title-h">
@@ -761,7 +761,7 @@
       const container = track === 'bsa-air' ? bsaFoldersEl : foldersEl;
       const phases = folders.filter(f => (f.track || 'classic') === track);
       container.innerHTML = '';
-      // Carte de dépôt des fichiers non classés (cible du bouton « Importer un fichier »).
+      // Carte de dépôt des fichiers non classés (cible du bouton « Importer des fichiers »).
       container.appendChild(importCard());
       phases.forEach((f, pi) => container.appendChild(phaseCard(f, pi)));
       renderFrise(track, phases); // frise interactive en tête de la vue
@@ -1140,9 +1140,8 @@
         </div>
         <div class="folder__body" style="display:block"><ol class="bsa-list"></ol></div>`;
       const ol   = card.querySelector('.bsa-list');
-      const body = card.querySelector('.folder__body');
-      const guide = guideEl(f);
-      if (guide) body.insertBefore(guide, ol);
+      // Le guide « 🎓 Comprendre cette étape » n'apparaît plus dans la carte du
+      // dossier : il est réservé à la fenêtre d'étape ouverte via la frise.
       list.forEach((item, idx) => ol.appendChild(roadItem(f, item, idx)));
 
       attachCardDrop(card, f.id);
@@ -1167,7 +1166,7 @@
         <div class="folder__body" style="display:block"></div>`;
       const body = card.querySelector('.folder__body');
       if (!total) {
-        body.innerHTML = '<div class="folder__drop">⬆ Glissez-déposez vos fichiers ici, ou cliquez sur « Importer un fichier »<br /><span>(PDF, Word, Excel, images…)</span><br /><span>Astuce : glissez ensuite un fichier sur un document de la roadlist pour le rattacher.</span></div>';
+        body.innerHTML = '<div class="folder__drop">⬆ Glissez-déposez vos fichiers ici, ou cliquez sur « Importer des fichiers »<br /><span>(PDF, Word, Excel, images…)</span><br /><span>Astuce : glissez ensuite un fichier sur un document de la roadlist pour le rattacher.</span></div>';
       } else {
         const fl = document.createElement('div');
         fl.className = 'files';
@@ -1862,21 +1861,29 @@
     // Depuis l'ordinateur : téléverser dans la phase puis lier.
     document.getElementById('pick-upload').addEventListener('click', () => pickFile.click());
     pickFile.addEventListener('change', async () => {
-      const file = pickFile.files && pickFile.files[0];
-      if (!file || !pickCtx) { pickFile.value = ''; return; }
+      const files = Array.from(pickFile.files || []);
+      if (!files.length || !pickCtx) { pickFile.value = ''; return; }
       const ctx = pickCtx;
-      const fd = new FormData();
-      fd.append('file', file);
-      fd.append('folder_id', String(ctx.folderId));
+      // On peut choisir plusieurs fichiers : le premier importé remplit
+      // l'emplacement de la roadlist ; les suivants restent rangés dans la
+      // même phase (sans être liés à un emplacement précis).
+      let firstId = null;
       try {
-        const r = await fetch('/api/saas/documents', { method: 'POST', credentials: 'include', body: fd });
-        const data = await r.json().catch(() => ({}));
-        if (!r.ok) { pickShowErr(data.error || 'Import échoué.'); return; }
-        if (data.document) docs.push(data.document);
-        const newId = data.document && data.document.id;
-        if (newId != null) {
-          if (isSlotLinked(ctx.folderId, ctx.slug)) await addVersion(ctx.folderId, ctx.slug, newId);
-          else await linkDoc(ctx.folderId, ctx.slug, newId);
+        for (let i = 0; i < files.length; i++) {
+          const fd = new FormData();
+          fd.append('file', files[i]);
+          fd.append('folder_id', String(ctx.folderId));
+          const r = await fetch('/api/saas/documents', { method: 'POST', credentials: 'include', body: fd });
+          const data = await r.json().catch(() => ({}));
+          if (!r.ok) { pickShowErr(data.error || 'Import échoué.'); return; }
+          if (data.document) docs.push(data.document);
+          if (firstId == null && data.document && data.document.id != null) firstId = data.document.id;
+        }
+        if (firstId != null) {
+          if (isSlotLinked(ctx.folderId, ctx.slug)) await addVersion(ctx.folderId, ctx.slug, firstId);
+          else await linkDoc(ctx.folderId, ctx.slug, firstId);
+        } else {
+          render();
         }
         closePicker();
       } catch { pickShowErr('Impossible de joindre le serveur.'); }
