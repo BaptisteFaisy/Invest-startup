@@ -105,6 +105,7 @@
     .cmp__foot { margin-top: 30px; }
   </style>
   <script src="auth.js"></script>
+  <script src="tasks.js?v=1" defer></script>
 </head>
 <body>
   <div class="app">
@@ -298,8 +299,12 @@
     const analyzeBtn = document.getElementById('analyze-btn');
     const cancelBtn  = document.getElementById('cancel-btn');
 
-    // Requête en cours (null si aucune) — permet à « Annuler » de l'interrompre.
-    let currentAbort = null;
+    // La comparaison tourne en TÂCHE DE FOND côté serveur : on peut se balader dans
+    // le SaaS pendant ce temps (suivi en haut à gauche). Cette page surveille sa tâche
+    // et affiche le résultat dès qu'il est prêt ; au retour, elle le réaffiche.
+    let currentJobId = null;
+    const jobLocation = 'compare.html' + location.search;
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
     function setAnalyzing(on) {
       analyzeBtn.disabled = on;
@@ -308,11 +313,35 @@
       loadingEl.hidden = !on;
     }
 
-    // « Analyser » : lance réellement la comparaison IA.
+    function finishCompare(job) {
+      currentJobId = null;
+      setAnalyzing(false);
+      if (job && job.result) {
+        if (job.result.meta) fillMeta(job.result.meta);
+        introEl.hidden = true;
+        renderResult(job.result);
+      }
+    }
+
+    // Suit une tâche de comparaison jusqu'à son terme (indépendant du widget, robuste
+    // même si la tâche se termine avant le premier rafraîchissement du widget).
+    async function watchCompare(id) {
+      currentJobId = id;
+      for (;;) {
+        if (currentJobId !== id) return;   // annulée ou remplacée
+        let job = null;
+        try { job = await LiquidTasks.fetchResult(id); } catch { await sleep(1600); continue; }
+        if (!job) { setAnalyzing(false); currentJobId = null; return; }
+        if (job.status === 'done')      { finishCompare(job); LiquidTasks.dismiss(id); return; }
+        if (job.status === 'error')     { showError(job.error || 'La comparaison a échoué. Réessayez dans un instant.'); setAnalyzing(false); currentJobId = null; return; }
+        if (job.status === 'cancelled') { setAnalyzing(false); introEl.hidden = false; currentJobId = null; return; }
+        await sleep(1600);
+      }
+    }
+
+    // « Analyser » : lance la comparaison IA en tâche de fond.
     async function analyze() {
-      if (currentAbort) return;      // déjà une analyse en cours
-      const ac = new AbortController();
-      currentAbort = ac;
+      if (currentJobId) return;      // déjà une analyse en cours
       errorEl.hidden  = true;
       resultEl.hidden = true;
       setAnalyzing(true);
@@ -322,27 +351,35 @@
       if (newVid) body.newVersionId = newVid; else body.newId = newId;
 
       try {
-        const r = await fetch('/api/saas/doc-compare', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          credentials: 'include', body: JSON.stringify(body), signal: ac.signal,
+        const { id } = await LiquidTasks.launch({
+          type: 'doc-compare', payload: body,
+          label: 'Comparaison de versions',
+          location: { url: jobLocation },
         });
-        const data = await r.json().catch(() => ({}));
-        if (data && data.meta) fillMeta(data.meta);
-        if (!r.ok) { showError(data.error || 'La comparaison a échoué. Réessayez dans un instant.'); return; }
-        introEl.hidden = true;       // on masque l'écran de confirmation une fois le résultat prêt
-        renderResult(data);
+        watchCompare(id);
       } catch (err) {
-        // Annulation volontaire : on revient à l'écran de confirmation, sans erreur.
-        if (!(err && err.name === 'AbortError')) showError('Impossible de joindre le serveur.');
-      } finally {
-        currentAbort = null;
+        showError(err && err.message ? err.message : 'Impossible de lancer la comparaison.');
         setAnalyzing(false);
       }
     }
 
-    // « Annuler » : interrompt la requête en cours (sans quitter la page).
+    // « Annuler » : interrompt la tâche en cours (sans quitter la page).
     function cancelAnalyze() {
-      if (currentAbort) currentAbort.abort();
+      if (currentJobId) { LiquidTasks.cancel(currentJobId); currentJobId = null; }
+      setAnalyzing(false);
+      introEl.hidden = false;
+    }
+
+    // Au chargement : reprend une comparaison de CES versions déjà lancée en fond.
+    async function reconcileCompare() {
+      if (!window.LiquidTasks) return;
+      let jobs = [];
+      try { jobs = await LiquidTasks.list(); } catch { return; }
+      const job = jobs.find(j => j.type === 'doc-compare' && j.location && j.location.url === jobLocation
+        && (j.status === 'running' || j.status === 'done'));
+      if (!job) return;
+      if (job.status === 'running') { setAnalyzing(true); watchCompare(job.id); }
+      else { const full = await LiquidTasks.fetchResult(job.id); if (full) { finishCompare(full); LiquidTasks.dismiss(job.id); } }
     }
 
     async function init() {
@@ -358,6 +395,12 @@
       analyzeBtn.addEventListener('click', analyze);
       cancelBtn.addEventListener('click', (e) => { e.preventDefault(); cancelAnalyze(); });
       introEl.hidden = false;
+
+      // Reprise d'une comparaison lancée en fond + clic « Voir le résultat » du widget.
+      if (window.LiquidTasks) {
+        LiquidTasks.on('goto', (j) => { if (j && j.type === 'doc-compare' && j.location && j.location.url === jobLocation) reconcileCompare(); });
+        reconcileCompare();
+      }
     }
 
     init();

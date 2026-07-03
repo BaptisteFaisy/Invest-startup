@@ -351,6 +351,7 @@
     .err { color: #f87171 !important; background: rgba(220,38,38,0.1) !important; border-color: rgba(220,38,38,0.25) !important; }
   </style>
   <script src="auth.js"></script>
+  <script src="tasks.js?v=1" defer></script>
 </head>
 <body>
   <div class="app">
@@ -453,7 +454,10 @@
       raiseUser = (user && (user.id || user.email)) || 'me';
       document.querySelector('.app').classList.add('ready');
       applyRaiseType(getRaiseType());
-      load();
+      openTodoAnchor();
+      load().then(applyFinishedAnalyses);
+      // Analyse « choses à faire » terminée en tâche de fond → recharge + ouvre le panneau.
+      if (window.LiquidTasks) LiquidTasks.on('finished', (j) => { if (j && j.type === 'doc-analyze') applyFinishedAnalyses(); });
     });
     document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); logout(); });
 
@@ -1754,64 +1758,71 @@
       }).catch(() => { showErr('Impossible de joindre le serveur.'); load(); });
     }
 
-    // Analyse d'un document par Claude → liste des « choses à faire », stockée et
-    // dépliable au clic sur le nom du document. Pendant l'analyse, le bouton
-    // devient « Annuler » : un second clic interrompt la requête.
+    // Analyse d'un document par l'IA → liste des « choses à faire ». L'analyse tourne
+    // en TÂCHE DE FOND côté serveur : on peut se balader dans le SaaS pendant ce temps,
+    // le suivi apparaît en haut à gauche (annuler / progression / aller à l'endroit).
+    // Le résultat est sauvegardé côté serveur ; on l'affiche au retour sur cette page.
     async function analyzeDoc(folderId, slug, doc, btn) {
-      if (btn._abort) { btn._abort.abort(); return; }
       if (!doc || doc.kind !== 'termsheet') {
         showErr('L\'analyse est disponible pour les documents éditables (modèles / term sheets).');
         return;
       }
       const old = btn.textContent;
-      const oldTitle = btn.title;
-      const ctrl = new AbortController();
-      btn._abort = ctrl;
-      btn.textContent = 'Annuler';
-      btn.classList.add('fbtn--del');
-      btn.title = 'Annuler l\'analyse en cours';
+      btn.disabled = true;
+      btn.textContent = 'Analyse…';
       showErr('');
       try {
         // Récupère le contenu du document, puis le convertit en texte.
-        const tr = await fetch('/api/saas/termsheets/' + doc.id, { credentials: 'include', signal: ctrl.signal });
+        const tr = await fetch('/api/saas/termsheets/' + doc.id, { credentials: 'include' });
         const td = await tr.json().catch(() => ({}));
         const tmp = document.createElement('div');
         tmp.innerHTML = td.html || '';
         const text = (tmp.innerText || tmp.textContent || '').trim();
         if (!text) { showErr('Document vide : rien à analyser.'); return; }
 
-        const ar = await fetch('/api/saas/doc-analyze', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          credentials: 'include', signal: ctrl.signal, body: JSON.stringify({ title: doc.name, text }),
+        await LiquidTasks.launch({
+          type: 'doc-analyze',
+          label: 'Analyse — ' + (doc.name || 'document'),
+          payload: { title: doc.name, text, folderId, slug },
+          location: { url: 'dossiers.html?todo=' + folderId + ':' + encodeURIComponent(slug) },
         });
-        const ad = await ar.json().catch(() => ({}));
-        if (!ar.ok || !Array.isArray(ad.todos) || !ad.todos.length) {
-          showErr(ad.error || 'Analyse indisponible pour le moment.');
-          return;
-        }
-
-        // Sauvegarde des choses à faire dans l'état de la roadlist.
-        await fetch('/api/saas/folders/' + folderId + '/checklist', {
-          method: 'PUT', headers: { 'Content-Type': 'application/json' },
-          credentials: 'include', body: JSON.stringify({ slug, todos: ad.todos }),
-        });
-
-        // Mise à jour locale + ouverture du panneau (sans rechargement complet).
-        const f = folders.find(x => x.id === folderId);
-        if (f) {
-          f.items_state = f.items_state || {};
-          f.items_state[slug] = { ...(f.items_state[slug] || {}), todos: ad.todos, analysis_at: new Date().toISOString() };
-        }
-        todosOpen[folderId + ':' + slug] = true;
-        render();
+        btn.textContent = 'Analyse lancée ✓';
       } catch (e) {
-        if (!(e && e.name === 'AbortError')) showErr('Impossible de joindre le serveur.');
+        showErr(e && e.message ? e.message : 'Impossible de lancer l\'analyse.');
       } finally {
-        btn._abort = null;
-        btn.textContent = old;
-        btn.classList.remove('fbtn--del');
-        btn.title = oldTitle;
+        setTimeout(() => { btn.disabled = false; btn.textContent = old; }, 1800);
       }
+    }
+
+    // Réconciliation des analyses « choses à faire » terminées en tâche de fond :
+    // le serveur a déjà enregistré la checklist ; on recharge et on ouvre le panneau.
+    let reconciling = false;
+    async function applyFinishedAnalyses() {
+      if (!window.LiquidTasks || reconciling) return;
+      reconciling = true;
+      try {
+        const jobs = await LiquidTasks.list();
+        const done = jobs.filter(j => j.type === 'doc-analyze' && j.status === 'done' && j.location && j.location.url);
+        if (done.length) {
+          await load(); // recharge les checklists sauvegardées par les tâches
+          done.forEach(j => {
+            const m = /[?&]todo=([^&]+)/.exec(j.location.url);
+            if (m) {
+              const raw = m[1], idx = raw.indexOf(':');
+              if (idx > 0) todosOpen[raw.slice(0, idx) + ':' + decodeURIComponent(raw.slice(idx + 1))] = true;
+            }
+            LiquidTasks.dismiss(j.id);
+          });
+          render();
+        }
+      } catch { /* silencieux */ } finally { reconciling = false; }
+    }
+    // Ancre « ?todo=folderId:slug » (bouton « Aller à l'endroit ») : ouvre le panneau.
+    function openTodoAnchor() {
+      const m = /[?&]todo=([^&]+)/.exec(location.search);
+      if (!m) return;
+      const raw = m[1], idx = raw.indexOf(':');
+      if (idx > 0) todosOpen[raw.slice(0, idx) + ':' + decodeURIComponent(raw.slice(idx + 1))] = true;
     }
 
     // ---- Actions dossiers ----
