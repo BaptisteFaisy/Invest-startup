@@ -1669,20 +1669,16 @@ app.get('/api/saas/usage', requireAuth, async (req, res) => {
 // car ils rythment concrètement l'opération au fil de l'eau.
 // `FOLDERS_SEED_VERSION` est incrémentée à chaque évolution de cette liste pour
 // re-synchroniser automatiquement les dossiers système des utilisateurs.
-const FOLDERS_SEED_VERSION = 7;
+const FOLDERS_SEED_VERSION = 8;
 const FUNDRAISING_PHASES = [
   {
     key: 'mise-en-ordre',
     name: '1 · Mise en ordre juridique (pré-levée)',
     checklist: [
       'Statuts à jour',
-      'Extrait Kbis (moins de 3 mois)',
       'Table de capitalisation (cap table)',
       'Registre des mouvements de titres',
       'Registre des bénéficiaires effectifs (RBE)',
-      'PV des assemblées générales antérieures',
-      'Pacte d’associés existant',
-      'Contrats clés (clients, fournisseurs, baux)',
       'Cessions de propriété intellectuelle & dépôts (marques, brevets)',
       'Contrats de travail, BSPCE / BSA / management package',
     ],
@@ -1707,7 +1703,6 @@ const FUNDRAISING_PHASES = [
     key: 'due-diligence',
     name: '4 · Audit juridique (due diligence)',
     checklist: [
-      'Data room structurée',
       'Questionnaire de due diligence (réponses)',
       'État des contentieux et litiges en cours',
     ],
@@ -1751,13 +1746,10 @@ const BSA_AIR_PHASES = [
     name: '1 · Préparation & mise en ordre juridique (pré-levée)',
     checklist: [
       'Statuts à jour',
-      'Extrait Kbis (moins de 3 mois)',
       'Table de capitalisation (cap table) actuelle',
       'Registre des mouvements de titres',
       'Registre des bénéficiaires effectifs (RBE)',
-      "Pacte d'associés existant",
       'Cessions de propriété intellectuelle & dépôts (marques, brevets)',
-      'Comptes annuels (dernier exercice clos)',
       'BSPCE / BSA / management package existants',
     ],
   },
@@ -1796,7 +1788,6 @@ const BSA_AIR_PHASES = [
       'Attestation de versement des fonds par le(s) souscripteur(s)',
       'Constatation de la souscription des BSA-AIR par le président',
       'Inscription des BSA-AIR au registre des valeurs mobilières / mouvements de titres',
-      "Dépôt de la formalité d'émission au greffe",
     ],
   },
   {
@@ -1822,18 +1813,18 @@ const BSA_AIR_PHASES = [
 // '' = standard. Tableau parallèle à la checklist de chaque phase (repéré par sa clé),
 // pour afficher les badges côté front — sur la levée classique ET le BSA-AIR.
 const PHASE_MARKS = {
-  'mise-en-ordre':     ['req', 'req', 'req', 'req', 'req', '', 'opt', 'opt', 'req', 'opt'],
+  'mise-en-ordre':     ['req', 'req', 'req', 'req', 'req', 'opt'],
   'confidentialite':   ['req', 'opt'],
   'term-sheet':        ['req', 'opt'],
-  'due-diligence':     ['req', 'req', 'opt'],
+  'due-diligence':     ['req', 'opt'],
   'documentation':     ['req', 'req', 'req', 'opt', 'opt'],
   'closing':           ['req'],
   'post-closing':      ['req'],
-  'air-preparation':   ['req', 'req', 'req', '', '', 'opt', '', 'req', 'opt'],
+  'air-preparation':   ['req', 'req', '', '', '', 'opt'],
   'air-termes':        ['req', ''],
   'air-emission':      ['req', 'req', 'req'],
   'air-approche':      ['req', ''],
-  'air-souscription':  ['req', 'opt', 'opt', 'req', 'req', 'req', 'req'],
+  'air-souscription':  ['req', 'opt', 'opt', 'req', 'req', 'req'],
   'air-suivi':         ['req', ''],
   'air-conversion':    ['req', 'req', 'opt'],
 };
@@ -2655,7 +2646,7 @@ const JOB_MAX_PER_USER = 40;
 // Vue publique d'une tâche (sans le résultat, potentiellement lourd, ni l'interne).
 function publicJob(j) {
   return {
-    id: j.id, type: j.type, label: j.label,
+    id: j.id, type: j.type, label: j.label, max: !!j.max,
     status: j.status, progress: j.progress, indeterminate: !!j.indeterminate,
     steps: j.steps || [], location: j.location || null,
     error: j.error || null, resultReady: j.status === 'done',
@@ -2690,10 +2681,10 @@ setInterval(pruneJobs, 5 * 60 * 1000).unref?.();
 // ─── Fonctions de calcul réutilisables (mêmes prompts que les endpoints) ───────
 // Chacune renvoie une Promise du résultat structuré ; `signal` interrompt l'appel.
 
-async function computeDocAnalyze(userId, { title, text }, signal) {
-  // Cache par contenu : un même document (texte inchangé) n'est analysé qu'une fois,
-  // puis servi instantanément.
-  const cacheHash = aiHash('doc-analyze', [title || '', String(text).slice(0, 14000)]);
+async function computeDocAnalyze(userId, { title, text }, signal, thinking) {
+  // Cache par contenu ET par mode (rapide / approfondi « Max ») : un même document
+  // n'est analysé qu'une fois par mode, puis servi instantanément.
+  const cacheHash = aiHash('doc-analyze-' + (thinking ? 'max' : 'fast'), [title || '', String(text).slice(0, 14000)]);
   const cached = await aiCacheGet(cacheHash);
   if (cached) return cached;
   const system =
@@ -2712,7 +2703,7 @@ Règles :
 - Donne entre 4 et 12 items, ordonnés du plus important au moins important.`;
   const response = await glmChat({
     system, messages: [{ role: 'user', content: 'Analyse ce document et liste les choses à faire.' }],
-    maxTokens: 8000, thinking: false, json: true,
+    maxTokens: 8000, thinking: !!thinking, json: true,
     jsonHint: 'Format : {"todos":["action 1","action 2", ...]} — 4 à 12 items, chaque action commençant par un verbe à l\'infinitif.',
     signal,
   });
@@ -2723,8 +2714,8 @@ Règles :
   return todos;
 }
 
-async function computeDocAdvice(userId, { title, text }, signal) {
-  const cacheHash = aiHash('doc-advice', [title || '', String(text).slice(0, 12000)]);
+async function computeDocAdvice(userId, { title, text }, signal, thinking) {
+  const cacheHash = aiHash('doc-advice-' + (thinking ? 'max' : 'fast'), [title || '', String(text).slice(0, 12000)]);
   const cached = await aiCacheGet(cacheHash);
   if (cached) return cached;
   const system =
@@ -2742,7 +2733,7 @@ Règles :
 - Chaque conseil : un "title" court (max ~6 mots) et un "body" d'une phrase, en français, ton clair et utile.`;
   const response = await glmChat({
     system, messages: [{ role: 'user', content: 'Donne les conseils d\'amélioration spécifiques à ce document.' }],
-    maxTokens: 6000, thinking: false, json: true,
+    maxTokens: 6000, thinking: !!thinking, json: true,
     jsonHint: 'Format : {"tips":[{"title":"titre court","body":"une phrase"}]} — 3 à 5 conseils.',
     signal,
   });
@@ -2753,12 +2744,12 @@ Règles :
   return tips;
 }
 
-async function computeDocClauses(userId, { title, clauses, text }, signal) {
+async function computeDocClauses(userId, { title, clauses, text }, signal, thinking) {
   const current = (Array.isArray(clauses) ? clauses : []).slice(0, 80).map(c => ({
     label: String(c && c.label ? c.label : '').slice(0, 200),
     group: String(c && c.group ? c.group : '').slice(0, 120),
   })).filter(c => c.label);
-  const cacheHash = aiHash('doc-clauses', [title || '', current.map(c => c.label).join('|'), String(text || '').slice(0, 8000)]);
+  const cacheHash = aiHash('doc-clauses-' + (thinking ? 'max' : 'fast'), [title || '', current.map(c => c.label).join('|'), String(text || '').slice(0, 8000)]);
   const cached = await aiCacheGet(cacheHash);
   if (cached) return cached;
   const system =
@@ -2779,7 +2770,7 @@ Règles :
 - Rédige des clauses complètes et directement utilisables, pas des résumés.`;
   const response = await glmChat({
     system, messages: [{ role: 'user', content: 'Propose les clauses manquantes à ajouter à ce document.' }],
-    maxTokens: 12000, thinking: false, json: true,
+    maxTokens: 12000, thinking: !!thinking, json: true,
     jsonHint: 'Format : {"clauses":[{"label":"...","group":"...","plain":"...","watch":"...","html":"<p>...</p>"}]} — 4 à 8 clauses.',
     signal,
   });
@@ -2799,14 +2790,14 @@ Règles :
   return out;
 }
 
-async function computeClausesExplain(userId, { title, clauses }, signal) {
+async function computeClausesExplain(userId, { title, clauses }, signal, thinking) {
   const list = (Array.isArray(clauses) ? clauses : []).slice(0, 60).map((c, i) => ({
     key:   String(c && c.key != null ? c.key : 'c' + (i + 1)),
     label: String(c && c.label ? c.label : 'Paragraphe ' + (i + 1)).slice(0, 200),
     html:  String(c && c.html ? c.html : '').slice(0, 4000),
   }));
   if (!list.length) return {};
-  const cacheHash = aiHash('clauses-explain-v4', [title || '', ...list.map(c => c.key + '|' + c.html)]);
+  const cacheHash = aiHash('clauses-explain-v4-' + (thinking ? 'max' : 'fast'), [title || '', ...list.map(c => c.key + '|' + c.html)]);
   const cached = await aiCacheGet(cacheHash);
   if (cached) return cached;
   const system =
@@ -2827,7 +2818,7 @@ ${list.map(c => `--- ${c.key} | ${c.label}\n${c.html}`).join('\n\n')}
 Renvoie un objet par identifiant fourni, avec les 5 champs (omets "conditions" ou mets [] s'il n'y a pas de variante pertinente).`;
   const response = await glmChat({
     system, messages: [{ role: 'user', content: 'Analyse chaque paragraphe et remplis les 5 champs.' }],
-    maxTokens: 20000, thinking: false, json: true,
+    maxTokens: 20000, thinking: !!thinking, json: true,
     jsonHint: 'Format : {"items":[{"key":"<id>","plain":"phrase courte","simple":"explication 10 phrases max","bias":3,"watch":"points de vigilance","conditions":[{"label":"...","preview":"...","html":"<p>...</p>"}]}]} — un objet par identifiant fourni.',
     signal,
   });
@@ -2860,7 +2851,7 @@ Renvoie un objet par identifiant fourni, avec les 5 champs (omets "conditions" o
 
 // Comparaison de deux versions : résout chaque côté (document ou version validée),
 // extrait le texte, appelle l'IA. Renvoie { ...result, meta } ou lève {status,message}.
-async function computeDocCompare(userId, body, signal) {
+async function computeDocCompare(userId, body, signal, thinking) {
   async function resolveSide(docIdRaw, versionIdRaw) {
     const versionId = Number(versionIdRaw);
     if (versionId) {
@@ -2891,7 +2882,7 @@ async function computeDocCompare(userId, body, signal) {
     const e = new Error('Impossible d\'extraire le texte d\'une des versions (format non supporté — image, tableur — ou fichier vide). La comparaison IA fonctionne pour les PDF, les Word et les documents éditables.');
     e.status = 422; throw e;
   }
-  const cacheHash = aiHash('doc-compare', [oldText.slice(0, 14000), newText.slice(0, 14000)]);
+  const cacheHash = aiHash('doc-compare-' + (thinking ? 'max' : 'fast'), [oldText.slice(0, 14000), newText.slice(0, 14000)]);
   const cached = await aiCacheGet(cacheHash);
   if (cached) return { ...cached, meta, cached: true };
   const system =
@@ -2917,7 +2908,7 @@ Règles :
 - Si les deux versions sont identiques ou quasi identiques, indique-le dans "summary" et renvoie "changes" vide.`;
   const response = await glmChat({
     system, messages: [{ role: 'user', content: 'Compare l\'ancienne et la nouvelle version, et détaille les changements.' }],
-    maxTokens: 8000, thinking: false, json: true,
+    maxTokens: 8000, thinking: !!thinking, json: true,
     jsonHint: 'Format : {"summary":"...","verdict":"Vigilance requise","changes":[{"heading":"...","nature":"modification","before":"...","after":"...","impact":"...","severity":"moyenne"}],"recommendation":"..."}',
     signal,
   });
@@ -2950,7 +2941,7 @@ const JOB_RUNNERS = {
     job.indeterminate = true;
     jobStep(job, 'analyse', 'progress', 'Analyse du document…');
     jobProgress(job, 12);
-    const todos = await computeDocAnalyze(job.userId, { title, text }, job._abort.signal);
+    const todos = await computeDocAnalyze(job.userId, { title, text }, job._abort.signal, job.max);
     jobBailIfCancelled(job);
     if (!todos.length) { const e = new Error('Analyse indisponible pour le moment.'); throw e; }
     // Sauvegarde côté serveur : la checklist du dossier est mise à jour même si
@@ -2978,7 +2969,7 @@ const JOB_RUNNERS = {
     job.indeterminate = true;
     jobStep(job, 'compare', 'progress', 'Comparaison des deux versions…');
     jobProgress(job, 12);
-    const result = await computeDocCompare(job.userId, job.payload || {}, job._abort.signal);
+    const result = await computeDocCompare(job.userId, job.payload || {}, job._abort.signal, job.max);
     jobBailIfCancelled(job);
     job.result = result;
     const n = (result.changes || []).length;
@@ -3011,7 +3002,7 @@ const JOB_RUNNERS = {
       while (next < chunks.length) {
         const slice = chunks[next++];
         jobBailIfCancelled(job);
-        const explanations = await computeClausesExplain(job.userId, { title, clauses: slice }, job._abort.signal);
+        const explanations = await computeClausesExplain(job.userId, { title, clauses: slice }, job._abort.signal, job.max);
         Object.assign(job.result.explanations, explanations);
         done = Math.min(total, done + slice.length);
         jobStep(job, 'par', done >= total ? 'done' : 'progress', `${done} / ${total}`);
@@ -3027,7 +3018,7 @@ const JOB_RUNNERS = {
       if (!p.suggest) return;
       jobBailIfCancelled(job);
       jobStep(job, 'lib', 'progress', 'Recherche…');
-      const suggested = await computeDocClauses(job.userId, { title, clauses: p.suggest.clauses, text: p.suggest.text }, job._abort.signal);
+      const suggested = await computeDocClauses(job.userId, { title, clauses: p.suggest.clauses, text: p.suggest.text }, job._abort.signal, job.max);
       job.result.suggested = suggested;
       jobStep(job, 'lib', 'done', suggested.length ? `${suggested.length} proposée${suggested.length > 1 ? 's' : ''}` : 'Aucune proposition');
     })();
@@ -3035,7 +3026,7 @@ const JOB_RUNNERS = {
       if (!p.advice) return;
       jobBailIfCancelled(job);
       jobStep(job, 'verif', 'progress', 'Analyse…');
-      const tips = await computeDocAdvice(job.userId, { title, text: p.advice.text }, job._abort.signal);
+      const tips = await computeDocAdvice(job.userId, { title, text: p.advice.text }, job._abort.signal, job.max);
       job.result.tips = tips;
       jobStep(job, 'verif', 'done', tips.length ? 'Remplie' : 'Vide');
     })();
@@ -3071,7 +3062,7 @@ function startJob(job) {
 app.post('/api/saas/jobs', requireAuth, enforceDailyCap, (req, res) => {
   if (!zaiClient)
     return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
-  const { type, payload, label, location } = req.body ?? {};
+  const { type, payload, label, location, max } = req.body ?? {};
   if (!JOB_TYPES.has(type)) return res.status(400).json({ error: 'Type de tâche inconnu.' });
 
   // Plafond par utilisateur : on purge d'abord, puis on refuse au-delà de la limite.
@@ -3089,7 +3080,7 @@ app.post('/api/saas/jobs', requireAuth, enforceDailyCap, (req, res) => {
 
   const now = new Date().toISOString();
   const job = {
-    id: crypto.randomUUID(), userId: req.user.id, type,
+    id: crypto.randomUUID(), userId: req.user.id, type, max: !!max,
     label: (typeof label === 'string' && label.trim()) ? label.trim().slice(0, 140) : 'Analyse IA',
     status: 'running', progress: 0, indeterminate: false, steps: [],
     location: (location && typeof location.url === 'string') ? { url: location.url.slice(0, 300) } : null,
