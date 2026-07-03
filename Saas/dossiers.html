@@ -649,6 +649,181 @@
       phases.forEach((f, pi) => container.appendChild(phaseCard(f, pi)));
     }
 
+    // Guide pédagogique de chaque étape (clé de phase -> objectif, explication,
+    // erreurs à éviter). Rédigé pour quelqu'un qui n'a jamais levé de fonds.
+    const PHASE_GUIDE = {
+      // ── Levée classique ──────────────────────────────────────────────
+      'mise-en-ordre': {
+        objectif: 'Rendre la société « investor-ready » : des documents juridiques propres, à jour et cohérents, avant même de parler à un investisseur.',
+        explication: "C'est le grand ménage juridique. Avant d'ouvrir votre capital, un investisseur vérifie que la société est bien tenue : qui détient quoi (cap table), quels titres existent, qui décide, quels contrats vous engagent, et si votre propriété intellectuelle vous appartient vraiment. Un dossier clair rassure, accélère la due diligence et renforce votre position de négociation ; un dossier bancal fait fuir ou fait baisser la valorisation.",
+        eviter: [
+          "Démarrer les discussions avec une cap table approximative ou fausse : c'est le premier chiffre qu'un investisseur recoupe.",
+          "Oublier de faire signer les cessions de propriété intellectuelle (freelances, anciens associés) : une PI non cédée est un motif de blocage classique.",
+          "Négliger le registre des mouvements de titres et le registre des bénéficiaires effectifs (RBE) : leur absence est une non-conformité immédiate.",
+          "Laisser traîner des promesses verbales d'actions ou de BSPCE non formalisées.",
+        ],
+      },
+      'confidentialite': {
+        objectif: "Protéger vos informations sensibles avant de les partager, et cadrer proprement les premiers échanges avec les investisseurs.",
+        explication: "Vous allez montrer des données confidentielles (chiffres, contrats, secrets). Le NDA (accord de confidentialité) encadre ce partage. En pratique, beaucoup de fonds refusent de signer un NDA tout au début : c'est courant et pas forcément mauvais signe. Réservez la confidentialité forte à la data room et aux informations vraiment sensibles.",
+        eviter: [
+          "Exiger un NDA de tous les investisseurs dès le premier email : vous bloqueriez des discussions et passeriez pour un débutant.",
+          "Envoyer vos données les plus sensibles (code, secrets clients, salaires) avant qu'une confiance soit établie.",
+          "Vous croire « protégé » par un simple NDA : il dissuade, il ne rend pas vos secrets récupérables une fois divulgués.",
+        ],
+      },
+      'term-sheet': {
+        objectif: "Fixer noir sur blanc les grands termes de l'accord (valorisation, montant, droits) avant de rédiger les contrats définitifs.",
+        explication: "La term sheet (ou lettre d'intention) résume, de façon non contraignante — sauf quelques clauses comme l'exclusivité et la confidentialité — les conditions de la levée. C'est LE document de négociation : tout ce qui n'y est pas cadré vous coûtera plus cher ensuite. On y parle valorisation pre/post-money, montant levé, préférence de liquidation, gouvernance, anti-dilution, vesting des fondateurs.",
+        eviter: [
+          "Se focaliser sur la seule valorisation : une préférence de liquidation ou une anti-dilution agressive peut coûter plus qu'une valo un peu plus basse.",
+          "Signer une clause d'exclusivité trop longue : elle vous interdit de parler à d'autres fonds pendant ce temps.",
+          "Confondre « non contraignant » et « sans conséquence » : ce que vous acceptez ici sert de base à toute la suite.",
+          "Signer sans relecture par un avocat spécialisé en venture.",
+        ],
+      },
+      'due-diligence': {
+        objectif: "Permettre à l'investisseur de vérifier la société en profondeur, sans blocage ni mauvaise surprise.",
+        explication: "L'investisseur et ses avocats passent la société au crible : juridique, social, fiscal, PI, contrats, contentieux. Vous ouvrez une data room (espace de documents organisé) et répondez à un questionnaire. Une due diligence propre et rapide inspire confiance ; des trous ou des découvertes tardives font baisser la valo, ajoutent des garanties, voire tuent le deal.",
+        eviter: [
+          "Cacher un problème (litige, dette, PI non cédée) : il ressortira, et la dissimulation est bien pire que le problème.",
+          "Improviser la data room : un espace en désordre donne l'image d'une société mal tenue.",
+          "Répondre dans la précipitation, à côté de la question : chaque réponse pourra vous être opposée via les déclarations & garanties.",
+        ],
+      },
+      'documentation': {
+        objectif: "Traduire la term sheet en contrats définitifs et juridiquement engageants.",
+        explication: "On rédige le pacte d'associés (qui organise pouvoirs, cessions, sorties), on modifie les statuts (création des actions de préférence) et on prépare les bulletins de souscription. Les grands principes de la term sheet deviennent ici des obligations précises. Le pacte est confidentiel ; les statuts sont publics et opposables aux tiers.",
+        eviter: [
+          "Signer un pacte non lu ligne à ligne : drag-along (sortie forcée), clauses de leaver et de non-concurrence peuvent vous piéger.",
+          "Laisser des incohérences entre statuts et pacte : en cas de conflit, ce sont souvent les statuts qui priment.",
+          "Accepter des déclarations & garanties (R&W) trop larges sans plafonner votre responsabilité en montant et en durée.",
+        ],
+      },
+      'closing': {
+        objectif: "Réaliser juridiquement la levée : versement des fonds et augmentation de capital effective.",
+        explication: "C'est le jour J : les investisseurs versent les fonds, l'augmentation de capital est constatée, les actions sont émises, la cap table est mise à jour. Des formalités suivent (dépôt au greffe, mise à jour des registres). À partir de là, les nouveaux actionnaires sont officiellement au capital.",
+        eviter: [
+          "Dépenser les fonds avant que le closing soit juridiquement bouclé et les formalités déposées.",
+          "Négliger la mise à jour de la cap table et des registres : une cap table fausse pollue votre prochaine levée.",
+          "Oublier des conditions suspensives de la term sheet : le closing suppose qu'elles soient toutes levées.",
+        ],
+      },
+      'post-closing': {
+        objectif: "Tenir vos engagements envers les investisseurs et entretenir la confiance dans la durée.",
+        explication: "Après la levée, le pacte impose des obligations d'information (reporting périodique, comptes, budget, indicateurs) et parfois des décisions à faire valider. Un reporting régulier et honnête facilite énormément la prochaine levée et les relations avec le board.",
+        eviter: [
+          "Arrêter de communiquer quand ça va mal : le silence inquiète bien plus qu'une mauvaise nouvelle assumée.",
+          "Ignorer les droits d'information et de veto prévus au pacte : les enfreindre est une faute contractuelle.",
+          "Improviser le reporting : mettez en place un format régulier dès le premier mois.",
+        ],
+      },
+      // ── Parcours BSA-AIR ─────────────────────────────────────────────
+      'air-preparation': {
+        objectif: "Mettre la société au propre juridiquement avant d'émettre les BSA-AIR.",
+        explication: "Comme pour une levée classique, on commence par un grand ménage : statuts à jour, cap table exacte, registres, PI cédée. Le BSA-AIR ira vite ensuite, donc mieux vaut une base saine dès le départ. C'est aussi le moment de vérifier que vos statuts autorisent bien ce type d'émission.",
+        eviter: [
+          "Se dire « le BSA-AIR est simple, on verra le juridique plus tard » : les trous ressortent à la conversion, au pire moment.",
+          "Démarrer avec une cap table fausse : c'est sur elle que se calcule la dilution future du BSA-AIR.",
+          "Oublier les cessions de PI et les registres obligatoires (RBE, mouvements de titres).",
+        ],
+      },
+      'air-termes': {
+        objectif: "Fixer vous-même les conditions de l'instrument (montant de l'enveloppe, décote, plafond, plancher) avant d'aller voir les investisseurs.",
+        explication: "C'est LA particularité du BSA-AIR : contrairement à une levée classique négociée avec un investisseur lead, ici c'est le fondateur qui fixe les termes en amont. Vous définissez le montant maximum de l'enveloppe, la décote (rabais offert à la conversion), le plafond (cap) et éventuellement le plancher de valorisation. Les investisseurs souscriront ensuite à ces conditions déjà arrêtées. Simulez la dilution avant de figer ces chiffres.",
+        eviter: [
+          "Fixer une décote ou un plafond au hasard : simulez la conversion pour voir votre dilution réelle au tour suivant.",
+          "Empiler des BSA-AIR à des conditions différentes sans vision d'ensemble : la dilution cumulée devient vite ingérable.",
+          "Négliger le plafond (cap) : trop haut, il protège mal l'investisseur ; trop bas, il vous dilue énormément.",
+        ],
+      },
+      'air-emission': {
+        objectif: "Créer juridiquement l'instrument : faire voter l'émission des BSA-AIR par les associés, AVANT de chercher les souscripteurs.",
+        explication: "C'est ici que l'ordre du BSA-AIR surprend : on émet les bons avant d'avoir tous les investisseurs. Les associés votent en assemblée (décision collective / AGE) l'émission des BSA-AIR, avec suppression du droit préférentiel de souscription au profit d'une CATÉGORIE de personnes (et non de personnes nommées). N'importe quel investisseur correspondant à cette catégorie pourra alors souscrire « au fil de l'eau », sans revoter à chaque fois. Le président (et le commissaire aux comptes s'il en existe un) établit un rapport justifiant l'émission.",
+        eviter: [
+          "Émettre au profit de « personnes dénommées » si vous voulez souscrire au fil de l'eau : préférez l'émission au profit d'une catégorie de personnes.",
+          "Oublier le rapport du président (et du CAC le cas échéant) sur la suppression du DPS : son absence fragilise l'émission.",
+          "Rédiger un contrat d'émission flou sur la conversion : c'est lui qui fera foi le jour du tour qualifié.",
+          "Sauter les majorités et formalités statutaires de l'AGE : une émission mal votée est attaquable.",
+        ],
+      },
+      'air-approche': {
+        objectif: "Aller chercher des investisseurs pour souscrire à un instrument déjà émis et prêt.",
+        explication: "Maintenant que les BSA-AIR existent et que leurs conditions sont figées, vous présentez l'opportunité aux investisseurs. Votre argument : la simplicité — les termes sont déjà fixés, pas de longue négociation, on souscrit et on verse. Un deck et un cadre de confidentialité léger suffisent souvent.",
+        eviter: [
+          "Renégocier les termes investisseur par investisseur : cela casse tout l'intérêt du BSA-AIR (des conditions uniformes).",
+          "Promettre des side letters contradictoires avec le contrat d'émission.",
+          "Sur-formaliser la confidentialité au point de ralentir des souscriptions rapides.",
+        ],
+      },
+      'air-souscription': {
+        objectif: "Faire souscrire et payer chaque investisseur, puis accomplir les formalités qui rendent l'émission opposable.",
+        explication: "Chaque investisseur signe un bulletin de souscription et verse les fonds. Le président constate la souscription, on inscrit les BSA-AIR au registre des mouvements de titres et on dépose la formalité d'émission au greffe. Comme c'est « au fil de l'eau », vous répétez ces étapes à chaque nouvel entrant pendant la fenêtre d'émission. L'attestation de versement matérialise le paiement.",
+        eviter: [
+          "Considérer l'argent comme acquis avant le versement effectif et l'attestation : une souscription non payée n'est pas une souscription.",
+          "Oublier d'inscrire les bons au registre et de déposer au greffe : sans cela, l'émission n'est pas pleinement opposable.",
+          "Laisser filer la fenêtre de souscription prévue par la décision d'émission (souvent 18 mois) : au-delà, il faut revoter.",
+          "Perdre le suivi de qui a souscrit combien, et à quelles conditions.",
+        ],
+      },
+      'air-suivi': {
+        objectif: "Garder le contrôle des engagements en cours jusqu'à l'événement qui déclenchera la conversion.",
+        explication: "Entre l'émission et la conversion, le BSA-AIR reste « en sommeil ». Vous devez suivre les échéances, les événements déclencheurs (tour qualifié, cession, liquidation, date butoir) et informer les porteurs. C'est un instrument différé : bien le suivre évite les mauvaises surprises le jour de la conversion.",
+        eviter: [
+          "Perdre de vue la date d'échéance / de maturité : elle peut déclencher une conversion ou un remboursement automatique.",
+          "Oublier les porteurs de BSA-AIR dans votre information : ils ont des droits même avant conversion.",
+          "Lancer un nouveau tour sans intégrer l'impact des BSA-AIR en cours dans la cap table et la négociation.",
+        ],
+      },
+      'air-conversion': {
+        objectif: "Convertir les BSA-AIR en actions au moment de l'événement déclencheur, en appliquant correctement décote et plafond.",
+        explication: "Au tour qualifié (ou à l'échéance, ou en cas de liquidité), les BSA-AIR se transforment en actions. On calcule le prix de conversion en appliquant la décote et/ou le plafond prévus, on émet les actions correspondantes (bulletins de souscription) et on met à jour statuts et cap table. C'est le moment de vérité où les conditions fixées au départ produisent leurs effets sur la dilution.",
+        eviter: [
+          "Se tromper dans l'application de la décote et du plafond : une erreur de calcul change qui possède quoi.",
+          "Oublier de matérialiser la conversion (bulletins, PV, mise à jour des registres et de la cap table).",
+          "Découvrir la dilution au dernier moment : elle aurait dû être simulée dès la fixation des termes.",
+        ],
+      },
+    };
+
+    // Mémorise l'état déplié/replié du guide par étape (déplié par défaut).
+    const guideOpen = {};
+
+    // Panneau « Comprendre cette étape » : objectif, explication, à ne pas faire.
+    function guideEl(f) {
+      const g = PHASE_GUIDE[f.key];
+      if (!g) return null;
+      const open = guideOpen[f.key] !== false;
+      const avoid = (g.eviter || []).map(x => `<li>${esc(x)}</li>`).join('');
+      const sec = document.createElement('section');
+      sec.className = 'phase-guide' + (open ? ' open' : '');
+      sec.innerHTML = `
+        <button class="phase-guide__toggle" type="button">
+          <span class="phase-guide__toggle-ic">🎓</span>
+          <span class="phase-guide__toggle-txt">Comprendre cette étape</span>
+          <span class="phase-guide__chevron">▾</span>
+        </button>
+        <div class="phase-guide__panel">
+          <div class="phase-guide__block phase-guide__block--goal">
+            <span class="phase-guide__tag">Objectif</span>
+            <p>${esc(g.objectif)}</p>
+          </div>
+          <div class="phase-guide__block">
+            <span class="phase-guide__tag">En clair</span>
+            <p>${esc(g.explication)}</p>
+          </div>
+          <div class="phase-guide__block phase-guide__block--avoid">
+            <span class="phase-guide__tag phase-guide__tag--warn">À ne pas faire</span>
+            <ul>${avoid}</ul>
+          </div>
+        </div>`;
+      sec.querySelector('.phase-guide__toggle').addEventListener('click', () => {
+        guideOpen[f.key] = !sec.classList.contains('open');
+        sec.classList.toggle('open');
+      });
+      return sec;
+    }
+
     // Carte d'une phase : checklist numérotée + fichiers libres de la phase + dépôt.
     function phaseCard(f, pi) {
       const list = Array.isArray(f.checklist) ? f.checklist : [];
@@ -657,11 +832,12 @@
       );
 
       const card = document.createElement('div');
-      card.className = 'folder open';
+      card.className = 'folder folder--phase open';
       card.innerHTML = `
         <div class="folder__head" style="cursor:default">
           <div class="folder__ic">${pi + 1}</div>
           <div class="folder__main">
+            <div class="folder__step">Étape ${pi + 1}</div>
             <div class="folder__name">${esc(f.name)}</div>
             <div class="folder__count">${list.length} document${list.length > 1 ? 's' : ''}</div>
           </div>
@@ -669,6 +845,8 @@
         <div class="folder__body" style="display:block"><ol class="bsa-list"></ol></div>`;
       const ol   = card.querySelector('.bsa-list');
       const body = card.querySelector('.folder__body');
+      const guide = guideEl(f);
+      if (guide) body.insertBefore(guide, ol);
       list.forEach((item, idx) => ol.appendChild(roadItem(f, item, idx)));
 
       attachCardDrop(card, f.id);
