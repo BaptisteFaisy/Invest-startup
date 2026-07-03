@@ -770,8 +770,10 @@
 
     /* ═══════════ Frise interactive du parcours de la levée ═══════════
        Une pastille par étape ; clic → fenêtre (explication + documents). Une
-       pastille devient verte quand tous ses documents attendus sont validés ;
-       quand toutes le sont, la frise entière passe au vert (animation). */
+       pastille devient verte quand tous ses documents attendus sont validés ET
+       que toutes les étapes qui la précèdent le sont aussi (progression
+       séquentielle) ; quand toutes le sont, la frise entière passe au vert
+       (animation). */
     const friseClassicEl = document.getElementById('frise-classic');
     const friseBsaEl     = document.getElementById('frise-bsa');
 
@@ -819,9 +821,14 @@
       if (!phases.length) { host.innerHTML = ''; return; }
 
       const stats = phases.map(phaseStatus);
-      const completeCount = stats.filter(s => s.complete).length;
-      const allComplete = completeCount === phases.length;
-      const frac = completeCount / phases.length;
+      // Vert « séquentiel » : une étape ne s'allume en vert que si TOUTES les
+      // étapes qui la précèdent sont validées elles aussi. On mesure donc la
+      // longueur du préfixe d'étapes validées d'affilée depuis le début : seules
+      // ces étapes-là (indices < sealed) peuvent devenir vertes.
+      let sealed = 0;
+      while (sealed < stats.length && stats[sealed].complete) sealed++;
+      const allComplete = sealed === phases.length;
+      const frac = sealed / phases.length;
 
       const el = document.createElement('section');
       el.className = 'frise' + (allComplete ? ' is-complete' : '');
@@ -833,7 +840,7 @@
             <div class="frise__title">${allComplete ? '🎉 Levée complète — tous les documents sont validés' : 'Votre progression, étape par étape'}</div>
           </div>
           <div class="frise__progress">
-            <span class="frise__progress-num">${completeCount} / ${phases.length} étapes validées</span>
+            <span class="frise__progress-num">${sealed} / ${phases.length} étapes validées</span>
             <span class="frise__progress-bar"><i></i></span>
           </div>
         </div>
@@ -845,13 +852,18 @@
       const pts = el.querySelector('.frise__points');
       phases.forEach((f, i) => {
         const s = stats[i];
-        const join = i > 0 && s.complete && stats[i - 1].complete;
+        // Verte seulement si validée ET toutes les précédentes le sont (i < sealed).
+        // Une étape complète mais « en avance » (une étape antérieure manque encore)
+        // reste en bleu « en cours » : elle ne peut pas se sceller tant que la
+        // progression n'est pas continue depuis le début.
+        const green = i < sealed;
+        const join  = green && i > 0; // segment de liaison vert entre deux pastilles scellées
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'frise__point' + (s.complete ? ' is-done' : s.started ? ' is-started' : '') + (join ? ' is-join' : '');
-        const mini = s.total ? (s.done + '/' + s.total + (s.complete ? ' ✓' : '')) : '';
+        btn.className = 'frise__point' + (green ? ' is-done' : s.started ? ' is-started' : '') + (join ? ' is-join' : '');
+        const mini = s.total ? (s.done + '/' + s.total + (green ? ' ✓' : '')) : '';
         btn.innerHTML =
-          '<span class="frise__dot">' + (s.complete ? '✓' : (i + 1)) + '</span>' +
+          '<span class="frise__dot">' + (green ? '✓' : (i + 1)) + '</span>' +
           '<span class="frise__label">' + esc(friseLabel(f)) + '</span>' +
           '<span class="frise__mini">' + mini + '</span>';
         btn.title = friseLabel(f) + ' — voir l\'explication et les documents';
