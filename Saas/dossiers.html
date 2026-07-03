@@ -349,6 +349,104 @@
 
     /* Erreur */
     .err { color: #f87171 !important; background: rgba(220,38,38,0.1) !important; border-color: rgba(220,38,38,0.25) !important; }
+
+    /* ═══════════ Frise : parcours interactif de la levée ═══════════ */
+    .frise { background:#fff; border-radius:20px; box-shadow:0 12px 40px rgba(0,0,0,0.35); padding:22px 26px 24px; margin:22px 0 10px; }
+    .frise.is-complete { box-shadow:0 12px 40px rgba(0,0,0,0.35), 0 0 0 2px rgba(22,163,74,0.4); }
+    .frise__head { display:flex; align-items:flex-end; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:24px; }
+    .frise__eyebrow { font-family:'Archivo',sans-serif; font-size:11px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#6b6b78; }
+    .frise__title { font-family:'Archivo',sans-serif; font-size:18px; font-weight:700; letter-spacing:-0.01em; color:#08090c; margin-top:5px; }
+    .frise.is-complete .frise__title { color:#16a34a; }
+    .frise__progress { display:flex; align-items:center; gap:10px; }
+    .frise__progress-num { font-family:'Archivo',sans-serif; font-size:12.5px; font-weight:700; color:#08090c; white-space:nowrap; }
+    .frise__progress-bar { width:130px; height:7px; border-radius:99px; background:#ececec; overflow:hidden; }
+    .frise__progress-bar > i { display:block; height:100%; border-radius:99px; background:#3b82f6; width:calc(var(--frac,0) * 100%); transition:width .6s cubic-bezier(.2,.8,.2,1), background .4s; }
+    .frise.is-complete .frise__progress-bar > i { background:#16a34a; }
+
+    .frise__track { position:relative; }
+    .frise__rail { display:none; }
+    .frise__points { position:relative; display:flex; justify-content:space-between; gap:4px; }
+    .frise__point { flex:1 1 0; min-width:0; position:relative; display:flex; flex-direction:column; align-items:center; gap:9px; background:none; border:0; padding:0; cursor:pointer; }
+    /* Segment de liaison reliant deux pastilles (centre à centre). */
+    .frise__point::before { content:''; position:absolute; top:22px; left:-50%; width:100%; height:4px; background:#e6e6e6; border-radius:99px; z-index:0; transition:background .5s ease; }
+    .frise__point:first-child::before { display:none; }
+    .frise__point.is-join::before { background:#16a34a; }
+    .frise__point:nth-child(2)::before{transition-delay:.04s}
+    .frise__point:nth-child(3)::before{transition-delay:.08s}
+    .frise__point:nth-child(4)::before{transition-delay:.12s}
+    .frise__point:nth-child(5)::before{transition-delay:.16s}
+    .frise__point:nth-child(6)::before{transition-delay:.20s}
+    .frise__point:nth-child(7)::before{transition-delay:.24s}
+    .frise__point:nth-child(8)::before{transition-delay:.28s}
+
+    .frise__dot { position:relative; z-index:1; width:44px; height:44px; flex:none; display:grid; place-items:center; border-radius:50%; background:#fff; border:2px solid #d7d7de; color:#6b6b78; font-family:'Archivo',sans-serif; font-weight:800; font-size:15px; transition:transform .18s, border-color .3s, background .3s, color .3s, box-shadow .3s; }
+    .frise__point:hover .frise__dot { transform:translateY(-2px); box-shadow:0 6px 16px rgba(8,9,12,0.16); border-color:#08090c; }
+    .frise__point.is-started .frise__dot { border-color:#3b82f6; color:#2563eb; background:#eff5ff; }
+    .frise__point.is-done .frise__dot { border-color:#16a34a; background:#16a34a; color:#fff; box-shadow:0 6px 18px rgba(22,163,74,0.32); }
+    .frise__label { font-family:'Archivo',sans-serif; font-size:11.5px; font-weight:600; letter-spacing:-0.01em; color:#4b4b55; line-height:1.25; max-width:96px; }
+    .frise__point.is-started .frise__label { color:#2563eb; }
+    .frise__point.is-done .frise__label { color:#16a34a; }
+    .frise__mini { font-family:'Archivo',sans-serif; font-size:10.5px; font-weight:700; color:#9a9aa5; }
+    .frise__point.is-started .frise__mini { color:#2563eb; }
+    .frise__point.is-done .frise__mini { color:#16a34a; }
+
+    @keyframes frise-pop { 0%{transform:scale(1)} 45%{transform:scale(1.16)} 100%{transform:scale(1)} }
+    @keyframes frise-card-pulse { 0%{transform:scale(1)} 30%{transform:scale(1.008)} 100%{transform:scale(1)} }
+    .frise.is-celebrate { animation:frise-card-pulse .6s ease; }
+    .frise.is-celebrate .frise__point.is-done .frise__dot { animation:frise-pop .5s ease both; }
+    .frise.is-celebrate .frise__point:nth-child(1) .frise__dot{animation-delay:0s}
+    .frise.is-celebrate .frise__point:nth-child(2) .frise__dot{animation-delay:.07s}
+    .frise.is-celebrate .frise__point:nth-child(3) .frise__dot{animation-delay:.14s}
+    .frise.is-celebrate .frise__point:nth-child(4) .frise__dot{animation-delay:.21s}
+    .frise.is-celebrate .frise__point:nth-child(5) .frise__dot{animation-delay:.28s}
+    .frise.is-celebrate .frise__point:nth-child(6) .frise__dot{animation-delay:.35s}
+    .frise.is-celebrate .frise__point:nth-child(7) .frise__dot{animation-delay:.42s}
+    .frise.is-celebrate .frise__point:nth-child(8) .frise__dot{animation-delay:.49s}
+
+    @media (max-width:680px) {
+      .frise { padding:20px 18px 22px; }
+      .frise__rail { display:block; position:absolute; left:20px; top:22px; bottom:22px; width:4px; border-radius:99px; background:#e6e6e6; overflow:hidden; }
+      .frise__rail-fill { position:absolute; left:0; top:0; width:100%; height:calc(var(--frac,0) * 100%); background:#3b82f6; border-radius:99px; transition:height .6s cubic-bezier(.2,.8,.2,1), background .4s; }
+      .frise.is-complete .frise__rail-fill { background:#16a34a; }
+      .frise__points { flex-direction:column; align-items:stretch; gap:18px; }
+      .frise__point { flex:none; flex-direction:row; align-items:center; gap:14px; text-align:left; }
+      .frise__point::before { display:none; }
+      .frise__label { max-width:none; font-size:13px; }
+      .frise__mini { margin-left:auto; }
+    }
+    @media (prefers-reduced-motion:reduce) { .frise, .frise * { animation:none !important; } }
+
+    /* ── Fenêtre d'une étape (déclenchée par la frise) : explication + documents ── */
+    .fmodal { position:fixed; inset:0; z-index:990; display:none; align-items:center; justify-content:center; padding:24px; }
+    .fmodal.is-open { display:flex; }
+    .fmodal__backdrop { position:absolute; inset:0; background:rgba(8,9,12,0.55); }
+    .fmodal__dialog { position:relative; width:100%; max-width:640px; max-height:86vh; display:flex; flex-direction:column; background:#fff; border-radius:18px; box-shadow:0 30px 70px rgba(8,9,12,0.45); overflow:hidden; animation:fmodal-in .22s cubic-bezier(.2,.8,.2,1); }
+    @keyframes fmodal-in { from{opacity:0; transform:translateY(14px) scale(.98)} to{opacity:1; transform:none} }
+    .fmodal__head { display:flex; align-items:center; gap:12px; padding:16px 20px; border-bottom:1px solid rgba(8,9,12,0.08); }
+    .fmodal__badge-step { font-family:'Archivo',sans-serif; font-weight:800; font-size:15px; width:40px; height:40px; flex:none; display:grid; place-items:center; border-radius:12px; background:#08090c; color:#fff; }
+    .fmodal.is-step-done .fmodal__badge-step { background:#16a34a; }
+    .fmodal__titles { flex:1; min-width:0; }
+    .fmodal__step { font-family:'Archivo',sans-serif; font-size:10.5px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#6b6b78; }
+    .fmodal__title { font-family:'Archivo',sans-serif; font-size:17px; font-weight:700; letter-spacing:-0.01em; color:#08090c; margin:2px 0 0; }
+    .fmodal__status { font-family:'Archivo',sans-serif; font-size:11px; font-weight:700; padding:4px 10px; border-radius:99px; background:rgba(8,9,12,0.06); color:#6b6b78; flex:none; white-space:nowrap; }
+    .fmodal__status.is-done { background:rgba(22,163,74,0.14); color:#16a34a; }
+    .fmodal__close { border:0; background:none; font-size:24px; line-height:1; cursor:pointer; color:#6b6b78; padding:2px 8px; border-radius:8px; flex:none; }
+    .fmodal__close:hover { background:rgba(8,9,12,0.06); }
+    .fmodal__body { padding:16px 20px 22px; overflow-y:auto; }
+    .fmodal__sec-title { font-family:'Archivo',sans-serif; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#6b6b78; margin:20px 0 10px; }
+    .fmodal__body > .fmodal__sec-title:first-child { margin-top:2px; }
+    .fmodal__empty { font-size:13.5px; color:#6b6b78; background:#f4f2ee; border:1px dashed rgba(8,9,12,0.14); border-radius:10px; padding:14px; }
+    /* La checklist réutilisée avait des couleurs pensées pour fond noir : on corrige dans la fenêtre (fond blanc). */
+    .fmodal .checklist__title { color:#6b6b78; }
+    .fmodal .cli__num { color:#6b6b78; }
+    .fmodal .cli__caret { color:#6b6b78; }
+    .fmodal .cli-todos__h { color:#6b6b78; }
+    .fmodal .cli-todos li, .fmodal .cli-todos__date { color:#3a3b40; }
+    .fmodal .phase-guide { margin:0; }
+    @media (max-width:680px) {
+      .fmodal { padding:0; }
+      .fmodal__dialog { max-width:none; max-height:100vh; height:100vh; border-radius:0; }
+    }
   </style>
   <script src="auth.js"></script>
   <script src="tasks.js?v=1" defer></script>
@@ -402,6 +500,9 @@
       <!-- Vue : levée classique (actions de préférence) -->
       <div id="classic-view">
 
+      <!-- Frise interactive : cliquez une étape pour son explication + ses documents -->
+      <div id="frise-classic"></div>
+
       <div class="section-label">
         <span>Phases juridiques de la levée</span>
         <span style="text-transform:none;letter-spacing:0;font-weight:500;color:rgba(255,255,255,0.65)">Actions de préférence · droit français (SAS)</span>
@@ -412,6 +513,7 @@
 
       <!-- Vue : BSA-AIR (roadlist des documents par étape) -->
       <div id="bsa-air-view" hidden>
+        <div id="frise-bsa"></div>
         <div class="section-label">
           <span>Parcours BSA-AIR — documents par étape</span>
           <span style="text-transform:none;letter-spacing:0;font-weight:500;color:rgba(255,255,255,0.65)">Accord d'investissement rapide (décote / plafond de valorisation)</span>
@@ -447,6 +549,23 @@
     </div>
   </div>
   <input type="file" id="pick-file" accept=".pdf,.doc,.docx,.xlsx,.xls,.png,.jpg,.jpeg" hidden />
+
+  <!-- Fenêtre d'une étape de la frise : explication + documents associés -->
+  <div class="fmodal" id="fmodal" role="dialog" aria-modal="true" aria-labelledby="fmodal-title-h">
+    <div class="fmodal__backdrop" data-fmodal-close></div>
+    <div class="fmodal__dialog">
+      <div class="fmodal__head">
+        <div class="fmodal__badge-step">1</div>
+        <div class="fmodal__titles">
+          <div class="fmodal__step">Étape</div>
+          <h2 class="fmodal__title" id="fmodal-title-h">Étape</h2>
+        </div>
+        <span class="fmodal__status">À compléter</span>
+        <button class="fmodal__close" type="button" data-fmodal-close aria-label="Fermer">&times;</button>
+      </div>
+      <div class="fmodal__body" id="fmodal-body"></div>
+    </div>
+  </div>
 
   <script>
     requireAuth().then((user) => {
@@ -651,6 +770,173 @@
       // Carte de dépôt des fichiers non classés (cible du bouton « Importer un fichier »).
       container.appendChild(importCard());
       phases.forEach((f, pi) => container.appendChild(phaseCard(f, pi)));
+      renderFrise(track, phases); // frise interactive en tête de la vue
+      refreshFmodal();            // si une fenêtre d'étape est ouverte, la rafraîchir
+    }
+
+    /* ═══════════ Frise interactive du parcours de la levée ═══════════
+       Une pastille par étape ; clic → fenêtre (explication + documents). Une
+       pastille devient verte quand tous ses documents attendus sont validés ;
+       quand toutes le sont, la frise entière passe au vert (animation). */
+    const friseClassicEl = document.getElementById('frise-classic');
+    const friseBsaEl     = document.getElementById('frise-bsa');
+
+    // Libellés courts des pastilles (le nom complet reste dans la fenêtre).
+    const FRISE_LABELS = {
+      'mise-en-ordre': 'Mise en ordre', 'confidentialite': 'Confidentialité',
+      'term-sheet': 'Term sheet', 'due-diligence': 'Due diligence',
+      'documentation': 'Documentation', 'closing': 'Closing', 'post-closing': 'Post-closing',
+      'air-preparation': 'Préparation', 'air-termes': 'Termes des BSA-AIR',
+      'air-emission': 'Émission', 'air-approche': 'Approche investisseurs',
+      'air-souscription': 'Souscription', 'air-suivi': 'Suivi', 'air-conversion': 'Conversion',
+    };
+    function friseLabel(f) {
+      if (FRISE_LABELS[f.key]) return FRISE_LABELS[f.key];
+      return String(f.name || '').replace(/^\s*\d+\s*[·.\-—]\s*/, '').split(/\s*[(—]/)[0].trim();
+    }
+
+    // Avancement d'une étape. Un document « si applicable » non fourni ne bloque pas ;
+    // tout document fourni doit être validé. « complete » = tout ce qui doit l'être
+    // est validé (→ pastille verte).
+    function phaseStatus(f) {
+      const state = f.items_state || {};
+      const items = Array.isArray(f.checklist) ? f.checklist : [];
+      let total = 0, done = 0, linked = 0;
+      items.forEach((item, idx) => {
+        const slug = slugify(item);
+        const st = state[slug] || {};
+        const isLinked = st.document_id != null && docs.some(d => d.id === st.document_id);
+        const final = isLinked && !!st.final;
+        const mark = (f.marks || [])[idx] || '';
+        const skippable = mark === 'opt' && !isLinked; // « si applicable » et absent
+        if (!skippable) total++;
+        if (final) done++;
+        if (isLinked) linked++;
+      });
+      return { total, done, linked, complete: total > 0 && done === total, started: (done > 0 || linked > 0), count: items.length };
+    }
+
+    const friseCelebrated = {}; // track -> déjà « tout vert » (n'anime qu'à la bascule)
+
+    function renderFrise(track, phases) {
+      const host = track === 'bsa-air' ? friseBsaEl : friseClassicEl;
+      if (!host) return;
+      phases = phases || folders.filter(f => (f.track || 'classic') === track);
+      if (!phases.length) { host.innerHTML = ''; return; }
+
+      const stats = phases.map(phaseStatus);
+      const completeCount = stats.filter(s => s.complete).length;
+      const allComplete = completeCount === phases.length;
+      const frac = completeCount / phases.length;
+
+      const el = document.createElement('section');
+      el.className = 'frise' + (allComplete ? ' is-complete' : '');
+      el.style.setProperty('--frac', String(frac));
+      el.innerHTML = `
+        <div class="frise__head">
+          <div>
+            <div class="frise__eyebrow">Parcours de la levée</div>
+            <div class="frise__title">${allComplete ? '🎉 Levée complète — tous les documents sont validés' : 'Votre progression, étape par étape'}</div>
+          </div>
+          <div class="frise__progress">
+            <span class="frise__progress-num">${completeCount} / ${phases.length} étapes validées</span>
+            <span class="frise__progress-bar"><i></i></span>
+          </div>
+        </div>
+        <div class="frise__track">
+          <div class="frise__rail"><div class="frise__rail-fill"></div></div>
+          <div class="frise__points"></div>
+        </div>`;
+
+      const pts = el.querySelector('.frise__points');
+      phases.forEach((f, i) => {
+        const s = stats[i];
+        const join = i > 0 && s.complete && stats[i - 1].complete;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'frise__point' + (s.complete ? ' is-done' : s.started ? ' is-started' : '') + (join ? ' is-join' : '');
+        const mini = s.total ? (s.done + '/' + s.total + (s.complete ? ' ✓' : '')) : '';
+        btn.innerHTML =
+          '<span class="frise__dot">' + (s.complete ? '✓' : (i + 1)) + '</span>' +
+          '<span class="frise__label">' + esc(friseLabel(f)) + '</span>' +
+          '<span class="frise__mini">' + mini + '</span>';
+        btn.title = friseLabel(f) + ' — voir l\'explication et les documents';
+        btn.addEventListener('click', () => openFmodal(f.id));
+        pts.appendChild(btn);
+      });
+
+      host.innerHTML = '';
+      host.appendChild(el);
+
+      // « Tout est vert » : animation jouée uniquement lors de la bascule
+      // (was === false), pas au chargement d'un parcours déjà terminé.
+      const was = friseCelebrated[track];
+      if (allComplete && was === false) {
+        el.classList.add('is-celebrate');
+        setTimeout(() => el.classList.remove('is-celebrate'), 1500);
+      }
+      friseCelebrated[track] = allComplete;
+    }
+
+    /* ── Fenêtre d'une étape : explication (guide) + documents associés ──
+       Réutilise guideEl() (partie explicative) et checklistEl() (documents +
+       actions Ajouter / Modèle / Valider…). Se rafraîchit à chaque render(). */
+    const fmodal     = document.getElementById('fmodal');
+    const fmodalBody = document.getElementById('fmodal-body');
+    let fmodalCtx = null; // id de la phase affichée
+
+    function openFmodal(folderId) { fmodalCtx = folderId; buildFmodal(); if (fmodal) fmodal.classList.add('is-open'); }
+    function closeFmodal() { if (fmodal) fmodal.classList.remove('is-open'); fmodalCtx = null; }
+    function refreshFmodal() { if (fmodalCtx != null && fmodal && fmodal.classList.contains('is-open')) buildFmodal(); }
+
+    function buildFmodal() {
+      if (!fmodal) return;
+      const f = folders.find(x => x.id === fmodalCtx);
+      if (!f) { closeFmodal(); return; }
+      const track  = f.track || 'classic';
+      const phases = folders.filter(x => (x.track || 'classic') === track);
+      const idx    = phases.findIndex(x => x.id === f.id);
+      const s      = phaseStatus(f);
+
+      fmodal.classList.toggle('is-step-done', s.complete);
+      fmodal.querySelector('.fmodal__badge-step').textContent = s.complete ? '✓' : (idx + 1);
+      fmodal.querySelector('.fmodal__step').textContent = 'Étape ' + (idx + 1) + ' sur ' + phases.length;
+      fmodal.querySelector('.fmodal__title').textContent = friseLabel(f);
+      const stEl = fmodal.querySelector('.fmodal__status');
+      stEl.classList.toggle('is-done', s.complete);
+      stEl.textContent = s.complete ? '✓ Validée' : (s.total ? s.done + '/' + s.total + ' validés' : 'À compléter');
+
+      const sc = fmodalBody.scrollTop; // préserve le défilement lors d'un rafraîchissement
+      fmodalBody.innerHTML = '';
+      const g = guideEl(f);
+      if (g) {
+        const t = document.createElement('div');
+        t.className = 'fmodal__sec-title';
+        t.textContent = 'Comprendre cette étape';
+        fmodalBody.appendChild(t);
+        fmodalBody.appendChild(g);
+      }
+      const dt = document.createElement('div');
+      dt.className = 'fmodal__sec-title';
+      dt.textContent = 'Documents de cette étape';
+      fmodalBody.appendChild(dt);
+      if (Array.isArray(f.checklist) && f.checklist.length) {
+        fmodalBody.appendChild(checklistEl(f));
+      } else {
+        const e = document.createElement('div');
+        e.className = 'fmodal__empty';
+        e.textContent = 'Aucun document attendu à cette étape.';
+        fmodalBody.appendChild(e);
+      }
+      fmodalBody.scrollTop = sc;
+    }
+
+    if (fmodal) {
+      fmodal.addEventListener('click', (e) => { if (e.target.hasAttribute('data-fmodal-close')) closeFmodal(); });
+      document.addEventListener('keydown', (e) => {
+        // Échap ferme la fenêtre d'étape, sauf si le sélecteur de document est par-dessus.
+        if (e.key === 'Escape' && fmodal.classList.contains('is-open') && !pick.classList.contains('is-open')) closeFmodal();
+      });
     }
 
     // Guide pédagogique de chaque étape (clé de phase -> objectif, explication,

@@ -1377,21 +1377,115 @@ function azmRefreshCond() {
   azmSetRow('cond', state, s.available ? `${s.inserted} / ${s.available}` : 'Aucune');
 }
 
+// Analyse complète du document. Le travail IA (explication des paragraphes, clauses
+// proposées, colonne « À vérifier ») tourne en TÂCHE DE FOND côté serveur : on peut se
+// balader dans le SaaS pendant ce temps, le suivi apparaît en haut à gauche (annuler /
+// progression / aller à l'endroit). Les résultats sont appliqués dans la page au fur et
+// à mesure, et ré-appliqués au retour sur ce document.
+const editorJobLoc = () => 'editor.html' + location.search;
+const _fullSleep = (ms) => new Promise(r => setTimeout(r, ms));
+let fullJobId = null;
+let _fullSuggestedApplied = false;
+let _fullTipsApplied = false;
+const _fullAppliedKeys = new Set();
+
+function resetFullApplyState() {
+  _fullAppliedKeys.clear();
+  _fullSuggestedApplied = false;
+  _fullTipsApplied = false;
+}
+
+// Retrouve l'élément d'une clause par sa clé (les clés peuvent contenir des caractères
+// non sûrs pour un sélecteur CSS : on compare dataset.key à la main).
+function _clauseElByKey(key) {
+  let found = null;
+  page.querySelectorAll('.ts-clause[data-key]').forEach(el => { if (el.dataset.key === key) found = el; });
+  return found;
+}
+
+// Fusionne les explications IA dans l'état de l'éditeur en préservant le contenu curated
+// du modèle (data-plain, BIAS, BAKED_COND). Idempotent : une clé déjà appliquée est ignorée.
+function applyExplanations(explanations) {
+  if (!explanations) return;
+  let touched = false;
+  Object.keys(explanations).forEach(key => {
+    if (_fullAppliedKeys.has(key)) return;
+    const e = explanations[key];
+    if (!e) return;
+    _fullAppliedKeys.add(key);
+    touched = true;
+    const el = _clauseElByKey(key);
+    const contentEl = el ? el.querySelector('.ts-content') : null;
+    const sig = clauseSig(contentEl ? contentEl.innerHTML : '');
+    const prev = SIMPLE_CACHE[key];
+    // « Pour bien comprendre » : on conserve la version bakée du modèle.
+    if (e.simple && !(prev && prev.baked && prev.sig === sig)) SIMPLE_CACHE[key] = { sig, text: e.simple };
+    const ex = EXPLAIN[key];
+    if (ex) {
+      if (e.plain && !ex.plain) ex.plain = e.plain;   // En langage courant
+      if (e.watch && !ex.watch) ex.watch = e.watch;   // À vérifier — côté fondateur
+    }
+    // Avantage pour les investisseurs : on garde le niveau curated s'il existe.
+    if (Number.isInteger(e.bias) && BIAS[key] === undefined) AI_BIAS[key] = Math.max(1, Math.min(5, e.bias));
+    // Conditions pré-écrites : l'IA comble seulement les paragraphes sans condition curated.
+    const hasCuratedCond =
+      (COND_TEMPLATES[key] && COND_TEMPLATES[key].length) ||
+      (BAKED_COND[key] && BAKED_COND[key].length);
+    if (!hasCuratedCond && Array.isArray(e.conditions) && e.conditions.length) {
+      AI_COND[key] = e.conditions.slice(0, 2).map((t, idx) => ({
+        id: 'ai_' + key + '_' + idx, type: 'option',
+        label:   String(t.label || 'Variante').slice(0, 80),
+        preview: String(t.preview || '').slice(0, 200),
+        html:    String(t.html || '<p></p>'),
+      }));
+    }
+  });
+  if (touched && activeKey) renderPanel(activeKey);
+}
+
+// Applique le résultat (partiel ou complet) d'une tâche d'analyse dans la page.
+function applyFullResult(result) {
+  if (!result) return;
+  applyExplanations(result.explanations);
+  if (result.suggested && !_fullSuggestedApplied) {
+    _fullSuggestedApplied = true;
+    if (result.suggested.length) setSuggestedClauses(result.suggested);
+  }
+  if (result.tips && !_fullTipsApplied) {
+    _fullTipsApplied = true;
+    docAdviceCache = result.tips;
+    if (isCustom) _paintDocAdvice();
+  }
+}
+
+function finalizeFull(btn, status) {
+  fullJobId = null;
+  if (!btn) return;
+  btn.textContent = status === 'done' ? 'Analysé' : status === 'cancelled' ? 'Annulée' : 'Échec';
+  setTimeout(() => { btn.disabled = false; btn.textContent = 'Analyser'; }, 1600);
+}
+
+// Suit une analyse complète jusqu'à son terme et applique les résultats au fur et à
+// mesure. Robuste même si la tâche se termine avant le premier rafraîchissement du widget.
+async function watchFullAnalyze(id, btn) {
+  fullJobId = id;
+  for (;;) {
+    if (fullJobId !== id) return;   // remplacée par une nouvelle analyse
+    let job = null;
+    try { job = await LiquidTasks.fetchResult(id); } catch { await _fullSleep(1500); continue; }
+    if (!job) { finalizeFull(btn, 'error'); return; }
+    applyFullResult(job.result);
+    if (job.status === 'done')      { finalizeFull(btn, 'done'); LiquidTasks.dismiss(id); return; }
+    if (job.status === 'error')     { finalizeFull(btn, 'error'); return; }
+    if (job.status === 'cancelled') { finalizeFull(btn, 'cancelled'); return; }
+    await _fullSleep(1400);
+  }
+}
+
 async function analyzeFull(btn) {
-  const old = btn ? btn.textContent : '';
   if (btn) { btn.disabled = true; btn.textContent = 'Analyse…'; }
-  if (azmAbort) azmAbort.abort();
-  const ctrl = new AbortController();
-  azmAbort = ctrl;
-  // Interrompt l'analyse dès que l'utilisateur clique sur « Annuler l'analyse ».
-  const bailIfCancelled = () => {
-    if (!ctrl.signal.aborted) return;
-    const e = new Error('cancelled'); e.name = 'AbortError'; throw e;
-  };
-  azmOpen();
-  azmResetCancel(true);
-  // La bibliothèque (clauses du document + clauses disponibles) est l'écran de
-  // résultat de l'analyse : on l'affiche dès le lancement.
+  resetFullApplyState();
+  // La bibliothèque est l'écran de résultat de l'analyse : on l'affiche dès le lancement.
   showLibTab('library');
   try {
     const clauses = [];
@@ -1402,136 +1496,72 @@ async function analyzeFull(btn) {
       if (!key || !contentEl) return;
       clauses.push({ key, label: labelEl ? labelEl.textContent.trim() : key, html: contentEl.innerHTML });
     });
-    const total = clauses.length;
     const title = (docNameEl && docNameEl.textContent)
       || (page.querySelector('.doc-title') ? page.querySelector('.doc-title').textContent : 'Document');
 
-    // Conditions pré-écrites (info statique : déjà insérées vs disponibles).
-    azmRefreshCond();
+    // Modèle : la bibliothèque embarque déjà ses clauses (aucun appel IA). Document
+    // libre : l'IA propose les clauses manquantes + remplit la colonne « À vérifier ».
+    if (!isCustom) renderLibrary();
+    const suggest = isCustom
+      ? { clauses: TERMSHEET.filter(c => c.inDoc).map(c => ({ label: c.label, group: c.group })), text: (page.innerText || '').slice(0, 12000) }
+      : null;
+    const advice = (isCustom && !docAdviceIsBaked) ? { text: page.innerText || '' } : null;
 
-    // 1) Analyse enrichie de chaque paragraphe : « En langage courant », « Pour bien
-    //    comprendre », « Avantage pour les investisseurs », « À vérifier — côté fondateur »
-    //    et « Conditions pré-écrites ». On appelle l'IA par morceaux (progression réelle)
-    //    puis on fusionne en préservant le contenu curated du modèle (data-plain, BIAS,
-    //    BAKED_COND) : l'IA ne fait que combler les champs vides.
-    if (total) {
-      const analyzed = new Set();
-      azmSetRow('par', 'progress', `0 / ${total}`);
-      const CHUNK = 6;
-      for (let i = 0; i < clauses.length; i += CHUNK) {
-        bailIfCancelled();
-        const slice = clauses.slice(i, i + CHUNK);
-        let explanations = {};
-        try {
-          const r = await fetch('/api/saas/clauses-explain', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            credentials: 'include', signal: ctrl.signal, body: JSON.stringify({ title, clauses: slice }),
-          });
-          const d = await r.json().catch(() => ({}));
-          if (r.ok && d.explanations) explanations = d.explanations;
-        } catch {}
-        bailIfCancelled();
-        slice.forEach(c => {
-          const e = explanations[c.key];
-          if (!e) return;
-          analyzed.add(c.key);
-          const sig = clauseSig(c.html);
-          const prev = SIMPLE_CACHE[c.key];
-          // « Pour bien comprendre » : on conserve la version bakée du modèle.
-          if (e.simple && !(prev && prev.baked && prev.sig === sig)) {
-            SIMPLE_CACHE[c.key] = { sig, text: e.simple };
-          }
-          const ex = EXPLAIN[c.key];
-          if (ex) {
-            if (e.plain && !ex.plain) ex.plain = e.plain;       // En langage courant
-            if (e.watch && !ex.watch) ex.watch = e.watch;       // À vérifier — côté fondateur
-          }
-          // Avantage pour les investisseurs : on garde le niveau curated s'il existe.
-          if (Number.isInteger(e.bias) && BIAS[c.key] === undefined) {
-            AI_BIAS[c.key] = Math.max(1, Math.min(5, e.bias));
-          }
-          // Conditions pré-écrites : l'IA comble seulement les paragraphes sans condition curated.
-          const hasCuratedCond =
-            (COND_TEMPLATES[c.key] && COND_TEMPLATES[c.key].length) ||
-            (BAKED_COND[c.key] && BAKED_COND[c.key].length);
-          if (!hasCuratedCond && Array.isArray(e.conditions) && e.conditions.length) {
-            AI_COND[c.key] = e.conditions.slice(0, 2).map((t, idx) => ({
-              id:      'ai_' + c.key + '_' + idx,
-              type:    'option',
-              label:   String(t.label || 'Variante').slice(0, 80),
-              preview: String(t.preview || '').slice(0, 200),
-              html:    String(t.html || '<p></p>'),
-            }));
-          }
-        });
-        const done = analyzed.size;
-        azmSetRow('par', done >= total ? 'done' : 'progress', `${done} / ${total}`);
-        azmBar(Math.round((done / total) * 75));
-        if (activeKey && slice.some(c => c.key === activeKey)) renderPanel(activeKey);
-      }
-      if (activeKey) renderPanel(activeKey);
-    } else {
-      azmSetRow('par', 'done', '0 / 0');
-    }
-
-    // 2) Bibliothèque : clauses du document + clauses disponibles à ajouter.
-    //    Modèle : la bibliothèque embarque déjà ses clauses optionnelles ; document
-    //    libre : l'IA propose les clauses manquantes typiques de ce type de document.
-    bailIfCancelled();
-    if (isCustom) {
-      azmSetRow('lib', 'progress', 'Recherche…');
-      const nLib = await fetchSuggestedClauses(ctrl.signal);
-      bailIfCancelled();
-      azmSetRow('lib', nLib ? 'done' : 'error', nLib ? `${nLib} disponible${nLib > 1 ? 's' : ''}` : 'Aucune proposition');
-    } else {
-      renderLibrary();
-      const nLib = TERMSHEET.filter(c => !c.inDoc).length;
-      azmSetRow('lib', 'done', `${nLib} disponible${nLib > 1 ? 's' : ''}`);
-    }
-    azmBar(80);
-
-    // 3) Colonne « À vérifier » : doc personnalisé → doc-advice ; modèle → déjà pré-remplie.
-    //    On conserve le conseil « codé en dur » du modèle (data-advice) : on ne rappelle
-    //    l'IA que pour les documents sans conseil embarqué.
-    if (isCustom && !docAdviceIsBaked) {
-      azmSetRow('verif', 'progress', 'Analyse…');
-      azmBar(85);
-      docAdviceCache = null;
-      await renderDocAdvice(ctrl.signal);
-      bailIfCancelled();
-      const ok = !!(docAdviceCache && docAdviceCache.length);
-      azmSetRow('verif', ok ? 'done' : 'error', ok ? 'Remplie' : 'Vide');
-    } else {
-      azmSetRow('verif', 'done', 'Pré-remplie');
-    }
-    azmRefreshCond();
-    azmBar(90);
-
-    // 4) Fenêtre de droite complète = paragraphes enrichis ET « À vérifier » traitée.
-    const enriched = clauses.filter(c => EXPLAIN[c.key] && EXPLAIN[c.key].plain).length;
-    const verifOk = isCustom ? !!(docAdviceCache && docAdviceCache.length) : true;
-    const fullOk = total > 0 && enriched >= total && verifOk;
-    azmSetRow('full', fullOk ? 'done' : 'error', fullOk ? 'Complète' : `${enriched}/${total}`);
-    azmBar(100);
-    azmTitle(fullOk ? 'Analyse terminée' : 'Analyse terminée (partielle)');
-
-    if (btn) btn.textContent = 'Analysé';
+    const { id } = await LiquidTasks.launch({
+      type: 'full-analyze',
+      label: 'Analyse — ' + title,
+      payload: { title, explainClauses: clauses, suggest, advice },
+      location: { url: editorJobLoc() },
+    });
+    if (btn) btn.textContent = 'Analyse en cours…';
+    watchFullAnalyze(id, btn);
   } catch (e) {
-    const cancelled = e && e.name === 'AbortError';
-    // Un run plus récent a pu prendre la main : seul le run actif pilote la fenêtre.
-    if (azmAbort === ctrl) {
-      azmTitle(cancelled ? 'Analyse annulée' : 'Analyse interrompue');
-      azmMarkStopped(cancelled ? 'Annulé' : 'Interrompu');
-    }
-    if (btn) btn.textContent = cancelled ? 'Annulée' : 'Échec';
-  } finally {
-    if (azmAbort === ctrl) {
-      azmAbort = null;
-      azmResetCancel(false);
-    }
-    if (btn) setTimeout(() => { btn.disabled = false; btn.textContent = old || 'Analyser'; }, 1600);
+    if (btn) { btn.disabled = false; btn.textContent = 'Analyser'; }
+    if (typeof setSaveStatus === 'function') setSaveStatus(e && e.message ? e.message : 'Impossible de lancer l\'analyse.');
   }
 }
+
+// Au chargement d'un document (ou retour sur la page) : reprend / applique une analyse
+// complète déjà lancée en tâche de fond pour CE document.
+async function reconcileFullAnalyze() {
+  if (!window.LiquidTasks || fullJobId) return;
+  let jobs = [];
+  try { jobs = await LiquidTasks.list(); } catch { return; }
+  const loc = editorJobLoc();
+  const job = jobs.find(j => j.type === 'full-analyze' && j.location && j.location.url === loc
+    && (j.status === 'running' || j.status === 'done'));
+  if (!job) return;
+  const b = document.getElementById('analyze-btn');
+  if (job.status === 'running') {
+    if (b) { b.disabled = true; b.textContent = 'Analyse en cours…'; }
+    resetFullApplyState();
+    watchFullAnalyze(job.id, b);
+  } else {
+    const full = await LiquidTasks.fetchResult(job.id);
+    if (full && full.result) {
+      resetFullApplyState();
+      applyFullResult(full.result);
+      LiquidTasks.dismiss(job.id);
+    }
+  }
+}
+
+// Réconcilie dès que le widget de tâches (tasks.js, chargé en `defer`) est disponible ;
+// appelé à la fin du rendu d'un document (DOM des clauses présent).
+let _fullReconcileWired = false;
+function reconcileFullWhenReady(tries) {
+  if (window.LiquidTasks) {
+    if (!_fullReconcileWired) {
+      _fullReconcileWired = true;
+      LiquidTasks.on('finished', (j) => { if (j && j.type === 'full-analyze') reconcileFullAnalyze(); });
+      LiquidTasks.on('goto',     (j) => { if (j && j.type === 'full-analyze') reconcileFullAnalyze(); });
+    }
+    reconcileFullAnalyze();
+    return;
+  }
+  if ((tries || 0) < 40) setTimeout(() => reconcileFullWhenReady((tries || 0) + 1), 150);
+}
+
 const analyzeBtn = document.getElementById('analyze-btn');
 if (analyzeBtn) analyzeBtn.addEventListener('click', () => analyzeFull(analyzeBtn));
 
@@ -1729,6 +1759,11 @@ function applyTermsheet(id, html, name) {
 
   showEmptyPanel();
   paginate();
+
+  // Reprend/applique une analyse complète lancée en tâche de fond pour ce document
+  // (le DOM des clauses est maintenant présent). Attend le widget tasks.js si besoin.
+  resetFullApplyState();
+  reconcileFullWhenReady(0);
 }
 
 // Lit le conseil « codé en dur » embarqué dans un modèle (<script data-advice>).
@@ -1777,6 +1812,9 @@ document.addEventListener('keydown', e => {
 // Ouvre la term sheet enregistrée passée dans l'URL (?doc=ID).
 const urlDocId = new URLSearchParams(location.search).get('doc');
 if (urlDocId && /^\d+$/.test(urlDocId)) loadTermsheet(Number(urlDocId));
+// Sans ?doc (document par défaut déjà présent dans la page) : réconcilie quand même
+// une éventuelle analyse complète lancée en tâche de fond pour cet écran.
+else reconcileFullWhenReady(0);
 
 /* ---------- Redimensionnement des colonnes (gauche / droite) ---------- */
 /* En dessous d'un seuil (collapseAt), la colonne se replie entièrement.
