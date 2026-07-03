@@ -10,8 +10,33 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=6" />
-  <link rel="stylesheet" href="editor.css?v=27" />
+  <link rel="stylesheet" href="editor.css?v=28" />
   <style>.app{visibility:hidden}.app.ready{visibility:visible}</style>
+  <style>
+    /* Historique des versions validées (menu déroulant sous le bouton « Versions ») */
+    .verpanel{position:fixed;z-index:1300;width:min(460px,calc(100vw - 20px));background:#fff;border:1px solid rgba(8,9,12,0.12);border-radius:14px;box-shadow:0 18px 50px rgba(8,9,12,0.28);overflow:hidden}
+    .verpanel__head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(8,9,12,0.08)}
+    .verpanel__title{font:700 12px/1 'Archivo',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#08090c}
+    .verpanel__close{border:0;background:none;font-size:20px;line-height:1;cursor:pointer;color:#6b6b78;padding:2px 6px;border-radius:8px}
+    .verpanel__bar{padding:12px 16px;border-bottom:1px solid rgba(8,9,12,0.08);display:flex;flex-direction:column;gap:8px}
+    .verpanel__validate{font:700 13px 'Archivo',sans-serif;background:#08090c;color:#fff;border:0;border-radius:9px;padding:10px 12px;cursor:pointer}
+    .verpanel__validate:hover{background:#1d1f26}
+    .verpanel__validate:disabled{opacity:.6;cursor:default}
+    .verpanel__hint{font:400 11.5px/1.5 'Archivo',sans-serif;color:#6b6b78}
+    .verpanel__list{max-height:320px;overflow-y:auto;padding:10px 16px 14px;display:flex;flex-direction:column;gap:9px}
+    .verpanel__empty{font-size:13px;color:#6b6b78;line-height:1.6;margin:4px 0}
+    .verrow{display:flex;align-items:center;gap:10px}
+    .verrow__tag{flex:none;font:700 10px 'Archivo',sans-serif;letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:rgba(8,9,12,0.06);color:#6b6b78}
+    .verrow__tag--last{background:rgba(59,130,246,0.12);color:#2563eb}
+    .verrow__main{flex:1;min-width:0;display:flex;flex-direction:column}
+    .verrow__label{font-size:13px;font-weight:600;color:#08090c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .verrow__date{font:400 11px 'Archivo',sans-serif;color:#6b6b78;margin-top:1px}
+    .verrow__acts{flex:none;display:flex;gap:5px}
+    .verrow__btn{font:600 11.5px 'Archivo',sans-serif;color:#08090c;background:transparent;border:1px solid rgba(8,9,12,0.2);border-radius:7px;padding:5px 9px;cursor:pointer;text-decoration:none;white-space:nowrap}
+    .verrow__btn:hover{border-color:rgba(8,9,12,0.5)}
+    .verrow__btn--accent{color:#2563eb;border-color:rgba(37,99,235,0.35)}
+    .verrow__btn--del{color:#dc2626;border-color:rgba(220,38,38,0.25)}
+  </style>
   <script src="auth.js"></script>
 </head>
 <body>
@@ -31,17 +56,33 @@
       </div>
       <div class="topbar__actions">
         <a href="index.html" class="btn btn--ghost">Accueil</a>
+        <a href="guide.html" class="btn btn--ghost">Guide</a>
         <a href="dossiers.html" class="btn btn--white">Dossiers</a>
         <input type="file" id="docs-file" accept=".pdf,.docx,.doc,.xlsx,.xls,.png,.jpg,.jpeg" hidden />
         <button class="btn btn--ghost" id="docs-btn">+ Ajouter un document</button>
         <button class="btn btn--primary" id="analyze-btn" title="Analyser le document avec Claude : remplit la bibliothèque, le conseil et les explications">Analyser</button>
         <button class="btn btn--ghost" id="sign-btn" title="Signer le document à la souris">✍ Signer</button>
+        <button class="btn btn--ghost" id="versions-btn" title="Historique des versions validées du document">🕑 Versions</button>
         <button class="btn btn--ghost" id="export-docx-btn">Exporter en Word</button>
         <button class="btn btn--ghost" id="export-btn">Exporter en PDF</button>
         <a href="compte.html" class="btn btn--ghost">Mon compte</a>
         <button class="btn btn--ghost" id="logout-btn">Déconnexion</button>
       </div>
     </header>
+
+    <!-- Historique des versions VALIDÉES : seule la validation explicite fige une
+         version (les enregistrements automatiques n'en créent jamais). -->
+    <div class="verpanel" id="verpanel" hidden>
+      <div class="verpanel__head">
+        <span class="verpanel__title">Historique des versions</span>
+        <button class="verpanel__close" id="verpanel-close" type="button" aria-label="Fermer">×</button>
+      </div>
+      <div class="verpanel__bar">
+        <button class="verpanel__validate" id="verpanel-validate" type="button" title="Figer l'état actuel du document comme version officielle">✓ Valider la version actuelle</button>
+        <span class="verpanel__hint">Les enregistrements (dont l'enregistrement automatique) ne créent pas de version : seul ce bouton fige une version, stockée à part de vos documents.</span>
+      </div>
+      <div class="verpanel__list" id="verpanel-list"></div>
+    </div>
 
     <!-- Ribbon : barre d'outils de mise en forme -->
     <div class="ribbon" id="ribbon">
@@ -309,7 +350,7 @@
     </div>
   </div>
 
-  <script src="editor.js?v=44"></script>
+  <script src="editor.js?v=46"></script>
   <script src="documents.js?v=26"></script>
   <script>
     // Garde d'accès : l'éditeur est réservé aux utilisateurs connectés.

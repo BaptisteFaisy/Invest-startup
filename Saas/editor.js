@@ -2007,7 +2007,16 @@ function addBubble(kind, text, scroll = true) {
   if (chatLog.querySelector('.chat__empty')) chatLog.innerHTML = '';
   const el = document.createElement('div');
   el.className = 'chat__msg chat__msg--' + kind;
-  el.textContent = text;
+  // Seuls les messages réellement nouveaux (scroll) reçoivent l'animation d'entrée :
+  // la relecture de l'historique au changement de clause ne doit pas re-« popper ».
+  if (scroll) el.classList.add('chat__msg--in');
+  if (text === '…') {
+    // Indicateur « l'assistant réfléchit » : trois points animés en CSS.
+    el.classList.add('chat__msg--typing');
+    el.innerHTML = '<span></span><span></span><span></span>';
+  } else {
+    el.textContent = text;
+  }
   chatLog.appendChild(el);
   if (scroll) chatLog.scrollTop = chatLog.scrollHeight;
   return el;
@@ -2374,6 +2383,9 @@ function addToContract(key) {
   scheduleAutosave();         // insertion programmatique : ne déclenche pas l'événement input
   selectClauseByKey(key, el);
   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  // Entrée en glissé de la clause tout juste insérée (nettoyée en fin d'animation).
+  el.classList.add('ts-clause--enter');
+  el.addEventListener('animationend', () => el.classList.remove('ts-clause--enter'), { once: true });
 }
 
 function removeFromContract(key) {
@@ -4446,4 +4458,148 @@ const COND_SIMPLE = {
   // Redimensionner la fenêtre change la taille du canvas (donc efface le tracé) :
   // on repart d'un cadre vide pour éviter tout état incohérent.
   window.addEventListener('resize', () => { if (!modal.hidden) { sizeCanvas(); clearPad(); } });
+})();
+
+/* ---------- 14. Historique des versions VALIDÉES ---------------------------- */
+// Une « version » n'est créée QUE via le bouton « Valider la version actuelle » :
+// les enregistrements (dont l'autosave) n'en créent JAMAIS. Les instantanés sont
+// stockés à part côté serveur (collection saas_doc_versions) — ils n'apparaissent
+// ni dans « Mes documents », ni dans les dossiers, ni dans les sélecteurs.
+(() => {
+  const btn   = document.getElementById('versions-btn');
+  const panel = document.getElementById('verpanel');
+  if (!btn || !panel) return;
+  const listEl   = document.getElementById('verpanel-list');
+  const valBtn   = document.getElementById('verpanel-validate');
+  const closeBtn = document.getElementById('verpanel-close');
+
+  function escV(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+  function fmtVDate(s) {
+    try { return new Date(s).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
+    catch { return ''; }
+  }
+
+  // Le panneau s'aligne sous le bouton « Versions » de la barre du haut.
+  function placePanel() {
+    const r = btn.getBoundingClientRect();
+    panel.style.top   = (r.bottom + 8) + 'px';
+    panel.style.right = Math.max(10, window.innerWidth - r.right) + 'px';
+  }
+
+  let open = false;
+  function setOpen(v) {
+    open = v;
+    panel.hidden = !v;
+    if (v) { placePanel(); refresh(); }
+  }
+  btn.addEventListener('click', (e) => { e.stopPropagation(); setOpen(!open); });
+  closeBtn.addEventListener('click', () => setOpen(false));
+  document.addEventListener('click', (e) => { if (open && !panel.contains(e.target)) setOpen(false); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && open) setOpen(false); });
+  window.addEventListener('resize', () => { if (open) placePanel(); });
+
+  async function refresh() {
+    if (!currentDocId) {
+      listEl.innerHTML = '<p class="verpanel__empty">Document pas encore enregistré : validez une première version pour démarrer l\'historique.</p>';
+      return;
+    }
+    listEl.innerHTML = '<p class="verpanel__empty">Chargement…</p>';
+    try {
+      const r = await fetch('/api/saas/termsheets/' + currentDocId + '/versions', { credentials: 'include' });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { listEl.innerHTML = '<p class="verpanel__empty">' + escV(d.error || 'Chargement impossible.') + '</p>'; return; }
+      renderList(Array.isArray(d.versions) ? d.versions : []);
+    } catch {
+      listEl.innerHTML = '<p class="verpanel__empty">Impossible de joindre le serveur.</p>';
+    }
+  }
+
+  function renderList(versions) {
+    if (!versions.length) {
+      listEl.innerHTML = '<p class="verpanel__empty">Aucune version validée pour l\'instant. Validez une version pour figer l\'état du document (par exemple avant de l\'envoyer à un investisseur) ; vous pourrez ensuite la comparer aux évolutions ou la restaurer.</p>';
+      return;
+    }
+    listEl.innerHTML = '';
+    versions.forEach((v, i) => {
+      const num = versions.length - i; // la plus récente en tête
+      const row = document.createElement('div');
+      row.className = 'verrow';
+      row.innerHTML = `
+        <span class="verrow__tag${i === 0 ? ' verrow__tag--last' : ''}">v${num}</span>
+        <span class="verrow__main">
+          <span class="verrow__label" title="${escV(v.label || '')}">${escV(v.label || 'Version ' + num)}</span>
+          <span class="verrow__date">${fmtVDate(v.created_at)}</span>
+        </span>
+        <span class="verrow__acts"></span>`;
+      const acts = row.querySelector('.verrow__acts');
+
+      const cmp = document.createElement('a');
+      cmp.className = 'verrow__btn verrow__btn--accent';
+      cmp.textContent = '⇄ Comparer';
+      cmp.title = 'Comparer cette version validée avec le document actuel (analyse IA)';
+      cmp.href = 'compare.html?new=' + currentDocId + '&oldv=' + v.id;
+      acts.appendChild(cmp);
+
+      const rst = document.createElement('button');
+      rst.className = 'verrow__btn';
+      rst.type = 'button';
+      rst.textContent = 'Restaurer';
+      rst.title = 'Remplacer le contenu actuel du document par cette version';
+      rst.addEventListener('click', () => restoreVersion(v, num, rst));
+      acts.appendChild(rst);
+
+      const del = document.createElement('button');
+      del.className = 'verrow__btn verrow__btn--del';
+      del.type = 'button';
+      del.textContent = '✕';
+      del.title = 'Supprimer cette version de l\'historique';
+      del.addEventListener('click', async () => {
+        if (!confirm('Supprimer la version v' + num + ' de l\'historique ?')) return;
+        try {
+          const r = await fetch('/api/saas/termsheets/' + currentDocId + '/versions/' + v.id, { method: 'DELETE', credentials: 'include' });
+          if (r.ok) refresh();
+        } catch { /* l'historique reste tel quel */ }
+      });
+      acts.appendChild(del);
+
+      listEl.appendChild(row);
+    });
+  }
+
+  // Valider : fige l'état ACTUEL de l'éditeur comme version officielle.
+  valBtn.addEventListener('click', async () => {
+    const old = valBtn.textContent;
+    valBtn.disabled = true; valBtn.textContent = 'Validation…';
+    try {
+      // L'instantané est rattaché au document : celui-ci doit exister côté serveur.
+      if (!currentDocId) await saveTermsheet();
+      if (!currentDocId) { valBtn.textContent = 'Échec de l\'enregistrement'; return; }
+      const label = (prompt('Libellé de cette version (optionnel) — ex. « Envoyée au fonds X » :') || '').trim();
+      const r = await fetch('/api/saas/termsheets/' + currentDocId + '/versions', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', body: JSON.stringify({ label, html: termsheetHtml() }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) alert(d.error || 'Validation de la version échouée.');
+      else if (d.duplicate) alert('Le document n\'a pas changé depuis la dernière version validée : aucune nouvelle version créée.');
+      refresh();
+    } catch { alert('Impossible de joindre le serveur.'); }
+    finally { valBtn.disabled = false; valBtn.textContent = old; }
+  });
+
+  async function restoreVersion(v, num, btnEl) {
+    if (!confirm('Restaurer la version v' + num + ' ? Le contenu actuel sera remplacé — validez d\'abord une version si vous voulez le conserver.')) return;
+    const old = btnEl.textContent;
+    btnEl.disabled = true; btnEl.textContent = 'Restauration…';
+    try {
+      const r = await fetch('/api/saas/termsheets/' + currentDocId + '/versions/' + v.id, { credentials: 'include' });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || !d.html) { alert(d.error || 'Version illisible.'); return; }
+      const name = docNameEl ? docNameEl.textContent.trim() : '';
+      applyTermsheet(currentDocId, d.html, name || undefined);
+      await saveTermsheet();
+      setOpen(false);
+    } catch { alert('Impossible de joindre le serveur.'); }
+    finally { btnEl.disabled = false; btnEl.textContent = old; }
+  }
 })();

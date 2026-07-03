@@ -1155,20 +1155,34 @@ app.post('/api/saas/doc-compare', requireAuth, enforceDailyCap, async (req, res)
   if (!zaiClient)
     return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
-  const oldId = Number(req.body?.oldId);
-  const newId = Number(req.body?.newId);
-  if (!oldId || !newId) return res.status(400).json({ error: 'oldId et newId requis' });
+  // Chaque côté de la comparaison est soit un document (oldId / newId), soit une
+  // version VALIDÉE stockée à part (oldVersionId / newVersionId, collection
+  // saas_doc_versions — cf. l'historique des versions de l'éditeur).
+  async function resolveSide(docIdRaw, versionIdRaw) {
+    const versionId = Number(versionIdRaw);
+    if (versionId) {
+      const v = await col('saas_doc_versions').findOne({ id: versionId, user_id: req.user.id });
+      if (!v) return null;
+      const name = v.label || ('Version du ' + new Date(v.created_at).toLocaleDateString('fr-FR'));
+      return { doc: { kind: 'termsheet', html: v.html, name }, meta: { id: versionId, version: true, name, date: v.created_at, kind: 'version' } };
+    }
+    const docId = Number(docIdRaw);
+    if (!docId) return null;
+    const d = await col('saas_documents').findOne({ id: docId, user_id: req.user.id });
+    if (!d) return null;
+    return { doc: d, meta: { id: docId, name: d.name, date: d.updated_at || d.created_at, kind: d.kind || 'file' } };
+  }
 
-  const [oldDoc, newDoc] = await Promise.all([
-    col('saas_documents').findOne({ id: oldId, user_id: req.user.id }),
-    col('saas_documents').findOne({ id: newId, user_id: req.user.id }),
+  const [oldSide, newSide] = await Promise.all([
+    resolveSide(req.body?.oldId, req.body?.oldVersionId),
+    resolveSide(req.body?.newId, req.body?.newVersionId),
   ]);
-  if (!oldDoc || !newDoc) return res.status(404).json({ error: 'Une des versions est introuvable.' });
-
-  const meta = {
-    old: { id: oldId, name: oldDoc.name, date: oldDoc.updated_at || oldDoc.created_at, kind: oldDoc.kind || 'file' },
-    new: { id: newId, name: newDoc.name, date: newDoc.updated_at || newDoc.created_at, kind: newDoc.kind || 'file' },
-  };
+  if (!oldSide || !newSide) {
+    const provided = req.body && (req.body.oldId || req.body.newId || req.body.oldVersionId || req.body.newVersionId);
+    return res.status(provided ? 404 : 400).json({ error: provided ? 'Une des versions est introuvable.' : 'oldId et newId (ou oldVersionId / newVersionId) requis' });
+  }
+  const oldDoc = oldSide.doc, newDoc = newSide.doc;
+  const meta = { old: oldSide.meta, new: newSide.meta };
 
   const [oldText, newText] = await Promise.all([docPlainText(oldDoc), docPlainText(newDoc)]);
   if (!oldText || !newText)

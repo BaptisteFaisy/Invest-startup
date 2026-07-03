@@ -612,3 +612,95 @@ mark.cond-val { background: rgba(251,191,36,0.38); border-radius: 3px; padding: 
 .sign-modal__actions .btn--primary { background: var(--dark); border-color: var(--dark); color: #fff; }
 .sign-modal__actions .btn--primary:hover:not(:disabled) { background: #000; }
 .sign-modal__actions .btn--primary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ============================================================
+   Animations & micro-interactions
+   Objectif : rendre l'édition plus fluide et vivante sans gêner
+   la saisie. Tout est neutralisé si l'utilisateur a demandé à
+   réduire les animations (prefers-reduced-motion, tout en bas).
+   ============================================================ */
+
+@keyframes ed-fade-up      { from { opacity: 0; transform: translateY(9px);  } to { opacity: 1; transform: none; } }
+@keyframes ed-fade-in      { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ed-pop-in       { 0% { opacity: 0; transform: translateY(7px) scale(.97); } 100% { opacity: 1; transform: none; } }
+@keyframes ed-clause-enter { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes ed-typing       { 0%, 60%, 100% { transform: translateY(0); opacity: .35; } 30% { transform: translateY(-4px); opacity: 1; } }
+
+/* Apparition douce de toute l'interface au chargement */
+.app.ready { animation: ed-fade-in .45s ease; }
+
+/* Décrypteur (panneau droit) : les blocs entrent en cascade à chaque
+   clause ouverte. panelBody.innerHTML étant réécrit à chaque sélection,
+   l'animation rejoue naturellement à chaque changement de clause. */
+.panel__body > .block,
+.panel__body > .callout,
+.panel__body > .cond-section,
+.panel__body > .panel__empty {
+  animation: ed-fade-up .36s cubic-bezier(.22,.61,.36,1) both;
+}
+.panel__body > *:nth-child(1)   { animation-delay: .02s; }
+.panel__body > *:nth-child(2)   { animation-delay: .07s; }
+.panel__body > *:nth-child(3)   { animation-delay: .12s; }
+.panel__body > *:nth-child(4)   { animation-delay: .17s; }
+.panel__body > *:nth-child(5)   { animation-delay: .22s; }
+.panel__body > *:nth-child(n+6) { animation-delay: .27s; }
+
+/* Changement d'onglet de la bibliothèque : glissé-fondu de la vue affichée */
+.lib-view:not([hidden]) { animation: ed-fade-up .3s cubic-bezier(.22,.61,.36,1) both; }
+
+/* Listes (bibliothèque / à vérifier / conditions) : légère cascade à l'apparition */
+.library__list > .libitem,
+#advice-list > .advitem,
+.cond-tpl-list > .cond-tpl {
+  animation: ed-fade-up .32s cubic-bezier(.22,.61,.36,1) both;
+}
+.library__list > *:nth-child(1), #advice-list > *:nth-child(1), .cond-tpl-list > *:nth-child(1) { animation-delay: .03s; }
+.library__list > *:nth-child(2), #advice-list > *:nth-child(2), .cond-tpl-list > *:nth-child(2) { animation-delay: .08s; }
+.library__list > *:nth-child(3), #advice-list > *:nth-child(3), .cond-tpl-list > *:nth-child(3) { animation-delay: .13s; }
+.library__list > *:nth-child(4), #advice-list > *:nth-child(4), .cond-tpl-list > *:nth-child(4) { animation-delay: .18s; }
+.library__list > *:nth-child(5), #advice-list > *:nth-child(5), .cond-tpl-list > *:nth-child(5) { animation-delay: .23s; }
+.library__list > *:nth-child(n+6), #advice-list > *:nth-child(n+6), .cond-tpl-list > *:nth-child(n+6) { animation-delay: .27s; }
+
+/* Assistant IA : chaque nouveau message et bouton d'action « pop » à l'arrivée.
+   La relecture de l'historique (renderChatLog, scroll=false) ne reçoit PAS la
+   classe --in : pas de rejeu clignotant quand on change de clause. */
+.chat__msg--in { animation: ed-pop-in .3s cubic-bezier(.22,.61,.36,1); }
+.chat__apply   { animation: ed-pop-in .3s cubic-bezier(.22,.61,.36,1); }
+
+/* Indicateur « l'assistant réfléchit » : trois points qui rebondissent */
+.chat__msg--typing { display: inline-flex; align-items: center; gap: 5px; padding: 11px 14px; }
+.chat__msg--typing span { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .5; animation: ed-typing 1.1s ease-in-out infinite; }
+.chat__msg--typing span:nth-child(2) { animation-delay: .18s; }
+.chat__msg--typing span:nth-child(3) { animation-delay: .36s; }
+
+/* Clause fraîchement ajoutée au contrat : glisse en place dans le document */
+.page .ts-clause--enter { animation: ed-clause-enter .42s cubic-bezier(.22,.61,.36,1) both; }
+/* Survol d'une clause : léger fond pour signaler qu'elle est cliquable */
+.page .ts-clause:hover:not(.is-active) { background: rgba(8,9,12,0.025); }
+
+/* Bouton flottant « Expliquer », popover et panneau Versions : entrée en fondu-échelle */
+.selx-btn:not([hidden]) { animation: ed-pop-in .18s ease; }
+.selx-pop:not([hidden]) { animation: ed-pop-in .22s cubic-bezier(.22,.61,.36,1); transform-origin: top center; }
+.verpanel:not([hidden]) { animation: ed-pop-in .2s cubic-bezier(.22,.61,.36,1); transform-origin: top right; }
+
+/* Retour tactile à l'appui (boutons de la barre d'outils, du bandeau, des cartes) */
+.tbtn { transition: background .12s ease, border-color .12s ease, transform .06s ease; }
+.tbtn:active { transform: translateY(1px); }
+.topbar .btn:active,
+.libitem__add:active, .libitem__add--see:active,
+.advitem__go:active, .advitem__apply:active,
+.cond-tpl__add:active, .fill-row__ok:active,
+.chat__apply:active, .chat__send:active,
+.next-ph-btn:active, .fill-next-btn:active, .af-btn:active,
+.verify-btn:active { transform: translateY(1px); }
+
+/* Respect du réglage système « réduire les animations » */
+@media (prefers-reduced-motion: reduce) {
+  .app.ready,
+  .panel__body > *, .lib-view:not([hidden]),
+  .library__list > *, #advice-list > *, .cond-tpl-list > *,
+  .chat__msg--in, .chat__apply, .page .ts-clause--enter,
+  .selx-btn:not([hidden]), .selx-pop:not([hidden]), .verpanel:not([hidden]) { animation: none !important; }
+  .chat__msg--typing span { animation: none !important; opacity: .55; }
+  .tbtn:active, .topbar .btn:active { transform: none; }
+}

@@ -168,8 +168,12 @@
     function fmtDate(s) { try { return new Date(s).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return ''; } }
     function qp(name) { return new URLSearchParams(location.search).get(name); }
 
-    const oldId = Number(qp('old'));
-    const newId = Number(qp('new'));
+    // Chaque côté est soit un document (old / new), soit une version VALIDÉE de
+    // l'historique de l'éditeur (oldv / newv — stockée à part des documents).
+    const oldId  = Number(qp('old'));
+    const newId  = Number(qp('new'));
+    const oldVid = Number(qp('oldv'));
+    const newVid = Number(qp('newv'));
 
     const loadingEl = document.getElementById('loading');
     const errorEl   = document.getElementById('error');
@@ -195,14 +199,19 @@
       if (!meta) return;
       document.getElementById('vsrow').hidden = false;
       if (meta.old) {
-        document.getElementById('old-name').textContent = meta.old.name || ('Document #' + oldId);
-        document.getElementById('old-meta').textContent = meta.old.date ? ('Archivée le ' + fmtDate(meta.old.date)) : '';
-        document.getElementById('old-dl').href = '/api/saas/documents/' + oldId + '/download';
+        document.getElementById('old-name').textContent = meta.old.name || ('Document #' + (oldId || oldVid));
+        document.getElementById('old-meta').textContent = meta.old.date
+          ? ((meta.old.version ? 'Validée le ' : 'Archivée le ') + fmtDate(meta.old.date)) : '';
+        // Les versions validées n'ont pas de téléchargement direct (instantanés internes).
+        if (meta.old.version) document.getElementById('old-dl').hidden = true;
+        else document.getElementById('old-dl').href = '/api/saas/documents/' + oldId + '/download';
       }
       if (meta.new) {
-        document.getElementById('new-name').textContent = meta.new.name || ('Document #' + newId);
-        document.getElementById('new-meta').textContent = meta.new.date ? ('Mise à jour le ' + fmtDate(meta.new.date)) : '';
-        document.getElementById('new-dl').href = '/api/saas/documents/' + newId + '/download';
+        document.getElementById('new-name').textContent = meta.new.name || ('Document #' + (newId || newVid));
+        document.getElementById('new-meta').textContent = meta.new.date
+          ? ((meta.new.version ? 'Validée le ' : 'Mise à jour le ') + fmtDate(meta.new.date)) : '';
+        if (meta.new.version) document.getElementById('new-dl').hidden = true;
+        else document.getElementById('new-dl').href = '/api/saas/documents/' + newId + '/download';
       }
     }
 
@@ -271,15 +280,19 @@
       if (!user) return;
       document.querySelector('.app').classList.add('ready');
 
-      if (!oldId || !newId) {
-        showError('Comparaison impossible : versions non spécifiées. Revenez aux dossiers et relancez la comparaison.');
+      if (!(oldId || oldVid) || !(newId || newVid)) {
+        showError('Comparaison impossible : versions non spécifiées. Revenez aux dossiers ou à l\'éditeur et relancez la comparaison.');
         return;
       }
+
+      const body = {};
+      if (oldVid) body.oldVersionId = oldVid; else body.oldId = oldId;
+      if (newVid) body.newVersionId = newVid; else body.newId = newId;
 
       try {
         const r = await fetch('/api/saas/doc-compare', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          credentials: 'include', body: JSON.stringify({ oldId, newId }),
+          credentials: 'include', body: JSON.stringify(body),
         });
         const data = await r.json().catch(() => ({}));
         if (data && data.meta) fillMeta(data.meta);
