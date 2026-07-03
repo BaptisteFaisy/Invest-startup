@@ -53,6 +53,16 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .cmp__err { font-size: 14px; color: #f87171; background: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.25); border-radius: 12px; padding: 14px 16px; margin-top: 22px; line-height: 1.55; }
 
+    /* Étape de confirmation avant de lancer l'analyse IA */
+    .cmp__intro { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px; margin-top: 22px; }
+    .cmp__introtext { color: rgba(255,255,255,0.75); font-size: 15px; line-height: 1.6; }
+    .cmp__actions { display: flex; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
+    .cmp-btn { font-family: 'Archivo', sans-serif; font-size: 13.5px; font-weight: 600; padding: 11px 22px; border-radius: 10px; cursor: pointer; border: 1px solid transparent; transition: background 0.15s, border-color 0.15s, color 0.15s; }
+    .cmp-btn--go { background: #3b82f6; color: #fff; }
+    .cmp-btn--go:hover { background: #2563eb; }
+    .cmp-btn--cancel { background: transparent; color: rgba(255,255,255,0.85); border-color: rgba(255,255,255,0.35); }
+    .cmp-btn--cancel:hover { border-color: rgba(255,255,255,0.65); color: #fff; }
+
     /* Synthèse */
     .verdict { display: inline-flex; align-items: center; gap: 8px; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 7px 14px; border-radius: 99px; }
     .verdict--good { background: rgba(22,163,74,0.15); color: #4ade80; }
@@ -130,7 +140,15 @@
         </div>
       </div>
 
-      <div class="cmp__loading" id="loading">
+      <div class="cmp__intro" id="intro" hidden>
+        <p class="cmp__introtext">Lancez l'analyse pour comparer les deux versions avec l'IA et obtenir la synthèse des changements. Cela peut prendre quelques secondes.</p>
+        <div class="cmp__actions">
+          <button class="cmp-btn cmp-btn--go" id="analyze-btn">Analyser</button>
+          <button class="cmp-btn cmp-btn--cancel" id="cancel-btn">Annuler</button>
+        </div>
+      </div>
+
+      <div class="cmp__loading" id="loading" hidden>
         <div class="spin"></div>
         <div>Analyse des deux versions par l'IA… cela peut prendre quelques secondes.</div>
       </div>
@@ -275,15 +293,22 @@
       }
     }
 
-    async function run() {
-      const user = await requireAuth();
-      if (!user) return;
-      document.querySelector('.app').classList.add('ready');
+    const introEl   = document.getElementById('intro');
+    const analyzeBtn = document.getElementById('analyze-btn');
+    const cancelBtn  = document.getElementById('cancel-btn');
 
-      if (!(oldId || oldVid) || !(newId || newVid)) {
-        showError('Comparaison impossible : versions non spécifiées. Revenez aux dossiers ou à l\'éditeur et relancez la comparaison.');
-        return;
-      }
+    // « Annuler » : revenir à la page d'origine (dossiers ou éditeur) sans lancer l'analyse.
+    function goBack() {
+      if (history.length > 1) history.back();
+      else location.href = 'dossiers.html';
+    }
+
+    // « Analyser » : lance réellement la comparaison IA.
+    async function analyze() {
+      introEl.hidden  = true;
+      errorEl.hidden  = true;
+      resultEl.hidden = true;
+      loadingEl.hidden = false;
 
       const body = {};
       if (oldVid) body.oldVersionId = oldVid; else body.oldId = oldId;
@@ -296,14 +321,30 @@
         });
         const data = await r.json().catch(() => ({}));
         if (data && data.meta) fillMeta(data.meta);
-        if (!r.ok) { showError(data.error || 'La comparaison a échoué. Réessayez dans un instant.'); return; }
+        if (!r.ok) { showError(data.error || 'La comparaison a échoué. Réessayez dans un instant.'); introEl.hidden = false; return; }
         renderResult(data);
       } catch {
         showError('Impossible de joindre le serveur.');
+        introEl.hidden = false;
       }
     }
 
-    run();
+    async function init() {
+      const user = await requireAuth();
+      if (!user) return;
+      document.querySelector('.app').classList.add('ready');
+
+      if (!(oldId || oldVid) || !(newId || newVid)) {
+        showError('Comparaison impossible : versions non spécifiées. Revenez aux dossiers ou à l\'éditeur et relancez la comparaison.');
+        return;
+      }
+
+      analyzeBtn.addEventListener('click', analyze);
+      cancelBtn.addEventListener('click', (e) => { e.preventDefault(); goBack(); });
+      introEl.hidden = false;
+    }
+
+    init();
   </script>
 </body>
 </html>
