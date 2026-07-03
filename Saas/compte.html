@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>liquid + — Mon compte</title>
+  <meta name="description" content="Gérez votre profil, votre mot de passe et la sécurité de votre compte liquid +." />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=6" />
+  <link rel="stylesheet" href="editor.css?v=7" />
+  <style>
+    body { background: #08090c; min-height: 100vh; }
+    .app { visibility: hidden; }
+    .app.ready { visibility: visible; }
+    /* editor.css verrouille .app à 100vh/overflow:hidden (éditeur plein écran).
+       Sur cette page on veut un défilement normal de la fenêtre. */
+    .app { height: auto; overflow: visible; display: block; }
+
+    .account { max-width: 720px; margin: 0 auto; padding: 40px 28px 80px; }
+    .account__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
+    .account__title { font-size: 32px; letter-spacing: -0.03em; margin-top: 6px; color: #fff; }
+    .account__sub { color: rgba(255,255,255,0.55); font-size: 15px; margin-top: 8px; }
+
+    /* Onglets */
+    .tabs { display: flex; gap: 0; border-bottom: 1px solid rgba(255,255,255,0.12); margin: 32px 0 28px; }
+    .tab { padding: 11px 20px; font-family: 'Archivo', sans-serif; font-size: 13.5px; font-weight: 700; color: rgba(255,255,255,0.5); cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; }
+    .tab:hover { color: #fff; }
+    .tab.active { color: #fff; border-bottom-color: #3b82f6; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Cartes blanches (bulles) sur fond noir — cohérent avec le tableau de bord */
+    .card { background: #fff; border-radius: 18px; padding: 26px 28px; margin-bottom: 18px; box-shadow: 0 12px 40px rgba(0,0,0,0.35); }
+    .card__title { font-size: 1.05rem; font-weight: 800; color: #08090c; letter-spacing: -0.01em; margin: 0 0 4px; }
+    .card__desc { font-size: 0.9rem; color: #6b6b78; margin: 0 0 18px; line-height: 1.55; }
+
+    /* Consommation IA */
+    .usage-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .usage-tile { background: #f4f2ee; border: 1px solid rgba(8,9,12,0.06); border-radius: 12px; padding: 16px; text-align: center; }
+    .usage-tile__val { font-size: 1.5rem; font-weight: 800; color: #08090c; letter-spacing: -0.02em; }
+    .usage-tile__val--sm { font-size: 1.05rem; }
+    .usage-tile__lbl { font-family: 'Archivo', sans-serif; font-size: 0.7rem; color: #6b6b78; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 5px; }
+    .usage-updated { font-size: 0.78rem; color: #a8a8b3; margin-top: 14px; text-align: right; }
+
+    /* Formulaires */
+    .form { display: grid; gap: 18px; }
+    .field { display: grid; gap: 6px; font-size: 0.86rem; font-weight: 700; color: #08090c; }
+    .input { width: 100%; padding: 11px 14px; border-radius: 10px; border: 1.5px solid rgba(8,9,12,0.14); background: #f9f9f9; font-family: 'Libre Franklin', sans-serif; font-size: 0.95rem; color: #08090c; outline: none; transition: border-color .18s, background .18s; }
+    .input:focus { border-color: #08090c; background: #fff; }
+    .input-wrap { position: relative; }
+    .input-eye { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #6b6b78; padding: 4px; display: inline-flex; }
+    .form .btn { width: fit-content; }
+
+    /* Alertes */
+    .alert { padding: 10px 14px; border-radius: 9px; font-size: 0.88rem; }
+    .alert--error { background: rgba(220,38,38,0.09); color: #b91c1c; border: 1px solid rgba(220,38,38,0.2); }
+    .alert--success { background: rgba(22,163,74,0.1); color: #15803d; border: 1px solid rgba(22,163,74,0.22); }
+
+    /* Sécurité / 2FA */
+    .sec-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 22px; }
+    .sec-row__actions { display: flex; flex-direction: column; gap: 8px; flex: none; }
+    .badge-on { display: inline-flex; align-items: center; gap: 6px; font-family: 'Archivo', sans-serif; font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: #dcfce7; color: #16a34a; margin-top: 10px; }
+    .badge-off { display: inline-flex; align-items: center; font-family: 'Archivo', sans-serif; font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: rgba(8,9,12,0.06); color: #6b6b78; margin-top: 10px; }
+    .btn--danger { background: #fff; color: #c0392b; border: 1.5px solid rgba(220,38,38,0.3); }
+    .btn--danger:hover { background: rgba(220,38,38,0.06); border-color: rgba(220,38,38,0.5); }
+
+    .setup { margin-top: 22px; border-top: 1px solid rgba(8,9,12,0.08); padding-top: 22px; display: none; }
+    .setup.open { display: block; }
+    .setup__hint { font-size: 0.86rem; color: #6b6b78; margin: 0 0 16px; line-height: 1.55; }
+    .qr-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; margin: 12px 0 4px; }
+    .qr-wrap img { width: 220px; height: 220px; border-radius: 12px; border: 1px solid rgba(8,9,12,0.08); display: none; }
+    .secret-box { font-family: monospace; font-size: 0.82rem; background: #f4f2ee; padding: 8px 14px; border-radius: 8px; word-break: break-all; color: #08090c; text-align: center; letter-spacing: 0.05em; }
+    .code-row { display: flex; gap: 10px; align-items: center; margin-top: 16px; }
+    .code-input { flex: 1; padding: 11px 14px; border-radius: 10px; border: 1.5px solid rgba(8,9,12,0.14); background: #f9f9f9; font-size: 1.1rem; color: #08090c; outline: none; text-align: center; letter-spacing: 0.2em; transition: border-color .18s; }
+    .code-input:focus { border-color: #08090c; background: #fff; }
+
+    @media (max-width: 560px) {
+      .usage-grid { grid-template-columns: 1fr; }
+      .sec-row { flex-direction: column; }
+      .sec-row__actions { flex-direction: row; }
+    }
+  </style>
+  <script src="auth.js"></script>
+</head>
+<body>
+  <div class="app">
+    <!-- Top bar (identique au tableau de bord) -->
+    <header class="topbar">
+      <div class="topbar__left">
+        <a href="index.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
+        <span class="topbar__doc">Mon compte</span>
+      </div>
+      <div class="topbar__actions">
+        <a href="dossiers.html" class="btn btn--ghost">Tableau de bord</a>
+        <a href="editor.html" class="btn btn--ghost">Éditeur</a>
+        <button class="btn btn--ghost" id="logout-btn">Déconnexion</button>
+      </div>
+    </header>
+
+    <main class="account">
+      <div class="account__eyebrow">Compte</div>
+      <h1 class="account__title">Mon compte</h1>
+      <p class="account__sub">Gérez votre profil, votre mot de passe et la sécurité de votre compte.</p>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="profile">Profil</button>
+        <button class="tab" data-tab="security">Sécurité</button>
+      </div>
+
+      <!-- ── Onglet Profil ── -->
+      <div id="tab-profile" class="tab-panel active">
+
+        <!-- Consommation IA -->
+        <div class="card">
+          <h3 class="card__title">Consommation IA</h3>
+          <p class="card__desc">Suivi de votre utilisation de l'assistant IA de liquid +.</p>
+          <div class="usage-grid">
+            <div class="usage-tile">
+              <div class="usage-tile__val" id="usage-requests">—</div>
+              <div class="usage-tile__lbl">Requêtes IA</div>
+            </div>
+            <div class="usage-tile">
+              <div class="usage-tile__val" id="usage-total">—</div>
+              <div class="usage-tile__lbl">Tokens utilisés</div>
+            </div>
+            <div class="usage-tile">
+              <div class="usage-tile__val usage-tile__val--sm" id="usage-io">—</div>
+              <div class="usage-tile__lbl">Entrée / Sortie</div>
+            </div>
+          </div>
+          <div class="usage-updated" id="usage-updated" hidden></div>
+        </div>
+
+        <!-- Informations personnelles -->
+        <div class="card">
+          <h3 class="card__title">Informations personnelles</h3>
+          <p class="card__desc">Modifiez votre nom et votre adresse email.</p>
+          <form class="form" id="profile-form" novalidate>
+            <label class="field">
+              Nom complet
+              <input class="input" type="text" id="profile-name" autocomplete="name" placeholder="Jean Dupont" />
+            </label>
+            <label class="field">
+              Adresse email
+              <input class="input" type="email" id="profile-email" autocomplete="email" placeholder="vous@exemple.fr" required />
+            </label>
+            <div id="profile-alert" class="alert" hidden></div>
+            <button type="submit" class="btn btn--primary" id="profile-save-btn">Enregistrer</button>
+          </form>
+        </div>
+
+        <!-- Mot de passe -->
+        <div class="card">
+          <h3 class="card__title">Mot de passe</h3>
+          <p class="card__desc">Choisissez un mot de passe fort d'au moins 6 caractères.</p>
+          <form class="form" id="password-form" novalidate>
+            <label class="field">
+              Mot de passe actuel
+              <div class="input-wrap">
+                <input class="input" type="password" id="current-password" autocomplete="current-password" placeholder="••••••••" style="padding-right:40px;" />
+                <button type="button" class="input-eye" data-target="current-password" aria-label="Afficher">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </label>
+            <label class="field">
+              Nouveau mot de passe
+              <div class="input-wrap">
+                <input class="input" type="password" id="new-password" autocomplete="new-password" placeholder="••••••••" style="padding-right:40px;" />
+                <button type="button" class="input-eye" data-target="new-password" aria-label="Afficher">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </label>
+            <label class="field">
+              Confirmer le nouveau mot de passe
+              <div class="input-wrap">
+                <input class="input" type="password" id="confirm-password" autocomplete="new-password" placeholder="••••••••" style="padding-right:40px;" />
+                <button type="button" class="input-eye" data-target="confirm-password" aria-label="Afficher">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </label>
+            <div id="password-alert" class="alert" hidden></div>
+            <button type="submit" class="btn btn--primary" id="password-save-btn">Changer le mot de passe</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- ── Onglet Sécurité ── -->
+      <div id="tab-security" class="tab-panel">
+        <div class="card">
+          <div class="sec-row">
+            <div style="flex:1;min-width:0">
+              <h3 class="card__title">Authentification à deux facteurs (2FA)</h3>
+              <p class="card__desc" style="margin-bottom:0">Protégez votre compte avec Google Authenticator. À chaque connexion, un code à 6 chiffres vous sera demandé en plus de votre mot de passe.</p>
+              <div id="status-badge"></div>
+
+              <!-- Flow de configuration -->
+              <div class="setup" id="setup-flow">
+                <p class="setup__hint">Scannez ce QR code avec Google Authenticator (ou Authy), puis entrez le code pour confirmer.</p>
+                <div class="qr-wrap">
+                  <img id="qr-img" alt="QR Code 2FA" />
+                  <p class="setup__hint" style="text-align:center;margin:0">Vous ne pouvez pas scanner ? Entrez ce code manuellement :</p>
+                  <div class="secret-box" id="secret-display"></div>
+                </div>
+                <div class="code-row">
+                  <input class="code-input" type="text" id="totp-confirm-input" inputmode="numeric" autocomplete="one-time-code" placeholder="000 000" maxlength="7" />
+                  <button class="btn btn--primary" id="confirm-btn">Activer</button>
+                </div>
+                <div id="setup-alert" class="alert" hidden style="margin-top:12px"></div>
+              </div>
+            </div>
+            <div class="sec-row__actions">
+              <button class="btn btn--primary" id="toggle-btn" style="display:none">Activer le 2FA</button>
+              <button class="btn btn--danger" id="disable-btn" style="display:none">Désactiver</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // ── Onglets ───────────────────────────────────────────────────────────────
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    // ── Boutons œil (afficher / masquer le mot de passe) ──────────────────────
+    document.querySelectorAll('.input-eye').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const inp = document.getElementById(btn.dataset.target);
+        inp.type = inp.type === 'password' ? 'text' : 'password';
+      });
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); logout(); });
+
+    // ── Garde d'authentification + pré-remplissage du profil ──────────────────
+    requireAuth().then((user) => {
+      if (!user) return;
+      document.getElementById('profile-name').value  = user.name || '';
+      document.getElementById('profile-email').value = user.email || '';
+      document.querySelector('.app').classList.add('ready');
+      load2FAStatus();
+      loadUsage();
+    });
+
+    function showAlert(id, type, msg) {
+      const el = document.getElementById(id);
+      el.className = 'alert alert--' + type;
+      el.textContent = msg;
+      el.hidden = false;
+    }
+
+    // ── Enregistrer le profil ─────────────────────────────────────────────────
+    document.getElementById('profile-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      document.getElementById('profile-alert').hidden = true;
+      const btn = document.getElementById('profile-save-btn');
+      btn.disabled = true; btn.textContent = 'Enregistrement…';
+      try {
+        const res = await fetch('/api/auth/profile', {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+          body: JSON.stringify({ full_name: document.getElementById('profile-name').value, email: document.getElementById('profile-email').value }),
+        });
+        const data = await res.json();
+        if (!res.ok) { showAlert('profile-alert', 'error', data.error || 'Erreur'); return; }
+        showAlert('profile-alert', 'success', 'Profil mis à jour avec succès.');
+      } catch { showAlert('profile-alert', 'error', 'Impossible de joindre le serveur.'); }
+      finally { btn.disabled = false; btn.textContent = 'Enregistrer'; }
+    });
+
+    // ── Changer le mot de passe ───────────────────────────────────────────────
+    document.getElementById('password-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      document.getElementById('password-alert').hidden = true;
+      const newPwd  = document.getElementById('new-password').value;
+      const confPwd = document.getElementById('confirm-password').value;
+      if (newPwd !== confPwd) { showAlert('password-alert', 'error', 'Les mots de passe ne correspondent pas.'); return; }
+      const btn = document.getElementById('password-save-btn');
+      btn.disabled = true; btn.textContent = 'Modification…';
+      try {
+        const res = await fetch('/api/auth/password', {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+          body: JSON.stringify({ currentPassword: document.getElementById('current-password').value, newPassword: newPwd }),
+        });
+        const data = await res.json();
+        if (!res.ok) { showAlert('password-alert', 'error', data.error || 'Erreur'); return; }
+        showAlert('password-alert', 'success', 'Mot de passe modifié avec succès.');
+        document.getElementById('password-form').reset();
+      } catch { showAlert('password-alert', 'error', 'Impossible de joindre le serveur.'); }
+      finally { btn.disabled = false; btn.textContent = 'Changer le mot de passe'; }
+    });
+
+    // ── Statut 2FA ────────────────────────────────────────────────────────────
+    async function load2FAStatus() {
+      try {
+        const res  = await fetch('/api/auth/2fa/status', { credentials: 'include' });
+        const data = await res.json();
+        const badge      = document.getElementById('status-badge');
+        const toggleBtn  = document.getElementById('toggle-btn');
+        const disableBtn = document.getElementById('disable-btn');
+        const flow       = document.getElementById('setup-flow');
+        if (data.enabled) {
+          badge.innerHTML = '<span class="badge-on"><svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="#16a34a"/></svg>Activé</span>';
+          toggleBtn.style.display  = 'none';
+          disableBtn.style.display = 'inline-flex';
+          flow.classList.remove('open');
+        } else {
+          badge.innerHTML = '<span class="badge-off">Non activé</span>';
+          toggleBtn.style.display  = 'inline-flex';
+          disableBtn.style.display = 'none';
+        }
+      } catch { /* silencieux */ }
+    }
+
+    // ── Activer le 2FA — démarrer le flow ─────────────────────────────────────
+    document.getElementById('toggle-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('toggle-btn');
+      btn.disabled = true; btn.textContent = 'Chargement…';
+      try {
+        const res  = await fetch('/api/auth/2fa/setup', { method: 'POST', credentials: 'include' });
+        const data = await res.json();
+        if (!res.ok) { alert(data.error || 'Erreur'); return; }
+        document.getElementById('secret-display').textContent = data.secret;
+        document.getElementById('setup-flow').classList.add('open');
+        const img = document.getElementById('qr-img');
+        img.src = data.qr; img.style.display = 'block';
+        document.getElementById('totp-confirm-input').focus();
+      } catch { alert('Impossible de joindre le serveur'); }
+      finally { btn.disabled = false; btn.textContent = 'Activer le 2FA'; }
+    });
+
+    // ── Confirmer le code TOTP ────────────────────────────────────────────────
+    document.getElementById('confirm-btn').addEventListener('click', async () => {
+      const code = document.getElementById('totp-confirm-input').value.replace(/\s/g, '');
+      document.getElementById('setup-alert').hidden = true;
+      if (code.length < 6) { showAlert('setup-alert', 'error', 'Entrez le code à 6 chiffres.'); return; }
+      const btn = document.getElementById('confirm-btn');
+      btn.disabled = true; btn.textContent = 'Vérification…';
+      try {
+        const res  = await fetch('/api/auth/2fa/confirm', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+          body: JSON.stringify({ code }),
+        });
+        const data = await res.json();
+        if (!res.ok) { showAlert('setup-alert', 'error', data.error || 'Code incorrect'); return; }
+        showAlert('setup-alert', 'success', '2FA activé avec succès !');
+        document.getElementById('totp-confirm-input').value = '';
+        setTimeout(() => { document.getElementById('setup-flow').classList.remove('open'); load2FAStatus(); }, 1200);
+      } catch { showAlert('setup-alert', 'error', 'Impossible de joindre le serveur'); }
+      finally { btn.disabled = false; btn.textContent = 'Activer'; }
+    });
+
+    // ── Désactiver le 2FA ─────────────────────────────────────────────────────
+    document.getElementById('disable-btn').addEventListener('click', async () => {
+      if (!confirm('Désactiver l\'authentification à deux facteurs ? Votre compte sera moins sécurisé.')) return;
+      try {
+        const res = await fetch('/api/auth/2fa', { method: 'DELETE', credentials: 'include' });
+        if (res.ok) load2FAStatus();
+        else alert('Erreur lors de la désactivation');
+      } catch { alert('Impossible de joindre le serveur'); }
+    });
+
+    // ── Formatage du code (groupes de 3 chiffres) ─────────────────────────────
+    const totpInput = document.getElementById('totp-confirm-input');
+    totpInput.addEventListener('input', function () {
+      const v = this.value.replace(/\D/g, '').slice(0, 6);
+      this.value = v.length > 3 ? v.slice(0, 3) + ' ' + v.slice(3) : v;
+    });
+    totpInput.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('confirm-btn').click(); });
+
+    // ── Consommation IA (tokens + nombre de requêtes) ─────────────────────────
+    function loadUsage() {
+      const fmt = n => (n || 0).toLocaleString('fr-FR');
+      fetch('/api/saas/usage', { credentials: 'include' })
+        .then(r => r.ok ? r.json() : null)
+        .then(u => {
+          if (!u) return;
+          document.getElementById('usage-requests').textContent = fmt(u.requests);
+          document.getElementById('usage-total').textContent    = fmt(u.total_tokens);
+          document.getElementById('usage-io').textContent       = `${fmt(u.input_tokens)} / ${fmt(u.output_tokens)}`;
+          if (u.updated_at) {
+            const el = document.getElementById('usage-updated');
+            try {
+              el.textContent = 'Dernière mise à jour : ' + new Date(u.updated_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+              el.hidden = false;
+            } catch { /* date invalide */ }
+          }
+        })
+        .catch(() => {});
+    }
+  </script>
+</body>
+</html>

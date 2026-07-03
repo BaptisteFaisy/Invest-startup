@@ -2887,7 +2887,12 @@ function applyAutofill(fills, fields) {
   });
 
   const applied = [];
-  const walker  = document.createTreeWalker(page, NodeFilter.SHOW_TEXT, null, false);
+  const walker  = document.createTreeWalker(page, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      const p = node.parentElement;
+      return (p && p.closest('script, style')) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
+    },
+  }, false);
   const nodes   = [];
   let n;
   while ((n = walker.nextNode())) nodes.push(n);
@@ -3001,44 +3006,67 @@ function _nearestHeading(textNode) {
   return '';
 }
 
+// Détermine l'étiquette lisible d'un champ hors clause (titre, bloc signatures,
+// annexe, contenu ajouté en fin de document…).
+function _looseFieldLabel(node) {
+  const p = node.parentElement;
+  if (p) {
+    if (p.closest('.ts-sign'))   return 'Signatures';
+    const annexe = p.closest('.ts-annexe');
+    if (annexe) {
+      const grp = annexe.querySelector('.ts-group');
+      return (grp && grp.textContent.trim()) || 'Annexe';
+    }
+    if (p.closest('.doc-title, .doc-sub, .doc-preamble')) return 'En-tête du document';
+  }
+  const heading  = _nearestHeading(node);
+  const fallback = (p ? p.textContent : '').trim().slice(0, 60);
+  return heading || fallback || 'Document';
+}
+
+// Recense TOUS les champs [entre crochets] du document, où qu'ils se trouvent :
+// dans une clause, mais AUSSI dans le titre, le bloc de signatures, l'annexe ou
+// tout paragraphe ajouté en fin de document (corrige les champs « en bas » qui
+// n'étaient pas détectés car hors des .ts-clause). Le scan couvre toute la page,
+// exactement comme le remplissage (applyAutofill), pour rester cohérent.
 function findPlaceholders() {
   const result = [];
-  const structuredClauses = page.querySelectorAll('.ts-clause[data-key]');
+  let looseIdx = 0;
+  const walker = document.createTreeWalker(page, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      if (node.textContent.indexOf('[') === -1) return NodeFilter.FILTER_SKIP;
+      // Ignore les blocs techniques (analyse bakée) et les feuilles de style.
+      const p = node.parentElement;
+      if (p && p.closest('script, style')) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    },
+  }, false);
 
-  if (structuredClauses.length) {
-    // Term sheet structurée : cherche dans chaque clause
-    structuredClauses.forEach(clause => {
-      const content = clause.querySelector('.ts-content');
-      const label   = clause.querySelector('.ts-label');
-      if (!content) return;
-      const src     = content.innerText;
-      const matches = [...src.matchAll(/\[[^\]\n]{1,80}\]/g)];
-      matches.forEach(m => result.push({
-        key:         clause.dataset.key,
-        clauseLabel: (label ? label.textContent : clause.dataset.key).trim(),
-        text:        m[0],
-        context:     src.slice(Math.max(0, m.index - 80), m.index + m[0].length + 80).replace(/\s+/g, ' ').trim(),
-      }));
-    });
-  } else {
-    // Document personnalisé (importé) : scanne tout le texte de la page
-    const walker = document.createTreeWalker(page, NodeFilter.SHOW_TEXT, null, false);
-    let node;
-    let idx = 0;
-    while ((node = walker.nextNode())) {
-      const matches = [...node.textContent.matchAll(/\[[^\]\n]{1,80}\]/g)];
-      if (!matches.length) continue;
-      const heading  = _nearestHeading(node);
-      const fallback = (node.parentElement ? node.parentElement.textContent : '').trim().slice(0, 60);
-      const clauseLabel = heading || fallback || 'Document';
-      const src = node.textContent;
-      matches.forEach(m => result.push({
-        key:         '__ph__' + (idx++),
-        clauseLabel,
-        text:        m[0],
-        context:     src.slice(Math.max(0, m.index - 80), m.index + m[0].length + 80).replace(/\s+/g, ' ').trim(),
-      }));
+  let node;
+  while ((node = walker.nextNode())) {
+    const src     = node.textContent;
+    const matches = [...src.matchAll(/\[[^\]\n]{1,80}\]/g)];
+    if (!matches.length) continue;
+
+    // La clause conteneur donne l'étiquette ET la clé (navigation ciblée dans la
+    // clause) ; hors clause, on utilise une clé « __ph__ » (navigation page entière).
+    const p      = node.parentElement;
+    const clause = p ? p.closest('.ts-clause[data-key]') : null;
+    let key, clauseLabel;
+    if (clause) {
+      const label = clause.querySelector('.ts-label');
+      key         = clause.dataset.key;
+      clauseLabel = (label ? label.textContent : clause.dataset.key).trim();
+    } else {
+      clauseLabel = _looseFieldLabel(node);
     }
+
+    matches.forEach(m => result.push({
+      key:         clause ? key : ('__ph__' + (looseIdx++)),
+      clauseLabel,
+      text:        m[0],
+      context:     src.slice(Math.max(0, m.index - 80), m.index + m[0].length + 80).replace(/\s+/g, ' ').trim(),
+    }));
   }
   return result;
 }
@@ -4180,3 +4208,242 @@ const COND_SIMPLE = {
   mr_liste:
     `Il y a une liste de décisions très importantes que les fondateurs doivent soumettre à l'investisseur avant de les prendre. Dépenser plus de 50 000 €, modifier les statuts… on ne décide pas seul.`,
 };
+
+/* =========================================================
+   Signature manuscrite — tracé à la souris (ou au doigt)
+   Ouvre une fenêtre, on signe dans le cadre, puis la
+   signature est insérée dans le document (à l'endroit du
+   curseur, sinon dans le bloc de signatures).
+   ========================================================= */
+(function initSignature() {
+  const openBtn  = document.getElementById('sign-btn');
+  const modal    = document.getElementById('sign-modal');
+  const pad      = document.getElementById('sign-pad');
+  if (!openBtn || !modal || !pad) return;
+
+  const backdrop  = document.getElementById('sign-backdrop');
+  const closeBtn  = document.getElementById('sign-close');
+  const cancelBtn = document.getElementById('sign-cancel');
+  const clearBtn  = document.getElementById('sign-clear');
+  const insertBtn = document.getElementById('sign-insert');
+  const padWrap   = pad.closest('.sign-pad-wrap');
+  const inkWrap   = document.getElementById('sign-ink');
+  const hintEl    = document.getElementById('sign-hint');
+  const ctx       = pad.getContext('2d');
+
+  let ink   = '#111827';
+  let dpr   = 1;
+  let cssW  = 0, cssH = 0;
+  let drawing = false;
+  let hasDrawn = false;
+  let lastX = 0, lastY = 0;
+  let minX, minY, maxX, maxY;
+
+  // Dernière position connue du curseur DANS le document : la signature y sera
+  // insérée. Mise à jour en continu tant que la sélection est dans la page, elle
+  // survit à l'ouverture de la fenêtre (qui déplace le focus sur un bouton).
+  let savedRange = null;
+  document.addEventListener('selectionchange', () => {
+    const sel = document.getSelection();
+    if (sel && sel.rangeCount && page.contains(sel.anchorNode)) {
+      savedRange = sel.getRangeAt(0).cloneRange();
+    }
+  });
+
+  function resetBounds() { minX = minY = Infinity; maxX = maxY = -Infinity; }
+
+  function markDrawn() {
+    if (!hasDrawn) {
+      hasDrawn = true;
+      padWrap.classList.add('is-drawn');
+      insertBtn.disabled = false;
+    }
+  }
+
+  // Ajuste le canvas à sa taille réelle et le prépare (net sur écran Retina).
+  function sizeCanvas() {
+    dpr  = window.devicePixelRatio || 1;
+    cssW = pad.clientWidth;
+    cssH = pad.clientHeight;
+    pad.width  = Math.round(cssW * dpr);
+    pad.height = Math.round(cssH * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.lineWidth   = 2.4;
+    ctx.lineCap     = 'round';
+    ctx.lineJoin    = 'round';
+    ctx.strokeStyle = ink;
+  }
+
+  function clearPad() {
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, pad.width, pad.height);
+    ctx.restore();
+    hasDrawn = false;
+    padWrap.classList.remove('is-drawn');
+    insertBtn.disabled = true;
+    resetBounds();
+  }
+
+  function pointFrom(e) {
+    const r = pad.getBoundingClientRect();
+    return {
+      x: (e.clientX - r.left) * (cssW / r.width),
+      y: (e.clientY - r.top)  * (cssH / r.height),
+    };
+  }
+
+  function track(x, y) {
+    if (x < minX) minX = x;
+    if (y < minY) minY = y;
+    if (x > maxX) maxX = x;
+    if (y > maxY) maxY = y;
+  }
+
+  function onDown(e) {
+    e.preventDefault();
+    drawing = true;
+    try { pad.setPointerCapture(e.pointerId); } catch {}
+    const p = pointFrom(e);
+    lastX = p.x; lastY = p.y;
+    track(p.x, p.y);
+    // Un simple clic dépose un point.
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, ctx.lineWidth / 2, 0, Math.PI * 2);
+    ctx.fillStyle = ink;
+    ctx.fill();
+    markDrawn();
+  }
+
+  function onMove(e) {
+    if (!drawing) return;
+    e.preventDefault();
+    const p = pointFrom(e);
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    lastX = p.x; lastY = p.y;
+    track(p.x, p.y);
+  }
+
+  function onUp(e) {
+    if (!drawing) return;
+    drawing = false;
+    try { pad.releasePointerCapture(e.pointerId); } catch {}
+  }
+
+  pad.addEventListener('pointerdown', onDown);
+  pad.addEventListener('pointermove', onMove);
+  pad.addEventListener('pointerup',   onUp);
+  pad.addEventListener('pointerleave', onUp);
+  pad.addEventListener('pointercancel', onUp);
+
+  // Choix de la couleur d'encre.
+  inkWrap.addEventListener('click', (e) => {
+    const dot = e.target.closest('.sign-ink__dot');
+    if (!dot) return;
+    ink = dot.dataset.ink;
+    ctx.strokeStyle = ink;
+    inkWrap.querySelectorAll('.sign-ink__dot').forEach(d => d.classList.toggle('is-active', d === dot));
+  });
+
+  clearBtn.addEventListener('click', clearPad);
+
+  // Rogne le tracé sur sa boîte englobante → une image de signature nette, sans
+  // grand cadre vide autour, prête à être posée sur une ligne de signature.
+  function croppedDataUrl() {
+    if (!hasDrawn || !isFinite(minX)) return null;
+    const padPx = 10;
+    const x = Math.max(0, minX - padPx);
+    const y = Math.max(0, minY - padPx);
+    const w = Math.min(cssW, maxX + padPx) - x;
+    const h = Math.min(cssH, maxY + padPx) - y;
+    if (w <= 0 || h <= 0) return null;
+    const out  = document.createElement('canvas');
+    out.width  = Math.max(1, Math.round(w * dpr));
+    out.height = Math.max(1, Math.round(h * dpr));
+    const octx = out.getContext('2d');
+    octx.drawImage(pad, x * dpr, y * dpr, w * dpr, h * dpr, 0, 0, out.width, out.height);
+    return { url: out.toDataURL('image/png'), ratio: w / h };
+  }
+
+  function buildImg(sig) {
+    const img = document.createElement('img');
+    img.src = sig.url;
+    img.alt = 'Signature';
+    img.className = 'sign-img';
+    img.style.height = '56px';
+    img.style.width  = 'auto';
+    return img;
+  }
+
+  // Insère la signature : à l'endroit du curseur si celui-ci est (ou était) dans
+  // le document, sinon dans le bloc de signatures, sinon en fin de document.
+  function insertSignature(img) {
+    const sel = document.getSelection();
+    if (savedRange && page.contains(savedRange.startContainer)) {
+      const r = savedRange.cloneRange();
+      r.deleteContents();
+      r.insertNode(img);
+      r.setStartAfter(img);
+      r.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(r);
+      return;
+    }
+    const line = page.querySelector('.ts-sign .box .line');
+    if (line) {
+      line.appendChild(document.createElement('br'));
+      line.appendChild(img);
+      return;
+    }
+    const annexe = page.querySelector('.ts-annexe');
+    const wrap = document.createElement('p');
+    wrap.appendChild(img);
+    if (annexe) annexe.before(wrap); else page.appendChild(wrap);
+  }
+
+  function openModal() {
+    modal.hidden = false;
+    // Adapte l'aide selon qu'un emplacement précis a été choisi (curseur).
+    const placed = savedRange && page.contains(savedRange.startContainer);
+    if (hintEl) {
+      hintEl.textContent = placed
+        ? 'Tracez votre signature ci-dessous : elle sera insérée à l\'endroit du curseur.'
+        : 'Tracez votre signature ci-dessous. Astuce : cliquez d\'abord dans le document à l\'endroit voulu pour la positionner précisément.';
+    }
+    // Le canvas doit être visible pour connaître sa taille réelle.
+    requestAnimationFrame(() => { sizeCanvas(); clearPad(); });
+  }
+
+  function closeModal() {
+    modal.hidden = true;
+  }
+
+  openBtn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  cancelBtn.addEventListener('click', closeModal);
+  backdrop.addEventListener('click', closeModal);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal.hidden) closeModal();
+  });
+
+  insertBtn.addEventListener('click', () => {
+    const sig = croppedDataUrl();
+    if (!sig) return;
+    const img = buildImg(sig);
+    insertSignature(img);
+    closeModal();
+    // Répercute l'ajout comme une modification normale du document.
+    try { if (typeof isCustom !== 'undefined' && !isCustom && typeof syncModelFromDOM === 'function') syncModelFromDOM(); } catch {}
+    try { if (typeof paginate === 'function') paginate(); } catch {}
+    try { if (typeof scheduleAutosave === 'function') scheduleAutosave(); } catch {}
+    try { if (typeof renderFill === 'function') renderFill(); } catch {}
+    img.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
+  // Redimensionner la fenêtre change la taille du canvas (donc efface le tracé) :
+  // on repart d'un cadre vide pour éviter tout état incohérent.
+  window.addEventListener('resize', () => { if (!modal.hidden) { sizeCanvas(); clearPad(); } });
+})();

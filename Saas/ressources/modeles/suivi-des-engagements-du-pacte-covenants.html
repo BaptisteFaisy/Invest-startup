@@ -1,10 +1,6 @@
 <h1 class="doc-title">SUIVI DES ENGAGEMENTS DU PACTE (COVENANTS)</h1>
 <p class="doc-sub">[DÉNOMINATION] — tableau de suivi des obligations — version exhaustive</p>
 
-<div class="ts-group" contenteditable="false">Comprendre</div>
-
-<div class="ts-clause" data-plain="Le pacte crée des obligations continues (reporting, réunions, décisions à faire valider, registres à tenir…). Ce tableau de suivi sert à ne rien oublier après la levée : un manquement peut coûter cher — de la simple perte de confiance jusqu'au bad leaver ou à l'inopposabilité d'une décision prise sans autorisation."><div class="ts-label">Rôle du suivi des covenants</div><div class="ts-content"><p>Une fois la levée réalisée, le pacte, les statuts et la documentation annexe (side letters, contrats AIR, conventions de financement) imposent des obligations récurrentes (« covenants ») : reporting, réunions de comité, autorisation préalable des décisions réservées, mise à jour des registres et du RBE, respect des engagements des fondateurs (exclusivité, vesting), maintien des assurances, covenants bancaires. Ce tableau de bord centralise ces obligations, leurs sources, leurs échéances, leurs responsables et leur statut, pour piloter la conformité post-closing. L'enjeu est concret : une décision réservée prise sans autorisation est inopposable aux investisseurs et engage la responsabilité du dirigeant ; une violation caractérisée du pacte par un fondateur peut le faire basculer en <strong>bad leaver</strong> (avec les conséquences sur ses titres) ; un défaut sur un covenant bancaire peut rendre la dette exigible ; et l'accumulation de petits manquements (reportings sautés, comité jamais réuni) empoisonne la relation et ressort intégralement à la due diligence du tour suivant. La méthode : extraire du pacte, à la signature, la liste exhaustive des obligations — puis la faire vivre.</p></div></div>
-
 <div class="ts-group" contenteditable="false">Suivi</div>
 
 <div class="ts-clause" data-key="tableau" data-plain="Le tableau central : chaque engagement avec sa source exacte (clause du pacte, side letter, statuts), sa fréquence, le responsable, le statut, la dernière action et la sanction encourue. La colonne « conséquence en cas de manquement » est celle qui fixe les priorités."><div class="ts-label">Tableau des engagements</div><div class="ts-content"><table>
@@ -40,38 +36,3 @@
 <li>Attribuer chaque ligne à un <strong>responsable nommé</strong> et poser les échéances dans l'agenda partagé de l'équipe dirigeante.</li>
 <li>Prévoir une <strong>déclaration annuelle des fondateurs</strong> (respect de l'exclusivité, activités annexes, absence de conflit) : elle documente la conformité continue des engagements personnels.</li>
 </ul></div></div>
-
-<div class="ts-clause" data-key="frequence-revue" data-plain="L'action concrète : construisez le tableau à la signature du pacte, revoyez-le avant chaque comité, corrigez les retards, documentez tout, puis ajoutez la version à jour ici."><div class="ts-label">À faire</div><div class="ts-content"><ul>
-<li>Extraire les obligations du pacte, des statuts, des side letters et des contrats de financement (méthode ci-dessus).</li>
-<li>Attribuer un responsable et une échéance à chaque ligne ; poser les récurrences dans l'agenda.</li>
-<li>Revoir le tableau avant chaque réunion du comité et l'annexer au dossier de gouvernance.</li>
-<li>Traiter en priorité les manquements à conséquence forte (décisions réservées, engagements fondateurs) et documenter chaque correction.</li>
-<li>Téléverser la version à jour du suivi via « Ajouter ».</li>
-</ul></div></div>
-<script type="application/json" data-conditions>{
-"tableau": [
-{"id":"cov_tab_sources","type":"option","label":"Sources exhaustives (pacte + statuts + side letters + dettes)","preview":"Toutes les obligations, pas seulement celles du pacte","html":"<p>Le tableau agrège les obligations de <mark class='cond-val'>toutes les sources</mark> : pacte, statuts, side letters, contrats AIR/OC, conventions de financement (covenants bancaires, avances publiques) et obligations légales récurrentes (RBE, comptes).</p>"},
-{"id":"cov_tab_consequences","type":"option","label":"Colonne « conséquence si manquement »","preview":"C'est elle qui fixe les priorités","html":"<p>Chaque ligne mentionne la <mark class='cond-val'>conséquence du manquement</mark> (inopposabilité, <mark class='cond-val'>bad leaver</mark>, exigibilité de la dette, sanction pénale) : c'est cette colonne qui hiérarchise la vigilance, pas la fréquence de l'obligation.</p>"},
-{"id":"cov_tab_declaration","type":"option","label":"Déclaration annuelle des fondateurs","preview":"Exclusivité, activités annexes, conflits : attesté chaque année","html":"<p>Chaque fondateur signe une <mark class='cond-val'>déclaration annuelle</mark> attestant le respect de ses engagements (exclusivité, non-concurrence, absence de conflit d'intérêts, activités annexes déclarées) — la conformité continue se documente, elle ne se présume pas.</p>"}
-],
-"vigilance": [
-{"id":"cov_vig_priorite","type":"exception","label":"Priorité aux manquements « à titres »","preview":"Bad leaver et décisions réservées d'abord","html":"<p>Les manquements susceptibles de déclencher une clause du pacte — <mark class='cond-val'>bad leaver</mark> d'un fondateur, décision réservée <mark class='cond-val'>sans autorisation</mark>, covenant bancaire — sont traités en priorité absolue, avec ratification ou régularisation formelle.</p>"},
-{"id":"cov_vig_ratification","type":"option","label":"Ratification des manquements constatés","preview":"Faire valider a posteriori plutôt que laisser traîner","html":"<p>Toute décision prise sans l'autorisation requise fait l'objet d'une <mark class='cond-val'>ratification</mark> expresse par l'organe compétent (comité, investisseurs) dès sa découverte : un manquement ratifié est purgé, un manquement tu s'aggrave.</p>"},
-{"id":"cov_vig_horizon","type":"duree","label":"Horizon de veille 90 jours","preview":"Les échéances à venir, pas seulement le passé","html":"<p>La zone de vigilance liste les échéances des <mark class='cond-val'>90 prochains jours</mark> et les opérations projetées qui déclencheront des covenants (émission, embauche au-dessus d'un seuil, contrat majeur) — le suivi regarde devant, pas seulement derrière.</p>"}
-],
-"frequence-revue": [
-{"id":"cov_revue_comite","type":"option","label":"Revue avant chaque comité (recommandé)","preview":"Point fixe de l'ordre du jour de gouvernance","html":"<p>Le suivi des covenants est revu <mark class='cond-val'>avant chaque réunion du comité</mark> et annexé au dossier : c'est le moment naturel pour constater, corriger et faire ratifier.</p>"},
-{"id":"cov_revue_mensuel","type":"duree","label":"Revue mensuelle","preview":"Avec le reporting investisseurs","html":"<p>Le suivi fait l'objet d'une revue <mark class='cond-val'>mensuelle</mark>, en parallèle de la préparation du reporting investisseurs — les deux exercices se nourrissent.</p>"},
-{"id":"cov_revue_trimestriel","type":"duree","label":"Revue trimestrielle","preview":"Le minimum viable","html":"<p>Le suivi est revu <mark class='cond-val'>trimestriellement</mark>, avec point de vigilance sur les échéances des <mark class='cond-val'>90 jours</mark> à venir — en deçà, les obligations mensuelles glissent.</p>"}
-]
-}</script>
-<script type="application/json" data-advice>[
-{"title":"Construire le tableau le jour de la signature","body":"Deux heures de travail à la signature du pacte — extraction article par article de toutes les obligations avec sources et sanctions — évitent des années d'oublis. C'est le meilleur investissement post-closing."},
-{"title":"Agréger TOUTES les sources","body":"Le pacte n'est pas seul : statuts, side letters (MFN, attestations fiscales), contrats AIR, covenants bancaires et conditions des avances publiques créent aussi des obligations. Un seul tableau pour tout."},
-{"title":"Hiérarchiser par la conséquence, pas la fréquence","body":"Une décision réservée sans autorisation (inopposable + responsabilité) ou une violation d'exclusivité d'un fondateur (bad leaver possible) pèsent infiniment plus qu'un reporting en retard : la colonne « conséquence » fixe les priorités."},
-{"title":"Désigner un responsable nommé par engagement","body":"Sans responsable clair, les obligations récurrentes glissent. Un nom par ligne, les échéances dans l'agenda partagé, et la revue en point fixe du comité."},
-{"title":"Ratifier plutôt que laisser traîner","body":"Une décision prise sans autorisation se fait ratifier dès sa découverte ; un reporting manqué se régularise avec un mot d'excuse. Le manquement avoué et corrigé se pardonne — celui qu'on découvre en due diligence se paie."},
-{"title":"Faire signer la déclaration annuelle des fondateurs","body":"Exclusivité, activités annexes, conflits d'intérêts : une attestation annuelle de chaque fondateur documente la conformité continue des engagements personnels — précieuse en due diligence, protectrice pour tous."},
-{"title":"Regarder à 90 jours devant","body":"Le suivi doit lister les échéances à venir ET les opérations projetées qui déclencheront des covenants (émission → pool et anti-dilution ; embauche → seuil de rémunération) : la conformité s'anticipe, elle ne se rattrape pas."},
-{"title":"Archiver l'historique du suivi","body":"Les versions successives du tableau documentent des années de conformité : c'est une pièce de data room qui rassure autant qu'un audit blanc — et elle ne coûte que sa tenue à jour."}
-]</script>

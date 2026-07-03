@@ -521,7 +521,7 @@ mark.cond-val { background: rgba(251,191,36,0.38); border-radius: 3px; padding: 
 .chat__send--stop { background: #dc2626; font-size: 13px; }
 .chat__send--stop:hover { background: #b91c1c; }
 
-@media print { .selx-btn, .selx-pop { display: none !important; } }
+@media print { .selx-btn, .selx-pop, .sign-modal { display: none !important; } }
 
 /* ---------- Impression / Export PDF — STRICTEMENT identique à l'aperçu ----------
    La page PDF a exactement la taille d'une feuille de l'aperçu (820×1160 px). La
@@ -567,3 +567,48 @@ mark.cond-val { background: rgba(251,191,36,0.38); border-radius: 3px; padding: 
   .ts-clause, .clause-cond, .ts-sign, table.captable,
   .page p, .page li, .page ol, .page ul { break-inside: avoid; page-break-inside: avoid; }
 }
+
+/* ---------- Signature manuscrite (fenêtre de tracé à la souris) ---------- */
+.sign-img { display: inline-block; vertical-align: bottom; max-width: 100%; height: 56px; }
+
+.sign-modal { position: fixed; inset: 0; z-index: 120; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.sign-modal[hidden] { display: none; }
+.sign-modal__backdrop { position: absolute; inset: 0; background: rgba(8,9,12,0.55); backdrop-filter: blur(2px); }
+.sign-modal__panel {
+  position: relative; width: 640px; max-width: calc(100vw - 32px);
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(8,9,12,0.35); padding: 22px; animation: signpop .18s ease;
+}
+@keyframes signpop { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+.sign-modal__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 6px; }
+.sign-modal__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-2); }
+.sign-modal__title { font-family: 'Archivo', sans-serif; font-size: 20px; font-weight: 700; color: var(--text); margin: 2px 0 0; }
+.sign-modal__close { background: transparent; border: 0; font-size: 26px; line-height: 1; color: var(--text-3); cursor: pointer; padding: 0 2px; }
+.sign-modal__close:hover { color: var(--text); }
+.sign-modal__hint { font-size: 13px; color: var(--text-2); margin: 4px 0 14px; }
+
+.sign-pad-wrap { position: relative; border: 1.5px dashed #cbc9c2; border-radius: 12px; background: #faf9f6; overflow: hidden; }
+.sign-pad { display: block; width: 100%; height: 220px; touch-action: none; cursor: crosshair; }
+.sign-pad__baseline { position: absolute; left: 8%; right: 8%; bottom: 46px; height: 0; border-top: 1.5px solid #d7d4cc; pointer-events: none; }
+.sign-pad__ph {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-family: 'Archivo', sans-serif; font-size: 18px; letter-spacing: 0.04em; color: #c3c0b8;
+  pointer-events: none; transition: opacity .15s;
+}
+.sign-pad-wrap.is-drawn .sign-pad__ph { opacity: 0; }
+
+.sign-modal__tools { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 12px 0 4px; }
+.sign-ink { display: flex; align-items: center; gap: 8px; }
+.sign-ink__dot {
+  width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; background: var(--ink);
+  cursor: pointer; padding: 0; box-shadow: 0 0 0 1px rgba(8,9,12,0.12) inset;
+}
+.sign-ink__dot.is-active { border-color: var(--ink); box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--ink); }
+.sign-clear { background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 6px 14px; font-family: 'Archivo', sans-serif; font-size: 13px; color: var(--text-2); cursor: pointer; transition: background .12s, border-color .12s; }
+.sign-clear:hover { background: #f0eee9; border-color: #c9c6bf; color: var(--text); }
+
+.sign-modal__actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+.sign-modal__actions .btn { padding: 9px 18px; font-size: 14px; }
+.sign-modal__actions .btn--primary { background: var(--dark); border-color: var(--dark); color: #fff; }
+.sign-modal__actions .btn--primary:hover:not(:disabled) { background: #000; }
+.sign-modal__actions .btn--primary:disabled { opacity: 0.45; cursor: not-allowed; }

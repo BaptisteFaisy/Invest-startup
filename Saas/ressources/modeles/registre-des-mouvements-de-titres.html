@@ -1,12 +1,6 @@
 <h1 class="doc-title">REGISTRE DES MOUVEMENTS DE TITRES</h1>
 <p class="doc-sub">[DÉNOMINATION] — SAS au capital de [MONTANT] € — RCS [VILLE / SIREN] — version exhaustive</p>
 
-<div class="ts-group" contenteditable="false">Comprendre</div>
-
-<div class="ts-clause" data-plain="Le registre des mouvements de titres, c'est le « livre de comptes » officiel des actions : il liste, dans l'ordre, toutes les entrées et sorties d'actionnaires depuis la création. C'est l'inscription en compte qui transfère la propriété des actions — le registre fait donc foi de qui possède quoi."><div class="ts-label">Rôle du registre</div><div class="ts-content"><p>Le registre des mouvements de titres est le document obligatoire dans lequel la Société consigne, de façon chronologique, l'ensemble des opérations affectant la propriété des actions : souscriptions à la constitution, augmentations de capital, cessions, transmissions (donation, succession), apports, conversions de catégories, exercices de bons (BSPCE, BSA), nantissements et leurs mainlevées, démembrements. Dans une SAS, les actions étant obligatoirement nominatives, c'est l'<strong>inscription en compte</strong> qui emporte transfert de propriété (art. L. 228-1 C. com., L. 211-3 CMF) : le registre, complété des comptes individuels d'associés, fait foi de la répartition du capital. Il est tenu au siège social, en la forme papier ou électronique. Personne ne devient (ni ne cesse d'être) associé autrement que par une ligne de ce registre — c'est aussi le point de contrôle pratique des clauses d'agrément, de préemption et d'adhésion au pacte : la Société refuse d'inscrire un mouvement irrégulier.</p></div></div>
-
-<div class="ts-clause" data-plain="Dans une levée, les investisseurs vérifient ce registre pour reconstituer l'historique du capital et s'assurer que chaque cession passée a bien été faite dans les règles (agrément, préemption, adhésion au pacte). Un registre mal tenu ou en retard est un signal d'alerte majeur en due diligence — et peut coûter des garanties spécifiques."><div class="ts-label">Importance dans une levée</div><div class="ts-content"><p>En due diligence, le registre est systématiquement contrôlé : il sert à reconstituer l'historique du capital depuis la constitution, à vérifier la chaîne de propriété de chaque action (chaque ligne doit avoir sa pièce justificative) et à confirmer la table de capitalisation. Les anomalies classiques relevées : mouvements non inscrits ou inscrits tardivement, ordres de mouvement manquants, cessions sans purge de la préemption ou sans agrément, enregistrement fiscal des cessions omis, numérotation discontinue, écarts avec les statuts ou la cap table. Chacune retarde l'opération, et les plus graves (cession potentiellement nulle) donnent lieu à des régularisations préalables ou à des garanties spécifiques dans la GAP. Le registre est mis à jour à l'occasion de l'augmentation de capital liée à la levée — avant, pas après, la due diligence.</p></div></div>
-
 <div class="ts-group" contenteditable="false">Le registre</div>
 
 <div class="ts-clause" data-key="historique" data-plain="Le tableau central : chaque ligne est une opération, numérotée et datée, avec la nature (souscription, cession, exercice de bons…), les parties, le nombre d'actions, leurs numéros, le prix et le renvoi aux pièces. Les lignes ne se suppriment jamais — l'histoire du capital s'écrit à la suite."><div class="ts-label">Historique chronologique des mouvements</div><div class="ts-content">
@@ -49,37 +43,3 @@
 <li>Les comptes individuels et la cap table se <strong>recoupent ligne à ligne</strong> avec le registre.</li>
 <li>Les nantissements et démembrements sont mentionnés, avec leurs mainlevées éventuelles.</li>
 </ul></div></div>
-
-<div class="ts-clause" data-plain="L'action concrète : mettez le registre à jour (notamment après l'augmentation de capital de la levée), passez la check-list, régularisez ce qui doit l'être, puis ajoutez-le ici via « Ajouter » avec les ordres de mouvement."><div class="ts-label">À faire</div><div class="ts-content"><ul>
-<li>Inscrire au registre l'augmentation de capital liée à la levée et tout mouvement en attente.</li>
-<li>Passer la check-list de cohérence (statuts, Kbis, comptes individuels, cap table, enregistrements fiscaux).</li>
-<li>Régulariser les anomalies détectées (ODM manquants à faire signer, ratifications, enregistrements tardifs) avant la due diligence.</li>
-<li>Numériser le registre et les ordres de mouvement et les téléverser via « Ajouter ».</li>
-</ul></div></div>
-<script type="application/json" data-conditions>{
-"historique": [
-{"id":"rmt_hist_pieces","type":"option","label":"Colonne « pièces » systématique","preview":"Chaque ligne renvoie à ses justificatifs","html":"<p>Chaque ligne du registre comporte le <mark class='cond-val'>renvoi à ses pièces</mark> (ODM, PV, bulletin, agrément, enregistrement) : la ligne et l'acte se prouvent mutuellement, et la due diligence se traverse sans friction.</p>"},
-{"id":"rmt_hist_nantissement","type":"option","label":"Mention des nantissements et démembrements","preview":"Les charges se tracent sans transfert de propriété","html":"<p>Les <mark class='cond-val'>nantissements</mark> (constitution et mainlevée) et <mark class='cond-val'>démembrements</mark> (usufruit/nue-propriété) sont mentionnés au registre et aux comptes individuels, sans emporter transfert de propriété.</p>"}
-],
-"odm": [
-{"id":"rmt_odm_signe","type":"option","label":"ODM signé pour chaque mouvement","preview":"La pièce de base de toute inscription","html":"<p>Aucune inscription sans <mark class='cond-val'>ordre de mouvement signé</mark> du cédant (ou bulletin de souscription pour une émission), mentionnant parties, nombre, catégorie, numéros et prix.</p>"},
-{"id":"rmt_odm_fiscal","type":"seuil","label":"Enregistrement fiscal des cessions (0,1 %)","preview":"Cerfa 2759 ou acte, dans le mois","html":"<p>Chaque cession d'actions est <mark class='cond-val'>enregistrée fiscalement</mark> dans le mois (acte ou formulaire n° 2759), avec paiement du droit de <mark class='cond-val'>0,1 %</mark> du prix — l'omission est une anomalie relevée à chaque audit.</p>"},
-{"id":"rmt_odm_pacte","type":"exception","label":"Adhésion au pacte avant inscription","preview":"Le registre est le point de contrôle du pacte","html":"<p>L'inscription d'un cessionnaire est <mark class='cond-val'>subordonnée à son adhésion au pacte</mark> et au respect des clauses statutaires (agrément, préemption) ; la Société <mark class='cond-val'>refuse</mark> tout mouvement irrégulier.</p>"}
-],
-"forme-registre": [
-{"id":"rmt_papier","type":"option","label":"Registre papier coté et paraphé","preview":"Registre relié, coté et paraphé","html":"<p>Le registre est tenu sur un <mark class='cond-val'>registre papier relié, coté et paraphé</mark>, conservé au siège social, sans blanc ni altération.</p>"},
-{"id":"rmt_feuillets","type":"option","label":"Feuillets mobiles numérotés","preview":"Feuillets numérotés sans discontinuité","html":"<p>Le registre est tenu sur <mark class='cond-val'>feuillets mobiles numérotés sans discontinuité</mark>, reliés et conservés au siège social.</p>"},
-{"id":"rmt_electronique","type":"option","label":"Registre électronique / DEEP (recommandé)","preview":"Logiciel dédié ou blockchain, horodaté","html":"<p>Le registre est tenu sous forme <mark class='cond-val'>électronique</mark> (logiciel dédié ou dispositif d'enregistrement électronique partagé — blockchain), garantissant l'<mark class='cond-val'>intégrité et l'horodatage</mark> des inscriptions et facilitant exports et audits.</p>"},
-{"id":"rmt_rectification","type":"exception","label":"Correction par écriture rectificative","preview":"Jamais de rature ni d'effacement","html":"<p>Toute erreur se corrige par une <mark class='cond-val'>écriture rectificative datée et motivée</mark> ; l'historique n'est <mark class='cond-val'>jamais réécrit</mark> — une rature détruit la valeur probante du registre.</p>"}
-]
-}</script>
-<script type="application/json" data-advice>[
-{"title":"Mettre le registre à jour avant la due diligence","body":"Inscrivez l'augmentation de capital et tout mouvement en attente avant d'ouvrir la data room : un registre en retard sur la cap table est le point de blocage n°1 des audits."},
-{"title":"Conserver chaque ordre de mouvement","body":"Classez et numérotez les ODM en regard du registre : sans pièce justificative, une cession passée peut être contestée — et la chaîne de propriété de chaque action doit se prouver depuis la constitution."},
-{"title":"Vérifier l'enregistrement fiscal des cessions passées","body":"Chaque cession d'actions devait être enregistrée dans le mois (droit de 0,1 %) : contrôlez l'historique et régularisez les omissions avant qu'un auditeur ne les relève."},
-{"title":"Faire du registre le gardien du pacte","body":"Aucune inscription sans agrément purgé, préemption respectée et adhésion au pacte signée : ce contrôle à l'inscription est ce qui rend les clauses de transfert réellement effectives."},
-{"title":"Ne jamais raturer","body":"Corrigez toute erreur par une écriture rectificative datée, jamais par effacement : le registre se tient sans blanc ni altération, sur toute son histoire."},
-{"title":"Recouper registre, comptes individuels et cap table","body":"Vérifiez l'égalité ligne à ligne entre le registre, les comptes d'associés, les statuts, le Kbis et la cap table ; tout écart doit être expliqué et corrigé."},
-{"title":"Passer au registre électronique","body":"Un logiciel de tenue de registres (ou un DEEP) horodate, sécurise, génère les attestations et simplifie chaque levée ; la reprise de l'historique papier se fait une fois pour toutes."},
-{"title":"Régulariser les cessions irrégulières AVANT l'opération","body":"Cession sans agrément ou sans purge de préemption : faites ratifier par les bénéficiaires des clauses violées avant la levée — découverte en due diligence, la même anomalie coûte des semaines et des garanties."}
-]</script>

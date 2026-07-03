@@ -108,6 +108,17 @@
                 <div style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:4px;">Entrée / Sortie</div>
               </div>
             </div>
+            <!-- Budget IA quotidien global (plafond DAILY_TOKEN_CAP) -->
+            <div style="margin-top:18px;">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+                <span style="font-size:.82rem;font-weight:600;color:#080c14;">Budget IA quotidien (global)</span>
+                <span id="usage-daily-label" style="font-size:.8rem;color:var(--muted);">—</span>
+              </div>
+              <div style="height:8px;background:#e9edf5;border-radius:99px;overflow:hidden;">
+                <div id="usage-daily-bar" style="height:100%;width:0%;background:#2563eb;border-radius:99px;transition:width .4s ease;"></div>
+              </div>
+              <p id="usage-daily-note" style="font-size:.75rem;color:var(--muted);margin:6px 0 0;">Plafond partagé par tout le SaaS, réinitialisé chaque jour.</p>
+            </div>
           </div>
 
           <div class="setting-card" style="flex-direction:column;align-items:stretch;">
@@ -418,6 +429,25 @@
             if (req) req.textContent = fmt(u.requests);
             if (tot) tot.textContent = fmt(u.total_tokens);
             if (io)  io.textContent  = `${fmt(u.input_tokens)} / ${fmt(u.output_tokens)}`;
+
+            // Budget IA quotidien global : barre de progression consommé / plafond.
+            const cap  = u.daily_cap  || 0;
+            const used = u.daily_used || 0;
+            const bar   = document.getElementById('usage-daily-bar');
+            const label = document.getElementById('usage-daily-label');
+            const note  = document.getElementById('usage-daily-note');
+            if (cap && bar && label) {
+              const pct = Math.min(100, Math.round((used / cap) * 100));
+              bar.style.width = pct + '%';
+              label.textContent = `${fmt(used)} / ${fmt(cap)} tokens · ${pct}%`;
+              const color = pct >= 100 ? '#dc2626' : pct >= 80 ? '#f59e0b' : '#2563eb';
+              bar.style.background = color;
+              if (note) {
+                note.textContent = pct >= 100
+                  ? "Plafond atteint — l'assistant IA est en pause jusqu'à demain."
+                  : 'Plafond partagé par tout le SaaS, réinitialisé chaque jour.';
+              }
+            }
           })
           .catch(() => {});
       })();

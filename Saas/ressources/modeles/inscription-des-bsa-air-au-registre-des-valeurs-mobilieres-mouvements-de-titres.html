@@ -1,10 +1,6 @@
 <h1 class="doc-title">INSCRIPTION DES BSA-AIR AU REGISTRE</h1>
 <p class="doc-sub">[DÉNOMINATION] — registre des valeurs mobilières / mouvements de titres — version exhaustive</p>
 
-<div class="ts-group" contenteditable="false">Comprendre</div>
-
-<div class="ts-clause" data-plain="Les BSA-AIR sont des titres nominatifs : il faut les inscrire dans un registre pour qu'ils existent officiellement et qu'on sache qui les détient. Ce registre est le pendant, pour les bons, du registre des mouvements de titres pour les actions — et c'est l'inscription qui fait foi de la qualité de titulaire."><div class="ts-label">Rôle du registre</div><div class="ts-content"><p>Les BSA-AIR, valeurs mobilières nominatives donnant accès au capital, sont inscrits dans un registre tenu par la Société (registre des valeurs mobilières, distinct du registre des mouvements de titres réservé aux actions, ou section dédiée de celui-ci). L'inscription en compte emporte reconnaissance de la qualité de titulaire (art. L. 211-3 CMF) et assure la traçabilité des bons de leur émission jusqu'à leur conversion ou caducité. Chaque titulaire dispose en outre d'un compte individuel et peut se faire délivrer une attestation d'inscription. Le registre doit rester rigoureusement cohérent avec la documentation d'émission (décision, contrat, bulletins, constatation) et la cap table pleinement diluée : c'est le premier document croisé en due diligence, et une discordance registre/cap table est un signal d'alerte immédiat pour un investisseur.</p></div></div>
-
 <div class="ts-group" contenteditable="false">Le registre</div>
 
 <div class="ts-clause" data-key="inscription" data-plain="Le tableau d'inscription : chaque émission de bons, numérotée et datée, avec le titulaire, le nombre, le prix et les conditions de conversion, et la référence des pièces justificatives. On y ajoutera plus tard la conversion ou la caducité — chaque ligne renvoie à un acte."><div class="ts-label">Inscription des bons émis</div><div class="ts-content"><table>
@@ -23,35 +19,3 @@
 </table></div></div>
 
 <div class="ts-clause" data-key="forme" data-plain="Les règles de tenue : chronologique, sans blanc ni rature (une erreur se corrige par écriture rectificative datée, jamais par correction de l'historique), chaque ligne appuyée sur ses pièces. Forme papier (coté, paraphé) ou électronique (logiciel de registres, DEEP/blockchain) — l'électronique s'impose en pratique."><div class="ts-label">Tenue &amp; cohérence</div><div class="ts-content"><p>Le registre est tenu chronologiquement, <strong>sans blanc ni altération</strong> : toute erreur est corrigée par une écriture rectificative datée et motivée, l'historique n'étant jamais réécrit. Chaque inscription est appuyée par sa documentation (PV d'émission, contrat, bulletins, attestation de versement, constatation ; pour les transferts : notification et adhésion du cessionnaire ; pour les conversions : note de calcul et PV). À chaque conversion : les actions émises sont inscrites au registre des mouvements de titres et aux comptes individuels d'associés, la ligne « bons » est soldée avec renvoi croisé, et la cap table pleinement diluée est mise à jour. Une réconciliation périodique registre ↔ contrats ↔ cap table est réalisée [à chaque revue trimestrielle].</p></div></div>
-
-<div class="ts-clause" data-plain="L'action concrète : inscrire l'émission dès sa constatation, délivrer les attestations aux titulaires, tenir le suivi au fil des événements, réconcilier avec la cap table, numériser et ajouter le registre ici."><div class="ts-label">À faire</div><div class="ts-content"><ul>
-<li>Inscrire l'émission des BSA-AIR au registre dès la constatation par le Président, avec renvoi aux pièces.</li>
-<li>Délivrer à chaque titulaire une attestation d'inscription en compte.</li>
-<li>Tenir à jour le suivi (conversion, transfert, prorogation, caducité) au fil des événements, avec renvois croisés vers le registre des mouvements de titres.</li>
-<li>Réconcilier périodiquement registre, contrats d'émission et cap table pleinement diluée.</li>
-<li>Numériser le registre et le téléverser via « Ajouter ».</li>
-</ul></div></div>
-<script type="application/json" data-conditions>{
-"inscription": [
-{"id":"ibsa_ins_pieces","type":"option","label":"Chaque ligne renvoie à ses pièces","preview":"PV, bulletin, constatation référencés","html":"<p>Chaque inscription mentionne les <mark class='cond-val'>références des pièces justificatives</mark> (PV d'émission, bulletin, constatation) : la ligne de registre et l'acte se prouvent mutuellement.</p>"},
-{"id":"ibsa_ins_attestation","type":"option","label":"Attestation d'inscription délivrée","preview":"Le titulaire reçoit la preuve de ses bons","html":"<p>Une <mark class='cond-val'>attestation d'inscription en compte</mark> est délivrée à chaque titulaire lors de l'émission, mentionnant le nombre de bons et leurs caractéristiques essentielles.</p>"}
-],
-"suivi": [
-{"id":"ibsa_suivi_renvoi","type":"option","label":"Renvois croisés bons ↔ actions","preview":"À la conversion, chaque registre pointe vers l'autre","html":"<p>À la conversion, la ligne « bons » est soldée avec <mark class='cond-val'>renvoi croisé</mark> vers la ligne d'inscription des actions au registre des mouvements de titres, et réciproquement — la traçabilité est bidirectionnelle.</p>"},
-{"id":"ibsa_suivi_transfert","type":"exception","label":"Transferts aux affiliés tracés","preview":"Notification + adhésion exigées avant inscription","html":"<p>Tout transfert de bons (limité aux <mark class='cond-val'>affiliés</mark> selon le contrat) n'est inscrit qu'au vu de la <mark class='cond-val'>notification</mark> à la Société et de l'<mark class='cond-val'>adhésion</mark> du cessionnaire au contrat d'émission.</p>"}
-],
-"forme": [
-{"id":"ibsa_papier","type":"option","label":"Registre papier coté et paraphé","preview":"Registre relié, tenue manuelle","html":"<p>Le registre est tenu sur un <mark class='cond-val'>registre papier coté et paraphé</mark>, sans blanc ni altération, conservé au siège.</p>"},
-{"id":"ibsa_electronique","type":"option","label":"Registre électronique / DEEP (recommandé)","preview":"Logiciel de registres ou blockchain, horodaté","html":"<p>Le registre est tenu sous forme <mark class='cond-val'>électronique</mark> (logiciel de tenue de registres ou dispositif d'enregistrement électronique partagé au sens du décret n° 2018-1226), avec <mark class='cond-val'>horodatage</mark> et export possible à tout moment.</p>"},
-{"id":"ibsa_rectification","type":"exception","label":"Correction par écriture rectificative","preview":"Jamais de rature ni de réécriture","html":"<p>Toute erreur est corrigée par une <mark class='cond-val'>écriture rectificative datée et motivée</mark> ; l'historique du registre n'est <mark class='cond-val'>jamais réécrit</mark> ni raturé.</p>"}
-]
-}</script>
-<script type="application/json" data-advice>[
-{"title":"Inscrire dès la constatation, pas « plus tard »","body":"L'inscription au registre matérialise l'existence des bons et la qualité de titulaire : faites-la le jour de la constatation, avec renvoi aux pièces — un registre en retard est le défaut de tenue le plus courant."},
-{"title":"Délivrer les attestations d'inscription","body":"Chaque titulaire doit recevoir son attestation : c'est sa preuve, et cela vous évite les demandes répétées au moment du tour suivant."},
-{"title":"Tracer chaque bon jusqu'à extinction","body":"Converti, transféré, prorogé, caduc ou remboursé : chaque bon doit avoir une fin inscrite, avec renvoi croisé vers le registre des mouvements de titres en cas de conversion."},
-{"title":"Réconcilier trimestriellement avec la cap table","body":"Registre des valeurs mobilières, contrats d'émission et cap table pleinement diluée doivent dire exactement la même chose : la réconciliation périodique coûte 15 minutes, la discordance en due diligence coûte des semaines."},
-{"title":"Corriger sans jamais raturer","body":"Une erreur se corrige par écriture rectificative datée et motivée : réécrire ou raturer l'historique détruit la valeur probante du registre."},
-{"title":"Passer au registre électronique","body":"Un logiciel de tenue de registres (ou un DEEP) horodate, sécurise et facilite exports et audits ; le papier coté et paraphé reste valable mais devient l'exception en pratique."},
-{"title":"Encadrer l'inscription des transferts","body":"Aucun transfert de bons ne s'inscrit sans notification et adhésion du cessionnaire au contrat d'émission : le registre est aussi le point de contrôle de l'incessibilité."}
-]</script>

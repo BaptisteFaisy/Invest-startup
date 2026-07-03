@@ -1393,7 +1393,7 @@ Règles :
 });
 
 // ─── SaaS : explication « Pour bien comprendre » de TOUS les paragraphes (groupée) ─
-app.post('/api/saas/clauses-explain', requireAuth, async (req, res) => {
+app.post('/api/saas/clauses-explain', requireAuth, enforceDailyCap, async (req, res) => {
   if (!zaiClient)
     return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
@@ -1479,12 +1479,17 @@ app.get('/api/saas/usage', requireAuth, async (req, res) => {
     { user_id: req.user.id },
     { projection: { _id: 0, user_id: 0 } }
   );
+  const dailyUsed = await globalTokensToday();
   res.json({
     requests:      u?.requests      || 0,
     input_tokens:  u?.input_tokens  || 0,
     output_tokens: u?.output_tokens || 0,
     total_tokens:  u?.total_tokens  || 0,
     updated_at:    u?.updated_at     || null,
+    // Plafond quotidien GLOBAL (tout le SaaS) et consommation du jour.
+    daily_cap:     DAILY_TOKEN_CAP,
+    daily_used:    dailyUsed,
+    daily_day:     parisDay(),
   });
 });
 
@@ -1957,6 +1962,77 @@ app.get('/api/saas/termsheets/:id', requireAuth, async (req, res) => {
   res.json({ id: doc.id, name: doc.name, html: doc.html || '' });
 });
 
+// ─── SaaS : versions VALIDÉES d'un document de travail ────────────────────────
+// Une version n'est créée QUE sur action explicite de l'utilisateur (bouton
+// « Valider la version » de l'éditeur) — jamais à chaque enregistrement. Les
+// instantanés sont stockés À PART (collection saas_doc_versions), pas parmi les
+// documents classiques : ils n'apparaissent ni dans « Mes documents », ni dans
+// les dossiers, ni dans les sélecteurs.
+
+// Liste des versions d'un document (métadonnées seulement, la plus récente en tête).
+app.get('/api/saas/termsheets/:id/versions', requireAuth, async (req, res) => {
+  const id  = Number(req.params.id);
+  const doc = await col('saas_documents').findOne({ id, user_id: req.user.id, kind: 'termsheet' }, { projection: { id: 1 } });
+  if (!doc) return res.status(404).json({ error: 'Document introuvable' });
+  const versions = await col('saas_doc_versions')
+    .find({ user_id: req.user.id, document_id: id }, { projection: { _id: 0, id: 1, label: 1, size: 1, created_at: 1 } })
+    .sort({ id: -1 })
+    .toArray();
+  res.json({ versions });
+});
+
+// Valider une version : instantané du contenu actuel (html transmis par l'éditeur,
+// sinon contenu enregistré en base), avec un libellé optionnel.
+app.post('/api/saas/termsheets/:id/versions', requireAuth, async (req, res) => {
+  const id  = Number(req.params.id);
+  const doc = await col('saas_documents').findOne({ id, user_id: req.user.id, kind: 'termsheet' });
+  if (!doc) return res.status(404).json({ error: 'Document introuvable' });
+
+  const html = typeof req.body?.html === 'string' && req.body.html.trim() ? req.body.html : (doc.html || '');
+  if (!html.trim()) return res.status(422).json({ error: 'Document vide : rien à versionner.' });
+  const label = String(req.body?.label || '').trim().slice(0, 120);
+
+  // Pas de doublon : si la dernière version validée a exactement le même contenu,
+  // on la renvoie au lieu d'en créer une nouvelle.
+  const last = await col('saas_doc_versions')
+    .findOne({ user_id: req.user.id, document_id: id }, { sort: { id: -1 } });
+  if (last && last.html === html) {
+    const { _id, user_id, html: _h, ...meta } = last;
+    return res.json({ version: meta, duplicate: true });
+  }
+
+  const vid = await nextId('saas_doc_versions');
+  const version = {
+    id: vid, user_id: req.user.id, document_id: id,
+    label, html, size: Buffer.byteLength(html, 'utf8'),
+    created_at: new Date().toISOString(),
+  };
+  await col('saas_doc_versions').insertOne(version);
+  const { _id, user_id, html: _h2, ...meta } = version;
+  res.status(201).json({ version: meta });
+});
+
+// Contenu d'une version (pour la restaurer dans l'éditeur).
+app.get('/api/saas/termsheets/:id/versions/:vid', requireAuth, async (req, res) => {
+  const id  = Number(req.params.id);
+  const vid = Number(req.params.vid);
+  const v = await col('saas_doc_versions').findOne(
+    { id: vid, user_id: req.user.id, document_id: id },
+    { projection: { _id: 0, user_id: 0 } }
+  );
+  if (!v) return res.status(404).json({ error: 'Version introuvable' });
+  res.json(v);
+});
+
+// Supprimer une version validée de l'historique.
+app.delete('/api/saas/termsheets/:id/versions/:vid', requireAuth, async (req, res) => {
+  const id  = Number(req.params.id);
+  const vid = Number(req.params.vid);
+  const r = await col('saas_doc_versions').deleteOne({ id: vid, user_id: req.user.id, document_id: id });
+  if (!r.deletedCount) return res.status(404).json({ error: 'Version introuvable' });
+  res.json({ success: true });
+});
+
 app.post('/api/saas/documents', requireAuth, saasUpload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Aucun fichier reçu ou format non supporté (max 15 Mo)' });
   const id  = await nextId('saas_documents');
@@ -2007,6 +2083,8 @@ app.delete('/api/saas/documents/:id', requireAuth, async (req, res) => {
   const doc = await col('saas_documents').findOne({ id, user_id: req.user.id });
   if (!doc) return res.status(404).json({ error: 'Document introuvable' });
   await col('saas_documents').deleteOne({ id, user_id: req.user.id });
+  // Purge les versions validées de ce document (stockées à part).
+  await col('saas_doc_versions').deleteMany({ user_id: req.user.id, document_id: id });
   // Détache le document de toute checklist de phase qui le référence.
   const folders = await col('saas_folders').find({ user_id: req.user.id }).toArray();
   for (const f of folders) {
