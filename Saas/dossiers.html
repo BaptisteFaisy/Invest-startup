@@ -188,7 +188,21 @@
     .bsa-item__note--req { background: rgba(220,38,38,0.1); color: #dc2626; }
     .bsa-item__note--opt { background: rgba(8,9,12,0.06); color: #fff; }
     .bsa-item__ver { display: inline-block; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; padding: 1px 6px; border-radius: 99px; background: rgba(59,130,246,0.12); color: #2563eb; vertical-align: middle; }
-    .bsa-item__vermeta { font-size: 11.5px; }
+
+    /* Menu déroulant « historique des versions » d'un document de la roadlist */
+    .ver-hist { margin-top: 8px; background: var(--bg, #f4f2ee); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+    .ver-hist__h { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6b6b78; margin-bottom: 8px; }
+    .ver-hist__list { display: flex; flex-direction: column; gap: 7px; }
+    .ver-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .ver-row__tag { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; padding: 2px 8px; border-radius: 99px; background: rgba(8,9,12,0.06); color: #6b6b78; flex: none; }
+    .ver-row__tag--current { background: rgba(59,130,246,0.12); color: #2563eb; }
+    .ver-row__name { font-size: 13px; font-weight: 600; color: #08090c; min-width: 0; max-width: 44%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ver-row__meta { font-family: 'Archivo', sans-serif; font-size: 11.5px; color: #6b6b78; }
+    .ver-row__acts { display: flex; gap: 6px; margin-left: auto; flex: none; }
+    @media (max-width: 680px) {
+      .ver-row__name { max-width: 100%; }
+      .ver-row__acts { width: 100%; justify-content: flex-end; }
+    }
 
     @media (max-width: 680px) {
       .file__actions .fbtn { padding: 7px 9px; }
@@ -460,6 +474,7 @@
     const pendingUploads = []; // fichiers en cours de téléversement ({ name, size, folderId })
     const pendingSlots   = {}; // téléversements en cours vers un slot précis (clé folderId:slug → nom)
     const todosOpen = {}; // mémorise les listes « choses à faire » dépliées (clé folderId:slug)
+    const versionsOpen = {}; // mémorise les historiques de versions dépliés (clé folderId:slug)
 
     // Modèles juridiques disponibles : slug d'élément de roadlist -> fichier modèle.
     // Le bouton « Modèle » n'apparaît que pour les éléments listés ici.
@@ -497,12 +512,22 @@
       'information-reporting-des-investisseurs-info-rights',
       // Parcours BSA-AIR — modèles dédiés
       'term-sheet-bsa-air-montant-decote-plafond-et-ou-plancher-de-valorisation',
-      'contrat-d-emission-de-bsa-air-termes-et-conditions-des-bons',
-      'bulletin-de-souscription-des-bsa-air',
       'tableau-de-simulation-de-la-conversion-et-de-la-dilution',
-      'calcul-du-prix-de-conversion-application-de-la-decote-et-ou-du-plafond',
+      // Phase émission
+      'rapport-du-president-et-du-commissaire-aux-comptes-le-cas-echeant-sur-l-emission-de-bsa-avec-suppression-du-dps',
+      'pv-de-la-decision-collective-age-autorisant-l-emission-des-bsa-air',
+      'contrat-d-emission-de-bsa-air-termes-et-conditions-des-bons',
+      // Phase souscription & versement des fonds
+      'bulletin-de-souscription-des-bsa-air',
       'lettre-d-investissement-side-letter',
       'convention-entre-investisseurs',
+      'attestation-de-versement-des-fonds-par-le-s-souscripteur-s',
+      'constatation-de-la-souscription-des-bsa-air-par-le-president',
+      'inscription-des-bsa-air-au-registre-des-valeurs-mobilieres-mouvements-de-titres',
+      'depot-de-la-formalite-d-emission-au-greffe',
+      // Suivi & conversion
+      'suivi-des-engagements-bsa-air-en-cours-echeances-evenements-declencheurs',
+      'calcul-du-prix-de-conversion-application-de-la-decote-et-ou-du-plafond',
       'comptes-annuels-dernier-exercice-clos',
       'support-de-presentation-deck-investisseurs',
     ]);
@@ -603,12 +628,6 @@
       const linkedIds = new Set(
         Object.values(f.items_state || {}).map(st => st.document_id).filter(id => id != null)
       );
-      // Fichiers rangés dans la phase mais non rattachés à une ligne précise de la
-      // roadlist (dépôt libre sur la phase, ou nouvelle version dont l'archivage n'a
-      // pas encore abouti). Les versions archivées (is_version) sont exclues : elles
-      // restent accessibles via « Comparer ». On les affiche pour qu'aucun fichier
-      // importé ne disparaisse silencieusement de la page.
-      const extra = docs.filter(d => d.folder_id === f.id && !linkedIds.has(d.id) && !d.is_version);
 
       const card = document.createElement('div');
       card.className = 'folder open';
@@ -624,22 +643,6 @@
       const ol   = card.querySelector('.bsa-list');
       const body = card.querySelector('.folder__body');
       list.forEach((item, idx) => ol.appendChild(roadItem(f, item, idx)));
-
-      // Filet de sécurité : les fichiers de la phase non rattachés à une ligne sont
-      // affichés ici (sinon ils seraient téléversés mais invisibles). On peut les
-      // glisser sur une ligne de la roadlist pour les rattacher, ou les supprimer.
-      if (extra.length) {
-        const h = document.createElement('div');
-        h.className = 'bsa-files__h';
-        h.textContent = 'Autres fichiers de cette phase';
-        body.appendChild(h);
-        const fl = document.createElement('div');
-        fl.className = 'files';
-        extra
-          .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))
-          .forEach(d => fl.appendChild(fileRow(d)));
-        body.appendChild(fl);
-      }
 
       attachCardDrop(card, f.id);
       return card;
@@ -726,9 +729,7 @@
 
       const pendingName = pendingSlots[f.id + ':' + slug] || null;
       const versions    = Array.isArray(st.versions) ? st.versions : [];
-      const verNote     = linked && versions.length
-        ? ` <span class="bsa-item__ver">v${versions.length + 1}</span> <span class="bsa-item__vermeta">· ${versions.length} version${versions.length > 1 ? 's' : ''} précédente${versions.length > 1 ? 's' : ''}</span>`
-        : '';
+      const verNote     = linked && versions.length ? ` <span class="bsa-item__ver">v${versions.length + 1}</span>` : '';
       const li = document.createElement('li');
       li.className = 'bsa-item' + (linked ? ' bsa-item--done' : '');
       li.innerHTML = `
@@ -781,16 +782,16 @@
           dl.href = '/api/saas/documents/' + doc.id + '/download';
           acts.appendChild(dl);
         }
-        // Comparer avec la version précédente (analyse IA) — visible dès qu'un
-        // historique existe pour ce document.
+        // Historique des versions : menu déroulant listant la version actuelle et
+        // les précédentes (téléchargement + comparaison IA par version).
         if (versions.length) {
-          const cmp = document.createElement('a');
-          cmp.className = 'fbtn fbtn--mini fbtn--accent';
-          cmp.textContent = '⇄ Comparer';
-          cmp.title = 'Comparer cette version avec la précédente (analyse IA)';
-          cmp.href = 'compare.html?new=' + doc.id + '&old=' + versions[0].document_id
-            + '&folder=' + f.id + '&slug=' + encodeURIComponent(slug);
-          acts.appendChild(cmp);
+          const histKey = f.id + ':' + slug;
+          const tog = document.createElement('button');
+          tog.className = 'fbtn fbtn--mini' + (versionsOpen[histKey] ? ' fbtn--accent' : '');
+          tog.textContent = '🕑 Versions (' + (versions.length + 1) + ') ' + (versionsOpen[histKey] ? '▲' : '▼');
+          tog.title = 'Voir l\'historique des versions de ce document';
+          tog.addEventListener('click', () => { versionsOpen[histKey] = !versionsOpen[histKey]; render(); });
+          acts.appendChild(tog);
         }
 
         // Valider / Annuler la validation du document lié.
@@ -856,7 +857,69 @@
         else linkDoc(f.id, slug, did);
       });
 
+      // Panneau « historique des versions », déplié via le bouton « Versions (N) ».
+      if (linked && versions.length && versionsOpen[f.id + ':' + slug]) {
+        li.appendChild(versionHistoryEl(f, slug, doc, versions));
+      }
+
       return li;
+    }
+
+    // Menu déroulant « historique des versions » d'un document de la roadlist :
+    // version actuelle (v N) + versions précédentes (la plus récente en tête),
+    // chacune téléchargeable ; les précédentes proposent « Comparer » (analyse IA
+    // de l'ancienne face à l'actuelle).
+    function versionHistoryEl(f, slug, currentDoc, versions) {
+      const total = versions.length + 1;
+      const box = document.createElement('div');
+      box.className = 'ver-hist';
+      box.innerHTML = '<div class="ver-hist__h">Historique des versions</div>';
+      const listEl = document.createElement('div');
+      listEl.className = 'ver-hist__list';
+
+      // Version actuelle.
+      const curRow = document.createElement('div');
+      curRow.className = 'ver-row';
+      curRow.innerHTML = `
+        <span class="ver-row__tag ver-row__tag--current">v${total} · actuelle</span>
+        <span class="ver-row__name" title="${esc(currentDoc.name)}">${esc(currentDoc.name)}</span>
+        <span class="ver-row__acts"></span>`;
+      const curDl = document.createElement('a');
+      curDl.className = 'fbtn fbtn--mini';
+      curDl.textContent = 'Télécharger';
+      curDl.href = '/api/saas/documents/' + currentDoc.id + '/download';
+      curRow.querySelector('.ver-row__acts').appendChild(curDl);
+      listEl.appendChild(curRow);
+
+      // Versions précédentes (plus récente en tête).
+      versions.forEach((v, i) => {
+        const num  = versions.length - i;
+        const name = v.name || ('Document #' + v.document_id);
+        const row  = document.createElement('div');
+        row.className = 'ver-row';
+        row.innerHTML = `
+          <span class="ver-row__tag">v${num}</span>
+          <span class="ver-row__name" title="${esc(name)}">${esc(name)}</span>
+          <span class="ver-row__meta">${v.archived_at ? 'archivée le ' + fmtDate(v.archived_at) : ''}</span>
+          <span class="ver-row__acts"></span>`;
+        const acts = row.querySelector('.ver-row__acts');
+        const cmp = document.createElement('a');
+        cmp.className = 'fbtn fbtn--mini fbtn--accent';
+        cmp.textContent = '⇄ Comparer';
+        cmp.title = 'Comparer cette version avec la version actuelle (analyse IA)';
+        cmp.href = 'compare.html?old=' + v.document_id + '&new=' + currentDoc.id
+          + '&folder=' + f.id + '&slug=' + encodeURIComponent(slug);
+        acts.appendChild(cmp);
+        const dl = document.createElement('a');
+        dl.className = 'fbtn fbtn--mini';
+        dl.textContent = 'Télécharger';
+        dl.href = '/api/saas/documents/' + v.document_id + '/download';
+        acts.appendChild(dl);
+        listEl.appendChild(row);
+      });
+
+      box.appendChild(listEl);
+      return box;
     }
 
     function fileRow(d) {
