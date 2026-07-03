@@ -2066,13 +2066,23 @@
         const text = (tmp.innerText || tmp.textContent || '').trim();
         if (!text) { showErr('Document vide : rien à analyser.'); return; }
 
-        await LiquidTasks.launch({
+        const { id } = await LiquidTasks.launch({
           type: 'doc-analyze',
           label: 'Analyse — ' + (doc.name || 'document'),
           payload: { title: doc.name, text, folderId, slug },
           location: { url: 'dossiers.html?todo=' + folderId + ':' + encodeURIComponent(slug) },
         });
         btn.textContent = 'Analyse lancée ✓';
+        // Ouvre le panneau dès la fin (couvre aussi un résultat instantané servi en cache).
+        (async () => {
+          for (;;) {
+            await new Promise(r => setTimeout(r, 1500));
+            let job = null;
+            try { job = await LiquidTasks.fetchResult(id); } catch { continue; }
+            if (!job) return;
+            if (job.status !== 'running') { applyFinishedAnalyses(); return; }
+          }
+        })();
       } catch (e) {
         showErr(e && e.message ? e.message : 'Impossible de lancer l\'analyse.');
       } finally {
