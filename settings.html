@@ -77,6 +77,27 @@
       </nav>
     </header>
 
+    <div class="mobile-menu" id="mobile-menu" role="dialog" aria-label="Navigation">
+      <button class="nav-hamburger open" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><span></span><span></span><span></span></button>
+      <a href="index.html">Accueil</a>
+      <a href="marche.html">Ressources</a>
+      <a href="login.html" style="margin-top:16px;font-size:1.1rem;color:#080c14;">Se connecter</a>
+    </div>
+
+    <script>
+      (function() {
+        var btn   = document.getElementById('nav-hamburger');
+        var menu  = document.getElementById('mobile-menu');
+        var close = document.getElementById('mobile-close');
+        if (!btn || !menu) return;
+        function openMenu()  { menu.classList.add('open');  btn.classList.add('open');  btn.setAttribute('aria-expanded','true');  document.body.style.overflow='hidden'; }
+        function closeMenu() { menu.classList.remove('open'); btn.classList.remove('open'); btn.setAttribute('aria-expanded','false'); document.body.style.overflow=''; }
+        btn.addEventListener('click', openMenu);
+        if (close) close.addEventListener('click', closeMenu);
+        menu.addEventListener('click', function(e) { if (e.target.tagName === 'A') closeMenu(); });
+      })();
+    </script>
+
     <main>
       <div class="settings-wrap">
         <h1 class="settings-title">Paramètres</h1>
@@ -255,6 +276,26 @@
         document.getElementById('nav-logout').addEventListener('click', async () => {
           await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
           window.location.href = 'login.html';
+        });
+
+        // Met à jour le menu mobile (hamburger) avec les mêmes liens
+        document.getElementById('mobile-menu').innerHTML = `
+          <button class="nav-hamburger open" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><span></span><span></span><span></span></button>
+          <a href="index.html">Accueil</a>
+          <a href="marche.html">Ressources</a>
+          <a href="settings.html">Paramètres</a>
+          <a href="/saas/editor.html">liquid + SaaS</a>
+          <button id="mobile-logout" style="margin-top:16px;font-size:1.1rem;color:#080c14;background:none;border:none;cursor:pointer;font-family:inherit;">Se déconnecter</button>
+        `;
+        document.getElementById('mobile-logout').addEventListener('click', async () => {
+          await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+          window.location.href = 'login.html';
+        });
+        document.getElementById('mobile-close').addEventListener('click', () => {
+          document.getElementById('mobile-menu').classList.remove('open');
+          document.getElementById('nav-hamburger').classList.remove('open');
+          document.getElementById('nav-hamburger').setAttribute('aria-expanded', 'false');
+          document.body.style.overflow = '';
         });
 
         load2FAStatus();

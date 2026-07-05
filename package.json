@@ -2,10 +2,12 @@
   "name": "invest-startup",
   "version": "1.0.0",
   "description": "Plateforme d'investissement Invest BG",
-  "main": "server.js",
+  "main": "electron-main.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "electron": "electron .",
+    "debug": "electron . --remote-debugging-port=9223"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -25,6 +27,7 @@
     "speakeasy": "^2.0.0"
   },
   "devDependencies": {
+    "electron": "^43.0.0",
     "nodemon": "^3.1.0"
   }
 }

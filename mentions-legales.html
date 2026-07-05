@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LIQUID+ — Mentions légales</title>
+    <meta name="description" content="Mentions légales du site liquidplus.fr et du service liquid +." />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://www.liquidplus.fr/mentions-legales.html" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Libre+Franklin:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/svg+xml" href="/ressourcegraphique/favicon-drop.svg" />
+    <link rel="stylesheet" href="styles.css?v=20260611b" />
+    <style>
+      .legal-wrap { max-width: 760px; margin: 0 auto; padding: 60px clamp(20px, 6vw, 48px) 100px; }
+      .legal-wrap h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 700; color: #080c14; margin: 0 0 8px; }
+      .legal-updated { font-size: 0.85rem; color: var(--muted); margin: 0 0 40px; }
+      .legal-wrap h2 { font-size: 1.2rem; font-weight: 700; color: #080c14; margin: 36px 0 12px; }
+      .legal-wrap p { font-size: 0.95rem; color: #2a2a33; line-height: 1.7; margin: 0 0 16px; }
+      .legal-wrap ul { margin: 0 0 16px; padding-left: 20px; display: grid; gap: 8px; }
+      .legal-wrap li { font-size: 0.95rem; color: #2a2a33; line-height: 1.7; }
+      .legal-wrap strong { color: #080c14; }
+      .legal-wrap a { color: var(--accent); }
+      .legal-nav { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--line); }
+      .legal-nav a { font-size: 0.85rem; font-weight: 600; color: var(--muted); text-decoration: none; }
+      .legal-nav a:hover { color: #080c14; }
+    </style>
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <nav class="nav">
+        <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
+        <div class="nav-links" id="nav-links">
+          <a class="nav-link" href="marche.html">Ressources</a>
+          <a class="button ghost" href="login.html">Se connecter</a>
+        </div>
+        <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+      </nav>
+    </header>
+
+    <div class="mobile-menu" id="mobile-menu" role="dialog" aria-label="Navigation">
+      <button class="nav-hamburger open" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><span></span><span></span><span></span></button>
+      <a href="index.html">Accueil</a>
+      <a href="marche.html">Ressources</a>
+      <a href="login.html" style="margin-top:16px; font-size:1.1rem; color:rgba(255,255,255,0.5);">Se connecter</a>
+    </div>
+
+    <script>
+      (function() {
+        var btn   = document.getElementById('nav-hamburger');
+        var menu  = document.getElementById('mobile-menu');
+        var close = document.getElementById('mobile-close');
+        if (!btn || !menu) return;
+        function openMenu()  { menu.classList.add('open');  btn.classList.add('open');  btn.setAttribute('aria-expanded','true');  document.body.style.overflow='hidden'; }
+        function closeMenu() { menu.classList.remove('open'); btn.classList.remove('open'); btn.setAttribute('aria-expanded','false'); document.body.style.overflow=''; }
+        btn.addEventListener('click', openMenu);
+        if (close) close.addEventListener('click', closeMenu);
+        menu.addEventListener('click', function(e) { if (e.target.tagName === 'A') closeMenu(); });
+      })();
+    </script>
+
+    <script>
+      fetch('/api/auth/me', { credentials: 'include' })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (!data?.user) return;
+          const name = data.user.full_name ? data.user.full_name.split(' ')[0] : data.user.email;
+          document.getElementById('nav-links').innerHTML = `
+            <a class="nav-link" href="marche.html">Ressources</a>
+            <a class="nav-link" href="settings.html">Paramètres</a>
+            <a class="nav-link saas-nav-link" href="/saas/editor.html">liquid + SaaS</a>
+            <span class="nav-link nav-user-name">${name}</span>
+            <button class="button ghost" id="nav-logout">Se déconnecter</button>
+          `;
+          document.getElementById('nav-logout').addEventListener('click', async () => {
+            await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+            window.location.reload();
+          });
+        })
+        .catch(() => {});
+    </script>
+
+    <main>
+      <div class="legal-wrap">
+        <h1>Mentions légales</h1>
+        <p class="legal-updated">Dernière mise à jour : 5 juillet 2026</p>
+
+        <h2>1. Éditeur du site</h2>
+        <p>
+          Le site liquidplus.fr et le service liquid + (ci-après « le Site ») sont édités par :<br>
+          <strong>[Raison sociale de la société]</strong>, [forme juridique] au capital de [montant] €<br>
+          Siège social : [adresse complète]<br>
+          RCS [ville] — [numéro SIREN / SIRET]<br>
+          Numéro de TVA intracommunautaire : [numéro]<br>
+          Directeur de la publication : [nom et qualité du représentant légal]<br>
+          Contact : <a href="mailto:contact@liquidplus.fr">contact@liquidplus.fr</a>
+        </p>
+
+        <h2>2. Hébergement</h2>
+        <p>
+          Le Site est hébergé par :<br>
+          <strong>[Nom de l'hébergeur]</strong><br>
+          [Adresse de l'hébergeur]<br>
+          [Téléphone / site web de l'hébergeur]
+        </p>
+
+        <h2>3. Propriété intellectuelle</h2>
+        <p>
+          L'ensemble des éléments du Site (textes, structure, charte graphique, logo, modèles de documents juridiques, code source) est protégé par le droit de la propriété intellectuelle et demeure la propriété exclusive de l'éditeur, sauf mention contraire. Toute reproduction, représentation ou exploitation, totale ou partielle, sans autorisation préalable est interdite.
+        </p>
+        <p>
+          Les documents que vous rédigez, complétez ou exportez à partir des modèles proposés par le Site restent votre propriété exclusive.
+        </p>
+
+        <h2>4. Nature du service</h2>
+        <p>
+          liquid + met à disposition des outils d'édition et d'assistance, y compris par intelligence artificielle, pour la rédaction et la négociation de documents juridiques liés aux levées de fonds. Ces outils ont une vocation pédagogique et opérationnelle : ils ne constituent pas une consultation juridique et ne remplacent pas l'intervention d'un avocat, notamment pour les opérations complexes ou à enjeux importants.
+        </p>
+
+        <h2>5. Responsabilité</h2>
+        <p>
+          L'éditeur s'efforce d'assurer l'exactitude des informations diffusées sur le Site mais ne saurait être tenu responsable des erreurs, omissions ou d'une indisponibilité temporaire du Site.
+        </p>
+
+        <h2>6. Contact</h2>
+        <p>
+          Pour toute question relative aux présentes mentions légales : <a href="mailto:contact@liquidplus.fr">contact@liquidplus.fr</a>
+        </p>
+
+        <div class="legal-nav">
+          <a href="mentions-legales.html">Mentions légales</a>
+          <a href="confidentialite.html">Confidentialité</a>
+          <a href="cgu.html">CGU</a>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
+      </div>
+    </footer>
+    <script src="nav.js"></script>
+  </body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"C:\\Users\\jeanp\\.agentsroom\\hooks\\notify-agentsroom.py\"",
+            "async": true,
+            "_agentsroomHook": true
+          }
+        ]
+      }
+    ]
+  }
+}

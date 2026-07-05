@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LIQUID+ — Politique de confidentialité</title>
+    <meta name="description" content="Politique de confidentialité et protection des données personnelles pour le service liquid +." />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://www.liquidplus.fr/confidentialite.html" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Libre+Franklin:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/svg+xml" href="/ressourcegraphique/favicon-drop.svg" />
+    <link rel="stylesheet" href="styles.css?v=20260611b" />
+    <style>
+      .legal-wrap { max-width: 760px; margin: 0 auto; padding: 60px clamp(20px, 6vw, 48px) 100px; }
+      .legal-wrap h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 700; color: #080c14; margin: 0 0 8px; }
+      .legal-updated { font-size: 0.85rem; color: var(--muted); margin: 0 0 40px; }
+      .legal-wrap h2 { font-size: 1.2rem; font-weight: 700; color: #080c14; margin: 36px 0 12px; }
+      .legal-wrap p { font-size: 0.95rem; color: #2a2a33; line-height: 1.7; margin: 0 0 16px; }
+      .legal-wrap ul { margin: 0 0 16px; padding-left: 20px; display: grid; gap: 8px; }
+      .legal-wrap li { font-size: 0.95rem; color: #2a2a33; line-height: 1.7; }
+      .legal-wrap strong { color: #080c14; }
+      .legal-wrap a { color: var(--accent); }
+      .legal-nav { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--line); }
+      .legal-nav a { font-size: 0.85rem; font-weight: 600; color: var(--muted); text-decoration: none; }
+      .legal-nav a:hover { color: #080c14; }
+    </style>
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <nav class="nav">
+        <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
+        <div class="nav-links" id="nav-links">
+          <a class="nav-link" href="marche.html">Ressources</a>
+          <a class="button ghost" href="login.html">Se connecter</a>
+        </div>
+        <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+      </nav>
+    </header>
+
+    <div class="mobile-menu" id="mobile-menu" role="dialog" aria-label="Navigation">
+      <button class="nav-hamburger open" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><span></span><span></span><span></span></button>
+      <a href="index.html">Accueil</a>
+      <a href="marche.html">Ressources</a>
+      <a href="login.html" style="margin-top:16px; font-size:1.1rem; color:rgba(255,255,255,0.5);">Se connecter</a>
+    </div>
+
+    <script>
+      (function() {
+        var btn   = document.getElementById('nav-hamburger');
+        var menu  = document.getElementById('mobile-menu');
+        var close = document.getElementById('mobile-close');
+        if (!btn || !menu) return;
+        function openMenu()  { menu.classList.add('open');  btn.classList.add('open');  btn.setAttribute('aria-expanded','true');  document.body.style.overflow='hidden'; }
+        function closeMenu() { menu.classList.remove('open'); btn.classList.remove('open'); btn.setAttribute('aria-expanded','false'); document.body.style.overflow=''; }
+        btn.addEventListener('click', openMenu);
+        if (close) close.addEventListener('click', closeMenu);
+        menu.addEventListener('click', function(e) { if (e.target.tagName === 'A') closeMenu(); });
+      })();
+    </script>
+
+    <script>
+      fetch('/api/auth/me', { credentials: 'include' })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (!data?.user) return;
+          const name = data.user.full_name ? data.user.full_name.split(' ')[0] : data.user.email;
+          document.getElementById('nav-links').innerHTML = `
+            <a class="nav-link" href="marche.html">Ressources</a>
+            <a class="nav-link" href="settings.html">Paramètres</a>
+            <a class="nav-link saas-nav-link" href="/saas/editor.html">liquid + SaaS</a>
+            <span class="nav-link nav-user-name">${name}</span>
+            <button class="button ghost" id="nav-logout">Se déconnecter</button>
+          `;
+          document.getElementById('nav-logout').addEventListener('click', async () => {
+            await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+            window.location.reload();
+          });
+        })
+        .catch(() => {});
+    </script>
+
+    <main>
+      <div class="legal-wrap">
+        <h1>Politique de confidentialité</h1>
+        <p class="legal-updated">Dernière mise à jour : 5 juillet 2026</p>
+
+        <p>
+          liquid + attache une grande importance à la protection de vos données personnelles. Cette page explique quelles données sont collectées, pourquoi, et quels sont vos droits.
+        </p>
+
+        <h2>1. Responsable du traitement</h2>
+        <p>
+          <strong>[Raison sociale de la société]</strong>, éditeur du Site, est responsable du traitement des données personnelles collectées via liquid +. Contact : <a href="mailto:contact@liquidplus.fr">contact@liquidplus.fr</a>
+        </p>
+
+        <h2>2. Données collectées</h2>
+        <p>Dans le cadre de l'utilisation du Site et du SaaS liquid +, nous collectons :</p>
+        <ul>
+          <li><strong>Données de compte :</strong> nom, prénom, adresse email, mot de passe (stocké sous forme hachée, jamais en clair) ;</li>
+          <li><strong>Données de sécurité :</strong> statut d'activation de l'authentification à deux facteurs (2FA) ;</li>
+          <li><strong>Contenu utilisateur :</strong> dossiers, documents juridiques et modèles édités ou générés dans le SaaS ;</li>
+          <li><strong>Données d'usage de l'assistant IA :</strong> nombre de requêtes et volume de tokens consommés, à des fins de suivi de votre quota ;</li>
+          <li><strong>Données techniques :</strong> cookies de session nécessaires à l'authentification.</li>
+        </ul>
+
+        <h2>3. Finalités et bases légales</h2>
+        <ul>
+          <li>Fournir l'accès au Site et au SaaS, gérer votre compte et son authentification — exécution du contrat ;</li>
+          <li>Sécuriser votre compte (2FA, mots de passe hachés) — intérêt légitime ;</li>
+          <li>Suivre et limiter la consommation de l'assistant IA — exécution du contrat ;</li>
+          <li>Répondre à vos demandes de contact — intérêt légitime ;</li>
+          <li>Respecter nos obligations légales, le cas échéant — obligation légale.</li>
+        </ul>
+
+        <h2>4. Durée de conservation</h2>
+        <p>
+          Vos données de compte sont conservées pendant toute la durée de votre inscription, puis supprimées ou anonymisées dans un délai raisonnable après la clôture de votre compte, sauf obligation légale de conservation plus longue.
+        </p>
+
+        <h2>5. Destinataires des données</h2>
+        <p>
+          Vos données ne sont ni vendues ni louées à des tiers. Elles peuvent être transmises aux seuls sous-traitants nécessaires au fonctionnement du service : hébergeur du Site et, le cas échéant, fournisseur de l'infrastructure d'intelligence artificielle utilisée par l'assistant IA. Ces prestataires sont contractuellement tenus à la confidentialité et à la sécurité des données.
+        </p>
+
+        <h2>6. Cookies</h2>
+        <p>
+          Le Site utilise uniquement des cookies techniques indispensables à l'authentification (maintien de la session). Aucun cookie publicitaire ou de traçage tiers n'est déposé.
+        </p>
+
+        <h2>7. Vos droits</h2>
+        <p>
+          Conformément au Règlement Général sur la Protection des Données (RGPD) et à la loi Informatique et Libertés, vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation, d'opposition et de portabilité sur vos données personnelles. Vous pouvez exercer ces droits, ainsi qu'introduire une réclamation auprès de la CNIL, en nous contactant à l'adresse <a href="mailto:contact@liquidplus.fr">contact@liquidplus.fr</a>.
+        </p>
+        <p>
+          Vous pouvez également modifier vos informations de profil et votre mot de passe directement depuis la page <a href="settings.html">Paramètres</a> de votre compte.
+        </p>
+
+        <h2>8. Sécurité</h2>
+        <p>
+          Nous mettons en œuvre des mesures techniques raisonnables pour protéger vos données : hachage des mots de passe, authentification à deux facteurs disponible, connexions chiffrées (HTTPS). Aucun système n'étant infaillible, nous vous invitons à choisir un mot de passe robuste et à activer le 2FA depuis la page Paramètres.
+        </p>
+
+        <div class="legal-nav">
+          <a href="mentions-legales.html">Mentions légales</a>
+          <a href="confidentialite.html">Confidentialité</a>
+          <a href="cgu.html">CGU</a>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
+      </div>
+    </footer>
+    <script src="nav.js"></script>
+  </body>
+</html>
