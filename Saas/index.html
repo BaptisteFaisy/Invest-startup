@@ -110,6 +110,7 @@
     .section__inner { max-width: 1080px; margin: 0 auto; }
     .eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.28); display: block; text-align: center; margin-bottom: 14px; }
     .section__title { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 800; letter-spacing: -0.035em; text-align: center; margin-bottom: 12px; }
+    .how .section__title { font-size: clamp(2.4rem, 5vw, 4.6rem); }
     .section__sub { font-size: 16px; color: rgba(255,255,255,0.4); text-align: center; max-width: 500px; margin: 0 auto 56px; line-height: 1.7; }
 
     .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; border: 1px solid rgba(255,255,255,0.07); border-radius: 20px; overflow: hidden; }
@@ -129,6 +130,40 @@
     .step__num { font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 1rem; color: rgba(255,255,255,0.12); flex: none; width: 32px; padding-top: 2px; }
     .step h3 { font-size: 1rem; font-weight: 700; margin-bottom: 7px; }
     .step p { font-size: 14px; color: rgba(255,255,255,0.42); line-height: 1.7; }
+    .step-shot { margin-top: 16px; overflow: hidden; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #101216; box-shadow: 0 18px 45px rgba(0,0,0,0.28); }
+    .step-shot__bar { height: 30px; display: flex; align-items: center; gap: 6px; padding: 0 10px; background: #171a20; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .step-shot__dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.18); }
+    .step-shot__title { margin-left: 7px; font-family: 'Archivo', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.38); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .step-shot__body { min-height: 176px; padding: 14px; display: grid; gap: 10px; background: linear-gradient(180deg, #111318 0%, #0c0d11 100%); }
+    .shot-tabs { display: flex; gap: 7px; flex-wrap: wrap; }
+    .shot-tab { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.45); border: 1px solid rgba(255,255,255,0.12); border-radius: 999px; padding: 6px 10px; background: rgba(255,255,255,0.04); }
+    .shot-tab.active { color: #fff; border-color: #3b82f6; background: rgba(59,130,246,0.95); }
+    .shot-doc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .shot-doc { min-height: 86px; padding: 10px; border-radius: 9px; background: #f3f0e8; color: #1f2937; box-shadow: inset 0 -18px 0 rgba(255,255,255,0.42); }
+    .shot-doc b { display: block; font-family: 'Archivo', sans-serif; font-size: 10px; margin-bottom: 8px; }
+    .shot-line { height: 5px; border-radius: 99px; background: rgba(31,41,55,0.18); margin-top: 5px; }
+    .shot-line.short { width: 62%; }
+    .shot-status { display: grid; gap: 7px; }
+    .shot-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 34px; padding: 8px 10px; border-radius: 9px; background: rgba(255,255,255,0.055); border: 1px solid rgba(255,255,255,0.07); font-size: 12px; color: rgba(255,255,255,0.72); }
+    .shot-badge { font-family: 'Archivo', sans-serif; font-size: 9px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: #4ade80; background: rgba(22,163,74,0.16); border: 1px solid rgba(74,222,128,0.22); border-radius: 999px; padding: 4px 8px; white-space: nowrap; }
+    .shot-badge.blue { color: #93c5fd; background: rgba(59,130,246,0.17); border-color: rgba(147,197,253,0.24); }
+    .shot-editor { display: grid; grid-template-columns: 1fr 178px; gap: 10px; }
+    .shot-paper { min-height: 142px; border-radius: 8px; background: #f7f5f0; color: #1f2937; padding: 13px; }
+    .shot-paper h4 { font-size: 12px; margin-bottom: 9px; color: #111827; }
+    .shot-clause { padding: 8px; border-radius: 7px; background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.18); }
+    .shot-panel { border-radius: 8px; background: rgba(255,255,255,0.055); border: 1px solid rgba(255,255,255,0.08); padding: 10px; }
+    .shot-panel h4 { font-size: 11px; margin-bottom: 8px; color: #fff; }
+    .shot-callout { font-size: 10.5px; line-height: 1.45; color: rgba(255,255,255,0.68); border-left: 3px solid #3b82f6; padding: 6px 8px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-top: 7px; }
+    .shot-room { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .shot-folder { min-height: 56px; border-radius: 9px; background: rgba(255,255,255,0.055); border: 1px solid rgba(255,255,255,0.08); padding: 10px; color: rgba(255,255,255,0.7); font-size: 12px; }
+    .shot-folder::before { content: ''; display: block; width: 34px; height: 9px; margin-bottom: 9px; border-radius: 4px 4px 2px 2px; background: rgba(59,130,246,0.75); }
+    .shot-pipeline { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; align-items: stretch; }
+    .shot-card { border-radius: 9px; background: rgba(255,255,255,0.055); border: 1px solid rgba(255,255,255,0.08); padding: 10px; min-height: 118px; }
+    .shot-card b { display: block; font-size: 11px; margin-bottom: 8px; color: #fff; }
+    .shot-meter { height: 6px; border-radius: 99px; background: rgba(255,255,255,0.1); overflow: hidden; margin-top: 8px; }
+    .shot-meter span { display: block; height: 100%; border-radius: inherit; background: #3b82f6; }
+    .shot-signature { display: grid; grid-template-columns: 1fr 150px; gap: 10px; align-items: stretch; }
+    .shot-stamp { display: grid; place-items: center; border-radius: 9px; border: 1px solid rgba(74,222,128,0.28); background: rgba(22,163,74,0.12); color: #4ade80; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; padding: 14px; }
 
     /* PANELS HIGHLIGHT */
     .panels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 0; }
@@ -199,6 +234,9 @@
       .preview-ws { grid-template-columns: 1fr; }
       .preview-lib, .preview-panel { display: none; }
       .section { padding: 64px 20px; }
+      .step { gap: 14px; }
+      .shot-doc-grid, .shot-editor, .shot-pipeline, .shot-signature { grid-template-columns: 1fr; }
+      .step-shot__body { min-height: auto; }
       .features, .plans, .panels { grid-template-columns: 1fr; }
       .footer { padding: 40px 20px 0; }
       .footer__inner { gap: 32px; }
@@ -356,42 +394,130 @@
   <!-- HOW IT WORKS -->
   <section class="section how" id="how">
     <div class="section__inner">
-      <span class="eyebrow">Workflow</span>
-      <h2 class="section__title">De la réception du doc à la signature</h2>
+      <h2 class="section__title">LES ETAPES</h2>
       <div class="steps">
         <div class="step">
           <span class="step__num">01</span>
           <div>
-            <h3>Importez ou choisissez un modèle</h3>
-            <p>Glissez-déposez votre term sheet, BSA-AIR ou statuts en DOCX — ou partez d'un modèle pré-structuré pour votre type de levée.</p>
+            <h3>Choix du type de levée de fonds.</h3>
+            <div class="step-shot" aria-label="Screenshot de choix du parcours">
+              <div class="step-shot__bar"><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__title">Parcours de levée</span></div>
+              <div class="step-shot__body">
+                <div class="shot-tabs">
+                  <span class="shot-tab active">Levée classique</span>
+                  <span class="shot-tab">BSA-AIR</span>
+                  <span class="shot-tab">Bridge</span>
+                </div>
+                <div class="shot-status">
+                  <div class="shot-row">Objectif <span class="shot-badge blue">Série A</span></div>
+                  <div class="shot-row">Montant cible <span>2 500 000 EUR</span></div>
+                  <div class="shot-row">Documents à préparer <span>14</span></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="step">
           <span class="step__num">02</span>
           <div>
-            <h3>Complétez les champs guidés</h3>
-            <p>L'onglet « À remplir » liste chaque <code style="font-size:12px;background:rgba(255,255,255,0.08);padding:1px 5px;border-radius:3px">[valeur à renseigner]</code> et vous y amène directement. Passez de champ en champ sans en oublier un seul.</p>
+            <h3>Elaboration sur-mesure des documents juridiques.</h3>
+            <div class="step-shot" aria-label="Screenshot de génération des documents juridiques">
+              <div class="step-shot__bar"><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__title">Documents générés</span></div>
+              <div class="step-shot__body">
+                <div class="shot-doc-grid">
+                  <div class="shot-doc"><b>Term sheet</b><div class="shot-line"></div><div class="shot-line"></div><div class="shot-line short"></div></div>
+                  <div class="shot-doc"><b>Pacte d'associés</b><div class="shot-line"></div><div class="shot-line short"></div><div class="shot-line"></div></div>
+                  <div class="shot-doc"><b>Statuts</b><div class="shot-line short"></div><div class="shot-line"></div><div class="shot-line"></div></div>
+                </div>
+                <div class="shot-row">Champs personnalisés <span class="shot-badge blue">32 complétés</span></div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="step">
           <span class="step__num">03</span>
           <div>
-            <h3>Analysez chaque clause avec l'IA</h3>
-            <p>Cliquez « Analyser » : liquid + utilise Claude pour décrire chaque clause en langage courant, signaler les pièges et remplir l'onglet Priorités.</p>
+            <h3>Validation par un avocat.</h3>
+            <div class="step-shot" aria-label="Screenshot de validation avocat">
+              <div class="step-shot__bar"><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__title">Relecture avocat</span></div>
+              <div class="step-shot__body">
+                <div class="shot-status">
+                  <div class="shot-row">Term sheet <span class="shot-badge">Validée</span></div>
+                  <div class="shot-row">Pacte d'associés <span class="shot-badge">Validé</span></div>
+                  <div class="shot-row">Statuts mis à jour <span class="shot-badge">Validés</span></div>
+                  <div class="shot-row">Commentaires ouverts <span>0</span></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="step">
           <span class="step__num">04</span>
           <div>
-            <h3>Négociez et amendez directement</h3>
-            <p>Modifiez le texte dans l'éditeur, demandez à l'assistant IA de reformuler une clause, contre-proposez dans la foulée.</p>
+            <h3>L'IA vous explique chaque clause.</h3>
+            <div class="step-shot" aria-label="Screenshot d'explication IA de clause">
+              <div class="step-shot__bar"><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__title">Décrypteur IA</span></div>
+              <div class="step-shot__body shot-editor">
+                <div class="shot-paper">
+                  <h4>Clause de liquidation préférentielle</h4>
+                  <div class="shot-clause"><div class="shot-line"></div><div class="shot-line"></div><div class="shot-line short"></div></div>
+                </div>
+                <div class="shot-panel">
+                  <h4>Explication</h4>
+                  <div class="shot-callout">En clair : l'investisseur récupère son capital avant le partage du solde.</div>
+                  <div class="shot-callout">Point de vigilance : refuser un multiple supérieur à 1x.</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="step">
           <span class="step__num">05</span>
           <div>
-            <h3>Exportez en PDF ou Word</h3>
-            <p>Exportez votre version révisée en PDF ou en DOCX en un clic, prête à envoyer à l'investisseur ou à votre avocat.</p>
+            <h3>Dataroom prête pour le roadshow.</h3>
+            <div class="step-shot" aria-label="Screenshot de dataroom">
+              <div class="step-shot__bar"><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__title">Data room investisseur</span></div>
+              <div class="step-shot__body">
+                <div class="shot-room">
+                  <div class="shot-folder">01 - Corporate</div>
+                  <div class="shot-folder">02 - Cap table</div>
+                  <div class="shot-folder">03 - Contrats clés</div>
+                  <div class="shot-folder">04 - Financials</div>
+                </div>
+                <div class="shot-row">Accès investisseur <span class="shot-badge blue">Prêt à partager</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step__num">06</span>
+          <div>
+            <h3>Suivi automatisé et intelligent des négociations.</h3>
+            <div class="step-shot" aria-label="Screenshot de suivi des négociations">
+              <div class="step-shot__bar"><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__title">Pipeline de négociation</span></div>
+              <div class="step-shot__body shot-pipeline">
+                <div class="shot-card"><b>Alpha Ventures</b><div class="shot-line"></div><div class="shot-meter"><span style="width:72%"></span></div><div class="shot-callout">Négocie la valo</div></div>
+                <div class="shot-card"><b>J. Martin</b><div class="shot-line short"></div><div class="shot-meter"><span style="width:91%"></span></div><div class="shot-callout">Prêt à signer</div></div>
+                <div class="shot-card"><b>Northstar VC</b><div class="shot-line"></div><div class="shot-meter"><span style="width:48%"></span></div><div class="shot-callout">Attend la data room</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step__num">07</span>
+          <div>
+            <h3>Validation par un avocat.</h3>
+            <div class="step-shot" aria-label="Screenshot de validation finale avocat">
+              <div class="step-shot__bar"><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__title">Version finale</span></div>
+              <div class="step-shot__body shot-signature">
+                <div class="shot-paper">
+                  <h4>Pacte d'associés - version finale</h4>
+                  <div class="shot-line"></div><div class="shot-line"></div><div class="shot-line short"></div>
+                  <div class="shot-row" style="margin-top:12px;color:#1f2937;background:rgba(22,163,74,0.1);border-color:rgba(22,163,74,0.18)">Signature <span>programmée</span></div>
+                </div>
+                <div class="shot-stamp">Validé par avocat<br>Prêt signature</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
