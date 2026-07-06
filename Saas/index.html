@@ -16,8 +16,10 @@
 
     /* NAV */
     .nav { position: sticky; top: 0; z-index: 50; background: rgba(8,9,12,0.92); backdrop-filter: blur(14px); border-bottom: 1px solid rgba(255,255,255,0.06); padding: 0 40px; height: 60px; display: flex; align-items: center; justify-content: space-between; }
-    .brand { font-weight: 800; font-size: 1.4rem; letter-spacing: -0.02em; color: #fff; }
+    .brand { font-weight: 800; font-size: 1.4rem; letter-spacing: -0.02em; color: #fff; display: inline-flex; align-items: center; gap: 8px; }
     .brand span { color: #3b82f6; }
+    .brand .brand__mark { width: 18px; height: 24px; color: #fff; flex: none; }
+    .brand .brand__mark svg { display: block; width: 100%; height: 100%; }
     .nav__links { display: flex; gap: 28px; font-size: 14px; font-weight: 500; }
     .nav__links a { color: rgba(255,255,255,0.42); transition: color .15s; }
     .nav__links a:hover { color: #fff; }
@@ -247,7 +249,7 @@
 
   <!-- NAV -->
   <nav class="nav">
-    <a href="#" class="brand">liquid <span>+</span></a>
+    <a href="#" class="brand"><span class="brand__mark" aria-hidden="true"><svg viewBox="-10 -12 60 76" focusable="false"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" fill="#08090c" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/></svg></span>liquid <span>+</span></a>
     <div class="nav__links">
       <a href="#how">Workflow</a>
       <a href="guide.html">Guide</a>
@@ -532,7 +534,7 @@
   <footer class="footer">
     <div class="footer__inner">
       <div class="footer__col footer__brand">
-        <a href="#" class="brand">liquid <span>+</span></a>
+        <a href="#" class="brand"><span class="brand__mark" aria-hidden="true"><svg viewBox="-10 -12 60 76" focusable="false"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" fill="#08090c" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/></svg></span>liquid <span>+</span></a>
         <p>L'éditeur de documents juridiques pour fondateurs de startup.</p>
       </div>
       <div class="footer__col">
