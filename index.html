@@ -66,8 +66,10 @@
 
       /* Fake topbar */
       .preview-top { background: #0a0a0a; border-bottom: 1px solid #222; height: 44px; display: flex; align-items: center; padding: 0 16px; gap: 12px; }
-      .preview-top__brand { font-weight: 800; font-size: 13px; color: #fff; letter-spacing: -0.01em; }
+      .preview-top__brand { font-weight: 800; font-size: 13px; color: #fff; letter-spacing: -0.01em; display: inline-flex; align-items: center; gap: 6px; }
       .preview-top__brand span { color: #3b82f6; }
+      .preview-top__mark { width: 13px; height: 18px; color: #fff; flex: none; }
+      .preview-top__mark svg { display: block; width: 100%; height: 100%; }
       .preview-top__doc { font-size: 11px; color: rgba(255,255,255,0.35); padding-left: 12px; border-left: 1px solid #333; }
       .preview-top__btns { margin-left: auto; display: flex; gap: 6px; }
       .preview-top__btn { font-size: 10px; padding: 4px 10px; border-radius: 6px; border: 1px solid #444; color: rgba(255,255,255,0.6); background: transparent; }
@@ -340,7 +342,7 @@
 
             <!-- Topbar -->
             <div class="preview-top">
-              <div class="preview-top__brand">liquid <span>+</span></div>
+              <div class="preview-top__brand"><span class="preview-top__mark" aria-hidden="true"><svg viewBox="-10 -12 60 76" focusable="false"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" fill="#08090c" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/></svg></span>liquid <span>+</span></div>
               <div class="preview-top__doc">Term Sheet — Acme SAS · Série A</div>
               <div class="preview-top__btns">
                 <div class="preview-top__btn">+ Ajouter</div>
