@@ -1661,20 +1661,310 @@ app.get('/api/saas/usage', requireAuth, async (req, res) => {
 // Le SaaS se concentre sur le volet juridique d'une levée. Chaque dossier
 // correspond à une phase juridique de l'opération et porte la checklist des
 // documents juridiques attendus à cette étape (droit français, SAS).
-// Sur la levée classique, les checklists ne contiennent que les documents côté
-// investisseurs (due diligence, documents négociés) ; les formalités internes
-// (PV, dépôts au greffe, registres, attestations) en sont exclues. Le parcours
-// BSA-AIR, lui, intègre les actes d'émission et de souscription (PV de décision
-// collective, contrat d'émission, inscription au registre, dépôt au greffe…),
-// car ils rythment concrètement l'opération au fil de l'eau.
+// Sur la levée classique, les premières étapes se concentrent sur les documents
+// côté investisseurs ; l'étape closing intègre les actes rédigés/signés à ce
+// moment (PV, attestations, registres, formalités). Le parcours BSA-AIR, lui,
+// intègre aussi les actes d'émission et de souscription car ils rythment
+// concrètement l'opération au fil de l'eau.
 // `FOLDERS_SEED_VERSION` est incrémentée à chaque évolution de cette liste pour
 // re-synchroniser automatiquement les dossiers système des utilisateurs.
-const FOLDERS_SEED_VERSION = 8;
+const FOLDERS_SEED_VERSION = 14;
+const ddDoc = (label, mark = 'req') => ({ label, mark });
+const ddLabels = items => items.map(item => item.label);
+const ddMarks = items => items.map(item => item.mark || '');
+const DD_PRELIMINARY_ITEMS = [
+  ddDoc('Extrait Kbis récent'),
+  ddDoc('Statuts à jour'),
+  ddDoc('Table de capitalisation (cap table) à date'),
+  ddDoc("Registre des mouvements de titres et comptes d'actionnaires"),
+  ddDoc('Registre des bénéficiaires effectifs (RBE)'),
+  ddDoc('Organigramme juridique, filiales et participations', 'opt'),
+  ddDoc("Pactes d'associés, promesses, side letters et accords d'investissement existants", 'opt'),
+  ddDoc('PV des décisions collectives et décisions du président significatives', 'opt'),
+  ddDoc('Questionnaire de due diligence préliminaire (réponses)'),
+  ddDoc('Support de présentation investisseurs'),
+  ddDoc('Business plan, prévisionnel financier et plan d’utilisation des fonds'),
+  ddDoc('Comptes annuels des trois derniers exercices ou situation comptable récente'),
+  ddDoc('Balance générale, compte de résultat et situation de trésorerie récents'),
+  ddDoc('Tableau de trésorerie, runway et dettes à court terme'),
+  ddDoc('État des dettes, emprunts, avances, subventions, aides et sûretés'),
+  ddDoc('Liste des principaux clients, chiffre d’affaires par client et concentration du revenu'),
+  ddDoc('Pipeline commercial et contrats en cours de négociation', 'opt'),
+  ddDoc('Principaux contrats clients signés'),
+  ddDoc('Principaux contrats fournisseurs, partenaires et prestataires'),
+  ddDoc("Conditions générales de vente, d'utilisation et contrats types"),
+  ddDoc('Contrats de travail des fondateurs, dirigeants et salariés clés'),
+  ddDoc('Liste des salariés clés, mandataires sociaux et consultants stratégiques'),
+  ddDoc('Plan BSPCE / BSA / AGA / stock-options et management package existant', 'opt'),
+  ddDoc('Cessions de propriété intellectuelle fondateurs, salariés et prestataires clés'),
+  ddDoc('Titres de propriété intellectuelle, noms de domaine et licences importantes', 'opt'),
+  ddDoc('Inventaire des logiciels, dépendances techniques et actifs numériques critiques', 'opt'),
+  ddDoc('Documentation RGPD synthétique : registre, politique de confidentialité, cookies et DPA'),
+  ddDoc('Autorisations, agréments, certifications et contraintes réglementaires applicables', 'opt'),
+  ddDoc('État des contentieux, litiges, réclamations et mises en demeure'),
+  ddDoc('Polices d’assurance principales et sinistres déclarés', 'opt'),
+  ddDoc('Baux, domiciliation, contrats immobiliers et locaux significatifs', 'opt'),
+  ddDoc('Liste des banques, comptes, moyens de paiement et engagements bancaires', 'opt'),
+  ddDoc('Data room indexée et liste des documents non disponibles'),
+];
+const DD_PRELIMINARY_DOCUMENTS = ddLabels(DD_PRELIMINARY_ITEMS);
+const DD_PRELIMINARY_MARKS = ddMarks(DD_PRELIMINARY_ITEMS);
+
+const DD_PUSHED_CATEGORIES = [
+  {
+    key: 'corporate',
+    title: 'Corporate, capital et gouvernance',
+    items: [
+      ddDoc('Extrait Kbis récent'),
+      ddDoc('Statuts à jour et versions historiques pertinentes'),
+      ddDoc('Registre des mouvements de titres'),
+      ddDoc("Comptes d'actionnaires / registre des valeurs mobilières"),
+      ddDoc('Table de capitalisation actuelle et historique des émissions'),
+      ddDoc('Registre des bénéficiaires effectifs (RBE)'),
+      ddDoc('Organigramme juridique, filiales, participations et liens intragroupe', 'opt'),
+      ddDoc('PV des décisions collectives, assemblées, conseils et décisions du président'),
+      ddDoc("Pactes d'associés, promesses de cession/acquisition, side letters et accords d'investissement existants"),
+      ddDoc('Conventions réglementées, conventions intragroupe et délégations de pouvoirs', 'opt'),
+      ddDoc('Liste des mandataires sociaux, pouvoirs bancaires et délégations de signature'),
+      ddDoc('Historique des opérations sur capital, émissions de titres et restructurations'),
+    ],
+  },
+  {
+    key: 'titres',
+    title: 'Actionnariat, instruments dilutifs et opération',
+    items: [
+      ddDoc('Plans BSPCE / BSA / AGA / stock-options / actions gratuites et documents d’attribution', 'opt'),
+      ddDoc('Obligations convertibles, BSA-AIR, avances en compte courant et instruments convertibles existants', 'opt'),
+      ddDoc('Simulation de dilution fully diluted avant et après opération'),
+      ddDoc('Droits de préemption, agrément, inaliénabilité, drag/tag et clauses de sortie existantes', 'opt'),
+      ddDoc('Promesses d’attribution ou engagements oraux/écrits envers salariés, fondateurs ou investisseurs', 'opt'),
+      ddDoc('Liste des actionnaires, coordonnées et informations KYC disponibles'),
+      ddDoc('Historique des valorisations, tours précédents et documents de closing antérieurs', 'opt'),
+    ],
+  },
+  {
+    key: 'finance',
+    title: 'Finance, comptabilité et performance',
+    items: [
+      ddDoc('Comptes annuels, annexes et rapports de gestion des trois derniers exercices'),
+      ddDoc('Liasses fiscales des trois derniers exercices'),
+      ddDoc('Situation comptable récente, balance générale et grand livre'),
+      ddDoc('Reporting mensuel, P&L, bilan, cash-flow et rapprochements bancaires'),
+      ddDoc('Budget annuel, business plan, prévisionnel de trésorerie et hypothèses détaillées'),
+      ddDoc('MRR/ARR, churn, cohortes, marge brute, CAC, LTV et KPIs opérationnels pertinents', 'opt'),
+      ddDoc('Balance âgée clients, créances douteuses et politique de recouvrement'),
+      ddDoc('Balance âgée fournisseurs, dettes échues et engagements hors bilan'),
+      ddDoc('Inventaire des immobilisations, actifs significatifs et contrats de leasing', 'opt'),
+      ddDoc('Rapports d’audit, revue financière ou vendor due diligence existants', 'opt'),
+      ddDoc('Plan d’utilisation des fonds levés et besoins de financement à 18-24 mois'),
+    ],
+  },
+  {
+    key: 'fiscal',
+    title: 'Fiscalité, aides publiques et subventions',
+    items: [
+      ddDoc('Déclarations d’impôt sur les sociétés et justificatifs des déficits reportables'),
+      ddDoc('Déclarations TVA, taxes locales, retenues à la source et autres déclarations fiscales significatives'),
+      ddDoc('Crédit impôt recherche / innovation : déclarations, dossiers techniques, contrats, factures et feuilles de temps', 'opt'),
+      ddDoc('Statut JEI/JEIC, rescrits fiscaux et échanges avec l’administration', 'opt'),
+      ddDoc('Subventions, aides publiques, avances remboursables, PGE et conditions associées', 'opt'),
+      ddDoc('Contrôles fiscaux, notifications, redressements, réclamations et transactions', 'opt'),
+      ddDoc('Prix de transfert, conventions intragroupe et documentation associée', 'opt'),
+      ddDoc('Régime fiscal des management packages et instruments d’intéressement', 'opt'),
+    ],
+  },
+  {
+    key: 'social',
+    title: 'Social, RH et management',
+    items: [
+      ddDoc('Liste des salariés, mandataires sociaux, freelances et consultants clés'),
+      ddDoc('Contrats de travail des fondateurs, dirigeants et salariés clés'),
+      ddDoc('Avenants, clauses de non-concurrence, confidentialité, invention et propriété intellectuelle'),
+      ddDoc('Bulletins de paie récents, charges sociales, DSN et attestations de régularité', 'opt'),
+      ddDoc('Rémunérations fixes/variables, bonus, commissions et avantages en nature'),
+      ddDoc('Plan BSPCE / BSA / AGA / stock-options et communications aux bénéficiaires', 'opt'),
+      ddDoc('Règlement intérieur, chartes, politiques télétravail et accords collectifs', 'opt'),
+      ddDoc('Procédures disciplinaires, ruptures, prud’hommes et litiges sociaux', 'opt'),
+      ddDoc('Recours à freelances, prestataires, portage salarial et risques de requalification', 'opt'),
+      ddDoc('Documents CSE, santé-sécurité et obligations sociales applicables', 'opt'),
+    ],
+  },
+  {
+    key: 'commercial',
+    title: 'Clients, ventes et revenus',
+    items: [
+      ddDoc('Liste des principaux clients, revenus par client et concentration du chiffre d’affaires'),
+      ddDoc('Contrats clients significatifs, bons de commande, SOW et renouvellements'),
+      ddDoc('Contrats clients résiliés, arrivant à échéance ou en renégociation', 'opt'),
+      ddDoc('Pipeline commercial, commandes engagées et prévisions de revenus'),
+      ddDoc("Conditions générales de vente, d’utilisation, contrats types et politique tarifaire"),
+      ddDoc('Clauses d’exclusivité, most-favored nation, pénalités, SLA et engagements de niveau de service', 'opt'),
+      ddDoc('Réclamations clients, avoirs, remboursements, litiges commerciaux et churn significatif', 'opt'),
+      ddDoc('Partenariats de distribution, apporteurs d’affaires, revendeurs et intégrateurs', 'opt'),
+      ddDoc('Références publiques, droits d’usage des logos clients et restrictions contractuelles', 'opt'),
+    ],
+  },
+  {
+    key: 'operations',
+    title: 'Fournisseurs, partenariats et opérations',
+    items: [
+      ddDoc('Contrats fournisseurs, prestataires, sous-traitants et partenaires stratégiques'),
+      ddDoc('Contrats cloud, hébergement, infogérance, support et services critiques'),
+      ddDoc('Engagements minimums, exclusivités, pénalités, renouvellements automatiques et résiliations'),
+      ddDoc('Dépendances opérationnelles clés et plan de continuité d’activité', 'opt'),
+      ddDoc('Contrats de licence, API, intégrations et marketplaces', 'opt'),
+      ddDoc('Procédures achats, conformité fournisseurs et anti-corruption', 'opt'),
+      ddDoc('Assurances liées aux opérations, responsabilité civile professionnelle et cyber', 'opt'),
+    ],
+  },
+  {
+    key: 'ip-tech',
+    title: 'Propriété intellectuelle, produit et technologie',
+    items: [
+      ddDoc('Titres de propriété intellectuelle : marques, brevets, dessins, modèles et noms de domaine'),
+      ddDoc('Cessions de propriété intellectuelle fondateurs, salariés, freelances et prestataires'),
+      ddDoc('Contrats de licence, copropriété, open innovation, recherche et développement', 'opt'),
+      ddDoc('Inventaire logiciels, librairies open-source, licences et obligations de conformité'),
+      ddDoc('Architecture technique, documentation produit, roadmap et dette technique significative', 'opt'),
+      ddDoc('Accès au code source, procédures de développement, CI/CD et droits administrateurs', 'opt'),
+      ddDoc('Escrow, sauvegardes, réversibilité et dépendances techniques critiques', 'opt'),
+      ddDoc('Réclamations, oppositions, contrefaçon, atteintes à la PI ou licences non conformes', 'opt'),
+      ddDoc('Droits sur bases de données, datasets, contenus, modèles IA et données d’entraînement', 'opt'),
+    ],
+  },
+  {
+    key: 'data-security',
+    title: 'RGPD, données et cybersécurité',
+    items: [
+      ddDoc('Registre des activités de traitement'),
+      ddDoc('Politiques de confidentialité, cookies, consentement et mentions d’information'),
+      ddDoc('Contrats de sous-traitance RGPD (DPA), liste des sous-traitants et transferts hors UE'),
+      ddDoc('Analyses d’impact (DPIA), bases légales et durées de conservation', 'opt'),
+      ddDoc('Registre des violations de données, incidents de sécurité et notifications CNIL', 'opt'),
+      ddDoc('Politiques de sécurité, gestion des accès, MFA, chiffrement et sauvegardes'),
+      ddDoc('Tests d’intrusion, audits sécurité, certifications ISO/SOC 2 et plans de remédiation', 'opt'),
+      ddDoc('Procédures d’exercice des droits, suppression, portabilité et gestion des demandes clients'),
+      ddDoc('Cartographie des données sensibles, données de santé, mineurs ou données réglementées', 'opt'),
+    ],
+  },
+  {
+    key: 'regulatory',
+    title: 'Réglementaire et conformité sectorielle',
+    items: [
+      ddDoc('Autorisations, agréments, licences, certifications et déclarations sectorielles applicables', 'opt'),
+      ddDoc('Conformité produit, marquage, sécurité, normes techniques et documentation réglementaire', 'opt'),
+      ddDoc('Procédures KYC/AML, sanctions, export control et lutte anti-corruption', 'opt'),
+      ddDoc('Contrats publics, appels d’offres, aides réglementées et obligations associées', 'opt'),
+      ddDoc('Droit de la consommation, publicité, pratiques commerciales et conditions d’abonnement', 'opt'),
+      ddDoc('Droit de la concurrence, exclusivités, distribution sélective et clauses sensibles', 'opt'),
+      ddDoc('Échanges avec autorités administratives ou régulateurs et contrôles en cours', 'opt'),
+    ],
+  },
+  {
+    key: 'litigation',
+    title: 'Contentieux, assurances et risques',
+    items: [
+      ddDoc('État des contentieux, litiges, réclamations, mises en demeure et enquêtes'),
+      ddDoc('Dossiers de procédure, correspondances d’avocats, transactions et provisions'),
+      ddDoc('Litiges actionnaires, fondateurs, anciens salariés, clients ou fournisseurs', 'opt'),
+      ddDoc('Polices d’assurance, attestations, garanties, exclusions et sinistres déclarés'),
+      ddDoc('Cartographie des risques, plans de mitigation et sujets bloquants identifiés'),
+      ddDoc('Garanties données, cautions, lettres de confort et engagements d’indemnisation', 'opt'),
+    ],
+  },
+  {
+    key: 'assets-esg',
+    title: 'Immobilier, actifs matériels et ESG',
+    items: [
+      ddDoc('Baux, domiciliation, conventions d’occupation et contrats immobiliers', 'opt'),
+      ddDoc('Dépôts de garantie, loyers, travaux, sous-location et litiges immobiliers', 'opt'),
+      ddDoc('Inventaire des équipements, matériels, véhicules et actifs significatifs', 'opt'),
+      ddDoc('Obligations environnementales, déchets, énergie, empreinte carbone et autorisations', 'opt'),
+      ddDoc('Politiques ESG, diversité, éthique, achats responsables et reporting extra-financier', 'opt'),
+      ddDoc('Santé-sécurité, incidents, conformité locaux et obligations employeur', 'opt'),
+    ],
+  },
+  {
+    key: 'audit',
+    title: 'Data room, Q&A et rapports d’audit',
+    items: [
+      ddDoc('Questionnaire de due diligence complet (réponses et pièces jointes)'),
+      ddDoc('Index de data room, droits d’accès et historique des documents manquants'),
+      ddDoc('Rapport d’audit juridique'),
+      ddDoc('Rapport d’audit financier / quality of earnings', 'opt'),
+      ddDoc('Q&A tracker, réponses des fondateurs et synthèse des points ouverts'),
+    ],
+  },
+];
+const DD_COMPLETE_DOCUMENTS = DD_PUSHED_CATEGORIES.flatMap(category => ddLabels(category.items));
+const DD_COMPLETE_MARKS = DD_PUSHED_CATEGORIES.flatMap(category => ddMarks(category.items));
+const CLOSING_CATEGORIES = [
+  {
+    key: 'souscription-fonds',
+    title: 'Souscription et versement des fonds',
+    items: [
+      ddDoc('Bulletins de souscription des investisseurs'),
+      ddDoc('Contrats de souscription / investment agreements individuels', 'opt'),
+      ddDoc('Ordres de virement et funds flow memo'),
+      ddDoc('Attestations de versement des fonds par les investisseurs'),
+      ddDoc('Certificat du dépositaire des fonds'),
+    ],
+  },
+  {
+    key: 'decisions-sociales',
+    title: 'Décisions sociales et autorisations',
+    items: [
+      ddDoc("Rapport du président sur l'augmentation de capital et la suppression du DPS"),
+      ddDoc('Rapport du commissaire aux comptes / commissaire aux avantages particuliers le cas échéant', 'opt'),
+      ddDoc("PV de l'AGE / décisions collectives autorisant l'augmentation de capital"),
+      ddDoc('Décisions du président constatant les souscriptions et le versement des fonds'),
+      ddDoc("PV de constatation de la réalisation définitive de l'augmentation de capital"),
+      ddDoc('Pouvoirs pour formalités et délégations de signature'),
+    ],
+  },
+  {
+    key: 'statuts-pacte',
+    title: 'Statuts, pacte et gouvernance',
+    items: [
+      ddDoc('Statuts modifiés adoptés au closing'),
+      ddDoc("Pacte d'associés signé / avenant au pacte"),
+      ddDoc("Actes d'adhésion au pacte des nouveaux investisseurs"),
+      ddDoc("Lettres d'investissement / side letters signées", 'opt'),
+      ddDoc('Nomination des membres du board / comité stratégique / observateurs', 'opt'),
+      ddDoc('Termes définitifs des actions de préférence ou valeurs mobilières émises'),
+    ],
+  },
+  {
+    key: 'registres-capital',
+    title: 'Registres et capitalisation',
+    items: [
+      ddDoc('Cap table post-money mise à jour'),
+      ddDoc('Registre des mouvements de titres mis à jour'),
+      ddDoc("Comptes individuels d'actionnaires / fiches de comptes titres"),
+      ddDoc('Registre des décisions mis à jour'),
+      ddDoc('Tableau fully diluted post-closing (BSPCE, BSA, AIR, OC inclus)'),
+    ],
+  },
+  {
+    key: 'formalites',
+    title: 'Formalités et dossier final',
+    items: [
+      ddDoc('Dossier de formalités au greffe (M2, statuts, PV, attestation de dépôt)'),
+      ddDoc('Annonce légale de modification du capital'),
+      ddDoc('Déclaration des bénéficiaires effectifs mise à jour', 'opt'),
+      ddDoc('Notification aux investisseurs de la réalisation du closing'),
+      ddDoc('Closing bible / dossier final signé archivé'),
+    ],
+  },
+];
+const CLOSING_DOCUMENTS = CLOSING_CATEGORIES.flatMap(category => ddLabels(category.items));
+const CLOSING_MARKS = CLOSING_CATEGORIES.flatMap(category => ddMarks(category.items));
 const FUNDRAISING_PHASES = [
   {
     key: 'mise-en-ordre',
-    name: '1 · Mise en ordre juridique (pré-levée)',
+    name: '0 · Ma levée',
     checklist: [
+      'Support de présentation (deck) investisseurs',
       'Statuts à jour',
       'Table de capitalisation (cap table)',
       'Registre des mouvements de titres',
@@ -1685,15 +1975,21 @@ const FUNDRAISING_PHASES = [
   },
   {
     key: 'confidentialite',
-    name: '2 · Confidentialité & approche',
+    name: '1 · Investisseurs',
     checklist: [
+      'Support de présentation (deck) investisseurs',
       'Accord de confidentialité (NDA)',
       'Engagement de confidentialité d’accès à la data room',
     ],
   },
   {
+    key: 'due-diligence-preliminaire',
+    name: '2 · Due diligence préliminaire',
+    checklist: DD_PRELIMINARY_DOCUMENTS,
+  },
+  {
     key: 'term-sheet',
-    name: '3 · Lettre d’intention / Term sheet',
+    name: '3 · Lettre d’intention',
     checklist: [
       'Term sheet (lettre d’intention)',
       'Clause d’exclusivité / de négociation',
@@ -1701,35 +1997,43 @@ const FUNDRAISING_PHASES = [
   },
   {
     key: 'due-diligence',
-    name: '4 · Audit juridique (due diligence)',
-    checklist: [
-      'Questionnaire de due diligence (réponses)',
-      'État des contentieux et litiges en cours',
-    ],
+    name: '4 · Due diligence poussée',
+    checklist: DD_COMPLETE_DOCUMENTS,
   },
   {
     key: 'documentation',
-    name: '5 · Documentation de l’opération',
+    name: '5 · Négociation',
     checklist: [
       'Pacte d’associés (shareholders agreement)',
       'Statuts modifiés (actions de préférence)',
-      'Contrat / bulletin de souscription',
       'Déclarations & garanties — R&W (intégrées au pacte)',
       'Termes des valeurs mobilières émises (ADP, BSA, OC)',
+      'Convention de garantie d’actif et de passif (GAP)',
+      "Lettre d'investissement / side letter",
+      'Convention entre investisseurs',
     ],
   },
   {
     key: 'closing',
-    name: '6 · Closing (augmentation de capital)',
-    checklist: [
-      'Cap table post-money mise à jour',
-    ],
+    name: '6 · Closing',
+    checklist: CLOSING_DOCUMENTS,
   },
   {
     key: 'post-closing',
-    name: '7 · Post-closing (information des investisseurs)',
+    name: '7 · Post-closing',
     checklist: [
       'Information / reporting des investisseurs (info rights)',
+      'Suivi des engagements du pacte (covenants)',
+      'Déclaration des bénéficiaires effectifs — mise à jour',
+    ],
+  },
+  {
+    key: 'gouvernance',
+    name: '8 · Gouvernance',
+    checklist: [
+      'PV de conseil / comité de surveillance',
+      'Pacte d’associés (shareholders agreement)',
+      'Statuts à jour',
     ],
   },
 ];
@@ -1813,13 +2117,15 @@ const BSA_AIR_PHASES = [
 // '' = standard. Tableau parallèle à la checklist de chaque phase (repéré par sa clé),
 // pour afficher les badges côté front — sur la levée classique ET le BSA-AIR.
 const PHASE_MARKS = {
-  'mise-en-ordre':     ['req', 'req', 'req', 'req', 'req', 'opt'],
-  'confidentialite':   ['req', 'opt'],
+  'mise-en-ordre':     ['req', 'req', 'req', 'req', 'req', 'req', 'opt'],
+  'confidentialite':   ['', 'req', 'opt'],
+  'due-diligence-preliminaire': DD_PRELIMINARY_MARKS,
   'term-sheet':        ['req', 'opt'],
-  'due-diligence':     ['req', 'opt'],
-  'documentation':     ['req', 'req', 'req', 'opt', 'opt'],
-  'closing':           ['req'],
-  'post-closing':      ['req'],
+  'due-diligence':     DD_COMPLETE_MARKS,
+  'documentation':     ['req', 'req', 'opt', 'opt', 'opt', 'opt', 'opt'],
+  'closing':           CLOSING_MARKS,
+  'post-closing':      ['req', '', 'req'],
+  'gouvernance':       ['req', '', ''],
   'air-preparation':   ['req', 'req', '', '', '', 'opt'],
   'air-termes':        ['req', ''],
   'air-emission':      ['req', 'req', 'req'],
@@ -1841,6 +2147,76 @@ function publicFolder(f) {
   const { _id, user_id, ...rest } = f;
   return rest;
 }
+
+const FUNDRAISING_PROFILE_DEFAULT = {
+  company_name: '',
+  company_country: 'france',
+  raise_type: 'classic',
+  target_amount: '',
+  target_date: '',
+  raise_reason: '',
+  founders: [],
+};
+const FUNDRAISING_COUNTRIES = new Set(['france', 'us', 'uk', 'germany', 'other']);
+const FUNDRAISING_TYPES = new Set(['classic', 'bsa-air', 'oc']);
+const FOUNDER_STATUSES = new Set(['cofounder', 'late-cofounder', 'investor']);
+function shortText(v, max = 240) {
+  return String(v || '').trim().slice(0, max);
+}
+function publicFundraisingProfile(p) {
+  if (!p) return { ...FUNDRAISING_PROFILE_DEFAULT };
+  const { _id, user_id, ...rest } = p;
+  return { ...FUNDRAISING_PROFILE_DEFAULT, ...rest };
+}
+function sanitizeFundraisingProfile(body) {
+  const company_country = shortText(body?.company_country, 32);
+  const raise_type = shortText(body?.raise_type, 32);
+  if (!FUNDRAISING_COUNTRIES.has(company_country)) throw new Error('Pays de résidence requis');
+  if (!FUNDRAISING_TYPES.has(raise_type)) throw new Error('Type de levée requis');
+
+  const target_amount_raw = shortText(body?.target_amount, 32);
+  if (target_amount_raw && (!/^\d+([.,]\d{1,2})?$/.test(target_amount_raw) || Number(target_amount_raw.replace(',', '.')) < 0)) {
+    throw new Error('Montant visé invalide');
+  }
+  const target_date = shortText(body?.target_date, 24);
+  if (target_date && !/^\d{4}-\d{2}-\d{2}$/.test(target_date)) throw new Error('Date cible invalide');
+
+  const founders = Array.isArray(body?.founders) ? body.founders.slice(0, 20).map(f => ({
+    name: shortText(f && f.name, 120),
+    status: FOUNDER_STATUSES.has(f && f.status) ? f.status : 'cofounder',
+    job: shortText(f && f.job, 160),
+  })).filter(f => f.name || f.job) : [];
+
+  return {
+    company_name: shortText(body?.company_name, 160),
+    company_country,
+    raise_type,
+    target_amount: target_amount_raw,
+    target_date,
+    raise_reason: shortText(body?.raise_reason, 1200),
+    founders,
+  };
+}
+
+app.get('/api/saas/fundraising-profile', requireAuth, async (req, res) => {
+  const profile = await col('saas_fundraising_profiles').findOne({ user_id: req.user.id });
+  res.json({ profile: publicFundraisingProfile(profile) });
+});
+
+app.put('/api/saas/fundraising-profile', requireAuth, async (req, res) => {
+  let profile;
+  try { profile = sanitizeFundraisingProfile(req.body || {}); }
+  catch (e) { return res.status(400).json({ error: e.message || 'Profil de levée invalide' }); }
+
+  const now = new Date().toISOString();
+  await col('saas_fundraising_profiles').updateOne(
+    { user_id: req.user.id },
+    { $set: { ...profile, updated_at: now }, $setOnInsert: { user_id: req.user.id, created_at: now } },
+    { upsert: true },
+  );
+  const saved = await col('saas_fundraising_profiles').findOne({ user_id: req.user.id });
+  res.json({ success: true, profile: publicFundraisingProfile(saved) });
+});
 
 // Synchronise les dossiers juridiques « système » de l'utilisateur avec la liste
 // ci-dessus : crée/met à jour ceux attendus, retire les anciens devenus obsolètes
@@ -1931,12 +2307,16 @@ app.put('/api/saas/documents/:id/folder', requireAuth, async (req, res) => {
   if (!doc) return res.status(404).json({ error: 'Document introuvable' });
 
   if (raw === null || raw === '' || raw === undefined) {
-    await col('saas_documents').updateOne({ id, user_id: req.user.id }, { $unset: { folder_id: '' } });
+    await col('saas_documents').updateOne({ id, user_id: req.user.id }, { $unset: { folder_id: '', category_key: '' } });
   } else {
     const folderId = Number(raw);
     if (!(await col('saas_folders').findOne({ id: folderId, user_id: req.user.id })))
       return res.status(404).json({ error: 'Dossier introuvable' });
-    await col('saas_documents').updateOne({ id, user_id: req.user.id }, { $set: { folder_id: folderId } });
+    const categoryKey = (req.body?.category_key || '').toString().trim().slice(0, 80);
+    const update = categoryKey
+      ? { $set: { folder_id: folderId, category_key: categoryKey } }
+      : { $set: { folder_id: folderId }, $unset: { category_key: '' } };
+    await col('saas_documents').updateOne({ id, user_id: req.user.id }, update);
   }
   res.json({ success: true });
 });
@@ -2201,7 +2581,11 @@ app.post('/api/saas/documents', requireAuth, saasUpload.single('file'), async (r
   };
   if (req.body.folder_id) {
     const folderId = Number(req.body.folder_id);
-    if (await col('saas_folders').findOne({ id: folderId, user_id: req.user.id })) doc.folder_id = folderId;
+    if (await col('saas_folders').findOne({ id: folderId, user_id: req.user.id })) {
+      doc.folder_id = folderId;
+      const categoryKey = (req.body.category_key || '').toString().trim().slice(0, 80);
+      if (categoryKey) doc.category_key = categoryKey;
+    }
   }
   await col('saas_documents').insertOne(doc);
   res.status(201).json({ document: publicDoc(doc) });

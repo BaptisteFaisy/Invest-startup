@@ -20,7 +20,8 @@
 
     .dossiers { max-width: 1000px; margin: 0 auto; padding: 40px 28px 80px; }
     .dossiers__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 6px; }
-    .dossiers__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
+    .dossiers__head > div:first-child { width:100%; }
+    .dossiers__eyebrow { font-family: 'Archivo', sans-serif; font-size: 26px; font-weight: 800; line-height: 1.05; letter-spacing: 0.02em; text-transform: uppercase; color: #fff; margin-bottom: 16px; }
     .dossiers__title { font-size: 32px; letter-spacing: -0.03em; margin-top: 6px; }
     .dossiers__sub { color: #fff; font-size: 15px; margin-top: 8px; }
     .dossiers__head .btn { cursor: pointer; }
@@ -46,6 +47,9 @@
     .folder__name { font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
     .folder__count { font-family: 'Archivo', sans-serif; font-size: 12.5px; color: #fff; margin-top: 2px; }
     .folder__actions { display: flex; gap: 8px; flex: none; }
+    .documents-card__actions { display:flex; align-items:center; gap:8px; flex:none; flex-wrap:wrap; justify-content:flex-end; }
+    .documents-action-btn { font-family:'Archivo',sans-serif; font-size:12px; font-weight:700; color:#08090c; background:#fff; border:1px solid rgba(8,9,12,0.18); border-radius:8px; padding:8px 10px; cursor:pointer; white-space:nowrap; }
+    .documents-action-btn:hover { background:#f0f0ee; border-color:rgba(8,9,12,0.34); }
     .folder__body { display: none; padding: 4px 14px 16px; }
     .folder.open .folder__body { display: block; }
     .folder__empty { font-size: 13px; color: #fff; padding: 10px 6px 6px; }
@@ -59,6 +63,25 @@
     .folder--phase .folder__head { border-bottom: 1px solid rgba(8,9,12,0.07); background: linear-gradient(180deg, rgba(8,9,12,0.015), transparent); }
     .folder--phase .folder__ic { background: #08090c; color: #fff; font-family: 'Archivo', sans-serif; font-weight: 800; }
     .folder--phase .folder__step { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #6b6b78; }
+    .phase-files { margin:12px 2px 4px; border:1px dashed rgba(8,9,12,0.16); border-radius:10px; padding:10px; background:#faf9f6; }
+    .phase-files__head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; }
+    .phase-files__title { font-family:'Archivo',sans-serif; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#6b6b78; }
+    .phase-files__drop { font-size:12.5px; line-height:1.45; color:#6b6b78; text-align:center; border:1px dashed rgba(8,9,12,0.18); border-radius:9px; padding:11px 12px; background:#fff; }
+    .doc-categories { display:flex; flex-direction:column; gap:12px; margin-top:8px; }
+    .doc-category { border:1px solid rgba(8,9,12,0.12); border-radius:10px; background:#f9f8f4; overflow:hidden; }
+    .doc-category.is-drag { outline:2px dashed var(--blue, #3b82f6); outline-offset:2px; }
+    .doc-category__head { display:flex; align-items:center; gap:12px; justify-content:space-between; padding:12px 12px; border-bottom:1px solid rgba(8,9,12,0.08); background:#fff; }
+    .doc-category__main { min-width:0; }
+    .doc-category__title { font-family:'Archivo',sans-serif; font-size:13.5px; font-weight:800; color:#08090c; letter-spacing:0; }
+    .doc-category__count { font-family:'Archivo',sans-serif; font-size:11.5px; color:#6b6b78; margin-top:2px; }
+    .doc-category__actions { display:flex; align-items:center; gap:8px; flex:none; }
+    .doc-category__toggle { width:30px; height:30px; flex:none; display:grid; place-items:center; border:1px solid rgba(8,9,12,0.16); border-radius:8px; background:#fff; color:#08090c; font-family:'Archivo',sans-serif; font-size:15px; font-weight:800; line-height:1; cursor:pointer; padding:0; transition:transform .15s, background .15s, border-color .15s; }
+    .doc-category__toggle:hover { background:#f4f2ee; border-color:rgba(8,9,12,0.34); }
+    .doc-category.is-collapsed .doc-category__toggle { transform:rotate(180deg); }
+    .doc-category.is-collapsed .doc-category__body { display:none; }
+    .doc-category__body { padding:10px 12px 12px; }
+    .doc-category__body .bsa-list { margin-top:0; }
+    .doc-category__drop { margin-top:10px; font-size:12.5px; line-height:1.45; color:#6b6b78; text-align:center; border:1px dashed rgba(8,9,12,0.18); border-radius:9px; padding:10px 12px; background:#fff; }
 
     /* Guide pédagogique de l'étape : objectif, explication, à ne pas faire.
        Pensé pour quelqu'un qui n'a jamais levé de fonds. */
@@ -179,13 +202,51 @@
     .err { font-size: 13px; color: #dc2626; background: rgba(220,38,38,0.06); border: 1px solid rgba(220,38,38,0.2); border-radius: 10px; padding: 10px 14px; margin-top: 12px; }
 
     /* Sélecteur du type de levée (Levée classique / BSA-AIR) */
-    .raise-switch { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; margin: 22px 0 6px; }
+    .dashboard-controls-row { width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:nowrap; margin:0 0 18px; }
+    .dashboard-controls { flex:1 1 auto; min-width:0; display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:0; }
+    .dashboard-controls[hidden] { display:none !important; }
+    .dashboard-controls-toggle { width:22px; height:22px; flex:none; display:grid; place-items:center; margin-left:auto; border:0; border-radius:0; background:transparent; color:#fff; font-family:'Archivo',sans-serif; font-size:16px; font-weight:800; line-height:1; cursor:pointer; padding:0; transition:transform .15s, opacity .15s; }
+    .dashboard-controls-toggle:hover { background:transparent; opacity:.72; }
+    .dashboard-controls-toggle.is-collapsed { transform:rotate(180deg); }
+    .country-control { display:flex; align-items:center; gap:16px; min-height:68px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 18px; }
+    .country-control__label { font-family:'Archivo',sans-serif; font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#fff; }
+    .country-control__select { min-width:132px; font-family:'Archivo',sans-serif; font-size:13px; font-weight:600; color:#08090c; background:#fff; border:1px solid rgba(8,9,12,0.18); border-radius:8px; padding:8px 10px; cursor:pointer; }
+    .country-control__select option:disabled { color:#9ca3af; }
+    .raise-switch { display: flex; align-items: center; gap: 16px; min-height:68px; flex-wrap: wrap; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; margin: 0; }
     .raise-switch__label { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #fff; }
     .raise-switch__hint { font-size: 13px; color: #fff; margin-left: auto; }
     .seg { display: inline-flex; background: var(--bg, #f4f2ee); border: 1px solid var(--line); border-radius: 99px; padding: 3px; gap: 3px; }
+    .seg__item { display:inline-flex; align-items:center; gap:3px; min-width:0; }
     .seg__btn { font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 600; color: #fff; background: transparent; border: 0; border-radius: 99px; padding: 8px 16px; cursor: pointer; transition: background .15s, color .15s; }
     .seg__btn:hover { color: #fff; }
     .seg__btn.is-active { background: var(--dark); color: var(--on-dark, #fff); }
+    .seg__btn--short { padding-left:14px; padding-right:14px; }
+    .raise-help { width:28px; height:28px; flex:none; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(255,255,255,0.78); background:#08090c; color:#fff; padding:0; cursor:help; transition:transform .15s, border-color .15s, background .15s; }
+    .raise-help:hover, .raise-help:focus-visible { background:#15171d; border-color:#fff; transform:translateY(-1px); outline:none; }
+    .raise-help svg { width:15px; height:15px; display:block; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
+    .dossiers__head .raise-switch { width:fit-content; margin:0; }
+    .dossiers__head .raise-switch__hint { display:none; }
+
+    .raise-help-modal__dialog { max-width:760px; }
+    .raise-help-modal__badge { border-radius:50%; }
+    .raise-help-modal__badge svg { width:20px; height:20px; display:block; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
+    .raise-type-info { display:flex; flex-direction:column; gap:16px; }
+    .raise-type-info__lead { margin:0; color:#202126; font-size:15px; line-height:1.68; }
+    .raise-type-info__section { border:1px solid rgba(8,9,12,0.09); border-radius:12px; background:#f7f7f5; padding:13px 15px; }
+    .raise-type-info__title { font-family:'Archivo',sans-serif; font-size:11px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:#08090c; margin-bottom:9px; }
+    .raise-type-info__list { margin:0; padding-left:19px; }
+    .raise-type-info__list li { color:#3d3e45; font-size:13.8px; line-height:1.55; margin:7px 0; }
+    .raise-type-info__list li::marker { color:#08090c; }
+    .raise-type-info__note { margin:0; padding:12px 14px; border-left:3px solid #08090c; background:#f4f2ee; border-radius:10px; color:#26272c; font-size:14px; line-height:1.55; }
+    @media (max-width: 680px) {
+      .dashboard-controls { align-items:stretch; }
+      .country-control, .raise-switch { width:100%; }
+      .country-control { justify-content:space-between; }
+      .seg { width:100%; flex-wrap:wrap; }
+      .seg__item { flex:1 1 calc(50% - 3px); }
+      .seg__item:first-child { flex-basis:100%; }
+      .seg__btn { flex:1; min-width:0; padding-left:10px; padding-right:10px; }
+    }
 
     /* Vue « bientôt disponible » pour un parcours non encore implémenté */
     .raise-soon { text-align: center; padding: 52px 24px; background: var(--card); border: 1px dashed var(--line); border-radius: 16px; }
@@ -264,6 +325,9 @@
     .bsa-intro strong { color: #fff !important; }
 
     /* Sélecteur type de levée */
+    .country-control { background: rgba(255,255,255,0.04) !important; border-color: rgba(255,255,255,0.08) !important; }
+    .country-control__label { color: #fff !important; }
+    .country-control__select { background: #fff !important; color: #08090c !important; border-color: rgba(255,255,255,0.08) !important; }
     .raise-switch { background: rgba(255,255,255,0.04) !important; border-color: rgba(255,255,255,0.08) !important; }
     .raise-switch__label { color: #fff !important; }
     .raise-switch__hint { color: #fff !important; }
@@ -350,68 +414,115 @@
     /* Erreur */
     .err { color: #f87171 !important; background: rgba(220,38,38,0.1) !important; border-color: rgba(220,38,38,0.25) !important; }
 
-    /* ═══════════ Frise : parcours interactif de la levée ═══════════ */
-    .frise { background:#fff; border-radius:20px; box-shadow:0 12px 40px rgba(0,0,0,0.35); padding:22px 26px 24px; margin:22px 0 10px; }
-    .frise.is-complete { box-shadow:0 12px 40px rgba(0,0,0,0.35), 0 0 0 2px rgba(22,163,74,0.4); }
-    .frise__head { display:flex; align-items:flex-end; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:24px; }
-    .frise__eyebrow { font-family:'Archivo',sans-serif; font-size:11px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#6b6b78; }
-    .frise__title { font-family:'Archivo',sans-serif; font-size:18px; font-weight:700; letter-spacing:-0.01em; color:#08090c; margin-top:5px; }
+    /* ═══════════ Tableau de bord : frise et vues par étape ═══════════ */
+    .frise { background:transparent; border-radius:0; box-shadow:none; padding:0; margin:22px 0 14px; }
+    .frise.is-complete { box-shadow:none; }
+    .frise__head { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:16px; }
+    .frise__eyebrow { font-family:'Archivo',sans-serif; font-size:11px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:rgba(255,255,255,0.62); }
+    .frise__title { font-family:'Archivo',sans-serif; font-size:18px; font-weight:700; letter-spacing:0; color:#fff; margin-top:5px; }
     .frise.is-complete .frise__title { color:#16a34a; }
+    .frise__right { display:flex; align-items:center; gap:12px; margin-left:auto; }
     .frise__progress { display:flex; align-items:center; gap:10px; }
-    .frise__progress-num { font-family:'Archivo',sans-serif; font-size:12.5px; font-weight:700; color:#08090c; white-space:nowrap; }
-    .frise__progress-bar { width:130px; height:7px; border-radius:99px; background:#ececec; overflow:hidden; }
+    .frise__progress-num { font-family:'Archivo',sans-serif; font-size:12.5px; font-weight:700; color:#fff; white-space:nowrap; }
+    .frise__progress-bar { width:130px; height:7px; border-radius:99px; background:rgba(255,255,255,0.14); overflow:hidden; }
     .frise__progress-bar > i { display:block; height:100%; border-radius:99px; background:#3b82f6; width:calc(var(--frac,0) * 100%); transition:width .6s cubic-bezier(.2,.8,.2,1), background .4s; }
     .frise.is-complete .frise__progress-bar > i { background:#16a34a; }
+    .frise__toggle { width:22px; height:22px; flex:none; display:grid; place-items:center; border:0; border-radius:0; background:transparent; color:#fff; font-family:'Archivo',sans-serif; font-size:16px; font-weight:800; line-height:1; cursor:pointer; padding:0; transition:transform .15s, opacity .15s; }
+    .frise__toggle:hover { background:transparent; opacity:.72; }
+    .frise.is-collapsed .frise__toggle { transform:rotate(180deg); }
+    .frise.is-collapsed .frise__track { display:none; }
+    .frise.is-collapsed { padding-bottom:0; }
 
-    .frise__track { position:relative; }
-    .frise__rail { display:none; }
-    .frise__points { position:relative; display:flex; justify-content:space-between; gap:4px; }
-    .frise__point { flex:1 1 0; min-width:0; position:relative; display:flex; flex-direction:column; align-items:center; gap:9px; background:none; border:0; padding:0; cursor:pointer; }
-    /* Segment de liaison reliant deux pastilles (centre à centre). */
-    .frise__point::before { content:''; position:absolute; top:22px; left:-50%; width:100%; height:4px; background:#e6e6e6; border-radius:99px; z-index:0; transition:background .5s ease; }
-    .frise__point:first-child::before { display:none; }
-    .frise__point.is-join::before { background:#16a34a; }
-    .frise__point:nth-child(2)::before{transition-delay:.04s}
-    .frise__point:nth-child(3)::before{transition-delay:.08s}
-    .frise__point:nth-child(4)::before{transition-delay:.12s}
-    .frise__point:nth-child(5)::before{transition-delay:.16s}
-    .frise__point:nth-child(6)::before{transition-delay:.20s}
-    .frise__point:nth-child(7)::before{transition-delay:.24s}
-    .frise__point:nth-child(8)::before{transition-delay:.28s}
+    .frise__track { overflow:visible; }
+    .frise__points { display:grid; grid-template-columns:repeat(9, minmax(0, 1fr)); gap:8px; }
+    .frise__point { position:relative; min-width:0; min-height:0; aspect-ratio:1 / 1; overflow:hidden; display:flex; flex-direction:column; align-items:flex-start; gap:6px; text-align:left; background:#f7f7f5; border:1px solid rgba(8,9,12,0.1); border-radius:8px; padding:8px; cursor:pointer; transition:transform .16s, border-color .16s, box-shadow .16s, background .16s; }
+    .frise__point::after { content:''; position:absolute; top:50%; left:calc(100% - 1px); width:10px; height:2px; background:#08090c; box-shadow:0 0 0 1px rgba(255,255,255,0.55); transform:translateY(-50%); pointer-events:none; }
+    .frise__point:last-child::after { display:none; }
+    .frise__point:hover { transform:translateY(-2px); border-color:rgba(8,9,12,0.45); box-shadow:0 8px 18px rgba(8,9,12,0.14); }
+    .frise__point.is-active { background:#fff; border-color:#08090c; border-width:3px; padding:6px; box-shadow:0 0 0 2px rgba(8,9,12,0.14), 0 10px 22px rgba(8,9,12,0.18); }
+    .frise__point.is-done { background:#16a34a; border-color:#16a34a; box-shadow:0 8px 18px rgba(22,163,74,0.22); }
+    .frise__point.is-done.is-active { background:#16a34a; border-color:#08090c; }
+    .frise__num { width:24px; height:24px; flex:none; display:grid; place-items:center; border-radius:8px; background:#fff; border:1px solid rgba(8,9,12,0.13); color:#08090c; font-family:'Archivo',sans-serif; font-weight:800; font-size:12px; }
+    .frise__idea { position:absolute; z-index:2; top:8px; right:8px; width:24px; height:24px; display:grid; place-items:center; border-radius:8px; background:#fff; border:1px solid rgba(8,9,12,0.14); color:#08090c; line-height:1; cursor:help; transition:background .15s, border-color .15s, transform .15s; }
+    .frise__idea:hover { background:#f1f2f4; border-color:rgba(8,9,12,0.28); transform:translateY(-1px); }
+    .frise__idea svg { width:15px; height:15px; display:block; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
+    .frise__point.is-active .frise__idea { top:6px; right:6px; }
+    .frise__point.is-done .frise__idea { background:#fff; border-color:rgba(8,9,12,0.14); color:#08090c; }
+    .frise__point.is-done .frise__num { background:#fff; border-color:#fff; color:#16a34a; }
+    .frise__point.is-active:not(.is-done) .frise__num { background:#08090c; border-color:#08090c; color:#fff; }
+    .frise__label { color:#08090c; font-family:'Archivo',sans-serif; font-size:10px; font-weight:700; letter-spacing:0; line-height:1.08; overflow-wrap:anywhere; }
+    .frise__mini { display:none; margin-top:auto; color:#8a8a94; font-family:'Archivo',sans-serif; font-size:10.5px; font-weight:700; letter-spacing:0; }
+    .frise__point.is-active:not(.is-done) .frise__label, .frise__point.is-active:not(.is-done) .frise__mini { color:#08090c; }
+    .frise__point.is-done .frise__label, .frise__point.is-done .frise__mini { color:#fff; }
 
-    .frise__dot { position:relative; z-index:1; width:44px; height:44px; flex:none; display:grid; place-items:center; border-radius:50%; background:#fff; border:2px solid #d7d7de; color:#6b6b78; font-family:'Archivo',sans-serif; font-weight:800; font-size:15px; transition:transform .18s, border-color .3s, background .3s, color .3s, box-shadow .3s; }
-    .frise__point:hover .frise__dot { transform:translateY(-2px); box-shadow:0 6px 16px rgba(8,9,12,0.16); border-color:#08090c; }
-    .frise__point.is-done .frise__dot { border-color:#16a34a; background:#16a34a; color:#fff; box-shadow:0 6px 18px rgba(22,163,74,0.32); }
-    .frise__label { font-family:'Archivo',sans-serif; font-size:11.5px; font-weight:600; letter-spacing:-0.01em; color:#4b4b55; line-height:1.25; max-width:96px; }
-    .frise__point.is-done .frise__label { color:#16a34a; }
-    .frise__mini { font-family:'Archivo',sans-serif; font-size:10.5px; font-weight:700; color:#9a9aa5; }
-    .frise__point.is-done .frise__mini { color:#16a34a; }
+    .dash-overview { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; margin:14px 0 14px; }
+    .dash-metric { background:#fff; border:1px solid rgba(255,255,255,0.1); border-radius:14px; padding:18px; box-shadow:0 10px 26px rgba(0,0,0,0.22); }
+    .dash-metric__label { font-family:'Archivo',sans-serif; font-size:11px; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:#6b6b78; }
+    .dash-metric__value { font-family:'Archivo',sans-serif; font-size:26px; font-weight:800; letter-spacing:0; color:#08090c; margin-top:8px; }
+    .dash-metric__sub { font-size:13px; color:#6b6b78; margin-top:4px; }
+    .classic-actions { display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 24px; }
+    .classic-actions[hidden] { display:none !important; }
+    .step-page-head { display:flex; align-items:flex-end; justify-content:space-between; gap:14px; flex-wrap:wrap; margin:24px 0 12px; }
+    .step-page-head__title { color:#fff; font-family:'Archivo',sans-serif; font-size:24px; font-weight:800; letter-spacing:0; margin-top:4px; }
+    .step-page-head__text { color:rgba(255,255,255,0.7); font-size:14px; margin-top:5px; }
+    .raise-profile { background:#fff; color:#08090c; border:1px solid rgba(255,255,255,0.1); border-radius:14px; padding:18px; box-shadow:0 10px 26px rgba(0,0,0,0.22); margin:12px 0 24px; }
+    .raise-profile__form { display:flex; flex-direction:column; gap:18px; }
+    .raise-profile__grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:14px; }
+    .raise-field { display:flex; flex-direction:column; gap:7px; min-width:0; }
+    .raise-field--wide { grid-column:1 / -1; }
+    .raise-field__label { font-family:'Archivo',sans-serif; font-size:11px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:#6b6b78; }
+    .raise-field__label--required::after { content:' · obligatoire'; color:#dc2626; letter-spacing:0; text-transform:none; font-weight:700; }
+    .raise-input, .raise-select, .raise-textarea { width:100%; font-family:'Libre Franklin',sans-serif; font-size:14px; color:#08090c; background:#f7f7f5; border:1px solid rgba(8,9,12,0.14); border-radius:9px; padding:10px 11px; outline:none; transition:border-color .15s, box-shadow .15s, background .15s; }
+    .raise-input:focus, .raise-select:focus, .raise-textarea:focus { background:#fff; border-color:rgba(8,9,12,0.55); box-shadow:0 0 0 3px rgba(8,9,12,0.08); }
+    .raise-textarea { min-height:96px; resize:vertical; line-height:1.5; }
+    .raise-founders { display:flex; flex-direction:column; gap:10px; }
+    .raise-founders__head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .raise-founders__title { font-family:'Archivo',sans-serif; font-size:11px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:#6b6b78; }
+    .raise-founder-row { display:grid; grid-template-columns:minmax(0, 1.15fr) minmax(150px, .8fr) minmax(0, 1fr) 34px; gap:8px; align-items:center; }
+    .raise-founder-remove { width:34px; height:34px; display:grid; place-items:center; border:1px solid rgba(8,9,12,0.14); border-radius:8px; background:#fff; color:#6b6b78; font-size:18px; line-height:1; cursor:pointer; }
+    .raise-founder-remove:hover { border-color:rgba(220,38,38,0.45); color:#dc2626; background:rgba(220,38,38,0.05); }
+    .raise-profile__actions { display:flex; align-items:center; justify-content:flex-end; gap:10px; flex-wrap:wrap; }
+    .raise-profile__status { font-size:13px; color:#6b6b78; margin-right:auto; }
+    .raise-profile__status.is-error { color:#dc2626; }
+    .raise-profile__status.is-ok { color:#16a34a; }
+    @media (max-width:680px) {
+      .raise-profile__grid { grid-template-columns:1fr; }
+      .raise-founder-row { grid-template-columns:1fr; }
+      .raise-founder-remove { justify-self:end; }
+    }
 
-    @keyframes frise-pop { 0%{transform:scale(1)} 45%{transform:scale(1.16)} 100%{transform:scale(1)} }
+    @keyframes frise-pop { 0%{transform:scale(1)} 45%{transform:scale(1.04)} 100%{transform:scale(1)} }
     @keyframes frise-card-pulse { 0%{transform:scale(1)} 30%{transform:scale(1.008)} 100%{transform:scale(1)} }
     .frise.is-celebrate { animation:frise-card-pulse .6s ease; }
-    .frise.is-celebrate .frise__point.is-done .frise__dot { animation:frise-pop .5s ease both; }
-    .frise.is-celebrate .frise__point:nth-child(1) .frise__dot{animation-delay:0s}
-    .frise.is-celebrate .frise__point:nth-child(2) .frise__dot{animation-delay:.07s}
-    .frise.is-celebrate .frise__point:nth-child(3) .frise__dot{animation-delay:.14s}
-    .frise.is-celebrate .frise__point:nth-child(4) .frise__dot{animation-delay:.21s}
-    .frise.is-celebrate .frise__point:nth-child(5) .frise__dot{animation-delay:.28s}
-    .frise.is-celebrate .frise__point:nth-child(6) .frise__dot{animation-delay:.35s}
-    .frise.is-celebrate .frise__point:nth-child(7) .frise__dot{animation-delay:.42s}
-    .frise.is-celebrate .frise__point:nth-child(8) .frise__dot{animation-delay:.49s}
+    .frise.is-celebrate .frise__point.is-done { animation:frise-pop .5s ease both; }
+    .frise.is-celebrate .frise__point:nth-child(1){animation-delay:0s}
+    .frise.is-celebrate .frise__point:nth-child(2){animation-delay:.05s}
+    .frise.is-celebrate .frise__point:nth-child(3){animation-delay:.10s}
+    .frise.is-celebrate .frise__point:nth-child(4){animation-delay:.15s}
+    .frise.is-celebrate .frise__point:nth-child(5){animation-delay:.20s}
+    .frise.is-celebrate .frise__point:nth-child(6){animation-delay:.25s}
+    .frise.is-celebrate .frise__point:nth-child(7){animation-delay:.30s}
+    .frise.is-celebrate .frise__point:nth-child(8){animation-delay:.35s}
+    .frise.is-celebrate .frise__point:nth-child(9){animation-delay:.40s}
 
-    @media (max-width:680px) {
-      .frise { padding:20px 18px 22px; }
-      .frise__rail { display:block; position:absolute; left:20px; top:22px; bottom:22px; width:4px; border-radius:99px; background:#e6e6e6; overflow:hidden; }
-      .frise__rail-fill { position:absolute; left:0; top:0; width:100%; height:calc(var(--frac,0) * 100%); background:#3b82f6; border-radius:99px; transition:height .6s cubic-bezier(.2,.8,.2,1), background .4s; }
-      .frise.is-complete .frise__rail-fill { background:#16a34a; }
-      .frise__points { flex-direction:column; align-items:stretch; gap:18px; }
-      .frise__point { flex:none; flex-direction:row; align-items:center; gap:14px; text-align:left; }
-      .frise__point::before { display:none; }
-      .frise__label { max-width:none; font-size:13px; }
-      .frise__mini { margin-left:auto; }
+    @media (max-width:760px) {
+      .frise__points { grid-template-columns:repeat(3, minmax(0, 1fr)); }
+      .frise__point:nth-child(3n)::after { display:none; }
+      .dash-overview { grid-template-columns:1fr; }
     }
-    @media (prefers-reduced-motion:reduce) { .frise, .frise * { animation:none !important; } }
+    @media (max-width:680px) {
+      .frise { padding:18px 14px; }
+      .frise__head { align-items:stretch; flex-direction:column; }
+      .frise__right { width:100%; align-items:center; justify-content:space-between; flex-direction:row; gap:8px; }
+      .frise__progress { flex:1; min-width:0; }
+      .frise__progress-bar { width:96px; }
+      .frise__points { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+      .frise__point:nth-child(3n)::after { display:block; }
+      .frise__point:nth-child(2n)::after { display:none; }
+      .frise__point:last-child::after { display:none; }
+      .step-page-head__title { font-size:20px; }
+    }
+    @media (prefers-reduced-motion:reduce) { .frise, .frise * { animation:none !important; transition:none !important; } }
 
     /* ── Fenêtre d'une étape (déclenchée par la frise) : explication + documents ── */
     .fmodal { position:fixed; inset:0; z-index:990; display:none; align-items:center; justify-content:center; padding:24px; }
@@ -427,7 +538,7 @@
     .fmodal__title { font-family:'Archivo',sans-serif; font-size:17px; font-weight:700; letter-spacing:-0.01em; color:#08090c; margin:2px 0 0; }
     .fmodal__status { font-family:'Archivo',sans-serif; font-size:11px; font-weight:700; padding:4px 10px; border-radius:99px; background:rgba(8,9,12,0.06); color:#6b6b78; flex:none; white-space:nowrap; }
     .fmodal__status.is-done { background:rgba(22,163,74,0.14); color:#16a34a; }
-    .fmodal__close { border:0; background:none; font-size:24px; line-height:1; cursor:pointer; color:#6b6b78; padding:2px 8px; border-radius:8px; flex:none; }
+    .fmodal__close { border:0; background:none; font-size:22px; line-height:1; cursor:pointer; color:#6b6b78; opacity:.78; padding:2px 8px; border-radius:8px; flex:none; }
     .fmodal__close:hover { background:rgba(8,9,12,0.06); }
     .fmodal__body { padding:16px 20px 22px; overflow-y:auto; }
     .fmodal__sec-title { font-family:'Archivo',sans-serif; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#6b6b78; margin:20px 0 10px; }
@@ -440,6 +551,22 @@
     .fmodal .cli-todos__h { color:#6b6b78; }
     .fmodal .cli-todos li, .fmodal .cli-todos__date { color:#3a3b40; }
     .fmodal .phase-guide { margin:0; }
+    .step-info { display:flex; flex-direction:column; gap:16px; }
+    .step-info__lead { margin:0; color:#202126; font-size:15px; line-height:1.68; }
+    .step-info__list { list-style:none; display:flex; flex-direction:column; gap:10px; margin:0; padding:0; counter-reset:substep; }
+    .step-info__item { display:grid; grid-template-columns:28px minmax(0, 1fr); gap:12px; align-items:start; padding:12px 14px; border:1px solid rgba(8,9,12,0.09); border-radius:12px; background:#f7f7f5; }
+    .step-info__num { width:28px; height:28px; display:grid; place-items:center; border-radius:8px; background:#08090c; color:#fff; font-family:'Archivo',sans-serif; font-size:12px; font-weight:800; }
+    .step-info__name { color:#08090c; font-family:'Archivo',sans-serif; font-size:14px; font-weight:800; letter-spacing:0; }
+    .step-info__text { color:#3d3e45; font-size:13.8px; line-height:1.55; margin-top:4px; }
+    .step-info__outcome { margin:0; padding:12px 14px; border-left:3px solid #08090c; background:#f4f2ee; border-radius:10px; color:#26272c; font-size:14px; line-height:1.55; }
+    @media (max-width:680px) {
+      .topbar { height:auto !important; min-height:56px; flex-wrap:wrap; align-items:flex-start; gap:10px; padding:10px 14px !important; }
+      .topbar__left { width:100%; justify-content:space-between; gap:10px; }
+      .topbar__doc { display:none; }
+      .topbar__actions { width:100%; flex-wrap:wrap; gap:8px; }
+      .topbar .btn { flex:1 1 calc(50% - 4px); min-width:0; padding:8px 10px; }
+      .topbar .aimax { flex:1 1 calc(50% - 4px); justify-content:center; }
+    }
     @media (max-width:680px) {
       .fmodal { padding:0; }
       .fmodal__dialog { max-width:none; max-height:100vh; height:100vh; border-radius:0; }
@@ -469,13 +596,7 @@
     <main class="dossiers">
       <div class="dossiers__head">
         <div>
-          <div class="dossiers__eyebrow">Tableau de bord</div>
-          <h1 class="dossiers__title">Pilotez votre levée</h1>
-          <p class="dossiers__sub">Choisissez votre type de levée et suivez vos documents juridiques par phase — liés à votre compte.</p>
-        </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn btn--ghost btn--lg" id="new-folder-btn">+ Nouveau dossier</button>
-          <button class="btn btn--ghost btn--lg" id="import-btn">Importer des fichiers</button>
+          <div class="dossiers__eyebrow">TABLEAU DE BORD</div>
         </div>
         <input type="file" id="file-input" accept=".pdf,.doc,.docx" multiple hidden />
       </div>
@@ -485,39 +606,36 @@
       <!-- Reprendre : dernier document ouvert (accès rapide) -->
       <div id="resume"></div>
 
-      <!-- Choix du type de levée -->
-      <div class="raise-switch">
-        <span class="raise-switch__label">Type de levée</span>
-        <div class="seg" role="tablist" aria-label="Type de levée">
-          <button class="seg__btn is-active" type="button" data-raise="classic" role="tab">Levée classique</button>
-          <button class="seg__btn" type="button" data-raise="bsa-air" role="tab">BSA-AIR</button>
-        </div>
-        <span class="raise-switch__hint" id="raise-hint">Actions de préférence · parcours en 7 phases</span>
-      </div>
-
       <!-- Vue : levée classique (actions de préférence) -->
       <div id="classic-view">
 
       <!-- Frise interactive : cliquez une étape pour son explication + ses documents -->
       <div id="frise-classic"></div>
 
-      <div class="section-label">
-        <span>Phases juridiques de la levée</span>
-        <span style="text-transform:none;letter-spacing:0;font-weight:500;color:rgba(255,255,255,0.65)">Actions de préférence · droit français (SAS)</span>
+      <div id="classic-actions" class="classic-actions" hidden>
+        <button class="btn btn--ghost btn--lg" id="new-folder-btn">+ Nouveau dossier</button>
+        <button class="btn btn--ghost btn--lg" id="import-btn">Importer des fichiers</button>
       </div>
-      <p class="bsa-intro">La <strong>levée classique</strong> (série A, B…) se fait par augmentation de capital en <strong>actions de préférence</strong> : l'investisseur entre au capital avec des droits spécifiques (liquidation préférentielle, anti-dilution, droits de vote renforcés). Le parcours couvre 7 phases — de la mise en ordre juridique jusqu'au post-closing. Glissez-déposez vos fichiers dans chaque phase ; les documents <strong>indispensables</strong> sont signalés, les modèles pré-remplis sont disponibles directement.</p>
+
       <div id="folders"></div>
       </div><!-- /classic-view -->
 
       <!-- Vue : BSA-AIR (roadlist des documents par étape) -->
       <div id="bsa-air-view" hidden>
-        <div id="frise-bsa"></div>
         <div class="section-label">
-          <span>Parcours BSA-AIR — documents par étape</span>
+          <span>Page BSA-AIR — documents par étape</span>
           <span style="text-transform:none;letter-spacing:0;font-weight:500;color:rgba(255,255,255,0.65)">Accord d'investissement rapide (décote / plafond de valorisation)</span>
         </div>
         <p class="bsa-intro">Le <strong>BSA-AIR</strong> (Bon de Souscription d'Actions — Accord d'Investissement Rapide) permet d'investir vite : les fonds sont versés dès la souscription des bons, qui se convertissent en actions lors du prochain tour qualifié, avec une décote et/ou un plafond de valorisation. Glissez-déposez vos fichiers dans chaque phase ; les documents <strong>indispensables</strong> sont signalés.</p>
         <div id="bsa-folders"></div>
+      </div>
+
+      <div id="raise-soon-view" hidden>
+        <section class="raise-soon" aria-live="polite">
+          <span class="raise-soon__badge" id="raise-soon-badge">OC</span>
+          <h2 class="raise-soon__title" id="raise-soon-title">Obligations convertibles (OC)</h2>
+          <p class="raise-soon__text" id="raise-soon-text">Le parcours de cette levée sera structuré ici.</p>
+        </section>
       </div>
     </main>
   </div>
@@ -565,10 +683,28 @@
     </div>
   </div>
 
+  <!-- Fenêtre d'aide : choix du type de levée -->
+  <div class="fmodal raise-help-modal" id="raise-help-modal" role="dialog" aria-modal="true" aria-labelledby="raise-help-title">
+    <div class="fmodal__backdrop" data-raise-help-close></div>
+    <div class="fmodal__dialog raise-help-modal__dialog">
+      <div class="fmodal__head">
+        <div class="fmodal__badge-step raise-help-modal__badge"></div>
+        <div class="fmodal__titles">
+          <div class="fmodal__step">Type de levée</div>
+          <h2 class="fmodal__title" id="raise-help-title">Type de levée</h2>
+        </div>
+        <span class="fmodal__status" id="raise-help-kind">Repère</span>
+        <button class="fmodal__close" type="button" data-raise-help-close aria-label="Fermer">&times;</button>
+      </div>
+      <div class="fmodal__body" id="raise-help-body"></div>
+    </div>
+  </div>
+
   <script>
     requireAuth().then((user) => {
       if (!user) return;
       raiseUser = (user && (user.id || user.email)) || 'me';
+      setDashboardControlsCollapsed(storedDashboardControlsCollapsed(), false);
       document.querySelector('.app').classList.add('ready');
       applyRaiseType(getRaiseType());
       openTodoAnchor();
@@ -580,54 +716,658 @@
 
     const foldersEl    = document.getElementById('folders');
     const bsaFoldersEl = document.getElementById('bsa-folders');
+    const classicActionsEl = document.getElementById('classic-actions');
+    const dashboardControlsEl = document.getElementById('dashboard-controls');
+    const dashboardControlsToggle = document.getElementById('dashboard-controls-toggle');
     const errEl        = document.getElementById('error');
     const fileInput = document.getElementById('file-input');
-    document.getElementById('import-btn').addEventListener('click', () => fileInput.click());
+    let importTarget = { folderId: null, categoryKey: '' };
+    function openImport(folderId = null, categoryKey = '') {
+      importTarget = { folderId: folderId == null ? null : folderId, categoryKey: categoryKey || '' };
+      fileInput.click();
+    }
+    document.getElementById('import-btn').addEventListener('click', () => openImport(null, ''));
     document.getElementById('new-folder-btn').addEventListener('click', createFolder);
 
-    /* ---- Type de levée : Levée classique (implémentée) / BSA-AIR (à venir) ---- */
+    /* ---- Type de levée : Levée classique / BSA-AIR / OC ---- */
     let raiseUser = 'me';
     const RAISE_HINTS = {
-      'classic': 'Actions de préférence · parcours en 7 phases',
-      'bsa-air': 'Accord rapide (décote / plafond) · parcours en 6 phases',
+      'classic': 'Classique · étapes 0 à 8',
+      'bsa-air': 'BSA-AIR · page sans frise',
+      'oc': 'OC · obligations convertibles',
     };
+    const RAISE_SOON = {
+      'oc': {
+        badge: 'OC',
+        title: 'Obligations convertibles (OC)',
+        text: 'Le parcours de cette levée sera structuré ici.',
+      },
+    };
+    const RAISE_HELP = {
+      'classic': {
+        kind: 'Equity',
+        title: 'Levée classique',
+        intro: "Une levée classique est une augmentation de capital à prix fixé : l'investisseur souscrit des actions maintenant, souvent des actions de préférence, sur une valorisation négociée aujourd'hui. C'est le format le plus complet et le plus structurant.",
+        sections: [
+          {
+            title: "Ce dont il s'agit",
+            items: [
+              "La société émet immédiatement de nouvelles actions contre l'argent versé par les investisseurs.",
+              "La valorisation pre-money, le prix par action, le montant levé et la dilution sont connus au closing.",
+              "Les droits économiques et politiques sont documentés dans les statuts, le pacte d'associés, les décisions sociales et les bulletins de souscription.",
+              "Les investisseurs reçoivent souvent des actions de préférence : préférence de liquidation, anti-dilution, information renforcée, veto, board ou comité stratégique.",
+              "La due diligence et la documentation sont plus lourdes, parce que les investisseurs entrent réellement au capital dès l'opération."
+            ],
+          },
+          {
+            title: 'En théorie, on l’utilise quand',
+            items: [
+              "La valorisation de la société peut être fixée sérieusement dès maintenant.",
+              "Un investisseur lead accepte de négocier les termes et d'entraîner les autres investisseurs.",
+              "Le montant est suffisamment important pour justifier une documentation complète.",
+              "La société veut stabiliser sa gouvernance, sa cap table et ses droits d'investisseurs pour plusieurs années.",
+              "Le tour est une seed structurée, une Série A ou une opération institutionnelle avec fonds d'investissement."
+            ],
+          },
+          {
+            title: 'En pratique, on l’utilise pour',
+            items: [
+              "Faire entrer un fonds ou un pool d'investisseurs professionnels avec des droits détaillés.",
+              "Donner un signal clair au marché : tour pricé, valorisation assumée, investisseurs officiellement au capital.",
+              "Nettoyer la documentation juridique avant une phase de croissance plus visible.",
+              "Remplacer une accumulation de bridges, AIR ou OC par une cap table lisible.",
+              "Organiser un tour où les investisseurs veulent des droits de gouvernance, de veto et de liquidité précis."
+            ],
+          },
+          {
+            title: "Pourquoi on choisit ce format",
+            items: [
+              "Lisibilité : tout le monde connaît le prix, le nombre d'actions et la dilution.",
+              "Sécurité juridique : les droits sont posés dans les bons documents dès le closing.",
+              "Crédibilité : les fonds institutionnels préfèrent souvent un tour pricé pour les opérations significatives.",
+              "Gouvernance : les droits d'information, décisions réservées, sièges et règles de transfert sont cadrés proprement.",
+              "Cap table propre : pas de conversion future incertaine, sauf instruments déjà existants.",
+              "Alignement : fondateurs et investisseurs partagent immédiatement le même support économique, les actions.",
+              "Préparation des tours suivants : les futurs investisseurs peuvent auditer une structure déjà formalisée."
+            ],
+          },
+          {
+            title: "Points d'attention",
+            items: [
+              "C'est plus long et plus coûteux qu'un instrument convertible : term sheet, audit, statuts, pacte, décisions sociales, closing.",
+              "La valorisation est figée maintenant : si elle est mal calibrée, elle peut peser longtemps.",
+              "Les droits accordés aux investisseurs sont difficiles à renégocier ensuite.",
+              "Un tour trop petit avec une documentation trop lourde peut consommer du temps au mauvais moment.",
+              "Il faut vérifier l'impact en pleinement dilué : BSPCE, BSA, BSA-AIR, OC et réserves de titres inclus."
+            ],
+          },
+        ],
+        note: "À privilégier quand le tour est assez mature pour être pricé et que vous voulez une structure nette. À éviter comme premier réflexe si le besoin est seulement un petit bridge urgent ou si la valorisation est encore trop spéculative.",
+      },
+      'bsa-air': {
+        kind: 'Convertible',
+        title: 'BSA-AIR',
+        intro: "Le BSA-AIR est l'équivalent français, en pratique, d'un SAFE : l'investisseur verse les fonds maintenant et reçoit le droit de souscrire plus tard des actions, généralement au prochain tour qualifié, avec une décote et/ou un plafond de valorisation.",
+        sections: [
+          {
+            title: "Ce dont il s'agit",
+            items: [
+              "BSA-AIR signifie Bon de Souscription d'Actions - Accord d'Investissement Rapide.",
+              "L'investisseur ne reçoit pas immédiatement des actions : il reçoit des bons qui se convertiront selon une formule prévue.",
+              "La conversion intervient typiquement lors d'un tour qualifié, d'une cession, d'une liquidation ou à une date butoir.",
+              "La formule prévoit souvent une décote sur le prochain tour, un plafond de valorisation, parfois un plancher pour protéger les fondateurs.",
+              "Ce n'est normalement pas une dette : pas d'intérêt, pas de remboursement automatique, sauf cas contractuels particuliers."
+            ],
+          },
+          {
+            title: 'En théorie, on l’utilise quand',
+            items: [
+              "La société a besoin d'argent vite mais ne veut pas fixer une valorisation complète maintenant.",
+              "Le prochain tour pricé est raisonnablement attendu et servira de référence de conversion.",
+              "Les tickets sont nombreux ou de taille modeste, notamment avec des business angels.",
+              "Les parties veulent une documentation plus légère qu'une levée classique, tout en restant dans un cadre français.",
+              "La société veut limiter la négociation immédiate aux sujets clés : montant, décote, cap, floor, événements de conversion."
+            ],
+          },
+          {
+            title: 'En pratique, on l’utilise pour',
+            items: [
+              "Boucler un pré-seed ou un bridge entre deux tours sans ouvrir une négociation de pacte complète.",
+              "Faire entrer des angels au fil de l'eau, à mesure que les engagements arrivent.",
+              "Donner de la runway pour atteindre un jalon : produit, chiffre d'affaires, autorisation réglementaire, lead investisseur.",
+              "Reporter la discussion de valorisation à un tour où le marché et les métriques seront plus lisibles.",
+              "Éviter qu'un petit tour très précoce impose une valorisation basse qui servira de référence trop longtemps."
+            ],
+          },
+          {
+            title: "Pourquoi on choisit ce format",
+            items: [
+              "Rapidité : moins de négociation qu'un tour en actions de préférence.",
+              "Souplesse : plusieurs souscripteurs peuvent rejoindre l'opération progressivement.",
+              "Valorisation différée : utile quand fondateurs et investisseurs ne s'accordent pas encore sur un prix.",
+              "Trésorerie protégée : contrairement aux OC, il n'y a en principe pas de remboursement en numéraire à maturité.",
+              "Alignement avec le futur tour : l'investisseur prend le risque tôt et reçoit une décote ou un cap en contrepartie.",
+              "Cap table immédiate plus simple : les porteurs ne deviennent actionnaires qu'à la conversion.",
+              "Négociation concentrée : cap, décote, floor, seuil de tour qualifié, date butoir, cas de cession et liquidation."
+            ],
+          },
+          {
+            title: "Points d'attention",
+            items: [
+              "La dilution réelle est différée : elle peut surprendre au moment de la conversion si le cap est bas.",
+              "Le cap, la décote et le floor doivent être simulés en pleinement dilué avant signature.",
+              "Un BSA-AIR reste un instrument juridique : décision d'émission, suppression du DPS, contrat d'émission, registres et suivi ne doivent pas être bâclés.",
+              "Les futurs investisseurs peuvent demander à revoir certains termes si les AIR accumulés rendent le tour difficile.",
+              "Il faut prévoir les cas sans tour qualifié : échéance, cession, liquidation, absence de conversion, information des porteurs.",
+              "Trop d'AIR avec des termes différents rendent la cap table future difficile à expliquer."
+            ],
+          },
+        ],
+        note: "À privilégier pour financer vite une phase d'amorçage ou un bridge sans dette. À manier avec discipline : la simplicité apparente cache surtout une dilution qui n'apparaît pleinement qu'au moment de la conversion.",
+      },
+      'oc': {
+        kind: 'Dette',
+        title: 'Obligations convertibles (OC)',
+        intro: "Les obligations convertibles sont une dette qui peut se transformer en actions. L'investisseur est d'abord créancier : il prête de l'argent à la société, avec intérêts et maturité, puis convertit selon les événements prévus.",
+        sections: [
+          {
+            title: "Ce dont il s'agit",
+            items: [
+              "La société émet des obligations : juridiquement, elle emprunte auprès des souscripteurs.",
+              "Les OC portent généralement intérêt, avec une échéance de remboursement ou de conversion.",
+              "La conversion peut être automatique lors d'un tour qualifié ou optionnelle à maturité, selon le contrat.",
+              "Le prix de conversion peut inclure une décote, un plafond de valorisation, ou la formule la plus favorable à l'investisseur.",
+              "Si aucun événement de conversion n'arrive, le nominal et les intérêts peuvent devenir remboursables."
+            ],
+          },
+          {
+            title: 'En théorie, on l’utilise quand',
+            items: [
+              "La société veut un financement relais avant un tour pricé déjà envisagé.",
+              "Les investisseurs veulent une protection de créancier si le tour suivant n'a pas lieu.",
+              "Le risque accepté par l'investisseur doit être rémunéré par des intérêts, une décote, un cap ou une prime.",
+              "La société peut supporter le risque de remboursement à maturité dans son plan de trésorerie.",
+              "Les parties veulent un instrument plus familier aux investisseurs dette, corporate ou investisseurs existants."
+            ],
+          },
+          {
+            title: 'En pratique, on l’utilise pour',
+            items: [
+              "Faire un bridge de quelques mois avant une Série A, une levée pricée ou une opération stratégique.",
+              "Financer une société déjà structurée avec des investisseurs existants qui veulent protéger leur rang.",
+              "Donner une option de conversion à des prêteurs qui croient au prochain tour mais veulent un recours si le scénario échoue.",
+              "Aligner un investisseur corporate ou un investisseur financier qui préfère un instrument de dette convertible.",
+              "Gérer une situation où l'entreprise a besoin de cash rapidement mais où le prochain prix de tour n'est pas encore fixé."
+            ],
+          },
+          {
+            title: "Pourquoi on choisit ce format",
+            items: [
+              "Protection investisseur : le porteur reste créancier tant que la conversion n'a pas eu lieu.",
+              "Rémunération du risque : intérêts, décote, cap, prime de remboursement ou multiple en cas de cession.",
+              "Flexibilité de conversion : automatique, optionnelle, à maturité, lors d'un tour qualifié ou d'une sortie.",
+              "Outil de bridge : utile quand l'opération suivante est proche mais pas encore signable.",
+              "Négociation parfois plus simple qu'un tour complet, surtout avec des investisseurs déjà au capital.",
+              "Priorité économique : en cas de difficulté, la dette peut offrir une meilleure position que des actions ordinaires.",
+              "Signal de confiance des investisseurs existants, qui acceptent d'avancer des fonds avant le prochain tour."
+            ],
+          },
+          {
+            title: "Points d'attention",
+            items: [
+              "Le risque principal est la trésorerie : si la conversion n'arrive pas, la dette peut devenir exigible.",
+              "Les intérêts et primes augmentent le coût réel du financement.",
+              "La dette peut inquiéter de futurs investisseurs si elle est trop élevée ou mal subordonnée.",
+              "La documentation doit prévoir rang, subordination, masse des obligataires, décisions collectives, cas de défaut et événements de conversion.",
+              "Les covenants ou droits de contrôle peuvent réduire la marge de manœuvre des fondateurs.",
+              "Un bridge en OC ne doit pas masquer un problème de financement structurel : il faut un scénario crédible de conversion ou de remboursement."
+            ],
+          },
+        ],
+        note: "À privilégier quand un bridge est nécessaire et que les investisseurs veulent une vraie protection de dette. À éviter si la société n'a aucune visibilité sur sa capacité à convertir ou rembourser à maturité.",
+      },
+    };
+    function isClassicPhaseVisible(f) {
+      return !String(f && f.name || '').trim().startsWith('9');
+    }
     function raiseKey() { return 'liquid_raise_type_' + raiseUser; }
+    function dashboardControlsKey() { return 'liquid_dashboard_controls_collapsed_' + raiseUser; }
+    function storedDashboardControlsCollapsed() {
+      try { return localStorage.getItem(dashboardControlsKey()) === '1'; }
+      catch { return false; }
+    }
+    function setDashboardControlsCollapsed(collapsed, persist) {
+      const isCollapsed = !!collapsed;
+      if (dashboardControlsEl) dashboardControlsEl.hidden = isCollapsed;
+      if (dashboardControlsToggle) {
+        dashboardControlsToggle.classList.toggle('is-collapsed', isCollapsed);
+        dashboardControlsToggle.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+        const label = isCollapsed ? 'Afficher les réglages du tableau de bord' : 'Masquer les réglages du tableau de bord';
+        dashboardControlsToggle.setAttribute('aria-label', label);
+        dashboardControlsToggle.title = label;
+      }
+      if (persist) {
+        try { localStorage.setItem(dashboardControlsKey(), isCollapsed ? '1' : '0'); } catch {}
+      }
+    }
+    function classicStepKey() { return 'liquid_classic_step_' + raiseUser; }
+    function storeClassicStep(key) {
+      if (!key) return;
+      try { localStorage.setItem(classicStepKey(), key); } catch {}
+    }
+    function storedClassicStep() {
+      try { return localStorage.getItem(classicStepKey()) || null; }
+      catch { return null; }
+    }
+    function ensureClassicStep(phases) {
+      if (!Array.isArray(phases) || !phases.length) return null;
+      if (selectedClassicStep && phases.some(f => f.key === selectedClassicStep)) return selectedClassicStep;
+      const stored = storedClassicStep();
+      selectedClassicStep = phases.some(f => f.key === stored) ? stored : phases[0].key;
+      storeClassicStep(selectedClassicStep);
+      syncUrlState('classic', selectedClassicStep, true);
+      return selectedClassicStep;
+    }
+    function currentUrlState() {
+      try { return new URL(location.href); }
+      catch { return null; }
+    }
+    function stepFromUrl() {
+      const u = currentUrlState();
+      return u ? (u.searchParams.get('step') || null) : null;
+    }
+    let selectedClassicStep = stepFromUrl();
     function getRaiseType() {
-      try { return localStorage.getItem(raiseKey()) === 'bsa-air' ? 'bsa-air' : 'classic'; }
+      const u = currentUrlState();
+      const q = u ? u.searchParams.get('raise') : null;
+      if (RAISE_HINTS[q]) return q;
+      if (q === 'classic' || stepFromUrl()) return 'classic';
+      try {
+        const stored = localStorage.getItem(raiseKey());
+        return RAISE_HINTS[stored] ? stored : 'classic';
+      }
       catch { return 'classic'; }
     }
+    function syncUrlState(type, stepKey, replace) {
+      const u = currentUrlState();
+      if (!u) return;
+      u.searchParams.set('raise', type);
+      if (type === 'classic' && stepKey) u.searchParams.set('step', stepKey);
+      else u.searchParams.delete('step');
+      const fn = replace ? history.replaceState : history.pushState;
+      if (!fn) return;
+      fn.call(history, { raise: type, step: stepKey || null }, '', u);
+    }
     function applyRaiseType(type) {
-      const t = type === 'bsa-air' ? 'bsa-air' : 'classic';
+      const t = RAISE_HINTS[type] ? type : 'classic';
       document.querySelectorAll('.seg__btn[data-raise]').forEach(b =>
         b.classList.toggle('is-active', b.dataset.raise === t));
+      document.querySelectorAll('.seg__btn[data-raise]').forEach(b =>
+        b.setAttribute('aria-selected', b.dataset.raise === t ? 'true' : 'false'));
       const classic = document.getElementById('classic-view');
       const bsa = document.getElementById('bsa-air-view');
+      const soon = document.getElementById('raise-soon-view');
       if (classic) classic.hidden = (t !== 'classic');
       if (bsa) bsa.hidden = (t !== 'bsa-air');
+      if (soon) soon.hidden = (t !== 'oc');
+      if (RAISE_SOON[t]) {
+        const data = RAISE_SOON[t];
+        const badge = document.getElementById('raise-soon-badge');
+        const title = document.getElementById('raise-soon-title');
+        const text = document.getElementById('raise-soon-text');
+        if (badge) badge.textContent = data.badge;
+        if (title) title.textContent = data.title;
+        if (text) text.textContent = data.text;
+      }
       const hint = document.getElementById('raise-hint');
       if (hint) hint.textContent = RAISE_HINTS[t];
-      render(); // rend les dossiers du parcours actif (classique ou BSA-AIR)
+      render(); // rend les dossiers du parcours actif
     }
     function setRaiseType(type) {
-      const t = type === 'bsa-air' ? 'bsa-air' : 'classic';
+      const t = RAISE_HINTS[type] ? type : 'classic';
+      if (t !== 'classic') selectedClassicStep = null;
       try { localStorage.setItem(raiseKey(), t); } catch {}
+      syncUrlState(t, selectedClassicStep);
       applyRaiseType(t);
     }
     document.querySelectorAll('.seg__btn[data-raise]').forEach(b =>
       b.addEventListener('click', () => setRaiseType(b.dataset.raise)));
+    if (dashboardControlsToggle) {
+      dashboardControlsToggle.addEventListener('click', () =>
+        setDashboardControlsCollapsed(!(dashboardControlsEl && dashboardControlsEl.hidden), true));
+    }
+    window.addEventListener('popstate', () => {
+      selectedClassicStep = stepFromUrl();
+      applyRaiseType(getRaiseType());
+    });
 
     let folders = [];
     let docs    = [];
+    let fundraisingProfile = normalizeFundraisingProfile({});
     const openState = {}; // mémorise les dossiers dépliés entre deux rendus
     const pendingUploads = []; // fichiers en cours de téléversement ({ name, size, folderId })
     const pendingSlots   = {}; // téléversements en cours vers un slot précis (clé folderId:slug → nom)
     const todosOpen = {}; // mémorise les listes « choses à faire » dépliées (clé folderId:slug)
     const versionsOpen = {}; // mémorise les historiques de versions dépliés (clé folderId:slug)
+    const ddDoc = (label, mark = 'req') => ({ label, mark });
+    const ddLabels = items => items.map(item => item.label);
+    const ddMarks = items => items.map(item => item.mark || '');
+    const DD_PRELIMINARY_ITEMS = [
+      ddDoc('Extrait Kbis récent'),
+      ddDoc('Statuts à jour'),
+      ddDoc('Table de capitalisation (cap table) à date'),
+      ddDoc("Registre des mouvements de titres et comptes d'actionnaires"),
+      ddDoc('Registre des bénéficiaires effectifs (RBE)'),
+      ddDoc('Organigramme juridique, filiales et participations', 'opt'),
+      ddDoc("Pactes d'associés, promesses, side letters et accords d'investissement existants", 'opt'),
+      ddDoc('PV des décisions collectives et décisions du président significatives', 'opt'),
+      ddDoc('Questionnaire de due diligence préliminaire (réponses)'),
+      ddDoc('Support de présentation investisseurs'),
+      ddDoc('Business plan, prévisionnel financier et plan d’utilisation des fonds'),
+      ddDoc('Comptes annuels des trois derniers exercices ou situation comptable récente'),
+      ddDoc('Balance générale, compte de résultat et situation de trésorerie récents'),
+      ddDoc('Tableau de trésorerie, runway et dettes à court terme'),
+      ddDoc('État des dettes, emprunts, avances, subventions, aides et sûretés'),
+      ddDoc('Liste des principaux clients, chiffre d’affaires par client et concentration du revenu'),
+      ddDoc('Pipeline commercial et contrats en cours de négociation', 'opt'),
+      ddDoc('Principaux contrats clients signés'),
+      ddDoc('Principaux contrats fournisseurs, partenaires et prestataires'),
+      ddDoc("Conditions générales de vente, d'utilisation et contrats types"),
+      ddDoc('Contrats de travail des fondateurs, dirigeants et salariés clés'),
+      ddDoc('Liste des salariés clés, mandataires sociaux et consultants stratégiques'),
+      ddDoc('Plan BSPCE / BSA / AGA / stock-options et management package existant', 'opt'),
+      ddDoc('Cessions de propriété intellectuelle fondateurs, salariés et prestataires clés'),
+      ddDoc('Titres de propriété intellectuelle, noms de domaine et licences importantes', 'opt'),
+      ddDoc('Inventaire des logiciels, dépendances techniques et actifs numériques critiques', 'opt'),
+      ddDoc('Documentation RGPD synthétique : registre, politique de confidentialité, cookies et DPA'),
+      ddDoc('Autorisations, agréments, certifications et contraintes réglementaires applicables', 'opt'),
+      ddDoc('État des contentieux, litiges, réclamations et mises en demeure'),
+      ddDoc('Polices d’assurance principales et sinistres déclarés', 'opt'),
+      ddDoc('Baux, domiciliation, contrats immobiliers et locaux significatifs', 'opt'),
+      ddDoc('Liste des banques, comptes, moyens de paiement et engagements bancaires', 'opt'),
+      ddDoc('Data room indexée et liste des documents non disponibles'),
+    ];
+    const DD_PRELIMINARY_DOCUMENTS = ddLabels(DD_PRELIMINARY_ITEMS);
+    const DD_PRELIMINARY_MARKS = ddMarks(DD_PRELIMINARY_ITEMS);
+
+    const DD_PUSHED_CATEGORIES = [
+      {
+        key: 'corporate',
+        title: 'Corporate, capital et gouvernance',
+        items: [
+          ddDoc('Extrait Kbis récent'),
+          ddDoc('Statuts à jour et versions historiques pertinentes'),
+          ddDoc('Registre des mouvements de titres'),
+          ddDoc("Comptes d'actionnaires / registre des valeurs mobilières"),
+          ddDoc('Table de capitalisation actuelle et historique des émissions'),
+          ddDoc('Registre des bénéficiaires effectifs (RBE)'),
+          ddDoc('Organigramme juridique, filiales, participations et liens intragroupe', 'opt'),
+          ddDoc('PV des décisions collectives, assemblées, conseils et décisions du président'),
+          ddDoc("Pactes d'associés, promesses de cession/acquisition, side letters et accords d'investissement existants"),
+          ddDoc('Conventions réglementées, conventions intragroupe et délégations de pouvoirs', 'opt'),
+          ddDoc('Liste des mandataires sociaux, pouvoirs bancaires et délégations de signature'),
+          ddDoc('Historique des opérations sur capital, émissions de titres et restructurations'),
+        ],
+      },
+      {
+        key: 'titres',
+        title: 'Actionnariat, instruments dilutifs et opération',
+        items: [
+          ddDoc('Plans BSPCE / BSA / AGA / stock-options / actions gratuites et documents d’attribution', 'opt'),
+          ddDoc('Obligations convertibles, BSA-AIR, avances en compte courant et instruments convertibles existants', 'opt'),
+          ddDoc('Simulation de dilution fully diluted avant et après opération'),
+          ddDoc('Droits de préemption, agrément, inaliénabilité, drag/tag et clauses de sortie existantes', 'opt'),
+          ddDoc('Promesses d’attribution ou engagements oraux/écrits envers salariés, fondateurs ou investisseurs', 'opt'),
+          ddDoc('Liste des actionnaires, coordonnées et informations KYC disponibles'),
+          ddDoc('Historique des valorisations, tours précédents et documents de closing antérieurs', 'opt'),
+        ],
+      },
+      {
+        key: 'finance',
+        title: 'Finance, comptabilité et performance',
+        items: [
+          ddDoc('Comptes annuels, annexes et rapports de gestion des trois derniers exercices'),
+          ddDoc('Liasses fiscales des trois derniers exercices'),
+          ddDoc('Situation comptable récente, balance générale et grand livre'),
+          ddDoc('Reporting mensuel, P&L, bilan, cash-flow et rapprochements bancaires'),
+          ddDoc('Budget annuel, business plan, prévisionnel de trésorerie et hypothèses détaillées'),
+          ddDoc('MRR/ARR, churn, cohortes, marge brute, CAC, LTV et KPIs opérationnels pertinents', 'opt'),
+          ddDoc('Balance âgée clients, créances douteuses et politique de recouvrement'),
+          ddDoc('Balance âgée fournisseurs, dettes échues et engagements hors bilan'),
+          ddDoc('Inventaire des immobilisations, actifs significatifs et contrats de leasing', 'opt'),
+          ddDoc('Rapports d’audit, revue financière ou vendor due diligence existants', 'opt'),
+          ddDoc('Plan d’utilisation des fonds levés et besoins de financement à 18-24 mois'),
+        ],
+      },
+      {
+        key: 'fiscal',
+        title: 'Fiscalité, aides publiques et subventions',
+        items: [
+          ddDoc('Déclarations d’impôt sur les sociétés et justificatifs des déficits reportables'),
+          ddDoc('Déclarations TVA, taxes locales, retenues à la source et autres déclarations fiscales significatives'),
+          ddDoc('Crédit impôt recherche / innovation : déclarations, dossiers techniques, contrats, factures et feuilles de temps', 'opt'),
+          ddDoc('Statut JEI/JEIC, rescrits fiscaux et échanges avec l’administration', 'opt'),
+          ddDoc('Subventions, aides publiques, avances remboursables, PGE et conditions associées', 'opt'),
+          ddDoc('Contrôles fiscaux, notifications, redressements, réclamations et transactions', 'opt'),
+          ddDoc('Prix de transfert, conventions intragroupe et documentation associée', 'opt'),
+          ddDoc('Régime fiscal des management packages et instruments d’intéressement', 'opt'),
+        ],
+      },
+      {
+        key: 'social',
+        title: 'Social, RH et management',
+        items: [
+          ddDoc('Liste des salariés, mandataires sociaux, freelances et consultants clés'),
+          ddDoc('Contrats de travail des fondateurs, dirigeants et salariés clés'),
+          ddDoc('Avenants, clauses de non-concurrence, confidentialité, invention et propriété intellectuelle'),
+          ddDoc('Bulletins de paie récents, charges sociales, DSN et attestations de régularité', 'opt'),
+          ddDoc('Rémunérations fixes/variables, bonus, commissions et avantages en nature'),
+          ddDoc('Plan BSPCE / BSA / AGA / stock-options et communications aux bénéficiaires', 'opt'),
+          ddDoc('Règlement intérieur, chartes, politiques télétravail et accords collectifs', 'opt'),
+          ddDoc('Procédures disciplinaires, ruptures, prud’hommes et litiges sociaux', 'opt'),
+          ddDoc('Recours à freelances, prestataires, portage salarial et risques de requalification', 'opt'),
+          ddDoc('Documents CSE, santé-sécurité et obligations sociales applicables', 'opt'),
+        ],
+      },
+      {
+        key: 'commercial',
+        title: 'Clients, ventes et revenus',
+        items: [
+          ddDoc('Liste des principaux clients, revenus par client et concentration du chiffre d’affaires'),
+          ddDoc('Contrats clients significatifs, bons de commande, SOW et renouvellements'),
+          ddDoc('Contrats clients résiliés, arrivant à échéance ou en renégociation', 'opt'),
+          ddDoc('Pipeline commercial, commandes engagées et prévisions de revenus'),
+          ddDoc("Conditions générales de vente, d’utilisation, contrats types et politique tarifaire"),
+          ddDoc('Clauses d’exclusivité, most-favored nation, pénalités, SLA et engagements de niveau de service', 'opt'),
+          ddDoc('Réclamations clients, avoirs, remboursements, litiges commerciaux et churn significatif', 'opt'),
+          ddDoc('Partenariats de distribution, apporteurs d’affaires, revendeurs et intégrateurs', 'opt'),
+          ddDoc('Références publiques, droits d’usage des logos clients et restrictions contractuelles', 'opt'),
+        ],
+      },
+      {
+        key: 'operations',
+        title: 'Fournisseurs, partenariats et opérations',
+        items: [
+          ddDoc('Contrats fournisseurs, prestataires, sous-traitants et partenaires stratégiques'),
+          ddDoc('Contrats cloud, hébergement, infogérance, support et services critiques'),
+          ddDoc('Engagements minimums, exclusivités, pénalités, renouvellements automatiques et résiliations'),
+          ddDoc('Dépendances opérationnelles clés et plan de continuité d’activité', 'opt'),
+          ddDoc('Contrats de licence, API, intégrations et marketplaces', 'opt'),
+          ddDoc('Procédures achats, conformité fournisseurs et anti-corruption', 'opt'),
+          ddDoc('Assurances liées aux opérations, responsabilité civile professionnelle et cyber', 'opt'),
+        ],
+      },
+      {
+        key: 'ip-tech',
+        title: 'Propriété intellectuelle, produit et technologie',
+        items: [
+          ddDoc('Titres de propriété intellectuelle : marques, brevets, dessins, modèles et noms de domaine'),
+          ddDoc('Cessions de propriété intellectuelle fondateurs, salariés, freelances et prestataires'),
+          ddDoc('Contrats de licence, copropriété, open innovation, recherche et développement', 'opt'),
+          ddDoc('Inventaire logiciels, librairies open-source, licences et obligations de conformité'),
+          ddDoc('Architecture technique, documentation produit, roadmap et dette technique significative', 'opt'),
+          ddDoc('Accès au code source, procédures de développement, CI/CD et droits administrateurs', 'opt'),
+          ddDoc('Escrow, sauvegardes, réversibilité et dépendances techniques critiques', 'opt'),
+          ddDoc('Réclamations, oppositions, contrefaçon, atteintes à la PI ou licences non conformes', 'opt'),
+          ddDoc('Droits sur bases de données, datasets, contenus, modèles IA et données d’entraînement', 'opt'),
+        ],
+      },
+      {
+        key: 'data-security',
+        title: 'RGPD, données et cybersécurité',
+        items: [
+          ddDoc('Registre des activités de traitement'),
+          ddDoc('Politiques de confidentialité, cookies, consentement et mentions d’information'),
+          ddDoc('Contrats de sous-traitance RGPD (DPA), liste des sous-traitants et transferts hors UE'),
+          ddDoc('Analyses d’impact (DPIA), bases légales et durées de conservation', 'opt'),
+          ddDoc('Registre des violations de données, incidents de sécurité et notifications CNIL', 'opt'),
+          ddDoc('Politiques de sécurité, gestion des accès, MFA, chiffrement et sauvegardes'),
+          ddDoc('Tests d’intrusion, audits sécurité, certifications ISO/SOC 2 et plans de remédiation', 'opt'),
+          ddDoc('Procédures d’exercice des droits, suppression, portabilité et gestion des demandes clients'),
+          ddDoc('Cartographie des données sensibles, données de santé, mineurs ou données réglementées', 'opt'),
+        ],
+      },
+      {
+        key: 'regulatory',
+        title: 'Réglementaire et conformité sectorielle',
+        items: [
+          ddDoc('Autorisations, agréments, licences, certifications et déclarations sectorielles applicables', 'opt'),
+          ddDoc('Conformité produit, marquage, sécurité, normes techniques et documentation réglementaire', 'opt'),
+          ddDoc('Procédures KYC/AML, sanctions, export control et lutte anti-corruption', 'opt'),
+          ddDoc('Contrats publics, appels d’offres, aides réglementées et obligations associées', 'opt'),
+          ddDoc('Droit de la consommation, publicité, pratiques commerciales et conditions d’abonnement', 'opt'),
+          ddDoc('Droit de la concurrence, exclusivités, distribution sélective et clauses sensibles', 'opt'),
+          ddDoc('Échanges avec autorités administratives ou régulateurs et contrôles en cours', 'opt'),
+        ],
+      },
+      {
+        key: 'litigation',
+        title: 'Contentieux, assurances et risques',
+        items: [
+          ddDoc('État des contentieux, litiges, réclamations, mises en demeure et enquêtes'),
+          ddDoc('Dossiers de procédure, correspondances d’avocats, transactions et provisions'),
+          ddDoc('Litiges actionnaires, fondateurs, anciens salariés, clients ou fournisseurs', 'opt'),
+          ddDoc('Polices d’assurance, attestations, garanties, exclusions et sinistres déclarés'),
+          ddDoc('Cartographie des risques, plans de mitigation et sujets bloquants identifiés'),
+          ddDoc('Garanties données, cautions, lettres de confort et engagements d’indemnisation', 'opt'),
+        ],
+      },
+      {
+        key: 'assets-esg',
+        title: 'Immobilier, actifs matériels et ESG',
+        items: [
+          ddDoc('Baux, domiciliation, conventions d’occupation et contrats immobiliers', 'opt'),
+          ddDoc('Dépôts de garantie, loyers, travaux, sous-location et litiges immobiliers', 'opt'),
+          ddDoc('Inventaire des équipements, matériels, véhicules et actifs significatifs', 'opt'),
+          ddDoc('Obligations environnementales, déchets, énergie, empreinte carbone et autorisations', 'opt'),
+          ddDoc('Politiques ESG, diversité, éthique, achats responsables et reporting extra-financier', 'opt'),
+          ddDoc('Santé-sécurité, incidents, conformité locaux et obligations employeur', 'opt'),
+        ],
+      },
+      {
+        key: 'audit',
+        title: 'Data room, Q&A et rapports d’audit',
+        items: [
+          ddDoc('Questionnaire de due diligence complet (réponses et pièces jointes)'),
+          ddDoc('Index de data room, droits d’accès et historique des documents manquants'),
+          ddDoc('Rapport d’audit juridique'),
+          ddDoc('Rapport d’audit financier / quality of earnings', 'opt'),
+          ddDoc('Q&A tracker, réponses des fondateurs et synthèse des points ouverts'),
+        ],
+      },
+    ];
+    const DD_COMPLETE_DOCUMENTS = DD_PUSHED_CATEGORIES.flatMap(category => ddLabels(category.items));
+    const DD_COMPLETE_MARKS = DD_PUSHED_CATEGORIES.flatMap(category => ddMarks(category.items));
+    const CLOSING_CATEGORIES = [
+      {
+        key: 'souscription-fonds',
+        title: 'Souscription et versement des fonds',
+        items: [
+          ddDoc('Bulletins de souscription des investisseurs'),
+          ddDoc('Contrats de souscription / investment agreements individuels', 'opt'),
+          ddDoc('Ordres de virement et funds flow memo'),
+          ddDoc('Attestations de versement des fonds par les investisseurs'),
+          ddDoc('Certificat du dépositaire des fonds'),
+        ],
+      },
+      {
+        key: 'decisions-sociales',
+        title: 'Décisions sociales et autorisations',
+        items: [
+          ddDoc("Rapport du président sur l'augmentation de capital et la suppression du DPS"),
+          ddDoc('Rapport du commissaire aux comptes / commissaire aux avantages particuliers le cas échéant', 'opt'),
+          ddDoc("PV de l'AGE / décisions collectives autorisant l'augmentation de capital"),
+          ddDoc('Décisions du président constatant les souscriptions et le versement des fonds'),
+          ddDoc("PV de constatation de la réalisation définitive de l'augmentation de capital"),
+          ddDoc('Pouvoirs pour formalités et délégations de signature'),
+        ],
+      },
+      {
+        key: 'statuts-pacte',
+        title: 'Statuts, pacte et gouvernance',
+        items: [
+          ddDoc('Statuts modifiés adoptés au closing'),
+          ddDoc("Pacte d'associés signé / avenant au pacte"),
+          ddDoc("Actes d'adhésion au pacte des nouveaux investisseurs"),
+          ddDoc("Lettres d'investissement / side letters signées", 'opt'),
+          ddDoc('Nomination des membres du board / comité stratégique / observateurs', 'opt'),
+          ddDoc('Termes définitifs des actions de préférence ou valeurs mobilières émises'),
+        ],
+      },
+      {
+        key: 'registres-capital',
+        title: 'Registres et capitalisation',
+        items: [
+          ddDoc('Cap table post-money mise à jour'),
+          ddDoc('Registre des mouvements de titres mis à jour'),
+          ddDoc("Comptes individuels d'actionnaires / fiches de comptes titres"),
+          ddDoc('Registre des décisions mis à jour'),
+          ddDoc('Tableau fully diluted post-closing (BSPCE, BSA, AIR, OC inclus)'),
+        ],
+      },
+      {
+        key: 'formalites',
+        title: 'Formalités et dossier final',
+        items: [
+          ddDoc('Dossier de formalités au greffe (M2, statuts, PV, attestation de dépôt)'),
+          ddDoc('Annonce légale de modification du capital'),
+          ddDoc('Déclaration des bénéficiaires effectifs mise à jour', 'opt'),
+          ddDoc('Notification aux investisseurs de la réalisation du closing'),
+          ddDoc('Closing bible / dossier final signé archivé'),
+        ],
+      },
+    ];
+    const CLOSING_DOCUMENTS = CLOSING_CATEGORIES.flatMap(category => ddLabels(category.items));
+    const CLOSING_MARKS = CLOSING_CATEGORIES.flatMap(category => ddMarks(category.items));
+    const CHECKLIST_OVERRIDES = {
+      'due-diligence-preliminaire': {
+        checklist: DD_PRELIMINARY_DOCUMENTS,
+        marks: DD_PRELIMINARY_MARKS,
+      },
+      'due-diligence': {
+        name: '4 · Due diligence poussée',
+        checklist: DD_COMPLETE_DOCUMENTS,
+        marks: DD_COMPLETE_MARKS,
+      },
+      'closing': {
+        name: '6 · Closing',
+        checklist: CLOSING_DOCUMENTS,
+        marks: CLOSING_MARKS,
+      },
+    };
+    function applyChecklistOverrides() {
+      folders = folders.map(f => {
+        const override = CHECKLIST_OVERRIDES[f && f.key];
+        if (!override) return f;
+        return { ...f, ...override };
+      });
+    }
 
     // Modèles juridiques disponibles : slug d'élément de roadlist -> fichier modèle.
     // Le bouton « Modèle » n'apparaît que pour les éléments listés ici.
     const MODELS = new Set([
       // Phase 1 — mise en ordre juridique
+      'support-de-presentation-deck-investisseurs',
       'statuts-a-jour',
       'table-de-capitalisation-cap-table',
       'registre-des-mouvements-de-titres',
@@ -643,16 +1383,27 @@
       // Phase 4 — due diligence
       'questionnaire-de-due-diligence-reponses',
       'etat-des-contentieux-et-litiges-en-cours',
+      'rapport-d-audit-juridique',
       // Phase 5 — documentation de l'opération
       'pacte-d-associes-shareholders-agreement',
       'statuts-modifies-actions-de-preference',
       'contrat-bulletin-de-souscription',
       'declarations-garanties-r-w-integrees-au-pacte',
       'termes-des-valeurs-mobilieres-emises-adp-bsa-oc',
+      'convention-de-garantie-d-actif-et-de-passif-gap',
+      'lettre-d-investissement-side-letter',
+      'convention-entre-investisseurs',
       // Phase 6 — closing
+      'certificat-du-depositaire-des-fonds',
+      'pv-de-l-age-actant-l-augmentation-de-capital',
+      'pv-de-constatation-de-la-realisation-definitive',
       'cap-table-post-money-mise-a-jour',
+      'registre-des-mouvements-de-titres-mis-a-jour',
       // Phase 7 — post-closing
       'information-reporting-des-investisseurs-info-rights',
+      'suivi-des-engagements-du-pacte-covenants',
+      'declaration-des-beneficiaires-effectifs-mise-a-jour',
+      'pv-de-conseil-comite-de-surveillance',
       // Parcours BSA-AIR — modèles dédiés
       'term-sheet-bsa-air-montant-decote-plafond-et-ou-plancher-de-valorisation',
       'tableau-de-simulation-de-la-conversion-et-de-la-dilution',
@@ -693,6 +1444,33 @@
     function fmtDate(s) { try { return new Date(s).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return ''; } }
     function ext(name) { const m = /\.([a-z0-9]+)$/i.exec(name || ''); return m ? m[1].toLowerCase() : ''; }
     function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+    function normalizeFundraisingProfile(input) {
+      const p = input && typeof input === 'object' ? input : {};
+      const founders = Array.isArray(p.founders) ? p.founders : [];
+      return {
+        company_name: String(p.company_name || ''),
+        company_country: String(p.company_country || 'france'),
+        raise_type: RAISE_HINTS[p.raise_type] ? p.raise_type : 'classic',
+        target_amount: p.target_amount == null ? '' : String(p.target_amount),
+        target_date: String(p.target_date || ''),
+        raise_reason: String(p.raise_reason || ''),
+        founders: founders.map(f => ({
+          name: String((f && f.name) || ''),
+          status: ['cofounder', 'late-cofounder', 'investor'].includes(f && f.status) ? f.status : 'cofounder',
+          job: String((f && f.job) || ''),
+        })).filter(f => f.name || f.job),
+      };
+    }
+    function fundraisingProfileKey() { return 'liquid_fundraising_profile_' + raiseUser; }
+    function storeFundraisingProfileLocal(profile) {
+      try { localStorage.setItem(fundraisingProfileKey(), JSON.stringify(profile)); } catch {}
+    }
+    function storedFundraisingProfileLocal() {
+      try {
+        const raw = localStorage.getItem(fundraisingProfileKey());
+        return raw ? normalizeFundraisingProfile(JSON.parse(raw)) : normalizeFundraisingProfile({});
+      } catch { return normalizeFundraisingProfile({}); }
+    }
 
     let loaded = false;
     async function load() {
@@ -700,13 +1478,28 @@
       // après un échec d'action optimiste, dont le message doit rester visible.
       if (!loaded) foldersEl.innerHTML = '<p class="empty">Chargement…</p>';
       try {
-        const [fr, dr] = await Promise.all([
+        const [fr, dr, pr] = await Promise.all([
           fetch('/api/saas/folders',   { credentials: 'include' }),
           fetch('/api/saas/documents', { credentials: 'include' }),
+          fetch('/api/saas/fundraising-profile', { credentials: 'include' }).catch(() => null),
         ]);
         if (fr.status === 401 || dr.status === 401) { window.location.href = 'login.html'; return; }
         folders = (await fr.json()).folders || [];
+        applyChecklistOverrides();
         docs    = (await dr.json()).documents || [];
+        if (pr && pr.ok) {
+          const data = await pr.json().catch(() => ({}));
+          fundraisingProfile = normalizeFundraisingProfile(data.profile || {});
+        } else {
+          fundraisingProfile = storedFundraisingProfileLocal();
+        }
+        storeFundraisingProfileLocal(fundraisingProfile);
+        try {
+          const url = currentUrlState();
+          if (fundraisingProfile.raise_type && !(url && url.searchParams.get('raise'))) {
+            localStorage.setItem(raiseKey(), fundraisingProfile.raise_type);
+          }
+        } catch {}
         renderResume();
         render();
         loaded = true;
@@ -750,35 +1543,223 @@
     }
 
     function render() {
-      // Mise en page « roadlist » interactive : une carte « Fichiers importés »
-      // (dépôt libre), puis une carte par phase avec ses documents numérotés
-      // (1. 2. 3.), badges, bouton « Modèle », glisser-déposer par document ET sur
-      // toute la phase. Même rendu pour la levée classique et le BSA-AIR.
       const track = getRaiseType();
+      if (track === 'oc') {
+        if (friseClassicEl) friseClassicEl.innerHTML = '';
+        if (foldersEl) foldersEl.innerHTML = '';
+        if (bsaFoldersEl) bsaFoldersEl.innerHTML = '';
+        syncClassicActions(-1);
+        refreshFmodal();
+        return;
+      }
       const container = track === 'bsa-air' ? bsaFoldersEl : foldersEl;
-      const phases = folders.filter(f => (f.track || 'classic') === track);
+      let phases = folders.filter(f => (f.track || 'classic') === track);
+      if (track === 'classic') phases = phases.filter(isClassicPhaseVisible);
       container.innerHTML = '';
-      // Carte de dépôt des fichiers non classés (cible du bouton « Importer des fichiers »).
-      container.appendChild(importCard());
-      phases.forEach((f, pi) => container.appendChild(phaseCard(f, pi)));
-      renderFrise(track, phases); // frise interactive en tête de la vue
-      refreshFmodal();            // si une fenêtre d'étape est ouverte, la rafraîchir
+
+      if (track === 'classic') {
+        ensureClassicStep(phases);
+        renderFrise(track, phases);
+        renderClassicBody(phases, container);
+      } else {
+        if (friseClassicEl) friseClassicEl.innerHTML = '';
+        syncClassicActions(-1);
+        selectedClassicStep = null;
+        container.appendChild(importCard());
+        phases.forEach((f, pi) => container.appendChild(phaseCard(f, pi)));
+      }
+
+      refreshFmodal(); // conservé pour les fenêtres déjà ouvertes depuis une ancienne session
+    }
+
+    function renderClassicBody(phases, container) {
+      const selected = phases.find(f => f.key === selectedClassicStep) || null;
+      if (!selected) {
+        syncClassicActions(-1);
+        container.appendChild(importCard());
+        return;
+      }
+
+      const idx = phases.findIndex(f => f.id === selected.id);
+      syncClassicActions(idx);
+      container.appendChild(stepPageHeadEl(selected, idx, phases.length));
+      if (selected.key === 'mise-en-ordre') {
+        container.appendChild(fundraisingProfileEl());
+      }
+      if (idx >= 2 && idx <= 7) {
+        container.appendChild(phaseCard(selected, idx, { title: 'Documents', icon: 'DOC', hideStep: true, documentActions: true }));
+      }
+    }
+
+    function syncClassicActions(idx) {
+      if (!classicActionsEl) return;
+      classicActionsEl.hidden = true;
+    }
+
+    function stepPageHeadEl(f, idx, total) {
+      const head = document.createElement('div');
+      head.className = 'step-page-head';
+      head.innerHTML = `
+        <div>
+          <div class="step-page-head__title">${esc(friseLabel(f))}</div>
+        </div>`;
+      return head;
+    }
+
+    function optionSelected(value, current) {
+      return value === current ? ' selected' : '';
+    }
+
+    function founderRowEl(founder = {}) {
+      const row = document.createElement('div');
+      row.className = 'raise-founder-row';
+      const status = founder.status || 'cofounder';
+      row.innerHTML = `
+        <input class="raise-input" data-founder-name type="text" placeholder="Nom" value="${esc(founder.name || '')}" />
+        <select class="raise-select" data-founder-status>
+          <option value="cofounder"${optionSelected('cofounder', status)}>Co-fondateur</option>
+          <option value="late-cofounder"${optionSelected('late-cofounder', status)}>Late co-fondateur</option>
+          <option value="investor"${optionSelected('investor', status)}>Investisseur</option>
+        </select>
+        <input class="raise-input" data-founder-job type="text" placeholder="Job dans la société" value="${esc(founder.job || '')}" />
+        <button class="raise-founder-remove" type="button" aria-label="Retirer cette personne" title="Retirer">×</button>`;
+      row.querySelector('.raise-founder-remove').addEventListener('click', () => row.remove());
+      return row;
+    }
+
+    function readFundraisingProfileForm(form) {
+      const founders = Array.from(form.querySelectorAll('.raise-founder-row')).map(row => ({
+        name: row.querySelector('[data-founder-name]').value.trim(),
+        status: row.querySelector('[data-founder-status]').value,
+        job: row.querySelector('[data-founder-job]').value.trim(),
+      })).filter(f => f.name || f.job);
+      return normalizeFundraisingProfile({
+        company_name: form.querySelector('[name="company_name"]').value.trim(),
+        company_country: form.querySelector('[name="company_country"]').value,
+        raise_type: form.querySelector('[name="raise_type"]').value,
+        target_amount: form.querySelector('[name="target_amount"]').value.trim(),
+        target_date: form.querySelector('[name="target_date"]').value,
+        raise_reason: form.querySelector('[name="raise_reason"]').value.trim(),
+        founders,
+      });
+    }
+
+    function fundraisingProfileEl() {
+      const profile = normalizeFundraisingProfile(fundraisingProfile);
+      const card = document.createElement('section');
+      card.className = 'raise-profile';
+      card.innerHTML = `
+        <form class="raise-profile__form" id="raise-profile-form">
+          <div class="raise-profile__grid">
+            <label class="raise-field">
+              <span class="raise-field__label">Nom de la société</span>
+              <input class="raise-input" name="company_name" type="text" autocomplete="organization" value="${esc(profile.company_name)}" />
+            </label>
+            <label class="raise-field">
+              <span class="raise-field__label raise-field__label--required">Pays de résidence de la société</span>
+              <select class="raise-select" name="company_country" required>
+                <option value="france"${optionSelected('france', profile.company_country)}>France</option>
+                <option value="us"${optionSelected('us', profile.company_country)}>États-Unis</option>
+                <option value="uk"${optionSelected('uk', profile.company_country)}>Royaume-Uni</option>
+                <option value="germany"${optionSelected('germany', profile.company_country)}>Allemagne</option>
+                <option value="other"${optionSelected('other', profile.company_country)}>Autre</option>
+              </select>
+            </label>
+            <label class="raise-field">
+              <span class="raise-field__label raise-field__label--required">Type de levée de fonds</span>
+              <select class="raise-select" name="raise_type" required>
+                <option value="classic"${optionSelected('classic', profile.raise_type)}>Levée classique</option>
+                <option value="bsa-air"${optionSelected('bsa-air', profile.raise_type)}>BSA-AIR</option>
+                <option value="oc"${optionSelected('oc', profile.raise_type)}>OC</option>
+              </select>
+            </label>
+            <label class="raise-field">
+              <span class="raise-field__label">Montant visé</span>
+              <input class="raise-input" name="target_amount" type="number" min="0" step="1000" inputmode="numeric" placeholder="Ex. 500000" value="${esc(profile.target_amount)}" />
+            </label>
+            <label class="raise-field">
+              <span class="raise-field__label">Date cible</span>
+              <input class="raise-input" name="target_date" type="date" value="${esc(profile.target_date)}" />
+            </label>
+            <label class="raise-field raise-field--wide">
+              <span class="raise-field__label">Pourquoi lever ?</span>
+              <textarea class="raise-textarea" name="raise_reason" placeholder="Ex. recruter, accélérer le produit, financer le go-to-market...">${esc(profile.raise_reason)}</textarea>
+            </label>
+          </div>
+          <div class="raise-founders">
+            <div class="raise-founders__head">
+              <div class="raise-founders__title">Fondateurs, late co-fondateurs et investisseurs</div>
+              <button class="documents-action-btn" type="button" data-add-founder>+ Ajouter</button>
+            </div>
+            <div class="raise-founders__list"></div>
+          </div>
+          <div class="raise-profile__actions">
+            <span class="raise-profile__status" data-profile-status></span>
+            <button class="documents-action-btn" type="submit">Enregistrer</button>
+          </div>
+        </form>`;
+
+      const form = card.querySelector('#raise-profile-form');
+      const list = card.querySelector('.raise-founders__list');
+      const status = card.querySelector('[data-profile-status]');
+      const founders = profile.founders.length ? profile.founders : [{}];
+      founders.forEach(founder => list.appendChild(founderRowEl(founder)));
+      card.querySelector('[data-add-founder]').addEventListener('click', () => list.appendChild(founderRowEl({})));
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        status.className = 'raise-profile__status';
+        status.textContent = '';
+        if (!form.reportValidity()) return;
+        const nextProfile = readFundraisingProfileForm(form);
+        if (!nextProfile.company_country || !nextProfile.raise_type) {
+          status.className = 'raise-profile__status is-error';
+          status.textContent = 'Pays et type de levée sont requis.';
+          return;
+        }
+        status.textContent = 'Enregistrement...';
+        try {
+          const r = await fetch('/api/saas/fundraising-profile', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(nextProfile),
+          });
+          const data = await r.json().catch(() => ({}));
+          if (!r.ok) throw new Error(data.error || 'Enregistrement impossible.');
+          fundraisingProfile = normalizeFundraisingProfile(data.profile || nextProfile);
+          storeFundraisingProfileLocal(fundraisingProfile);
+          status.className = 'raise-profile__status is-ok';
+          status.textContent = 'Enregistré.';
+          setRaiseType(fundraisingProfile.raise_type);
+        } catch (err) {
+          fundraisingProfile = nextProfile;
+          storeFundraisingProfileLocal(fundraisingProfile);
+          status.className = 'raise-profile__status is-ok';
+          status.textContent = 'Enregistré localement.';
+          setRaiseType(fundraisingProfile.raise_type);
+        }
+      });
+      return card;
     }
 
     /* ═══════════ Frise interactive du parcours de la levée ═══════════
-       Une pastille par étape ; clic → fenêtre (explication + documents). Une
-       pastille devient verte quand tous ses documents attendus sont validés ET
-       que toutes les étapes qui la précèdent le sont aussi (progression
-       séquentielle) ; quand toutes le sont, la frise entière passe au vert
-       (animation). */
+       Une tuile par étape ; clic → vue dédiée sous la frise. Une tuile devient
+       verte dès que tous ses documents attendus sont validés. Quand toutes les
+       tuiles le sont, la frise entière passe en état complet (animation). */
     const friseClassicEl = document.getElementById('frise-classic');
     const friseBsaEl     = document.getElementById('frise-bsa');
 
     // Libellés courts des pastilles (le nom complet reste dans la fenêtre).
     const FRISE_LABELS = {
-      'mise-en-ordre': 'Mise en ordre', 'confidentialite': 'Confidentialité',
-      'term-sheet': 'Term sheet', 'due-diligence': 'Due diligence',
-      'documentation': 'Documentation', 'closing': 'Closing', 'post-closing': 'Post-closing',
+      'mise-en-ordre': 'Ma levée',
+      'confidentialite': 'Investisseurs',
+      'due-diligence-preliminaire': 'Due diligence préliminaire',
+      'term-sheet': "Lettre d'intention",
+      'due-diligence': 'Due diligence poussée',
+      'documentation': 'Négociation',
+      'closing': 'Closing',
+      'post-closing': 'Post-closing',
+      'gouvernance': 'Gouvernance',
       'air-preparation': 'Préparation', 'air-termes': 'Termes des BSA-AIR',
       'air-emission': 'Émission', 'air-approche': 'Approche investisseurs',
       'air-souscription': 'Souscription', 'air-suivi': 'Suivi', 'air-conversion': 'Conversion',
@@ -810,64 +1791,141 @@
     }
 
     const friseCelebrated = {}; // track -> déjà « tout vert » (n'anime qu'à la bascule)
+    const friseCollapsed = {};
+    const bulbIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg>';
+
+    const raiseHelpModal = document.getElementById('raise-help-modal');
+    const raiseHelpTitle = document.getElementById('raise-help-title');
+    const raiseHelpKind = document.getElementById('raise-help-kind');
+    const raiseHelpBody = document.getElementById('raise-help-body');
+    const raiseHelpBadge = raiseHelpModal ? raiseHelpModal.querySelector('.raise-help-modal__badge') : null;
+
+    function raiseHelpHtml(data) {
+      const sections = (data.sections || []).map(section => {
+        const items = (section.items || []).map(item => `<li>${esc(item)}</li>`).join('');
+        return `
+          <section class="raise-type-info__section">
+            <div class="raise-type-info__title">${esc(section.title)}</div>
+            <ul class="raise-type-info__list">${items}</ul>
+          </section>`;
+      }).join('');
+      return `
+        <div class="raise-type-info">
+          <p class="raise-type-info__lead">${esc(data.intro)}</p>
+          ${sections}
+          <p class="raise-type-info__note">${esc(data.note)}</p>
+        </div>`;
+    }
+
+    function openRaiseHelp(type) {
+      const data = RAISE_HELP[type];
+      if (!data || !raiseHelpModal || !raiseHelpBody) return;
+      if (raiseHelpTitle) raiseHelpTitle.textContent = data.title;
+      if (raiseHelpKind) raiseHelpKind.textContent = data.kind;
+      if (raiseHelpBadge) raiseHelpBadge.innerHTML = bulbIcon;
+      raiseHelpBody.innerHTML = raiseHelpHtml(data);
+      raiseHelpBody.scrollTop = 0;
+      raiseHelpModal.classList.add('is-open');
+    }
+
+    function closeRaiseHelp() {
+      if (raiseHelpModal) raiseHelpModal.classList.remove('is-open');
+    }
+
+    document.querySelectorAll('.raise-help[data-raise-help]').forEach(btn => {
+      btn.innerHTML = bulbIcon;
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openRaiseHelp(btn.dataset.raiseHelp);
+      });
+    });
+
+    if (raiseHelpModal) {
+      raiseHelpModal.addEventListener('click', (e) => {
+        if (e.target.hasAttribute('data-raise-help-close')) closeRaiseHelp();
+      });
+      document.addEventListener('keydown', (e) => {
+        const pickerOpen = document.getElementById('pick')?.classList.contains('is-open');
+        if (e.key === 'Escape' && raiseHelpModal.classList.contains('is-open') && !pickerOpen) closeRaiseHelp();
+      });
+    }
+
+    function isFriseCollapsed(track) {
+      if (friseCollapsed[track] == null) friseCollapsed[track] = false;
+      return !!friseCollapsed[track];
+    }
+    function setFriseCollapsed(track, collapsed) {
+      friseCollapsed[track] = !!collapsed;
+      renderFrise(track);
+    }
+    function openClassicStepPage(key) {
+      selectedClassicStep = key || selectedClassicStep;
+      storeClassicStep(selectedClassicStep);
+      try { localStorage.setItem(raiseKey(), 'classic'); } catch {}
+      syncUrlState('classic', selectedClassicStep);
+      applyRaiseType('classic');
+      const host = document.getElementById('classic-view');
+      if (host) host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 
     function renderFrise(track, phases) {
       const host = track === 'bsa-air' ? friseBsaEl : friseClassicEl;
       if (!host) return;
+      if (track !== 'classic') { host.innerHTML = ''; return; }
       phases = phases || folders.filter(f => (f.track || 'classic') === track);
+      phases = phases.filter(isClassicPhaseVisible);
       if (!phases.length) { host.innerHTML = ''; return; }
 
       const stats = phases.map(phaseStatus);
-      // Vert « séquentiel » : une étape ne s'allume en vert que si TOUTES les
-      // étapes qui la précèdent sont validées elles aussi. On mesure donc la
-      // longueur du préfixe d'étapes validées d'affilée depuis le début : seules
-      // ces étapes-là (indices < sealed) peuvent devenir vertes.
-      let sealed = 0;
-      while (sealed < stats.length && stats[sealed].complete) sealed++;
-      const allComplete = sealed === phases.length;
-      const frac = sealed / phases.length;
+      const completed = stats.filter(s => s.complete).length;
+      const allComplete = completed === phases.length;
+      const frac = completed / phases.length;
 
+      const collapsed = isFriseCollapsed(track);
       const el = document.createElement('section');
-      el.className = 'frise' + (allComplete ? ' is-complete' : '');
+      el.className = 'frise' + (allComplete ? ' is-complete' : '') + (collapsed ? ' is-collapsed' : '');
       el.style.setProperty('--frac', String(frac));
       el.innerHTML = `
         <div class="frise__head">
-          <div>
-            <div class="frise__eyebrow">Parcours de la levée</div>
-            <div class="frise__title">${allComplete ? '🎉 Levée complète — tous les documents sont validés' : 'Votre progression, étape par étape'}</div>
-          </div>
-          <div class="frise__progress">
-            <span class="frise__progress-num">${sealed} / ${phases.length} étapes validées</span>
-            <span class="frise__progress-bar"><i></i></span>
+          <div class="frise__right">
+            <div class="frise__progress">
+              <span class="frise__progress-num">${completed} / ${phases.length} étapes validées</span>
+              <span class="frise__progress-bar"><i></i></span>
+            </div>
+            <button class="frise__toggle" type="button" aria-label="${collapsed ? 'Afficher la frise' : 'Masquer la frise'}" title="${collapsed ? 'Afficher la frise' : 'Masquer la frise'}">v</button>
           </div>
         </div>
         <div class="frise__track">
-          <div class="frise__rail"><div class="frise__rail-fill"></div></div>
           <div class="frise__points"></div>
         </div>`;
 
       const pts = el.querySelector('.frise__points');
+      el.querySelector('.frise__toggle').addEventListener('click', () => setFriseCollapsed(track, !collapsed));
       phases.forEach((f, i) => {
         const s = stats[i];
-        // Verte seulement si validée ET toutes les précédentes le sont (i < sealed).
-        // Une étape complète mais « en avance » (une étape antérieure manque encore)
-        // reste en bleu « en cours » : elle ne peut pas se sceller tant que la
-        // progression n'est pas continue depuis le début.
-        const green = i < sealed;
-        const join  = green && i > 0; // segment de liaison vert entre deux pastilles scellées
+        const green = s.complete;
+        const join  = green && i > 0;
         const btn = document.createElement('button');
         btn.type = 'button';
-        // Un point n'a que deux apparences : neutre (gris) ou vert. Le vert
-        // n'apparaît que lorsque tous les documents de l'étape sont terminés
-        // (et les étapes précédentes aussi). Plus d'état bleu « en cours ».
-        btn.className = 'frise__point' + (green ? ' is-done' : '') + (join ? ' is-join' : '');
-        const mini = s.total ? (s.done + '/' + s.total + (green ? ' ✓' : '')) : '';
+        const active = selectedClassicStep === f.key;
+        btn.className = 'frise__point' + (green ? ' is-done' : '') + (join ? ' is-join' : '') + (active ? ' is-active' : '');
+        const mini = s.total ? (s.done + '/' + s.total + (green ? ' validés' : '')) : 'À cadrer';
         btn.innerHTML =
-          '<span class="frise__dot">' + (green ? '✓' : (i + 1)) + '</span>' +
+          '<span class="frise__num">' + (green ? '✓' : i) + '</span>' +
+          '<span class="frise__idea" title="Comprendre cette étape">' + bulbIcon + '</span>' +
           '<span class="frise__label">' + esc(friseLabel(f)) + '</span>' +
           '<span class="frise__mini">' + mini + '</span>';
-        btn.title = friseLabel(f) + ' — voir l\'explication et les documents';
-        btn.addEventListener('click', () => openFmodal(f.id));
+        btn.title = friseLabel(f) + ' — ouvrir cette étape';
+        const idea = btn.querySelector('.frise__idea');
+        if (idea) {
+          idea.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openFmodal(f.id);
+          });
+        }
+        btn.addEventListener('click', () => openClassicStepPage(f.key));
         pts.appendChild(btn);
       });
 
@@ -884,54 +1942,130 @@
       friseCelebrated[track] = allComplete;
     }
 
-    /* ── Fenêtre d'une étape : explication (guide) + documents associés ──
-       Réutilise guideEl() (partie explicative) et checklistEl() (documents +
-       actions Ajouter / Modèle / Valider…). Se rafraîchit à chaque render(). */
+    /* ── Fenêtre d'indice : explication ouverte depuis l'ampoule de la frise ── */
     const fmodal     = document.getElementById('fmodal');
     const fmodalBody = document.getElementById('fmodal-body');
     let fmodalCtx = null; // id de la phase affichée
 
+    const STEP_EXPLAINERS = {
+      'due-diligence-preliminaire': {
+        intro: "Cette étape sert à faire un premier contrôle rapide avant d'aller trop loin. L'investisseur veut vérifier que l'histoire racontée dans le deck tient debout : activité, chiffres clés, cap table, principaux contrats et points juridiques sensibles. Ce n'est pas encore l'audit complet : c'est un filtre pour décider si l'opération mérite une lettre d'intention.",
+        substeps: [
+          { title: 'Préparer un dossier court', text: "Rassembler les documents qui permettent de comprendre vite la société : deck, cap table, derniers chiffres, statuts à jour et quelques contrats importants." },
+          { title: 'Identifier les sujets qui peuvent bloquer', text: "Repérer les points rouges : propriété intellectuelle mal cédée, actionnariat flou, dette oubliée, litige, contrat client majeur fragile." },
+          { title: 'Répondre aux premières questions', text: "Donner des réponses simples, cohérentes et traçables. Si une réponse est incertaine, mieux vaut le dire clairement que l'inventer." },
+          { title: 'Limiter ce qui est partagé', text: "Partager assez pour rassurer, mais garder les informations très sensibles pour la data room complète." },
+          { title: 'Décider si on continue', text: "À la fin, chacun doit savoir si les bases sont suffisamment solides pour négocier une lettre d'intention." },
+        ],
+        outcome: "Résultat attendu : l'investisseur a une vision claire des risques principaux et peut décider s'il souhaite formaliser une offre.",
+      },
+      'term-sheet': {
+        intro: "La lettre d'intention fixe les grands paramètres de la levée avant de rédiger les contrats définitifs. Elle n'est pas toujours entièrement contraignante, mais elle structure toute la suite : ce qui est accepté ici devient souvent très difficile à renégocier ensuite.",
+        substeps: [
+          { title: 'Cadrer le montant et la valorisation', text: "Définir combien la société lève, à quelle valorisation, et ce que cela représente en dilution pour les fondateurs et les actionnaires existants." },
+          { title: 'Fixer les droits économiques', text: "Négocier les sujets qui changent vraiment le partage de valeur : préférence de liquidation, anti-dilution, droits préférentiels, traitement des futurs tours." },
+          { title: 'Cadrer la gouvernance', text: "Décider qui aura un siège, qui aura un droit de veto, quelles décisions devront être approuvées, et comment les investisseurs seront informés." },
+          { title: 'Prévoir le calendrier', text: "Lister les conditions à remplir avant le closing, la durée d'exclusivité éventuelle, les étapes de due diligence et la date cible de signature." },
+          { title: 'Faire relire avant signature', text: "Une term sheet courte peut contenir des effets très lourds. Elle doit être relue comme un document stratégique, pas comme une simple lettre." },
+        ],
+        outcome: "Résultat attendu : les points essentiels du deal sont posés noir sur blanc, avec assez de précision pour passer aux contrats.",
+      },
+      'due-diligence': {
+        intro: "La due diligence poussée est l'audit approfondi de la société. L'investisseur et ses conseils vérifient le juridique, le financier, le social, le fiscal, la propriété intellectuelle, les contrats, les données, la conformité et les risques. L'objectif n'est pas d'être parfait : c'est d'être transparent, organisé et capable d'expliquer les sujets sensibles.",
+        substeps: [
+          { title: 'Ouvrir une data room structurée', text: "Créer un espace clair, rangé par thèmes, où chaque document attendu est facile à trouver. Le désordre ralentit l'audit et crée de la méfiance." },
+          { title: 'Répondre à la checklist', text: "Traiter les demandes document par document : statuts, registres, contrats, comptes, salariés, propriété intellectuelle, assurances, litiges." },
+          { title: 'Organiser les questions-réponses', text: "Centraliser les questions, répondre avec précision, et éviter les réponses orales impossibles à retracer." },
+          { title: "Corriger ce qui peut l'être", text: "Mettre à jour un registre, faire signer une cession de propriété intellectuelle manquante, clarifier un contrat ou documenter un risque." },
+          { title: 'Préparer la synthèse des risques', text: "À la fin, les sujets non résolus doivent être connus, expliqués et intégrés dans les contrats si nécessaire." },
+        ],
+        outcome: "Résultat attendu : l'investisseur sait exactement ce qu'il achète, quels risques existent, et comment ils seront traités dans la documentation juridique.",
+      },
+      'documentation': {
+        intro: "Cette étape transforme les principes négociés en documents juridiquement engageants. On passe de la logique commerciale à la mécanique juridique : pacte, statuts, décisions sociales, bulletins de souscription, garanties et annexes.",
+        substeps: [
+          { title: 'Traduire la term sheet en contrats', text: "Chaque principe doit devenir une clause précise : droits des investisseurs, gouvernance, liquidité, information, transferts de titres." },
+          { title: 'Négocier les clauses sensibles', text: "Les vrais points de tension sont souvent les préférences de liquidation, les droits de veto, les clauses de leaver, les garanties et les conditions de sortie." },
+          { title: 'Aligner pacte et statuts', text: "Les documents doivent raconter la même chose. Une incohérence entre pacte, statuts et décisions sociales peut créer un blocage plus tard." },
+          { title: 'Préparer les signatures', text: "Vérifier les versions finales, les signataires, les pouvoirs, les annexes, les dates et l'ordre exact de signature." },
+          { title: 'Anticiper le closing', text: "Les contrats doivent permettre le versement des fonds et l'émission des titres sans improvisation le jour J." },
+        ],
+        outcome: "Résultat attendu : tous les documents définitifs sont prêts, cohérents et signables.",
+      },
+      'closing': {
+        intro: "Le closing est le moment où la levée devient juridiquement effective. Les contrats sont signés, les fonds sont versés, l'augmentation de capital est constatée et les nouveaux investisseurs entrent officiellement au capital.",
+        substeps: [
+          { title: 'Vérifier les conditions préalables', text: "S'assurer que toutes les conditions prévues ont été remplies : documents signés, autorisations obtenues, éventuels points de due diligence réglés." },
+          { title: 'Faire signer dans le bon ordre', text: "Signer les décisions sociales, le pacte, les bulletins de souscription et les documents annexes selon la séquence prévue." },
+          { title: 'Recevoir les fonds', text: "Contrôler les virements ou l'attestation bancaire. Tant que les fonds ne sont pas reçus, l'opération n'est pas réellement bouclée." },
+          { title: "Constater l'augmentation de capital", text: "Émettre les titres, mettre à jour la cap table et acter juridiquement l'entrée des investisseurs." },
+          { title: 'Lancer les formalités', text: "Mettre à jour les registres, préparer les dépôts au greffe et conserver une version finale de tous les documents." },
+        ],
+        outcome: "Résultat attendu : les investisseurs sont au capital, les fonds sont disponibles et la société peut utiliser l'argent levé.",
+      },
+      'post-closing': {
+        intro: "Après le closing, l'objectif est de tenir proprement les engagements pris. La levée ne s'arrête pas à l'arrivée de l'argent : il faut maintenir la confiance, respecter le pacte et préparer la suite.",
+        substeps: [
+          { title: 'Finaliser les formalités', text: "Vérifier que les dépôts, registres, statuts, cap table et documents sociaux sont bien mis à jour." },
+          { title: 'Installer le reporting', text: "Mettre en place le rythme d'information prévu : chiffres clés, trésorerie, budget, comptes, indicateurs opérationnels." },
+          { title: 'Organiser la gouvernance', text: "Planifier les conseils, comités ou décisions qui nécessitent l'accord des investisseurs." },
+          { title: 'Suivre les engagements du pacte', text: "Ne pas oublier les droits d'information, les droits de veto, les clauses de transfert et les obligations liées aux fondateurs." },
+          { title: 'Préparer la prochaine étape', text: "Conserver un dossier propre : il servira pour le prochain tour, une dette, une acquisition ou une sortie." },
+        ],
+        outcome: "Résultat attendu : la société reste juridiquement propre, les investisseurs sont informés, et la prochaine opération sera plus simple.",
+      },
+    };
+
     function openFmodal(folderId) { fmodalCtx = folderId; buildFmodal(); if (fmodal) fmodal.classList.add('is-open'); }
     function closeFmodal() { if (fmodal) fmodal.classList.remove('is-open'); fmodalCtx = null; }
     function refreshFmodal() { if (fmodalCtx != null && fmodal && fmodal.classList.contains('is-open')) buildFmodal(); }
+
+    function stepInfoEl(data) {
+      const sec = document.createElement('section');
+      sec.className = 'step-info';
+      const steps = (data.substeps || []).map((s, idx) => `
+        <li class="step-info__item">
+          <span class="step-info__num">${idx + 1}</span>
+          <div>
+            <div class="step-info__name">${esc(s.title)}</div>
+            <div class="step-info__text">${esc(s.text)}</div>
+          </div>
+        </li>`).join('');
+      sec.innerHTML = `
+        <p class="step-info__lead">${esc(data.intro)}</p>
+        <ol class="step-info__list">${steps}</ol>
+        <p class="step-info__outcome">${esc(data.outcome)}</p>`;
+      return sec;
+    }
 
     function buildFmodal() {
       if (!fmodal) return;
       const f = folders.find(x => x.id === fmodalCtx);
       if (!f) { closeFmodal(); return; }
       const track  = f.track || 'classic';
-      const phases = folders.filter(x => (x.track || 'classic') === track);
+      if (track === 'classic' && !isClassicPhaseVisible(f)) { closeFmodal(); return; }
+      let phases = folders.filter(x => (x.track || 'classic') === track);
+      if (track === 'classic') phases = phases.filter(isClassicPhaseVisible);
       const idx    = phases.findIndex(x => x.id === f.id);
-      const s      = phaseStatus(f);
+      const data   = STEP_EXPLAINERS[f.key] || null;
 
-      fmodal.classList.toggle('is-step-done', s.complete);
-      fmodal.querySelector('.fmodal__badge-step').textContent = s.complete ? '✓' : (idx + 1);
-      fmodal.querySelector('.fmodal__step').textContent = 'Étape ' + (idx + 1) + ' sur ' + phases.length;
+      fmodal.classList.remove('is-step-done');
+      fmodal.querySelector('.fmodal__badge-step').textContent = idx >= 0 ? idx : '';
+      fmodal.querySelector('.fmodal__step').textContent = 'Comprendre';
       fmodal.querySelector('.fmodal__title').textContent = friseLabel(f);
       const stEl = fmodal.querySelector('.fmodal__status');
-      stEl.classList.toggle('is-done', s.complete);
-      stEl.textContent = s.complete ? '✓ Validée' : (s.total ? s.done + '/' + s.total + ' validés' : 'À compléter');
+      stEl.classList.remove('is-done');
+      stEl.hidden = !data;
+      stEl.textContent = data ? 'Explication' : '';
 
       const sc = fmodalBody.scrollTop; // préserve le défilement lors d'un rafraîchissement
       fmodalBody.innerHTML = '';
-      const g = guideEl(f);
-      if (g) {
-        const t = document.createElement('div');
-        t.className = 'fmodal__sec-title';
-        t.textContent = 'Comprendre cette étape';
-        fmodalBody.appendChild(t);
-        fmodalBody.appendChild(g);
-      }
-      const dt = document.createElement('div');
-      dt.className = 'fmodal__sec-title';
-      dt.textContent = 'Documents de cette étape';
-      fmodalBody.appendChild(dt);
-      if (Array.isArray(f.checklist) && f.checklist.length) {
-        fmodalBody.appendChild(checklistEl(f));
+      if (data) {
+        fmodalBody.appendChild(stepInfoEl(data));
       } else {
         const e = document.createElement('div');
         e.className = 'fmodal__empty';
-        e.textContent = 'Aucun document attendu à cette étape.';
+        e.style.minHeight = '96px';
         fmodalBody.appendChild(e);
       }
       fmodalBody.scrollTop = sc;
@@ -1120,31 +2254,165 @@
       return sec;
     }
 
+    function documentCategoriesFor(f) {
+      if (!f) return null;
+      if (f.key === 'due-diligence') return DD_PUSHED_CATEGORIES;
+      if (f.key === 'closing') return CLOSING_CATEGORIES;
+      return null;
+    }
+
+    function categoryItemLabel(item) {
+      return item && typeof item === 'object' ? item.label : String(item || '');
+    }
+
+    function looseDocsFor(f, linkedIds, categoryKey = '') {
+      const key = categoryKey || '';
+      return docs.filter(d =>
+        d.folder_id === f.id &&
+        !d.is_version &&
+        !linkedIds.has(d.id) &&
+        String(d.category_key || '') === key
+      );
+    }
+
+    function pendingUploadsFor(folderId, categoryKey = '') {
+      const key = categoryKey || '';
+      return pendingUploads.filter(p =>
+        p.folderId === folderId &&
+        String(p.categoryKey || '') === key
+      );
+    }
+
+    function phaseLooseFilesEl(f, linkedIds, categoryKey = '', title = 'Fichiers importés dans ce dossier') {
+      const loose = looseDocsFor(f, linkedIds, categoryKey);
+      const pendings = pendingUploadsFor(f.id, categoryKey);
+      const box = document.createElement('div');
+      box.className = 'phase-files';
+      box.innerHTML = `
+        <div class="phase-files__head">
+          <div class="phase-files__title">${esc(title)}</div>
+        </div>`;
+      if (!loose.length && !pendings.length) {
+        const drop = document.createElement('div');
+        drop.className = 'phase-files__drop';
+        drop.textContent = 'Glissez-déposez des fichiers ici, ou utilisez le bouton Importer des fichiers.';
+        box.appendChild(drop);
+        return box;
+      }
+
+      const fl = document.createElement('div');
+      fl.className = 'files';
+      pendings.forEach(p => fl.appendChild(pendingRow(p)));
+      loose
+        .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))
+        .forEach(d => fl.appendChild(fileRow(d)));
+      box.appendChild(fl);
+      return box;
+    }
+
+    const docCategoryOpen = {};
+
+    function categoryFolderEl(f, category, startIndex, linkedIds) {
+      const stateKey = f.id + ':' + category.key;
+      const open = docCategoryOpen[stateKey] !== false;
+      const section = document.createElement('section');
+      section.className = 'doc-category' + (open ? '' : ' is-collapsed');
+      const count = category.items.length;
+      section.innerHTML = `
+        <div class="doc-category__head">
+          <div class="doc-category__main">
+            <div class="doc-category__title">${esc(category.title)}</div>
+            <div class="doc-category__count">${count} document${count > 1 ? 's' : ''}</div>
+          </div>
+          <div class="doc-category__actions">
+            <button class="documents-action-btn" type="button" data-category-import>Importer des fichiers</button>
+            <button class="doc-category__toggle" type="button" data-category-toggle aria-expanded="${open ? 'true' : 'false'}" aria-label="${open ? 'Réduire' : 'Agrandir'} ${esc(category.title)}" title="${open ? 'Réduire' : 'Agrandir'} ce dossier">v</button>
+          </div>
+        </div>
+        <div class="doc-category__body">
+          <ol class="bsa-list"></ol>
+        </div>`;
+      section.querySelector('[data-category-import]').addEventListener('click', () => openImport(f.id, category.key));
+      const toggle = section.querySelector('[data-category-toggle]');
+      toggle.addEventListener('click', () => {
+        const nextOpen = section.classList.contains('is-collapsed');
+        section.classList.toggle('is-collapsed', !nextOpen);
+        docCategoryOpen[stateKey] = nextOpen;
+        toggle.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
+        toggle.setAttribute('aria-label', (nextOpen ? 'Réduire ' : 'Agrandir ') + category.title);
+        toggle.title = (nextOpen ? 'Réduire' : 'Agrandir') + ' ce dossier';
+      });
+      const ol = section.querySelector('.bsa-list');
+      category.items.forEach((item, offset) => {
+        ol.appendChild(roadItem(f, categoryItemLabel(item), startIndex + offset));
+      });
+      const body = section.querySelector('.doc-category__body');
+      body.appendChild(phaseLooseFilesEl(f, linkedIds, category.key, 'Fichiers libres de ce dossier'));
+      attachCardDrop(section, f.id, category.key);
+      return section;
+    }
+
     // Carte d'une phase : checklist numérotée + fichiers libres de la phase + dépôt.
-    function phaseCard(f, pi) {
+    function phaseCard(f, pi, opts = {}) {
       const list = Array.isArray(f.checklist) ? f.checklist : [];
       const linkedIds = new Set(
         Object.values(f.items_state || {}).map(st => st.document_id).filter(id => id != null)
       );
+      const categories = documentCategoriesFor(f);
 
       const card = document.createElement('div');
+      const stepNum = (f.track || 'classic') === 'classic' ? pi : pi + 1;
+      const title = opts.title || f.name;
+      const icon = opts.icon || stepNum;
+      const stepLabel = opts.hideStep ? '' : `<div class="folder__step">Étape ${stepNum}</div>`;
+      const actions = opts.documentActions ? `
+        <div class="documents-card__actions">
+          <button class="documents-action-btn" type="button" data-new-folder>+ Nouveau dossier</button>
+          <button class="documents-action-btn" type="button" data-import-folder>Importer des fichiers</button>
+        </div>` : '';
       card.className = 'folder folder--phase open';
       card.innerHTML = `
         <div class="folder__head" style="cursor:default">
-          <div class="folder__ic">${pi + 1}</div>
+          <div class="folder__ic">${esc(icon)}</div>
           <div class="folder__main">
-            <div class="folder__step">Étape ${pi + 1}</div>
-            <div class="folder__name">${esc(f.name)}</div>
+            ${stepLabel}
+            <div class="folder__name">${esc(title)}</div>
             <div class="folder__count">${list.length} document${list.length > 1 ? 's' : ''}</div>
           </div>
+          ${actions}
         </div>
-        <div class="folder__body" style="display:block"><ol class="bsa-list"></ol></div>`;
-      const ol   = card.querySelector('.bsa-list');
+        <div class="folder__body" style="display:block"></div>`;
+      const body = card.querySelector('.folder__body');
+      const newFolderBtn = card.querySelector('[data-new-folder]');
+      const importFolderBtn = card.querySelector('[data-import-folder]');
+      if (newFolderBtn) newFolderBtn.addEventListener('click', createFolder);
+      if (importFolderBtn) importFolderBtn.addEventListener('click', () => openImport(f.id, ''));
       // Le guide « 🎓 Comprendre cette étape » n'apparaît plus dans la carte du
       // dossier : il est réservé à la fenêtre d'étape ouverte via la frise.
-      list.forEach((item, idx) => ol.appendChild(roadItem(f, item, idx)));
+      if (categories && categories.length) {
+        body.appendChild(phaseLooseFilesEl(f, linkedIds, '', 'Fichiers importés de manière générale'));
+        const catWrap = document.createElement('div');
+        catWrap.className = 'doc-categories';
+        let startIndex = 0;
+        categories.forEach(category => {
+          catWrap.appendChild(categoryFolderEl(f, category, startIndex, linkedIds));
+          startIndex += category.items.length;
+        });
+        body.appendChild(catWrap);
+      } else if (list.length) {
+        const ol = document.createElement('ol');
+        ol.className = 'bsa-list';
+        list.forEach((item, idx) => ol.appendChild(roadItem(f, item, idx)));
+        body.appendChild(ol);
+        if (opts.documentActions) body.appendChild(phaseLooseFilesEl(f, linkedIds, '', 'Fichiers importés de manière générale'));
+      } else {
+        const empty = document.createElement('div');
+        empty.className = 'folder__empty';
+        empty.textContent = 'Cette étape est à préciser.';
+        body.appendChild(empty);
+      }
 
-      attachCardDrop(card, f.id);
+      attachCardDrop(card, f.id, '');
       return card;
     }
 
@@ -1182,27 +2450,33 @@
 
     // Dépôt sur toute une carte : fichier de l'ordinateur → téléversé dans la phase ;
     // document existant glissé → déplacé dans la phase (folderId null = non classé).
-    function attachCardDrop(card, folderId) {
+    function attachCardDrop(card, folderId, categoryKey = '') {
       let depth = 0;
       card.addEventListener('dragenter', (e) => {
         if (!hasFiles(e) && !hasInternal(e)) return;
+        if (categoryKey) e.stopPropagation();
         e.preventDefault(); depth++; card.classList.add('is-drag');
       });
       card.addEventListener('dragover', (e) => {
         if (!hasFiles(e) && !hasInternal(e)) return;
+        if (categoryKey) e.stopPropagation();
         e.preventDefault(); e.dataTransfer.dropEffect = hasFiles(e) ? 'copy' : 'move';
       });
-      card.addEventListener('dragleave', () => { if (--depth <= 0) { depth = 0; card.classList.remove('is-drag'); } });
+      card.addEventListener('dragleave', (e) => {
+        if (categoryKey) e.stopPropagation();
+        if (--depth <= 0) { depth = 0; card.classList.remove('is-drag'); }
+      });
       card.addEventListener('drop', (e) => {
         if (!hasFiles(e) && !hasInternal(e)) return;
+        if (categoryKey) e.stopPropagation();
         e.preventDefault(); depth = 0; card.classList.remove('is-drag');
         if (hasFiles(e)) {
           const files = e.dataTransfer.files;
-          if (files && files.length) uploadFiles(files, folderId);
+          if (files && files.length) uploadFiles(files, folderId, categoryKey);
           return;
         }
         const did = Number(e.dataTransfer.getData('application/x-liquid-doc'));
-        if (did) moveDoc(did, folderId == null ? '' : folderId);
+        if (did) moveDoc(did, folderId == null ? '' : folderId, categoryKey);
       });
     }
 
@@ -1517,135 +2791,6 @@
       return String(s).toLowerCase()
         .normalize('NFD').replace(/[̀-ͯ]/g, '')
         .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-    }
-
-    // Récapitulatif « À faire » : toutes les tâches restantes (documents non
-    // fournis ou non encore validés « final »), groupées par phase.
-    function todoSummaryEl(track) {
-      track = track || getRaiseType();
-      const open = openState['__todo__' + track] ?? true;
-      const card = document.createElement('div');
-      card.className = 'todo' + (open ? ' open' : '');
-
-      const groups = [];
-      let total = 0;
-      folders.filter(f => (f.track || 'classic') === track).forEach(f => {
-        if (!Array.isArray(f.checklist) || !f.checklist.length) return;
-        const state = f.items_state || {};
-        const items = [];
-        f.checklist.forEach(item => {
-          const slug = slugify(item);
-          const st = state[slug] || {};
-          const doc = st.document_id != null ? docs.find(d => d.id === st.document_id) : null;
-          const linked = !!doc;
-          const final = linked && !!st.final;
-          if (final) return;
-          const hasTodos = Array.isArray(st.todos) && st.todos.length;
-          items.push({ item, linked, doc, folderId: f.id, slug, hasTodos });
-          total++;
-        });
-        if (items.length) groups.push({ phase: f.name, items });
-      });
-
-      card.innerHTML = `
-        <div class="todo__head">
-          <span class="todo__chevron">▶</span>
-          <div class="todo__main">
-            <div class="todo__name">À faire</div>
-            <div class="todo__count">${total ? total + (total > 1 ? ' tâches restantes' : ' tâche restante') : 'Tout est à jour'}</div>
-          </div>
-        </div>
-        <div class="todo__body"></div>`;
-
-      const head = card.querySelector('.todo__head');
-      const body = card.querySelector('.todo__body');
-      head.addEventListener('click', () => {
-        const n = !card.classList.contains('open');
-        card.classList.toggle('open', n);
-        openState['__todo__' + track] = n;
-      });
-
-      if (!total) {
-        body.innerHTML = '<p class="folder__empty">Aucune tâche en attente.</p>';
-        return card;
-      }
-      groups.forEach(g => {
-        const h = document.createElement('div');
-        h.className = 'todo__phase';
-        h.textContent = g.phase;
-        body.appendChild(h);
-        g.items.forEach(it => {
-          const row = document.createElement('div');
-          row.className = 'todo__item';
-
-          const dot = document.createElement('span');
-          dot.className = `todo__dot todo__dot--${it.linked ? 'wip' : 'todo'}`;
-          dot.textContent = it.linked ? '◐' : '○';
-          row.appendChild(dot);
-
-          const name = document.createElement('span');
-          name.textContent = it.item;
-          row.appendChild(name);
-
-          const right = document.createElement('div');
-          right.className = 'todo__right';
-
-          if (it.linked && it.doc && it.doc.kind === 'termsheet') {
-            const an = document.createElement('button');
-            an.className = 'fbtn fbtn--mini';
-            an.textContent = it.hasTodos ? '↻ Analyser' : 'Analyser';
-            an.title = 'Analyser ce document avec Claude et lister les choses à faire';
-            an.addEventListener('click', (e) => { e.stopPropagation(); analyzeDoc(it.folderId, it.slug, it.doc, an); });
-            right.appendChild(an);
-          }
-
-          const tag = document.createElement('span');
-          tag.className = `todo__tag ${it.linked ? 'todo__tag--wip' : 'todo__tag--todo'}`;
-          tag.textContent = it.linked ? 'à valider' : 'à fournir';
-
-          if (it.linked) {
-            const val = document.createElement('button');
-            val.className = 'fbtn fbtn--mini';
-            val.textContent = 'Valider';
-            val.title = 'Marquer comme document final';
-            val.addEventListener('click', async (e) => {
-              e.stopPropagation();
-              val.disabled = true; val.textContent = '…';
-              showErr('');
-              try {
-                const r = await fetch('/api/saas/folders/' + it.folderId + '/checklist', {
-                  method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                  credentials: 'include',
-                  body: JSON.stringify({ slug: it.slug, final: true }),
-                });
-                if (!r.ok) {
-                  const d = await r.json().catch(() => ({}));
-                  showErr(d.error || 'Validation échouée.');
-                  val.disabled = false; val.textContent = 'Valider'; return;
-                }
-                // Mise à jour locale immédiate → l'item disparaît de la liste sans attendre load()
-                const folder = folders.find(x => x.id === it.folderId);
-                if (folder) {
-                  folder.items_state = folder.items_state || {};
-                  folder.items_state[it.slug] = { ...(folder.items_state[it.slug] || {}), final: true };
-                }
-                render();
-                load(); // synchronise en arrière-plan
-              } catch {
-                showErr('Impossible de joindre le serveur.');
-                val.disabled = false; val.textContent = 'Valider';
-              }
-            });
-            right.appendChild(val);
-          }
-
-          right.appendChild(tag);
-
-          row.appendChild(right);
-          body.appendChild(row);
-        });
-      });
-      return card;
     }
 
     function checklistEl(f) {
@@ -2177,14 +3322,18 @@
 
     // Déplacement optimiste : le document change de dossier à l'écran tout de
     // suite, la requête part en arrière-plan (resynchronisation si échec).
-    function moveDoc(id, folderId) {
+    function moveDoc(id, folderId, categoryKey = '') {
       showErr('');
       const fid = folderId === '' || folderId == null ? null : Number(folderId);
       const d = docs.find(x => x.id === id);
-      if (d) { d.folder_id = fid; render(); }
+      if (d) {
+        d.folder_id = fid;
+        d.category_key = fid == null ? '' : (categoryKey || '');
+        render();
+      }
       fetch('/api/saas/documents/' + id + '/folder', {
         method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', body: JSON.stringify({ folder_id: folderId || null }),
+        credentials: 'include', body: JSON.stringify({ folder_id: folderId || null, category_key: categoryKey || '' }),
       }).then(async (r) => {
         if (!r.ok) { const dd = await r.json().catch(() => ({})); showErr(dd.error || 'Déplacement échoué.'); load(); }
       }).catch(() => { showErr('Impossible de joindre le serveur.'); load(); });
@@ -2304,18 +3453,21 @@
     // (folderId null = « Documents importés », non classé). Chaque fichier déposé
     // apparaît immédiatement comme ligne « Import en cours… », remplacée par la
     // vraie ligne dès que le serveur répond (pas de rechargement complet).
-    async function uploadFiles(fileList, folderId) {
+    async function uploadFiles(fileList, folderId, categoryKey = '') {
       const files = Array.from(fileList || []);
       if (!files.length) return false;
       showErr('');
-      const pendings = files.map(f => ({ name: f.name, size: f.size, folderId: folderId == null ? null : folderId }));
+      const targetFolderId = folderId == null ? null : folderId;
+      const targetCategoryKey = targetFolderId == null ? '' : (categoryKey || '');
+      const pendings = files.map(f => ({ name: f.name, size: f.size, folderId: targetFolderId, categoryKey: targetCategoryKey }));
       pendingUploads.push(...pendings);
       render();
       let failed = 0, needSync = false;
       for (let i = 0; i < files.length; i++) {
         const fd = new FormData();
         fd.append('file', files[i]);
-        if (folderId != null) fd.append('folder_id', String(folderId));
+        if (targetFolderId != null) fd.append('folder_id', String(targetFolderId));
+        if (targetCategoryKey) fd.append('category_key', targetCategoryKey);
         try {
           const r = await fetch('/api/saas/documents', { method: 'POST', credentials: 'include', body: fd });
           const data = await r.json().catch(() => ({}));
@@ -2332,7 +3484,8 @@
     }
 
     fileInput.addEventListener('change', async () => {
-      await uploadFiles(fileInput.files, null);
+      await uploadFiles(fileInput.files, importTarget.folderId, importTarget.categoryKey);
+      importTarget = { folderId: null, categoryKey: '' };
       fileInput.value = '';
     });
 
