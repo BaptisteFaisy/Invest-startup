@@ -38,6 +38,6 @@ async function refreshNav() {
   }
   if (ctaBtn) {
     ctaBtn.textContent = 'Mon espace';
-    ctaBtn.href = 'editor.html';
+    ctaBtn.href = 'dossiers.html';
   }
 }

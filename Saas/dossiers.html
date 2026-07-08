@@ -435,21 +435,29 @@
 
     .frise__track { overflow:visible; }
     .frise__points { display:grid; grid-template-columns:repeat(9, minmax(0, 1fr)); gap:8px; }
-    .frise__point { position:relative; min-width:0; min-height:0; aspect-ratio:1 / 1; overflow:hidden; display:flex; flex-direction:column; align-items:flex-start; gap:6px; text-align:left; background:#f7f7f5; border:1px solid rgba(8,9,12,0.1); border-radius:8px; padding:8px; cursor:pointer; transition:transform .16s, border-color .16s, box-shadow .16s, background .16s; }
+    .frise__point { --step-bg:#475569; --step-fg:#fff; --step-glow:rgba(71,85,105,0.28); position:relative; box-sizing:border-box; min-width:0; min-height:0; aspect-ratio:1 / 1; overflow:hidden; display:flex; flex-direction:column; align-items:flex-start; gap:6px; text-align:left; background:#f7f7f5; border:2px solid #fff; border-radius:8px; padding:7px; cursor:pointer; transition:transform .16s, border-color .16s, box-shadow .16s, background .16s; }
+    .frise__point--step-0 { --step-bg:#0f172a; --step-fg:#fff; --step-glow:rgba(15,23,42,0.34); }
+    .frise__point--step-1 { --step-bg:#facc15; --step-fg:#1f2937; --step-glow:rgba(250,204,21,0.32); }
+    .frise__point--step-2, .frise__point--step-4 { --step-bg:#2563eb; --step-fg:#fff; --step-glow:rgba(37,99,235,0.34); }
+    .frise__point--step-3, .frise__point--step-5, .frise__point--step-6 { --step-bg:#10b981; --step-fg:#052e16; --step-glow:rgba(16,185,129,0.34); }
+    .frise__point--step-7 { --step-bg:#ef4444; --step-fg:#fff; --step-glow:rgba(239,68,68,0.34); }
+    .frise__point--step-8, .frise__point--step-9 { --step-bg:#8b5cf6; --step-fg:#fff; --step-glow:rgba(139,92,246,0.34); }
     .frise__point::after { content:''; position:absolute; top:50%; left:calc(100% - 1px); width:10px; height:2px; background:#08090c; box-shadow:0 0 0 1px rgba(255,255,255,0.55); transform:translateY(-50%); pointer-events:none; }
     .frise__point:last-child::after { display:none; }
-    .frise__point:hover { transform:translateY(-2px); border-color:rgba(8,9,12,0.45); box-shadow:0 8px 18px rgba(8,9,12,0.14); }
-    .frise__point.is-active { background:#fff; border-color:#08090c; border-width:3px; padding:6px; box-shadow:0 0 0 2px rgba(8,9,12,0.14), 0 10px 22px rgba(8,9,12,0.18); }
+    .frise__point:hover { transform:translateY(-2px); border-color:#fff; box-shadow:0 8px 18px rgba(8,9,12,0.14); }
+    .frise__point:active { transform:translateY(1px) scale(.985); background:#ededeb; border-color:#d6d6d0; box-shadow:inset 0 3px 9px rgba(8,9,12,0.2), 0 2px 6px rgba(8,9,12,0.12); transition-duration:.08s; }
+    .frise__point.is-active { background:#fff; border-color:#fff; box-shadow:0 0 0 1px rgba(255,255,255,0.55), 0 10px 22px rgba(8,9,12,0.18); }
     .frise__point.is-done { background:#16a34a; border-color:#16a34a; box-shadow:0 8px 18px rgba(22,163,74,0.22); }
-    .frise__point.is-done.is-active { background:#16a34a; border-color:#08090c; }
-    .frise__num { width:24px; height:24px; flex:none; display:grid; place-items:center; border-radius:8px; background:#fff; border:1px solid rgba(8,9,12,0.13); color:#08090c; font-family:'Archivo',sans-serif; font-weight:800; font-size:12px; }
+    .frise__point.is-done.is-active { background:#16a34a; border-color:#fff; }
+    .frise__point:not(.is-done):active { background:#ededeb; border-color:#d6d6d0; box-shadow:inset 0 3px 9px rgba(8,9,12,0.2), 0 2px 6px rgba(8,9,12,0.12); }
+    .frise__point.is-done:active { border-color:#d6d6d0; box-shadow:inset 0 3px 9px rgba(8,9,12,0.24), 0 2px 6px rgba(8,9,12,0.12); }
+    .frise__num { width:24px; height:24px; flex:none; display:grid; place-items:center; border-radius:8px; background:var(--step-bg); border:1px solid rgba(255,255,255,0.42); color:var(--step-fg); box-shadow:0 6px 14px var(--step-glow); font-family:'Archivo',sans-serif; font-weight:800; font-size:12px; }
     .frise__idea { position:absolute; z-index:2; top:8px; right:8px; width:24px; height:24px; display:grid; place-items:center; border-radius:8px; background:#fff; border:1px solid rgba(8,9,12,0.14); color:#08090c; line-height:1; cursor:help; transition:background .15s, border-color .15s, transform .15s; }
     .frise__idea:hover { background:#f1f2f4; border-color:rgba(8,9,12,0.28); transform:translateY(-1px); }
     .frise__idea svg { width:15px; height:15px; display:block; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
     .frise__point.is-active .frise__idea { top:6px; right:6px; }
     .frise__point.is-done .frise__idea { background:#fff; border-color:rgba(8,9,12,0.14); color:#08090c; }
-    .frise__point.is-done .frise__num { background:#fff; border-color:#fff; color:#16a34a; }
-    .frise__point.is-active:not(.is-done) .frise__num { background:#08090c; border-color:#08090c; color:#fff; }
+    .frise__point.is-done .frise__num, .frise__point.is-active:not(.is-done) .frise__num { background:var(--step-bg); border-color:rgba(255,255,255,0.55); color:var(--step-fg); }
     .frise__label { color:#08090c; font-family:'Archivo',sans-serif; font-size:10px; font-weight:700; letter-spacing:0; line-height:1.08; overflow-wrap:anywhere; }
     .frise__mini { display:none; margin-top:auto; color:#8a8a94; font-family:'Archivo',sans-serif; font-size:10.5px; font-weight:700; letter-spacing:0; }
     .frise__point.is-active:not(.is-done) .frise__label, .frise__point.is-active:not(.is-done) .frise__mini { color:#08090c; }
@@ -506,20 +514,17 @@
     .frise.is-celebrate .frise__point:nth-child(9){animation-delay:.40s}
 
     @media (max-width:760px) {
-      .frise__points { grid-template-columns:repeat(3, minmax(0, 1fr)); }
-      .frise__point:nth-child(3n)::after { display:none; }
+      .frise__points { grid-template-columns:repeat(auto-fill, minmax(82px, 88px)); justify-content:space-between; align-items:start; }
+      .frise__point::after { display:none; }
       .dash-overview { grid-template-columns:1fr; }
     }
     @media (max-width:680px) {
-      .frise { padding:18px 14px; }
+      .frise { padding:0; }
       .frise__head { align-items:stretch; flex-direction:column; }
       .frise__right { width:100%; align-items:center; justify-content:space-between; flex-direction:row; gap:8px; }
       .frise__progress { flex:1; min-width:0; }
       .frise__progress-bar { width:96px; }
-      .frise__points { grid-template-columns:repeat(2, minmax(0, 1fr)); }
-      .frise__point:nth-child(3n)::after { display:block; }
-      .frise__point:nth-child(2n)::after { display:none; }
-      .frise__point:last-child::after { display:none; }
+      .frise__points { grid-template-columns:repeat(auto-fill, minmax(76px, 82px)); }
       .step-page-head__title { font-size:20px; }
     }
     @media (prefers-reduced-motion:reduce) { .frise, .frise * { animation:none !important; transition:none !important; } }
@@ -729,12 +734,11 @@
     document.getElementById('import-btn').addEventListener('click', () => openImport(null, ''));
     document.getElementById('new-folder-btn').addEventListener('click', createFolder);
 
-    /* ---- Type de levée : Levée classique / BSA-AIR / OC ---- */
+    /* ---- Type de levée : Levée classique / BSA-AIR ---- */
     let raiseUser = 'me';
     const RAISE_HINTS = {
       'classic': 'Classique · étapes 0 à 8',
       'bsa-air': 'BSA-AIR · page sans frise',
-      'oc': 'OC · obligations convertibles',
     };
     const RAISE_SOON = {
       'oc': {
@@ -927,8 +931,11 @@
         note: "À privilégier quand un bridge est nécessaire et que les investisseurs veulent une vraie protection de dette. À éviter si la société n'a aucune visibilité sur sa capacité à convertir ou rembourser à maturité.",
       },
     };
+    function isSystemPhase(f) {
+      return !!(f && f.system === true && f.key);
+    }
     function isClassicPhaseVisible(f) {
-      return !String(f && f.name || '').trim().startsWith('9');
+      return isSystemPhase(f) && !String(f && f.name || '').trim().startsWith('9');
     }
     function raiseKey() { return 'liquid_raise_type_' + raiseUser; }
     function dashboardControlsKey() { return 'liquid_dashboard_controls_collapsed_' + raiseUser; }
@@ -1655,7 +1662,7 @@
         return;
       }
       const container = track === 'bsa-air' ? bsaFoldersEl : foldersEl;
-      let phases = folders.filter(f => (f.track || 'classic') === track);
+      let phases = folders.filter(f => isSystemPhase(f) && (f.track || 'classic') === track);
       if (track === 'classic') phases = phases.filter(isClassicPhaseVisible);
       container.innerHTML = '';
 
@@ -1772,7 +1779,6 @@
               <select class="raise-select" name="raise_type" required>
                 <option value="classic"${optionSelected('classic', profile.raise_type)}>Levée classique</option>
                 <option value="bsa-air"${optionSelected('bsa-air', profile.raise_type)}>BSA-AIR</option>
-                <option value="oc"${optionSelected('oc', profile.raise_type)}>OC</option>
               </select>
             </label>
             <label class="raise-field">
@@ -1874,6 +1880,11 @@
     // Avancement d'une étape. Un document « si applicable » non fourni ne bloque pas ;
     // tout document fourni doit être validé. « complete » = tout ce qui doit l'être
     // est validé (→ pastille verte).
+    function friseStepNumber(f, fallback) {
+      const match = String(f && f.name || '').match(/^\s*(\d+)/);
+      return match ? Number(match[1]) : fallback;
+    }
+
     function phaseStatus(f) {
       const state = f.items_state || {};
       const items = Array.isArray(f.checklist) ? f.checklist : [];
@@ -1975,7 +1986,7 @@
       const host = track === 'bsa-air' ? friseBsaEl : friseClassicEl;
       if (!host) return;
       if (track !== 'classic') { host.innerHTML = ''; return; }
-      phases = phases || folders.filter(f => (f.track || 'classic') === track);
+      phases = phases || folders.filter(f => isSystemPhase(f) && (f.track || 'classic') === track);
       phases = phases.filter(isClassicPhaseVisible);
       if (!phases.length) { host.innerHTML = ''; return; }
 
@@ -2011,10 +2022,11 @@
         const btn = document.createElement('button');
         btn.type = 'button';
         const active = selectedClassicStep === f.key;
-        btn.className = 'frise__point' + (green ? ' is-done' : '') + (join ? ' is-join' : '') + (active ? ' is-active' : '');
+        const stepNumber = friseStepNumber(f, i);
+        btn.className = 'frise__point frise__point--step-' + stepNumber + (green ? ' is-done' : '') + (join ? ' is-join' : '') + (active ? ' is-active' : '');
         const mini = s.total ? (s.done + '/' + s.total + (green ? ' validés' : '')) : 'À cadrer';
         btn.innerHTML =
-          '<span class="frise__num">' + (green ? '✓' : i) + '</span>' +
+          '<span class="frise__num">' + stepNumber + '</span>' +
           '<span class="frise__idea" title="Comprendre cette étape">' + bulbIcon + '</span>' +
           '<span class="frise__label">' + esc(friseLabel(f)) + '</span>' +
           '<span class="frise__mini">' + mini + '</span>';

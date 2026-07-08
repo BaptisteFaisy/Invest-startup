@@ -759,7 +759,7 @@ app.get('/auth/google/callback', async (req, res) => {
       const appToken = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
       return res.redirect(`liquidplus://auth?token=${encodeURIComponent(appToken)}`);
     }
-    res.redirect(fromSaas ? '/saas/editor.html' : '/index.html');
+    res.redirect(fromSaas ? '/saas/dossiers.html' : '/index.html');
   } catch (err) {
     console.error('Google OAuth error:', err.message);
     fromApp  ? res.redirect('liquidplus://auth?error=google_failed')
@@ -2260,7 +2260,7 @@ const FUNDRAISING_PROFILE_DEFAULT = {
   founders: [],
 };
 const FUNDRAISING_COUNTRIES = new Set(['france', 'us', 'uk', 'germany', 'other']);
-const FUNDRAISING_TYPES = new Set(['classic', 'bsa-air', 'oc']);
+const FUNDRAISING_TYPES = new Set(['classic', 'bsa-air']);
 const FOUNDER_STATUSES = new Set(['cofounder', 'late-cofounder', 'investor']);
 function shortText(v, max = 240) {
   return String(v || '').trim().slice(0, max);
@@ -2327,6 +2327,14 @@ app.put('/api/saas/fundraising-profile', requireAuth, async (req, res) => {
 // inutile une fois la dernière version appliquée.
 async function ensureUserFolders(userId) {
   const PHASES = allSeedPhases();
+  const testFolders = await col('saas_folders')
+    .find({ user_id: userId, system: { $ne: true }, name: /^\s*test(?:\s+1)?\s*$/i }, { projection: { id: 1 } })
+    .toArray();
+  for (const f of testFolders) {
+    await col('saas_folders').deleteOne({ id: f.id, user_id: userId, system: { $ne: true } });
+    await col('saas_documents').updateMany({ user_id: userId, folder_id: f.id }, { $unset: { folder_id: '' } });
+  }
+
   const sys = await col('saas_folders')
     .find({ user_id: userId, system: true }, { projection: { id: 1, key: 1, seed_version: 1 } })
     .toArray();
