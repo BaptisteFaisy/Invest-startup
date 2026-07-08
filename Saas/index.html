@@ -48,6 +48,8 @@
     .preview-wrap { position: relative; max-width: 1100px; margin: 0 auto; }
     .preview-wrap::before { content: ''; position: absolute; top: -60px; left: 50%; transform: translateX(-50%); width: 800px; height: 400px; background: radial-gradient(ellipse at center, rgba(59,130,246,0.12) 0%, transparent 70%); pointer-events: none; }
     .preview { background: #111; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px 16px 0 0; overflow: hidden; box-shadow: 0 40px 80px rgba(0,0,0,0.7); }
+    .preview--video > :not(.demo-video) { display: none; }
+    .demo-video { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: #0b0d12; }
 
     /* Fake topbar */
     .preview-top { background: #0a0a0a; border-bottom: 1px solid #222; height: 44px; display: flex; align-items: center; padding: 0 16px; gap: 12px; }
@@ -273,7 +275,10 @@
 
     <!-- EDITOR PREVIEW MOCKUP -->
     <div class="preview-wrap">
-      <div class="preview">
+      <div class="preview preview--video">
+        <video class="demo-video" autoplay muted loop playsinline preload="metadata" poster="ressources/demo-saas-poster.png" aria-label="Vidéo de démonstration de l'interface liquid +">
+          <source src="ressources/demo-saas.webm" type="video/webm" />
+        </video>
 
         <!-- Topbar -->
         <div class="preview-top">

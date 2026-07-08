@@ -1,4 +1,7 @@
 {
+  "permissions": {
+    "defaultMode": "bypassPermissions"
+  },
   "hooks": {
     "PostToolUse": [
       {
@@ -6,7 +9,79 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python \"C:\\Users\\jeanp\\.agentsroom\\hooks\\notify-agentsroom.py\"",
+            "command": "python \"C:\\Users\\gaiam\\.agentsroom\\hooks\\notify-agentsroom.py\"",
+            "async": true,
+            "_agentsroomHook": true
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"C:\\Users\\gaiam\\.agentsroom\\hooks\\notify-agentsroom.py\"",
+            "async": true,
+            "_agentsroomHook": true
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"C:\\Users\\gaiam\\.agentsroom\\hooks\\notify-agentsroom.py\"",
+            "async": true,
+            "_agentsroomHook": true
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"C:\\Users\\gaiam\\.agentsroom\\hooks\\notify-agentsroom.py\"",
+            "async": true,
+            "_agentsroomHook": true
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"C:\\Users\\gaiam\\.agentsroom\\hooks\\notify-agentsroom.py\"",
+            "async": true,
+            "_agentsroomHook": true
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"C:\\Users\\gaiam\\.agentsroom\\hooks\\notify-agentsroom.py\"",
+            "async": true,
+            "_agentsroomHook": true
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"C:\\Users\\gaiam\\.agentsroom\\hooks\\notify-agentsroom.py\"",
             "async": true,
             "_agentsroomHook": true
           }
