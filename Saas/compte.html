@@ -66,6 +66,8 @@
     .badge-off { display: inline-flex; align-items: center; font-family: 'Archivo', sans-serif; font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: rgba(8,9,12,0.06); color: #6b6b78; margin-top: 10px; }
     .btn--danger { background: #fff; color: #c0392b; border: 1.5px solid rgba(220,38,38,0.3); }
     .btn--danger:hover { background: rgba(220,38,38,0.06); border-color: rgba(220,38,38,0.5); }
+    .account-logout-line { width: 100%; margin-top: 4px; padding: 16px 0 0; border: 0; border-top: 1px solid rgba(255,255,255,0.12); background: none; color: #ef4444; cursor: pointer; font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; text-align: left; }
+    .account-logout-line:hover { color: #f87171; }
 
     .setup { margin-top: 22px; border-top: 1px solid rgba(8,9,12,0.08); padding-top: 22px; display: none; }
     .setup.open { display: block; }
@@ -97,7 +99,6 @@
       <div class="topbar__actions">
         <a href="dossiers.html" class="btn btn--ghost">Tableau de bord</a>
         <a href="editor.html" class="btn btn--ghost">Éditeur</a>
-        <button class="btn btn--ghost" id="logout-btn">Déconnexion</button>
       </div>
     </header>
 
@@ -222,6 +223,8 @@
           </div>
         </div>
       </div>
+
+      <button type="button" class="account-logout-line" id="logout-btn">Déconnexion</button>
     </main>
   </div>
 
