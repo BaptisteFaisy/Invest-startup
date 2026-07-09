@@ -386,7 +386,7 @@ const staticHtmlNoCache = {
 };
 // Le SaaS (dossier interne au site) est servi sous /saas → même origine que l'API,
 // donc le cookie de session et les appels /api/auth/* fonctionnent sans CORS.
-app.get('/saas/index.html', (_req, res) => res.redirect(302, '/saas/login.html'));
+app.get('/saas/index.html', (_req, res) => res.redirect(302, '/index.html'));
 app.use('/saas', express.static(path.join(__dirname, 'Saas'), staticHtmlNoCache));
 app.use(express.static(__dirname, staticHtmlNoCache));
 

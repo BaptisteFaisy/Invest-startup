@@ -14,7 +14,7 @@ async function fetchMe() {
 
 async function logout() {
   try { await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }); } catch {}
-  window.location.href = '/saas/login.html';
+  window.location.href = '/index.html';
 }
 
 function hasAccountType(user) {
