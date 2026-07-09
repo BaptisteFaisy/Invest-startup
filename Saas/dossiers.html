@@ -438,12 +438,11 @@
     .frise__progress-bar { width:130px; height:7px; border-radius:99px; background:rgba(255,255,255,0.14); overflow:hidden; }
     .frise__progress-bar > i { display:block; height:100%; border-radius:99px; background:#3b82f6; width:calc(var(--frac,0) * 100%); transition:width .6s cubic-bezier(.2,.8,.2,1), background .4s; }
     .frise.is-complete .frise__progress-bar > i { background:#16a34a; }
-    .frise__toggle { width:28px; height:28px; flex:none; display:grid; place-items:center; border:0; border-radius:6px; background:transparent; color:rgba(15,23,42,0.4); cursor:pointer; padding:0; transition:color .15s, background .15s; }
+    .frise__toggle { width:28px; height:28px; flex:none; display:grid; place-items:center; border:0; border-radius:6px; background:transparent; color:rgba(255,255,255,0.55); cursor:pointer; padding:0; transition:color .15s, background .15s; }
     .frise__toggle svg { width:18px; height:18px; display:block; fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; transition:transform .2s ease; }
-    .frise__toggle:hover { background:#f1f3f6; color:#0f172a; }
-    .frise.is-collapsed .frise__toggle svg { transform:rotate(-90deg); }
-    .frise.is-collapsed .frise__track { display:none; }
-    .frise.is-collapsed .frise__head { margin-bottom:0; }
+    .frise__toggle:hover { background:rgba(255,255,255,0.12); color:#fff; }
+    .frise__toggle[aria-expanded="false"] svg { transform:rotate(-90deg); }
+    .frise.is-collapsed { display:none; }
 
     .frise__track { overflow:visible; }
     .frise__points { display:grid; grid-template-columns:repeat(9, minmax(0, 1fr)); gap:7px; }
@@ -2046,18 +2045,20 @@
       el.className = 'frise' + (allComplete ? ' is-complete' : '') + (collapsed ? ' is-collapsed' : '');
       el.style.setProperty('--frac', String(frac));
       el.innerHTML = `
-        <div class="frise__head">
-          <div class="frise__right">
-            <button class="frise__toggle" type="button" aria-expanded="${collapsed ? 'false' : 'true'}" aria-label="${collapsed ? 'Afficher la frise' : 'Masquer la frise'}" title="${collapsed ? 'Afficher la frise' : 'Masquer la frise'}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6l6 -6"/></svg></button>
-          </div>
-        </div>
         <div class="frise__track">
           <div class="frise__points"></div>
         </div>`;
 
+      const toggleLabel = collapsed ? 'Afficher les étapes de votre levée' : 'Masquer les étapes de votre levée';
+      const header = document.createElement('div');
+      header.className = 'section-label';
+      header.innerHTML = `
+        <span>Les étapes de votre levée</span>
+        <button class="frise__toggle" type="button" aria-expanded="${collapsed ? 'false' : 'true'}" aria-label="${toggleLabel}" title="${toggleLabel}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6l6 -6"/></svg></button>`;
+      header.querySelector('.frise__toggle').addEventListener('click', () => setFriseCollapsed(track, !collapsed));
+
       const pts = el.querySelector('.frise__points');
       const currentIdx = stats.findIndex(s => !s.complete);
-      el.querySelector('.frise__toggle').addEventListener('click', () => setFriseCollapsed(track, !collapsed));
       phases.forEach((f, i) => {
         const s = stats[i];
         const green = s.complete;
@@ -2087,6 +2088,7 @@
       });
 
       host.innerHTML = '';
+      host.appendChild(header);
       host.appendChild(el);
 
       // « Tout est vert » : animation jouée uniquement lors de la bascule
