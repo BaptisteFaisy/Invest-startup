@@ -381,10 +381,12 @@ app.use('/uploads/public', express.static(PUBLIC_IMG_DIR));
 const staticHtmlNoCache = {
   setHeaders(res, filePath) {
     if (filePath.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache');
+    if (path.basename(filePath) === 'auth.js') res.setHeader('Cache-Control', 'no-cache');
   },
 };
 // Le SaaS (dossier interne au site) est servi sous /saas → même origine que l'API,
 // donc le cookie de session et les appels /api/auth/* fonctionnent sans CORS.
+app.get('/saas/index.html', (_req, res) => res.redirect(302, '/saas/login.html'));
 app.use('/saas', express.static(path.join(__dirname, 'Saas'), staticHtmlNoCache));
 app.use(express.static(__dirname, staticHtmlNoCache));
 
