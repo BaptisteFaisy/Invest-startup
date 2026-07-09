@@ -46,7 +46,7 @@
     .resume-card.is-collapsed { display: none; }
 
     /* ═══════════ Dock d'accès rapide (raccourcis type applications) ═══════════ */
-    .appdock { position: fixed; top: 120px; right: 22px; z-index: 60; width: 216px; background: #fff; border-radius: 20px; box-shadow: 0 18px 50px rgba(8,9,12,0.28); border: 1px solid rgba(8,9,12,0.06); overflow: hidden; user-select: none; touch-action: none; transition: opacity .18s ease, transform .18s ease; }
+    .appdock { position: fixed; top: 120px; right: 22px; z-index: 60; width: 152px; background: #fff; border-radius: 20px; box-shadow: 0 18px 50px rgba(8,9,12,0.28); border: 1px solid rgba(8,9,12,0.06); overflow: hidden; user-select: none; touch-action: none; transition: opacity .18s ease, transform .18s ease; }
     .appdock.is-dragging { transition: none; box-shadow: 0 26px 70px rgba(8,9,12,0.38); cursor: grabbing; }
     .appdock__head { display: flex; align-items: center; gap: 8px; padding: 12px 12px 10px 16px; cursor: grab; }
     .appdock.is-dragging .appdock__head { cursor: grabbing; }
@@ -54,7 +54,7 @@
     .appdock__toggle { width: 26px; height: 26px; flex: none; display: grid; place-items: center; border: 0; border-radius: 7px; background: transparent; color: #9aa0ad; cursor: pointer; padding: 0; transition: color .15s, background .15s; }
     .appdock__toggle svg { width: 16px; height: 16px; display: block; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s ease; }
     .appdock__toggle:hover { background: rgba(8,9,12,0.06); color: #08090c; }
-    .appdock__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 4px 12px 14px; }
+    .appdock__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 4px 12px 14px; }
     .appdock.is-collapsed .appdock__grid { display: none; }
     .appdock__app { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 4px; border-radius: 12px; text-decoration: none; transition: background .14s ease, transform .1s ease; }
     .appdock__app:hover { background: rgba(8,9,12,0.045); }
@@ -654,7 +654,6 @@
       <div class="topbar__actions">
         <a href="editor.html" class="btn btn--ghost">Éditeur</a>
         <a href="compte.html" class="btn btn--ghost">Mon compte</a>
-        <button type="button" class="aimax" data-aimax-toggle aria-pressed="false" title="Mode rapide. Cliquez pour des analyses approfondies « Max »."><span class="aimax__i" aria-hidden="true">✦</span><span>Max</span></button>
         <button class="btn btn--ghost" id="logout-btn">Déconnexion</button>
       </div>
     </header>
