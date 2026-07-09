@@ -433,8 +433,8 @@
     .frise.is-collapsed { padding-bottom:0; }
 
     .frise__track { overflow:visible; }
-    .frise__points { display:flex; align-items:stretch; gap:7px; overflow-x:auto; padding-bottom:2px; }
-    .frise__point { --c:#94a3b8; --bg:#f8fafc; --glow:rgba(148,163,184,0.22); position:relative; box-sizing:border-box; flex:1 0 auto; min-width:102px; overflow:visible; display:flex; flex-direction:column; align-items:center; text-align:center; background:var(--bg); border:3px solid transparent; border-radius:12px; padding:14px 12px 12px; cursor:pointer; transition:transform .12s ease, box-shadow .14s ease, border-color .14s ease; }
+    .frise__points { display:grid; grid-template-columns:repeat(9, minmax(0, 1fr)); gap:7px; }
+    .frise__point { --c:#94a3b8; --bg:#f8fafc; --glow:rgba(148,163,184,0.22); position:relative; box-sizing:border-box; min-width:0; overflow:visible; display:flex; flex-direction:column; align-items:center; text-align:center; background:var(--bg); border:3px solid transparent; border-radius:12px; padding:14px 9px 12px; cursor:pointer; transition:transform .12s ease, box-shadow .14s ease, border-color .14s ease; }
     .frise__point.is-done { --c:#10b981; --bg:#f0fdf4; --glow:rgba(16,185,129,0.20); }
     .frise__point.is-current { --c:#6366f1; --bg:#eef2ff; --glow:rgba(99,102,241,0.20); }
     .frise__point:active { transform:scale(.97); }
@@ -501,7 +501,7 @@
     .frise.is-celebrate .frise__point:nth-child(9){animation-delay:.40s}
 
     @media (max-width:760px) {
-      .frise__point { min-width:96px; }
+      .frise__points { grid-template-columns:repeat(5, minmax(0, 1fr)); }
       .dash-overview { grid-template-columns:1fr; }
     }
     @media (max-width:680px) {
@@ -510,7 +510,7 @@
       .frise__right { width:100%; align-items:center; justify-content:space-between; flex-direction:row; gap:8px; }
       .frise__progress { flex:1; min-width:0; }
       .frise__progress-bar { width:96px; }
-      .frise__point { min-width:88px; }
+      .frise__points { grid-template-columns:repeat(3, minmax(0, 1fr)); }
       .step-page-head__title { font-size:20px; }
     }
     @media (prefers-reduced-motion:reduce) { .frise, .frise * { animation:none !important; transition:none !important; } }
@@ -571,12 +571,12 @@
     <!-- Top bar -->
     <header class="topbar">
       <div class="topbar__left">
-        <a href="index.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
+        <a href="/index.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
         <span class="topbar__doc">Tableau de bord</span>
       </div>
       <div class="topbar__actions">
         <a href="editor.html" class="btn btn--ghost">Éditeur</a>
-        <a href="index.html" class="btn btn--ghost">Accueil</a>
+        <a href="/index.html" class="btn btn--ghost">Accueil</a>
         <a href="compte.html" class="btn btn--ghost">Mon compte</a>
         <button type="button" class="aimax" data-aimax-toggle aria-pressed="false" title="Mode rapide. Cliquez pour des analyses approfondies « Max »."><span class="aimax__i" aria-hidden="true">✦</span><span>Max</span></button>
         <button class="btn btn--ghost" id="logout-btn">Déconnexion</button>
@@ -3634,7 +3634,4 @@
     ['drop', 'dragend'].forEach(ev => document.addEventListener(ev, () => {
       dragScrollV = 0;
       if (dragScrollRAF) { cancelAnimationFrame(dragScrollRAF); dragScrollRAF = null; }
-    }, true));
-  </script>
-</body>
-</html>
+    }, t
