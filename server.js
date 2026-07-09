@@ -21,6 +21,25 @@ const pdfParse         = require('pdf-parse');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
+function wrapAsyncMiddleware(fn) {
+  if (Array.isArray(fn)) return fn.map(wrapAsyncMiddleware);
+  if (typeof fn !== 'function' || fn.length >= 4) return fn;
+  return function wrappedAsyncMiddleware(req, res, next) {
+    try {
+      const result = fn(req, res, next);
+      if (result && typeof result.then === 'function') result.catch(next);
+    } catch (err) {
+      next(err);
+    }
+  };
+}
+['get', 'post', 'put', 'delete', 'patch'].forEach((method) => {
+  const original = app[method].bind(app);
+  app[method] = function routeWithAsyncErrors(...args) {
+    if (method === 'get' && args.length === 1) return original(...args);
+    return original(...args.map((arg, index) => (index === 0 ? arg : wrapAsyncMiddleware(arg))));
+  };
+});
 const IS_PROD              = process.env.NODE_ENV === 'production';
 const JWT_SECRET           = process.env.JWT_SECRET           || 'invest_bg_dev_secret_CHANGE_IN_PROD';
 const BCRYPT_ROUNDS        = 12;
@@ -3641,6 +3660,12 @@ app.post('/api/saas/jobs/:id/dismiss', requireAuth, (req, res) => {
 });
 
 // ─── Démarrage ────────────────────────────────────────────────────────────────
+app.use((err, req, res, next) => {
+  console.error('Erreur route Express:', req.method, req.originalUrl || req.url, err && (err.stack || err.message || err));
+  if (res.headersSent) return next(err);
+  res.status(500).json({ error: 'Erreur serveur' });
+});
+
 assertSecretsOrExit();
 connectDB().then(async () => {
   await seedCatalogIfEmpty();
