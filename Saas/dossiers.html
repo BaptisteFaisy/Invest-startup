@@ -29,6 +29,7 @@
     .section-label { display: flex; align-items: center; justify-content: space-between; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #fff; margin: 34px 0 14px; }
 
     /* Carte mise en avant (term sheet vivante) */
+    .resume-list { display: flex; flex-direction: column; gap: 12px; }
     .feature-doc { display: flex; align-items: center; gap: 20px; background: var(--dark); color: var(--on-dark); border-radius: 16px; padding: 22px 24px; }
     .feature-doc__ic { width: 50px; height: 50px; flex: none; display: grid; place-items: center; border-radius: 12px; background: var(--blue); font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 15px; }
     .feature-doc__main { flex: 1; min-width: 0; }
@@ -427,8 +428,10 @@
     .frise__progress-bar { width:130px; height:7px; border-radius:99px; background:rgba(255,255,255,0.14); overflow:hidden; }
     .frise__progress-bar > i { display:block; height:100%; border-radius:99px; background:#3b82f6; width:calc(var(--frac,0) * 100%); transition:width .6s cubic-bezier(.2,.8,.2,1), background .4s; }
     .frise.is-complete .frise__progress-bar > i { background:#16a34a; }
-    .frise__toggle { height:22px; flex:none; display:grid; place-items:center; border:0; border-radius:6px; background:transparent; color:rgba(15,23,42,0.4); font-family:'Archivo',sans-serif; font-size:18px; font-weight:800; line-height:1; letter-spacing:1px; cursor:pointer; padding:0 5px; transition:color .15s, background .15s; }
+    .frise__toggle { width:28px; height:28px; flex:none; display:grid; place-items:center; border:0; border-radius:6px; background:transparent; color:rgba(15,23,42,0.4); cursor:pointer; padding:0; transition:color .15s, background .15s; }
+    .frise__toggle svg { width:18px; height:18px; display:block; fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; transition:transform .2s ease; }
     .frise__toggle:hover { background:#f1f3f6; color:#0f172a; }
+    .frise.is-collapsed .frise__toggle svg { transform:rotate(-90deg); }
     .frise.is-collapsed .frise__track { display:none; }
     .frise.is-collapsed { padding-bottom:0; }
 
@@ -439,7 +442,7 @@
     .frise__point.is-current { --c:#6366f1; --bg:#eef2ff; --glow:rgba(99,102,241,0.20); }
     .frise__point.is-done, .frise__point.is-current { border-color:var(--c); }
     .frise__point:active { transform:scale(.97); }
-    .frise__point.is-selected { border-color:var(--c); box-shadow:0 6px 16px var(--glow); }
+    .frise__point.is-selected { border-color:var(--c); box-shadow:0 10px 20px var(--glow); transform:translateY(-5px); z-index:1; }
     .frise__chip { width:32px; height:32px; flex:none; display:grid; place-items:center; border-radius:9px; background:#fff; color:var(--c); box-shadow:0 1px 4px rgba(0,0,0,0.08); font-family:'Archivo',sans-serif; font-weight:800; font-size:13px; }
     .frise__chip svg { width:18px; height:18px; display:block; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
     .frise__point.is-done .frise__chip svg { stroke-width:3; }
@@ -1611,36 +1614,39 @@
       }
     }
 
-    // Carte « Reprendre » : accès rapide au dernier document ouvert dans l'éditeur.
-    // On privilégie le document mémorisé par l'éditeur (liquid_last_doc), sinon le
-    // dernier termsheet modifié. Affichée en haut, indépendamment du parcours.
+    // Carte « Reprendre » : accès rapide aux 3 derniers documents touchés
+    // (créés ou modifiés), tous types confondus. Les documents sont déjà
+    // triés par updated_at/created_at décroissant côté serveur, donc cette
+    // liste reflète la dernière activité réelle de l'utilisateur, qu'il
+    // soit resté connecté ou qu'il vienne de se reconnecter. Affichée en
+    // haut, indépendamment du parcours.
     function renderResume() {
       const host = document.getElementById('resume');
       if (!host) return;
-      let target = null;
-      try {
-        const raw = localStorage.getItem('liquid_last_doc');
-        if (raw) {
-          const o = JSON.parse(raw);
-          if (o && o.id != null) target = docs.find(d => d.id === o.id && d.kind === 'termsheet') || null;
-        }
-      } catch { /* pas de dernier doc mémorisé */ }
-      if (!target) {
-        target = docs
-          .filter(d => d.kind === 'termsheet')
-          .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))[0] || null;
-      }
-      if (!target) { host.innerHTML = ''; return; }
+      const recent = docs
+        .slice()
+        .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))
+        .slice(0, 3);
+      if (!recent.length) { host.innerHTML = ''; return; }
       host.innerHTML = `
         <div class="section-label">Reprendre où vous en étiez</div>
+        <div class="resume-list">${recent.map(resumeCardHtml).join('')}</div>`;
+    }
+
+    function resumeCardHtml(d) {
+      const isTermsheet = d.kind === 'termsheet';
+      const ic = isTermsheet ? 'TS' : (ext(d.originalname || d.name) || 'doc').toUpperCase().slice(0, 4);
+      const label = isTermsheet ? 'Term sheet en cours' : 'Document importé';
+      const editBtn = isTermsheet ? `<a href="editor.html?doc=${d.id}" class="btn btn--light">Éditer</a>` : '';
+      return `
         <div class="feature-doc">
-          <div class="feature-doc__ic">TS</div>
+          <div class="feature-doc__ic">${esc(ic)}</div>
           <div class="feature-doc__main">
-            <div class="feature-doc__name">${esc(target.name)}</div>
-            <div class="feature-doc__meta">Dernier document ouvert · modifié le ${fmtDate(target.updated_at || target.created_at)}</div>
+            <div class="feature-doc__name">${esc(d.name)}</div>
+            <div class="feature-doc__meta">${label} · modifié le ${fmtDate(d.updated_at || d.created_at)}</div>
           </div>
-          <a href="editor.html?doc=${target.id}" class="btn btn--light">Éditer</a>
-          <a href="/api/saas/documents/${target.id}/download" class="btn btn--light">Télécharger</a>
+          ${editBtn}
+          <a href="/api/saas/documents/${d.id}/download" class="btn btn--light">Télécharger</a>
         </div>`;
     }
 
@@ -1982,13 +1988,16 @@
       renderFrise(track);
     }
     function openClassicStepPage(key) {
+      // Mémorise le défilement courant : le re-rendu ci-dessous remplace le
+      // corps de la page et ferait sauter l'écran en haut. On le restaure pour
+      // que l'écran reste au niveau où il était juste avant le clic.
+      const prevScroll = window.pageYOffset || document.documentElement.scrollTop || 0;
       selectedClassicStep = key || selectedClassicStep;
       storeClassicStep(selectedClassicStep);
       try { localStorage.setItem(raiseKey(), 'classic'); } catch {}
       syncUrlState('classic', selectedClassicStep);
       applyRaiseType('classic');
-      const host = document.getElementById('classic-view');
-      if (host) host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.scrollTo(0, prevScroll);
     }
 
     function renderFrise(track, phases) {
@@ -2011,7 +2020,7 @@
       el.innerHTML = `
         <div class="frise__head">
           <div class="frise__right">
-            <button class="frise__toggle" type="button" aria-label="${collapsed ? 'Afficher la frise' : 'Masquer la frise'}" title="${collapsed ? 'Afficher la frise' : 'Masquer la frise'}">•••</button>
+            <button class="frise__toggle" type="button" aria-expanded="${collapsed ? 'false' : 'true'}" aria-label="${collapsed ? 'Afficher la frise' : 'Masquer la frise'}" title="${collapsed ? 'Afficher la frise' : 'Masquer la frise'}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6l6 -6"/></svg></button>
           </div>
         </div>
         <div class="frise__track">
