@@ -30,6 +30,9 @@
       .type-option.selected .type-check { background:var(--navy); border-color:var(--navy); }
       .type-check svg { opacity:0; transition:opacity .16s; }
       .type-option.selected .type-check svg { opacity:1; }
+      .type-option.disabled { cursor:not-allowed; opacity:0.55; background:#f6f6f8; border-color:rgba(0,0,0,0.08); }
+      .type-option.disabled:hover { border-color:rgba(0,0,0,0.08); background:#f6f6f8; box-shadow:none; }
+      .soon { display:inline-block; margin-left:8px; font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:#6b6b78; background:rgba(0,0,0,0.06); border-radius:999px; padding:2px 8px; vertical-align:middle; }
       .type-body { display:grid; gap:3px; }
       .type-title { font-size:1rem; font-weight:700; color:#08090c; }
       .type-desc { font-size:0.85rem; color:#6b6b78; line-height:1.35; }
@@ -62,26 +65,26 @@
               </span>
             </label>
 
-            <label class="type-option" data-value="vc">
-              <input type="checkbox" name="account_type" value="vc" />
+            <label class="type-option disabled" data-value="vc">
+              <input type="checkbox" name="account_type" value="vc" disabled />
               <span class="type-check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
               <span class="type-body">
-                <span class="type-title">VC</span>
+                <span class="type-title">Fonds de VC <span class="soon">Bientôt</span></span>
                 <span class="type-desc">Je représente un fonds de capital-risque qui investit dans des startups.</span>
               </span>
             </label>
 
-            <label class="type-option" data-value="business_angel">
-              <input type="checkbox" name="account_type" value="business_angel" />
+            <label class="type-option disabled" data-value="business_angel">
+              <input type="checkbox" name="account_type" value="business_angel" disabled />
               <span class="type-check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
               <span class="type-body">
-                <span class="type-title">Business Angel</span>
+                <span class="type-title">Business Angel <span class="soon">Bientôt</span></span>
                 <span class="type-desc">J'investis à titre personnel dans des startups en amorçage.</span>
               </span>
             </label>
           </div>
 
-          <p class="hint">Vous pouvez cocher plusieurs profils.</p>
+          <p class="hint">Les profils VC et Business Angel seront bientôt disponibles.</p>
 
           <button class="auth-submit" id="submit-btn" type="submit" disabled>Continuer</button>
         </form>

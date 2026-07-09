@@ -156,9 +156,8 @@
             errEl.textContent = data.error || 'Une erreur est survenue';
             errEl.hidden = false;
           } else {
-            successEl.textContent = 'Compte créé ! Redirection…';
-            successEl.hidden = false;
-            setTimeout(() => { window.location.href = 'onboarding.html'; }, 800);
+            window.location.href = 'onboarding.html';
+            return;
           }
         } catch {
           errEl.textContent = 'Impossible de joindre le serveur';
