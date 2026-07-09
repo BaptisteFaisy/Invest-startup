@@ -22,6 +22,7 @@
   @media (max-width:520px){.frise__points{grid-template-columns:repeat(3,minmax(0,1fr))}}
   .frise__point.is-done{--c:#10b981;--bg:#f0fdf4;--glow:rgba(16,185,129,.20)}
   .frise__point.is-current{--c:#6366f1;--bg:#eef2ff;--glow:rgba(99,102,241,.20)}
+  .frise__point.is-done,.frise__point.is-current{border-color:var(--c)}
   .frise__point:active{transform:scale(.97)}
   .frise__point.is-selected{border-color:var(--c);box-shadow:0 6px 16px var(--glow)}
   .frise__chip{width:32px;height:32px;flex:none;display:grid;place-items:center;border-radius:9px;background:#fff;color:var(--c);box-shadow:0 1px 4px rgba(0,0,0,.08)}

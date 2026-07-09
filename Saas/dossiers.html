@@ -437,6 +437,7 @@
     .frise__point { --c:#374151; --bg:#f8fafc; --glow:rgba(55,65,81,0.18); position:relative; box-sizing:border-box; min-width:0; overflow:visible; display:flex; flex-direction:column; align-items:center; text-align:center; background:var(--bg); border:3px solid transparent; border-radius:12px; padding:14px 9px 12px; cursor:pointer; transition:transform .12s ease, box-shadow .14s ease, border-color .14s ease; }
     .frise__point.is-done { --c:#10b981; --bg:#f0fdf4; --glow:rgba(16,185,129,0.20); }
     .frise__point.is-current { --c:#6366f1; --bg:#eef2ff; --glow:rgba(99,102,241,0.20); }
+    .frise__point.is-done, .frise__point.is-current { border-color:var(--c); }
     .frise__point:active { transform:scale(.97); }
     .frise__point.is-selected { border-color:var(--c); box-shadow:0 6px 16px var(--glow); }
     .frise__chip { width:32px; height:32px; flex:none; display:grid; place-items:center; border-radius:9px; background:#fff; color:var(--c); box-shadow:0 1px 4px rgba(0,0,0,0.08); font-family:'Archivo',sans-serif; font-weight:800; font-size:13px; }
