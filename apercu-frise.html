@@ -16,8 +16,10 @@
   .frise__toggle{height:22px;display:grid;place-items:center;border:0;background:transparent;color:rgba(15,23,42,.4);font-family:'Archivo',sans-serif;font-size:18px;font-weight:800;letter-spacing:1px;cursor:pointer;padding:0 5px;border-radius:6px}
   .frise__toggle:hover{background:#f1f3f6;color:#0f172a}
 
-  .frise__points{display:flex;align-items:stretch;gap:7px;overflow-x:auto;padding-bottom:2px}
-  .frise__point{--c:#94a3b8;--bg:#f8fafc;--glow:rgba(148,163,184,.22);position:relative;box-sizing:border-box;flex:1 0 auto;min-width:102px;overflow:visible;display:flex;flex-direction:column;align-items:center;text-align:center;background:var(--bg);border:3px solid transparent;border-radius:12px;padding:14px 12px 12px;cursor:pointer;transition:transform .12s ease,box-shadow .14s ease,border-color .14s ease}
+  .frise__points{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:7px}
+  .frise__point{--c:#94a3b8;--bg:#f8fafc;--glow:rgba(148,163,184,.22);position:relative;box-sizing:border-box;min-width:0;overflow:visible;display:flex;flex-direction:column;align-items:center;text-align:center;background:var(--bg);border:3px solid transparent;border-radius:12px;padding:14px 9px 12px;cursor:pointer;transition:transform .12s ease,box-shadow .14s ease,border-color .14s ease}
+  @media (max-width:760px){.frise__points{grid-template-columns:repeat(5,minmax(0,1fr))}}
+  @media (max-width:520px){.frise__points{grid-template-columns:repeat(3,minmax(0,1fr))}}
   .frise__point.is-done{--c:#10b981;--bg:#f0fdf4;--glow:rgba(16,185,129,.20)}
   .frise__point.is-current{--c:#6366f1;--bg:#eef2ff;--glow:rgba(99,102,241,.20)}
   .frise__point:active{transform:scale(.97)}
@@ -71,8 +73,4 @@ PH.forEach(([l,ico,st],i)=>{const b=document.createElement('button');b.type='but
  b.innerHTML='<span class="frise__chip"><svg viewBox="0 0 24 24">'+inner+'</svg></span><span class="frise__idea" title="Comprendre cette étape">'+bulb+'</span><span class="frise__label">'+l+'</span><span class="frise__state">'+word[st]+'</span>';
  b.addEventListener('click',()=>{document.querySelectorAll('.frise__point').forEach(x=>x.classList.remove('is-selected'));b.classList.add('is-selected');
    hint.style.display='none';panel.style.display='block';panel.style.animation='none';panel.offsetWidth;panel.style.animation='';
-   panel.innerHTML='<h3>'+l+'</h3><p>Le contenu de cette étape (documents attendus, etc.) s\'affiche ici.</p>';});
- pts.appendChild(b);});
-</script>
-</body>
-</html>
+   panel.inner

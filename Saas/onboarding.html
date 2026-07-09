@@ -46,7 +46,7 @@
   </head>
   <body>
     <div class="auth-wrap">
-      <a class="auth-logo" href="index.html">liquid <span>+</span></a>
+      <a class="auth-logo" href="/index.html">liquid <span>+</span></a>
 
       <div class="auth-card">
         <h1>Quel type de compte&nbsp;?</h1>
@@ -134,24 +134,4 @@
         try {
           const res  = await fetch('/api/auth/account-type', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            credentials: 'include', body: JSON.stringify({ types }),
-          });
-          const data = await res.json();
-          if (!res.ok) {
-            errEl.textContent = data.error || 'Une erreur est survenue';
-            errEl.hidden = false;
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Continuer';
-            return;
-          }
-          window.location.href = NEXT;
-        } catch {
-          errEl.textContent = 'Impossible de joindre le serveur';
-          errEl.hidden = false;
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Continuer';
-        }
-      });
-    </script>
-  </body>
-</html>
+            credentials: 'include', body: JSON.stringify({ typ
