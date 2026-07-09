@@ -56,7 +56,7 @@
 
         <form id="type-form">
           <div class="type-list">
-            <label class="type-option" data-value="fondateur">
+            <label class="type-option selected" data-value="fondateur">
               <input type="checkbox" name="account_type" value="fondateur" checked />
               <span class="type-check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
               <span class="type-body">
@@ -86,7 +86,7 @@
 
           <p class="hint">Les profils VC et Business Angel seront bientôt disponibles.</p>
 
-          <button class="auth-submit" id="submit-btn" type="submit" disabled>Continuer</button>
+          <button class="auth-submit" id="submit-btn" type="submit">Continuer</button>
         </form>
       </div>
     </div>
@@ -134,4 +134,24 @@
         try {
           const res  = await fetch('/api/auth/account-type', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            credentials: 'include', body: JSON.stringify({ typ
+            credentials: 'include', body: JSON.stringify({ types }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            errEl.textContent = data.error || 'Une erreur est survenue';
+            errEl.hidden = false;
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Continuer';
+            return;
+          }
+          window.location.href = NEXT;
+        } catch {
+          errEl.textContent = 'Impossible de joindre le serveur';
+          errEl.hidden = false;
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Continuer';
+        }
+      });
+    </script>
+  </body>
+</html>
