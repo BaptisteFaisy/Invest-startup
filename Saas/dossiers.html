@@ -39,6 +39,11 @@
     .resume-row__meta { font-family: 'Archivo', sans-serif; font-size: 11px; color: var(--on-dark-mut); margin-top: 2px; }
     .resume-row__actions { display: flex; gap: 6px; flex: none; }
     .resume-row__actions .btn { padding: 6px 10px; font-size: 12px; min-height: 30px; min-width: 0; }
+    .resume-toggle { width: 28px; height: 28px; flex: none; display: grid; place-items: center; border: 0; border-radius: 6px; background: transparent; color: rgba(255,255,255,0.55); cursor: pointer; padding: 0; transition: color .15s, background .15s; }
+    .resume-toggle svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s ease; }
+    .resume-toggle:hover { background: rgba(255,255,255,0.12); color: #fff; }
+    .resume-toggle[aria-expanded="false"] svg { transform: rotate(-90deg); }
+    .resume-card.is-collapsed { display: none; }
 
     /* Dossiers (phases de levée) */
     .folder { background: var(--card); border: 1px solid var(--line); border-radius: 14px; margin-bottom: 12px; overflow: hidden; transition: border-color .15s, box-shadow .15s; }
@@ -438,7 +443,7 @@
     .frise__toggle:hover { background:#f1f3f6; color:#0f172a; }
     .frise.is-collapsed .frise__toggle svg { transform:rotate(-90deg); }
     .frise.is-collapsed .frise__track { display:none; }
-    .frise.is-collapsed { padding-bottom:0; }
+    .frise.is-collapsed .frise__head { margin-bottom:0; }
 
     .frise__track { overflow:visible; }
     .frise__points { display:grid; grid-template-columns:repeat(9, minmax(0, 1fr)); gap:7px; }
@@ -1631,6 +1636,7 @@
     // liste reflète la dernière activité réelle de l'utilisateur, qu'il
     // soit resté connecté ou qu'il vienne de se reconnecter. Affichée en
     // haut, indépendamment du parcours.
+    let resumeCollapsed = false;
     function renderResume() {
       const host = document.getElementById('resume');
       if (!host) return;
@@ -1639,9 +1645,17 @@
         .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))
         .slice(0, 3);
       if (!recent.length) { host.innerHTML = ''; return; }
+      const toggleLabel = resumeCollapsed ? 'Afficher les documents récents' : 'Masquer les documents récents';
       host.innerHTML = `
-        <div class="section-label">Reprendre où vous en étiez</div>
-        <div class="resume-card">${recent.map(resumeRowHtml).join('')}</div>`;
+        <div class="section-label">
+          <span>Reprendre où vous en étiez</span>
+          <button class="resume-toggle" type="button" aria-expanded="${resumeCollapsed ? 'false' : 'true'}" aria-label="${toggleLabel}" title="${toggleLabel}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6l6 -6"/></svg></button>
+        </div>
+        <div class="resume-card${resumeCollapsed ? ' is-collapsed' : ''}">${recent.map(resumeRowHtml).join('')}</div>`;
+      host.querySelector('.resume-toggle').addEventListener('click', () => {
+        resumeCollapsed = !resumeCollapsed;
+        renderResume();
+      });
     }
 
     // Pastille de statut : violet = term sheet encore en cours d'édition dans
