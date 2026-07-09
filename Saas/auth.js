@@ -17,10 +17,18 @@ async function logout() {
   window.location.href = 'index.html';
 }
 
+function hasAccountType(user) {
+  return !!(user && Array.isArray(user.account_types) && user.account_types.length);
+}
+
 // Garde de page : redirige vers la connexion si l'utilisateur n'est pas authentifié.
-async function requireAuth(redirect = 'login.html') {
+async function requireAuth(redirect = 'login.html', options = {}) {
   const user = await fetchMe();
   if (!user) { window.location.replace(redirect); return null; }
+  if (options.requireAccountType && !hasAccountType(user)) {
+    window.location.replace(options.onboarding || 'onboarding.html');
+    return null;
+  }
   return user;
 }
 

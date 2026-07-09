@@ -411,6 +411,20 @@ function setAuthCookie(res, user) {
   return token;
 }
 
+function publicAuthUser(user) {
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.full_name,
+    created_at: user.created_at,
+    account_types: Array.isArray(user.account_types) ? user.account_types : [],
+  };
+}
+
+function hasAccountTypes(user) {
+  return Array.isArray(user?.account_types) && user.account_types.length > 0;
+}
+
 function requireAuth(req, res, next) {
   const token = req.cookies.auth_token
     || (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.slice(7) : null);
@@ -454,7 +468,7 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
   const hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
   const user = await createUser({ email: emailClean, password: hash, full_name: full_name?.trim() });
   const token = setAuthCookie(res, user);
-  res.status(201).json({ success: true, token, user: { id: user.id, email: user.email, name: user.full_name } });
+  res.status(201).json({ success: true, token, user: publicAuthUser(user) });
 });
 
 // ─── POST /api/auth/account-type ──────────────────────────────────────────────
@@ -487,7 +501,7 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
 
   if (!user.twofa_method) {
     const token = setAuthCookie(res, user);
-    return res.json({ success: true, token, user: { id: user.id, email: user.email, name: user.full_name } });
+    return res.json({ success: true, token, user: publicAuthUser(user) });
   }
 
   const tempToken = jwt.sign({ id: user.id, email: user.email, purpose: 'verify_2fa' }, JWT_SECRET, { expiresIn: '5m' });
@@ -504,7 +518,7 @@ app.post('/api/auth/logout', (_req, res) => {
 app.get('/api/auth/me', requireAuth, async (req, res) => {
   const user = await col('users').findOne({ id: req.user.id }, { projection: { _id: 0, password: 0, totp_secret: 0 } });
   if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
-  res.json({ user: { id: user.id, email: user.email, name: user.full_name, created_at: user.created_at, account_types: user.account_types || [] } });
+  res.json({ user: publicAuthUser(user) });
 });
 
 // ─── GET /api/auth/2fa/status ─────────────────────────────────────────────────
@@ -563,7 +577,7 @@ app.post('/api/auth/2fa/verify', authLimiter, async (req, res) => {
     return res.status(400).json({ error: 'Code incorrect' });
 
   const token = setAuthCookie(res, user);
-  res.json({ success: true, token, user: { id: user.id, email: user.email, name: user.full_name } });
+  res.json({ success: true, token, user: publicAuthUser(user) });
 });
 
 // ─── PUT /api/auth/profile ────────────────────────────────────────────────────
@@ -583,7 +597,7 @@ app.put('/api/auth/profile', requireAuth, async (req, res) => {
   await updateUserById(req.user.id, updates);
   const updated = await col('users').findOne({ id: req.user.id }, { projection: { _id: 0 } });
   const token = setAuthCookie(res, updated);
-  res.json({ success: true, token, user: { id: updated.id, email: updated.email, name: updated.full_name } });
+  res.json({ success: true, token, user: publicAuthUser(updated) });
 });
 
 // ─── PUT /api/auth/password ───────────────────────────────────────────────────
@@ -749,7 +763,7 @@ app.post('/api/auth/google/token', async (req, res) => {
     let user         = await findByEmail(emailClean);
     if (!user) user  = await createUser({ email: emailClean, password: '', full_name: profile.name || emailClean.split('@')[0] });
     const token      = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
-    res.json({ success: true, token, user: { id: user.id, email: user.email, name: user.full_name } });
+    res.json({ success: true, token, user: publicAuthUser(user) });
   } catch (err) {
     console.error('Google token verify error:', err.message);
     res.status(401).json({ error: 'Token Google invalide' });
@@ -793,7 +807,7 @@ app.get('/auth/google/callback', async (req, res) => {
       const appToken = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
       return res.redirect(`liquidplus://auth?token=${encodeURIComponent(appToken)}`);
     }
-    res.redirect('/saas/dossiers.html');
+    res.redirect(hasAccountTypes(user) ? '/saas/dossiers.html' : '/saas/onboarding.html');
   } catch (err) {
     console.error('Google OAuth error:', err.message);
     fromApp  ? res.redirect('liquidplus://auth?error=google_failed')
@@ -2294,7 +2308,7 @@ const FUNDRAISING_PROFILE_DEFAULT = {
   founders: [],
 };
 const FUNDRAISING_COUNTRIES = new Set(['france', 'us', 'uk', 'germany', 'other']);
-const FUNDRAISING_TYPES = new Set(['classic', 'bsa-air']);
+const FUNDRAISING_TYPES = new Set(['classic', 'bsa-air', 'unknown']);
 const FOUNDER_STATUSES = new Set(['cofounder', 'late-cofounder', 'investor']);
 function shortText(v, max = 240) {
   return String(v || '').trim().slice(0, max);

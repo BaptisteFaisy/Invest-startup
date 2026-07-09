@@ -147,6 +147,23 @@
         document.getElementById(id).classList.add('active');
       }
 
+      function hasAccountType(user) {
+        return !!(user && Array.isArray(user.account_types) && user.account_types.length);
+      }
+
+      async function redirectAfterAuth(user = null) {
+        if (!user) {
+          try {
+            const res = await fetch('/api/auth/me', { credentials: 'include' });
+            if (res.ok) {
+              const data = await res.json();
+              user = data.user || null;
+            }
+          } catch {}
+        }
+        window.location.href = hasAccountType(user) ? 'dossiers.html' : 'onboarding.html';
+      }
+
       const loginForm = document.getElementById('login-form');
       const loginBtn  = document.getElementById('login-btn');
       const loginErr  = document.getElementById('login-error');
@@ -170,7 +187,7 @@
           const data = await res.json();
           if (!res.ok) { loginErr.textContent = data.error || 'Identifiants incorrects'; loginErr.hidden = false; return; }
           if (data.requires2FA) { tempToken = data.tempToken; showPanel('panel-2fa'); document.getElementById('totp-input').focus(); }
-          else window.location.href = 'dossiers.html';
+          else { await redirectAfterAuth(data.user); return; }
         } catch {
           loginErr.textContent = 'Impossible de joindre le serveur';
           loginErr.hidden = false;
@@ -199,7 +216,8 @@
           });
           const data = await res.json();
           if (!res.ok) { twofaErr.textContent = data.error || 'Code incorrect'; twofaErr.hidden = false; return; }
-          window.location.href = 'dossiers.html';
+          await redirectAfterAuth(data.user);
+          return;
         } catch {
           twofaErr.textContent = 'Impossible de joindre le serveur';
           twofaErr.hidden = false;

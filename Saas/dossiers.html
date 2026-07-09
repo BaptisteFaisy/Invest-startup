@@ -434,7 +434,7 @@
 
     .frise__track { overflow:visible; }
     .frise__points { display:grid; grid-template-columns:repeat(9, minmax(0, 1fr)); gap:7px; }
-    .frise__point { --c:#94a3b8; --bg:#f8fafc; --glow:rgba(148,163,184,0.22); position:relative; box-sizing:border-box; min-width:0; overflow:visible; display:flex; flex-direction:column; align-items:center; text-align:center; background:var(--bg); border:3px solid transparent; border-radius:12px; padding:14px 9px 12px; cursor:pointer; transition:transform .12s ease, box-shadow .14s ease, border-color .14s ease; }
+    .frise__point { --c:#f8fafc; --bg:#1f2937; --glow:rgba(17,24,39,0.28); position:relative; box-sizing:border-box; min-width:0; overflow:visible; display:flex; flex-direction:column; align-items:center; text-align:center; background:var(--bg); border:3px solid transparent; border-radius:12px; padding:14px 9px 12px; cursor:pointer; transition:transform .12s ease, box-shadow .14s ease, border-color .14s ease; }
     .frise__point.is-done { --c:#10b981; --bg:#f0fdf4; --glow:rgba(16,185,129,0.20); }
     .frise__point.is-current { --c:#6366f1; --bg:#eef2ff; --glow:rgba(99,102,241,0.20); }
     .frise__point:active { transform:scale(.97); }
@@ -447,7 +447,8 @@
     .frise__idea:hover { color:#475569; border-color:rgba(8,9,12,0.2); }
     .frise__idea svg { width:13px; height:13px; display:block; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
     .frise__label { margin-top:9px; color:#0f172a; font-family:'Archivo',sans-serif; font-size:10.5px; font-weight:700; letter-spacing:0; line-height:1.25; overflow-wrap:anywhere; }
-    .frise__point.is-todo .frise__label { color:#94a3b8; }
+    .frise__point.is-todo .frise__chip { background:rgba(255,255,255,0.13); box-shadow:none; }
+    .frise__point.is-todo .frise__label { color:#f8fafc; }
     .frise__state { margin-top:5px; color:var(--c); font-family:'Archivo',sans-serif; font-size:8.5px; font-weight:700; letter-spacing:0.02em; text-transform:uppercase; }
 
     .dash-overview { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; margin:14px 0 14px; }
@@ -691,7 +692,7 @@
   </div>
 
   <script>
-    requireAuth().then((user) => {
+    requireAuth('login.html', { requireAccountType: true }).then((user) => {
       if (!user) return;
       raiseUser = (user && (user.id || user.email)) || 'me';
       setDashboardControlsCollapsed(storedDashboardControlsCollapsed(), false);
@@ -719,13 +720,19 @@
     document.getElementById('import-btn').addEventListener('click', () => openImport(null, ''));
     document.getElementById('new-folder-btn').addEventListener('click', createFolder);
 
-    /* ---- Type de levée : Levée classique / BSA-AIR ---- */
+    /* ---- Type de levée : Levée classique / BSA-AIR / à définir ---- */
     let raiseUser = 'me';
     const RAISE_HINTS = {
       'classic': 'Classique · étapes 0 à 8',
       'bsa-air': 'BSA-AIR · page sans frise',
+      'unknown': 'À définir · tableau de bord adapté',
     };
     const RAISE_SOON = {
+      'unknown': {
+        badge: 'À décider',
+        title: 'Je ne sais pas encore',
+        text: 'Nous construirons ici un tableau de bord adapté pour clarifier le type de levée, les bons documents et les prochaines décisions.',
+      },
       'oc': {
         badge: 'OC',
         title: 'Obligations convertibles (OC)',
@@ -1001,7 +1008,7 @@
       const soon = document.getElementById('raise-soon-view');
       if (classic) classic.hidden = (t !== 'classic');
       if (bsa) bsa.hidden = (t !== 'bsa-air');
-      if (soon) soon.hidden = (t !== 'oc');
+      if (soon) soon.hidden = !RAISE_SOON[t];
       if (RAISE_SOON[t]) {
         const data = RAISE_SOON[t];
         const badge = document.getElementById('raise-soon-badge');
@@ -1638,7 +1645,7 @@
 
     function render() {
       const track = getRaiseType();
-      if (track === 'oc') {
+      if (RAISE_SOON[track]) {
         if (friseClassicEl) friseClassicEl.innerHTML = '';
         if (foldersEl) foldersEl.innerHTML = '';
         if (bsaFoldersEl) bsaFoldersEl.innerHTML = '';
@@ -1764,6 +1771,7 @@
               <select class="raise-select" name="raise_type" required>
                 <option value="classic"${optionSelected('classic', profile.raise_type)}>Levée classique</option>
                 <option value="bsa-air"${optionSelected('bsa-air', profile.raise_type)}>BSA-AIR</option>
+                <option value="unknown"${optionSelected('unknown', profile.raise_type)}>Je ne sais pas encore</option>
               </select>
             </label>
             <label class="raise-field">
@@ -3634,4 +3642,7 @@
     ['drop', 'dragend'].forEach(ev => document.addEventListener(ev, () => {
       dragScrollV = 0;
       if (dragScrollRAF) { cancelAnimationFrame(dragScrollRAF); dragScrollRAF = null; }
-    }, t
+    }, true));
+  </script>
+</body>
+</html>
