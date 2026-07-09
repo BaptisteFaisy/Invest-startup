@@ -73,4 +73,8 @@ PH.forEach(([l,ico,st],i)=>{const b=document.createElement('button');b.type='but
  b.innerHTML='<span class="frise__chip"><svg viewBox="0 0 24 24">'+inner+'</svg></span><span class="frise__idea" title="Comprendre cette étape">'+bulb+'</span><span class="frise__label">'+l+'</span><span class="frise__state">'+word[st]+'</span>';
  b.addEventListener('click',()=>{document.querySelectorAll('.frise__point').forEach(x=>x.classList.remove('is-selected'));b.classList.add('is-selected');
    hint.style.display='none';panel.style.display='block';panel.style.animation='none';panel.offsetWidth;panel.style.animation='';
-   panel.inner
+   panel.innerHTML='<h3>'+l+'</h3><p>Le contenu de cette étape (documents attendus, etc.) s\'affiche ici.</p>';});
+ pts.appendChild(b);});
+</script>
+</body>
+</html>
