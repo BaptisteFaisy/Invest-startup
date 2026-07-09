@@ -50,8 +50,6 @@
     .appdock.is-dragging { transition: none; box-shadow: 0 26px 70px rgba(8,9,12,0.38); cursor: grabbing; }
     .appdock__head { display: flex; align-items: center; gap: 8px; padding: 12px 12px 10px 16px; cursor: grab; }
     .appdock.is-dragging .appdock__head { cursor: grabbing; }
-    .appdock__grip { display: flex; flex-direction: column; gap: 3px; flex: none; }
-    .appdock__grip i { width: 16px; height: 2px; border-radius: 2px; background: rgba(8,9,12,0.16); display: block; }
     .appdock__title { flex: 1; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #6b6b78; }
     .appdock__toggle { width: 26px; height: 26px; flex: none; display: grid; place-items: center; border: 0; border-radius: 7px; background: transparent; color: #9aa0ad; cursor: pointer; padding: 0; transition: color .15s, background .15s; }
     .appdock__toggle svg { width: 16px; height: 16px; display: block; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s ease; }
@@ -64,9 +62,9 @@
     .appdock__icon { width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center; color: #fff; box-shadow: 0 4px 12px var(--glow, rgba(8,9,12,0.18)); }
     .appdock__icon svg { width: 22px; height: 22px; display: block; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .appdock__name { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; color: #4b4b57; line-height: 1.15; text-align: center; letter-spacing: 0.01em; }
-    /* Onglet réduit : le dock fermé se rétracte contre le bord droit */
-    .appdock.is-collapsed { width: auto; }
-    .appdock.is-collapsed .appdock__head { padding: 10px 12px; }
+    /* Onglet réduit : le dock fermé devient un carré à angles arrondis */
+    .appdock.is-collapsed { width: 46px; height: 46px; border-radius: 14px; }
+    .appdock.is-collapsed .appdock__head { width: 46px; height: 46px; padding: 0; justify-content: center; gap: 0; }
     .appdock.is-collapsed .appdock__title { display: none; }
     @media (max-width: 900px) { .appdock { display: none; } }
 
@@ -610,7 +608,6 @@
     <!-- Dock d'accès rapide : raccourcis type applications, déplaçable et repliable -->
     <aside class="appdock" id="appdock" aria-label="Accès rapide">
       <div class="appdock__head" id="appdock-head">
-        <span class="appdock__grip" aria-hidden="true"><i></i><i></i><i></i></span>
         <span class="appdock__title">Accès rapide</span>
         <button type="button" class="appdock__toggle" id="appdock-toggle" aria-expanded="true" aria-label="Réduire le dock">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
@@ -636,6 +633,10 @@
         <a class="appdock__app" href="#">
           <span class="appdock__icon" style="background:linear-gradient(135deg,#ec4899,#d1367f);--glow:rgba(209,54,127,0.4)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg></span>
           <span class="appdock__name">Tâches</span>
+        </a>
+        <a class="appdock__app" href="#" title="Simulation de dilution">
+          <span class="appdock__icon" style="background:linear-gradient(135deg,#14b8a6,#0d9488);--glow:rgba(13,148,136,0.4)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg></span>
+          <span class="appdock__name">Dilution</span>
         </a>
         <a class="appdock__app" href="compte.html">
           <span class="appdock__icon" style="background:linear-gradient(135deg,#64748b,#475569);--glow:rgba(71,85,105,0.4)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg></span>
