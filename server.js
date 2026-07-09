@@ -438,6 +438,21 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
   res.status(201).json({ success: true, token, user: { id: user.id, email: user.email, name: user.full_name } });
 });
 
+// ─── POST /api/auth/account-type ──────────────────────────────────────────────
+// Enregistre le(s) type(s) de compte choisi(s) à l'onboarding : fondateur, VC,
+// business angel. Plusieurs valeurs possibles.
+app.post('/api/auth/account-type', requireAuth, async (req, res) => {
+  const { types } = req.body ?? {};
+  const allowed = ['fondateur', 'vc', 'business_angel'];
+  const clean = Array.isArray(types)
+    ? [...new Set(types)].filter(t => allowed.includes(t))
+    : [];
+  if (clean.length === 0)
+    return res.status(400).json({ error: 'Sélectionnez au moins un type de compte' });
+  await updateUserById(req.user.id, { account_types: clean });
+  res.json({ success: true, account_types: clean });
+});
+
 // ─── POST /api/auth/login ─────────────────────────────────────────────────────
 app.post('/api/auth/login', authLimiter, async (req, res) => {
   const { email, password } = req.body ?? {};
@@ -470,7 +485,7 @@ app.post('/api/auth/logout', (_req, res) => {
 app.get('/api/auth/me', requireAuth, async (req, res) => {
   const user = await col('users').findOne({ id: req.user.id }, { projection: { _id: 0, password: 0, totp_secret: 0 } });
   if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
-  res.json({ user: { id: user.id, email: user.email, name: user.full_name, created_at: user.created_at } });
+  res.json({ user: { id: user.id, email: user.email, name: user.full_name, created_at: user.created_at, account_types: user.account_types || [] } });
 });
 
 // ─── GET /api/auth/2fa/status ─────────────────────────────────────────────────
@@ -759,7 +774,7 @@ app.get('/auth/google/callback', async (req, res) => {
       const appToken = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
       return res.redirect(`liquidplus://auth?token=${encodeURIComponent(appToken)}`);
     }
-    res.redirect(fromSaas ? '/saas/dossiers.html' : '/index.html');
+    res.redirect('/saas/dossiers.html');
   } catch (err) {
     console.error('Google OAuth error:', err.message);
     fromApp  ? res.redirect('liquidplus://auth?error=google_failed')

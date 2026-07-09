@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aperçu · nouvelle frise des étapes</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Libre+Franklin:wght@400;500;600&display=swap');
+  *{box-sizing:border-box}
+  body{margin:0;background:#08090c;color:#fff;font-family:'Libre Franklin',sans-serif;padding:40px 24px}
+  .shell{max-width:1040px;margin:0 auto}
+  .note{font-size:12.5px;color:rgba(255,255,255,.55);margin:0 0 20px}
+  .card{background:#fff;border-radius:16px;box-shadow:0 10px 26px rgba(0,0,0,.22);padding:16px 18px}
+
+  .frise__head{display:flex;align-items:center;justify-content:flex-end;margin-bottom:14px}
+  .frise__toggle{height:22px;display:grid;place-items:center;border:0;background:transparent;color:rgba(15,23,42,.4);font-family:'Archivo',sans-serif;font-size:18px;font-weight:800;letter-spacing:1px;cursor:pointer;padding:0 5px;border-radius:6px}
+  .frise__toggle:hover{background:#f1f3f6;color:#0f172a}
+
+  .frise__points{display:flex;align-items:stretch;gap:7px;overflow-x:auto;padding-bottom:2px}
+  .frise__point{--c:#94a3b8;--bg:#f8fafc;--glow:rgba(148,163,184,.22);position:relative;box-sizing:border-box;flex:1 0 auto;min-width:102px;overflow:visible;display:flex;flex-direction:column;align-items:center;text-align:center;background:var(--bg);border:3px solid transparent;border-radius:12px;padding:14px 12px 12px;cursor:pointer;transition:transform .12s ease,box-shadow .14s ease,border-color .14s ease}
+  .frise__point.is-done{--c:#10b981;--bg:#f0fdf4;--glow:rgba(16,185,129,.20)}
+  .frise__point.is-current{--c:#6366f1;--bg:#eef2ff;--glow:rgba(99,102,241,.20)}
+  .frise__point:active{transform:scale(.97)}
+  .frise__point.is-selected{border-color:var(--c);box-shadow:0 6px 16px var(--glow)}
+  .frise__chip{width:32px;height:32px;flex:none;display:grid;place-items:center;border-radius:9px;background:#fff;color:var(--c);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+  .frise__chip svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .frise__point.is-done .frise__chip svg{stroke-width:3}
+  .frise__idea{position:absolute;z-index:2;top:7px;right:7px;width:20px;height:20px;display:grid;place-items:center;border-radius:6px;background:rgba(255,255,255,.9);border:1px solid rgba(8,9,12,.08);color:#a3a9b5;opacity:.45;cursor:help;transition:opacity .15s}
+  .frise__point:hover .frise__idea{opacity:1}
+  .frise__idea svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .frise__label{margin-top:9px;color:#0f172a;font-family:'Archivo',sans-serif;font-size:10.5px;font-weight:700;line-height:1.25;overflow-wrap:anywhere}
+  .frise__point.is-todo .frise__label{color:#94a3b8}
+  .frise__state{margin-top:5px;color:var(--c);font-family:'Archivo',sans-serif;font-size:8.5px;font-weight:700;letter-spacing:.02em;text-transform:uppercase}
+
+  .panel{margin-top:16px;background:#f6f7fb;color:#0f172a;border:1px solid #eceef2;border-radius:12px;padding:18px 20px;display:none;animation:slidein .32s ease both}
+  @keyframes slidein{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+  .panel h3{font-family:'Archivo',sans-serif;margin:0 0 4px;font-size:18px}
+  .panel p{margin:0;color:#64748b;font-size:13px}
+  .hint{text-align:center;color:#8a8a94;font-size:11px;margin-top:12px}
+</style>
+</head>
+<body>
+<div class="shell">
+  <p class="note">Aperçu autonome de la nouvelle frise (données d'exemple : 3 étapes validées, « Lettre d'intention » en cours). Clique sur une étape — le contour reprend sa couleur et le contenu s'affiche dessous.</p>
+  <div class="card">
+    <div class="frise__head"><button class="frise__toggle" title="Options">•••</button></div>
+    <div class="frise__points" id="pts"></div>
+    <div class="panel" id="panel"></div>
+    <div class="hint" id="hint">Clique sur une étape ↑</div>
+  </div>
+</div>
+<script>
+const bulb='<svg viewBox="0 0 24 24"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg>';
+const check='<path d="M5 12l5 5l10 -10"/>';
+const ICONS={
+ rocket:'<path d="M4 13a8 8 0 0 1 7 7a6 6 0 0 0 3 -5a9 9 0 0 0 6 -8a3 3 0 0 0 -3 -3a9 9 0 0 0 -8 6a6 6 0 0 0 -5 3"/><path d="M7 14a6 6 0 0 0 -3 6a6 6 0 0 0 6 -3"/><path d="M14 9a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/>',
+ users:'<path d="M5 7a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0 -3 -3.85"/>',
+ search:'<path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"/><path d="M21 21l-6 -6"/>',
+ file:'<path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"/><path d="M9 9l1 0"/><path d="M9 13l6 0"/><path d="M9 17l6 0"/>',
+ micro:'<path d="M5 21h14"/><path d="M6 18h2"/><path d="M7 18v3"/><path d="M9 11l3 3l6 -6l-3 -3l-6 6"/><path d="M10.5 12.5l-1.5 1.5"/><path d="M17 3l3 3"/><path d="M12 21a6 6 0 0 0 3.715 -10.712"/>',
+ msg:'<path d="M21 14l-3 -3h-7a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1h9a1 1 0 0 1 1 1v10"/><path d="M14 15v2a1 1 0 0 1 -1 1h-7l-3 3v-10a1 1 0 0 1 1 -1h2"/>',
+ sign:'<path d="M3 19c3.333 -2 5 -4 5 -6c0 -3 -1 -3 -2 -3s-2.032 1.085 -2 3c.034 2.048 1.658 2.877 2.5 4c1.5 2 2.5 2.5 3.5 1c.667 -1 1.167 -1.833 1.5 -2.5c1 2.333 2.333 3.5 4 3.5h2.5"/><path d="M20 17v-12c0 -1.121 -.879 -2 -2 -2s-2 .879 -2 2v12l2 2l2 -2"/><path d="M16 7h4"/>',
+ checklist:'<path d="M9.615 20h-2.615a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8"/><path d="M14 19l2 2l4 -4"/><path d="M9 8h4"/><path d="M9 12h2"/>',
+ bank:'<path d="M3 21l18 0"/><path d="M3 10l18 0"/><path d="M5 6l7 -3l7 3"/><path d="M4 10l0 11"/><path d="M20 10l0 11"/><path d="M8 14l0 3"/><path d="M12 14l0 3"/><path d="M16 14l0 3"/>'
+};
+const PH=[["Ma levée","rocket","done"],["Investisseurs","users","done"],["Due diligence préliminaire","search","done"],["Lettre d'intention","file","current"],["Due diligence poussée","micro","todo"],["Négociation","msg","todo"],["Closing","sign","todo"],["Post-closing","checklist","todo"],["Gouvernance","bank","todo"]];
+const word={done:"Validé",current:"En cours",todo:"À faire"};
+const pts=document.getElementById('pts'),panel=document.getElementById('panel'),hint=document.getElementById('hint');
+PH.forEach(([l,ico,st],i)=>{const b=document.createElement('button');b.type='button';b.className='frise__point is-'+st;
+ const inner=st==='done'?check:ICONS[ico];
+ b.innerHTML='<span class="frise__chip"><svg viewBox="0 0 24 24">'+inner+'</svg></span><span class="frise__idea" title="Comprendre cette étape">'+bulb+'</span><span class="frise__label">'+l+'</span><span class="frise__state">'+word[st]+'</span>';
+ b.addEventListener('click',()=>{document.querySelectorAll('.frise__point').forEach(x=>x.classList.remove('is-selected'));b.classList.add('is-selected');
+   hint.style.display='none';panel.style.display='block';panel.style.animation='none';panel.offsetWidth;panel.style.animation='';
+   panel.innerHTML='<h3>'+l+'</h3><p>Le contenu de cette étape (documents attendus, etc.) s\'affiche ici.</p>';});
+ pts.appendChild(b);});
+</script>
+</body>
+</html>

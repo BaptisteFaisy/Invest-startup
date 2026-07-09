@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>liquid + — Éditeur de documents juridiques pour fondateurs</title>
+  <meta name="description" content="Rédigez, complétez et négociez vos term sheets, BSA-AIR et statuts avec un éditeur IA qui analyse chaque clause en temps réel." />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Libre Franklin', system-ui, sans-serif; background: #08090c; color: #fff; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+    a { text-decoration: none; }
+
+    /* NAV */
+    .nav { position: sticky; top: 0; z-index: 50; background: rgba(8,9,12,0.92); backdrop-filter: blur(14px); border-bottom: 1px solid rgba(255,255,255,0.06); padding: 0 40px; height: 60px; display: flex; align-items: center; justify-content: space-between; }
+    .brand { font-weight: 800; font-size: 1.4rem; letter-spacing: -0.02em; color: #fff; display: inline-flex; align-items: center; gap: 8px; }
+    .brand span { color: #3b82f6; }
+    .brand .brand__mark { width: 18px; height: 24px; color: #fff; flex: none; }
+    .brand .brand__mark svg { display: block; width: 100%; height: 100%; }
+    .nav__links { display: flex; gap: 28px; font-size: 14px; font-weight: 500; }
+    .nav__links a { color: rgba(255,255,255,0.42); transition: color .15s; }
+    .nav__links a:hover { color: #fff; }
+    .nav__cta { display: flex; gap: 10px; align-items: center; }
+    .btn-ghost, .btn-solid { font-family: 'Archivo', sans-serif; font-size: 13px; border-radius: 9px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; min-height: 38px; min-width: 108px; padding: 9px 18px; border: 1px solid rgba(255,255,255,0.14); transition: color .15s, border-color .15s, opacity .15s; }
+    .btn-ghost { font-weight: 600; color: rgba(255,255,255,0.55); background: transparent; }
+    .btn-ghost:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
+    .btn-solid { font-weight: 700; color: #08090c; background: #fff; border-color: transparent; }
+    .btn-solid:hover { opacity: 0.88; }
+
+    /* HERO */
+    .hero { padding: 80px 40px 0; text-align: center; }
+    .hero__badge { display: inline-flex; align-items: center; gap: 8px; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.38); border: 1px solid rgba(255,255,255,0.1); padding: 6px 14px; border-radius: 999px; margin-bottom: 32px; }
+    .hero__dot { width: 6px; height: 6px; border-radius: 50%; background: #3b82f6; flex: none; }
+    .hero h1 { font-size: clamp(2.2rem, 5vw, 3.8rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1.1; max-width: 800px; margin: 0 auto 22px; }
+    .hero h1 em { font-style: normal; color: #3b82f6; }
+    .hero__sub { font-size: 17px; color: rgba(255,255,255,0.44); max-width: 520px; margin: 0 auto 40px; line-height: 1.75; }
+    .hero__actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 70px; }
+    .btn-lg { font-family: 'Archivo', sans-serif; font-size: 14.5px; font-weight: 700; border-radius: 12px; padding: 14px 30px; cursor: pointer; transition: opacity .15s; display: inline-flex; align-items: center; justify-content: center; min-height: 50px; min-width: 200px; }
+    .btn-lg--white { color: #08090c; background: #fff; border: none; }
+    .btn-lg--white:hover { opacity: 0.88; }
+    .btn-lg--outline { color: rgba(255,255,255,0.6); background: transparent; border: 1px solid rgba(255,255,255,0.18); }
+    .btn-lg--outline:hover { color: #fff; border-color: rgba(255,255,255,0.5); }
+
+    /* EDITOR PREVIEW MOCKUP */
+    .preview-wrap { position: relative; max-width: 1100px; margin: 0 auto; }
+    .preview-wrap::before { content: ''; position: absolute; top: -60px; left: 50%; transform: translateX(-50%); width: 800px; height: 400px; background: radial-gradient(ellipse at center, rgba(59,130,246,0.12) 0%, transparent 70%); pointer-events: none; }
+    .preview { background: #111; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px 16px 0 0; overflow: hidden; box-shadow: 0 40px 80px rgba(0,0,0,0.7); }
+    .preview--video > :not(.demo-video) { display: none; }
+    .demo-video { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: #0b0d12; }
+
+    /* Fake topbar */
+    .preview-top { background: #0a0a0a; border-bottom: 1px solid #222; height: 44px; display: flex; align-items: center; padding: 0 16px; gap: 12px; }
+    .preview-top__brand { font-weight: 800; font-size: 13px; color: #fff; letter-spacing: -0.01em; display: inline-flex; align-items: center; gap: 6px; }
+    .preview-top__brand span { color: #3b82f6; }
+    .preview-top__mark { width: 13px; height: 18px; color: #fff; flex: none; }
+    .preview-top__mark svg { display: block; width: 100%; height: 100%; }
+    .preview-top__doc { font-size: 11px; color: rgba(255,255,255,0.35); padding-left: 12px; border-left: 1px solid #333; }
+    .preview-top__btns { margin-left: auto; display: flex; gap: 6px; }
+    .preview-top__btn { font-size: 10px; padding: 4px 10px; border-radius: 6px; border: 1px solid #444; color: rgba(255,255,255,0.6); background: transparent; }
+    .preview-top__btn--blue { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+
+    /* Fake ribbon */
+    .preview-ribbon { background: #1a1a1a; border-bottom: 1px solid #2a2a2a; height: 36px; display: flex; align-items: center; padding: 0 12px; gap: 10px; }
+    .preview-ribbon__item { width: 28px; height: 20px; background: rgba(255,255,255,0.07); border-radius: 4px; }
+    .preview-ribbon__sep { width: 1px; height: 16px; background: #333; margin: 0 4px; }
+    .preview-ribbon__sel { width: 90px; height: 20px; background: rgba(255,255,255,0.05); border-radius: 4px; border: 1px solid #333; }
+
+    /* Fake workspace */
+    .preview-ws { display: grid; grid-template-columns: 220px 1fr 260px; height: 400px; }
+
+    /* Left panel */
+    .preview-lib { background: #141414; border-right: 1px solid #222; display: flex; flex-direction: column; }
+    .preview-tabs { display: flex; border-bottom: 1px solid #222; }
+    .preview-tab { flex: 1; font-size: 9px; font-family: 'Archivo', sans-serif; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: rgba(255,255,255,0.25); padding: 9px 4px; text-align: center; }
+    .preview-tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; }
+    .preview-lib__head { padding: 12px 14px 8px; border-bottom: 1px solid #1e1e1e; }
+    .preview-lib__eye { font-size: 8px; font-family: 'Archivo', sans-serif; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.2); }
+    .preview-lib__title { font-size: 13px; font-weight: 700; color: #fff; margin-top: 3px; letter-spacing: -0.01em; }
+    .preview-lib__sub { font-size: 10px; color: rgba(255,255,255,0.3); margin-top: 2px; }
+    .preview-lib__list { flex: 1; padding: 10px; display: flex; flex-direction: column; gap: 7px; overflow: hidden; }
+    .preview-clause { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 9px 10px; }
+    .preview-clause__g { font-size: 8px; font-family: 'Archivo', sans-serif; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: rgba(255,255,255,0.2); margin-bottom: 4px; }
+    .preview-clause__l { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.8); margin-bottom: 6px; }
+    .preview-clause__btn { font-size: 9px; font-weight: 600; font-family: 'Archivo', sans-serif; color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.1); border: none; border-radius: 4px; padding: 4px 8px; width: 100%; }
+    .preview-sep { font-size: 8px; font-family: 'Archivo', sans-serif; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.15); padding: 6px 0 4px; border-bottom: 1px solid #222; margin-bottom: 4px; }
+
+    /* Center: editor */
+    .preview-canvas { background: #e8e6e0; display: flex; align-items: flex-start; justify-content: center; padding: 20px; overflow: hidden; }
+    .preview-page { background: #fff; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); width: 100%; max-width: 380px; padding: 24px 28px; }
+    .preview-page__title { font-size: 14px; font-weight: 800; color: #08090c; margin-bottom: 16px; letter-spacing: -0.02em; }
+    .preview-row { display: grid; grid-template-columns: 90px 1fr; gap: 10px; margin-bottom: 12px; align-items: start; }
+    .preview-row__lbl { font-size: 10px; font-weight: 700; color: #08090c; line-height: 1.5; }
+    .preview-row__val { font-size: 10px; color: #333; line-height: 1.5; }
+    .preview-row__val .ph { background: #fef3c7; color: #92400e; border-radius: 2px; padding: 0 3px; font-size: 9px; }
+    .preview-row.active { background: rgba(59,130,246,0.06); border-radius: 4px; padding: 4px; margin: -4px; }
+    .preview-divider { height: 1px; background: #f0eee9; margin: 10px 0; }
+    .preview-group { font-size: 9px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(8,9,12,0.3); margin-bottom: 10px; }
+
+    /* Right panel */
+    .preview-panel { background: #141414; border-left: 1px solid #222; display: flex; flex-direction: column; padding: 14px; }
+    .preview-panel__eye { font-size: 8px; font-family: 'Archivo', sans-serif; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.2); margin-bottom: 4px; }
+    .preview-panel__title { font-size: 14px; font-weight: 800; color: #fff; letter-spacing: -0.01em; margin-bottom: 10px; }
+    .preview-callout { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-left: 3px solid #3b82f6; border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+    .preview-callout__h { font-size: 9px; font-family: 'Archivo', sans-serif; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 5px; }
+    .preview-callout__t { font-size: 10px; color: rgba(255,255,255,0.65); line-height: 1.5; }
+    .preview-callout--warn { border-left-color: #dc2626; }
+    .preview-callout--ok { border-left-color: #16a34a; }
+    .preview-chat { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 8px 10px; margin-top: auto; }
+    .preview-chat__input { font-size: 10px; color: rgba(255,255,255,0.3); }
+
+    /* FEATURES */
+    .section { padding: 88px 40px; }
+    .section__inner { max-width: 1080px; margin: 0 auto; }
+    .eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.28); display: block; text-align: center; margin-bottom: 14px; }
+    .section__title { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 800; letter-spacing: -0.035em; text-align: center; margin-bottom: 12px; }
+    .how .section__title { font-size: clamp(2.4rem, 5vw, 4.6rem); }
+    .section__sub { font-size: 16px; color: rgba(255,255,255,0.4); text-align: center; max-width: 500px; margin: 0 auto 56px; line-height: 1.7; }
+
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; border: 1px solid rgba(255,255,255,0.07); border-radius: 20px; overflow: hidden; }
+    .feat { padding: 32px 28px; background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.06); transition: background .2s; }
+    .feat:hover { background: rgba(255,255,255,0.05); }
+    .feat__icon { font-size: 24px; margin-bottom: 16px; }
+    .feat__title { font-size: 1rem; font-weight: 700; margin-bottom: 9px; letter-spacing: -0.01em; }
+    .feat__desc { font-size: 13.5px; color: rgba(255,255,255,0.42); line-height: 1.68; }
+    .feat__tag { display: inline-block; margin-top: 12px; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #3b82f6; background: rgba(59,130,246,0.1); padding: 3px 9px; border-radius: 99px; }
+
+    /* HOW */
+    .how { border-top: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .how .section__inner { max-width: 680px; }
+    .steps { margin-top: 48px; }
+    .step { display: flex; gap: 24px; padding: 28px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .step:last-child { border-bottom: none; }
+    .step__num { font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 1rem; color: rgba(255,255,255,0.12); flex: none; width: 32px; padding-top: 2px; }
+    .step h3 { font-size: 1rem; font-weight: 700; margin-bottom: 7px; }
+    .step p { font-size: 14px; color: rgba(255,255,255,0.42); line-height: 1.7; }
+    .step-shot { margin-top: 16px; overflow: hidden; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: #101216; box-shadow: 0 18px 45px rgba(0,0,0,0.28); }
+    .step-shot__bar { height: 30px; display: flex; align-items: center; gap: 6px; padding: 0 10px; background: #171a20; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .step-shot__dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.18); }
+    .step-shot__title { margin-left: 7px; font-family: 'Archivo', sans-serif; font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.38); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .step-shot__body { min-height: 176px; padding: 14px; display: grid; gap: 10px; background: linear-gradient(180deg, #111318 0%, #0c0d11 100%); }
+    .shot-tabs { display: flex; gap: 7px; flex-wrap: wrap; }
+    .shot-tab { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.45); border: 1px solid rgba(255,255,255,0.12); border-radius: 999px; padding: 6px 10px; background: rgba(255,255,255,0.04); }
+    .shot-tab.active { color: #fff; border-color: #3b82f6; background: rgba(59,130,246,0.95); }
+    .shot-doc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .shot-doc { min-height: 86px; padding: 10px; border-radius: 9px; background: #f3f0e8; color: #1f2937; box-shadow: inset 0 -18px 0 rgba(255,255,255,0.42); }
+    .shot-doc b { display: block; font-family: 'Archivo', sans-serif; font-size: 10px; margin-bottom: 8px; }
+    .shot-line { height: 5px; border-radius: 99px; background: rgba(31,41,55,0.18); margin-top: 5px; }
+    .shot-line.short { width: 62%; }
+    .shot-status { display: grid; gap: 7px; }
+    .shot-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 34px; padding: 8px 10px; border-radius: 9px; background: rgba(255,255,255,0.055); border: 1px solid rgba(255,255,255,0.07); font-size: 12px; color: rgba(255,255,255,0.72); }
+    .shot-badge { font-family: 'Archivo', sans-serif; font-size: 9px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: #4ade80; background: rgba(22,163,74,0.16); border: 1px solid rgba(74,222,128,0.22); border-radius: 999px; padding: 4px 8px; white-space: nowrap; }
+    .shot-badge.blue { color: #93c5fd; background: rgba(59,130,246,0.17); border-color: rgba(147,197,253,0.24); }
+    .shot-editor { display: grid; grid-template-columns: 1fr 178px; gap: 10px; }
+    .shot-paper { min-height: 142px; border-radius: 8px; background: #f7f5f0; color: #1f2937; padding: 13px; }
+    .shot-paper h4 { font-size: 12px; margin-bottom: 9px; color: #111827; }
+    .shot-clause { padding: 8px; border-radius: 7px; background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.18); }
+    .shot-panel { border-radius: 8px; background: rgba(255,255,255,0.055); border: 1px solid rgba(255,255,255,0.08); padding: 10px; }
+    .shot-panel h4 { font-size: 11px; margin-bottom: 8px; color: #fff; }
+    .shot-callout { font-size: 10.5px; line-height: 1.45; color: rgba(255,255,255,0.68); border-left: 3px solid #3b82f6; padding: 6px 8px; background: rgba(255,255,255,0.05); border-radius: 6px; margin-top: 7px; }
+    .shot-room { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .shot-folder { min-height: 56px; border-radius: 9px; background: rgba(255,255,255,0.055); border: 1px solid rgba(255,255,255,0.08); padding: 10px; color: rgba(255,255,255,0.7); font-size: 12px; }
+    .shot-folder::before { content: ''; display: block; width: 34px; height: 9px; margin-bottom: 9px; border-radius: 4px 4px 2px 2px; background: rgba(59,130,246,0.75); }
+    .shot-pipeline { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; align-items: stretch; }
+    .shot-card { border-radius: 9px; background: rgba(255,255,255,0.055); border: 1px solid rgba(255,255,255,0.08); padding: 10px; min-height: 118px; }
+    .shot-card b { display: block; font-size: 11px; margin-bottom: 8px; color: #fff; }
+    .shot-meter { height: 6px; border-radius: 99px; background: rgba(255,255,255,0.1); overflow: hidden; margin-top: 8px; }
+    .shot-meter span { display: block; height: 100%; border-radius: inherit; background: #3b82f6; }
+    .shot-signature { display: grid; grid-template-columns: 1fr 150px; gap: 10px; align-items: stretch; }
+    .shot-stamp { display: grid; place-items: center; border-radius: 9px; border: 1px solid rgba(74,222,128,0.28); background: rgba(22,163,74,0.12); color: #4ade80; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; padding: 14px; }
+
+    /* PANELS HIGHLIGHT */
+    .panels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 0; }
+    .panel-card { border-radius: 18px; padding: 28px 24px; overflow: hidden; position: relative; }
+    .panel-card--lib  { background: linear-gradient(135deg, #1a1f2e 0%, #111827 100%); border: 1px solid rgba(59,130,246,0.2); }
+    .panel-card--fill { background: linear-gradient(135deg, #1e1414 0%, #18110f 100%); border: 1px solid rgba(220,38,38,0.2); }
+    .panel-card--adv  { background: linear-gradient(135deg, #131e13 0%, #0f1a0f 100%); border: 1px solid rgba(22,163,74,0.2); }
+    .panel-card__tab { display: inline-block; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 99px; margin-bottom: 16px; }
+    .panel-card--lib  .panel-card__tab { background: rgba(59,130,246,0.15); color: #3b82f6; }
+    .panel-card--fill .panel-card__tab { background: rgba(220,38,38,0.12); color: #f87171; }
+    .panel-card--adv  .panel-card__tab { background: rgba(22,163,74,0.12); color: #4ade80; }
+    .panel-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.01em; }
+    .panel-card p { font-size: 13.5px; color: rgba(255,255,255,0.42); line-height: 1.65; }
+    .panel-card__items { margin-top: 18px; display: flex; flex-direction: column; gap: 7px; }
+    .panel-item { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.05); border-radius: 8px; padding: 9px 12px; }
+    .panel-item__dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+    .panel-card--lib  .panel-item__dot { background: #3b82f6; }
+    .panel-card--fill .panel-item__dot { background: #f87171; }
+    .panel-card--adv  .panel-item__dot { background: #4ade80; }
+    .panel-item__text { font-size: 11.5px; color: rgba(255,255,255,0.65); flex: 1; }
+    .panel-item__btn { font-size: 9px; font-family: 'Archivo', sans-serif; font-weight: 700; color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.08); border-radius: 4px; padding: 3px 8px; white-space: nowrap; }
+
+    /* PRICING */
+    .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .plan { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 30px 26px; }
+    .plan--featured { background: #fff; border-color: transparent; box-shadow: 0 12px 40px rgba(0,0,0,0.45); }
+    .plan__badge { display: inline-block; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(59,130,246,0.15); color: #3b82f6; padding: 3px 10px; border-radius: 99px; margin-bottom: 14px; }
+    .plan h3 { font-size: 1rem; font-weight: 700; color: rgba(255,255,255,0.7); margin-bottom: 6px; }
+    .plan--featured h3 { color: #08090c; }
+    .plan__price { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.045em; color: #fff; margin: 12px 0 6px; }
+    .plan--featured .plan__price { color: #08090c; }
+    .plan__price span { font-size: 1rem; font-weight: 500; color: rgba(255,255,255,0.3); letter-spacing: 0; }
+    .plan--featured .plan__price span { color: rgba(8,9,12,0.4); }
+    .plan__desc { font-size: 13px; color: rgba(255,255,255,0.35); margin-bottom: 20px; line-height: 1.55; }
+    .plan--featured .plan__desc { color: rgba(8,9,12,0.5); }
+    .plan ul { list-style: none; margin: 0 0 26px; display: flex; flex-direction: column; gap: 8px; }
+    .plan li { font-size: 13px; color: rgba(255,255,255,0.55); padding-left: 16px; position: relative; line-height: 1.45; }
+    .plan li::before { content: '·'; position: absolute; left: 4px; color: rgba(255,255,255,0.2); }
+    .plan li.muted { color: rgba(255,255,255,0.18); }
+    .plan--featured li { color: rgba(8,9,12,0.7); }
+    .plan--featured li::before { color: rgba(8,9,12,0.25); }
+    .plan--featured li.muted { color: rgba(8,9,12,0.22); }
+    .btn-plan { display: flex; align-items: center; justify-content: center; min-height: 48px; text-align: center; font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; padding: 12px 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.55); background: transparent; transition: border-color .15s, color .15s; }
+    .btn-plan:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
+    .plan--featured .btn-plan { background: #08090c; color: #fff; border-color: transparent; }
+    .plan--featured .btn-plan:hover { background: #1a1d24; }
+
+    /* CTA */
+    .cta { padding: 90px 40px; text-align: center; border-top: 1px solid rgba(255,255,255,0.06); }
+    .cta p { font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 800; line-height: 1.15; color: #fff; max-width: 860px; margin: 0 auto 36px; }
+
+    /* FOOTER */
+    .footer { border-top: 1px solid rgba(255,255,255,0.06); padding: 52px 40px 0; }
+    .footer__inner { max-width: 1080px; margin: 0 auto; display: flex; gap: 60px; flex-wrap: wrap; padding-bottom: 44px; }
+    .footer__brand { flex: 2; }
+    .footer__brand p { font-size: 13px; color: rgba(255,255,255,0.28); margin-top: 10px; max-width: 220px; line-height: 1.65; }
+    .footer__col { display: flex; flex-direction: column; gap: 9px; }
+    .footer__col h4 { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.24); margin-bottom: 5px; }
+    .footer__col a { font-size: 14px; color: rgba(255,255,255,0.38); transition: color .15s; }
+    .footer__col a:hover { color: #fff; }
+    .footer__bottom { max-width: 1080px; margin: 0 auto; border-top: 1px solid rgba(255,255,255,0.06); padding: 20px 0 30px; font-size: 12px; color: rgba(255,255,255,0.18); line-height: 1.65; }
+
+    @media (max-width: 860px) {
+      .nav { padding: 0 20px; }
+      .nav__links { display: none; }
+      .hero { padding: 64px 20px 0; }
+      .preview-ws { grid-template-columns: 1fr; }
+      .preview-lib, .preview-panel { display: none; }
+      .section { padding: 64px 20px; }
+      .step { gap: 14px; }
+      .shot-doc-grid, .shot-editor, .shot-pipeline, .shot-signature { grid-template-columns: 1fr; }
+      .step-shot__body { min-height: auto; }
+      .features, .plans, .panels { grid-template-columns: 1fr; }
+      .footer { padding: 40px 20px 0; }
+      .footer__inner { gap: 32px; }
+      .cta { padding: 64px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <a href="#" class="brand"><span class="brand__mark" aria-hidden="true"><svg viewBox="-10 -12 60 76" focusable="false"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" fill="#08090c" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/></svg></span>liquid <span>+</span></a>
+    <div class="nav__links">
+      <a href="#how">Workflow</a>
+    </div>
+    <div class="nav__cta">
+      <a href="login.html" class="btn-ghost" id="nav-login">Connexion</a>
+      <a href="register.html" class="btn-solid" id="nav-cta-primary">Essai gratuit</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero__badge"><span class="hero__dot"></span>Votre agent IA avocat</div>
+    <h1>Le volet juridique de votre levée de fonds<br><em>en toute confiance.</em></h1>
+    <div class="hero__actions">
+      <a href="dossiers.html" class="btn-lg btn-lg--white">Préparer ma levée de fonds</a>
+      <a href="#how" class="btn-lg btn-lg--outline">Voir le workflow</a>
+    </div>
+
+    <!-- EDITOR PREVIEW MOCKUP -->
+    <div class="preview-wrap">
+      <div class="preview preview--video">
+        <video class="demo-video" autoplay muted loop playsinline preload="metadata" poster="ressources/demo-saas-poster.png" aria-label="Vidéo de démonstration de l'interface liquid +">
+          <source src="ressources/demo-saas.webm" type="video/webm" />
+        </video>
+
+        <!-- Topbar -->
+        <div class="preview-top">
+          <div class="preview-top__brand"><span class="preview-top__mark" aria-hidden="true"><svg viewBox="-10 -12 60 76" focusable="false"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" fill="#08090c" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/></svg></span>liquid <span>+</span></div>
+          <div class="preview-top__doc">Term Sheet — Acme SAS · Série A</div>
+          <div class="preview-top__btns">
+            <div class="preview-top__btn">+ Ajouter</div>
+            <div class="preview-top__btn preview-top__btn--blue">Analyser</div>
+            <div class="preview-top__btn">Exporter PDF</div>
+          </div>
+        </div>
+
+        <!-- Ribbon -->
+        <div class="preview-ribbon">
+          <div class="preview-ribbon__item"></div>
+          <div class="preview-ribbon__item"></div>
+          <div class="preview-ribbon__sep"></div>
+          <div class="preview-ribbon__sel"></div>
+          <div class="preview-ribbon__sel" style="width:110px"></div>
+          <div class="preview-ribbon__sep"></div>
+          <div class="preview-ribbon__item"></div>
+          <div class="preview-ribbon__item"></div>
+          <div class="preview-ribbon__item"></div>
+        </div>
+
+        <!-- Workspace -->
+        <div class="preview-ws">
+
+          <!-- Left: Bibliothèque -->
+          <div class="preview-lib">
+            <div class="preview-tabs">
+              <div class="preview-tab active">Bibliothèque</div>
+              <div class="preview-tab">À remplir</div>
+              <div class="preview-tab">Priorités</div>
+            </div>
+            <div class="preview-lib__head">
+              <div class="preview-lib__eye">Bibliothèque</div>
+              <div class="preview-lib__title">Clauses disponibles</div>
+              <div class="preview-lib__sub">4 clauses au contrat</div>
+            </div>
+            <div class="preview-lib__list">
+              <div class="preview-sep">Dans ce document — 4</div>
+              <div class="preview-clause">
+                <div class="preview-clause__g">Droits financiers</div>
+                <div class="preview-clause__l">Liquidation préférentielle</div>
+                <div class="preview-clause__btn">Voir dans le document</div>
+              </div>
+              <div class="preview-clause">
+                <div class="preview-clause__g">Gouvernance</div>
+                <div class="preview-clause__l">Droit de vote renforcé</div>
+                <div class="preview-clause__btn">Voir dans le document</div>
+              </div>
+              <div class="preview-sep">Clauses disponibles — 12</div>
+              <div class="preview-clause">
+                <div class="preview-clause__g">Transferts</div>
+                <div class="preview-clause__l">Anti-dilution</div>
+                <div class="preview-clause__btn">+ Ajouter au contrat</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Center: document -->
+          <div class="preview-canvas">
+            <div class="preview-page">
+              <div class="preview-page__title">Term Sheet — Série A</div>
+              <div class="preview-group">Parties</div>
+              <div class="preview-row active">
+                <div class="preview-row__lbl">Société</div>
+                <div class="preview-row__val"><span class="ph">[NOM SOCIÉTÉ]</span></div>
+              </div>
+              <div class="preview-row">
+                <div class="preview-row__lbl">Investisseur</div>
+                <div class="preview-row__val">Sequoia Capital France</div>
+              </div>
+              <div class="preview-divider"></div>
+              <div class="preview-group">L'opération</div>
+              <div class="preview-row">
+                <div class="preview-row__lbl">Montant</div>
+                <div class="preview-row__val"><span class="ph">[MONTANT €]</span></div>
+              </div>
+              <div class="preview-row">
+                <div class="preview-row__lbl">Valorisation</div>
+                <div class="preview-row__val">8 000 000 € pre-money</div>
+              </div>
+              <div class="preview-divider"></div>
+              <div class="preview-group">Droits financiers</div>
+              <div class="preview-row">
+                <div class="preview-row__lbl">Liquidation</div>
+                <div class="preview-row__val">Préférentielle 1× non participante, rang senior</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Décrypteur -->
+          <div class="preview-panel">
+            <div class="preview-panel__eye">Décrypteur IA</div>
+            <div class="preview-panel__title">Liquidation préférentielle</div>
+            <div class="preview-callout">
+              <div class="preview-callout__h">En clair</div>
+              <div class="preview-callout__t">En cas de cession, l'investisseur récupère son capital en premier, avant les fondateurs.</div>
+            </div>
+            <div class="preview-callout preview-callout--warn">
+              <div class="preview-callout__h">Point de vigilance</div>
+              <div class="preview-callout__t">Clause standard à 1×. Refusez tout multiple > 1 ou clause participante.</div>
+            </div>
+            <div class="preview-callout preview-callout--ok">
+              <div class="preview-callout__h">Conseil négociation</div>
+              <div class="preview-callout__t">Le 1× non participant est le standard marché en 2026. Tenez cette position.</div>
+            </div>
+            <div class="preview-chat">
+              <div class="preview-chat__input">Ex : passe la liquidation en 0,5×…</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section how" id="how">
+    <div class="section__inner">
+      <h2 class="section__title">LES ETAPES</h2>
+      <div class="steps">
+        <div class="step">
+          <span class="step__num">01</span>
+          <div>
+            <h3>Choix du type de levée de fonds.</h3>
+            <div class="step-shot" aria-label="Screenshot de choix du parcours">
+              <div class="step-shot__bar"><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__title">Parcours de levée</span></div>
+              <div class="step-shot__body">
+                <div class="shot-tabs">
+                  <span class="shot-tab active">Levée classique</span>
+                  <span class="shot-tab">BSA-AIR</span>
+                  <span class="shot-tab">Bridge</span>
+                </div>
+                <div class="shot-status">
+                  <div class="shot-row">Objectif <span class="shot-badge blue">Série A</span></div>
+                  <div class="shot-row">Montant cible <span>2 500 000 EUR</span></div>
+                  <div class="shot-row">Documents à préparer <span>14</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step__num">02</span>
+          <div>
+            <h3>Elaboration sur-mesure des documents juridiques.</h3>
+            <div class="step-shot" aria-label="Screenshot de génération des documents juridiques">
+              <div class="step-shot__bar"><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__title">Documents générés</span></div>
+              <div class="step-shot__body">
+                <div class="shot-doc-grid">
+                  <div class="shot-doc"><b>Term sheet</b><div class="shot-line"></div><div class="shot-line"></div><div class="shot-line short"></div></div>
+                  <div class="shot-doc"><b>Pacte d'associés</b><div class="shot-line"></div><div class="shot-line short"></div><div class="shot-line"></div></div>
+                  <div class="shot-doc"><b>Statuts</b><div class="shot-line short"></div><div class="shot-line"></div><div class="shot-line"></div></div>
+                </div>
+                <div class="shot-row">Champs personnalisés <span class="shot-badge blue">32 complétés</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step__num">03</span>
+          <div>
+            <h3>Validation par un avocat.</h3>
+            <div class="step-shot" aria-label="Screenshot de validation avocat">
+              <div class="step-shot__bar"><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__title">Relecture avocat</span></div>
+              <div class="step-shot__body">
+                <div class="shot-status">
+                  <div class="shot-row">Term sheet <span class="shot-badge">Validée</span></div>
+                  <div class="shot-row">Pacte d'associés <span class="shot-badge">Validé</span></div>
+                  <div class="shot-row">Statuts mis à jour <span class="shot-badge">Validés</span></div>
+                  <div class="shot-row">Commentaires ouverts <span>0</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step__num">04</span>
+          <div>
+            <h3>L'IA vous explique chaque clause.</h3>
+            <div class="step-shot" aria-label="Screenshot d'explication IA de clause">
+              <div class="step-shot__bar"><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__title">Décrypteur IA</span></div>
+              <div class="step-shot__body shot-editor">
+                <div class="shot-paper">
+                  <h4>Clause de liquidation préférentielle</h4>
+                  <div class="shot-clause"><div class="shot-line"></div><div class="shot-line"></div><div class="shot-line short"></div></div>
+                </div>
+                <div class="shot-panel">
+                  <h4>Explication</h4>
+                  <div class="shot-callout">En clair : l'investisseur récupère son capital avant le partage du solde.</div>
+                  <div class="shot-callout">Point de vigilance : refuser un multiple supérieur à 1x.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step__num">05</span>
+          <div>
+            <h3>Dataroom prête pour le roadshow.</h3>
+            <div class="step-shot" aria-label="Screenshot de dataroom">
+              <div class="step-shot__bar"><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__title">Data room investisseur</span></div>
+              <div class="step-shot__body">
+                <div class="shot-room">
+                  <div class="shot-folder">01 - Corporate</div>
+                  <div class="shot-folder">02 - Cap table</div>
+                  <div class="shot-folder">03 - Contrats clés</div>
+                  <div class="shot-folder">04 - Financials</div>
+                </div>
+                <div class="shot-row">Accès investisseur <span class="shot-badge blue">Prêt à partager</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step__num">06</span>
+          <div>
+            <h3>Suivi automatisé et intelligent des négociations.</h3>
+            <div class="step-shot" aria-label="Screenshot de suivi des négociations">
+              <div class="step-shot__bar"><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__title">Pipeline de négociation</span></div>
+              <div class="step-shot__body shot-pipeline">
+                <div class="shot-card"><b>Alpha Ventures</b><div class="shot-line"></div><div class="shot-meter"><span style="width:72%"></span></div><div class="shot-callout">Négocie la valo</div></div>
+                <div class="shot-card"><b>J. Martin</b><div class="shot-line short"></div><div class="shot-meter"><span style="width:91%"></span></div><div class="shot-callout">Prêt à signer</div></div>
+                <div class="shot-card"><b>Northstar VC</b><div class="shot-line"></div><div class="shot-meter"><span style="width:48%"></span></div><div class="shot-callout">Attend la data room</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step__num">07</span>
+          <div>
+            <h3>Validation par un avocat.</h3>
+            <div class="step-shot" aria-label="Screenshot de validation finale avocat">
+              <div class="step-shot__bar"><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__dot"></span><span class="step-shot__title">Version finale</span></div>
+              <div class="step-shot__body shot-signature">
+                <div class="shot-paper">
+                  <h4>Pacte d'associés - version finale</h4>
+                  <div class="shot-line"></div><div class="shot-line"></div><div class="shot-line short"></div>
+                  <div class="shot-row" style="margin-top:12px;color:#1f2937;background:rgba(22,163,74,0.1);border-color:rgba(22,163,74,0.18)">Signature <span>programmée</span></div>
+                </div>
+                <div class="shot-stamp">Validé par avocat<br>Prêt signature</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta">
+    <p>Rejoignez les fondateurs qui pilotent leur levée sans payer des milliers d'euros de frais d avocats.</p>
+    <a href="dossiers.html" class="btn-lg btn-lg--white">Préparer ma levée de fonds</a>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer__inner">
+      <div class="footer__col footer__brand">
+        <a href="#" class="brand"><span class="brand__mark" aria-hidden="true"><svg viewBox="-10 -12 60 76" focusable="false"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" fill="#08090c" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/></svg></span>liquid <span>+</span></a>
+        <p>L'éditeur de documents juridiques pour fondateurs de startup.</p>
+      </div>
+      <div class="footer__col">
+        <h4>Produit</h4>
+        <a href="dossiers.html">Préparer ma levée de fonds</a>
+        <a href="#how">Workflow</a>
+      </div>
+      <div class="footer__col">
+        <h4>Ressources</h4>
+        <a href="#">Glossaire VC</a>
+      </div>
+      <div class="footer__col">
+        <h4>Légal</h4>
+        <a href="/mentions-legales.html">Mentions légales</a>
+        <a href="/confidentialite.html">Confidentialité</a>
+        <a href="/cgu.html">CGU</a>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      © 2026 liquid +. liquid + vous rend autonome sur la lecture et la négociation de vos documents juridiques ; il ne se substitue pas à un conseil juridique personnalisé pour les cas complexes.
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+  <script src="auth.js"></script>
+  <script src="tasks.js?v=2" defer></script>
+  <script>if (typeof refreshNav === 'function') refreshNav();</script>
+</body>
+</html>

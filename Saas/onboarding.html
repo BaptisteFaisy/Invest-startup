@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>liquid + — Type de compte</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <style>
+      :root { --navy:#001839; --dark:#08090c; --blue:#3b82f6; }
+      * { box-sizing: border-box; }
+      body { font-family:'Libre Franklin',system-ui,sans-serif; background:#08090c; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px 16px; margin:0; }
+      .auth-wrap { width:100%; max-width:520px; display:flex; flex-direction:column; align-items:center; gap:32px; }
+      .auth-logo { font-family:'Libre Franklin',sans-serif; font-weight:800; font-size:1.6rem; letter-spacing:-0.02em; color:#fff; text-decoration:none; }
+      .auth-logo span { color:var(--blue); }
+      .auth-card { background:#fff; border-radius:20px; padding:40px 36px; width:100%; box-shadow:0 24px 60px rgba(0,0,0,0.5); }
+      .auth-card h1 { font-family:'Libre Franklin',sans-serif; font-size:1.6rem; font-weight:800; letter-spacing:-0.02em; color:#08090c; margin:0 0 6px; }
+      .auth-lead { font-size:0.92rem; color:#6b6b78; margin:0 0 24px; }
+      .type-list { display:grid; gap:14px; }
+      .type-option { position:relative; display:flex; align-items:flex-start; gap:14px; padding:18px 18px; border:1.5px solid rgba(0,0,0,0.12); border-radius:14px; cursor:pointer; transition:border-color .16s, background .16s, box-shadow .16s; }
+      .type-option:hover { border-color:rgba(0,24,57,0.4); background:#fafbff; }
+      .type-option input { position:absolute; opacity:0; pointer-events:none; }
+      .type-option.selected { border-color:var(--navy); background:#f5f8ff; box-shadow:0 4px 16px rgba(0,24,57,0.08); }
+      .type-check { flex:0 0 22px; width:22px; height:22px; border-radius:6px; border:1.5px solid rgba(0,0,0,0.25); display:flex; align-items:center; justify-content:center; margin-top:2px; transition:background .16s, border-color .16s; }
+      .type-option.selected .type-check { background:var(--navy); border-color:var(--navy); }
+      .type-check svg { opacity:0; transition:opacity .16s; }
+      .type-option.selected .type-check svg { opacity:1; }
+      .type-body { display:grid; gap:3px; }
+      .type-title { font-size:1rem; font-weight:700; color:#08090c; }
+      .type-desc { font-size:0.85rem; color:#6b6b78; line-height:1.35; }
+      .hint { font-size:0.8rem; color:#9a9aa5; margin:14px 0 0; }
+      .auth-submit { background:var(--dark); color:#fff; border-radius:10px; padding:14px 24px; font-size:0.95rem; font-weight:700; border:none; cursor:pointer; width:100%; transition:background .18s; font-family:'Libre Franklin',sans-serif; margin-top:22px; }
+      .auth-submit:hover { background:#1a1d24; }
+      .auth-submit:disabled { opacity:0.5; cursor:not-allowed; }
+      .auth-alert { padding:10px 14px; border-radius:8px; font-size:0.88rem; margin-bottom:16px; }
+      .auth-alert--error { background:rgba(224,88,72,0.1); color:#c0392b; border:1px solid rgba(224,88,72,0.2); }
+    </style>
+  </head>
+  <body>
+    <div class="auth-wrap">
+      <a class="auth-logo" href="index.html">liquid <span>+</span></a>
+
+      <div class="auth-card">
+        <h1>Quel type de compte&nbsp;?</h1>
+        <p class="auth-lead">Sélectionnez un ou plusieurs profils. Vous pourrez le modifier plus tard.</p>
+
+        <div id="auth-error" class="auth-alert auth-alert--error" role="alert" hidden></div>
+
+        <form id="type-form">
+          <div class="type-list">
+            <label class="type-option" data-value="fondateur">
+              <input type="checkbox" name="account_type" value="fondateur" checked />
+              <span class="type-check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="type-body">
+                <span class="type-title">Fondateur</span>
+                <span class="type-desc">Je dirige une startup et je prépare ou gère ma levée de fonds.</span>
+              </span>
+            </label>
+
+            <label class="type-option" data-value="vc">
+              <input type="checkbox" name="account_type" value="vc" />
+              <span class="type-check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="type-body">
+                <span class="type-title">VC</span>
+                <span class="type-desc">Je représente un fonds de capital-risque qui investit dans des startups.</span>
+              </span>
+            </label>
+
+            <label class="type-option" data-value="business_angel">
+              <input type="checkbox" name="account_type" value="business_angel" />
+              <span class="type-check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <span class="type-body">
+                <span class="type-title">Business Angel</span>
+                <span class="type-desc">J'investis à titre personnel dans des startups en amorçage.</span>
+              </span>
+            </label>
+          </div>
+
+          <p class="hint">Vous pouvez cocher plusieurs profils.</p>
+
+          <button class="auth-submit" id="submit-btn" type="submit" disabled>Continuer</button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      const NEXT = 'dossiers.html';
+      const errEl     = document.getElementById('auth-error');
+      const submitBtn = document.getElementById('submit-btn');
+      const form      = document.getElementById('type-form');
+
+      // Garde : il faut être connecté. Si le type est déjà choisi, on passe au SaaS.
+      (async () => {
+        try {
+          const res = await fetch('/api/auth/me', { credentials: 'include' });
+          if (!res.ok) { window.location.replace('login.html'); return; }
+          const data = await res.json();
+          if (data.user && Array.isArray(data.user.account_types) && data.user.account_types.length) {
+            window.location.replace(NEXT);
+          }
+        } catch { /* on laisse l'utilisateur choisir */ }
+      })();
+
+      function refresh() {
+        document.querySelectorAll('.type-option').forEach(opt => {
+          const cb = opt.querySelector('input');
+          opt.classList.toggle('selected', cb.checked);
+        });
+        const any = !!form.querySelector('input[name="account_type"]:checked');
+        submitBtn.disabled = !any;
+      }
+
+      form.querySelectorAll('input[name="account_type"]').forEach(cb => {
+        cb.addEventListener('change', refresh);
+      });
+      refresh();
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errEl.hidden = true;
+        const types = [...form.querySelectorAll('input[name="account_type"]:checked')].map(c => c.value);
+        if (!types.length) { errEl.textContent = 'Sélectionnez au moins un type de compte'; errEl.hidden = false; return; }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Enregistrement…';
+        try {
+          const res  = await fetch('/api/auth/account-type', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            credentials: 'include', body: JSON.stringify({ types }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            errEl.textContent = data.error || 'Une erreur est survenue';
+            errEl.hidden = false;
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Continuer';
+            return;
+          }
+          window.location.href = NEXT;
+        } catch {
+          errEl.textContent = 'Impossible de joindre le serveur';
+          errEl.hidden = false;
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Continuer';
+        }
+      });
+    </script>
+  </body>
+</html>
