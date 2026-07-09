@@ -434,7 +434,7 @@
 
     .frise__track { overflow:visible; }
     .frise__points { display:grid; grid-template-columns:repeat(9, minmax(0, 1fr)); gap:7px; }
-    .frise__point { --c:#f8fafc; --bg:#1f2937; --glow:rgba(17,24,39,0.28); position:relative; box-sizing:border-box; min-width:0; overflow:visible; display:flex; flex-direction:column; align-items:center; text-align:center; background:var(--bg); border:3px solid transparent; border-radius:12px; padding:14px 9px 12px; cursor:pointer; transition:transform .12s ease, box-shadow .14s ease, border-color .14s ease; }
+    .frise__point { --c:#374151; --bg:#f8fafc; --glow:rgba(55,65,81,0.18); position:relative; box-sizing:border-box; min-width:0; overflow:visible; display:flex; flex-direction:column; align-items:center; text-align:center; background:var(--bg); border:3px solid transparent; border-radius:12px; padding:14px 9px 12px; cursor:pointer; transition:transform .12s ease, box-shadow .14s ease, border-color .14s ease; }
     .frise__point.is-done { --c:#10b981; --bg:#f0fdf4; --glow:rgba(16,185,129,0.20); }
     .frise__point.is-current { --c:#6366f1; --bg:#eef2ff; --glow:rgba(99,102,241,0.20); }
     .frise__point:active { transform:scale(.97); }
@@ -447,8 +447,8 @@
     .frise__idea:hover { color:#475569; border-color:rgba(8,9,12,0.2); }
     .frise__idea svg { width:13px; height:13px; display:block; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
     .frise__label { margin-top:9px; color:#0f172a; font-family:'Archivo',sans-serif; font-size:10.5px; font-weight:700; letter-spacing:0; line-height:1.25; overflow-wrap:anywhere; }
-    .frise__point.is-todo .frise__chip { background:rgba(255,255,255,0.13); box-shadow:none; }
-    .frise__point.is-todo .frise__label { color:#f8fafc; }
+    .frise__point.is-todo { border-color:#374151; }
+    .frise__point.is-todo .frise__label { color:#374151; }
     .frise__state { margin-top:5px; color:var(--c); font-family:'Archivo',sans-serif; font-size:8.5px; font-weight:700; letter-spacing:0.02em; text-transform:uppercase; }
 
     .dash-overview { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; margin:14px 0 14px; }
