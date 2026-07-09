@@ -68,6 +68,9 @@
     .btn--danger:hover { background: rgba(220,38,38,0.06); border-color: rgba(220,38,38,0.5); }
     .account-logout-line { width: 100%; margin-top: 4px; padding: 16px 0 0; border: 0; border-top: 1px solid rgba(255,255,255,0.12); background: none; color: #ef4444; cursor: pointer; font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; text-align: left; }
     .account-logout-line:hover { color: #f87171; }
+    .account-delete-button { width: 100%; margin-top: 12px; padding: 13px 16px; border: 1px solid rgba(255,255,255,0.16); border-radius: 10px; background: #000; color: #fff; cursor: pointer; font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; text-align: center; }
+    .account-delete-button:hover { background: #151515; border-color: rgba(255,255,255,0.28); }
+    .account-delete-button:disabled { opacity: 0.58; cursor: not-allowed; }
 
     .setup { margin-top: 22px; border-top: 1px solid rgba(8,9,12,0.08); padding-top: 22px; display: none; }
     .setup.open { display: block; }
@@ -225,6 +228,7 @@
       </div>
 
       <button type="button" class="account-logout-line" id="logout-btn">Déconnexion</button>
+      <button type="button" class="account-delete-button" id="delete-account-btn">Supprimer mon compte</button>
     </main>
   </div>
 
@@ -248,6 +252,33 @@
     });
 
     document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); logout(); });
+    document.getElementById('delete-account-btn').addEventListener('click', async (e) => {
+      e.preventDefault();
+      if (!confirm('Supprimer définitivement votre compte liquid + et toutes vos données SaaS ? Cette action est irréversible.')) return;
+      const btn = document.getElementById('delete-account-btn');
+      btn.disabled = true;
+      btn.textContent = 'Suppression…';
+      try {
+        const res = await fetch('/api/auth/account', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ confirm: 'SUPPRIMER' }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          alert(data.error || 'Impossible de supprimer le compte.');
+          btn.disabled = false;
+          btn.textContent = 'Supprimer mon compte';
+          return;
+        }
+        window.location.href = '/index.html';
+      } catch {
+        alert('Impossible de joindre le serveur.');
+        btn.disabled = false;
+        btn.textContent = 'Supprimer mon compte';
+      }
+    });
 
     // ── Garde d'authentification + pré-remplissage du profil ──────────────────
     requireAuth().then((user) => {

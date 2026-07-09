@@ -186,6 +186,16 @@ async function unsetUserFields(id, fields) {
   fields.forEach(f => { unset[f] = ''; });
   await col('users').updateOne({ id }, { $unset: unset });
 }
+async function deleteUserAccountById(id) {
+  await Promise.all([
+    col('saas_documents').deleteMany({ user_id: id }),
+    col('saas_doc_versions').deleteMany({ user_id: id }),
+    col('saas_folders').deleteMany({ user_id: id }),
+    col('saas_fundraising_profiles').deleteMany({ user_id: id }),
+    col('saas_claude_usage').deleteMany({ user_id: id }),
+  ]);
+  await col('users').deleteOne({ id });
+}
 
 // Startup accounts (portal entreprises)
 async function readStartups()             { return col('startup_accounts').find({}, { projection: { _id: 0 } }).toArray(); }
@@ -512,6 +522,23 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
 
 // ─── POST /api/auth/logout ────────────────────────────────────────────────────
 app.post('/api/auth/logout', (_req, res) => {
+  res.clearCookie('auth_token');
+  res.json({ success: true });
+});
+
+// ─── DELETE /api/auth/account ─────────────────────────────────────────────────
+app.delete('/api/auth/account', requireAuth, async (req, res) => {
+  if (req.body?.confirm !== 'SUPPRIMER')
+    return res.status(400).json({ error: 'Confirmation requise' });
+
+  const user = await col('users').findOne({ id: req.user.id }, { projection: { id: 1 } });
+  if (!user) {
+    res.clearCookie('auth_token');
+    return res.status(404).json({ error: 'Utilisateur introuvable' });
+  }
+
+  totpSetupStore.delete(req.user.id);
+  await deleteUserAccountById(req.user.id);
   res.clearCookie('auth_token');
   res.json({ success: true });
 });
