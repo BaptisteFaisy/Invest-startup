@@ -344,7 +344,7 @@
     .topbar .btn--ghost:hover { border-color: rgba(255,255,255,0.55) !important; }
 
     /* ═══════════ Menus hamburger (gauche & droite) ═══════════ */
-    .hamburger { flex:none; width:38px; height:38px; display:grid; place-items:center; border:1px solid rgba(255,255,255,0.22); border-radius:10px; background:transparent; color:#fff; cursor:pointer; padding:0; transition:border-color .15s, background .15s; }
+    .hamburger { flex:none; position:relative; z-index:62; width:38px; height:38px; display:grid; place-items:center; border:1px solid rgba(255,255,255,0.22); border-radius:10px; background:transparent; color:#fff; cursor:pointer; padding:0; transition:border-color .15s, background .15s; }
     .hamburger:hover { border-color:rgba(255,255,255,0.55); background:rgba(255,255,255,0.06); }
     .hamburger svg { width:18px; height:18px; stroke:currentColor; stroke-width:2; stroke-linecap:round; fill:none; }
     .drawer-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.5); opacity:0; visibility:hidden; transition:opacity .2s, visibility .2s; z-index:60; }
@@ -2288,10 +2288,10 @@
         phases = folders.filter(f => isSystemPhase(f) && (f.track || 'classic') === 'bsa-air');
       }
       const show = (type === 'classic' || type === 'bsa-air') && phases.length > 0;
-      // Levée classique : le menu de gauche n'affiche que les étapes.
+      // Levée classique et BSA-AIR : le menu de gauche n'affiche que les étapes.
       const tools = document.getElementById('nav-tools');
-      if (tools) tools.hidden = type === 'classic' && show;
-      if (sep) sep.hidden = !show || (type === 'classic');
+      if (tools) tools.hidden = show;
+      if (sep) sep.hidden = true;
       if (title) title.hidden = !show;
       navStepsEl.innerHTML = '';
       if (!show) return;
