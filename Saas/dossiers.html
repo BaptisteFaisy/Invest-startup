@@ -332,8 +332,6 @@
     .drawer.is-open { transform:translateX(0); }
     .drawer__head { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:16px 18px; border-bottom:1px solid rgba(255,255,255,0.08); }
     .drawer__title { font-family:'Archivo',sans-serif; font-size:13px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#fff; }
-    .drawer__close { flex:none; width:30px; height:30px; display:grid; place-items:center; border:0; border-radius:8px; background:transparent; color:rgba(255,255,255,0.7); font-size:22px; line-height:1; cursor:pointer; }
-    .drawer__close:hover { background:rgba(255,255,255,0.08); color:#fff; }
     .drawer__body { flex:1; overflow-y:auto; padding:10px; display:flex; flex-direction:column; gap:2px; }
     .drawer__link { display:flex; align-items:center; gap:12px; padding:11px 12px; border-radius:10px; color:rgba(255,255,255,0.86); font-family:'Libre Franklin',sans-serif; font-size:14px; font-weight:500; text-decoration:none; background:transparent; border:0; width:100%; text-align:left; cursor:pointer; transition:background .12s; }
     .drawer__link:hover { background:rgba(255,255,255,0.07); color:#fff; }
@@ -639,7 +637,6 @@
     <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Étapes de la levée">
       <div class="drawer__head">
         <span class="drawer__title">Étapes de la levée</span>
-        <button type="button" class="drawer__close" data-drawer-close aria-label="Fermer">&times;</button>
       </div>
       <nav class="drawer__body">
         <div id="nav-tools">
@@ -659,7 +656,6 @@
     <aside class="drawer drawer--right" id="actions-drawer" role="dialog" aria-modal="true" aria-label="Menu">
       <div class="drawer__head">
         <span class="drawer__title">Menu</span>
-        <button type="button" class="drawer__close" data-drawer-close aria-label="Fermer">&times;</button>
       </div>
       <nav class="drawer__body">
         <div class="drawer__section-title">Outils</div>
@@ -1901,9 +1897,22 @@
       if (selected.key === 'mise-en-ordre') {
         container.appendChild(fundraisingProfileEl());
       }
-      if (idx >= 2 && idx <= 7) {
+      if (CLASSIC_SOON_STEPS.has(selected.key)) {
+        container.appendChild(stepSoonEl(selected));
+      } else if (idx >= 2 && idx <= 7) {
         container.appendChild(phaseCard(selected, idx, { title: 'Documents', icon: 'DOC', hideStep: true, documentActions: true }));
       }
+    }
+
+    // Contenu affiché pour une étape dont le détail n'est pas encore construit.
+    function stepSoonEl(f) {
+      const el = document.createElement('section');
+      el.className = 'raise-soon';
+      el.innerHTML = `
+        <span class="raise-soon__badge">Bientôt</span>
+        <h2 class="raise-soon__title">${esc(friseLabel(f))}</h2>
+        <p class="raise-soon__text">Le détail de cette étape est en cours de construction. Il sera bientôt disponible ici.</p>`;
+      return el;
     }
 
     function syncClassicActions(idx) {
@@ -2084,6 +2093,10 @@
       return String(f.name || '').replace(/^\s*\d+\s*[·.\-—]\s*/, '').split(/\s*[(—]/)[0].trim();
     }
 
+    // Étapes de la levée classique dont le contenu détaillé n'est pas encore
+    // construit : le menu et la page d'étape affichent « Bientôt » à la place.
+    const CLASSIC_SOON_STEPS = new Set(['confidentialite', 'gouvernance']);
+
     // Avancement d'une étape. Un document « si applicable » non fourni ne bloque pas ;
     // tout document fourni doit être validé. « complete » = tout ce qui doit l'être
     // est validé (→ pastille verte).
@@ -2262,10 +2275,12 @@
         const stepFrac = s.total > 0 ? s.done / s.total : (done ? 1 : 0);
         const barFrac = f.key === 'mise-en-ordre' ? globalFrac : stepFrac;
         const pct = Math.max(0, Math.min(100, Math.round(barFrac * 100)));
-        const bar = f.key === 'gouvernance' ? '' :
+        const isSoon = type === 'classic' && CLASSIC_SOON_STEPS.has(f.key);
+        const bar = isSoon ? '' :
           '<span class="drawer__step-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><span style="width:' + pct + '%"></span></span>';
+        const soonTag = isSoon ? '<span class="drawer__soon-tag">Bientôt</span>' : '';
         btn.innerHTML =
-          '<span class="drawer__step-row"><span class="drawer__step-num">' + badge + '</span>' + esc(friseLabel(f)) + '</span>'
+          '<span class="drawer__step-row"><span class="drawer__step-num">' + badge + '</span>' + esc(friseLabel(f)) + soonTag + '</span>'
           + bar;
         btn.addEventListener('click', () => {
           if (type === 'classic') openClassicStepPage(f.key);
