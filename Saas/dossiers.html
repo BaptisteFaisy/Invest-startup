@@ -1070,6 +1070,15 @@
       try { return localStorage.getItem(classicStepKey()) || null; }
       catch { return null; }
     }
+    function bsaStepKey() { return 'liquid_bsa_step_' + raiseUser; }
+    function storeBsaStep(key) {
+      if (!key) return;
+      try { localStorage.setItem(bsaStepKey(), key); } catch {}
+    }
+    function storedBsaStep() {
+      try { return localStorage.getItem(bsaStepKey()) || null; }
+      catch { return null; }
+    }
     function ensureClassicStep(phases) {
       if (!Array.isArray(phases) || !phases.length) return null;
       if (selectedClassicStep && phases.some(f => f.key === selectedClassicStep)) return selectedClassicStep;
@@ -1085,6 +1094,21 @@
       syncUrlState('classic', selectedClassicStep, true);
       return selectedClassicStep;
     }
+    function ensureBsaStep(phases) {
+      if (!Array.isArray(phases) || !phases.length) return null;
+      if (selectedBsaStep === 'bsa-profile' || phases.some(f => f.key === selectedBsaStep)) return selectedBsaStep;
+      const stored = storedBsaStep();
+      if (stored === 'bsa-profile' || phases.some(f => f.key === stored)) {
+        selectedBsaStep = stored;
+      } else {
+        const stats = phases.map(phaseStatus);
+        const currentIdx = stats.findIndex(s => !s.complete);
+        selectedBsaStep = phases[currentIdx >= 0 ? currentIdx : 0].key;
+      }
+      storeBsaStep(selectedBsaStep);
+      syncUrlState('bsa-air', selectedBsaStep, true);
+      return selectedBsaStep;
+    }
     function currentUrlState() {
       try { return new URL(location.href); }
       catch { return null; }
@@ -1094,6 +1118,7 @@
       return u ? (u.searchParams.get('step') || null) : null;
     }
     let selectedClassicStep = stepFromUrl();
+    let selectedBsaStep = stepFromUrl();
     function getRaiseType() {
       const u = currentUrlState();
       const q = u ? u.searchParams.get('raise') : null;
@@ -1109,7 +1134,7 @@
       const u = currentUrlState();
       if (!u) return;
       u.searchParams.set('raise', type);
-      if (type === 'classic' && stepKey) u.searchParams.set('step', stepKey);
+      if ((type === 'classic' || type === 'bsa-air') && stepKey) u.searchParams.set('step', stepKey);
       else u.searchParams.delete('step');
       const fn = replace ? history.replaceState : history.pushState;
       if (!fn) return;
@@ -1143,8 +1168,9 @@
     function setRaiseType(type) {
       const t = RAISE_HINTS[type] ? type : 'classic';
       if (t !== 'classic') selectedClassicStep = null;
+      if (t !== 'bsa-air') selectedBsaStep = null;
       try { localStorage.setItem(raiseKey(), t); } catch {}
-      syncUrlState(t, selectedClassicStep);
+      syncUrlState(t, t === 'classic' ? selectedClassicStep : selectedBsaStep);
       applyRaiseType(t);
     }
     document.querySelectorAll('.seg__btn[data-raise]').forEach(b =>
@@ -1188,6 +1214,7 @@
     });
     window.addEventListener('popstate', () => {
       selectedClassicStep = stepFromUrl();
+      selectedBsaStep = stepFromUrl();
       applyRaiseType(getRaiseType());
     });
 
@@ -1883,8 +1910,14 @@
     }
 
     function render() {
-      renderDrawerSteps();
       const track = getRaiseType();
+      // La sélection BSA-AIR doit être établie avant de dessiner le menu afin
+      // que l'étape affichée et l'étape active dans le tiroir restent alignées.
+      if (track === 'bsa-air') {
+        const bsaPhases = folders.filter(f => isSystemPhase(f) && (f.track || 'classic') === 'bsa-air');
+        ensureBsaStep(bsaPhases);
+      }
+      renderDrawerSteps();
       if (RAISE_SOON[track]) {
         if (friseClassicEl) friseClassicEl.innerHTML = '';
         if (foldersEl) foldersEl.innerHTML = '';
@@ -1912,11 +1945,16 @@
         syncClassicActions(-1);
         setTopbarStepLabel('');
         selectedClassicStep = null;
-        container.appendChild(importCard());
-        const bsaProfileCard = fundraisingProfileEl();
-        bsaProfileCard.id = 'phase-air-mise-en-ordre';
-        container.appendChild(bsaProfileCard);
-        phases.forEach((f, pi) => container.appendChild(phaseCard(f, pi)));
+        const selectedKey = ensureBsaStep(phases);
+        if (selectedKey === 'bsa-profile') {
+          const bsaProfileCard = fundraisingProfileEl();
+          bsaProfileCard.id = 'phase-bsa-profile';
+          container.appendChild(bsaProfileCard);
+        } else {
+          const selected = phases.find(f => f.key === selectedKey);
+          const idx = phases.findIndex(f => f.key === selectedKey);
+          if (selected) container.appendChild(phaseCard(selected, idx));
+        }
       }
 
       refreshFmodal(); // conservé pour les fenêtres déjà ouvertes depuis une ancienne session
@@ -2250,11 +2288,14 @@
       window.scrollTo(0, prevScroll);
     }
 
-    // Ouvre le parcours BSA-AIR et fait défiler jusqu'à la carte de l'étape.
+    // Ouvre le parcours BSA-AIR sur l'étape choisie.
     function openBsaStepCard(key) {
+      selectedBsaStep = key || selectedBsaStep;
+      storeBsaStep(selectedBsaStep);
       try { localStorage.setItem(raiseKey(), 'bsa-air'); } catch {}
+      syncUrlState('bsa-air', selectedBsaStep);
       applyRaiseType('bsa-air');
-      const el = key ? document.getElementById('phase-' + key) : null;
+      const el = selectedBsaStep ? document.getElementById('phase-' + selectedBsaStep) : null;
       if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
@@ -2295,12 +2336,13 @@
         const pct = Math.max(0, Math.min(100, Math.round(globalFrac * 100)));
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'drawer__link drawer__link--step';
+        btn.className = 'drawer__link drawer__link--step'
+          + (selectedBsaStep === 'bsa-profile' ? ' is-active' : '');
         btn.innerHTML =
           '<span class="drawer__step-row"><span class="drawer__step-num">0</span>Ma levée</span>'
           + '<span class="drawer__step-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><span style="width:' + pct + '%"></span></span>';
         btn.addEventListener('click', () => {
-          openBsaStepCard('air-mise-en-ordre');
+          openBsaStepCard('bsa-profile');
           if (navDrawer) navDrawer.close();
         });
         navStepsEl.appendChild(btn);
@@ -2310,7 +2352,8 @@
         const s = stats[i];
         const done = s.complete;
         const isCurrent = i === currentIdx;
-        const isActive = type === 'classic' && selectedClassicStep === f.key;
+        const isActive = (type === 'classic' && selectedClassicStep === f.key)
+          || (type === 'bsa-air' && selectedBsaStep === f.key);
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'drawer__link drawer__link--step'
