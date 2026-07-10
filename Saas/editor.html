@@ -56,8 +56,6 @@
         <span class="topbar__doc">Lettre d'intention — Lumio SAS.docx</span>
       </div>
       <div class="topbar__actions">
-        <a href="/index.html" class="btn btn--ghost">Accueil</a>
-        <a href="dossiers.html" class="btn btn--white">Dossiers</a>
         <input type="file" id="docs-file" accept=".pdf,.docx,.doc,.xlsx,.xls,.png,.jpg,.jpeg" hidden />
         <button class="btn btn--ghost" id="docs-btn">+ Ajouter un document</button>
         <button type="button" class="aimax" data-aimax-toggle aria-pressed="false" title="Mode rapide. Cliquez pour une analyse approfondie « Max »."><span class="aimax__i" aria-hidden="true">✦</span><span>Max</span></button>
@@ -71,8 +69,6 @@
             <button class="export-menu__item" id="export-docx-item" type="button" role="menuitem">Word (.docx)</button>
           </div>
         </div>
-        <a href="compte.html" class="btn btn--ghost">Mon compte</a>
-        <button class="btn btn--ghost" id="logout-btn">Déconnexion</button>
       </div>
     </header>
 
@@ -364,7 +360,6 @@
       if (!user) return; // requireAuth a déjà redirigé vers login.html
       document.querySelector('.app').classList.add('ready');
     });
-    document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); logout(); });
   </script>
 </body>
 </html>
