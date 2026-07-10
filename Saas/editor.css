@@ -66,7 +66,7 @@
 .tcolor input[type=color] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 
 /* ---------- Workspace ---------- */
-.workspace { flex: 1; display: grid; grid-template-columns: var(--lib-w, 290px) 6px minmax(0, 1fr) 6px var(--panel-w, 400px); min-height: 0; }
+.workspace { flex: 1; display: grid; grid-template-columns: var(--lib-w, 290px) 10px minmax(0, 1fr) 10px var(--panel-w, 400px); min-height: 0; }
 /* Chaque zone est épinglée à SA colonne : sans cela, masquer la bibliothèque
    (repli à gauche, display:none) décalait tous les enfants d'une colonne —
    le document tombait dans la piste de 6px et la poignée droite s'étalait
@@ -77,15 +77,17 @@
 #gutter-right  { grid-row: 1; grid-column: 4; }
 .panel         { grid-row: 1; grid-column: 5; }
 
-/* Poignées de redimensionnement (colonnes gauche / droite) */
-.gutter { background: var(--line); cursor: col-resize; transition: background .12s ease; touch-action: none; }
-.gutter:hover, .gutter.is-drag { background: var(--blue); }
+/* Poignées de redimensionnement (colonnes gauche / droite). La zone de prise
+   fait 10 px pour rester facile à attraper, le trait visible reste fin. */
+.gutter { position: relative; background: transparent; cursor: col-resize; touch-action: none; outline: none; }
+.gutter::before { content: ''; position: absolute; inset: 0 4px; background: var(--line); transition: background .12s ease, inset .12s ease; }
+.gutter:hover::before, .gutter.is-drag::before, .gutter:focus-visible::before { background: var(--blue); inset-inline: 2px; }
+.gutter:focus-visible { box-shadow: inset 0 0 0 1px rgba(59,130,246,.45); }
 
 /* Colonnes repliées (glissées sous le seuil) : contenu masqué, poignée conservée pour rouvrir. */
 .workspace.is-collapsed-left .library,
 .workspace.is-collapsed-right .panel { display: none; }
-.gutter.is-collapsed { background: var(--blue); }
-.gutter.is-collapsed:hover { background: var(--blue); }
+.gutter.is-collapsed::before { background: var(--blue); }
 
 /* ---------- Bibliothèque de clauses (gauche) ---------- */
 .library { border-right: 1px solid var(--line); background: var(--bg-2); display: flex; flex-direction: column; min-height: 0; min-width: 0; overflow: hidden; }
@@ -375,20 +377,22 @@
 .chat__send:disabled { opacity: 0.5; cursor: default; }
 
 /* ---------- Responsive ----------
-   La bibliothèque (gauche) reste visible et librement redimensionnable à toutes
-   les largeurs : seules les largeurs PAR DÉFAUT changent par palier. La limite
-   haute réelle est calculée par le JS (setupResize), qui garantit ~300px au
-   document. Seul le panneau droit disparaît en dessous de 1040px. */
+   Les deux panneaux restent redimensionnables sur les écrans de bureau, y
+   compris entre 820 et 1040 px. Les largeurs enregistrées sont plafonnées par
+   le JavaScript pour toujours laisser une zone de document utilisable. */
 @media (max-width: 1280px) {
-  .workspace { grid-template-columns: var(--lib-w, 240px) 6px minmax(0, 1fr) 6px var(--panel-w, 330px); }
+  .workspace { grid-template-columns: var(--lib-w, 240px) 10px minmax(0, 1fr) 10px var(--panel-w, 330px); }
 }
 @media (max-width: 1040px) {
-  .workspace { grid-template-columns: var(--lib-w, 220px) 6px minmax(0, 1fr); }
-  .panel, #gutter-right { display: none; }
+  .workspace { grid-template-columns: var(--lib-w, 200px) 10px minmax(0, 1fr) 10px var(--panel-w, 260px); }
   .page { padding: 48px 40px 60px; }
 }
+@media (max-width: 820px) {
+  .workspace { grid-template-columns: var(--lib-w, 180px) 10px minmax(0, 1fr); }
+  .panel, #gutter-right { display: none; }
+}
 @media (max-width: 700px) {
-  .workspace { grid-template-columns: var(--lib-w, 200px) 6px minmax(0, 1fr); }
+  .workspace { grid-template-columns: var(--lib-w, 180px) 10px minmax(0, 1fr); }
   .editor-canvas { padding: 20px 12px 60px; }
   .page { padding: 40px 24px 50px; }
 }

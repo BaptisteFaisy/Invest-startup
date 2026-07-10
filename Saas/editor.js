@@ -1823,7 +1823,7 @@ else reconcileFullWhenReady(0);
   const ws = document.querySelector('.workspace');
   if (!ws) return;
 
-  function bind(gutterId, varName, storeKey, side, min, max, collapseAt) {
+  function bind(gutterId, varName, storeKey, side, min, collapseAt) {
     const g = document.getElementById(gutterId);
     if (!g) return;
     const collClass = side === 'left' ? 'is-collapsed-left' : 'is-collapsed-right';
@@ -1835,17 +1835,28 @@ else reconcileFullWhenReady(0);
       collapsed = localStorage.getItem(storeKey + '_collapsed') === '1';
     } catch {}
 
-    // Plafond dynamique : la colonne peut prendre toute la place disponible
-    // tant que le document conserve au moins MIN_DOC px (l'autre colonne,
-    // masquée ou repliée, mesure 0).
-    const MIN_DOC = 300;
+    // Plafond dynamique : aucune largeur maximale arbitraire. La seule limite
+    // est de conserver une zone de document utilisable (l'autre panneau et les
+    // poignées visibles sont donc retirés de l'espace disponible).
+    const MIN_DOC = 280;
     const otherSel = side === 'left' ? '.panel' : '.library';
     function dynMax() {
       const total = ws.clientWidth;
-      if (!total) return max;
+      if (!total) return 0;
       const other = ws.querySelector(otherSel);
-      const room = total - 12 - MIN_DOC - (other ? other.offsetWidth : 0);
-      return Math.max(min, Math.min(max, room));
+      const gutters = ['gutter-left', 'gutter-right'].reduce((sum, id) => {
+        const handle = document.getElementById(id);
+        return sum + (handle ? handle.offsetWidth : 0);
+      }, 0);
+      return Math.max(0, total - gutters - MIN_DOC - (other ? other.offsetWidth : 0));
+    }
+
+    function syncHandleState() {
+      const panel = ws.querySelector(side === 'left' ? '.library' : '.panel');
+      const current = collapsed ? 0 : Math.round(panel ? panel.getBoundingClientRect().width : 0);
+      g.setAttribute('aria-valuemin', '0');
+      g.setAttribute('aria-valuemax', String(Math.round(dynMax())));
+      g.setAttribute('aria-valuenow', String(current));
     }
 
     function render() {
@@ -1853,14 +1864,15 @@ else reconcileFullWhenReady(0);
         ws.style.setProperty(varName, '0px');
         ws.classList.add(collClass);
         g.classList.add('is-collapsed');
-        g.title = 'Cliquez ou glissez pour rouvrir';
+        g.title = 'Cliquez, glissez ou appuyez sur Fin pour rouvrir';
       } else {
         if (openWidth) ws.style.setProperty(varName, Math.min(parseInt(openWidth, 10) || min, dynMax()) + 'px');
         else ws.style.removeProperty(varName);
         ws.classList.remove(collClass);
         g.classList.remove('is-collapsed');
-        g.title = 'Redimensionner (double-clic pour réinitialiser)';
+        g.title = 'Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser';
       }
+      requestAnimationFrame(syncHandleState);
     }
     function persist() {
       try {
@@ -1891,7 +1903,6 @@ else reconcileFullWhenReady(0);
       // Reouvre immédiatement si la colonne était repliée.
       if (collapsed) { collapsed = false; render(); persist(); }
       const rect = ws.getBoundingClientRect();
-      const cap = dynMax();
       const move = (ev) => {
         // Filet de sécurité : bouton relâché hors capture → on termine.
         if (ev.buttons === 0) { up(); return; }
@@ -1902,7 +1913,8 @@ else reconcileFullWhenReady(0);
         // l'écran (souris haute fréquence) ne déclenchent pas de layout inutile.
         if (!rafId) rafId = requestAnimationFrame(() => {
           rafId = 0;
-          ws.style.setProperty(varName, Math.max(0, Math.min(cap, lastW)) + 'px');
+          ws.style.setProperty(varName, Math.max(0, Math.min(dynMax(), lastW)) + 'px');
+          syncHandleState();
         });
       };
       const up = () => {
@@ -1922,7 +1934,7 @@ else reconcileFullWhenReady(0);
         } else {
           // Fluide : la largeur relâchée est conservée telle quelle — pas de
           // palier minimum (min == seuil de repli), seul le plafond s'applique.
-          const w = Math.max(min, Math.min(cap, lastW));
+          const w = Math.max(min, Math.min(dynMax(), lastW));
           openWidth = w + 'px';
           ws.style.setProperty(varName, openWidth);
           persist(); reflow();
@@ -1941,6 +1953,32 @@ else reconcileFullWhenReady(0);
       reflow();
     });
 
+    // Réglage précis au clavier : les poignées restent accessibles même sans
+    // souris. Home replie le menu, End l'ouvre au maximum disponible.
+    g.addEventListener('keydown', (e) => {
+      const horizontal = e.key === 'ArrowLeft' || e.key === 'ArrowRight';
+      if (!horizontal && e.key !== 'Home' && e.key !== 'End') return;
+      e.preventDefault();
+      const panel = ws.querySelector(side === 'left' ? '.library' : '.panel');
+      const current = collapsed ? 0 : (panel ? panel.getBoundingClientRect().width : 0);
+      const cap = dynMax();
+      let next = current;
+      if (e.key === 'Home') next = 0;
+      else if (e.key === 'End') next = cap;
+      else {
+        const step = e.shiftKey ? 50 : 10;
+        const direction = e.key === 'ArrowRight' ? 1 : -1;
+        next += direction * step * (side === 'left' ? 1 : -1);
+      }
+      if (next < collapseAt) {
+        collapsed = true;
+      } else {
+        collapsed = false;
+        openWidth = Math.min(cap, Math.round(next)) + 'px';
+      }
+      render(); persist(); reflow();
+    });
+
     // La place disponible change avec la fenêtre : on ré-applique la largeur
     // mémorisée (plafonnée) une fois le redimensionnement terminé. La
     // repagination globale (150 ms) passe juste après.
@@ -1950,12 +1988,12 @@ else reconcileFullWhenReady(0);
       rzT = setTimeout(render, 120);
     });
   }
-  // Glissement fluide : min == seuil de repli (aucun palier intermédiaire) et
-  // plafond très large — la vraie limite est dynMax(), qui garde MIN_DOC px au
-  // document quelle que soit la taille de l'écran. Le repli ne se déclenche
+  // Glissement fluide : min == seuil de repli (aucun palier intermédiaire).
+  // La vraie limite est dynMax(), qui garde MIN_DOC px au document quelle que
+  // soit la taille de l'écran. Le repli ne se déclenche
   // qu'au ras du bord (40px) : toute autre largeur est conservée telle quelle.
-  bind('gutter-left',  '--lib-w',   'liquid_lib_w',   'left',  40, 1400, 40);
-  bind('gutter-right', '--panel-w', 'liquid_panel_w', 'right', 40, 1400, 40);
+  bind('gutter-left',  '--lib-w',   'liquid_lib_w',   'left',  40, 40);
+  bind('gutter-right', '--panel-w', 'liquid_panel_w', 'right', 40, 40);
 
   /* --- Redimensionnement vertical de l'assistant IA (chat Claude) --- */
   const chatEl = document.getElementById('chat');
