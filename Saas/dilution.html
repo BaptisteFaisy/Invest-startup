@@ -32,7 +32,7 @@
 
     /* Disposition 2 colonnes : saisie à gauche, résultats à droite */
     .dil__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 22px; margin-top: 26px; align-items: start; }
-    @media (max-width: 940px) { .dil__grid { grid-template-columns: 1fr; } }
+    @media (max-width: 940px) { .dil__grid { grid-template-columns: minmax(0, 1fr); } }
     .dil__results { position: sticky; top: 78px; }
     @media (max-width: 940px) { .dil__results { position: static; } }
 
