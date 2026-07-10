@@ -82,8 +82,9 @@
     .code-input { flex: 1; padding: 11px 14px; border-radius: 10px; border: 1.5px solid rgba(8,9,12,0.14); background: #f9f9f9; font-size: 1.1rem; color: #08090c; outline: none; text-align: center; letter-spacing: 0.2em; transition: border-color .18s; }
     .code-input:focus { border-color: #08090c; background: #fff; }
     .account-back-row { width: 100%; box-sizing: border-box; padding: 16px 20px 0; }
-    .account-back { width: 32px; height: 32px; flex: none; display: grid; place-items: center; padding: 0; border: 1px solid rgba(255,255,255,0.28); border-radius: 8px; background: transparent; color: #fff; cursor: pointer; transition: background .15s, border-color .15s, transform .15s; }
-    .account-back:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.52); transform: translateX(-1px); }
+    .account-back { width: 32px; height: 32px; flex: none; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
+    .account-back:hover { opacity: 0.68; transform: translateX(-1px); }
+    .account-back:focus-visible { outline: none; opacity: 1; }
     .account-back svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
 
     @media (max-width: 560px) {
