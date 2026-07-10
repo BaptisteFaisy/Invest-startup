@@ -1368,24 +1368,26 @@
     function searchDashboard(query) {
       const needle = normalizeSearch(query).trim();
       if (!needle) return [];
-      const matches = [];
-      const add = (result, values) => {
-        if (matches.length >= 8 || !values.some(value => normalizeSearch(value).includes(needle))) return;
-        matches.push(result);
+      // Chaque catégorie est collectée puis plafonnée séparément : sinon les
+      // étapes (nombreuses) saturent la liste et masquent docs et outils.
+      const steps = [], documents = [], tools = [];
+      const collect = (bucket, cap, result, values) => {
+        if (bucket.length >= cap || !values.some(value => normalizeSearch(value).includes(needle))) return;
+        bucket.push(result);
       };
 
       folders.filter(isSystemPhase).forEach(folder => {
         const track = folder.track || 'classic';
-        add({ type: 'step', track, key: folder.key, label: friseLabel(folder) }, [folder.name, friseLabel(folder), ...(folder.checklist || [])]);
+        collect(steps, 5, { type: 'step', track, key: folder.key, label: friseLabel(folder) }, [folder.name, friseLabel(folder), ...(folder.checklist || [])]);
       });
       docs.forEach(doc => {
         const folder = folders.find(item => item.id === doc.folder_id);
-        add({ type: 'document', id: doc.id, kind: doc.kind, label: doc.name || 'Document sans titre', folder }, [doc.name, doc.kind, folder && friseLabel(folder)]);
+        collect(documents, 5, { type: 'document', id: doc.id, kind: doc.kind, label: doc.name || 'Document sans titre', folder }, [doc.name, doc.kind, folder && friseLabel(folder)]);
       });
       DASHBOARD_TOOLS.forEach(tool => {
-        add({ type: 'tool', href: tool.href, newTab: tool.newTab, label: tool.label }, [tool.label, ...(tool.keywords || [])]);
+        collect(tools, 5, { type: 'tool', href: tool.href, newTab: tool.newTab, label: tool.label }, [tool.label, ...(tool.keywords || [])]);
       });
-      return matches;
+      return [...steps, ...documents, ...tools];
     }
 
     function renderDashboardSearchResults() {
