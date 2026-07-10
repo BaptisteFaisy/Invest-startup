@@ -364,6 +364,14 @@
     .drawer__link:hover { background:rgba(255,255,255,0.07); color:#fff; }
     .drawer__link svg { width:18px; height:18px; flex:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; fill:none; opacity:.85; }
     .drawer__sep { height:1px; margin:8px 4px; background:rgba(255,255,255,0.08); }
+    .drawer__section-title { font-family:'Archivo',sans-serif; font-size:10.5px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; color:rgba(255,255,255,0.42); padding:6px 12px 6px; }
+    .drawer__link--step { align-items:center; }
+    .drawer__step-num { flex:none; width:22px; height:22px; display:grid; place-items:center; border-radius:6px; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.72); font-family:'Archivo',sans-serif; font-weight:800; font-size:11px; }
+    .drawer__step-num svg { width:14px; height:14px; opacity:1; }
+    .drawer__link--step.is-done .drawer__step-num { background:rgba(16,185,129,0.20); color:#34d399; }
+    .drawer__link--step.is-current { background:rgba(99,102,241,0.13); color:#fff; }
+    .drawer__link--step.is-current .drawer__step-num { background:rgba(99,102,241,0.30); color:#a5b4fc; }
+    .drawer__link--step.is-active { background:rgba(255,255,255,0.10); color:#fff; }
 
     /* Carte Reprendre — bulle blanche */
     .resume-card { background: #fff !important; border-radius: 20px !important; box-shadow: 0 12px 40px rgba(0,0,0,0.45) !important; }
@@ -695,6 +703,9 @@
         <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
         <a class="drawer__link" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/></svg>Tâches</a>
         <a class="drawer__link" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
+        <div class="drawer__sep" id="nav-steps-sep" hidden></div>
+        <div class="drawer__section-title" id="nav-steps-title" hidden>Étapes de la levée</div>
+        <div id="nav-steps"></div>
       </nav>
     </aside>
 
@@ -706,6 +717,12 @@
         <button type="button" class="drawer__close" data-drawer-close aria-label="Fermer">&times;</button>
       </div>
       <nav class="drawer__body">
+        <div class="drawer__section-title">Outils</div>
+        <a class="drawer__link" href="../marche.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Marché</a>
+        <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
+        <a class="drawer__link" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>Tâches</a>
+        <a class="drawer__link" href="#" title="Simulation de dilution"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
+        <div class="drawer__sep"></div>
         <a class="drawer__link" href="compte.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>Mon compte</a>
         <a class="drawer__link" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback</a>
         <div class="drawer__sep"></div>
@@ -1894,6 +1911,7 @@
     }
 
     function render() {
+      renderDrawerSteps();
       const track = getRaiseType();
       if (RAISE_SOON[track]) {
         if (friseClassicEl) friseClassicEl.innerHTML = '';
@@ -2241,6 +2259,44 @@
       syncUrlState('classic', selectedClassicStep);
       applyRaiseType('classic');
       window.scrollTo(0, prevScroll);
+    }
+
+    // Étapes de la levée classique listées dans le tiroir de navigation gauche.
+    // Ne s'affichent que pour le parcours « Levée classique ».
+    const navStepsEl = document.getElementById('nav-steps');
+    function renderDrawerSteps() {
+      if (!navStepsEl) return;
+      const sep = document.getElementById('nav-steps-sep');
+      const title = document.getElementById('nav-steps-title');
+      const type = getRaiseType();
+      let phases = folders.filter(f => isSystemPhase(f) && (f.track || 'classic') === 'classic');
+      phases = phases.filter(isClassicPhaseVisible);
+      const show = type === 'classic' && phases.length > 0;
+      if (sep) sep.hidden = !show;
+      if (title) title.hidden = !show;
+      navStepsEl.innerHTML = '';
+      if (!show) return;
+
+      const stats = phases.map(phaseStatus);
+      const currentIdx = stats.findIndex(s => !s.complete);
+      phases.forEach((f, i) => {
+        const done = stats[i].complete;
+        const isCurrent = i === currentIdx;
+        const isActive = selectedClassicStep === f.key;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'drawer__link drawer__link--step'
+          + (done ? ' is-done' : '') + (isCurrent ? ' is-current' : '') + (isActive ? ' is-active' : '');
+        const badge = done
+          ? '<svg viewBox="0 0 24 24" aria-hidden="true">' + friseCheckPath + '</svg>'
+          : String(friseStepNumber(f, i));
+        btn.innerHTML = '<span class="drawer__step-num">' + badge + '</span>' + esc(friseLabel(f));
+        btn.addEventListener('click', () => {
+          openClassicStepPage(f.key);
+          if (navDrawer) navDrawer.close();
+        });
+        navStepsEl.appendChild(btn);
+      });
     }
 
     function renderFrise(track, phases) {
