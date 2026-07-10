@@ -1943,16 +1943,17 @@
       } else {
         if (friseClassicEl) friseClassicEl.innerHTML = '';
         syncClassicActions(-1);
-        setTopbarStepLabel('');
         selectedClassicStep = null;
         const selectedKey = ensureBsaStep(phases);
         if (selectedKey === 'bsa-profile') {
+          setTopbarStepLabel('Ma levée');
           const bsaProfileCard = fundraisingProfileEl();
           bsaProfileCard.id = 'phase-bsa-profile';
           container.appendChild(bsaProfileCard);
         } else {
           const selected = phases.find(f => f.key === selectedKey);
           const idx = phases.findIndex(f => f.key === selectedKey);
+          setTopbarStepLabel(selected ? friseLabel(selected) : '');
           if (selected) container.appendChild(phaseCard(selected, idx));
         }
       }
