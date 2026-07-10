@@ -19,7 +19,7 @@
        Sur cette page on veut un défilement normal de la fenêtre. */
     .app { height: auto; overflow: visible; display: block; }
 
-    .account { max-width: 720px; margin: 0 auto; padding: 40px 28px 80px; }
+    .account { max-width: 720px; margin: 0 auto; padding: 24px 28px 80px; }
     .account__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
     .account__title { font-size: 32px; letter-spacing: -0.03em; margin-top: 6px; color: #fff; }
     .account__sub { color: rgba(255,255,255,0.55); font-size: 15px; margin-top: 8px; }
@@ -81,11 +81,13 @@
     .code-row { display: flex; gap: 10px; align-items: center; margin-top: 16px; }
     .code-input { flex: 1; padding: 11px 14px; border-radius: 10px; border: 1.5px solid rgba(8,9,12,0.14); background: #f9f9f9; font-size: 1.1rem; color: #08090c; outline: none; text-align: center; letter-spacing: 0.2em; transition: border-color .18s; }
     .code-input:focus { border-color: #08090c; background: #fff; }
+    .account-back-row { width: 100%; box-sizing: border-box; padding: 16px 20px 0; }
     .account-back { width: 32px; height: 32px; flex: none; display: grid; place-items: center; padding: 0; border: 1px solid rgba(255,255,255,0.28); border-radius: 8px; background: transparent; color: #fff; cursor: pointer; transition: background .15s, border-color .15s, transform .15s; }
     .account-back:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.52); transform: translateX(-1px); }
     .account-back svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
 
     @media (max-width: 560px) {
+      .account-back-row { padding: 14px 14px 0; }
       .usage-grid { grid-template-columns: 1fr; }
       .sec-row { flex-direction: column; }
       .sec-row__actions { flex-direction: row; }
@@ -99,9 +101,6 @@
     <!-- Top bar (identique au tableau de bord) -->
     <header class="topbar">
       <div class="topbar__left">
-        <button type="button" class="account-back" id="account-back-btn" aria-label="Revenir en arriere" title="Revenir en arriere">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
-        </button>
         <a href="/index.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
         <span class="topbar__doc">Mon compte</span>
       </div>
@@ -109,6 +108,12 @@
         <a href="editor.html" class="btn btn--ghost">Éditeur</a>
       </div>
     </header>
+
+    <div class="account-back-row">
+      <button type="button" class="account-back" id="account-back-btn" aria-label="Revenir en arriere" title="Revenir en arriere">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+    </div>
 
     <main class="account">
       <div class="account__eyebrow">Compte</div>
