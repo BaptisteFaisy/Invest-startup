@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>liquid + — Simulateur d'exit</title>
+  <meta name="description" content="Simulateur de sortie (exit) : cession totale avec préférences de liquidation (waterfall) ou cession partielle/secondaire — anticipez qui touche quoi." />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=6" />
+  <link rel="stylesheet" href="editor.css?v=7" />
+  <style>
+    [hidden] { display: none !important; }
+    .app { height: auto; overflow: visible; display: block; }
+    body, .app { background: #08090c !important; }
+
+    /* Topbar noir (identique aux autres pages du SaaS) */
+    .topbar { background: #08090c !important; border-bottom: 1px solid rgba(255,255,255,0.07) !important; position: sticky; top: 0; z-index: 20; }
+    .topbar .brand { color: #fff !important; display: flex; align-items: center; gap: 8px; }
+    .topbar .brand__plus { color: #fff !important; }
+    .topbar .brand__logo { display: block; flex: none; }
+    .topbar__doc { color: #fff !important; border-left-color: rgba(255,255,255,0.2) !important; }
+    .topbar .btn--ghost { color: #fff !important; border-color: rgba(255,255,255,0.35) !important; }
+    .topbar .btn--ghost:hover { color: #fff !important; border-color: rgba(255,255,255,0.65) !important; }
+
+    /* Retour en arrière */
+    .page-back-row { width: 100%; box-sizing: border-box; max-width: 1180px; margin: 0 auto; padding: 16px 24px 0; }
+    .page-back { width: 32px; height: 32px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
+    .page-back:hover { opacity: 0.68; transform: translateX(-1px); }
+    .page-back:focus-visible { outline: none; opacity: 1; }
+    .page-back svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+    .ext { max-width: 1180px; margin: 0 auto; padding: 34px 24px 90px; }
+    .ext__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
+    .ext__title { font-size: 30px; letter-spacing: -0.03em; color: #fff; margin-top: 6px; }
+    .ext__sub { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 8px; line-height: 1.6; max-width: 760px; }
+
+    /* Bascule Sortie totale / partielle */
+    .type-seg-row { margin-top: 22px; }
+    .type-seg { display: inline-flex; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 11px; padding: 4px; gap: 3px; }
+    .type-seg__btn { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 700; color: rgba(255,255,255,0.6); background: transparent; border: 0; border-radius: 8px; padding: 9px 16px; cursor: pointer; transition: .12s; }
+    .type-seg__btn:hover { color: #fff; }
+    .type-seg__btn.is-on { background: #fff; color: #08090c; }
+    .type-hint { margin-top: 8px; font-size: 12.5px; color: rgba(255,255,255,0.55); line-height: 1.5; max-width: 700px; }
+
+    /* Disposition 2 colonnes */
+    .ext__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 22px; margin-top: 22px; align-items: start; }
+    @media (max-width: 940px) { .ext__grid { grid-template-columns: minmax(0, 1fr); } }
+    .ext__results { position: sticky; top: 78px; }
+    @media (max-width: 940px) { .ext__results { position: static; } }
+
+    .card { background: #fff; border-radius: 16px; padding: 20px 20px 22px; box-shadow: 0 10px 34px rgba(0,0,0,0.35); margin-bottom: 18px; }
+    .card__h { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #6b6b78; margin-bottom: 4px; }
+    .card__desc { font-size: 12.5px; color: #8a8a95; line-height: 1.5; margin-bottom: 14px; }
+    .card__toprow { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+    .card__toprow .card__h { margin-bottom: 0; }
+
+    .seg { display: inline-flex; background: #f0f0ee; border-radius: 9px; padding: 3px; gap: 2px; flex: none; }
+    .seg__btn { font-family: 'Archivo', sans-serif; font-size: 11.5px; font-weight: 600; color: #6b6b78; background: transparent; border: 0; border-radius: 7px; padding: 5px 11px; cursor: pointer; transition: .12s; white-space: nowrap; }
+    .seg__btn:hover { color: #08090c; }
+    .seg__btn.is-on { background: #fff; color: #08090c; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+
+    .rowsum { display: flex; justify-content: space-between; align-items: baseline; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(8,9,12,0.08); font-size: 12.5px; }
+    .rowsum b.is-warn { color: #d97706; }
+    .rowsum .warn-hint { color: #d97706; font-weight: 400; font-size: 11.5px; }
+    .rowsum b { font-family: 'Archivo', sans-serif; font-weight: 700; color: #08090c; font-size: 14px; }
+    .rowsum span { color: #8a8a95; }
+
+    .field { margin-bottom: 14px; }
+    .field__lab { display: block; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #6b6b78; margin-bottom: 6px; }
+    .inp, .sel { width: 100%; min-width: 0; font-family: 'Libre Franklin', sans-serif; font-size: 14px; color: #08090c; background: #f7f7f5; border: 1px solid rgba(8,9,12,0.12); border-radius: 9px; padding: 9px 11px; transition: border-color .12s, background .12s; }
+    .inp:focus, .sel:focus { outline: none; border-color: #3b82f6; background: #fff; }
+    .inp--money { text-align: right; }
+    .inp-wrap { position: relative; }
+    .inp-wrap .inp { padding-right: 28px; }
+    .inp-wrap__suf { position: absolute; right: 11px; top: 50%; transform: translateY(-50%); font-size: 13px; color: #a8a8b3; pointer-events: none; }
+
+    /* Lignes cap table */
+    .rows__head { display: grid; grid-template-columns: 1fr 108px 132px 30px; gap: 8px; padding: 0 2px 6px; align-items: center; }
+    .rows__head span { font-family: 'Archivo', sans-serif; font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #a8a8b3; }
+    .rows__head span.r { text-align: right; }
+    .xrow { border: 1px solid rgba(8,9,12,0.08); border-radius: 10px; padding: 8px; margin-bottom: 8px; background: #fbfbfa; }
+    .xrow__main { display: grid; grid-template-columns: 1fr 108px 132px 30px; gap: 8px; align-items: center; }
+    .xrow__main .inp, .xrow__main .sel { padding: 8px 10px; font-size: 13px; }
+    .xrow__del { width: 30px; height: 34px; border: 1px solid rgba(8,9,12,0.1); background: #fff; border-radius: 8px; color: #b0b0bb; cursor: pointer; font-size: 17px; line-height: 1; display: flex; align-items: center; justify-content: center; transition: .12s; }
+    .xrow__del:hover { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,0.05); }
+    .addrow { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; color: #2563eb; background: transparent; border: 1px dashed rgba(37,99,235,0.4); border-radius: 9px; padding: 8px 12px; cursor: pointer; width: 100%; margin-top: 2px; transition: .12s; }
+    .addrow:hover { background: rgba(37,99,235,0.06); border-color: #2563eb; }
+
+    /* Sous-bloc préférence de liquidation (sortie totale, lignes investisseur) */
+    .xrow__pref { margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(8,9,12,0.12); display: grid; grid-template-columns: 1fr 1fr; gap: 8px 10px; }
+    .xrow__pref .pf { display: flex; flex-direction: column; gap: 4px; }
+    .xrow__pref .pf__lab { font-size: 10px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: #a8a8b3; font-family: 'Archivo', sans-serif; }
+    .xrow__pref .pf__lab small { display: block; font-size: 9.5px; font-weight: 400; text-transform: none; letter-spacing: 0; color: #b6b6bf; margin-top: 1px; }
+    .xrow__pref .inp, .xrow__pref .sel { padding: 7px 9px; font-size: 12.5px; }
+    .pf--check { flex-direction: row; align-items: center; gap: 7px; grid-column: 1 / -1; }
+    .pf--check input[type="checkbox"] { width: 15px; height: 15px; accent-color: #3b82f6; cursor: pointer; }
+    .pf--check .pf__lab { text-transform: none; font-weight: 600; color: #08090c; font-size: 12.5px; letter-spacing: 0; }
+    .pf--convert { background: rgba(37,99,235,0.05); border-radius: 8px; padding: 7px 9px; }
+    .pf-note { grid-column: 1 / -1; font-size: 11px; color: #8a8a95; line-height: 1.5; }
+    .pf-note b { color: #08090c; }
+
+    /* Sous-bloc « % cédé » (sortie partielle) */
+    .xrow__sell { margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(8,9,12,0.12); display: flex; align-items: center; gap: 10px; }
+    .xrow__sell .pf__lab { font-size: 10px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: #a8a8b3; font-family: 'Archivo', sans-serif; white-space: nowrap; }
+    .xrow__sell .inp { max-width: 92px; padding: 7px 9px; font-size: 12.5px; }
+    .xrow__sell .sell-out { font-size: 11.5px; color: #6b6b78; }
+
+    /* KPI */
+    .kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .kpi { background: #fff; border-radius: 13px; padding: 14px 15px; box-shadow: 0 8px 26px rgba(0,0,0,0.3); }
+    .kpi__lab { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #6b6b78; }
+    .kpi__val { font-family: 'Archivo', sans-serif; font-size: 22px; font-weight: 700; color: #08090c; letter-spacing: -0.02em; margin-top: 5px; }
+    .kpi__sub { font-size: 11.5px; color: #8a8a95; margin-top: 2px; }
+    .kpi--accent { background: linear-gradient(135deg, #1e293b, #0f172a); }
+    .kpi--accent .kpi__lab { color: #93c5fd; }
+    .kpi--accent .kpi__val { color: #fff; }
+    .kpi--accent .kpi__sub { color: rgba(255,255,255,0.6); }
+
+    /* Barres de répartition */
+    .ownbar-wrap { margin-top: 6px; }
+    .ownbar-row { margin-bottom: 14px; }
+    .ownbar-lab { display: flex; justify-content: space-between; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #6b6b78; margin-bottom: 6px; }
+    .ownbar { display: flex; height: 30px; border-radius: 8px; overflow: hidden; background: #eee; }
+    .ownseg { height: 100%; display: flex; align-items: center; justify-content: center; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; color: #fff; overflow: hidden; white-space: nowrap; transition: width .35s ease; min-width: 0; }
+    .legend { display: flex; flex-wrap: wrap; gap: 10px 16px; margin-top: 12px; }
+    .legend__it { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #4b4b56; }
+    .legend__sw { width: 11px; height: 11px; border-radius: 3px; flex: none; }
+
+    .c-founder { background: #4f46e5; }
+    .c-pool0 { background: #d97706; }
+    .c-invest0 { background: #0d9488; }
+    .c-buyer { background: #2563eb; }
+
+    /* Table résultat */
+    .rtable-wrap { overflow-x: auto; margin-top: 4px; }
+    table.rtable { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 560px; }
+    .rtable th { font-family: 'Archivo', sans-serif; font-size: 9.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #a8a8b3; text-align: right; padding: 0 8px 9px; border-bottom: 1px solid rgba(8,9,12,0.09); }
+    .rtable th.l { text-align: left; }
+    .rtable td { padding: 9px 8px; border-bottom: 1px solid rgba(8,9,12,0.05); text-align: right; color: #08090c; vertical-align: middle; }
+    .rtable td.l { text-align: left; }
+    .rtable tr:last-child td { border-bottom: 0; }
+    .rt-name { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+    .rt-dot { width: 9px; height: 9px; border-radius: 3px; flex: none; }
+    .rt-num { font-variant-numeric: tabular-nums; }
+    .rt-tag { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; color: #2563eb; background: rgba(37,99,235,0.09); border-radius: 5px; padding: 1px 6px; margin-left: 6px; }
+    .rtable tr.rt-total td { border-top: 2px solid rgba(8,9,12,0.12); border-bottom: 0; padding-top: 11px; font-family: 'Archivo', sans-serif; font-weight: 700; }
+    .rtable tr.rt-zero td { color: #b0b0bb; }
+
+    .warn { display: flex; gap: 10px; background: rgba(217,119,6,0.1); border: 1px solid rgba(217,119,6,0.28); border-radius: 12px; padding: 13px 15px; margin-bottom: 16px; font-size: 13px; line-height: 1.5; color: #92400e; }
+    .warn svg { width: 18px; height: 18px; flex: none; stroke: #d97706; stroke-width: 1.9; fill: none; margin-top: 1px; }
+
+    .note { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.6; margin-top: 16px; }
+    .note b { color: rgba(255,255,255,0.8); }
+
+    .ext__actions { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+    .ext__actions .btn { background: rgba(255,255,255,0.06); color: #fff; border-color: rgba(255,255,255,0.2); }
+    .ext__actions .btn:hover { border-color: rgba(255,255,255,0.5); }
+
+    /* Lexique */
+    .lexique { margin-top: 46px; }
+    .lexique__title { font-size: 22px; letter-spacing: -0.02em; color: #fff; margin-top: 6px; }
+    .lexique__sub { color: rgba(255,255,255,0.62); font-size: 14px; margin-top: 8px; line-height: 1.6; max-width: 680px; }
+    .lexique__cat { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.42); margin: 26px 0 12px; }
+    .lexique__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    @media (max-width: 720px) { .lexique__grid { grid-template-columns: 1fr; } }
+    .glo { background: #fff; border-radius: 14px; padding: 16px 18px 17px; box-shadow: 0 8px 26px rgba(0,0,0,0.3); }
+    .glo__term { font-family: 'Archivo', sans-serif; font-size: 14.5px; font-weight: 700; color: #08090c; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+    .glo__en { font-size: 11.5px; font-weight: 500; color: #a8a8b3; font-style: italic; }
+    .glo__def { font-size: 13px; color: #55555f; line-height: 1.58; margin-top: 8px; }
+    .glo__def b { color: #08090c; font-weight: 600; }
+    .glo__def + .glo__def { margin-top: 7px; }
+
+    /* Termes survolables */
+    .term { border-bottom: 1px dashed currentColor; cursor: help; }
+    .term:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; border-radius: 2px; }
+    .tip { position: fixed; z-index: 200; max-width: 280px; background: #0f1115; color: #e8e8ec; font-family: 'Libre Franklin', sans-serif; font-size: 12.5px; font-weight: 400; font-style: normal; line-height: 1.5; letter-spacing: 0; text-transform: none; text-align: left; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 12px 34px rgba(0,0,0,0.5); pointer-events: none; opacity: 0; transform: translateY(3px); transition: opacity .12s ease, transform .12s ease; }
+    .tip.is-on { opacity: 1; transform: translateY(0); }
+    .tip b { color: #fff; font-weight: 700; }
+
+    @media (max-width: 520px) {
+      .ext { padding: 24px 14px 80px; }
+      .ext__title { font-size: 25px; }
+      .card { padding: 16px 14px 18px; }
+      .rows__head, .xrow__main { grid-template-columns: 1fr 72px 92px 28px; gap: 6px; }
+      .xrow__pref { grid-template-columns: 1fr; }
+      .kpi__val { font-size: 19px; }
+    }
+  </style>
+  <script src="auth.js?v=3"></script>
+  <script src="tasks.js?v=2" defer></script>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="topbar__left">
+        <a href="/index.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
+        <span class="topbar__doc">Simulateur d'exit</span>
+      </div>
+    </header>
+
+    <div class="page-back-row">
+      <button type="button" class="page-back" id="page-back-btn" aria-label="Revenir en arrière" title="Revenir en arrière">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+    </div>
+
+    <main class="ext">
+      <div class="ext__eyebrow">Outil</div>
+      <h1 class="ext__title">Simulateur de sortie (exit)</h1>
+      <p class="ext__sub">Simulez qui touche quoi le jour où la société est vendue — en <b>sortie totale</b>, avec la <span class="term" data-term="waterfall" tabindex="0">cascade de distribution</span> et les <span class="term" data-term="pref-liq" tabindex="0">préférences de liquidation</span>, ou en <b>sortie partielle</b>, une cession secondaire d'une partie des titres sans opération de liquidation.</p>
+
+      <div class="type-seg-row">
+        <div class="type-seg" id="exit-type-seg">
+          <button type="button" class="type-seg__btn is-on" data-etype="total">Sortie totale</button>
+          <button type="button" class="type-seg__btn" data-etype="partial">Sortie partielle</button>
+        </div>
+        <p class="type-hint" id="type-hint"></p>
+      </div>
+
+      <div class="ext__grid">
+        <!-- COLONNE SAISIE -->
+        <form id="ext-form" autocomplete="off">
+          <div class="card">
+            <div class="card__toprow">
+              <div class="card__h">1 · Cap table actuelle</div>
+              <div class="seg" id="mode-seg">
+                <button type="button" class="seg__btn is-on" data-mode="pct">En %</button>
+                <button type="button" class="seg__btn" data-mode="shares">Nb d'actions</button>
+              </div>
+            </div>
+            <div class="card__desc" id="sh-desc">Le capital <b>avant</b> la cession, en % du capital (<span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span>). Le total doit faire 100 %.</div>
+            <div class="rows__head">
+              <span>Actionnaire</span>
+              <span class="r" id="sh-col-lab">%</span>
+              <span>Catégorie</span>
+              <span></span>
+            </div>
+            <div id="sh-rows"></div>
+            <button type="button" class="addrow" id="add-sh">+ Ajouter un actionnaire</button>
+            <div class="rowsum">
+              <span id="sh-total-lab">Total</span>
+              <b id="sh-total">—</b>
+            </div>
+          </div>
+
+          <div class="card" id="deal-card">
+            <div class="card__h" id="deal-h">2 · Paramètres de la cession</div>
+            <div class="card__desc" id="deal-desc"></div>
+
+            <!-- Sortie totale -->
+            <div id="deal-total">
+              <div class="field">
+                <label class="field__lab" for="sale-price">Prix de vente (valeur des capitaux propres)</label>
+                <div class="inp-wrap">
+                  <input class="inp inp--money" type="text" inputmode="numeric" id="sale-price" value="15 000 000" />
+                  <span class="inp-wrap__suf">€</span>
+                </div>
+              </div>
+              <div class="field">
+                <label class="field__lab" for="sale-fees">Frais de cession <small style="text-transform:none;font-weight:400;color:#a8a8b3">(banque d'affaires, avocats…)</small></label>
+                <div class="inp-wrap">
+                  <input class="inp inp--money" type="text" inputmode="decimal" id="sale-fees" value="3" />
+                  <span class="inp-wrap__suf">%</span>
+                </div>
+              </div>
+              <div class="field" style="margin-bottom:0">
+                <label class="field__lab" for="sale-debt">Dette nette à rembourser <small style="text-transform:none;font-weight:400;color:#a8a8b3">(optionnel)</small></label>
+                <div class="inp-wrap">
+                  <input class="inp inp--money" type="text" inputmode="numeric" id="sale-debt" value="0" />
+                  <span class="inp-wrap__suf">€</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sortie partielle -->
+            <div id="deal-partial" hidden>
+              <div class="field">
+                <label class="field__lab" for="part-valo">Valorisation retenue <small style="text-transform:none;font-weight:400;color:#a8a8b3">(base du prix par titre)</small></label>
+                <div class="inp-wrap">
+                  <input class="inp inp--money" type="text" inputmode="numeric" id="part-valo" value="8 000 000" />
+                  <span class="inp-wrap__suf">€</span>
+                </div>
+              </div>
+              <div class="field" style="margin-bottom:0">
+                <label class="field__lab" for="part-buyer">Acheteur</label>
+                <input class="inp" type="text" id="part-buyer" value="Investisseur secondaire" />
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <!-- COLONNE RÉSULTATS -->
+        <div class="ext__results">
+          <div class="ext__actions">
+            <button type="button" class="btn" id="reset-btn">↺ Réinitialiser l'exemple</button>
+          </div>
+
+          <div id="warn-box"></div>
+
+          <div class="kpis" id="kpis"></div>
+
+          <div class="card" style="margin-top:18px">
+            <div class="card__h" id="bar1-h">Répartition du capital (avant)</div>
+            <div class="ownbar-wrap">
+              <div class="ownbar-row">
+                <div class="ownbar-lab"><span id="bar1-lab">Avant</span><span id="own-before-tot"></span></div>
+                <div class="ownbar" id="own-before"></div>
+              </div>
+              <div class="ownbar-row">
+                <div class="ownbar-lab"><span id="bar2-lab">Répartition du produit net</span><span id="own-after-tot"></span></div>
+                <div class="ownbar" id="own-after"></div>
+              </div>
+              <div class="legend" id="legend"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card__h" id="rtable-h">Détail par actionnaire</div>
+            <div class="rtable-wrap">
+              <table class="rtable" id="rtable">
+                <thead><tr id="rtable-head"></tr></thead>
+                <tbody id="rtable-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <p class="note" id="result-note"></p>
+        </div>
+      </div>
+
+      <!-- LEXIQUE -->
+      <section class="lexique" id="lexique">
+        <div class="ext__eyebrow">Lexique</div>
+        <h2 class="lexique__title">Les termes d'un exit, définis</h2>
+        <p class="lexique__sub">Ce qui se négocie à l'entrée (au terme sheet) détermine ce que chacun touche à la sortie. Voici le vocabulaire employé par cet outil, expliqué simplement mais précisément.</p>
+
+        <div class="lexique__cat">Le point piège</div>
+        <div class="lexique__grid">
+          <div class="glo" style="grid-column: 1 / -1">
+            <div class="glo__term">Préférence <span class="term" data-term="participante" tabindex="0" style="border:0;cursor:default">participante</span> <span class="glo__en">participating preferred — le double comptage</span></div>
+            <p class="glo__def">Une <span class="term" data-term="pref-liq" tabindex="0">préférence de liquidation</span> « simple » (non participante) donne à l'investisseur le <b>plus élevé</b> entre sa préférence (ex. 1x sa mise) et sa part au <span class="term" data-term="as-converted" tabindex="0">prorata</span> s'il convertissait en actions ordinaires — jamais les deux.</p>
+            <p class="glo__def">Une préférence <b>participante</b> change la règle : l'investisseur touche d'abord sa préférence, <b>puis</b> participe en plus, au prorata, à ce qu'il reste — sans avoir à convertir. À valorisation de sortie modeste, cela peut réduire drastiquement ce qui revient aux fondateurs et au pool, même quand l'investisseur ne détient qu'une minorité du capital.</p>
+            <p class="glo__def">Le <b>plafond de participation (cap)</b> limite ce risque : au-delà d'un multiple donné (ex. 3x la mise), l'investisseur doit choisir entre garder sa préférence plafonnée ou convertir en ordinaire. Basculez « Participative » et le cap dans l'outil pour voir l'écart chiffré sur la part des fondateurs.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // ---------- Formatage ----------
+    const nfInt = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
+    const eur0 = (n) => nfInt.format(Math.round(n)) + ' €';
+    const num0 = (n) => nfInt.format(Math.round(n));
+    const pct1 = (n) => (n * 100).toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %';
+    const parseNum = (s) => {
+      if (s == null) return 0;
+      const cleaned = String(s).replace(/[^0-9.,-]/g, '').replace(/\s/g, '').replace(',', '.');
+      const v = parseFloat(cleaned);
+      return isFinite(v) ? v : 0;
+    };
+    const fmtLiveInt = (s) => { const v = parseNum(s); return v ? nfInt.format(Math.round(v)) : ''; };
+    const fmtPctInput = (v) => (!v ? '' : v.toLocaleString('fr-FR', { maximumFractionDigits: 2 }));
+    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+    const escAttr = (s) => String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/</g, '&lt;');
+
+    let mode = 'pct';        // 'pct' | 'shares' — saisie de la cap table
+    let exitType = 'total';  // 'total' | 'partial'
+    const fmtRowVal = (v) => (mode === 'pct' ? fmtPctInput(v) : (v ? nfInt.format(Math.round(v)) : ''));
+    const NOTIONAL_BASE = 1000000;
+    let nextRid = 1;
+
+    const CATS = {
+      founder: { label: 'Fondateurs', cls: 'c-founder', color: '#4f46e5' },
+      pool0:   { label: 'Pool / BSPCE', cls: 'c-pool0', color: '#d97706' },
+      invest0: { label: 'Investisseurs', cls: 'c-invest0', color: '#0d9488' },
+      buyer:   { label: 'Acheteur (secondaire)', cls: 'c-buyer', color: '#2563eb' },
+    };
+
+    const EXAMPLE = {
+      shareholders: [
+        { name: 'Fondateur A', shares: 380000, type: 'founder' },
+        { name: 'Fondateur B', shares: 320000, type: 'founder' },
+        { name: 'Pool BSPCE', shares: 100000, type: 'pool0' },
+        { name: 'Seed Capital', shares: 130000, type: 'invest0',
+          pref: { invested: 800000, multiple: 1, participating: false, cap: 0, rank: 2, convert: false } },
+        { name: 'Série A Ventures', shares: 70000, type: 'invest0',
+          pref: { invested: 3000000, multiple: 1, participating: true, cap: 3, rank: 1, convert: false } },
+      ],
+      salePrice: 15000000, fees: 3, debt: 0,
+      partValo: 8000000, buyer: 'Investisseur secondaire',
+    };
+
+    const shRowsEl = document.getElementById('sh-rows');
+
+    function prefFieldsHTML(rid, pref) {
+      pref = pref || { invested: 0, multiple: 1, participating: false, cap: 0, rank: 1, convert: false };
+      return `<div class="xrow__pref" data-role="pref">
+        <div class="pf">
+          <span class="pf__lab">Montant investi</span>
+          <div class="inp-wrap"><input class="inp inp--money in-invested" type="text" inputmode="numeric" value="${pref.invested ? nfInt.format(pref.invested) : ''}" placeholder="0" /><span class="inp-wrap__suf">€</span></div>
+        </div>
+        <div class="pf">
+          <span class="pf__lab">Multiple de préférence</span>
+          <div class="inp-wrap"><input class="inp inp--money in-multiple" type="text" inputmode="decimal" value="${pref.multiple || 1}" /><span class="inp-wrap__suf">x</span></div>
+        </div>
+        <label class="pf pf--check">
+          <input type="checkbox" class="in-participating" ${pref.participating ? 'checked' : ''} />
+          <span class="pf__lab">Participative <small style="display:inline;text-transform:none">(touche la préférence + une part du reliquat)</small></span>
+        </label>
+        <div class="pf in-cap-wrap" ${pref.participating ? '' : 'hidden'}>
+          <span class="pf__lab">Plafond (cap) <small>0 = pas de plafond</small></span>
+          <div class="inp-wrap"><input class="inp inp--money in-cap" type="text" inputmode="decimal" value="${pref.cap || 0}" /><span class="inp-wrap__suf">x</span></div>
+        </div>
+        <div class="pf">
+          <span class="pf__lab">Rang de séniorité <small>1 = prioritaire ; égalité = pari passu</small></span>
+          <input class="inp in-rank" type="text" inputmode="numeric" value="${pref.rank || 1}" />
+        </div>
+        <label class="pf pf--check pf--convert">
+          <input type="checkbox" class="in-convert" ${pref.convert ? 'checked' : ''} />
+          <span class="pf__lab">Convertir en actions ordinaires <small style="display:inline;text-transform:none">(renonce à la préférence, prend sa part au prorata)</small></span>
+        </label>
+      </div>`;
+    }
+
+    function sellFieldsHTML(sellPct) {
+      return `<div class="xrow__sell" data-role="sell">
+        <span class="pf__lab">% de sa participation cédée</span>
+        <div class="inp-wrap"><input class="inp inp--money in-sellpct" type="text" inputmode="decimal" value="${sellPct || 0}" /><span class="inp-wrap__suf">%</span></div>
+        <span class="sell-out"></span>
+      </div>`;
+    }
+
+    function shRowHTML(sh) {
+      const opt = (v, l) => `<option value="${v}"${sh.type === v ? ' selected' : ''}>${l}</option>`;
+      const rid = sh.rid || (nextRid++);
+      return `<div class="xrow" data-role="sh" data-rid="${rid}" data-type="${sh.type}">
+        <div class="xrow__main">
+          <input class="inp in-name" type="text" value="${escAttr(sh.name)}" placeholder="Nom" />
+          <input class="inp inp--money in-shares" type="text" inputmode="${mode === 'pct' ? 'decimal' : 'numeric'}" value="${fmtRowVal(sh.value)}" placeholder="0" />
+          <select class="sel in-type">
+            ${opt('founder', 'Fondateur')}
+            ${opt('invest0', 'Investisseur')}
+            ${opt('pool0', 'Pool / BSPCE')}
+          </select>
+          <button type="button" class="xrow__del" title="Supprimer">×</button>
+        </div>
+        ${prefFieldsHTML(rid, sh.pref)}
+        ${sellFieldsHTML(sh.sellPct)}
+      </div>`;
+    }
+
+    function exampleShRows() {
+      const tot = EXAMPLE.shareholders.reduce((a, s) => a + s.shares, 0) || 1;
+      return EXAMPLE.shareholders.map(s => ({
+        name: s.name, type: s.type, pref: s.pref, sellPct: 0,
+        value: mode === 'pct' ? (s.shares / tot * 100) : s.shares,
+      }));
+    }
+
+    function loadExample() {
+      shRowsEl.innerHTML = exampleShRows().map(shRowHTML).join('');
+      document.getElementById('sale-price').value = nfInt.format(EXAMPLE.salePrice);
+      document.getElementById('sale-fees').value = String(EXAMPLE.fees);
+      document.getElementById('sale-debt').value = nfInt.format(EXAMPLE.debt);
+      document.getElementById('part-valo').value = nfInt.format(EXAMPLE.partValo);
+      document.getElementById('part-buyer').value = EXAMPLE.buyer;
+      syncRowVisibility();
+      recompute();
+    }
+
+    // ---------- Visibilité conditionnelle des sous-blocs de ligne ----------
+    function syncRowVisibility() {
+      shRowsEl.querySelectorAll('.xrow').forEach(row => {
+        const type = row.querySelector('.in-type').value;
+        row.dataset.type = type;
+        const pref = row.querySelector('[data-role="pref"]');
+        const sell = row.querySelector('[data-role="sell"]');
+        pref.hidden = !(exitType === 'total' && type === 'invest0');
+        sell.hidden = !(exitType === 'partial');
+        const capWrap = row.querySelector('.in-cap-wrap');
+        if (capWrap) capWrap.hidden = !row.querySelector('.in-participating').checked;
+      });
+    }
+
+    // ---------- Lecture de l'état ----------
+    function readState() {
+      const rows = [...shRowsEl.querySelectorAll('.xrow')].map(row => {
+        const type = row.querySelector('.in-type').value;
+        const name = row.querySelector('.in-name').value.trim() || (type === 'founder' ? 'Fondateur' : type === 'pool0' ? 'Pool' : 'Investisseur');
+        const value = parseNum(row.querySelector('.in-shares').value);
+        let pref = null;
+        if (type === 'invest0') {
+          pref = {
+            invested: parseNum(row.querySelector('.in-invested').value),
+            multiple: parseNum(row.querySelector('.in-multiple').value) || 1,
+            participating: row.querySelector('.in-participating').checked,
+            cap: parseNum(row.querySelector('.in-cap').value) || 0,
+            rank: parseInt(row.querySelector('.in-rank').value, 10) || 1,
+            convert: row.querySelector('.in-convert').checked,
+          };
+        }
+        const sellPct = clamp(parseNum(row.querySelector('.in-sellpct').value), 0, 100) / 100;
+        return { rid: row.dataset.rid, name, type, value, pref, sellPct };
+      });
+      const E = rows.reduce((a, r) => a + r.value, 0);
+      return {
+        rows, E,
+        salePrice: parseNum(document.getElementById('sale-price').value),
+        fees: parseNum(document.getElementById('sale-fees').value) / 100,
+        debt: parseNum(document.getElementById('sale-debt').value),
+        partValo: parseNum(document.getElementById('part-valo').value),
+        buyer: document.getElementById('part-buyer').value.trim() || 'Acheteur',
+      };
+    }
+
+    // ---------- Calcul : sortie totale (waterfall) ----------
+    function computeTotal(st) {
+      const E = st.E;
+      const net = st.salePrice - st.salePrice * st.fees - st.debt;
+      const res = { E, net, rows: [], error: null };
+      if (E <= 0 || st.salePrice <= 0) { res.error = 'incomplete'; return res; }
+      if (net <= 0) { res.error = 'noProceeds'; return res; }
+
+      const fdFrac = (r) => r.value / E;
+      const nonConv = st.rows.filter(r => r.type === 'invest0' && !r.pref.convert);
+      const common = st.rows.filter(r => r.type !== 'invest0' || r.pref.convert);
+
+      // 1) Cascade des préférences, par rang croissant (pari passu au sein d'un même rang)
+      const paid = new Map();
+      let remaining = net;
+      const ranks = [...new Set(nonConv.map(r => r.pref.rank))].sort((a, b) => a - b);
+      let shortfall = false;
+      ranks.forEach(rank => {
+        const tier = nonConv.filter(r => r.pref.rank === rank);
+        const claim = tier.reduce((a, r) => a + r.pref.multiple * r.pref.invested, 0);
+        if (claim <= 0) return;
+        if (remaining >= claim) {
+          tier.forEach(r => paid.set(r.rid, r.pref.multiple * r.pref.invested));
+          remaining -= claim;
+        } else {
+          shortfall = true;
+          tier.forEach(r => paid.set(r.rid, remaining * (r.pref.multiple * r.pref.invested / claim)));
+          remaining = 0;
+        }
+      });
+      const afterPrefResidual = remaining;
+
+      // 2) Distribution du reliquat au prorata (ordinaires + investisseurs convertis + participatives), avec plafond
+      const proceeds = new Map();
+      st.rows.forEach(r => proceeds.set(r.rid, paid.get(r.rid) || 0));
+      let pool = common.concat(nonConv.filter(r => r.pref.participating));
+      let amt = afterPrefResidual;
+      let cappedTotal = 0;
+      for (let iter = 0; iter < 6 && amt > 0.5 && pool.length > 0; iter++) {
+        const fdSum = pool.reduce((a, r) => a + fdFrac(r), 0);
+        if (fdSum <= 0) break;
+        const newlyCapped = [];
+        let distributed = 0;
+        pool.forEach(r => {
+          const add = fdFrac(r) / fdSum * amt;
+          let capRoom = Infinity;
+          if (r.type === 'invest0' && r.pref.participating && r.pref.cap > 0) {
+            const capAmt = r.pref.cap * r.pref.invested;
+            capRoom = capAmt - (proceeds.get(r.rid) || 0);
+          }
+          if (add >= capRoom) {
+            proceeds.set(r.rid, (proceeds.get(r.rid) || 0) + Math.max(0, capRoom));
+            distributed += Math.max(0, capRoom);
+            newlyCapped.push(r.rid);
+          } else {
+            proceeds.set(r.rid, (proceeds.get(r.rid) || 0) + add);
+            distributed += add;
+          }
+        });
+        amt -= distributed;
+        pool = pool.filter(r => !newlyCapped.includes(r.rid));
+      }
+      cappedTotal = amt > 0.5 ? amt : 0;
+
+      res.rows = st.rows.map(r => {
+        const got = proceeds.get(r.rid) || 0;
+        const moic = (r.pref && r.pref.invested > 0) ? got / r.pref.invested : null;
+        return { ...r, pctBefore: fdFrac(r), proceeds: got, pctOfNet: net > 0 ? got / net : 0, moic, converted: r.pref ? r.pref.convert : null };
+      });
+      res.shortfall = shortfall;
+      res.leftover = cappedTotal;
+      res.founderTotal = res.rows.filter(r => r.type === 'founder').reduce((a, r) => a + r.proceeds, 0);
+      res.poolTotal = res.rows.filter(r => r.type === 'pool0').reduce((a, r) => a + r.proceeds, 0);
+      res.investTotal = res.rows.filter(r => r.type === 'invest0').reduce((a, r) => a + r.proceeds, 0);
+      res.investedTotal = res.rows.filter(r => r.type === 'invest0').reduce((a, r) => a + (r.pref.invested || 0), 0);
+      res.moicGlobal = res.investedTotal > 0 ? res.investTotal / res.investedTotal : null;
+      return res;
+    }
+
+    // ---------- Calcul : sortie partielle (cession secondaire) ----------
+    function computePartial(st) {
+      const E = st.E;
+      const res = { E, error: null };
+      if (E <= 0 || st.partValo <= 0) { res.error = 'incomplete'; return res; }
+      const fdFrac = (r) => r.value / E;
+
+      let totalSoldFrac = 0, totalProceeds = 0;
+      res.rows = st.rows.map(r => {
+        const pctBefore = fdFrac(r);
+        const soldFdFrac = r.sellPct * pctBefore;
+        const proceeds = soldFdFrac * st.partValo;
+        totalSoldFrac += soldFdFrac;
+        totalProceeds += proceeds;
+        return { ...r, pctBefore, pctAfter: pctBefore * (1 - r.sellPct), proceeds };
+      });
+      res.buyerPct = totalSoldFrac;
+      res.totalProceeds = totalProceeds;
+      res.buyer = st.buyer;
+      res.pps = mode === 'shares' ? st.partValo / E : null;
+      res.ppsPctPoint = st.partValo / 100;
+      return res;
+    }
+
+    // ---------- Rendu ----------
+    function warnHTML(msg) {
+      return `<div class="warn"><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg><div>${msg}</div></div>`;
+    }
+
+    function renderBars(segBefore, segAfter, totalBefore, totalAfter, lab1, lab2) {
+      const before = document.getElementById('own-before');
+      const after = document.getElementById('own-after');
+      const legend = document.getElementById('legend');
+      document.getElementById('bar1-lab').textContent = lab1;
+      document.getElementById('bar2-lab').textContent = lab2;
+      if (!segBefore) { before.innerHTML = ''; after.innerHTML = ''; legend.innerHTML = '';
+        document.getElementById('own-before-tot').textContent = '';
+        document.getElementById('own-after-tot').textContent = ''; return; }
+      const seg = (list, total) => list.filter(s => s.val > 0.0001).map(s => {
+        const pct = total > 0 ? s.val / total : 0;
+        const c = CATS[s.cat];
+        return `<div class="ownseg ${c.cls}" style="width:${(pct * 100).toFixed(3)}%" title="${c.label} — ${pct1(pct)}">${pct >= 0.06 ? pct1(pct) : ''}</div>`;
+      }).join('');
+      before.innerHTML = seg(segBefore, totalBefore);
+      after.innerHTML = seg(segAfter, totalAfter);
+      document.getElementById('own-before-tot').textContent = '100 %';
+      document.getElementById('own-after-tot').textContent = '100 %';
+      const usedCats = [...new Set(segBefore.concat(segAfter).filter(s => s.val > 0.0001).map(s => s.cat))];
+      legend.innerHTML = usedCats.map(c => `<span class="legend__it"><span class="legend__sw ${CATS[c].cls}"></span>${CATS[c].label}</span>`).join('');
+    }
+
+    function renderTotal(st, r) {
+      const kpis = document.getElementById('kpis');
+      const warnBox = document.getElementById('warn-box');
+      warnBox.innerHTML = '';
+
+      if (r.error === 'incomplete') {
+        kpis.innerHTML = '';
+        document.getElementById('rtable-head').innerHTML = '';
+        document.getElementById('rtable-body').innerHTML = '<tr><td class="l" colspan="6" style="color:#a8a8b3;text-align:center;padding:20px 0">Renseignez la cap table et le prix de vente.</td></tr>';
+        renderBars(null);
+        document.getElementById('result-note').innerHTML = '';
+        return;
+      }
+      if (r.error === 'noProceeds') {
+        warnBox.innerHTML = warnHTML('Le produit net (prix de vente − frais − dette) est nul ou négatif : personne ne perçoit rien à ce prix de cession.');
+      } else if (r.shortfall) {
+        warnBox.innerHTML = warnHTML('Le produit net ne couvre pas la totalité des préférences de liquidation dues : certains investisseurs ne récupèrent pas leur mise, et les actionnaires ordinaires (fondateurs, pool) ne perçoivent probablement rien.');
+      }
+      if (r.founderTotal <= 0.5 && r.net > 0 && !r.shortfall) {
+        warnBox.innerHTML += warnHTML('À ce prix de cession, les préférences de liquidation (et la participation éventuelle) absorbent tout le reliquat : les fondateurs ne perçoivent rien.');
+      }
+
+      kpis.innerHTML = `
+        <div class="kpi kpi--accent">
+          <div class="kpi__lab">Produit net distribuable</div>
+          <div class="kpi__val">${eur0(Math.max(0, r.net))}</div>
+          <div class="kpi__sub">${eur0(st.salePrice)} − frais − dette</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi__lab">Part des fondateurs</div>
+          <div class="kpi__val">${eur0(r.founderTotal)}</div>
+          <div class="kpi__sub">${r.net > 0 ? pct1(r.founderTotal / r.net) : '—'} du produit net</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi__lab">Part des investisseurs</div>
+          <div class="kpi__val">${eur0(r.investTotal)}</div>
+          <div class="kpi__sub">${r.net > 0 ? pct1(r.investTotal / r.net) : '—'} du produit net</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi__lab">MOIC moyen investisseurs</div>
+          <div class="kpi__val">${r.moicGlobal != null ? r.moicGlobal.toFixed(2) + '×' : '—'}</div>
+          <div class="kpi__sub">produit perçu ÷ montant investi</div>
+        </div>`;
+
+      const segBefore = ['founder', 'pool0', 'invest0'].map(cat => ({ cat, val: r.rows.filter(x => x.type === cat).reduce((a, x) => a + x.value, 0) }));
+      const segAfter = ['founder', 'pool0', 'invest0'].map(cat => ({ cat, val: r.rows.filter(x => x.type === cat).reduce((a, x) => a + x.proceeds, 0) }));
+      renderBars(segBefore, segAfter, r.E, Math.max(r.net, 0.0001), 'Répartition du capital', 'Répartition du produit net');
+
+      document.getElementById('rtable-h').textContent = 'Détail par actionnaire — cascade de distribution';
+      document.getElementById('rtable-head').innerHTML = `<th class="l">Actionnaire</th><th>% capital</th><th>Investi</th><th>Produit perçu</th><th>Multiple</th><th>% du produit</th>`;
+      const rowsSorted = r.rows.slice().sort((a, b) => b.proceeds - a.proceeds);
+      document.getElementById('rtable-body').innerHTML = rowsSorted.map(row => {
+        const c = CATS[row.type];
+        const tag = row.type === 'invest0' ? (row.converted ? '<span class="rt-tag">converti</span>' : (row.pref.participating ? '<span class="rt-tag">participative</span>' : '')) : '';
+        return `<tr class="${row.proceeds <= 0.5 ? 'rt-zero' : ''}">
+          <td class="l"><span class="rt-name"><span class="rt-dot ${c.cls}"></span>${escAttr(row.name)}${tag}</span></td>
+          <td class="rt-num">${pct1(row.pctBefore)}</td>
+          <td class="rt-num">${row.pref && row.pref.invested > 0 ? eur0(row.pref.invested) : '—'}</td>
+          <td class="rt-num">${eur0(row.proceeds)}</td>
+          <td class="rt-num">${row.moic != null ? row.moic.toFixed(2) + '×' : '—'}</td>
+          <td class="rt-num">${r.net > 0 ? pct1(row.pctOfNet) : '—'}</td>
+        </tr>`;
+      }).join('') + `<tr class="rt-total"><td class="l">Total</td><td class="rt-num">100 %</td><td class="rt-num">${eur0(r.investedTotal)}</td><td class="rt-num">${eur0(r.rows.reduce((a, x) => a + x.proceeds, 0))}</td><td></td><td class="rt-num">${r.net > 0 ? '100 %' : '—'}</td></tr>`;
+
+      document.getElementById('result-note').innerHTML = `
+        <b>Cascade (waterfall)</b> : le produit net paie d'abord les <span class="term" data-term="pref-liq" tabindex="0">préférences de liquidation</span> par <span class="term" data-term="rang" tabindex="0">rang de séniorité</span>, puis le reliquat se répartit au prorata entre actionnaires ordinaires, investisseurs convertis et investisseurs <span class="term" data-term="participante" tabindex="0">participatifs</span>.<br />
+        Cochez « Convertir en actions ordinaires » sur une ligne investisseur pour comparer sa préférence à sa valeur <span class="term" data-term="as-converted" tabindex="0">au prorata</span> — chaque investisseur choisit rationnellement le montant le plus élevé.${r.leftover > 0.5 ? `<br /><i>Reliquat non redistribué (plafonds de participation atteints) : ${eur0(r.leftover)}.</i>` : ''}`;
+    }
+
+    function renderPartial(st, r) {
+      const kpis = document.getElementById('kpis');
+      const warnBox = document.getElementById('warn-box');
+      warnBox.innerHTML = '';
+
+      if (r.error === 'incomplete') {
+        kpis.innerHTML = '';
+        document.getElementById('rtable-head').innerHTML = '';
+        document.getElementById('rtable-body').innerHTML = '<tr><td class="l" colspan="5" style="color:#a8a8b3;text-align:center;padding:20px 0">Renseignez la cap table et la valorisation retenue.</td></tr>';
+        renderBars(null);
+        document.getElementById('result-note').innerHTML = '';
+        return;
+      }
+      if (r.buyerPct <= 0.0001) {
+        warnBox.innerHTML = warnHTML('Personne ne cède de titres pour l\'instant : indiquez, ligne par ligne, le % de sa participation que chaque actionnaire vend en secondaire.');
+      } else if (r.buyerPct >= 0.999) {
+        warnBox.innerHTML = warnHTML('100 % du capital est cédé : il s\'agit d\'une sortie totale déguisée en secondaire — vérifiez que ce n\'est pas plutôt un exit total avec préférences de liquidation.');
+      }
+
+      kpis.innerHTML = `
+        <div class="kpi kpi--accent">
+          <div class="kpi__lab">Montant total de la cession</div>
+          <div class="kpi__val">${eur0(r.totalProceeds)}</div>
+          <div class="kpi__sub">payé par ${escAttr(r.buyer)}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi__lab">${mode === 'shares' ? 'Prix par action' : 'Prix pour 1 % du capital'}</div>
+          <div class="kpi__val">${mode === 'shares' ? (r.pps != null ? (r.pps >= 100 ? eur0(r.pps) : r.pps.toLocaleString('fr-FR', { maximumFractionDigits: 4 }) + ' €') : '—') : eur0(r.ppsPctPoint)}</div>
+          <div class="kpi__sub">basé sur la valorisation retenue</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi__lab">Capital transféré</div>
+          <div class="kpi__val">${pct1(r.buyerPct)}</div>
+          <div class="kpi__sub">part de la société qui change de mains</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi__lab">Vendeurs</div>
+          <div class="kpi__val">${r.rows.filter(x => x.sellPct > 0).length}</div>
+          <div class="kpi__sub">ligne(s) avec un % cédé &gt; 0</div>
+        </div>`;
+
+      const segBefore = ['founder', 'pool0', 'invest0'].map(cat => ({ cat, val: r.rows.filter(x => x.type === cat).reduce((a, x) => a + x.pctBefore, 0) }));
+      const segAfter = ['founder', 'pool0', 'invest0'].map(cat => ({ cat, val: r.rows.filter(x => x.type === cat).reduce((a, x) => a + x.pctAfter, 0) }));
+      segAfter.push({ cat: 'buyer', val: r.buyerPct });
+      renderBars(segBefore, segAfter, 1, 1, 'Capital avant', 'Capital après (secondaire)');
+
+      document.getElementById('rtable-h').textContent = 'Détail par actionnaire — cession secondaire';
+      document.getElementById('rtable-head').innerHTML = `<th class="l">Actionnaire</th><th>% avant</th><th>% cédé</th><th>Produit perçu</th><th>% après</th>`;
+      const body = r.rows.map(row => {
+        const c = CATS[row.type];
+        return `<tr class="${row.proceeds <= 0.5 ? 'rt-zero' : ''}">
+          <td class="l"><span class="rt-name"><span class="rt-dot ${c.cls}"></span>${escAttr(row.name)}</span></td>
+          <td class="rt-num">${pct1(row.pctBefore)}</td>
+          <td class="rt-num">${row.sellPct > 0 ? pct1(row.sellPct) : '—'}</td>
+          <td class="rt-num">${row.proceeds > 0.5 ? eur0(row.proceeds) : '—'}</td>
+          <td class="rt-num">${pct1(row.pctAfter)}</td>
+        </tr>`;
+      }).join('');
+      const buyerRow = `<tr>
+        <td class="l"><span class="rt-name"><span class="rt-dot c-buyer"></span>${escAttr(r.buyer)}</span></td>
+        <td class="rt-num">—</td><td class="rt-num">—</td>
+        <td class="rt-num">−${eur0(r.totalProceeds)}</td>
+        <td class="rt-num">${pct1(r.buyerPct)}</td>
+      </tr>`;
+      document.getElementById('rtable-body').innerHTML = body + buyerRow + `<tr class="rt-total"><td class="l">Total</td><td class="rt-num">100 %</td><td></td><td class="rt-num">${eur0(r.totalProceeds)}</td><td class="rt-num">100 %</td></tr>`;
+
+      document.getElementById('result-note').innerHTML = `
+        <b>Sortie partielle</b> : c'est une cession <span class="term" data-term="secondaire" tabindex="0">secondaire</span> — les titres changent de mains entre actionnaires existants et l'acheteur, sans que la société n'émette de nouvelles actions ni ne déclenche une <span class="term" data-term="waterfall" tabindex="0">cascade de liquidation</span>. Le nombre total de titres reste inchangé.<br />
+        À la différence d'une sortie totale, les <span class="term" data-term="pref-liq" tabindex="0">préférences de liquidation</span> ne s'appliquent en principe pas ici (sauf clause contraire de <span class="term" data-term="drag" tabindex="0">transfert</span> dans le pacte) : chacun vend au même prix, au prorata du prix par titre retenu.`;
+    }
+
+    function recompute() {
+      const st = readState();
+      const shTotalEl = document.getElementById('sh-total');
+      if (mode === 'pct') {
+        const off = Math.abs(st.E - 100) > 0.1;
+        shTotalEl.classList.toggle('is-warn', off && st.E > 0);
+        shTotalEl.innerHTML = st.E > 0 ? `${fmtPctInput(st.E)} %${off ? ' <span class="warn-hint">(doit faire 100 %)</span>' : ''}` : '—';
+      } else {
+        shTotalEl.classList.remove('is-warn');
+        shTotalEl.textContent = st.E > 0 ? num0(st.E) + ' actions' : '—';
+      }
+
+      if (exitType === 'total') {
+        renderTotal(st, computeTotal(st));
+      } else {
+        renderPartial(st, computePartial(st));
+      }
+    }
+
+    // ---------- Interactions ----------
+    function syncModeUI() {
+      document.querySelectorAll('#mode-seg .seg__btn').forEach(b => b.classList.toggle('is-on', b.dataset.mode === mode));
+      document.getElementById('sh-col-lab').textContent = mode === 'pct' ? '%' : 'Actions';
+      document.getElementById('sh-total-lab').textContent = mode === 'pct' ? 'Total' : 'Total actions (avant)';
+      document.getElementById('sh-desc').innerHTML = mode === 'pct'
+        ? `Le capital <b>avant</b> la cession, en % du capital (<span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span>). Le total doit faire 100 %.`
+        : `Le capital <b>avant</b> la cession, en nombre d'actions (<span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span>).`;
+    }
+
+    function setMode(newMode) {
+      if (newMode === mode || (newMode !== 'pct' && newMode !== 'shares')) return;
+      const rows = [...shRowsEl.querySelectorAll('.xrow')];
+      const vals = rows.map(r => parseNum(r.querySelector('.in-shares').value));
+      const sum = vals.reduce((a, b) => a + b, 0);
+      rows.forEach((r, i) => {
+        const inp = r.querySelector('.in-shares');
+        let v = vals[i];
+        if (mode === 'shares' && newMode === 'pct') v = sum > 0 ? (v / sum * 100) : 0;
+        else if (mode === 'pct' && newMode === 'shares') v = Math.round(v / 100 * NOTIONAL_BASE);
+        inp.setAttribute('inputmode', newMode === 'pct' ? 'decimal' : 'numeric');
+        inp.value = newMode === 'pct' ? fmtPctInput(v) : (v ? nfInt.format(v) : '');
+      });
+      mode = newMode;
+      syncModeUI();
+      recompute();
+    }
+
+    function setExitType(nt) {
+      if (nt === exitType || (nt !== 'total' && nt !== 'partial')) return;
+      exitType = nt;
+      document.querySelectorAll('#exit-type-seg .type-seg__btn').forEach(b => b.classList.toggle('is-on', b.dataset.etype === exitType));
+      document.getElementById('deal-total').hidden = exitType !== 'total';
+      document.getElementById('deal-partial').hidden = exitType !== 'partial';
+      document.getElementById('deal-h').textContent = exitType === 'total' ? '2 · Paramètres de la cession' : '2 · Paramètres de la cession partielle';
+      document.getElementById('deal-desc').textContent = exitType === 'total'
+        ? "Le prix de vente se répartit d'abord selon les préférences de liquidation, puis au prorata pour le reliquat."
+        : "Une cession secondaire : chaque actionnaire choisit le % de sa participation qu'il vend, au même prix par titre.";
+      document.getElementById('type-hint').textContent = exitType === 'total'
+        ? "Cession de 100 % du capital (M&A, fusion, IPO valant liquidation) : le produit passe par la cascade de préférences avant d'être partagé."
+        : "Cession partielle des titres d'un ou plusieurs actionnaires à un acheteur (secondaire), sans opération de liquidation ni nouvelle émission.";
+      syncRowVisibility();
+      recompute();
+    }
+
+    const form = document.getElementById('ext-form');
+    form.addEventListener('input', (e) => {
+      if (e.target.classList.contains('in-participating')) {
+        const capWrap = e.target.closest('.xrow__pref').querySelector('.in-cap-wrap');
+        if (capWrap) capWrap.hidden = !e.target.checked;
+      }
+      recompute();
+    });
+    form.addEventListener('change', (e) => {
+      if (e.target.classList.contains('in-type')) syncRowVisibility();
+      recompute();
+    });
+    form.addEventListener('blur', (e) => {
+      const t = e.target;
+      if (!t.classList) return;
+      if (t.classList.contains('in-shares')) { t.value = mode === 'pct' ? fmtPctInput(parseNum(t.value)) : fmtLiveInt(t.value); recompute(); }
+      else if (t.classList.contains('in-invested') || t.id === 'sale-price' || t.id === 'sale-debt' || t.id === 'part-valo') { t.value = fmtLiveInt(t.value); recompute(); }
+    }, true);
+
+    document.getElementById('mode-seg').addEventListener('click', (e) => {
+      const btn = e.target.closest('.seg__btn');
+      if (btn) setMode(btn.dataset.mode);
+    });
+    document.getElementById('exit-type-seg').addEventListener('click', (e) => {
+      const btn = e.target.closest('.type-seg__btn');
+      if (btn) setExitType(btn.dataset.etype);
+    });
+
+    document.getElementById('add-sh').addEventListener('click', () => {
+      shRowsEl.insertAdjacentHTML('beforeend', shRowHTML({ name: '', value: 0, type: 'invest0' }));
+      syncRowVisibility();
+      recompute();
+    });
+    document.addEventListener('click', (e) => {
+      if (e.target.classList && e.target.classList.contains('xrow__del')) {
+        e.target.closest('.xrow').remove();
+        recompute();
+      }
+    });
+
+    document.getElementById('reset-btn').addEventListener('click', loadExample);
+
+    document.getElementById('page-back-btn').addEventListener('click', () => {
+      if (window.history.length > 1) window.history.back();
+      else window.location.href = 'dossiers.html';
+    });
+
+    // ---------- Info-bulles de définition ----------
+    const GLOSSARY = {
+      'pref-liq':     "<b>Préférence de liquidation</b> — droit d'un investisseur d'être payé en priorité sur le produit d'une cession, avant les actionnaires ordinaires, à hauteur d'un multiple de sa mise (souvent 1x).",
+      'participante': "<b>Préférence participative</b> — l'investisseur touche sa préférence <b>puis</b> participe en plus, au prorata, au reliquat. Peut être plafonnée par un <b>cap</b>.",
+      'rang':         "<b>Rang de séniorité</b> — l'ordre dans lequel les préférences sont payées. Le rang 1 est payé en premier ; à rang égal, le paiement se fait <b>pari passu</b> (au prorata entre eux si le produit ne suffit pas).",
+      'as-converted': "<b>Valeur au prorata (as-converted)</b> — ce que toucherait un investisseur s'il renonçait à sa préférence pour être traité comme un actionnaire ordinaire, au prorata de son % du capital.",
+      'waterfall':    "<b>Cascade de distribution (waterfall)</b> — l'ordre dans lequel le produit d'une cession est réparti : dette, préférences de liquidation par rang, puis reliquat au prorata.",
+      'fully-diluted':"<b>Fully diluted</b> — capital compté en incluant tous les titres convertibles en actions (pool, BSPCE, BSA), comme s'ils étaient déjà exercés.",
+      'secondaire':   "<b>Cession secondaire</b> — vente de titres existants entre actionnaires et un acheteur, sans que la société n'émette de nouvelles actions (à l'inverse d'un tour primaire qui lève de l'argent pour la société).",
+      'drag':         "<b>Drag-along / tag-along</b> — clauses du pacte d'actionnaires qui organisent une sortie conjointe : le drag-along force les minoritaires à suivre une cession majoritaire ; le tag-along leur donne le droit de s'y associer aux mêmes conditions.",
+    };
+    (function initTips() {
+      const tip = document.createElement('div');
+      tip.className = 'tip';
+      tip.setAttribute('role', 'tooltip');
+      document.body.appendChild(tip);
+      let current = null;
+      function show(el) {
+        const def = GLOSSARY[el.dataset.term];
+        if (!def) return;
+        tip.innerHTML = def;
+        tip.classList.add('is-on');
+        const r = el.getBoundingClientRect();
+        const w = tip.offsetWidth, h = tip.offsetHeight;
+        let left = r.left + r.width / 2 - w / 2;
+        left = Math.max(10, Math.min(left, window.innerWidth - w - 10));
+        let top = r.top - h - 9;
+        if (top < 10) top = r.bottom + 9;
+        tip.style.left = Math.round(left) + 'px';
+        tip.style.top = Math.round(top) + 'px';
+        current = el;
+      }
+      function hide() { tip.classList.remove('is-on'); current = null; }
+      document.addEventListener('mouseover', (e) => { const t = e.target.closest('.term'); if (t && t !== current) show(t); });
+      document.addEventListener('mouseout', (e) => {
+        const t = e.target.closest('.term');
+        if (!t) return;
+        const to = e.relatedTarget;
+        if (!to || !to.closest || !to.closest('.term')) hide();
+      });
+      document.addEventListener('focusin', (e) => { const t = e.target.closest && e.target.closest('.term'); if (t) show(t); });
+      document.addEventListener('focusout', (e) => { if (e.target.closest && e.target.closest('.term')) hide(); });
+      document.addEventListener('click', (e) => { const t = e.target.closest('.term'); if (t) { current === t ? hide() : show(t); } else if (current) hide(); });
+      window.addEventListener('scroll', () => { if (current) hide(); }, true);
+      window.addEventListener('resize', hide);
+    })();
+
+    // Init
+    syncModeUI();
+    setExitType('total');
+    loadExample();
+  </script>
+</body>
+</html>
