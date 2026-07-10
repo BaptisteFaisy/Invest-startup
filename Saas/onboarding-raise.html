@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>liquid + - Votre lev&eacute;e</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <style>
+      :root { --navy:#001839; --dark:#08090c; --blue:#3b82f6; --muted:#6b6b78; --line:rgba(8,9,12,0.14); }
+      * { box-sizing: border-box; }
+      body { font-family:'Libre Franklin',system-ui,sans-serif; background:#08090c; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px 16px; margin:0; }
+      .auth-wrap { width:100%; max-width:760px; display:flex; flex-direction:column; align-items:center; gap:32px; }
+      .auth-logo { font-family:'Libre Franklin',sans-serif; font-weight:800; font-size:1.6rem; letter-spacing:-0.02em; color:#fff; text-decoration:none; }
+      .auth-logo span { color:var(--blue); }
+      .auth-card { background:#fff; border-radius:20px; padding:40px 36px; width:100%; box-shadow:0 24px 60px rgba(0,0,0,0.5); }
+      .auth-card h1 { font-family:'Libre Franklin',sans-serif; font-size:1.6rem; font-weight:800; letter-spacing:-0.02em; color:#08090c; margin:0 0 6px; }
+      .auth-lead { font-size:0.92rem; color:var(--muted); margin:0 0 24px; line-height:1.5; }
+      .raise-form { display:flex; flex-direction:column; gap:18px; }
+      .raise-grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:14px; }
+      .raise-field { display:flex; flex-direction:column; gap:7px; min-width:0; }
+      .raise-field--wide { grid-column:1 / -1; }
+      .raise-field__label { font-family:'Archivo',sans-serif; font-size:11px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); }
+      .raise-field__label--required::after { content:' \00b7\20 obligatoire'; color:#dc2626; letter-spacing:0; text-transform:none; font-weight:700; }
+      .raise-input, .raise-select, .raise-textarea { width:100%; font-family:'Libre Franklin',sans-serif; font-size:14px; color:#08090c; background:#f7f7f5; border:1px solid var(--line); border-radius:9px; padding:10px 11px; outline:none; transition:border-color .15s, box-shadow .15s, background .15s; }
+      .raise-input:focus, .raise-select:focus, .raise-textarea:focus { background:#fff; border-color:rgba(8,9,12,0.55); box-shadow:0 0 0 3px rgba(8,9,12,0.08); }
+      .raise-textarea { min-height:96px; resize:vertical; line-height:1.5; }
+      .raise-founders { display:flex; flex-direction:column; gap:10px; }
+      .raise-founders__head { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+      .raise-founders__title { font-family:'Archivo',sans-serif; font-size:11px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); }
+      .raise-founder-row { display:grid; grid-template-columns:minmax(0, 1.15fr) minmax(150px, .8fr) minmax(0, 1fr) 34px; gap:8px; align-items:center; }
+      .raise-founder-remove { width:34px; height:34px; display:grid; place-items:center; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--muted); font-size:18px; line-height:1; cursor:pointer; }
+      .raise-founder-remove:hover { border-color:rgba(220,38,38,0.45); color:#dc2626; background:rgba(220,38,38,0.05); }
+      .raise-actions { display:flex; align-items:center; justify-content:flex-end; gap:10px; flex-wrap:wrap; margin-top:4px; }
+      .raise-status { font-size:13px; color:var(--muted); margin-right:auto; }
+      .raise-status.is-error { color:#dc2626; }
+      .raise-status.is-ok { color:#16a34a; }
+      .auth-submit, .secondary-btn { border-radius:10px; padding:12px 20px; font-size:0.95rem; font-weight:700; cursor:pointer; font-family:'Libre Franklin',sans-serif; transition:background .18s, border-color .18s, color .18s; }
+      .auth-submit { background:var(--dark); color:#fff; border:none; }
+      .auth-submit:hover { background:#1a1d24; }
+      .auth-submit:disabled { opacity:0.5; cursor:not-allowed; }
+      .secondary-btn { background:#fff; color:#08090c; border:1px solid var(--line); }
+      .secondary-btn:hover { background:#f7f7f5; border-color:rgba(8,9,12,0.28); }
+      .auth-alert { padding:10px 14px; border-radius:8px; font-size:0.88rem; margin-bottom:16px; }
+      .auth-alert--error { background:rgba(224,88,72,0.1); color:#c0392b; border:1px solid rgba(224,88,72,0.2); }
+      @media (max-width: 720px) {
+        body { justify-content:flex-start; }
+        .auth-card { padding:30px 22px; }
+        .raise-grid { grid-template-columns:1fr; }
+        .raise-founder-row { grid-template-columns:1fr; }
+        .raise-founder-remove { justify-self:end; }
+        .raise-actions { align-items:stretch; }
+        .raise-status { width:100%; }
+        .auth-submit, .secondary-btn { width:100%; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="auth-wrap">
+      <a class="auth-logo" href="/index.html">liquid <span>+</span></a>
+
+      <div class="auth-card">
+        <h1>Votre lev&eacute;e</h1>
+        <p class="auth-lead">Renseignez les informations de base de votre lev&eacute;e. Elles resteront modifiables dans l'onglet Ma lev&eacute;e.</p>
+
+        <div id="auth-error" class="auth-alert auth-alert--error" role="alert" hidden></div>
+
+        <form class="raise-form" id="raise-form">
+          <div class="raise-grid">
+            <label class="raise-field">
+              <span class="raise-field__label">Nom de la soci&eacute;t&eacute;</span>
+              <input class="raise-input" name="company_name" type="text" autocomplete="organization" />
+            </label>
+            <label class="raise-field">
+              <span class="raise-field__label raise-field__label--required">Pays de r&eacute;sidence de la soci&eacute;t&eacute;</span>
+              <select class="raise-select" name="company_country" required>
+                <option value="france">France</option>
+                <option value="us">&Eacute;tats-Unis</option>
+                <option value="uk">Royaume-Uni</option>
+                <option value="germany">Allemagne</option>
+                <option value="other">Autre</option>
+              </select>
+            </label>
+            <label class="raise-field">
+              <span class="raise-field__label raise-field__label--required">Type de lev&eacute;e de fonds</span>
+              <select class="raise-select" name="raise_type" required>
+                <option value="classic">Lev&eacute;e classique</option>
+                <option value="bsa-air">BSA-AIR</option>
+                <option value="unknown">Je ne sais pas encore</option>
+              </select>
+            </label>
+            <label class="raise-field">
+              <span class="raise-field__label">Montant vis&eacute;</span>
+              <input class="raise-input" name="target_amount" type="number" min="0" step="1000" inputmode="numeric" placeholder="Ex. 500000" />
+            </label>
+            <label class="raise-field">
+              <span class="raise-field__label">Date cible</span>
+              <input class="raise-input" name="target_date" type="date" />
+            </label>
+            <label class="raise-field raise-field--wide">
+              <span class="raise-field__label">Pourquoi lever ?</span>
+              <textarea class="raise-textarea" name="raise_reason" placeholder="Ex. recruter, acc&eacute;l&eacute;rer le produit, financer le go-to-market..."></textarea>
+            </label>
+          </div>
+
+          <div class="raise-founders">
+            <div class="raise-founders__head">
+              <div class="raise-founders__title">Fondateurs, late co-fondateurs et investisseurs</div>
+              <button class="secondary-btn" type="button" id="add-founder-btn">+ Ajouter</button>
+            </div>
+            <div class="raise-founders__list" id="founders-list"></div>
+          </div>
+
+          <div class="raise-actions">
+            <span class="raise-status" id="raise-status"></span>
+            <button class="auth-submit" id="submit-btn" type="submit">Continuer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      const NEXT = 'dossiers.html';
+      const RAISE_HINTS = { classic: true, 'bsa-air': true, unknown: true };
+      const COUNTRIES = ['france', 'us', 'uk', 'germany', 'other'];
+      const STATUSES = ['cofounder', 'late-cofounder', 'investor'];
+      const DEFAULT_PROFILE = {
+        company_name: '',
+        company_country: 'france',
+        raise_type: 'classic',
+        target_amount: '',
+        target_date: '',
+        raise_reason: '',
+        founders: [],
+      };
+
+      const form = document.getElementById('raise-form');
+      const errEl = document.getElementById('auth-error');
+      const statusEl = document.getElementById('raise-status');
+      const submitBtn = document.getElementById('submit-btn');
+      const foundersList = document.getElementById('founders-list');
+      let currentUser = null;
+
+      function hasAccountType(user) {
+        return !!(user && Array.isArray(user.account_types) && user.account_types.length);
+      }
+
+      function normalizeProfile(input) {
+        const p = input && typeof input === 'object' ? input : {};
+        const founders = Array.isArray(p.founders) ? p.founders : [];
+        return {
+          company_name: String(p.company_name || ''),
+          company_country: COUNTRIES.includes(p.company_country) ? p.company_country : DEFAULT_PROFILE.company_country,
+          raise_type: RAISE_HINTS[p.raise_type] ? p.raise_type : DEFAULT_PROFILE.raise_type,
+          target_amount: p.target_amount == null ? '' : String(p.target_amount),
+          target_date: String(p.target_date || ''),
+          raise_reason: String(p.raise_reason || ''),
+          founders: founders.map(f => ({
+            name: String((f && f.name) || ''),
+            status: STATUSES.includes(f && f.status) ? f.status : 'cofounder',
+            job: String((f && f.job) || ''),
+          })).filter(f => f.name || f.job),
+        };
+      }
+
+      function userKey() {
+        return currentUser && (currentUser.id || currentUser.email) || 'me';
+      }
+
+      function profileStorageKey() {
+        return 'liquid_fundraising_profile_' + userKey();
+      }
+
+      function raiseTypeStorageKey() {
+        return 'liquid_raise_type_' + userKey();
+      }
+
+      function storeProfileLocal(profile) {
+        try {
+          localStorage.setItem(profileStorageKey(), JSON.stringify(profile));
+          localStorage.setItem(raiseTypeStorageKey(), profile.raise_type);
+        } catch {}
+      }
+
+      function founderRow(founder = {}) {
+        const row = document.createElement('div');
+        row.className = 'raise-founder-row';
+        const select = document.createElement('select');
+        select.className = 'raise-select';
+        select.dataset.founderStatus = '';
+        [
+          ['cofounder', 'Co-fondateur'],
+          ['late-cofounder', 'Late co-fondateur'],
+          ['investor', 'Investisseur'],
+        ].forEach(([value, label]) => {
+          const opt = document.createElement('option');
+          opt.value = value;
+          opt.textContent = label;
+          if ((founder.status || 'cofounder') === value) opt.selected = true;
+          select.appendChild(opt);
+        });
+
+        const name = document.createElement('input');
+        name.className = 'raise-input';
+        name.dataset.founderName = '';
+        name.type = 'text';
+        name.placeholder = 'Nom';
+        name.value = founder.name || '';
+
+        const job = document.createElement('input');
+        job.className = 'raise-input';
+        job.dataset.founderJob = '';
+        job.type = 'text';
+        job.placeholder = 'Job dans la soci\u00e9t\u00e9';
+        job.value = founder.job || '';
+
+        const remove = document.createElement('button');
+        remove.className = 'raise-founder-remove';
+        remove.type = 'button';
+        remove.setAttribute('aria-label', 'Retirer cette personne');
+        remove.title = 'Retirer';
+        remove.textContent = '\u00d7';
+        remove.addEventListener('click', () => row.remove());
+
+        row.append(name, select, job, remove);
+        return row;
+      }
+
+      function fillForm(profile) {
+        form.company_name.value = profile.company_name;
+        form.company_country.value = profile.company_country;
+        form.raise_type.value = profile.raise_type;
+        form.target_amount.value = profile.target_amount;
+        form.target_date.value = profile.target_date;
+        form.raise_reason.value = profile.raise_reason;
+        foundersList.innerHTML = '';
+        const founders = profile.founders.length ? profile.founders : [{}];
+        founders.forEach(founder => foundersList.appendChild(founderRow(founder)));
+      }
+
+      function readForm() {
+        const founders = Array.from(foundersList.querySelectorAll('.raise-founder-row')).map(row => ({
+          name: row.querySelector('[data-founder-name]').value.trim(),
+          status: row.querySelector('[data-founder-status]').value,
+          job: row.querySelector('[data-founder-job]').value.trim(),
+        })).filter(f => f.name || f.job);
+        return normalizeProfile({
+          company_name: form.company_name.value.trim(),
+          company_country: form.company_country.value,
+          raise_type: form.raise_type.value,
+          target_amount: form.target_amount.value.trim(),
+          target_date: form.target_date.value,
+          raise_reason: form.raise_reason.value.trim(),
+          founders,
+        });
+      }
+
+      function dashboardHref(profile) {
+        const params = new URLSearchParams({ raise: profile.raise_type });
+        if (profile.raise_type === 'classic') params.set('step', 'mise-en-ordre');
+        return NEXT + '?' + params.toString();
+      }
+
+      function showError(message) {
+        errEl.textContent = message || '';
+        errEl.hidden = !message;
+      }
+
+      async function loadInitialState() {
+        try {
+          const meRes = await fetch('/api/auth/me', { credentials: 'include' });
+          if (!meRes.ok) { window.location.replace('login.html'); return; }
+          const meData = await meRes.json();
+          currentUser = meData.user || null;
+          if (!hasAccountType(currentUser)) { window.location.replace('onboarding.html'); return; }
+        } catch {
+          window.location.replace('login.html');
+          return;
+        }
+
+        let profile = normalizeProfile(DEFAULT_PROFILE);
+        try {
+          const res = await fetch('/api/saas/fundraising-profile', { credentials: 'include' });
+          if (res.ok) {
+            const data = await res.json();
+            profile = normalizeProfile(data.profile || DEFAULT_PROFILE);
+          }
+        } catch {}
+        fillForm(profile);
+        storeProfileLocal(profile);
+      }
+
+      document.getElementById('add-founder-btn').addEventListener('click', () => {
+        foundersList.appendChild(founderRow({}));
+      });
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        showError('');
+        statusEl.className = 'raise-status';
+        statusEl.textContent = '';
+        if (!form.reportValidity()) return;
+
+        const profile = readForm();
+        if (!profile.company_country || !profile.raise_type) {
+          statusEl.className = 'raise-status is-error';
+          statusEl.textContent = 'Pays et type de levee sont requis.';
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Enregistrement...';
+        statusEl.textContent = 'Enregistrement...';
+        try {
+          const res = await fetch('/api/saas/fundraising-profile', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(profile),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || 'Enregistrement impossible.');
+          const saved = normalizeProfile(data.profile || profile);
+          storeProfileLocal(saved);
+          window.location.href = dashboardHref(saved);
+        } catch (err) {
+          showError(err.message || 'Impossible de joindre le serveur');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Continuer';
+          statusEl.className = 'raise-status is-error';
+          statusEl.textContent = '';
+        }
+      });
+
+      loadInitialState();
+    </script>
+  </body>
+</html>
