@@ -63,7 +63,7 @@ const DROPBOX_APP_SECRET         = process.env.DROPBOX_APP_SECRET         || '';
 // service → onglet Variables). Défaut : 5 000 000 tokens/jour.
 const DAILY_TOKEN_CAP      = Number(process.env.DAILY_TOKEN_CAP) || 5_000_000;
 
-const ADMIN_EMAILS = ['baptiste.faisy@gmail.com', 'bg.fsg.invest@gmail.com'];
+const ADMIN_EMAILS = ['baptiste.faisy@gmail.com', 'bg.fsg.invest@gmail.com', 'liquidplus.startups@gmail.com'];
 
 // ─── Assistant IA du SaaS (GLM-5.2 via Z.AI, API OpenAI-compatible) ───────────
 // L'assistant juridique du term sheet utilise GLM-5.2 sur la plateforme Z.AI.
@@ -440,6 +440,7 @@ function publicAuthUser(user) {
     name: user.full_name,
     created_at: user.created_at,
     account_types: Array.isArray(user.account_types) ? user.account_types : [],
+    is_admin: ADMIN_EMAILS.includes(user.email),
   };
 }
 
@@ -846,7 +847,7 @@ app.get('/auth/google/callback', async (req, res) => {
       const appToken = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
       return res.redirect(`liquidplus://auth?token=${encodeURIComponent(appToken)}`);
     }
-    res.redirect(hasAccountTypes(user) ? '/saas/dossiers.html' : '/saas/onboarding.html');
+    res.redirect(ADMIN_EMAILS.includes(user.email) ? '/admin.html' : hasAccountTypes(user) ? '/saas/dossiers.html' : '/saas/onboarding.html');
   } catch (err) {
     console.error('Google OAuth error:', err.message);
     fromApp  ? res.redirect('liquidplus://auth?error=google_failed')

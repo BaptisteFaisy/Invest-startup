@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>liquid + — Feedback</title>
+  <meta name="description" content="Écrivez directement au fondateur de liquid + : questions, bugs, suggestions." />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=6" />
+  <link rel="stylesheet" href="editor.css?v=7" />
+  <style>
+    body { background: #08090c; min-height: 100vh; }
+    .app { visibility: hidden; }
+    .app.ready { visibility: visible; }
+    .app { height: auto; overflow: visible; display: block; }
+
+    .fb { max-width: 720px; margin: 0 auto; padding: 24px 28px 80px; }
+    .fb__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
+    .fb__title { font-size: 32px; letter-spacing: -0.03em; margin-top: 6px; color: #fff; }
+    .fb__sub { color: rgba(255,255,255,0.55); font-size: 15px; margin-top: 8px; line-height: 1.55; max-width: 560px; }
+
+    .fb-back-row { width: 100%; box-sizing: border-box; padding: 16px 20px 0; max-width: 720px; margin: 0 auto; }
+    .fb-back { width: 32px; height: 32px; flex: none; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
+    .fb-back:hover { opacity: 0.68; transform: translateX(-1px); }
+    .fb-back:focus-visible { outline: none; opacity: 1; }
+    .fb-back svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+    .fb-card { background: #fff; border-radius: 18px; padding: 22px 24px 20px; margin-top: 28px; box-shadow: 0 12px 40px rgba(0,0,0,0.35); }
+    .fb-card__head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+    .fb-card__title { font-size: 1.02rem; font-weight: 800; color: #08090c; letter-spacing: -0.01em; margin: 0; }
+    .fb-card__hint { font-size: 0.8rem; color: #a8a8b3; }
+    .fb-card__desc { font-size: 0.88rem; color: #6b6b78; margin: 4px 0 16px; line-height: 1.5; }
+
+    .fb-thread { display: flex; flex-direction: column; gap: 2px; max-height: 50vh; overflow-y: auto; padding: 4px 2px 8px; margin-bottom: 4px; }
+    .fb-empty { text-align: center; padding: 34px 10px; color: #a8a8b3; font-size: 0.88rem; line-height: 1.6; }
+    .fb-empty svg { width: 30px; height: 30px; stroke: #d4d4d8; stroke-width: 1.6; fill: none; margin-bottom: 10px; }
+
+    .fb-day { text-align: center; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #b0b0bb; margin: 14px 0 8px; }
+    .fb-day:first-child { margin-top: 2px; }
+
+    .fb-msg { display: flex; margin-bottom: 10px; }
+    .fb-msg--user { justify-content: flex-end; }
+    .fb-msg--admin { justify-content: flex-start; flex-direction: column; align-items: flex-start; }
+    .fb-msg--admin .fb-author { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #6b6b78; margin-bottom: 4px; padding-left: 2px; }
+    .fb-bubble { max-width: 82%; padding: 10px 14px; border-radius: 15px; font-size: 13.5px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+    .fb-msg--user .fb-bubble { background: #08090c; color: #fff; border-bottom-right-radius: 4px; }
+    .fb-msg--admin .fb-bubble { background: #f4f2ee; color: #08090c; border-bottom-left-radius: 4px; }
+    .fb-time { display: block; font-size: 10px; color: #a8a8b3; margin-top: 4px; }
+    .fb-msg--user .fb-time { text-align: right; }
+
+    .fb-composer { display: flex; gap: 10px; align-items: flex-end; margin-top: 12px; padding-top: 16px; border-top: 1px solid rgba(8,9,12,0.08); }
+    .fb-composer textarea { flex: 1; resize: none; min-height: 44px; max-height: 160px; padding: 11px 14px; border-radius: 12px; border: 1.5px solid rgba(8,9,12,0.14); background: #f9f9f9; font-family: 'Libre Franklin', sans-serif; font-size: 0.92rem; color: #08090c; outline: none; transition: border-color .18s, background .18s; line-height: 1.45; }
+    .fb-composer textarea:focus { border-color: #08090c; background: #fff; }
+    .fb-composer .btn { flex: none; }
+    .fb-composer .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .fb-alert { font-size: 0.84rem; padding: 9px 13px; border-radius: 9px; margin-top: 10px; }
+    .fb-alert--error { background: rgba(220,38,38,0.09); color: #b91c1c; border: 1px solid rgba(220,38,38,0.2); }
+
+    @media (max-width: 560px) {
+      .fb, .fb-back-row { padding-left: 14px; padding-right: 14px; }
+      .fb-card { padding: 18px 16px 16px; }
+      .fb-bubble { max-width: 90%; }
+    }
+  </style>
+  <script src="auth.js?v=3"></script>
+  <script src="tasks.js?v=2" defer></script>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="topbar__left">
+        <a href="/index.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
+        <span class="topbar__doc">Feedback</span>
+      </div>
+    </header>
+
+    <div class="fb-back-row">
+      <button type="button" class="fb-back" id="fb-back-btn" aria-label="Revenir en arrière" title="Revenir en arrière">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+    </div>
+
+    <main class="fb">
+      <div class="fb__eyebrow">Contact</div>
+      <h1 class="fb__title">Écrire au fondateur</h1>
+      <p class="fb__sub">Une question, un bug, une suggestion ? Écrivez directement au fondateur de liquid + — il vous répond ici même, dans ce fil.</p>
+
+      <div class="fb-card">
+        <div class="fb-card__head">
+          <h3 class="fb-card__title">Fil de discussion</h3>
+          <span class="fb-card__hint" id="fb-status"></span>
+        </div>
+        <p class="fb-card__desc">Vos échanges avec le fondateur restent privés et ne sont visibles que par vous deux.</p>
+
+        <div class="fb-thread" id="fb-thread"></div>
+
+        <form id="fb-form">
+          <div class="fb-composer">
+            <textarea id="fb-input" placeholder="Écrivez votre message…" maxlength="4000" rows="2"></textarea>
+            <button type="submit" class="btn btn--primary" id="fb-send">Envoyer</button>
+          </div>
+          <div id="fb-alert" class="fb-alert fb-alert--error" hidden></div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    document.getElementById('fb-back-btn').addEventListener('click', () => {
+      if (window.history.length > 1) window.history.back();
+      else window.location.href = 'dossiers.html';
+    });
+
+    const threadEl  = document.getElementById('fb-thread');
+    const formEl    = document.getElementById('fb-form');
+    const inputEl   = document.getElementById('fb-input');
+    const sendBtn   = document.getElementById('fb-send');
+    const alertEl   = document.getElementById('fb-alert');
+    const statusEl  = document.getElementById('fb-status');
+
+    const emptyHTML = `<div class="fb-empty">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>
+      <div>Aucun message pour l'instant.<br />Dites-nous ce qui vous ferait gagner du temps.</div>
+    </div>`;
+
+    function fmtTime(iso) {
+      const d = new Date(iso);
+      return d.toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    }
+    function fmtDay(iso) {
+      return new Date(iso).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    }
+    const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    function renderThread(messages) {
+      if (!messages.length) { threadEl.innerHTML = emptyHTML; return; }
+      let lastDay = null;
+      let html = '';
+      messages.forEach(m => {
+        const day = new Date(m.created_at).toDateString();
+        if (day !== lastDay) { html += `<div class="fb-day">${esc(fmtDay(m.created_at))}</div>`; lastDay = day; }
+        if (m.from === 'admin') {
+          html += `<div class="fb-msg fb-msg--admin">
+            <span class="fb-author">Fondateur — liquid +</span>
+            <div class="fb-bubble">${esc(m.text)}<span class="fb-time">${esc(fmtTime(m.created_at))}</span></div>
+          </div>`;
+        } else {
+          html += `<div class="fb-msg fb-msg--user">
+            <div class="fb-bubble">${esc(m.text)}<span class="fb-time">${esc(fmtTime(m.created_at))}</span></div>
+          </div>`;
+        }
+      });
+      threadEl.innerHTML = html;
+      threadEl.scrollTop = threadEl.scrollHeight;
+    }
+
+    async function loadThread() {
+      try {
+        const res = await fetch('/api/saas/feedback', { credentials: 'include' });
+        if (!res.ok) throw new Error('load failed');
+        const data = await res.json();
+        renderThread(data.messages || []);
+        statusEl.textContent = '';
+      } catch {
+        statusEl.textContent = 'Hors ligne';
+      }
+    }
+
+    formEl.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = inputEl.value.trim();
+      if (!text) return;
+      alertEl.hidden = true;
+      sendBtn.disabled = true;
+      sendBtn.textContent = 'Envoi…';
+      try {
+        const res = await fetch('/api/saas/feedback', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Envoi impossible');
+        inputEl.value = '';
+        await loadThread();
+      } catch (err) {
+        alertEl.textContent = err.message || 'Envoi impossible. Réessayez.';
+        alertEl.hidden = false;
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'Envoyer';
+      }
+    });
+
+    inputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); formEl.requestSubmit(); }
+    });
+
+    requireAuth().then((user) => {
+      if (!user) return;
+      document.querySelector('.app').classList.add('ready');
+      loadThread();
+      setInterval(loadThread, 20000);
+    });
+  </script>
+</body>
+</html>

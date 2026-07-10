@@ -161,7 +161,7 @@
             }
           } catch {}
         }
-        window.location.href = hasAccountType(user) ? 'dossiers.html' : 'onboarding.html';
+        window.location.href = user?.is_admin ? '/admin.html' : hasAccountType(user) ? 'dossiers.html' : 'onboarding.html';
       }
 
       const loginForm = document.getElementById('login-form');

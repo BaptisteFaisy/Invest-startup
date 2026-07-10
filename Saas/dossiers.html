@@ -54,7 +54,7 @@
        (aucun appel à l'IA : zéro token). */
     #next-actions:not(:empty) { margin-bottom: 28px; }
     .next-actions-card { background: var(--dark); border-radius: 20px; padding: 4px 22px; }
-    .next-actions__hint { margin-left: auto; font-size: 11.5px; font-weight: 600; text-transform: none; letter-spacing: normal; color: var(--on-dark-mut); white-space: nowrap; }
+    .next-actions-card.is-collapsed { display: none; }
     .next-actions__list { list-style: none; margin: 0; padding: 0; }
     .next-actions__item + .next-actions__item { border-top: 1px solid var(--line); }
     .next-actions__link { width: 100%; display: flex; align-items: center; gap: 12px; padding: 13px 0; border: 0; background: transparent; cursor: pointer; text-align: left; font: inherit; }
@@ -411,6 +411,7 @@
     .drawer__link--step.is-current .drawer__step-num { background:rgba(99,102,241,0.30); color:#a5b4fc; }
     .drawer__link--step.is-active { background:rgba(255,255,255,0.10); color:#fff; }
     .drawer__soon-tag { margin-left:auto; flex:none; font-family:'Archivo',sans-serif; font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#a5b4fc; background:rgba(99,102,241,0.20); padding:2px 7px; border-radius:99px; }
+    .drawer__unread-dot { margin-left:auto; flex:none; width:8px; height:8px; border-radius:50%; background:#ef4444; box-shadow:0 0 0 2px rgba(239,68,68,0.25); }
 
     /* Carte Reprendre — bulle blanche */
     .resume-card { background: #fff !important; border-radius: 20px !important; box-shadow: 0 12px 40px rgba(0,0,0,0.45) !important; }
@@ -706,9 +707,10 @@
       </div>
       <nav class="drawer__body">
         <div id="nav-tools">
-          <a class="drawer__link" href="../marche.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Marché</a>
+          <a class="drawer__link" href="marche.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Marché<span class="drawer__soon-tag">Bientôt</span></a>
           <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
           <a class="drawer__link" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/></svg>Tâches</a>
+          <a class="drawer__link" href="valorisation.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Valorisation</a>
           <a class="drawer__link" href="dilution.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
           <a class="drawer__link" href="exit.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Exit</a>
         </div>
@@ -728,16 +730,17 @@
       <nav class="drawer__body">
         <div class="drawer__section-title">Outils</div>
         <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Éditeur</a>
-        <a class="drawer__link" href="../marche.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Marché<span class="drawer__soon-tag">Bientôt</span></a>
+        <a class="drawer__link" href="marche.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Marché<span class="drawer__soon-tag">Bientôt</span></a>
         <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
         <a class="drawer__link" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>Tâches</a>
+        <a class="drawer__link" href="valorisation.html" target="_blank" rel="noopener" title="Estimateur de valorisation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Valorisation</a>
         <a class="drawer__link" href="dilution.html" target="_blank" rel="noopener" title="Simulation de dilution"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
         <a class="drawer__link" href="exit.html" target="_blank" rel="noopener" title="Simulateur d'exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Exit</a>
         <a class="drawer__link" href="documents.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>Documents</a>
         <a class="drawer__link" href="data-room.html" target="_blank" rel="noopener" title="Data room"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/></svg>Data room</a>
         <div class="drawer__sep"></div>
         <a class="drawer__link" href="compte.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>Mon compte</a>
-        <a class="drawer__link" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback</a>
+        <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Écrire au fondateur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
         <div class="drawer__sep"></div>
         <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>Déconnexion</button>
       </nav>
@@ -886,7 +889,19 @@
       load().then(applyFinishedAnalyses);
       // Analyse « choses à faire » terminée en tâche de fond → recharge + ouvre le panneau.
       if (window.LiquidTasks) LiquidTasks.on('finished', (j) => { if (j && j.type === 'doc-analyze') applyFinishedAnalyses(); });
+      checkFeedbackUnread();
     });
+
+    // Pastille « nouveau message » sur le lien Feedback : réponse du fondateur pas encore lue.
+    function checkFeedbackUnread() {
+      fetch('/api/saas/feedback/unread', { credentials: 'include' })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          const dot = document.getElementById('feedback-unread-dot');
+          if (dot) dot.hidden = !(data && data.unread);
+        })
+        .catch(() => {});
+    }
 
     const foldersEl    = document.getElementById('folders');
     const bsaFoldersEl = document.getElementById('bsa-folders');
@@ -1399,8 +1414,10 @@
     const DASHBOARD_TOOLS = [
       { label: 'Éditeur', href: 'editor.html', newTab: true, keywords: ['outil', 'editeur', 'rediger', 'clauses', 'term sheet'] },
       { label: 'Comparer', href: 'compare.html', keywords: ['outil', 'comparer', 'comparaison', 'confronter'] },
+      { label: 'Valorisation', href: 'valorisation.html', newTab: true, keywords: ['outil', 'valorisation', 'estimateur', 'berkus', 'scorecard', 'multiple de revenu', 'pre-money'] },
       { label: 'Dilution', href: 'dilution.html', newTab: true, keywords: ['outil', 'dilution', 'simulation', 'cap table', 'conversion'] },
       { label: 'Exit', href: 'exit.html', newTab: true, keywords: ['outil', 'exit', 'sortie', 'cession', 'liquidation', 'waterfall', 'secondaire'] },
+      { label: 'Feedback', href: 'feedback.html', newTab: true, keywords: ['outil', 'feedback', 'contact', 'support', 'fondateur', 'message', 'aide', 'bug'] },
       { label: 'Documents', href: 'documents.html', newTab: true, keywords: ['outil', 'documents', 'fichiers', 'pieces'] },
       { label: 'Data room', href: 'data-room.html', newTab: true, keywords: ['outil', 'data room', 'dataroom', 'audit', 'due diligence'] },
     ];
@@ -2244,6 +2261,7 @@
     }
 
     const nextActionsHost = document.getElementById('next-actions');
+    let nextActionsCollapsed = false;
     function renderNextActions() {
       if (!nextActionsHost) return;
       const type = getRaiseType();
@@ -2278,12 +2296,22 @@
           + '</span>'
           + '<span class="next-actions__go" aria-hidden="true">→</span>'
           + '</button></li>').join('');
+        const toggleLabel = nextActionsCollapsed ? 'Afficher les prochaines priorités' : 'Masquer les prochaines priorités';
         section.innerHTML =
-          '<div class="section-label"><span>Prochaines priorités</span><span class="next-actions__hint">D\'après l\'état de votre dossier</span></div>'
-          + '<div class="next-actions-card"><ol class="next-actions__list">' + rows + '</ol></div>';
+          '<div class="section-label"><span>Prochaines priorités</span>'
+          + '<button class="resume-toggle" type="button" aria-expanded="' + (nextActionsCollapsed ? 'false' : 'true') + '" aria-label="' + toggleLabel + '" title="' + toggleLabel + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6l6 -6"/></svg></button>'
+          + '</div>'
+          + '<div class="next-actions-card' + (nextActionsCollapsed ? ' is-collapsed' : '') + '"><ol class="next-actions__list">' + rows + '</ol></div>';
       }
       nextActionsHost.innerHTML = '';
       nextActionsHost.appendChild(section);
+      const toggleBtn = section.querySelector('.resume-toggle');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+          nextActionsCollapsed = !nextActionsCollapsed;
+          renderNextActions();
+        });
+      }
       section.querySelectorAll('[data-na-step]').forEach(btn => {
         btn.addEventListener('click', () => {
           const key = btn.getAttribute('data-na-step');

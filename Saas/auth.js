@@ -25,7 +25,7 @@ function hasAccountType(user) {
 async function requireAuth(redirect = 'login.html', options = {}) {
   const user = await fetchMe();
   if (!user) { window.location.replace(redirect); return null; }
-  if (options.requireAccountType && !hasAccountType(user)) {
+  if (options.requireAccountType && !user.is_admin && !hasAccountType(user)) {
     window.location.replace(options.onboarding || 'onboarding.html');
     return null;
   }

@@ -117,6 +117,32 @@
     .crop-actions { display: flex; gap: 10px; justify-content: flex-end; }
     .crop-hint { display: flex; gap: 20px; flex-wrap: wrap; }
     .crop-hint span { font-size: 0.78rem; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+
+    /* ── Messagerie feedback ── */
+    .msg-layout { display: flex; min-height: 360px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: rgba(255,255,255,0.5); }
+    .msg-list { width: 250px; flex: none; border-right: 1px solid var(--line); overflow-y: auto; max-height: 520px; }
+    .msg-list-item { padding: 12px 14px; border-bottom: 1px solid var(--line); cursor: pointer; transition: background .12s; }
+    .msg-list-item:last-child { border-bottom: 0; }
+    .msg-list-item:hover { background: rgba(255,255,255,0.8); }
+    .msg-list-item.active { background: #fff; }
+    .msg-list-item__name { font-weight: 600; font-size: 0.86rem; display: flex; align-items: center; gap: 6px; }
+    .msg-list-item__dot { width: 7px; height: 7px; border-radius: 50%; background: #e05d3a; flex: none; }
+    .msg-list-item__preview { font-size: 0.78rem; color: var(--muted); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .msg-list-item__time { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+    .msg-panel { flex: 1; display: flex; flex-direction: column; padding: 16px 18px; min-width: 0; }
+    .msg-panel__empty { margin: auto; color: var(--muted); font-size: 0.88rem; text-align: center; }
+    .msg-panel__head { font-weight: 600; font-size: 0.92rem; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+    .msg-thread { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px; margin-bottom: 12px; max-height: 360px; }
+    .msg-row { display: flex; }
+    .msg-row--out { justify-content: flex-end; }
+    .msg-bubble { max-width: 78%; padding: 9px 13px; border-radius: 14px; font-size: 0.85rem; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+    .msg-row--out .msg-bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+    .msg-row--in .msg-bubble { background: #f0efe9; color: #111; border-bottom-left-radius: 4px; }
+    .msg-bubble__time { display: block; font-size: 0.68rem; opacity: 0.65; margin-top: 4px; }
+    .msg-reply-form { display: flex; gap: 10px; align-items: flex-end; }
+    .msg-reply-form textarea { flex: 1; resize: none; min-height: 42px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,0.7); font-family: inherit; font-size: 0.88rem; color: var(--text); }
+    .msg-reply-form textarea:focus { outline: none; border-color: var(--accent); }
+    @media (max-width: 640px) { .msg-layout { flex-direction: column; } .msg-list { width: 100%; max-height: 200px; border-right: 0; border-bottom: 1px solid var(--line); } }
   </style>
 </head>
 <body>
@@ -133,6 +159,15 @@
   <div class="admin-wrap">
     <h1 class="admin-title">Espace admin</h1>
     <p class="admin-sub">Gérer le catalogue de startups visible sur la plateforme.</p>
+
+    <!-- Messagerie feedback -->
+    <div class="admin-section">
+      <h2>Messagerie — Feedback utilisateurs</h2>
+      <div class="msg-layout">
+        <div class="msg-list" id="msg-list"><p style="padding:14px;color:var(--muted);font-size:.85rem;">Chargement…</p></div>
+        <div class="msg-panel" id="msg-panel"><p class="msg-panel__empty">Sélectionnez une conversation.</p></div>
+      </div>
+    </div>
 
     <!-- Liste des startups -->
     <div class="admin-section">
@@ -323,6 +358,7 @@
           window.location.href = 'login.html';
         });
         loadStartups();
+        loadThreads();
       })
       .catch(err => {
         document.querySelector('.admin-wrap').innerHTML = `
@@ -473,6 +509,92 @@
     }
 
     // ���� Load & render list ��������������������������������������������������������������������������������������������������
+    // Messagerie feedback
+    function escHtml(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    function fmtMsgTime(iso) { return new Date(iso).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+
+    let threads = [];
+    let activeThreadUserId = null;
+
+    async function loadThreads() {
+      try {
+        const r = await fetch('/api/admin/feedback', { credentials: 'include' });
+        if (!r.ok) throw new Error();
+        const data = await r.json();
+        threads = data.threads || [];
+        renderThreadList();
+      } catch {
+        document.getElementById('msg-list').innerHTML = '<p style="padding:14px;color:var(--muted);font-size:.85rem;">Erreur de chargement.</p>';
+      }
+    }
+
+    function renderThreadList() {
+      const el = document.getElementById('msg-list');
+      if (!threads.length) { el.innerHTML = '<p style="padding:14px;color:var(--muted);font-size:.85rem;">Aucun message pour l\'instant.</p>'; return; }
+      el.innerHTML = threads.map(t => {
+        const last = (t.messages && t.messages[0]) || null;
+        const name = t.user_name || t.user_email || t.user_id;
+        return `<div class="msg-list-item${t.user_id === activeThreadUserId ? ' active' : ''}" onclick="openThread('${t.user_id}')">
+          <div class="msg-list-item__name">${t.unread_by_admin ? '<span class="msg-list-item__dot"></span>' : ''}${escHtml(name)}</div>
+          <div class="msg-list-item__preview">${last ? escHtml(last.text) : ''}</div>
+          <div class="msg-list-item__time">${last ? fmtMsgTime(last.created_at) : ''}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderBubble(m) {
+      const out = m.from === 'admin';
+      return `<div class="msg-row ${out ? 'msg-row--out' : 'msg-row--in'}"><div class="msg-bubble">${escHtml(m.text)}<span class="msg-bubble__time">${fmtMsgTime(m.created_at)}</span></div></div>`;
+    }
+
+    async function openThread(userId) {
+      activeThreadUserId = userId;
+      renderThreadList();
+      const r = await fetch(`/api/admin/feedback/${userId}`, { credentials: 'include' });
+      if (!r.ok) return;
+      const data = await r.json();
+      renderPanel(data.thread);
+    }
+
+    function renderPanel(thread) {
+      const panel = document.getElementById('msg-panel');
+      const name = thread.user_name || thread.user_email || thread.user_id;
+      panel.innerHTML = `
+        <div class="msg-panel__head">${escHtml(name)}${thread.user_email ? ` <span style="color:var(--muted);font-weight:400;font-size:.8rem;">${escHtml(thread.user_email)}</span>` : ''}</div>
+        <div class="msg-thread" id="msg-thread">${(thread.messages || []).map(renderBubble).join('')}</div>
+        <form class="msg-reply-form" id="msg-reply-form">
+          <textarea id="msg-reply-input" rows="2" placeholder="Répondre…" maxlength="4000"></textarea>
+          <button type="submit" class="button primary" id="msg-reply-btn">Répondre</button>
+        </form>
+      `;
+      const threadEl = document.getElementById('msg-thread');
+      threadEl.scrollTop = threadEl.scrollHeight;
+      document.getElementById('msg-reply-form').addEventListener('submit', sendReply);
+    }
+
+    async function sendReply(e) {
+      e.preventDefault();
+      const input = document.getElementById('msg-reply-input');
+      const text = input.value.trim();
+      if (!text || !activeThreadUserId) return;
+      const btn = document.getElementById('msg-reply-btn');
+      btn.disabled = true;
+      try {
+        const r = await fetch(`/api/admin/feedback/${activeThreadUserId}`, {
+          method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text }),
+        });
+        if (!r.ok) throw new Error();
+        input.value = '';
+        await openThread(activeThreadUserId);
+        await loadThreads();
+      } catch {
+        alert('Erreur lors de l\'envoi de la réponse.');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
     let catalog = [];
     async function loadStartups() {
       const r = await fetch('/api/startups');

@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>liquid + — Estimateur de valorisation</title>
+  <meta name="description" content="Estimateur de valorisation pre-money : multiple de revenu, méthode Berkus ou Scorecard — un point de départ indicatif pour négocier." />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=6" />
+  <link rel="stylesheet" href="editor.css?v=7" />
+  <style>
+    [hidden] { display: none !important; }
+    .app { height: auto; overflow: visible; display: block; }
+    body, .app { background: #08090c !important; }
+
+    /* Topbar noir (identique aux autres pages du SaaS) */
+    .topbar { background: #08090c !important; border-bottom: 1px solid rgba(255,255,255,0.07) !important; position: sticky; top: 0; z-index: 20; }
+    .topbar .brand { color: #fff !important; display: flex; align-items: center; gap: 8px; }
+    .topbar .brand__plus { color: #fff !important; }
+    .topbar .brand__logo { display: block; flex: none; }
+    .topbar__doc { color: #fff !important; border-left-color: rgba(255,255,255,0.2) !important; }
+    .topbar .btn--ghost { color: #fff !important; border-color: rgba(255,255,255,0.35) !important; }
+    .topbar .btn--ghost:hover { color: #fff !important; border-color: rgba(255,255,255,0.65) !important; }
+
+    /* Retour en arrière */
+    .page-back-row { width: 100%; box-sizing: border-box; max-width: 920px; margin: 0 auto; padding: 16px 24px 0; }
+    .page-back { width: 32px; height: 32px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
+    .page-back:hover { opacity: 0.68; transform: translateX(-1px); }
+    .page-back:focus-visible { outline: none; opacity: 1; }
+    .page-back svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+    .val { max-width: 920px; margin: 0 auto; padding: 34px 24px 90px; }
+    .val__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
+    .val__title { font-size: 30px; letter-spacing: -0.03em; color: #fff; margin-top: 6px; }
+    .val__sub { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 8px; line-height: 1.6; max-width: 720px; }
+
+    /* Cartes blanches */
+    .card { background: #fff; border-radius: 16px; padding: 22px 22px 24px; box-shadow: 0 10px 34px rgba(0,0,0,0.35); margin-top: 26px; }
+    .card__h { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #6b6b78; margin-bottom: 4px; }
+    .card__desc { font-size: 12.5px; color: #8a8a95; line-height: 1.5; margin-bottom: 14px; }
+    .card__toprow { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 6px; flex-wrap: wrap; }
+
+    .seg { display: inline-flex; background: #f0f0ee; border-radius: 9px; padding: 3px; gap: 2px; flex: none; }
+    .seg__btn { font-family: 'Archivo', sans-serif; font-size: 11.5px; font-weight: 600; color: #6b6b78; background: transparent; border: 0; border-radius: 7px; padding: 5px 11px; cursor: pointer; transition: .12s; white-space: nowrap; }
+    .seg__btn:hover { color: #08090c; }
+    .seg__btn.is-on { background: #fff; color: #08090c; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+
+    .field { margin-bottom: 14px; }
+    .field__lab { display: block; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #6b6b78; margin-bottom: 6px; }
+    .inp, .sel { width: 100%; min-width: 0; font-family: 'Libre Franklin', sans-serif; font-size: 14px; color: #08090c; background: #f7f7f5; border: 1px solid rgba(8,9,12,0.12); border-radius: 9px; padding: 9px 11px; transition: border-color .12s, background .12s; }
+    .inp:focus, .sel:focus { outline: none; border-color: #3b82f6; background: #fff; }
+    .inp--money { text-align: right; }
+    .inp-wrap { position: relative; }
+    .inp-wrap .inp { padding-right: 28px; }
+    .inp-wrap__suf { position: absolute; right: 11px; top: 50%; transform: translateY(-50%); font-size: 13px; color: #a8a8b3; pointer-events: none; }
+
+    .radio-row { display: flex; gap: 8px; margin-top: 8px; }
+    .radio-chip { flex: 1; border: 1px solid rgba(8,9,12,0.14); border-radius: 9px; padding: 9px 10px; cursor: pointer; font-size: 12.5px; color: #6b6b78; text-align: center; transition: .12s; }
+    .radio-chip input { display: none; }
+    .radio-chip:hover { border-color: rgba(8,9,12,0.3); }
+    .radio-chip.is-on { border-color: #3b82f6; background: rgba(59,130,246,0.07); color: #08090c; font-weight: 600; }
+    .radio-chip small { display: block; font-size: 10.5px; color: #a8a8b3; font-weight: 400; margin-top: 2px; }
+
+    .ve-grid { display: grid; grid-template-columns: minmax(0, 1fr) 246px; gap: 22px; margin-top: 16px; align-items: start; }
+    @media (max-width: 760px) { .ve-grid { grid-template-columns: 1fr; } }
+
+    .ve-body[hidden] { display: none; }
+    .ve-two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
+    @media (max-width: 520px) { .ve-two { grid-template-columns: 1fr; } }
+    .ve-growth { display: flex; flex-direction: column; gap: 8px; }
+    .ve-growth .radio-chip { text-align: left; }
+
+    /* Curseurs (Berkus / Scorecard) */
+    .ve-slider-row { margin-bottom: 15px; }
+    .ve-slider-row:last-child { margin-bottom: 4px; }
+    .ve-slider-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 7px; }
+    .ve-slider-lab { font-size: 13px; color: #08090c; font-weight: 600; }
+    .ve-slider-lab small { display: block; font-size: 11px; color: #a8a8b3; font-weight: 400; margin-top: 1px; }
+    .ve-slider-val { font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 700; color: #2563eb; font-variant-numeric: tabular-nums; white-space: nowrap; flex: none; }
+    .ve-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 5px; border-radius: 5px; background: #e6e6ea; outline: none; cursor: pointer; }
+    .ve-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 17px; height: 17px; border-radius: 50%; background: #3b82f6; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25); cursor: pointer; }
+    .ve-slider::-moz-range-thumb { width: 15px; height: 15px; border-radius: 50%; background: #3b82f6; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25); cursor: pointer; }
+
+    /* Résultat de l'estimation */
+    .ve-out { background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 14px; padding: 18px 18px 20px; position: sticky; top: 78px; }
+    @media (max-width: 760px) { .ve-out { position: static; } }
+    .ve-out__lab { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #93c5fd; }
+    .ve-out__val { font-family: 'Archivo', sans-serif; font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -0.02em; margin-top: 6px; }
+    .ve-out__range { font-size: 12px; color: rgba(255,255,255,0.62); margin-top: 5px; line-height: 1.5; }
+    .ve-use { margin-top: 16px; width: 100%; font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 700; color: #0f172a; background: #fff; border: 0; border-radius: 9px; padding: 10px 12px; cursor: pointer; transition: background .12s, opacity .12s; }
+    .ve-use:hover { background: #dbe4ff; }
+    .ve-use:disabled { opacity: 0.45; cursor: not-allowed; }
+    .ve-out__note { font-size: 10.5px; color: rgba(255,255,255,0.5); margin-top: 11px; line-height: 1.55; }
+
+    /* Lexique */
+    .lexique { margin-top: 46px; }
+    .lexique__title { font-size: 22px; letter-spacing: -0.02em; color: #fff; margin-top: 6px; }
+    .lexique__sub { color: rgba(255,255,255,0.62); font-size: 14px; margin-top: 8px; line-height: 1.6; max-width: 680px; }
+    .lexique__cat { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.42); margin: 26px 0 12px; }
+    .lexique__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    @media (max-width: 720px) { .lexique__grid { grid-template-columns: 1fr; } }
+    .glo { background: #fff; border-radius: 14px; padding: 16px 18px 17px; box-shadow: 0 8px 26px rgba(0,0,0,0.3); }
+    .glo__term { font-family: 'Archivo', sans-serif; font-size: 14.5px; font-weight: 700; color: #08090c; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+    .glo__en { font-size: 11.5px; font-weight: 500; color: #a8a8b3; font-style: italic; }
+    .glo__def { font-size: 13px; color: #55555f; line-height: 1.58; margin-top: 8px; }
+    .glo__def b { color: #08090c; font-weight: 600; }
+    .glo__def + .glo__def { margin-top: 7px; }
+
+    .val__next { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 10px; }
+    .val__next .btn { background: rgba(255,255,255,0.06); color: #fff; border-color: rgba(255,255,255,0.2); }
+    .val__next .btn:hover { border-color: rgba(255,255,255,0.5); }
+
+    @media (max-width: 520px) {
+      .val { padding: 24px 14px 80px; }
+      .val__title { font-size: 25px; }
+      .card { padding: 16px 14px 18px; }
+    }
+  </style>
+  <script src="auth.js?v=3"></script>
+  <script src="tasks.js?v=2" defer></script>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="topbar__left">
+        <a href="/index.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
+        <span class="topbar__doc">Estimateur de valorisation</span>
+      </div>
+    </header>
+
+    <div class="page-back-row">
+      <button type="button" class="page-back" id="page-back-btn" aria-label="Revenir en arrière" title="Revenir en arrière">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+    </div>
+
+    <main class="val">
+      <div class="val__eyebrow">Outil</div>
+      <h1 class="val__title">Estimateur de valorisation</h1>
+      <p class="val__sub">Trois méthodes usuelles pour estimer une valorisation <b>pre-money</b> avant de la négocier : multiple de revenu pour une société qui facture déjà, Berkus pour une startup pré-revenu, Scorecard pour un stade amorçage. Une estimation indicative, pas un prix — un point de départ pour la négociation.</p>
+
+      <section id="valo-est">
+        <div class="card">
+          <div class="card__toprow">
+            <div class="card__h" style="margin-bottom:0">Méthode</div>
+            <div class="seg" id="ve-method-seg">
+              <button type="button" class="seg__btn is-on" data-vem="rev">Multiple de revenu</button>
+              <button type="button" class="seg__btn" data-vem="berkus">Berkus</button>
+              <button type="button" class="seg__btn" data-vem="scorecard">Scorecard</button>
+            </div>
+          </div>
+          <div class="card__desc" id="ve-desc" style="margin-top:10px"></div>
+
+          <div class="ve-grid">
+            <div class="ve-inputs">
+              <!-- Méthode 1 : multiple de revenu -->
+              <div class="ve-body" data-vem-body="rev">
+                <div class="ve-two">
+                  <div class="field" style="margin-bottom:0">
+                    <label class="field__lab" for="ve-arr">Chiffre d'affaires annuel</label>
+                    <div class="inp-wrap">
+                      <input class="inp inp--money" type="text" inputmode="numeric" id="ve-arr" value="500 000" />
+                      <span class="inp-wrap__suf">€</span>
+                    </div>
+                    <div class="card__desc" style="margin:6px 0 0">Récurrent (ARR) pour un SaaS, sinon le CA des 12 derniers mois.</div>
+                  </div>
+                  <div class="field" style="margin-bottom:0">
+                    <label class="field__lab">Profil de croissance</label>
+                    <div class="ve-growth" id="ve-growth">
+                      <label class="radio-chip is-on" data-g="low">
+                        <input type="radio" name="ve-g" value="low" checked />
+                        Prudente <small>&lt; 30 %/an · ×2 à ×4</small>
+                      </label>
+                      <label class="radio-chip" data-g="mid">
+                        <input type="radio" name="ve-g" value="mid" />
+                        Solide <small>30 à 80 %/an · ×4 à ×8</small>
+                      </label>
+                      <label class="radio-chip" data-g="high">
+                        <input type="radio" name="ve-g" value="high" />
+                        Forte <small>&gt; 80 %/an · ×8 à ×15</small>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Méthode 2 : Berkus -->
+              <div class="ve-body" id="ve-berkus" data-vem-body="berkus" hidden>
+                <div class="ve-slider-row">
+                  <div class="ve-slider-top">
+                    <span class="ve-slider-lab">Idée &amp; proposition de valeur <small>valeur de base du projet</small></span>
+                    <span class="ve-slider-val" data-for="b1">250 k€</span>
+                  </div>
+                  <input class="ve-slider" id="b1" type="range" min="0" max="500000" step="25000" value="250000" data-fmt="keur" />
+                </div>
+                <div class="ve-slider-row">
+                  <div class="ve-slider-top">
+                    <span class="ve-slider-lab">Prototype / technologie <small>réduit le risque technologique</small></span>
+                    <span class="ve-slider-val" data-for="b2">250 k€</span>
+                  </div>
+                  <input class="ve-slider" id="b2" type="range" min="0" max="500000" step="25000" value="250000" data-fmt="keur" />
+                </div>
+                <div class="ve-slider-row">
+                  <div class="ve-slider-top">
+                    <span class="ve-slider-lab">Équipe dirigeante <small>réduit le risque d'exécution</small></span>
+                    <span class="ve-slider-val" data-for="b3">250 k€</span>
+                  </div>
+                  <input class="ve-slider" id="b3" type="range" min="0" max="500000" step="25000" value="250000" data-fmt="keur" />
+                </div>
+                <div class="ve-slider-row">
+                  <div class="ve-slider-top">
+                    <span class="ve-slider-lab">Traction &amp; relations marché <small>réduit le risque de marché</small></span>
+                    <span class="ve-slider-val" data-for="b4">250 k€</span>
+                  </div>
+                  <input class="ve-slider" id="b4" type="range" min="0" max="500000" step="25000" value="250000" data-fmt="keur" />
+                </div>
+                <div class="ve-slider-row">
+                  <div class="ve-slider-top">
+                    <span class="ve-slider-lab">Produit lancé / premières ventes <small>réduit le risque de production</small></span>
+                    <span class="ve-slider-val" data-for="b5">250 k€</span>
+                  </div>
+                  <input class="ve-slider" id="b5" type="range" min="0" max="500000" step="25000" value="250000" data-fmt="keur" />
+                </div>
+              </div>
+
+              <!-- Méthode 3 : Scorecard -->
+              <div class="ve-body" id="ve-scorecard" data-vem-body="scorecard" hidden>
+                <div class="field">
+                  <label class="field__lab" for="ve-base">Valorisation moyenne des sociétés comparables</label>
+                  <div class="inp-wrap">
+                    <input class="inp inp--money" type="text" inputmode="numeric" id="ve-base" value="2 000 000" />
+                    <span class="inp-wrap__suf">€</span>
+                  </div>
+                  <div class="card__desc" style="margin:6px 0 0">La valorisation pre-money moyenne, à un stade équivalent, dans votre secteur et votre région.</div>
+                </div>
+                <div class="ve-slider-row">
+                  <div class="ve-slider-top">
+                    <span class="ve-slider-lab">Solidité de l'équipe <small>poids 30 %</small></span>
+                    <span class="ve-slider-val" data-for="s1">100 %</span>
+                  </div>
+                  <input class="ve-slider" id="s1" type="range" min="50" max="150" step="5" value="100" data-fmt="pct" data-w="0.30" />
+                </div>
+                <div class="ve-slider-row">
+                  <div class="ve-slider-top">
+                    <span class="ve-slider-lab">Taille de l'opportunité de marché <small>poids 25 %</small></span>
+                    <span class="ve-slider-val" data-for="s2">100 %</span>
+                  </div>
+                  <input class="ve-slider" id="s2" type="range" min="50" max="150" step="5" value="100" data-fmt="pct" data-w="0.25" />
+                </div>
+                <div class="ve-slider-row">
+                  <div class="ve-slider-top">
+                    <span class="ve-slider-lab">Produit / technologie <small>poids 15 %</small></span>
+                    <span class="ve-slider-val" data-for="s3">100 %</span>
+                  </div>
+                  <input class="ve-slider" id="s3" type="range" min="50" max="150" step="5" value="100" data-fmt="pct" data-w="0.15" />
+                </div>
+                <div class="ve-slider-row">
+                  <div class="ve-slider-top">
+                    <span class="ve-slider-lab">Environnement concurrentiel <small>poids 10 %</small></span>
+                    <span class="ve-slider-val" data-for="s4">100 %</span>
+                  </div>
+                  <input class="ve-slider" id="s4" type="range" min="50" max="150" step="5" value="100" data-fmt="pct" data-w="0.10" />
+                </div>
+                <div class="ve-slider-row">
+                  <div class="ve-slider-top">
+                    <span class="ve-slider-lab">Marketing / ventes / partenariats <small>poids 10 %</small></span>
+                    <span class="ve-slider-val" data-for="s5">100 %</span>
+                  </div>
+                  <input class="ve-slider" id="s5" type="range" min="50" max="150" step="5" value="100" data-fmt="pct" data-w="0.10" />
+                </div>
+                <div class="ve-slider-row">
+                  <div class="ve-slider-top">
+                    <span class="ve-slider-lab">Besoin de financement à venir <small>poids 5 %</small></span>
+                    <span class="ve-slider-val" data-for="s6">100 %</span>
+                  </div>
+                  <input class="ve-slider" id="s6" type="range" min="50" max="150" step="5" value="100" data-fmt="pct" data-w="0.05" />
+                </div>
+                <div class="ve-slider-row">
+                  <div class="ve-slider-top">
+                    <span class="ve-slider-lab">Autres facteurs <small>poids 5 %</small></span>
+                    <span class="ve-slider-val" data-for="s7">100 %</span>
+                  </div>
+                  <input class="ve-slider" id="s7" type="range" min="50" max="150" step="5" value="100" data-fmt="pct" data-w="0.05" />
+                </div>
+              </div>
+            </div>
+
+            <div class="ve-out">
+              <div class="ve-out__lab">Valorisation estimée</div>
+              <div class="ve-out__val" id="ve-result">—</div>
+              <div class="ve-out__range" id="ve-range"></div>
+              <button type="button" class="ve-use" id="ve-use">Utiliser dans le simulateur de dilution →</button>
+              <div class="ve-out__note">Une estimation indicative, pas un prix. La valorisation finale se négocie ; utilisez-la comme point de départ.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="val__next">
+        <a class="btn" href="dilution.html">Simulateur de dilution →</a>
+        <a class="btn" href="exit.html">Simulateur d'exit →</a>
+      </div>
+
+      <!-- LEXIQUE -->
+      <section class="lexique" id="lexique">
+        <div class="val__eyebrow">Lexique</div>
+        <h2 class="lexique__title">Les trois méthodes, en bref</h2>
+        <p class="lexique__sub">Aucune méthode n'est « la bonne » — chacune est adaptée à un stade différent. Ce sont des heuristiques de négociation, pas des méthodes d'évaluation financière rigoureuses (DCF, comparables boursiers…) réservées à des sociétés plus matures.</p>
+
+        <div class="lexique__grid">
+          <div class="glo">
+            <div class="glo__term">Multiple de revenu <span class="glo__en">revenue multiple</span></div>
+            <p class="glo__def">Valorisation = chiffre d'affaires (idéalement récurrent, l'<b>ARR</b>) × un multiple qui dépend du taux de croissance. Le multiple usuel est plus utile qu'une seule formule : il varie fortement selon le secteur, la marge et l'appétit du marché au moment du tour.</p>
+          </div>
+          <div class="glo">
+            <div class="glo__term">Méthode Berkus <span class="glo__en">Berkus method</span></div>
+            <p class="glo__def">Pensée pour le <b>pré-revenu</b> : on valorise séparément cinq facteurs de réduction du risque (idée, prototype, équipe, partenariats, lancement), chacun plafonné, pour une valorisation totale plafonnée autour de 2,5 M€.</p>
+          </div>
+          <div class="glo" style="grid-column: 1 / -1">
+            <div class="glo__term">Méthode Scorecard <span class="glo__en">scorecard / Bill Payne method</span></div>
+            <p class="glo__def">On part d'une <b>valorisation moyenne de sociétés comparables</b> au même stade et dans le même secteur, puis on l'ajuste selon des facteurs pondérés (équipe, marché, produit, concurrence…) où 100 % = dans la moyenne. Aussi bonne que l'est l'estimation de la moyenne de comparables — un chiffre qui demande une vraie recherche de marché pour être fiable.</p>
+          </div>
+        </div>
+
+        <div class="lexique__cat">Le point piège</div>
+        <div class="lexique__grid">
+          <div class="glo" style="grid-column: 1 / -1">
+            <div class="glo__term">Une valorisation n'est pas un prix</div>
+            <p class="glo__def">Ces trois méthodes donnent une <b>fourchette de départ</b>, pas un prix : la valorisation finale d'un tour se négocie, entre l'offre et la demande du moment, et dépend autant du rapport de force que des fondamentaux. Ne présentez jamais un résultat de cet outil comme définitif face à un investisseur.</p>
+            <p class="glo__def">Une fois une hypothèse de <b>valorisation pre-money</b> retenue, utilisez le <a href="dilution.html" style="color:#2563eb;font-weight:600">simulateur de dilution</a> pour voir son effet sur votre cap table, puis le <a href="exit.html" style="color:#2563eb;font-weight:600">simulateur d'exit</a> pour voir ce qu'elle implique le jour d'une sortie, une fois les préférences de liquidation négociées.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const nfInt = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
+    const eur0 = (n) => nfInt.format(Math.round(n)) + ' €';
+    const parseNum = (s) => {
+      if (s == null) return 0;
+      const cleaned = String(s).replace(/[^0-9.,-]/g, '').replace(/\s/g, '').replace(',', '.');
+      const v = parseFloat(cleaned);
+      return isFinite(v) ? v : 0;
+    };
+    const fmtLiveInt = (s) => { const v = parseNum(s); return v ? nfInt.format(Math.round(v)) : ''; };
+
+    let veMethod = 'rev';
+    let veValo = 0;
+    // Multiples appliqués au CA selon le profil de croissance : [bas, médian, haut]
+    const VE_GROWTH = { low: [2, 3, 4], mid: [4, 6, 8], high: [8, 11, 15] };
+    const VE_DESC = {
+      rev: "Adapté aux sociétés qui génèrent déjà du chiffre d'affaires. On applique au CA un multiple d'autant plus élevé que la croissance est forte.",
+      berkus: "Pour une startup pré-revenu. On valorise cinq leviers de réduction du risque, chacun jusqu'à 500 k€ (plafond 2,5 M€).",
+      scorecard: "Pour un stade amorçage. On part de la valorisation moyenne des sociétés comparables, ajustée selon vos forces et faiblesses.",
+    };
+
+    const veEst = document.getElementById('valo-est');
+
+    function veSyncSliders() {
+      veEst.querySelectorAll('.ve-slider').forEach(s => {
+        const lab = veEst.querySelector(`.ve-slider-val[data-for="${s.id}"]`);
+        if (!lab) return;
+        const v = Number(s.value);
+        lab.textContent = s.dataset.fmt === 'pct' ? `${v} %` : `${Math.round(v / 1000)} k€`;
+      });
+    }
+
+    function veCompute() {
+      if (veMethod === 'rev') {
+        const arr = parseNum(document.getElementById('ve-arr').value);
+        const g = (document.querySelector('input[name="ve-g"]:checked') || {}).value || 'low';
+        const [lo, mid, hi] = VE_GROWTH[g];
+        return {
+          valo: arr * mid, low: arr * lo, high: arr * hi, ok: arr > 0,
+          range: arr > 0 ? `Fourchette ${eur0(arr * lo)} – ${eur0(arr * hi)} · CA × ${mid}` : '',
+        };
+      }
+      if (veMethod === 'berkus') {
+        const sum = [...veEst.querySelectorAll('#ve-berkus .ve-slider')].reduce((a, s) => a + Number(s.value), 0);
+        return { valo: sum, ok: sum > 0, range: 'Somme des 5 leviers · plafond 2,5 M€' };
+      }
+      // scorecard
+      const base = parseNum(document.getElementById('ve-base').value);
+      let mult = 0;
+      veEst.querySelectorAll('#ve-scorecard .ve-slider').forEach(s => {
+        mult += Number(s.dataset.w) * (Number(s.value) / 100);
+      });
+      return { valo: base * mult, ok: base > 0, range: base > 0 ? `× ${mult.toFixed(2)} de la moyenne (${eur0(base)})` : '' };
+    }
+
+    function veRender() {
+      veSyncSliders();
+      const r = veCompute();
+      veValo = r.ok && r.valo > 0 ? r.valo : 0;
+      document.getElementById('ve-result').textContent = veValo > 0 ? eur0(veValo) : '—';
+      document.getElementById('ve-range').textContent = veValo > 0 ? r.range : '';
+      document.getElementById('ve-use').disabled = !(veValo > 0);
+    }
+
+    document.getElementById('ve-method-seg').addEventListener('click', (e) => {
+      const btn = e.target.closest('.seg__btn');
+      if (!btn) return;
+      veMethod = btn.dataset.vem;
+      veEst.querySelectorAll('#ve-method-seg .seg__btn').forEach(b => b.classList.toggle('is-on', b.dataset.vem === veMethod));
+      veEst.querySelectorAll('.ve-body').forEach(b => { b.hidden = (b.dataset.vemBody !== veMethod); });
+      document.getElementById('ve-desc').textContent = VE_DESC[veMethod];
+      veRender();
+    });
+
+    veEst.addEventListener('input', () => veRender());
+    veEst.addEventListener('change', (e) => {
+      if (e.target.closest('.ve-growth')) {
+        veEst.querySelectorAll('.ve-growth .radio-chip').forEach(c => c.classList.toggle('is-on', c.querySelector('input').checked));
+      }
+      veRender();
+    });
+    veEst.addEventListener('blur', (e) => {
+      if (e.target.id === 've-arr' || e.target.id === 've-base') {
+        e.target.value = fmtLiveInt(e.target.value);
+        veRender();
+      }
+    }, true);
+
+    document.getElementById('ve-use').addEventListener('click', () => {
+      if (!(veValo > 0)) return;
+      window.location.href = 'dilution.html?premoney=' + Math.round(veValo);
+    });
+
+    document.getElementById('page-back-btn').addEventListener('click', () => {
+      if (window.history.length > 1) window.history.back();
+      else window.location.href = 'dossiers.html';
+    });
+
+    // Init
+    document.getElementById('ve-desc').textContent = VE_DESC[veMethod];
+    veRender();
+  </script>
+</body>
+</html>
