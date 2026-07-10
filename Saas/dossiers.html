@@ -698,11 +698,13 @@
         <button type="button" class="drawer__close" data-drawer-close aria-label="Fermer">&times;</button>
       </div>
       <nav class="drawer__body">
-        <a class="drawer__link" href="dossiers.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h6l2 2h10v9a2 2 0 0 1-2 2H3z"/></svg>Tableau de bord</a>
-        <a class="drawer__link" href="../marche.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Marché</a>
-        <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
-        <a class="drawer__link" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/></svg>Tâches</a>
-        <a class="drawer__link" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
+        <div id="nav-tools">
+          <a class="drawer__link" href="dossiers.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h6l2 2h10v9a2 2 0 0 1-2 2H3z"/></svg>Tableau de bord</a>
+          <a class="drawer__link" href="../marche.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Marché</a>
+          <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
+          <a class="drawer__link" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/></svg>Tâches</a>
+          <a class="drawer__link" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
+        </div>
         <div class="drawer__sep" id="nav-steps-sep" hidden></div>
         <div class="drawer__section-title" id="nav-steps-title" hidden>Étapes de la levée</div>
         <div id="nav-steps"></div>
@@ -2261,18 +2263,35 @@
       window.scrollTo(0, prevScroll);
     }
 
-    // Étapes de la levée classique listées dans le tiroir de navigation gauche.
-    // Ne s'affichent que pour le parcours « Levée classique ».
+    // Ouvre le parcours BSA-AIR et fait défiler jusqu'à la carte de l'étape.
+    function openBsaStepCard(key) {
+      try { localStorage.setItem(raiseKey(), 'bsa-air'); } catch {}
+      applyRaiseType('bsa-air');
+      const el = key ? document.getElementById('phase-' + key) : null;
+      if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Étapes de la levée listées dans le tiroir de navigation gauche.
+    // Parcours « Levée classique » → ouvre la page d'étape ; parcours
+    // « BSA-AIR » → défile jusqu'à la carte de la phase correspondante.
     const navStepsEl = document.getElementById('nav-steps');
     function renderDrawerSteps() {
       if (!navStepsEl) return;
       const sep = document.getElementById('nav-steps-sep');
       const title = document.getElementById('nav-steps-title');
       const type = getRaiseType();
-      let phases = folders.filter(f => isSystemPhase(f) && (f.track || 'classic') === 'classic');
-      phases = phases.filter(isClassicPhaseVisible);
-      const show = type === 'classic' && phases.length > 0;
-      if (sep) sep.hidden = !show;
+      let phases = [];
+      if (type === 'classic') {
+        phases = folders.filter(f => isSystemPhase(f) && (f.track || 'classic') === 'classic')
+          .filter(isClassicPhaseVisible);
+      } else if (type === 'bsa-air') {
+        phases = folders.filter(f => isSystemPhase(f) && (f.track || 'classic') === 'bsa-air');
+      }
+      const show = (type === 'classic' || type === 'bsa-air') && phases.length > 0;
+      // Levée classique : le menu de gauche n'affiche que les étapes.
+      const tools = document.getElementById('nav-tools');
+      if (tools) tools.hidden = type === 'classic' && show;
+      if (sep) sep.hidden = !show || (type === 'classic');
       if (title) title.hidden = !show;
       navStepsEl.innerHTML = '';
       if (!show) return;
@@ -2282,17 +2301,19 @@
       phases.forEach((f, i) => {
         const done = stats[i].complete;
         const isCurrent = i === currentIdx;
-        const isActive = selectedClassicStep === f.key;
+        const isActive = type === 'classic' && selectedClassicStep === f.key;
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'drawer__link drawer__link--step'
           + (done ? ' is-done' : '') + (isCurrent ? ' is-current' : '') + (isActive ? ' is-active' : '');
+        const num = type === 'classic' ? friseStepNumber(f, i) : i + 1;
         const badge = done
           ? '<svg viewBox="0 0 24 24" aria-hidden="true">' + friseCheckPath + '</svg>'
-          : String(friseStepNumber(f, i));
+          : String(num);
         btn.innerHTML = '<span class="drawer__step-num">' + badge + '</span>' + esc(friseLabel(f));
         btn.addEventListener('click', () => {
-          openClassicStepPage(f.key);
+          if (type === 'classic') openClassicStepPage(f.key);
+          else openBsaStepCard(f.key);
           if (navDrawer) navDrawer.close();
         });
         navStepsEl.appendChild(btn);
@@ -2827,6 +2848,7 @@
           <button class="documents-action-btn" type="button" data-import-folder>Importer des fichiers</button>
         </div>` : '';
       card.className = 'folder folder--phase open';
+      if ((f.track || 'classic') === 'bsa-air' && f.key) card.id = 'phase-' + f.key;
       card.innerHTML = `
         <div class="folder__head" style="cursor:default">
           <div class="folder__ic">${esc(icon)}</div>
