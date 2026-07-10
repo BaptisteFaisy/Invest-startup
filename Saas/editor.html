@@ -245,6 +245,9 @@
 
       <!-- Canevas + page éditable -->
       <div class="editor-canvas">
+        <button type="button" class="editor-back" id="page-back-btn" aria-label="Revenir en arrière" title="Revenir en arrière">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
         <div class="paper" id="paper">
           <div class="sheet-bg" id="sheet-bg" aria-hidden="true"></div>
           <div class="page" id="page" contenteditable="true" spellcheck="false"></div>
@@ -357,6 +360,12 @@
     requireAuth().then((user) => {
       if (!user) return; // requireAuth a déjà redirigé vers login.html
       document.querySelector('.app').classList.add('ready');
+    });
+
+    // Retour en arrière
+    document.getElementById('page-back-btn').addEventListener('click', () => {
+      if (window.history.length > 1) window.history.back();
+      else window.location.href = 'dossiers.html';
     });
   </script>
 </body>

@@ -26,6 +26,11 @@
     .topbar .btn--ghost:hover { color: #fff !important; border-color: rgba(255,255,255,0.65) !important; }
 
     .dil { max-width: 780px; margin: 0 auto; padding: 40px 28px 90px; }
+    .page-back-row { width: 100%; box-sizing: border-box; max-width: 780px; margin: 0 auto; padding: 16px 28px 0; }
+    .page-back { width: 32px; height: 32px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
+    .page-back:hover { opacity: 0.68; transform: translateX(-1px); }
+    .page-back:focus-visible { outline: none; opacity: 1; }
+    .page-back svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
     .dil__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
     .dil__title { font-size: 30px; letter-spacing: -0.03em; color: #fff; margin-top: 6px; }
     .dil__sub { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 8px; line-height: 1.6; }
@@ -47,6 +52,12 @@
       </div>
     </header>
 
+    <div class="page-back-row">
+      <button type="button" class="page-back" id="page-back-btn" aria-label="Revenir en arrière" title="Revenir en arrière">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+    </div>
+
     <main class="dil">
       <div class="dil__eyebrow">Outil</div>
       <h1 class="dil__title">Data room</h1>
@@ -62,5 +73,11 @@
     </main>
   </div>
 
+  <script>
+    document.getElementById('page-back-btn').addEventListener('click', () => {
+      if (window.history.length > 1) window.history.back();
+      else window.location.href = 'dossiers.html';
+    });
+  </script>
 </body>
 </html>
