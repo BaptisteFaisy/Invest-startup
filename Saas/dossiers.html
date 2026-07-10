@@ -350,8 +350,10 @@
     .drawer-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.5); opacity:0; visibility:hidden; transition:opacity .2s, visibility .2s; z-index:60; }
     .drawer-backdrop.is-open { opacity:1; visibility:visible; }
     .drawer { position:fixed; top:0; bottom:0; width:280px; max-width:82vw; background:#0c0d11; border-right:1px solid rgba(255,255,255,0.08); box-shadow:0 0 40px rgba(0,0,0,0.5); z-index:61; display:flex; flex-direction:column; transition:transform .22s ease; }
-    .drawer--left { left:0; transform:translateX(-100%); }
-    .drawer--right { right:0; left:auto; border-right:0; border-left:1px solid rgba(255,255,255,0.08); transform:translateX(100%); }
+    .drawer--left { left:0; }
+    .drawer--right { right:0; left:auto; border-right:0; border-left:1px solid rgba(255,255,255,0.08); }
+    .drawer--left:not(.is-open) { transform:translateX(-100%); }
+    .drawer--right:not(.is-open) { transform:translateX(100%); }
     .drawer.is-open { transform:translateX(0); }
     .drawer__head { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:16px 18px; border-bottom:1px solid rgba(255,255,255,0.08); }
     .drawer__title { font-family:'Archivo',sans-serif; font-size:13px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#fff; }
