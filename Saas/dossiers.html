@@ -1369,16 +1369,26 @@
       const needle = normalizeSearch(query).trim();
       if (!needle) return [];
       // Chaque catégorie est collectée puis plafonnée séparément : sinon les
-      // étapes (nombreuses) saturent la liste et masquent docs et outils.
-      const steps = [], documents = [], tools = [];
+      // étapes (nombreuses) saturent la liste et masquent les autres résultats.
+      const steps = [], models = [], documents = [], tools = [];
       const collect = (bucket, cap, result, values) => {
-        if (bucket.length >= cap || !values.some(value => normalizeSearch(value).includes(needle))) return;
+        if (bucket.length >= cap || !values.some(value => normalizeSearch(value).includes(needle))) return false;
         bucket.push(result);
+        return true;
       };
 
+      const seenModels = new Set();
       folders.filter(isSystemPhase).forEach(folder => {
         const track = folder.track || 'classic';
         collect(steps, 5, { type: 'step', track, key: folder.key, label: friseLabel(folder) }, [folder.name, friseLabel(folder), ...(folder.checklist || [])]);
+        // Documents générables : items de checklist rattachés à un modèle.
+        (folder.checklist || []).forEach(item => {
+          const slug = slugify(item);
+          const modelSlug = modelSlugFor(slug);
+          if (!modelSlug || seenModels.has(modelSlug)) return;
+          const added = collect(models, 6, { type: 'model', folderId: folder.id, slug, item, modelSlug, label: item }, [item, modelSlug.replace(/-/g, ' ')]);
+          if (added) seenModels.add(modelSlug);
+        });
       });
       docs.forEach(doc => {
         const folder = folders.find(item => item.id === doc.folder_id);
@@ -1387,7 +1397,7 @@
       DASHBOARD_TOOLS.forEach(tool => {
         collect(tools, 5, { type: 'tool', href: tool.href, newTab: tool.newTab, label: tool.label }, [tool.label, ...(tool.keywords || [])]);
       });
-      return [...steps, ...documents, ...tools];
+      return [...steps, ...documents, ...models, ...tools];
     }
 
     function renderDashboardSearchResults() {
@@ -1402,7 +1412,7 @@
       }
       dashboardSearchResultsEl.innerHTML = `
         <p class="topbar__search-summary">${matches.length} résultat${matches.length > 1 ? 's' : ''}</p>
-        ${matches.map((match, index) => `<button class="topbar__search-result" type="button" data-search-result="${index}"><span class="topbar__search-result-kind">${match.type === 'step' ? 'Étape' : match.type === 'tool' ? 'Outil' : 'Document'}</span><span class="topbar__search-result-name">${esc(match.label)}</span></button>`).join('')}`;
+        ${matches.map((match, index) => `<button class="topbar__search-result" type="button" data-search-result="${index}"><span class="topbar__search-result-kind">${match.type === 'step' ? 'Étape' : match.type === 'tool' ? 'Outil' : match.type === 'model' ? 'Modèle' : 'Document'}</span><span class="topbar__search-result-name">${esc(match.label)}</span></button>`).join('')}`;
       dashboardSearchResultsEl.querySelectorAll('[data-search-result]').forEach(button => {
         button.addEventListener('click', () => {
           const match = matches[Number(button.dataset.searchResult)];
@@ -1411,6 +1421,10 @@
           if (match.type === 'tool') {
             if (match.newTab) window.open(match.href, '_blank', 'noopener');
             else window.location.href = match.href;
+            return;
+          }
+          if (match.type === 'model') {
+            useTemplate(match.folderId, match.slug, match.item, null, match.modelSlug);
             return;
           }
           if (match.type === 'step') {
