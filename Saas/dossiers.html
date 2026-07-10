@@ -340,12 +340,19 @@
     .topbar__search-result-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; font-weight:600; }
     .drawer-backdrop { position:fixed; inset:0; background:transparent; opacity:0; visibility:hidden; transition:visibility .2s; z-index:60; }
     .drawer-backdrop.is-open { opacity:1; visibility:visible; }
-    .drawer { position:fixed; top:0; bottom:0; width:280px; max-width:82vw; background:#0c0d11; border-right:1px solid rgba(255,255,255,0.08); box-shadow:0 0 40px rgba(0,0,0,0.5); z-index:61; display:flex; flex-direction:column; transition:transform .22s ease; }
+    .drawer { position:fixed; top:0; bottom:0; width:var(--drawer-w, 280px); min-width:220px; max-width:92vw; background:#0c0d11; border-right:1px solid rgba(255,255,255,0.08); box-shadow:0 0 40px rgba(0,0,0,0.5); z-index:61; display:flex; flex-direction:column; transition:transform .22s ease; }
     .drawer--left { left:0; }
     .drawer--right { right:0; left:auto; border-right:0; border-left:1px solid rgba(255,255,255,0.08); }
     .drawer--left:not(.is-open) { transform:translateX(-100%); }
     .drawer--right:not(.is-open) { transform:translateX(100%); }
     .drawer.is-open { transform:translateX(0); }
+    /* Poignée de redimensionnement : moitié dans le tiroir, moitié dans la zone
+       cliquable hors du panneau, pour rester facile à attraper au bord. */
+    .drawer__resize { position:absolute; top:0; bottom:0; width:10px; cursor:col-resize; z-index:2; touch-action:none; }
+    .drawer__resize::after { content:''; position:absolute; top:0; bottom:0; left:50%; width:2px; margin-left:-1px; background:transparent; transition:background .12s; }
+    .drawer__resize:hover::after, .drawer__resize.is-drag::after { background:rgba(255,255,255,0.22); }
+    .drawer--left .drawer__resize { right:-5px; }
+    .drawer--right .drawer__resize { left:-5px; }
     .drawer__head { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:16px 18px; border-bottom:1px solid rgba(255,255,255,0.08); }
     /* Le drawer gauche s'ouvre par-dessus le hamburger qui l'a déclenché (même z-index élevé
        pour rester cliquable) : on décale son titre pour ne plus passer dessous. */
@@ -676,6 +683,7 @@
         <div class="drawer__section-title" id="nav-steps-title" hidden>Étapes de la levée</div>
         <div id="nav-steps"></div>
       </nav>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
     </aside>
 
     <!-- Menu hamburger droite : compte & actions -->
@@ -691,12 +699,15 @@
         <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
         <a class="drawer__link" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>Tâches</a>
         <a class="drawer__link" href="dilution.html" target="_blank" rel="noopener" title="Simulation de dilution"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
+        <a class="drawer__link" href="documents.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>Documents</a>
+        <a class="drawer__link" href="data-room.html" target="_blank" rel="noopener" title="Data room"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/></svg>Data room</a>
         <div class="drawer__sep"></div>
         <a class="drawer__link" href="compte.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>Mon compte</a>
         <a class="drawer__link" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback</a>
         <div class="drawer__sep"></div>
         <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>Déconnexion</button>
       </nav>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
     </aside>
 
     <main class="dossiers">
@@ -1233,6 +1244,87 @@
     }
     const navDrawer = setupDrawer('nav-menu-btn', 'nav-drawer', 'nav-backdrop');
     const actionsDrawer = setupDrawer('actions-menu-btn', 'actions-drawer', 'actions-backdrop');
+
+    // Largeur des menus (tiroirs) librement ajustable, mémorisée par tiroir.
+    (function setupDrawerResize() {
+      const DEFAULT_W = 280;
+      const MIN_W = 220;
+
+      function bind(drawerId, storeKey, side) {
+        const drawer = document.getElementById(drawerId);
+        const handle = drawer && drawer.querySelector('.drawer__resize');
+        if (!drawer || !handle) return;
+
+        let width = DEFAULT_W;
+        try {
+          const stored = parseInt(localStorage.getItem(storeKey), 10);
+          if (stored) width = stored;
+        } catch {}
+
+        function maxW() { return Math.max(MIN_W, Math.min(720, window.innerWidth - 64)); }
+        function apply(w) {
+          width = Math.max(MIN_W, Math.min(maxW(), Math.round(w)));
+          drawer.style.setProperty('--drawer-w', width + 'px');
+          handle.setAttribute('aria-valuemin', String(MIN_W));
+          handle.setAttribute('aria-valuemax', String(Math.round(maxW())));
+          handle.setAttribute('aria-valuenow', String(width));
+        }
+        function persist() { try { localStorage.setItem(storeKey, String(width)); } catch {} }
+        apply(width);
+
+        handle.addEventListener('pointerdown', (e) => {
+          if (e.button !== 0) return;
+          e.preventDefault();
+          handle.classList.add('is-drag');
+          document.body.style.cursor = 'col-resize';
+          document.body.style.userSelect = 'none';
+          try { handle.setPointerCapture(e.pointerId); } catch {}
+          const startX = e.clientX;
+          const startW = width;
+          let rafId = 0, lastW = startW;
+          const move = (ev) => {
+            if (ev.buttons === 0) { up(); return; }
+            const dx = ev.clientX - startX;
+            lastW = side === 'left' ? startW + dx : startW - dx;
+            if (!rafId) rafId = requestAnimationFrame(() => { rafId = 0; apply(lastW); });
+          };
+          const up = () => {
+            if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+            handle.classList.remove('is-drag');
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+            handle.removeEventListener('pointermove', move);
+            handle.removeEventListener('pointerup', up);
+            handle.removeEventListener('pointercancel', up);
+            try { handle.releasePointerCapture(e.pointerId); } catch {}
+            apply(lastW);
+            persist();
+          };
+          handle.addEventListener('pointermove', move);
+          handle.addEventListener('pointerup', up);
+          handle.addEventListener('pointercancel', up);
+        });
+
+        handle.addEventListener('dblclick', () => {
+          try { localStorage.removeItem(storeKey); } catch {}
+          apply(DEFAULT_W);
+        });
+
+        handle.addEventListener('keydown', (e) => {
+          if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+          e.preventDefault();
+          const step = e.shiftKey ? 50 : 10;
+          const dir = (e.key === 'ArrowRight' ? 1 : -1) * (side === 'left' ? 1 : -1);
+          apply(width + dir * step);
+          persist();
+        });
+
+        window.addEventListener('resize', () => apply(width));
+      }
+
+      bind('nav-drawer', 'liquid_nav_drawer_w', 'left');
+      bind('actions-drawer', 'liquid_actions_drawer_w', 'right');
+    })();
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') { navDrawer && navDrawer.close(); actionsDrawer && actionsDrawer.close(); }
     });

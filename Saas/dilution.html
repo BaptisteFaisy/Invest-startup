@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>liquid + — Simulation de dilution</title>
+  <meta name="description" content="Simulateur de dilution : anticipez l'impact d'un tour de financement (pre-money, post-money, fully diluted) sur la répartition du capital." />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=6" />
+  <link rel="stylesheet" href="editor.css?v=7" />
+  <style>
+    [hidden] { display: none !important; }
+    .app { height: auto; overflow: visible; display: block; }
+    body, .app { background: #08090c !important; }
+
+    /* Topbar noir (identique aux autres pages du SaaS) */
+    .topbar { background: #08090c !important; border-bottom: 1px solid rgba(255,255,255,0.07) !important; position: sticky; top: 0; z-index: 20; }
+    .topbar .brand { color: #fff !important; display: flex; align-items: center; gap: 8px; }
+    .topbar .brand__plus { color: #fff !important; }
+    .topbar .brand__logo { display: block; flex: none; }
+    .topbar__doc { color: #fff !important; border-left-color: rgba(255,255,255,0.2) !important; }
+    .topbar .btn--ghost { color: #fff !important; border-color: rgba(255,255,255,0.35) !important; }
+    .topbar .btn--ghost:hover { color: #fff !important; border-color: rgba(255,255,255,0.65) !important; }
+
+    .dil { max-width: 1180px; margin: 0 auto; padding: 34px 24px 90px; }
+    .dil__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
+    .dil__title { font-size: 30px; letter-spacing: -0.03em; color: #fff; margin-top: 6px; }
+    .dil__sub { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 8px; line-height: 1.6; max-width: 720px; }
+
+    /* Disposition 2 colonnes : saisie à gauche, résultats à droite */
+    .dil__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 22px; margin-top: 26px; align-items: start; }
+    @media (max-width: 940px) { .dil__grid { grid-template-columns: 1fr; } }
+    .dil__results { position: sticky; top: 78px; }
+    @media (max-width: 940px) { .dil__results { position: static; } }
+
+    /* Cartes blanches */
+    .card { background: #fff; border-radius: 16px; padding: 20px 20px 22px; box-shadow: 0 10px 34px rgba(0,0,0,0.35); margin-bottom: 18px; }
+    .card__h { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #6b6b78; margin-bottom: 4px; }
+    .card__desc { font-size: 12.5px; color: #8a8a95; line-height: 1.5; margin-bottom: 14px; }
+
+    /* Champs */
+    .field { margin-bottom: 14px; }
+    .field__lab { display: block; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #6b6b78; margin-bottom: 6px; }
+    .inp, .sel { width: 100%; min-width: 0; font-family: 'Libre Franklin', sans-serif; font-size: 14px; color: #08090c; background: #f7f7f5; border: 1px solid rgba(8,9,12,0.12); border-radius: 9px; padding: 9px 11px; transition: border-color .12s, background .12s; }
+    .inp:focus, .sel:focus { outline: none; border-color: #3b82f6; background: #fff; }
+    .inp--money { text-align: right; }
+    .inp-wrap { position: relative; }
+    .inp-wrap .inp { padding-right: 28px; }
+    .inp-wrap__suf { position: absolute; right: 11px; top: 50%; transform: translateY(-50%); font-size: 13px; color: #a8a8b3; pointer-events: none; }
+
+    /* Lignes dynamiques (actionnaires / investisseurs) */
+    .rows__head, .row { display: grid; align-items: center; gap: 8px; }
+    .rows--sh .rows__head, .rows--sh .row { grid-template-columns: 1fr 118px 128px 30px; }
+    .rows--inv .rows__head, .rows--inv .row { grid-template-columns: 1fr 132px 30px; }
+    .rows__head { padding: 0 2px 6px; }
+    .rows__head span { font-family: 'Archivo', sans-serif; font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #a8a8b3; }
+    .rows__head span.r { text-align: right; }
+    .row { margin-bottom: 8px; }
+    .row .inp, .row .sel { padding: 8px 10px; font-size: 13px; }
+    .row__del { width: 30px; height: 34px; border: 1px solid rgba(8,9,12,0.1); background: #fff; border-radius: 8px; color: #b0b0bb; cursor: pointer; font-size: 17px; line-height: 1; display: flex; align-items: center; justify-content: center; transition: .12s; }
+    .row__del:hover { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,0.05); }
+    .addrow { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; color: #2563eb; background: transparent; border: 1px dashed rgba(37,99,235,0.4); border-radius: 9px; padding: 8px 12px; cursor: pointer; width: 100%; margin-top: 2px; transition: .12s; }
+    .addrow:hover { background: rgba(37,99,235,0.06); border-color: #2563eb; }
+
+    .rowsum { display: flex; justify-content: space-between; align-items: baseline; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(8,9,12,0.08); font-size: 12.5px; }
+    .rowsum b { font-family: 'Archivo', sans-serif; font-weight: 700; color: #08090c; font-size: 14px; }
+    .rowsum span { color: #8a8a95; }
+
+    /* Pool d'options */
+    .pool-toggle { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; margin-bottom: 4px; }
+    .pool-toggle input { width: 16px; height: 16px; accent-color: #3b82f6; cursor: pointer; }
+    .pool-toggle span { font-size: 13.5px; font-weight: 600; color: #08090c; }
+    .pool-body { margin-top: 12px; padding-left: 2px; }
+    .pool-body[hidden] { display: none; }
+    .radio-row { display: flex; gap: 8px; margin-top: 8px; }
+    .radio-chip { flex: 1; border: 1px solid rgba(8,9,12,0.14); border-radius: 9px; padding: 9px 10px; cursor: pointer; font-size: 12.5px; color: #6b6b78; text-align: center; transition: .12s; }
+    .radio-chip input { display: none; }
+    .radio-chip:hover { border-color: rgba(8,9,12,0.3); }
+    .radio-chip.is-on { border-color: #3b82f6; background: rgba(59,130,246,0.07); color: #08090c; font-weight: 600; }
+    .radio-chip small { display: block; font-size: 10.5px; color: #a8a8b3; font-weight: 400; margin-top: 2px; }
+
+    /* KPI */
+    .kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .kpi { background: #fff; border-radius: 13px; padding: 14px 15px; box-shadow: 0 8px 26px rgba(0,0,0,0.3); }
+    .kpi__lab { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #6b6b78; }
+    .kpi__val { font-family: 'Archivo', sans-serif; font-size: 22px; font-weight: 700; color: #08090c; letter-spacing: -0.02em; margin-top: 5px; }
+    .kpi__sub { font-size: 11.5px; color: #8a8a95; margin-top: 2px; }
+    .kpi--accent { background: linear-gradient(135deg, #1e293b, #0f172a); }
+    .kpi--accent .kpi__lab { color: #93c5fd; }
+    .kpi--accent .kpi__val { color: #fff; }
+    .kpi--accent .kpi__sub { color: rgba(255,255,255,0.6); }
+
+    /* Barre de répartition */
+    .ownbar-wrap { margin-top: 6px; }
+    .ownbar-row { margin-bottom: 14px; }
+    .ownbar-lab { display: flex; justify-content: space-between; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #6b6b78; margin-bottom: 6px; }
+    .ownbar { display: flex; height: 30px; border-radius: 8px; overflow: hidden; background: #eee; }
+    .ownseg { height: 100%; display: flex; align-items: center; justify-content: center; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; color: #fff; overflow: hidden; white-space: nowrap; transition: width .35s ease; min-width: 0; }
+    .legend { display: flex; flex-wrap: wrap; gap: 10px 16px; margin-top: 12px; }
+    .legend__it { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #4b4b56; }
+    .legend__sw { width: 11px; height: 11px; border-radius: 3px; flex: none; }
+
+    /* Couleurs des catégories */
+    .c-founder { background: #4f46e5; }
+    .c-invest0 { background: #0d9488; }
+    .c-pool0 { background: #d97706; }
+    .c-investN { background: #2563eb; }
+    .c-poolN { background: #9333ea; }
+
+    /* Table résultat */
+    .rtable-wrap { overflow-x: auto; margin-top: 4px; }
+    table.rtable { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 460px; }
+    .rtable th { font-family: 'Archivo', sans-serif; font-size: 9.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #a8a8b3; text-align: right; padding: 0 8px 9px; border-bottom: 1px solid rgba(8,9,12,0.09); }
+    .rtable th.l { text-align: left; }
+    .rtable td { padding: 9px 8px; border-bottom: 1px solid rgba(8,9,12,0.05); text-align: right; color: #08090c; vertical-align: middle; }
+    .rtable td.l { text-align: left; }
+    .rtable tr:last-child td { border-bottom: 0; }
+    .rt-name { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+    .rt-dot { width: 9px; height: 9px; border-radius: 3px; flex: none; }
+    .rt-num { font-variant-numeric: tabular-nums; }
+    .rt-pct-after { font-weight: 700; }
+    .rt-delta { font-variant-numeric: tabular-nums; font-size: 12px; font-weight: 600; }
+    .rt-delta--down { color: #dc2626; }
+    .rt-delta--up { color: #16a34a; }
+    .rt-delta--flat { color: #a8a8b3; }
+    .rtable tr.rt-total td { border-top: 2px solid rgba(8,9,12,0.12); border-bottom: 0; padding-top: 11px; font-family: 'Archivo', sans-serif; font-weight: 700; }
+    .rtable tr.rt-new td { background: rgba(37,99,235,0.035); }
+
+    .warn { display: flex; gap: 10px; background: rgba(217,119,6,0.1); border: 1px solid rgba(217,119,6,0.28); border-radius: 12px; padding: 13px 15px; margin-bottom: 16px; font-size: 13px; line-height: 1.5; color: #92400e; }
+    .warn svg { width: 18px; height: 18px; flex: none; stroke: #d97706; stroke-width: 1.9; fill: none; margin-top: 1px; }
+
+    .note { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.6; margin-top: 16px; }
+    .note b { color: rgba(255,255,255,0.8); }
+
+    .dil__actions { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+    .dil__actions .btn { background: rgba(255,255,255,0.06); color: #fff; border-color: rgba(255,255,255,0.2); }
+    .dil__actions .btn:hover { border-color: rgba(255,255,255,0.5); }
+
+    @media (max-width: 520px) {
+      .dil { padding: 24px 14px 80px; }
+      .dil__title { font-size: 25px; }
+      .card { padding: 16px 14px 18px; }
+      .rows--sh .rows__head, .rows--sh .row { grid-template-columns: 1fr 72px 92px 28px; gap: 6px; }
+      .rows--inv .rows__head, .rows--inv .row { grid-template-columns: 1fr 100px 28px; gap: 6px; }
+      .row .inp, .row .sel { padding: 8px 7px; font-size: 12.5px; }
+      .kpi__val { font-size: 19px; }
+    }
+  </style>
+  <script src="auth.js?v=3"></script>
+  <script src="tasks.js?v=2" defer></script>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="topbar__left">
+        <a href="/index.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
+        <span class="topbar__doc">Simulation de dilution</span>
+      </div>
+      <div class="topbar__actions">
+        <a href="dossiers.html" class="btn btn--ghost">← Dossiers</a>
+        <button class="btn btn--ghost" id="logout-btn">Déconnexion</button>
+      </div>
+    </header>
+
+    <main class="dil">
+      <div class="dil__eyebrow">Outil</div>
+      <h1 class="dil__title">Simulation de dilution</h1>
+      <p class="dil__sub">Renseignez votre cap table actuelle et les paramètres du tour. Le simulateur calcule le post-money, le prix par action, les actions émises et votre dilution — le tout en <b>fully diluted</b> (pool d'options et instruments convertibles inclus).</p>
+
+      <div class="dil__grid">
+        <!-- COLONNE SAISIE -->
+        <form id="dil-form" autocomplete="off">
+          <div class="card">
+            <div class="card__h">1 · Cap table actuelle</div>
+            <div class="card__desc">Le capital <b>avant</b> le tour, en nombre d'actions (fully diluted : intégrez le pool d'options existant et les BSA/BSPCE déjà attribués).</div>
+            <div class="rows rows--sh">
+              <div class="rows__head">
+                <span>Actionnaire</span>
+                <span class="r">Actions</span>
+                <span>Catégorie</span>
+                <span></span>
+              </div>
+              <div id="sh-rows"></div>
+            </div>
+            <button type="button" class="addrow" id="add-sh">+ Ajouter un actionnaire</button>
+            <div class="rowsum">
+              <span>Total actions avant l'opération</span>
+              <b id="sh-total">—</b>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card__h">2 · Le tour de financement</div>
+            <div class="field">
+              <label class="field__lab" for="premoney">Valorisation pre-money</label>
+              <div class="inp-wrap">
+                <input class="inp inp--money" type="text" inputmode="numeric" id="premoney" value="4 000 000" />
+                <span class="inp-wrap__suf">€</span>
+              </div>
+            </div>
+            <div class="field">
+              <label class="field__lab">Investisseurs (montant investi)</label>
+              <div class="rows rows--inv">
+                <div class="rows__head">
+                  <span>Investisseur</span>
+                  <span class="r">Montant (€)</span>
+                  <span></span>
+                </div>
+                <div id="inv-rows"></div>
+              </div>
+              <button type="button" class="addrow" id="add-inv">+ Ajouter un investisseur</button>
+              <div class="rowsum">
+                <span>Total levé</span>
+                <b id="inv-total">—</b>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card__h">3 · Pool d'options (optionnel)</div>
+            <label class="pool-toggle">
+              <input type="checkbox" id="pool-on" />
+              <span>Créer ou agrandir un pool d'options (BSPCE / stock-options)</span>
+            </label>
+            <div class="pool-body" id="pool-body" hidden>
+              <div class="field" style="margin-top:12px">
+                <label class="field__lab" for="pool-pct">Taille cible du pool</label>
+                <div class="inp-wrap">
+                  <input class="inp inp--money" type="text" inputmode="decimal" id="pool-pct" value="10" />
+                  <span class="inp-wrap__suf">%</span>
+                </div>
+                <div class="card__desc" style="margin:6px 0 0">En % du capital post-money.</div>
+              </div>
+              <label class="field__lab">Quand le pool est-il créé ?</label>
+              <div class="radio-row">
+                <label class="radio-chip is-on" data-timing="pre">
+                  <input type="radio" name="pool-timing" value="pre" checked />
+                  Avant le tour
+                  <small>Dilue les fondateurs (demande VC classique)</small>
+                </label>
+                <label class="radio-chip" data-timing="post">
+                  <input type="radio" name="pool-timing" value="post" />
+                  Après le tour
+                  <small>Dilue tout le monde, investisseur inclus</small>
+                </label>
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <!-- COLONNE RÉSULTATS -->
+        <div class="dil__results">
+          <div class="dil__actions">
+            <button type="button" class="btn" id="reset-btn">↺ Réinitialiser l'exemple</button>
+          </div>
+
+          <div id="warn-box"></div>
+
+          <div class="kpis">
+            <div class="kpi kpi--accent">
+              <div class="kpi__lab">Valorisation post-money</div>
+              <div class="kpi__val" id="k-post">—</div>
+              <div class="kpi__sub" id="k-post-sub">pre-money + montant levé</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi__lab">Prix par action</div>
+              <div class="kpi__val" id="k-pps">—</div>
+              <div class="kpi__sub" id="k-pps-sub"></div>
+            </div>
+            <div class="kpi">
+              <div class="kpi__lab">Part des investisseurs</div>
+              <div class="kpi__val" id="k-inv">—</div>
+              <div class="kpi__sub" id="k-inv-sub">du capital post-money</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi__lab">Dilution des fondateurs</div>
+              <div class="kpi__val" id="k-fdil">—</div>
+              <div class="kpi__sub" id="k-fdil-sub"></div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:18px">
+            <div class="card__h">Répartition du capital (fully diluted)</div>
+            <div class="ownbar-wrap">
+              <div class="ownbar-row">
+                <div class="ownbar-lab"><span>Avant</span><span id="own-before-tot"></span></div>
+                <div class="ownbar" id="own-before"></div>
+              </div>
+              <div class="ownbar-row">
+                <div class="ownbar-lab"><span>Après le tour</span><span id="own-after-tot"></span></div>
+                <div class="ownbar" id="own-after"></div>
+              </div>
+              <div class="legend" id="legend"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card__h">Cap table détaillée — avant / après</div>
+            <div class="rtable-wrap">
+              <table class="rtable">
+                <thead>
+                  <tr>
+                    <th class="l">Actionnaire</th>
+                    <th>Actions avant</th>
+                    <th>% avant</th>
+                    <th>Actions après</th>
+                    <th>% après</th>
+                    <th>Évolution</th>
+                  </tr>
+                </thead>
+                <tbody id="rtable-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <p class="note">
+            <b>Fully diluted</b> : la répartition intègre le pool d'options et les instruments convertibles comme s'ils étaient déjà des actions — c'est la seule base honnête pour mesurer votre dilution réelle.<br />
+            <b>Option pool shuffle</b> : un pool créé « avant le tour » gonfle le pre-money en actions et ne dilue que les actionnaires existants — l'investisseur obtient son pourcentage « net de pool ». Créé « après », il dilue aussi l'investisseur. C'est un point de négociation à part entière.
+          </p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); logout(); });
+
+    // ---------- Formatage ----------
+    const nfInt = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
+    const eur0 = (n) => nfInt.format(Math.round(n)) + ' €';
+    const num0 = (n) => nfInt.format(Math.round(n));
+    const pct1 = (n) => (n * 100).toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %';
+    const pct2 = (n) => (n * 100).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' %';
+    // Lit un nombre depuis un champ texte (accepte espaces, points, virgules)
+    const parseNum = (s) => {
+      if (s == null) return 0;
+      const cleaned = String(s).replace(/[^0-9.,-]/g, '').replace(/\s/g, '').replace(',', '.');
+      const v = parseFloat(cleaned);
+      return isFinite(v) ? v : 0;
+    };
+    // Formate un champ montant avec séparateurs d'espace pendant la saisie
+    const fmtLiveInt = (s) => {
+      const v = parseNum(s);
+      if (!v) return '';
+      return nfInt.format(Math.round(v));
+    };
+
+    const CATS = {
+      founder: { label: 'Fondateurs', cls: 'c-founder', color: '#4f46e5' },
+      invest0: { label: 'Investisseurs existants', cls: 'c-invest0', color: '#0d9488' },
+      pool0:   { label: 'Pool existant', cls: 'c-pool0', color: '#d97706' },
+      investN: { label: 'Nouveaux investisseurs', cls: 'c-investN', color: '#2563eb' },
+      poolN:   { label: 'Nouveau pool', cls: 'c-poolN', color: '#9333ea' },
+    };
+
+    // ---------- Données d'exemple ----------
+    const EXAMPLE = {
+      shareholders: [
+        { name: 'Fondateur A', shares: 500000, type: 'founder' },
+        { name: 'Fondateur B', shares: 400000, type: 'founder' },
+        { name: 'Pool BSPCE existant', shares: 100000, type: 'pool0' },
+      ],
+      investors: [
+        { name: 'Investisseur lead', amount: 1000000 },
+      ],
+      premoney: 4000000,
+      pool: { on: true, pct: 10, timing: 'pre' },
+    };
+
+    const shRowsEl = document.getElementById('sh-rows');
+    const invRowsEl = document.getElementById('inv-rows');
+
+    function shRowHTML(sh) {
+      const opt = (v, l) => `<option value="${v}"${sh.type === v ? ' selected' : ''}>${l}</option>`;
+      return `<div class="row" data-role="sh">
+        <input class="inp in-name" type="text" value="${escAttr(sh.name)}" placeholder="Nom" />
+        <input class="inp inp--money in-shares" type="text" inputmode="numeric" value="${sh.shares ? nfInt.format(sh.shares) : ''}" placeholder="0" />
+        <select class="sel in-type">
+          ${opt('founder', 'Fondateur')}
+          ${opt('invest0', 'Investisseur')}
+          ${opt('pool0', 'Pool / BSPCE')}
+        </select>
+        <button type="button" class="row__del" title="Supprimer">×</button>
+      </div>`;
+    }
+    function invRowHTML(inv) {
+      return `<div class="row" data-role="inv">
+        <input class="inp in-iname" type="text" value="${escAttr(inv.name)}" placeholder="Nom" />
+        <input class="inp inp--money in-amount" type="text" inputmode="numeric" value="${inv.amount ? nfInt.format(inv.amount) : ''}" placeholder="0" />
+        <button type="button" class="row__del" title="Supprimer">×</button>
+      </div>`;
+    }
+    function escAttr(s) { return String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+
+    function loadExample() {
+      shRowsEl.innerHTML = EXAMPLE.shareholders.map(shRowHTML).join('');
+      invRowsEl.innerHTML = EXAMPLE.investors.map(invRowHTML).join('');
+      document.getElementById('premoney').value = nfInt.format(EXAMPLE.premoney);
+      document.getElementById('pool-on').checked = EXAMPLE.pool.on;
+      document.getElementById('pool-pct').value = String(EXAMPLE.pool.pct);
+      document.querySelectorAll('input[name="pool-timing"]').forEach(r => { r.checked = (r.value === EXAMPLE.pool.timing); });
+      syncPoolUI();
+      recompute();
+    }
+
+    // ---------- Lecture de l'état ----------
+    function readState() {
+      const shareholders = [...shRowsEl.querySelectorAll('[data-role="sh"]')].map(r => ({
+        name: r.querySelector('.in-name').value.trim() || 'Sans nom',
+        shares: parseNum(r.querySelector('.in-shares').value),
+        type: r.querySelector('.in-type').value,
+      }));
+      const investors = [...invRowsEl.querySelectorAll('[data-role="inv"]')].map(r => ({
+        name: r.querySelector('.in-iname').value.trim() || 'Investisseur',
+        amount: parseNum(r.querySelector('.in-amount').value),
+      }));
+      const premoney = parseNum(document.getElementById('premoney').value);
+      const poolOn = document.getElementById('pool-on').checked;
+      const poolPct = parseNum(document.getElementById('pool-pct').value) / 100;
+      const timingEl = document.querySelector('input[name="pool-timing"]:checked');
+      const timing = timingEl ? timingEl.value : 'pre';
+      return { shareholders, investors, premoney, pool: { on: poolOn, pct: poolPct, timing } };
+    }
+
+    // ---------- Calcul ----------
+    function compute(st) {
+      const E = st.shareholders.reduce((a, s) => a + s.shares, 0); // actions existantes (fully diluted)
+      const I = st.investors.reduce((a, s) => a + s.amount, 0);    // total levé
+      const postV = st.premoney + I;
+      const res = { E, I, postV, premoney: st.premoney, error: null };
+
+      if (E <= 0 || st.premoney <= 0) {
+        res.error = 'incomplete';
+        return res;
+      }
+
+      const p = st.pool.on ? st.pool.pct : 0;
+      let poolShares = 0, pps, T;
+
+      if (st.pool.on && st.pool.timing === 'pre') {
+        // Pool créé avant : dilue uniquement l'existant.
+        // T tel que : E = T·(1 − I/postV − p)
+        const denom = 1 - (I / postV) - p;
+        if (denom <= 0) { res.error = 'poolTooBig'; return res; }
+        T = E / denom;
+        poolShares = p * T;
+        pps = st.premoney / (E + poolShares);
+      } else if (st.pool.on && st.pool.timing === 'post') {
+        // Pool créé après : dilue tout le monde.
+        pps = st.premoney / E;
+        const invShares = I / pps;
+        const M = E + invShares;         // avant pool
+        poolShares = (p >= 1) ? Infinity : (p * M) / (1 - p);
+        if (!isFinite(poolShares)) { res.error = 'poolTooBig'; return res; }
+        T = M + poolShares;
+      } else {
+        // Pas de nouveau pool.
+        pps = st.premoney / E;
+        T = E + (I / pps);
+      }
+
+      const invSharesTotal = I / pps;
+      res.pps = pps;
+      res.poolShares = poolShares;
+      res.T = T;
+      res.invSharesTotal = invSharesTotal;
+      res.invPct = invSharesTotal / T;
+      res.poolPct = poolShares / T;
+
+      // Lignes détaillées
+      const rows = [];
+      st.shareholders.forEach(s => {
+        rows.push({ name: s.name, cat: s.type, before: s.shares, after: s.shares });
+      });
+      st.investors.forEach(inv => {
+        const sh = inv.amount / pps;
+        rows.push({ name: inv.name, cat: 'investN', before: 0, after: sh });
+      });
+      if (poolShares > 0.5) {
+        rows.push({ name: 'Nouveau pool d\'options', cat: 'poolN', before: 0, after: poolShares });
+      }
+      res.rows = rows.map(r => ({
+        ...r,
+        pctBefore: r.before / E,
+        pctAfter: r.after / T,
+      }));
+
+      // Agrégat fondateurs
+      const fBefore = st.shareholders.filter(s => s.type === 'founder').reduce((a, s) => a + s.shares, 0);
+      res.founderPctBefore = fBefore / E;
+      res.founderPctAfter = fBefore / T;
+
+      // Segments pour la barre (groupés par catégorie)
+      const groups = ['founder', 'invest0', 'pool0', 'investN', 'poolN'];
+      res.segBefore = groups.map(g => ({ cat: g, val: res.rows.filter(r => r.cat === g).reduce((a, r) => a + r.before, 0) })).filter(s => s.val > 0);
+      res.segAfter = groups.map(g => ({ cat: g, val: res.rows.filter(r => r.cat === g).reduce((a, r) => a + r.after, 0) })).filter(s => s.val > 0);
+      res.usedCats = groups.filter(g => res.rows.some(r => r.cat === g && (r.before > 0 || r.after > 0)));
+
+      return res;
+    }
+
+    // ---------- Rendu ----------
+    function recompute() {
+      const st = readState();
+      const r = compute(st);
+
+      // Totaux de saisie
+      document.getElementById('sh-total').textContent = st.shareholders.reduce((a, s) => a + s.shares, 0) > 0
+        ? num0(r.E) + ' actions' : '—';
+      document.getElementById('inv-total').textContent = r.I > 0 ? eur0(r.I) : '—';
+
+      const warnBox = document.getElementById('warn-box');
+      const kPost = document.getElementById('k-post');
+      const kPps = document.getElementById('k-pps');
+      const kInv = document.getElementById('k-inv');
+      const kFdil = document.getElementById('k-fdil');
+
+      // Post-money toujours affichable si on a pre + montant
+      document.getElementById('k-post').textContent = (st.premoney > 0) ? eur0(r.postV) : '—';
+      document.getElementById('k-post-sub').textContent = (st.premoney > 0)
+        ? `${eur0(st.premoney)} + ${eur0(r.I)}` : 'pre-money + montant levé';
+
+      if (r.error === 'incomplete') {
+        warnBox.innerHTML = '';
+        kPps.textContent = '—'; kInv.textContent = '—'; kFdil.textContent = '—';
+        document.getElementById('k-pps-sub').textContent = '';
+        document.getElementById('k-fdil-sub').textContent = '';
+        document.getElementById('rtable-body').innerHTML = '<tr><td class="l" colspan="6" style="color:#a8a8b3;text-align:center;padding:20px 0">Renseignez au moins une valorisation pre-money et un actionnaire.</td></tr>';
+        renderBars(null);
+        return;
+      }
+      if (r.error === 'poolTooBig') {
+        warnBox.innerHTML = warnHTML('Le pool demandé est trop grand par rapport au tour : il ne reste pas assez de place pour l\'existant. Réduisez la taille du pool ou augmentez la valorisation.');
+        kPps.textContent = '—'; kInv.textContent = '—'; kFdil.textContent = '—';
+        document.getElementById('rtable-body').innerHTML = '';
+        renderBars(null);
+        return;
+      }
+      warnBox.innerHTML = '';
+
+      kPps.textContent = r.pps >= 100 ? eur0(r.pps) : r.pps.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 4 }) + ' €';
+      document.getElementById('k-pps-sub').textContent = `${num0(r.invSharesTotal)} actions émises`;
+      kInv.textContent = pct1(r.invPct);
+      const fdil = r.founderPctBefore - r.founderPctAfter;
+      kFdil.textContent = '−' + pct1(fdil);
+      const relDil = r.founderPctBefore > 0 ? (fdil / r.founderPctBefore) : 0;
+      document.getElementById('k-fdil-sub').textContent = `${pct1(r.founderPctBefore)} → ${pct1(r.founderPctAfter)} (soit −${pct1(relDil).replace(' %','')} % relatif)`;
+
+      renderBars(r);
+      renderTable(r);
+    }
+
+    function warnHTML(msg) {
+      return `<div class="warn"><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg><div>${msg}</div></div>`;
+    }
+
+    function renderBars(r) {
+      const before = document.getElementById('own-before');
+      const after = document.getElementById('own-after');
+      const legend = document.getElementById('legend');
+      if (!r) { before.innerHTML = ''; after.innerHTML = ''; legend.innerHTML = '';
+        document.getElementById('own-before-tot').textContent = '';
+        document.getElementById('own-after-tot').textContent = ''; return; }
+
+      const seg = (list, total) => list.map(s => {
+        const pct = s.val / total;
+        const c = CATS[s.cat];
+        return `<div class="ownseg ${c.cls}" style="width:${(pct * 100).toFixed(3)}%" title="${c.label} — ${pct1(pct)}">${pct >= 0.06 ? pct1(pct) : ''}</div>`;
+      }).join('');
+
+      before.innerHTML = seg(r.segBefore, r.E);
+      after.innerHTML = seg(r.segAfter, r.T);
+      document.getElementById('own-before-tot').textContent = num0(r.E) + ' actions';
+      document.getElementById('own-after-tot').textContent = num0(r.T) + ' actions';
+
+      legend.innerHTML = r.usedCats.map(c =>
+        `<span class="legend__it"><span class="legend__sw ${CATS[c].cls}"></span>${CATS[c].label}</span>`
+      ).join('');
+    }
+
+    function renderTable(r) {
+      const body = document.getElementById('rtable-body');
+      const rowHTML = (row) => {
+        const c = CATS[row.cat];
+        const isNew = (row.cat === 'investN' || row.cat === 'poolN');
+        let delta = '';
+        if (row.before === 0 && row.after > 0) {
+          delta = `<span class="rt-delta rt-delta--up">nouveau</span>`;
+        } else {
+          const d = row.pctAfter - row.pctBefore;
+          const cls = Math.abs(d) < 0.0005 ? 'rt-delta--flat' : (d < 0 ? 'rt-delta--down' : 'rt-delta--up');
+          const sign = d > 0.0005 ? '+' : (d < -0.0005 ? '−' : '');
+          delta = `<span class="rt-delta ${cls}">${sign}${pct1(Math.abs(d)).replace(' %','')} pt</span>`;
+        }
+        return `<tr class="${isNew ? 'rt-new' : ''}">
+          <td class="l"><span class="rt-name"><span class="rt-dot ${c.cls}"></span>${escAttr(row.name)}</span></td>
+          <td class="rt-num">${row.before > 0 ? num0(row.before) : '—'}</td>
+          <td class="rt-num">${row.before > 0 ? pct1(row.pctBefore) : '—'}</td>
+          <td class="rt-num">${num0(row.after)}</td>
+          <td class="rt-num rt-pct-after">${pct2(row.pctAfter)}</td>
+          <td>${delta}</td>
+        </tr>`;
+      };
+      const totalRow = `<tr class="rt-total">
+        <td class="l">Total (fully diluted)</td>
+        <td class="rt-num">${num0(r.E)}</td>
+        <td class="rt-num">100 %</td>
+        <td class="rt-num">${num0(r.T)}</td>
+        <td class="rt-num">100 %</td>
+        <td></td>
+      </tr>`;
+      body.innerHTML = r.rows.map(rowHTML).join('') + totalRow;
+    }
+
+    // ---------- Interactions ----------
+    function syncPoolUI() {
+      const on = document.getElementById('pool-on').checked;
+      document.getElementById('pool-body').hidden = !on;
+      document.querySelectorAll('.radio-chip').forEach(chip => {
+        const r = chip.querySelector('input');
+        chip.classList.toggle('is-on', r.checked);
+      });
+    }
+
+    const form = document.getElementById('dil-form');
+    // Recalcule à chaque frappe / changement
+    form.addEventListener('input', (e) => {
+      if (e.target.id === 'pool-on') syncPoolUI();
+      recompute();
+    });
+    form.addEventListener('change', (e) => {
+      if (e.target.name === 'pool-timing') syncPoolUI();
+      recompute();
+    });
+    // Reformatage des champs montant à la sortie du champ
+    form.addEventListener('blur', (e) => {
+      if (e.target.classList && (e.target.classList.contains('in-shares') || e.target.classList.contains('in-amount') || e.target.id === 'premoney')) {
+        e.target.value = fmtLiveInt(e.target.value);
+        recompute();
+      }
+    }, true);
+
+    // Ajout / suppression de lignes
+    document.getElementById('add-sh').addEventListener('click', () => {
+      shRowsEl.insertAdjacentHTML('beforeend', shRowHTML({ name: '', shares: 0, type: 'invest0' }));
+      recompute();
+    });
+    document.getElementById('add-inv').addEventListener('click', () => {
+      invRowsEl.insertAdjacentHTML('beforeend', invRowHTML({ name: '', amount: 0 }));
+      recompute();
+    });
+    document.addEventListener('click', (e) => {
+      if (e.target.classList && e.target.classList.contains('row__del')) {
+        e.target.closest('.row').remove();
+        recompute();
+      }
+    });
+
+    document.getElementById('reset-btn').addEventListener('click', loadExample);
+
+    // Init
+    loadExample();
+  </script>
+</body>
+</html>
