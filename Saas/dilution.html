@@ -159,10 +159,6 @@
         <a href="/index.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
         <span class="topbar__doc">Simulation de dilution</span>
       </div>
-      <div class="topbar__actions">
-        <a href="dossiers.html" class="btn btn--ghost">← Dossiers</a>
-        <button class="btn btn--ghost" id="logout-btn">Déconnexion</button>
-      </div>
     </header>
 
     <main class="dil">
@@ -326,8 +322,6 @@
   </div>
 
   <script>
-    document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); logout(); });
-
     // ---------- Formatage ----------
     const nfInt = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
     const eur0 = (n) => nfInt.format(Math.round(n)) + ' €';
