@@ -51,8 +51,9 @@
     .appdock__head { display: flex; align-items: center; gap: 8px; padding: 12px 12px 10px 16px; cursor: grab; }
     .appdock.is-dragging .appdock__head { cursor: grabbing; }
     .appdock__title { flex: 1; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #6b6b78; }
-    .appdock__toggle { width: 26px; height: 26px; flex: none; display: grid; place-items: center; border: 0; border-radius: 7px; background: transparent; color: #9aa0ad; cursor: pointer; padding: 0; transition: color .15s, background .15s; }
-    .appdock__toggle svg { width: 16px; height: 16px; display: block; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s ease; }
+    .appdock__toggle { width: 30px; height: 30px; flex: none; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 0; border-radius: 8px; background: transparent; color: #8f95a1; cursor: pointer; padding: 0; transition: color .15s, background .15s, transform .15s; }
+    .appdock__toggle span { width: 15px; height: 2px; border-radius: 99px; background: currentColor; display: block; }
+    .appdock__toggle[aria-expanded="true"] { color: #08090c; background: rgba(8,9,12,0.055); }
     .appdock__toggle:hover { background: rgba(8,9,12,0.06); color: #08090c; }
     .appdock__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 4px 12px 14px; }
     .appdock.is-collapsed .appdock__grid { display: none; }
@@ -66,6 +67,7 @@
     .appdock.is-collapsed { width: 46px; height: 46px; border-radius: 14px; }
     .appdock.is-collapsed .appdock__head { width: 46px; height: 46px; padding: 0; justify-content: center; gap: 0; }
     .appdock.is-collapsed .appdock__title { display: none; }
+    .appdock.is-collapsed .appdock__toggle { width: 46px; height: 46px; border-radius: 14px; background: transparent; color: #08090c; }
     @media (max-width: 900px) { .appdock { display: none; } }
 
     /* Dossiers (phases de levée) */
@@ -340,6 +342,26 @@
     .topbar__doc { color: #fff !important; border-left-color: rgba(255,255,255,0.2) !important; }
     .topbar .btn--ghost { color: #fff !important; border-color: rgba(255,255,255,0.22) !important; }
     .topbar .btn--ghost:hover { border-color: rgba(255,255,255,0.55) !important; }
+
+    /* ═══════════ Menus hamburger (gauche & droite) ═══════════ */
+    .hamburger { flex:none; width:38px; height:38px; display:grid; place-items:center; border:1px solid rgba(255,255,255,0.22); border-radius:10px; background:transparent; color:#fff; cursor:pointer; padding:0; transition:border-color .15s, background .15s; }
+    .hamburger:hover { border-color:rgba(255,255,255,0.55); background:rgba(255,255,255,0.06); }
+    .hamburger svg { width:18px; height:18px; stroke:currentColor; stroke-width:2; stroke-linecap:round; fill:none; }
+    .drawer-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.5); opacity:0; visibility:hidden; transition:opacity .2s, visibility .2s; z-index:60; }
+    .drawer-backdrop.is-open { opacity:1; visibility:visible; }
+    .drawer { position:fixed; top:0; bottom:0; width:280px; max-width:82vw; background:#0c0d11; border-right:1px solid rgba(255,255,255,0.08); box-shadow:0 0 40px rgba(0,0,0,0.5); z-index:61; display:flex; flex-direction:column; transition:transform .22s ease; }
+    .drawer--left { left:0; transform:translateX(-100%); }
+    .drawer--right { right:0; left:auto; border-right:0; border-left:1px solid rgba(255,255,255,0.08); transform:translateX(100%); }
+    .drawer.is-open { transform:translateX(0); }
+    .drawer__head { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:16px 18px; border-bottom:1px solid rgba(255,255,255,0.08); }
+    .drawer__title { font-family:'Archivo',sans-serif; font-size:13px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#fff; }
+    .drawer__close { flex:none; width:30px; height:30px; display:grid; place-items:center; border:0; border-radius:8px; background:transparent; color:rgba(255,255,255,0.7); font-size:22px; line-height:1; cursor:pointer; }
+    .drawer__close:hover { background:rgba(255,255,255,0.08); color:#fff; }
+    .drawer__body { flex:1; overflow-y:auto; padding:10px; display:flex; flex-direction:column; gap:2px; }
+    .drawer__link { display:flex; align-items:center; gap:12px; padding:11px 12px; border-radius:10px; color:rgba(255,255,255,0.86); font-family:'Libre Franklin',sans-serif; font-size:14px; font-weight:500; text-decoration:none; background:transparent; border:0; width:100%; text-align:left; cursor:pointer; transition:background .12s; }
+    .drawer__link:hover { background:rgba(255,255,255,0.07); color:#fff; }
+    .drawer__link svg { width:18px; height:18px; flex:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; fill:none; opacity:.85; }
+    .drawer__sep { height:1px; margin:8px 4px; background:rgba(255,255,255,0.08); }
 
     /* Carte Reprendre — bulle blanche */
     .resume-card { background: #fff !important; border-radius: 20px !important; box-shadow: 0 12px 40px rgba(0,0,0,0.45) !important; }
@@ -644,13 +666,50 @@
     <!-- Top bar -->
     <header class="topbar">
       <div class="topbar__left">
+        <button type="button" class="hamburger" id="nav-menu-btn" aria-label="Ouvrir la navigation" aria-controls="nav-drawer" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
         <a href="/index.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
         <span class="topbar__doc">Tableau de bord</span>
       </div>
       <div class="topbar__actions">
         <a href="compte.html" class="btn btn--ghost">Mon compte</a>
+        <button type="button" class="hamburger" id="actions-menu-btn" aria-label="Ouvrir le menu" aria-controls="actions-drawer" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
       </div>
     </header>
+
+    <!-- Menu hamburger gauche : navigation -->
+    <div class="drawer-backdrop" id="nav-backdrop" data-drawer-close></div>
+    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Navigation">
+      <div class="drawer__head">
+        <span class="drawer__title">Navigation</span>
+        <button type="button" class="drawer__close" data-drawer-close aria-label="Fermer">&times;</button>
+      </div>
+      <nav class="drawer__body">
+        <a class="drawer__link" href="dossiers.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h6l2 2h10v9a2 2 0 0 1-2 2H3z"/></svg>Tableau de bord</a>
+        <a class="drawer__link" href="../marche.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Marché</a>
+        <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
+        <a class="drawer__link" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/></svg>Tâches</a>
+        <a class="drawer__link" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
+      </nav>
+    </aside>
+
+    <!-- Menu hamburger droite : compte & actions -->
+    <div class="drawer-backdrop" id="actions-backdrop" data-drawer-close></div>
+    <aside class="drawer drawer--right" id="actions-drawer" role="dialog" aria-modal="true" aria-label="Menu">
+      <div class="drawer__head">
+        <span class="drawer__title">Menu</span>
+        <button type="button" class="drawer__close" data-drawer-close aria-label="Fermer">&times;</button>
+      </div>
+      <nav class="drawer__body">
+        <a class="drawer__link" href="compte.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>Mon compte</a>
+        <a class="drawer__link" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback</a>
+        <div class="drawer__sep"></div>
+        <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>Déconnexion</button>
+      </nav>
+    </aside>
 
     <main class="dossiers">
       <div class="dossiers__head">
@@ -1108,6 +1167,39 @@
       dashboardControlsToggle.addEventListener('click', () =>
         setDashboardControlsCollapsed(!(dashboardControlsEl && dashboardControlsEl.hidden), true));
     }
+
+    // Menus hamburger : tiroirs gauche (navigation) & droite (compte)
+    function setupDrawer(btnId, drawerId, backdropId) {
+      const btn = document.getElementById(btnId);
+      const drawer = document.getElementById(drawerId);
+      const backdrop = document.getElementById(backdropId);
+      if (!btn || !drawer || !backdrop) return null;
+      const close = () => {
+        drawer.classList.remove('is-open');
+        backdrop.classList.remove('is-open');
+        btn.setAttribute('aria-expanded', 'false');
+      };
+      const open = () => {
+        drawer.classList.add('is-open');
+        backdrop.classList.add('is-open');
+        btn.setAttribute('aria-expanded', 'true');
+      };
+      btn.addEventListener('click', () =>
+        drawer.classList.contains('is-open') ? close() : open());
+      backdrop.addEventListener('click', close);
+      drawer.querySelectorAll('[data-drawer-close]').forEach(el =>
+        el.addEventListener('click', close));
+      return { open, close };
+    }
+    const navDrawer = setupDrawer('nav-menu-btn', 'nav-drawer', 'nav-backdrop');
+    const actionsDrawer = setupDrawer('actions-menu-btn', 'actions-drawer', 'actions-backdrop');
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { navDrawer && navDrawer.close(); actionsDrawer && actionsDrawer.close(); }
+    });
+    const drawerLogout = document.getElementById('drawer-logout');
+    if (drawerLogout) drawerLogout.addEventListener('click', () => {
+      if (typeof logout === 'function') logout(); else location.href = 'login.html';
+    });
     window.addEventListener('popstate', () => {
       selectedClassicStep = stepFromUrl();
       applyRaiseType(getRaiseType());
@@ -1513,6 +1605,74 @@
     ];
     const CLOSING_DOCUMENTS = CLOSING_CATEGORIES.flatMap(category => ddLabels(category.items));
     const CLOSING_MARKS = CLOSING_CATEGORIES.flatMap(category => ddMarks(category.items));
+    const DD_PRELIMINARY_CATEGORIES = [
+      { key: 'corporate-prelim', title: 'Corporate, capital et gouvernance', indexes: [0, 1, 2, 3, 4, 5, 6, 7, 10, 11, 12] },
+      { key: 'strategie-prelim', title: 'Présentation, marché et organisation', indexes: [8, 9, 13, 14, 15, 16] },
+      { key: 'finance-prelim', title: 'Finance, comptabilité et dettes', indexes: [17, 18, 19, 20, 21, 22, 23, 24, 25] },
+      { key: 'commercial-prelim', title: 'Clients, revenus et contrats commerciaux', indexes: [26, 27, 28, 29, 30, 33] },
+      { key: 'operations-prelim', title: 'Fournisseurs, partenaires et opérations', indexes: [31, 32, 34] },
+      { key: 'social-prelim', title: 'Social, RH et management package', indexes: [35, 36, 37, 38, 39, 40] },
+      { key: 'ip-tech-prelim', title: 'Propriété intellectuelle, tech et données', indexes: [41, 42, 43, 44, 45, 46, 47] },
+      { key: 'conformite-prelim', title: 'Réglementaire, conformité et risques', indexes: [48, 49, 50, 51, 52, 53] },
+      { key: 'actifs-prelim', title: 'Actifs, banques et engagements', indexes: [54, 55, 56] },
+      { key: 'data-room-prelim', title: 'Data room, Q&A et suivi', indexes: [57, 58] },
+    ];
+    const DOCUMENT_CATEGORY_DEFS = {
+      'mise-en-ordre': [
+        { key: 'societe-capital', title: 'Société et capital', indexes: [0, 1, 2] },
+        { key: 'registres', title: 'Registres obligatoires', indexes: [3, 4] },
+        { key: 'ip-management', title: 'PI, salariés et management package', indexes: [5, 6] },
+      ],
+      'confidentialite': [
+        { key: 'presentation', title: 'Présentation investisseurs', indexes: [0] },
+        { key: 'confidentialite', title: 'Confidentialité et accès data room', indexes: [1, 2] },
+      ],
+      'due-diligence-preliminaire': DD_PRELIMINARY_CATEGORIES,
+      'term-sheet': [
+        { key: 'accord-principal', title: 'Accord principal', indexes: [0] },
+        { key: 'clauses-annexes', title: 'Clauses annexes', indexes: [1] },
+      ],
+      'documentation': [
+        { key: 'pacte-statuts', title: 'Pacte, statuts et gouvernance', indexes: [0, 1] },
+        { key: 'garanties-valeurs', title: 'Garanties et valeurs mobilières', indexes: [2, 3, 4] },
+        { key: 'accords-investisseurs', title: 'Accords investisseurs', indexes: [5, 6] },
+      ],
+      'post-closing': [
+        { key: 'reporting-covenants', title: 'Reporting et engagements', indexes: [0, 1] },
+        { key: 'formalites-post', title: 'Formalités post-closing', indexes: [2] },
+      ],
+      'gouvernance': [
+        { key: 'gouvernance-sociale', title: 'Gouvernance sociale', indexes: [0] },
+        { key: 'documents-reference', title: 'Documents de référence', indexes: [1, 2] },
+      ],
+      'air-preparation': [
+        { key: 'societe-capital', title: 'Société et capital', indexes: [0, 1, 2, 3] },
+        { key: 'ip-management', title: 'PI et management package', indexes: [4, 5] },
+      ],
+      'air-termes': [
+        { key: 'termes-economiques', title: 'Termes économiques et dilution', indexes: [0, 1] },
+      ],
+      'air-emission': [
+        { key: 'decisions-sociales', title: 'Décisions sociales', indexes: [0, 1] },
+        { key: 'instrument-air', title: 'Instrument BSA-AIR', indexes: [2] },
+      ],
+      'air-approche': [
+        { key: 'confidentialite', title: 'Confidentialité', indexes: [0] },
+        { key: 'presentation', title: 'Présentation investisseurs', indexes: [1] },
+      ],
+      'air-souscription': [
+        { key: 'souscription-investisseurs', title: 'Souscription investisseurs', indexes: [0, 1, 2] },
+        { key: 'versement-fonds', title: 'Versement des fonds', indexes: [3] },
+        { key: 'constatation-registres', title: 'Constatation et registres', indexes: [4, 5] },
+      ],
+      'air-suivi': [
+        { key: 'reporting-suivi', title: 'Reporting et suivi des engagements', indexes: [0, 1] },
+      ],
+      'air-conversion': [
+        { key: 'conversion-souscription', title: 'Conversion et souscription', indexes: [0, 1] },
+        { key: 'statuts-conversion', title: 'Statuts de conversion', indexes: [2] },
+      ],
+    };
     const CHECKLIST_OVERRIDES = {
       'due-diligence-preliminaire': {
         checklist: DD_PRELIMINARY_DOCUMENTS,
@@ -2471,7 +2631,32 @@
       if (!f) return null;
       if (f.key === 'due-diligence') return DD_PUSHED_CATEGORIES;
       if (f.key === 'closing') return CLOSING_CATEGORIES;
-      return null;
+      return indexedDocumentCategories(f, DOCUMENT_CATEGORY_DEFS[f.key]);
+    }
+
+    function indexedDocumentCategories(f, defs) {
+      if (!f || !Array.isArray(f.checklist) || !Array.isArray(defs)) return null;
+      const categories = defs.map(def => {
+        const items = (def.indexes || [])
+          .map(index => ({ label: f.checklist[index], index }))
+          .filter(item => item.label);
+        return items.length ? { key: def.key, title: def.title, items } : null;
+      }).filter(Boolean);
+      return categories.length ? categories : null;
+    }
+
+    function categoryItemIndex(item, fallback) {
+      return item && typeof item === 'object' && Number.isInteger(item.index)
+        ? item.index
+        : fallback;
+    }
+
+    function categoryDocumentCount(category) {
+      return (category.items || []).length;
+    }
+
+    function categoryExpectedCountText(count) {
+      return count + ' document' + (count > 1 ? 's' : '') + ' attendu' + (count > 1 ? 's' : '');
     }
 
     function categoryItemLabel(item) {
@@ -2530,12 +2715,12 @@
       const open = docCategoryOpen[stateKey] !== false;
       const section = document.createElement('section');
       section.className = 'doc-category' + (open ? '' : ' is-collapsed');
-      const count = category.items.length;
+      const count = categoryDocumentCount(category);
       section.innerHTML = `
         <div class="doc-category__head">
           <div class="doc-category__main">
             <div class="doc-category__title">${esc(category.title)}</div>
-            <div class="doc-category__count">${count} document${count > 1 ? 's' : ''}</div>
+            <div class="doc-category__count">${categoryExpectedCountText(count)}</div>
           </div>
           <div class="doc-category__actions">
             <button class="documents-action-btn" type="button" data-category-import>Importer des fichiers</button>
@@ -2557,7 +2742,7 @@
       });
       const ol = section.querySelector('.bsa-list');
       category.items.forEach((item, offset) => {
-        ol.appendChild(roadItem(f, categoryItemLabel(item), startIndex + offset));
+        ol.appendChild(roadItem(f, categoryItemLabel(item), categoryItemIndex(item, startIndex + offset)));
       });
       const body = section.querySelector('.doc-category__body');
       body.appendChild(phaseLooseFilesEl(f, linkedIds, category.key, 'Fichiers libres de ce dossier'));
