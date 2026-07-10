@@ -129,6 +129,14 @@
         });
       });
 
+      // ── Flèche bas : passer de l'email au mot de passe ───────────────────────
+      document.querySelector('#login-form input[name="email"]')?.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          document.getElementById('login-password').focus();
+        }
+      });
+
       // ── Erreurs Google OAuth dans l'URL ──────────────────────────────────────
       const urlError = new URLSearchParams(window.location.search).get('error');
       if (urlError) {

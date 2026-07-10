@@ -112,6 +112,14 @@
         });
       });
 
+      // ── Flèche bas : passer de l'email au mot de passe ───────────────────────
+      document.querySelector('#register-form input[name="email"]')?.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          document.getElementById('reg-password').focus();
+        }
+      });
+
       const pwInput    = document.getElementById('reg-password');
       const pwStrength = document.getElementById('pw-strength');
       pwInput.addEventListener('input', () => {
