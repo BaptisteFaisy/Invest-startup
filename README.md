@@ -538,6 +538,10 @@ ZAI_API_KEY            # Clé Z.AI (GLM Coding Plan) — endpoint /api/coding/pa
 CLOUDCONVERT_API_KEY
 GOOGLE_CLIENT_ID
 GOOGLE_CLIENT_SECRET
+GOOGLE_DRIVE_CLIENT_ID      # Data room : par défaut = GOOGLE_CLIENT_ID (même client OAuth)
+GOOGLE_DRIVE_CLIENT_SECRET  # Data room : par défaut = GOOGLE_CLIENT_SECRET
+DROPBOX_APP_KEY             # Data room : App key Dropbox (console Dropbox)
+DROPBOX_APP_SECRET          # Data room : App secret Dropbox
 BASE_URL              # https://votre-domaine.railway.app ou domaine custom
 JWT_SECRET            # Longue chaîne aléatoire (openssl rand -hex 32)
 NODE_ENV              # production
@@ -575,6 +579,10 @@ res.cookie('auth_token', token, {
 | `CLOUDCONVERT_API_KEY` | Export | — | Si absent, export DOCX/PDF et conversion renvoient 503 |
 | `GOOGLE_CLIENT_ID` | OAuth | — | |
 | `GOOGLE_CLIENT_SECRET` | OAuth | — | Non utilisé côté serveur (flow token-only) |
+| `GOOGLE_DRIVE_CLIENT_ID` | Data room | `GOOGLE_CLIENT_ID` | OAuth self-service Google Drive (envoi de fichiers depuis Mes dossiers). Ajouter `${BASE_URL}/api/saas/dataroom/google_drive/callback` comme redirect URI autorisée dans la console Google Cloud |
+| `GOOGLE_DRIVE_CLIENT_SECRET` | Data room | `GOOGLE_CLIENT_SECRET` | |
+| `DROPBOX_APP_KEY` | Data room | — | Si absent, connexion Dropbox indisponible (503). Ajouter `${BASE_URL}/api/saas/dataroom/dropbox/callback` comme redirect URI dans la console Dropbox |
+| `DROPBOX_APP_SECRET` | Data room | — | |
 | `BASE_URL` | — | `http://localhost:3000` | Utilisé dans les redirects OAuth |
 | `JWT_SECRET` | — | `invest_bg_dev_secret_CHANGE_IN_PROD` | Changer en prod |
 | `STARTUP_SECRET` | — | `startup_post_secret_2026` | Auth portail startup |

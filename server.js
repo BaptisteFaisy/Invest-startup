@@ -18,6 +18,9 @@ const OpenAI           = require('openai');
 const CloudConvert     = require('cloudconvert');
 const mammoth          = require('mammoth');
 const pdfParse         = require('pdf-parse');
+const { google }       = require('googleapis');
+const { Dropbox }      = require('dropbox');
+const archiver         = require('archiver');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -48,6 +51,13 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
 const BASE_URL             = process.env.BASE_URL             || 'http://localhost:3000';
 const MONGODB_URI          = process.env.MONGODB_URI          || 'mongodb://localhost:27017';
 const STARTUP_SECRET       = process.env.STARTUP_SECRET       || 'startup_post_secret_2026';
+// Data room externe (Google Drive / Dropbox) : OAuth self-service séparé du login.
+// Google Drive réutilise par défaut le client OAuth du login (même projet Google
+// Cloud) — surchargeable par des variables dédiées si un client séparé est créé.
+const GOOGLE_DRIVE_CLIENT_ID     = process.env.GOOGLE_DRIVE_CLIENT_ID     || GOOGLE_CLIENT_ID;
+const GOOGLE_DRIVE_CLIENT_SECRET = process.env.GOOGLE_DRIVE_CLIENT_SECRET || GOOGLE_CLIENT_SECRET;
+const DROPBOX_APP_KEY            = process.env.DROPBOX_APP_KEY            || '';
+const DROPBOX_APP_SECRET         = process.env.DROPBOX_APP_SECRET         || '';
 // Plafond GLOBAL de tokens IA par jour (tout le SaaS confondu), pour borner la
 // facture. Réglable via la variable d'environnement DAILY_TOKEN_CAP (Railway →
 // service → onglet Variables). Défaut : 5 000 000 tokens/jour.
@@ -920,6 +930,69 @@ app.delete('/api/admin/startups/:id', requireAdmin, async (req, res) => {
   if (!(await col('catalog').findOne({ id }))) return res.status(404).json({ error: 'Startup introuvable' });
   await deleteCatalogById(id);
   res.json({ success: true });
+});
+
+// ─── Feedback : messagerie utilisateur ↔ fondateur (aucun appel IA, juste Mongo) ─
+// Un seul fil de discussion par utilisateur, identifié par user_id.
+app.get('/api/saas/feedback', requireAuth, async (req, res) => {
+  const thread = await col('feedback_threads').findOne({ user_id: req.user.id });
+  if (thread?.unread_by_user) {
+    await col('feedback_threads').updateOne({ user_id: req.user.id }, { $set: { unread_by_user: false } });
+  }
+  res.json({ messages: thread?.messages || [] });
+});
+
+app.get('/api/saas/feedback/unread', requireAuth, async (req, res) => {
+  const thread = await col('feedback_threads').findOne({ user_id: req.user.id }, { projection: { unread_by_user: 1 } });
+  res.json({ unread: !!thread?.unread_by_user });
+});
+
+app.post('/api/saas/feedback', requireAuth, async (req, res) => {
+  const text = String(req.body?.text || '').trim().slice(0, 4000);
+  if (!text) return res.status(400).json({ error: 'Message vide' });
+  const now     = new Date().toISOString();
+  const message = { id: crypto.randomUUID(), from: 'user', text, created_at: now };
+  const user    = await col('users').findOne({ id: req.user.id }, { projection: { full_name: 1, email: 1 } });
+  const result  = await col('feedback_threads').updateOne(
+    { user_id: req.user.id },
+    {
+      $push: { messages: message },
+      $set: { unread_by_admin: true, updated_at: now, user_email: user?.email || req.user.email, user_name: user?.full_name || null },
+      $setOnInsert: { id: crypto.randomUUID(), user_id: req.user.id, unread_by_user: false, created_at: now },
+    },
+    { upsert: true },
+  );
+  res.status(201).json({ success: true, message });
+});
+
+app.get('/api/admin/feedback', requireAdmin, async (req, res) => {
+  const threads = await col('feedback_threads')
+    .find({}, { projection: { _id: 0, id: 1, user_id: 1, user_email: 1, user_name: 1, unread_by_admin: 1, updated_at: 1, messages: { $slice: -1 } } })
+    .sort({ updated_at: -1 })
+    .toArray();
+  res.json({ threads });
+});
+
+app.get('/api/admin/feedback/:userId', requireAdmin, async (req, res) => {
+  const thread = await col('feedback_threads').findOne({ user_id: req.params.userId }, { projection: { _id: 0 } });
+  if (!thread) return res.status(404).json({ error: 'Fil introuvable' });
+  if (thread.unread_by_admin) {
+    await col('feedback_threads').updateOne({ user_id: req.params.userId }, { $set: { unread_by_admin: false } });
+  }
+  res.json({ thread });
+});
+
+app.post('/api/admin/feedback/:userId', requireAdmin, async (req, res) => {
+  const text = String(req.body?.text || '').trim().slice(0, 4000);
+  if (!text) return res.status(400).json({ error: 'Message vide' });
+  const now     = new Date().toISOString();
+  const message = { id: crypto.randomUUID(), from: 'admin', text, created_at: now };
+  const result  = await col('feedback_threads').updateOne(
+    { user_id: req.params.userId },
+    { $push: { messages: message }, $set: { unread_by_user: true, updated_at: now } },
+  );
+  if (!result.matchedCount) return res.status(404).json({ error: 'Fil introuvable' });
+  res.status(201).json({ success: true, message });
 });
 
 // ─── SaaS : assistant IA Claude pour modifier une clause de term sheet ─────────
@@ -2903,6 +2976,367 @@ app.post('/api/saas/documents/:id/convert', requireAuth, async (req, res) => {
     console.error('CloudConvert error:', err.message);
     res.status(502).json({ error: 'La conversion a échoué. Réessayez.' });
   }
+});
+
+// ─── SaaS : data room externe (Google Drive / Dropbox / export ZIP) ──────────
+// Envoi direct des fichiers de due diligence (préliminaire ou poussée) vers un
+// compte cloud connecté par l'utilisateur, ou export ZIP pour les data rooms
+// professionnelles (Datasite, Intralinks…) qui n'ont pas d'API self-service.
+const DATAROOM_PROVIDERS = new Set(['google_drive', 'dropbox']);
+const DATAROOM_ALLOWED_FOLDER_KEYS = new Set(['due-diligence-preliminaire', 'due-diligence']);
+
+function dataroomProviderConfigured(provider) {
+  return provider === 'google_drive' ? !!GOOGLE_DRIVE_CLIENT_ID : !!DROPBOX_APP_KEY;
+}
+function dataroomProviderLabel(provider) {
+  return provider === 'google_drive' ? 'Google Drive' : 'Dropbox';
+}
+function sanitizePathPart(s, max = 120) {
+  return String(s || '').trim().replace(/[\\/:*?"<>|]/g, '-').slice(0, max) || 'Dossier';
+}
+function publicDataroomConnection(c) {
+  return { provider: c.provider, account_label: c.account_label, status: c.status || 'active', connected_at: c.connected_at };
+}
+
+// Fichiers « libres » d'une catégorie (même logique que looseDocsFor côté client) :
+// rattachés au dossier + à la catégorie, pas une version archivée, pas déjà lié à
+// un slot de checklist (sinon le fichier apparaît en double dans l'UI).
+async function dataroomLooseDocs(userId, folder, categoryKey) {
+  const linkedIds = new Set(Object.values(folder.items_state || {}).map(s => s.document_id).filter(id => id != null));
+  const key  = categoryKey || '';
+  const docs = await col('saas_documents').find({ user_id: userId, folder_id: folder.id }).toArray();
+  return docs.filter(d => !d.is_version && !linkedIds.has(d.id) && String(d.category_key || '') === key);
+}
+
+// ─── État OAuth éphémère (10 min) : associe le `state` renvoyé par le fournisseur
+// à l'utilisateur qui a initié la connexion (même rôle que totpSetupStore).
+const dataroomOAuthState = new Map();
+function createDataroomState(userId, provider) {
+  const state = crypto.randomBytes(24).toString('hex');
+  dataroomOAuthState.set(state, { user_id: userId, provider, created_at: Date.now() });
+  return state;
+}
+function consumeDataroomState(state) {
+  const entry = dataroomOAuthState.get(state);
+  if (!entry) return null;
+  dataroomOAuthState.delete(state);
+  if (Date.now() - entry.created_at > 10 * 60 * 1000) return null; // expiré
+  return entry;
+}
+
+function driveOAuthClient() {
+  return new google.auth.OAuth2(GOOGLE_DRIVE_CLIENT_ID, GOOGLE_DRIVE_CLIENT_SECRET, `${BASE_URL}/api/saas/dataroom/google_drive/callback`);
+}
+
+async function upsertDataroomConnection(userId, provider, { account_label, refresh_token }) {
+  const now = new Date().toISOString();
+  const set = { account_label, status: 'active', updated_at: now, refresh_token_enc: encryptSecret(refresh_token) };
+  const existing = await col('saas_dataroom_connections').findOne({ user_id: userId, provider });
+  if (existing) {
+    await col('saas_dataroom_connections').updateOne({ id: existing.id }, { $set: set });
+  } else {
+    const id = await nextId('saas_dataroom_connections');
+    await col('saas_dataroom_connections').insertOne({ id, user_id: userId, provider, connected_at: now, folder_map: {}, ...set });
+  }
+}
+
+app.get('/api/saas/dataroom/connections', requireAuth, async (req, res) => {
+  const rows = await col('saas_dataroom_connections').find({ user_id: req.user.id }).toArray();
+  res.json({ connections: rows.map(publicDataroomConnection) });
+});
+
+app.get('/api/saas/dataroom/:provider/connect', requireAuth, (req, res) => {
+  const provider = req.params.provider;
+  if (!DATAROOM_PROVIDERS.has(provider)) return res.status(400).json({ error: 'Fournisseur inconnu' });
+  if (!dataroomProviderConfigured(provider))
+    return res.status(503).json({ error: `Connexion ${dataroomProviderLabel(provider)} non configurée sur le serveur.` });
+
+  const state = createDataroomState(req.user.id, provider);
+  if (provider === 'google_drive') {
+    const url = driveOAuthClient().generateAuthUrl({
+      access_type: 'offline',
+      prompt: 'consent', // force le renvoi d'un refresh_token à chaque connexion
+      scope: ['https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/userinfo.email'],
+      state,
+    });
+    return res.redirect(url);
+  }
+  const params = new URLSearchParams({
+    client_id: DROPBOX_APP_KEY, response_type: 'code',
+    redirect_uri: `${BASE_URL}/api/saas/dataroom/dropbox/callback`,
+    token_access_type: 'offline', state,
+  });
+  res.redirect(`https://www.dropbox.com/oauth2/authorize?${params}`);
+});
+
+async function dropboxTokenExchange(params) {
+  const body = new URLSearchParams({ ...params, client_id: DROPBOX_APP_KEY, client_secret: DROPBOX_APP_SECRET });
+  const r = await fetch('https://api.dropboxapi.com/oauth2/token', {
+    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body,
+  });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error_description || data.error || 'Échange de token Dropbox échoué');
+  return data;
+}
+
+app.get('/api/saas/dataroom/:provider/callback', async (req, res) => {
+  const provider = req.params.provider;
+  const { code, state, error } = req.query;
+  const entry = state ? consumeDataroomState(String(state)) : null;
+  if (!DATAROOM_PROVIDERS.has(provider) || !entry || entry.provider !== provider)
+    return res.redirect('/saas/compte.html?tab=dataroom&dataroom_error=state');
+  if (error || !code)
+    return res.redirect('/saas/compte.html?tab=dataroom&dataroom_error=cancelled');
+
+  try {
+    if (provider === 'google_drive') {
+      const oauth2Client = driveOAuthClient();
+      const { tokens } = await oauth2Client.getToken(String(code));
+      if (!tokens.refresh_token)
+        return res.redirect('/saas/compte.html?tab=dataroom&dataroom_error=no_refresh_token');
+      oauth2Client.setCredentials(tokens);
+      const { data: profile } = await google.oauth2({ version: 'v2', auth: oauth2Client }).userinfo.get();
+      await upsertDataroomConnection(entry.user_id, provider, {
+        account_label: profile.email || 'Compte Google Drive',
+        refresh_token: tokens.refresh_token,
+      });
+    } else {
+      const tokenData = await dropboxTokenExchange({
+        code: String(code), grant_type: 'authorization_code',
+        redirect_uri: `${BASE_URL}/api/saas/dataroom/dropbox/callback`,
+      });
+      if (!tokenData.refresh_token)
+        return res.redirect('/saas/compte.html?tab=dataroom&dataroom_error=no_refresh_token');
+      const dbx = new Dropbox({ accessToken: tokenData.access_token, fetch });
+      const account = await dbx.usersGetCurrentAccount();
+      await upsertDataroomConnection(entry.user_id, provider, {
+        account_label: account.result.email || 'Compte Dropbox',
+        refresh_token: tokenData.refresh_token,
+      });
+    }
+    res.redirect(`/saas/compte.html?tab=dataroom&dataroom_connected=${provider}`);
+  } catch (err) {
+    console.error(`Dataroom OAuth callback error (${provider}):`, err.message);
+    res.redirect('/saas/compte.html?tab=dataroom&dataroom_error=exchange_failed');
+  }
+});
+
+app.delete('/api/saas/dataroom/connections/:provider', requireAuth, async (req, res) => {
+  const provider = req.params.provider;
+  if (!DATAROOM_PROVIDERS.has(provider)) return res.status(400).json({ error: 'Fournisseur inconnu' });
+  const conn = await col('saas_dataroom_connections').findOne({ user_id: req.user.id, provider });
+  if (!conn) return res.status(404).json({ error: 'Aucune connexion à ce fournisseur' });
+
+  // Révocation best-effort côté fournisseur : on ne bloque jamais la déconnexion locale dessus.
+  try {
+    const refreshToken = decryptSecret(conn.refresh_token_enc);
+    if (provider === 'google_drive') {
+      await fetch(`https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(refreshToken)}`, { method: 'POST' });
+    } else {
+      const dbx = new Dropbox({ refreshToken, clientId: DROPBOX_APP_KEY, clientSecret: DROPBOX_APP_SECRET, fetch });
+      await dbx.authTokenRevoke();
+    }
+  } catch (err) {
+    console.error('Dataroom revoke error:', err.message);
+  }
+  await col('saas_dataroom_connections').deleteOne({ user_id: req.user.id, provider });
+  res.json({ success: true });
+});
+
+// ─── Google Drive : résolution/cache des dossiers (Drive n'a pas de chemins,
+// seulement des ID de parents — il faut les trouver ou les créer). Dropbox n'a
+// pas besoin de cet équivalent : filesUpload crée les dossiers intermédiaires
+// implicitement à partir d'un chemin.
+async function driveClientFor(connection) {
+  const oauth2Client = driveOAuthClient();
+  oauth2Client.setCredentials({ refresh_token: decryptSecret(connection.refresh_token_enc) });
+  return google.drive({ version: 'v3', auth: oauth2Client });
+}
+
+async function resolveDriveFolder(drive, connection, pathParts) {
+  let parentId = 'root';
+  let pathKey  = '';
+  const folderMap = { ...(connection.folder_map || {}) };
+  let changed = false;
+  for (const part of pathParts) {
+    pathKey = pathKey ? `${pathKey}/${part}` : part;
+    let folderId = folderMap[pathKey];
+    if (folderId) {
+      try {
+        const { data } = await drive.files.get({ fileId: folderId, fields: 'id,trashed' });
+        if (data.trashed) folderId = null;
+      } catch { folderId = null; } // supprimé côté Drive entre-temps : on le recrée
+    }
+    if (!folderId) {
+      const q = `name='${part.replace(/'/g, "\\'")}' and '${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+      const found = await drive.files.list({ q, fields: 'files(id,name)', spaces: 'drive' });
+      if (found.data.files && found.data.files.length) {
+        folderId = found.data.files[0].id;
+      } else {
+        const created = await drive.files.create({
+          requestBody: { name: part, mimeType: 'application/vnd.google-apps.folder', parents: [parentId] },
+          fields: 'id',
+        });
+        folderId = created.data.id;
+      }
+      folderMap[pathKey] = folderId;
+      changed = true;
+    }
+    parentId = folderId;
+  }
+  if (changed) {
+    await col('saas_dataroom_connections').updateOne({ id: connection.id }, { $set: { folder_map: folderMap, updated_at: new Date().toISOString() } });
+  }
+  return parentId;
+}
+
+function dataroomFileNameFor(doc) {
+  if (doc.kind === 'termsheet') return `${(doc.name || 'document').replace(/\.[^.]+$/, '')}.html`;
+  return doc.originalname || doc.name || 'document';
+}
+function dataroomFileBufferFor(doc) {
+  if (doc.kind === 'termsheet') return Buffer.from(buildExportHtml(doc.html, (doc.name || 'document').replace(/\.[^.]+$/, '')), 'utf8');
+  return toBuffer(doc.data);
+}
+
+async function uploadToDrive(drive, parentId, doc) {
+  const { data } = await drive.files.create({
+    requestBody: { name: dataroomFileNameFor(doc), parents: [parentId] },
+    media: { mimeType: doc.kind === 'termsheet' ? 'text/html' : (doc.mimetype || 'application/octet-stream'), body: Readable.from(dataroomFileBufferFor(doc)) },
+    fields: 'id, webViewLink',
+  });
+  return { external_id: data.id, external_url: data.webViewLink || null };
+}
+
+async function uploadToDropbox(dbx, pathParts, doc) {
+  const fullPath = '/' + [...pathParts.map(p => sanitizePathPart(p, 100)), sanitizePathPart(dataroomFileNameFor(doc), 150)].join('/');
+  const { result } = await dbx.filesUpload({ path: fullPath, contents: dataroomFileBufferFor(doc), mode: { '.tag': 'add' }, autorename: true });
+  return { external_id: result.id, external_url: null };
+}
+
+// Envoi d'un document vers le fournisseur connecté, avec bascule en statut
+// « revoked » si le token a été révoqué côté fournisseur (l'utilisateur devra
+// reconnecter son compte). Met à jour `dataroom_links` sur le document (un seul
+// lien par fournisseur : un renvoi remplace le précédent plutôt que d'empiler).
+async function pushDocumentToDataroom(userId, provider, doc, pathParts) {
+  const connection = await col('saas_dataroom_connections').findOne({ user_id: userId, provider });
+  if (!connection || connection.status === 'revoked') {
+    const err = new Error(`${dataroomProviderLabel(provider)} n'est pas connecté. Connectez votre compte avant d'envoyer un fichier.`);
+    err.statusCode = 409; throw err;
+  }
+
+  let result;
+  try {
+    if (provider === 'google_drive') {
+      const drive    = await driveClientFor(connection);
+      const parentId = await resolveDriveFolder(drive, connection, pathParts);
+      result = await uploadToDrive(drive, parentId, doc);
+    } else {
+      const dbx = new Dropbox({ refreshToken: decryptSecret(connection.refresh_token_enc), clientId: DROPBOX_APP_KEY, clientSecret: DROPBOX_APP_SECRET, fetch });
+      result = await uploadToDropbox(dbx, pathParts, doc);
+    }
+  } catch (err) {
+    if (/invalid_grant|unauthorized|expired_access_token/i.test(err.message || '')) {
+      await col('saas_dataroom_connections').updateOne({ id: connection.id }, { $set: { status: 'revoked', updated_at: new Date().toISOString() } });
+      const e = new Error(`Connexion ${dataroomProviderLabel(provider)} expirée. Reconnectez votre compte.`);
+      e.statusCode = 409; throw e;
+    }
+    throw err;
+  }
+
+  const link = { provider, external_id: result.external_id, external_url: result.external_url, account_label: connection.account_label, pushed_at: new Date().toISOString() };
+  await col('saas_documents').updateOne({ id: doc.id, user_id: userId }, { $pull: { dataroom_links: { provider } } });
+  await col('saas_documents').updateOne({ id: doc.id, user_id: userId }, { $push: { dataroom_links: link } });
+  return link;
+}
+
+app.post('/api/saas/dataroom/:provider/push/document/:id', requireAuth, async (req, res) => {
+  const provider = req.params.provider;
+  if (!DATAROOM_PROVIDERS.has(provider)) return res.status(400).json({ error: 'Fournisseur inconnu' });
+  if (!dataroomProviderConfigured(provider))
+    return res.status(503).json({ error: `${dataroomProviderLabel(provider)} non configuré sur le serveur.` });
+
+  const id  = Number(req.params.id);
+  const doc = await col('saas_documents').findOne({ id, user_id: req.user.id });
+  if (!doc) return res.status(404).json({ error: 'Document introuvable' });
+  if (doc.folder_id == null) return res.status(400).json({ error: "Ce document n'est rattaché à aucun dossier de due diligence." });
+
+  const folder = await col('saas_folders').findOne({ id: doc.folder_id, user_id: req.user.id });
+  if (!folder || !DATAROOM_ALLOWED_FOLDER_KEYS.has(folder.key))
+    return res.status(403).json({ error: 'Envoi vers la data room disponible uniquement pour les phases de due diligence.' });
+
+  const categoryTitle = shortText(req.body?.category_title, 120) || doc.category_key || 'Fichiers généraux';
+  try {
+    await pushDocumentToDataroom(req.user.id, provider, doc, ['Liquid+', folder.name, categoryTitle]);
+    const updated = await col('saas_documents').findOne({ id, user_id: req.user.id });
+    res.json({ document: publicDoc(updated) });
+  } catch (err) {
+    console.error('Dataroom push error:', err.message);
+    res.status(err.statusCode || 502).json({ error: err.statusCode ? err.message : 'Envoi vers la data room échoué. Réessayez.' });
+  }
+});
+
+app.post('/api/saas/dataroom/:provider/push/category', requireAuth, async (req, res) => {
+  const provider = req.params.provider;
+  if (!DATAROOM_PROVIDERS.has(provider)) return res.status(400).json({ error: 'Fournisseur inconnu' });
+  if (!dataroomProviderConfigured(provider))
+    return res.status(503).json({ error: `${dataroomProviderLabel(provider)} non configuré sur le serveur.` });
+
+  const folderId    = Number(req.body?.folder_id);
+  const categoryKey = (req.body?.category_key || '').toString();
+  const folder = await col('saas_folders').findOne({ id: folderId, user_id: req.user.id });
+  if (!folder || !DATAROOM_ALLOWED_FOLDER_KEYS.has(folder.key))
+    return res.status(403).json({ error: 'Envoi vers la data room disponible uniquement pour les phases de due diligence.' });
+
+  const docs = await dataroomLooseDocs(req.user.id, folder, categoryKey);
+  if (!docs.length) return res.status(404).json({ error: 'Aucun fichier à envoyer dans cette catégorie.' });
+
+  const categoryTitle = shortText(req.body?.category_title, 120) || categoryKey || 'Fichiers généraux';
+  const succeeded = [], failed = [];
+  for (const doc of docs) {
+    try {
+      await pushDocumentToDataroom(req.user.id, provider, doc, ['Liquid+', folder.name, categoryTitle]);
+      succeeded.push(doc.id);
+    } catch (err) {
+      failed.push({ id: doc.id, error: err.message });
+    }
+  }
+  res.json({ succeeded, failed });
+});
+
+// ─── Export ZIP (fallback data room « pro » sans API self-service) ───────────
+app.get('/api/saas/dataroom/zip', requireAuth, async (req, res) => {
+  const folderId    = Number(req.query.folder_id);
+  const categoryKey = (req.query.category_key || '').toString();
+  const folder = await col('saas_folders').findOne({ id: folderId, user_id: req.user.id });
+  if (!folder) return res.status(404).json({ error: 'Dossier introuvable' });
+  if (!DATAROOM_ALLOWED_FOLDER_KEYS.has(folder.key))
+    return res.status(403).json({ error: 'Export ZIP disponible uniquement pour les phases de due diligence.' });
+
+  const docs = await dataroomLooseDocs(req.user.id, folder, categoryKey);
+  if (!docs.length) return res.status(404).json({ error: 'Aucun fichier à exporter dans cette catégorie.' });
+
+  const zipName = sanitizePathPart(req.query.category_title || categoryKey || folder.name, 100) + '.zip';
+  res.attachment(zipName);
+  const archive = archiver('zip', { zlib: { level: 9 } });
+  archive.on('error', (err) => {
+    console.error('Dataroom zip error:', err.message);
+    if (!res.headersSent) res.status(500);
+    res.end();
+  });
+  archive.pipe(res);
+
+  const usedNames = new Set();
+  for (const d of docs) {
+    const buf = dataroomFileBufferFor(d);
+    if (!buf) continue;
+    const base = sanitizePathPart(dataroomFileNameFor(d), 150);
+    let finalName = base, n = 2;
+    while (usedNames.has(finalName)) { finalName = base.replace(/(\.[^.]+)?$/, (m) => ` (${n})${m || ''}`); n++; }
+    usedNames.add(finalName);
+    archive.append(buf, { name: finalName });
+  }
+  await archive.finalize();
 });
 
 // ─── SaaS : export direct d'une term sheet / document HTML → DOCX ou PDF ───────

@@ -331,6 +331,9 @@
     .drawer--right:not(.is-open) { transform:translateX(100%); }
     .drawer.is-open { transform:translateX(0); }
     .drawer__head { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:16px 18px; border-bottom:1px solid rgba(255,255,255,0.08); }
+    /* Le drawer gauche s'ouvre par-dessus le hamburger qui l'a déclenché (même z-index élevé
+       pour rester cliquable) : on décale son titre pour ne plus passer dessous. */
+    .drawer--left .drawer__head { padding-left:66px; }
     .drawer__title { font-family:'Archivo',sans-serif; font-size:13px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#fff; }
     .drawer__body { flex:1; overflow-y:auto; padding:10px; display:flex; flex-direction:column; gap:2px; }
     .drawer__link { display:flex; align-items:center; gap:12px; padding:11px 12px; border-radius:10px; color:rgba(255,255,255,0.86); font-family:'Libre Franklin',sans-serif; font-size:14px; font-weight:500; text-decoration:none; background:transparent; border:0; width:100%; text-align:left; cursor:pointer; transition:background .12s; }
@@ -656,7 +659,7 @@
       <nav class="drawer__body">
         <div class="drawer__section-title">Outils</div>
         <a class="drawer__link" href="editor.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Éditeur</a>
-        <a class="drawer__link" href="../marche.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Marché</a>
+        <a class="drawer__link" href="../marche.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Marché<span class="drawer__soon-tag">Bientôt</span></a>
         <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
         <a class="drawer__link" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>Tâches</a>
         <a class="drawer__link" href="#" title="Simulation de dilution"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
@@ -737,6 +740,29 @@
     </div>
   </div>
   <input type="file" id="pick-file" accept=".pdf,.doc,.docx,.xlsx,.xls,.png,.jpg,.jpeg" multiple hidden />
+
+  <!-- Modal : envoyer un fichier (ou toute une catégorie DD) vers une data room externe -->
+  <div class="pick" id="dataroom-modal" role="dialog" aria-modal="true" aria-labelledby="dataroom-modal-title">
+    <div class="pick__backdrop" data-dataroom-close></div>
+    <div class="pick__dialog">
+      <div class="pick__head">
+        <h2 class="pick__title" id="dataroom-modal-title">Envoyer vers une data room</h2>
+        <button class="pick__close" type="button" data-dataroom-close aria-label="Fermer">&times;</button>
+      </div>
+      <div class="pick__body">
+        <div class="pick__section">
+          <div class="pick__label">Compte cloud connecté</div>
+          <div id="dataroom-modal-providers" class="dr-providers"></div>
+        </div>
+        <div class="pick__section">
+          <div class="pick__label">Sans compte connecté</div>
+          <a class="btn btn--ghost" id="dataroom-modal-zip" href="#" rel="noopener">Télécharger en ZIP</a>
+          <div class="dr-hint">À importer manuellement dans Datasite, Intralinks ou une autre data room professionnelle.</div>
+        </div>
+        <div class="pick__err" id="dataroom-modal-err"></div>
+      </div>
+    </div>
+  </div>
 
   <!-- Fenêtre d'une étape de la frise : explication + documents associés -->
   <div class="fmodal" id="fmodal" role="dialog" aria-modal="true" aria-labelledby="fmodal-title-h">
@@ -1772,15 +1798,20 @@
       // après un échec d'action optimiste, dont le message doit rester visible.
       if (!loaded) foldersEl.innerHTML = '<p class="empty">Chargement…</p>';
       try {
-        const [fr, dr, pr] = await Promise.all([
+        const [fr, dr, pr, cr] = await Promise.all([
           fetch('/api/saas/folders',   { credentials: 'include' }),
           fetch('/api/saas/documents', { credentials: 'include' }),
           fetch('/api/saas/fundraising-profile', { credentials: 'include' }).catch(() => null),
+          fetch('/api/saas/dataroom/connections', { credentials: 'include' }).catch(() => null),
         ]);
         if (fr.status === 401 || dr.status === 401) { window.location.href = 'login.html'; return; }
         folders = (await fr.json()).folders || [];
         applyChecklistOverrides();
         docs    = (await dr.json()).documents || [];
+        if (cr && cr.ok) {
+          const cdata = await cr.json().catch(() => ({}));
+          dataroomConnections = cdata.connections || [];
+        }
         if (pr && pr.ok) {
           const data = await pr.json().catch(() => ({}));
           fundraisingProfile = normalizeFundraisingProfile(data.profile || {});
@@ -1882,6 +1913,9 @@
         setTopbarStepLabel('');
         selectedClassicStep = null;
         container.appendChild(importCard());
+        const bsaProfileCard = fundraisingProfileEl();
+        bsaProfileCard.id = 'phase-air-mise-en-ordre';
+        container.appendChild(bsaProfileCard);
         phases.forEach((f, pi) => container.appendChild(phaseCard(f, pi)));
       }
 
@@ -2253,6 +2287,25 @@
       const currentIdx = stats.findIndex(s => !s.complete);
       // Avancement global de la levée : proportion d'étapes terminées.
       const globalFrac = stats.length ? stats.filter(s => s.complete).length / stats.length : 0;
+
+      // BSA-AIR : « 0 · Ma levée » ouvre le profil de la levée (comme côté classique),
+      // avant les étapes documentaires. Ce n'est pas un dossier système : la barre
+      // suit l'avancement global, comme pour « Ma levée » côté classique.
+      if (type === 'bsa-air') {
+        const pct = Math.max(0, Math.min(100, Math.round(globalFrac * 100)));
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'drawer__link drawer__link--step';
+        btn.innerHTML =
+          '<span class="drawer__step-row"><span class="drawer__step-num">0</span>Ma levée</span>'
+          + '<span class="drawer__step-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><span style="width:' + pct + '%"></span></span>';
+        btn.addEventListener('click', () => {
+          openBsaStepCard('air-mise-en-ordre');
+          if (navDrawer) navDrawer.close();
+        });
+        navStepsEl.appendChild(btn);
+      }
+
       phases.forEach((f, i) => {
         const s = stats[i];
         const done = s.complete;
