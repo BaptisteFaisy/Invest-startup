@@ -322,7 +322,7 @@
     .hamburger { flex:none; position:relative; z-index:62; width:38px; height:38px; display:grid; place-items:center; border:1px solid rgba(255,255,255,0.22); border-radius:10px; background:transparent; color:#fff; cursor:pointer; padding:0; transition:border-color .15s, background .15s; }
     .hamburger:hover { border-color:rgba(255,255,255,0.55); background:rgba(255,255,255,0.06); }
     .hamburger svg { width:18px; height:18px; stroke:currentColor; stroke-width:2; stroke-linecap:round; fill:none; }
-    .drawer-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.5); opacity:0; visibility:hidden; transition:opacity .2s, visibility .2s; z-index:60; }
+    .drawer-backdrop { position:fixed; inset:0; background:transparent; opacity:0; visibility:hidden; transition:visibility .2s; z-index:60; }
     .drawer-backdrop.is-open { opacity:1; visibility:visible; }
     .drawer { position:fixed; top:0; bottom:0; width:280px; max-width:82vw; background:#0c0d11; border-right:1px solid rgba(255,255,255,0.08); box-shadow:0 0 40px rgba(0,0,0,0.5); z-index:61; display:flex; flex-direction:column; transition:transform .22s ease; }
     .drawer--left { left:0; }
@@ -352,6 +352,7 @@
     .drawer__link--step.is-current { background:rgba(99,102,241,0.13); color:#fff; }
     .drawer__link--step.is-current .drawer__step-num { background:rgba(99,102,241,0.30); color:#a5b4fc; }
     .drawer__link--step.is-active { background:rgba(255,255,255,0.10); color:#fff; }
+    .drawer__soon-tag { margin-left:auto; flex:none; font-family:'Archivo',sans-serif; font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#a5b4fc; background:rgba(99,102,241,0.20); padding:2px 7px; border-radius:99px; }
 
     /* Carte Reprendre — bulle blanche */
     .resume-card { background: #fff !important; border-radius: 20px !important; box-shadow: 0 12px 40px rgba(0,0,0,0.45) !important; }
@@ -676,9 +677,6 @@
 
     <main class="dossiers">
       <div class="dossiers__head">
-        <div>
-          <div class="dossiers__eyebrow">TABLEAU DE BORD</div>
-        </div>
         <input type="file" id="file-input" accept=".pdf,.doc,.docx" multiple hidden />
       </div>
 
@@ -2264,9 +2262,11 @@
         const stepFrac = s.total > 0 ? s.done / s.total : (done ? 1 : 0);
         const barFrac = f.key === 'mise-en-ordre' ? globalFrac : stepFrac;
         const pct = Math.max(0, Math.min(100, Math.round(barFrac * 100)));
+        const bar = f.key === 'gouvernance' ? '' :
+          '<span class="drawer__step-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><span style="width:' + pct + '%"></span></span>';
         btn.innerHTML =
           '<span class="drawer__step-row"><span class="drawer__step-num">' + badge + '</span>' + esc(friseLabel(f)) + '</span>'
-          + '<span class="drawer__step-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><span style="width:' + pct + '%"></span></span>';
+          + bar;
         btn.addEventListener('click', () => {
           if (type === 'classic') openClassicStepPage(f.key);
           else openBsaStepCard(f.key);
