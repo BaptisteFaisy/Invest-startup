@@ -365,10 +365,14 @@
     .topbar__search-results[hidden] { display:none; }
     .topbar__search-summary { padding:6px 8px 8px; color:rgba(255,255,255,0.52); font:700 10px/1.25 'Archivo', sans-serif; letter-spacing:.09em; text-transform:uppercase; }
     .topbar__search-empty { margin:0; padding:10px 8px; color:rgba(255,255,255,0.72); font-size:13px; }
-    .topbar__search-result { width:100%; display:flex; align-items:center; gap:10px; padding:9px 8px; border:0; border-radius:8px; background:transparent; color:#fff; cursor:pointer; text-align:left; }
-    .topbar__search-result:hover, .topbar__search-result:focus-visible { background:rgba(255,255,255,0.09); outline:0; }
+    .topbar__search-result { width:100%; display:flex; align-items:center; gap:2px; border-radius:8px; }
+    .topbar__search-result-main { flex:1; min-width:0; display:flex; align-items:center; gap:10px; padding:9px 8px; border:0; border-radius:8px; background:transparent; color:#fff; cursor:pointer; text-align:left; }
+    .topbar__search-result-main:hover, .topbar__search-result-main:focus-visible { background:rgba(255,255,255,0.09); outline:0; }
     .topbar__search-result-kind { flex:none; min-width:70px; color:rgba(255,255,255,0.48); font:700 10px/1.2 'Archivo', sans-serif; letter-spacing:.07em; text-transform:uppercase; }
     .topbar__search-result-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; font-weight:600; }
+    .topbar__search-result-goto { flex:none; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border:0; border-radius:7px; background:transparent; color:rgba(255,255,255,0.34); cursor:pointer; transition:color .15s, background .15s; }
+    .topbar__search-result-goto:hover, .topbar__search-result-goto:focus-visible { color:rgba(255,255,255,0.85); background:rgba(255,255,255,0.09); outline:0; }
+    .topbar__search-result-goto svg { width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
     .drawer-backdrop { position:fixed; inset:0; background:transparent; opacity:0; visibility:hidden; transition:visibility .2s; z-index:60; }
     .drawer-backdrop.is-open { opacity:1; visibility:visible; }
     .drawer { position:fixed; top:0; bottom:0; width:var(--drawer-w, 280px); min-width:220px; max-width:92vw; background:#0c0d11; border-right:1px solid rgba(255,255,255,0.08); box-shadow:0 0 40px rgba(0,0,0,0.5); z-index:61; display:flex; flex-direction:column; transition:transform .22s ease; }
@@ -1467,9 +1471,20 @@
         dashboardSearchResultsEl.innerHTML = `<p class="topbar__search-empty">Aucun résultat pour « ${esc(query)} ».</p>`;
         return;
       }
+      // Dossier d'origine d'un résultat "fichier" (document généré ou modèle),
+      // utilisé pour proposer un accès direct à son emplacement.
+      const gotoFolder = match => {
+        if (match.type === 'document') return match.folder && isSystemPhase(match.folder) ? match.folder : null;
+        if (match.type === 'model') return folders.find(f => f.id === match.folderId) || null;
+        return null;
+      };
       dashboardSearchResultsEl.innerHTML = `
         <p class="topbar__search-summary">${matches.length} résultat${matches.length > 1 ? 's' : ''}</p>
-        ${matches.map((match, index) => `<button class="topbar__search-result" type="button" data-search-result="${index}"><span class="topbar__search-result-kind">${match.type === 'step' ? 'Étape' : match.type === 'tool' ? 'Outil' : match.type === 'model' ? 'Modèle' : 'Document'}</span><span class="topbar__search-result-name">${esc(match.label)}</span></button>`).join('')}`;
+        ${matches.map((match, index) => `
+          <div class="topbar__search-result">
+            <button class="topbar__search-result-main" type="button" data-search-result="${index}"><span class="topbar__search-result-kind">${match.type === 'step' ? 'Étape' : match.type === 'tool' ? 'Outil' : match.type === 'model' ? 'Modèle' : 'Document'}</span><span class="topbar__search-result-name">${esc(match.label)}</span></button>
+            ${gotoFolder(match) ? `<button class="topbar__search-result-goto" type="button" data-search-goto="${index}" title="Voir l'emplacement du fichier" aria-label="Voir l'emplacement du fichier"><svg viewBox="0 0 24 24"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h4.379a1.5 1.5 0 0 1 1.06.44L11.44 8H19.5A1.5 1.5 0 0 1 21 9.5v8A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z"/><path d="M12.5 15.2 15.7 12l-3.2-3.2"/><path d="M9.8 12h5.6"/></svg></button>` : ''}
+          </div>`).join('')}`;
       dashboardSearchResultsEl.querySelectorAll('[data-search-result]').forEach(button => {
         button.addEventListener('click', () => {
           const match = matches[Number(button.dataset.searchResult)];
@@ -1495,6 +1510,17 @@
             if ((match.folder.track || 'classic') === 'bsa-air') openBsaStepCard(match.folder.key);
             else openClassicStepPage(match.folder.key);
           }
+        });
+      });
+      dashboardSearchResultsEl.querySelectorAll('[data-search-goto]').forEach(button => {
+        button.addEventListener('click', event => {
+          event.stopPropagation();
+          const match = matches[Number(button.dataset.searchGoto)];
+          const folder = match && gotoFolder(match);
+          if (!folder) return;
+          closeDashboardSearch({ clear: true });
+          if ((folder.track || 'classic') === 'bsa-air') openBsaStepCard(folder.key);
+          else openClassicStepPage(folder.key);
         });
       });
     }
