@@ -16,8 +16,9 @@
       * { box-sizing: border-box; }
       body { font-family:'Libre Franklin',system-ui,sans-serif; background:#08090c; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px 16px; margin:0; }
       .auth-wrap { width:100%; max-width:760px; display:flex; flex-direction:column; align-items:center; gap:32px; }
-      .auth-logo { font-family:'Libre Franklin',sans-serif; font-weight:800; font-size:1.6rem; letter-spacing:-0.02em; color:#fff; text-decoration:none; }
-      .auth-logo span { color:var(--blue); }
+      .auth-logo { display:flex; align-items:center; gap:8px; text-decoration:none; }
+      .auth-logo img { height:40px; width:auto; }
+      .auth-logo-text { font-family:'Archivo',sans-serif; font-weight:600; font-size:1.4rem; text-transform:uppercase; letter-spacing:0.1em; color:#fff; }
       .auth-card { background:#fff; border-radius:20px; padding:40px 36px; width:100%; box-shadow:0 24px 60px rgba(0,0,0,0.5); }
       .auth-card h1 { font-family:'Libre Franklin',sans-serif; font-size:1.6rem; font-weight:800; letter-spacing:-0.02em; color:#08090c; margin:0 0 6px; }
       .auth-lead { font-size:0.92rem; color:var(--muted); margin:0 0 24px; line-height:1.5; }
@@ -62,7 +63,10 @@
   </head>
   <body>
     <div class="auth-wrap">
-      <a class="auth-logo" href="/index.html">liquid <span>+</span></a>
+      <a class="auth-logo" href="/index.html">
+        <img src="/ressourcegraphique/Goutte%20blanche.png" alt="" />
+        <span class="auth-logo-text">LIQUID+</span>
+      </a>
 
       <div class="auth-card">
         <h1>Votre lev&eacute;e</h1>
