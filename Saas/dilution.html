@@ -175,6 +175,51 @@
     .glo__def + .glo__def { margin-top: 7px; }
     .glo__f { font-family: 'Archivo', sans-serif; font-size: 12px; color: #2563eb; background: rgba(37,99,235,0.07); border-radius: 6px; padding: 1px 6px; }
 
+    /* Termes survolables (info-bulle de définition) */
+    .term { border-bottom: 1px dashed currentColor; cursor: help; }
+    .term:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; border-radius: 2px; }
+    .tip { position: fixed; z-index: 200; max-width: 280px; background: #0f1115; color: #e8e8ec; font-family: 'Libre Franklin', sans-serif; font-size: 12.5px; font-weight: 400; font-style: normal; line-height: 1.5; letter-spacing: 0; text-transform: none; text-align: left; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 12px 34px rgba(0,0,0,0.5); pointer-events: none; opacity: 0; transform: translateY(3px); transition: opacity .12s ease, transform .12s ease; }
+    .tip.is-on { opacity: 1; transform: translateY(0); }
+    .tip b { color: #fff; font-weight: 700; }
+
+    /* ---------- Estimateur de valorisation (avant le simulateur) ---------- */
+    .valo-est { margin-top: 26px; }
+    .valo-est .card { margin-bottom: 0; padding: 22px 22px 24px; }
+    .card__toprow--ve { align-items: flex-start; flex-wrap: wrap; }
+    .valo-est__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #2563eb; }
+    .valo-est__title { font-family: 'Archivo', sans-serif; font-size: 19px; font-weight: 700; letter-spacing: -0.02em; color: #08090c; margin-top: 3px; }
+
+    .ve-grid { display: grid; grid-template-columns: minmax(0, 1fr) 246px; gap: 22px; margin-top: 16px; align-items: start; }
+    @media (max-width: 760px) { .ve-grid { grid-template-columns: 1fr; } }
+
+    .ve-body[hidden] { display: none; }
+    .ve-two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
+    @media (max-width: 520px) { .ve-two { grid-template-columns: 1fr; } }
+    .ve-growth { display: flex; flex-direction: column; gap: 8px; }
+    .ve-growth .radio-chip { text-align: left; }
+
+    /* Curseurs (Berkus / Scorecard) */
+    .ve-slider-row { margin-bottom: 15px; }
+    .ve-slider-row:last-child { margin-bottom: 4px; }
+    .ve-slider-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 7px; }
+    .ve-slider-lab { font-size: 13px; color: #08090c; font-weight: 600; }
+    .ve-slider-lab small { display: block; font-size: 11px; color: #a8a8b3; font-weight: 400; margin-top: 1px; }
+    .ve-slider-val { font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 700; color: #2563eb; font-variant-numeric: tabular-nums; white-space: nowrap; flex: none; }
+    .ve-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 5px; border-radius: 5px; background: #e6e6ea; outline: none; cursor: pointer; }
+    .ve-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 17px; height: 17px; border-radius: 50%; background: #3b82f6; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25); cursor: pointer; }
+    .ve-slider::-moz-range-thumb { width: 15px; height: 15px; border-radius: 50%; background: #3b82f6; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25); cursor: pointer; }
+
+    /* Résultat de l'estimation */
+    .ve-out { background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 14px; padding: 18px 18px 20px; position: sticky; top: 78px; }
+    @media (max-width: 760px) { .ve-out { position: static; } }
+    .ve-out__lab { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #93c5fd; }
+    .ve-out__val { font-family: 'Archivo', sans-serif; font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -0.02em; margin-top: 6px; }
+    .ve-out__range { font-size: 12px; color: rgba(255,255,255,0.62); margin-top: 5px; line-height: 1.5; }
+    .ve-use { margin-top: 16px; width: 100%; font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 700; color: #0f172a; background: #fff; border: 0; border-radius: 9px; padding: 10px 12px; cursor: pointer; transition: background .12s, opacity .12s; }
+    .ve-use:hover { background: #dbe4ff; }
+    .ve-use:disabled { opacity: 0.45; cursor: not-allowed; }
+    .ve-out__note { font-size: 10.5px; color: rgba(255,255,255,0.5); margin-top: 11px; line-height: 1.55; }
+
     @media (max-width: 520px) {
       .dil { padding: 24px 14px 80px; }
       .dil__title { font-size: 25px; }
@@ -206,7 +251,168 @@
     <main class="dil">
       <div class="dil__eyebrow">Outil</div>
       <h1 class="dil__title">Simulation de dilution</h1>
-      <p class="dil__sub">Renseignez votre cap table actuelle — <b>en % suffit</b>, pas besoin du nombre exact d'actions — et les paramètres du tour. Le simulateur calcule le post-money, votre dilution et la répartition du capital, le tout en <b>fully diluted</b> (pool d'options et convertibles inclus).</p>
+      <p class="dil__sub">Renseignez votre <span class="term" data-term="cap-table" tabindex="0">cap table</span> actuelle — <b>en % suffit</b>, pas besoin du nombre exact d'actions — et les paramètres du tour. Le simulateur calcule le <span class="term" data-term="post-money" tabindex="0">post-money</span>, votre <span class="term" data-term="dilution" tabindex="0">dilution</span> et la répartition du capital, le tout en <b><span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span></b> (pool d'options et <span class="term" data-term="convertibles" tabindex="0">convertibles</span> inclus).</p>
+
+      <!-- ESTIMATEUR DE VALORISATION (préalable au simulateur) -->
+      <section class="valo-est" id="valo-est">
+        <div class="card">
+          <div class="card__toprow card__toprow--ve">
+            <div>
+              <div class="valo-est__eyebrow">Étape préalable · optionnel</div>
+              <div class="valo-est__title">Vous ne connaissez pas votre valorisation ?</div>
+            </div>
+            <div class="seg" id="ve-method-seg">
+              <button type="button" class="seg__btn is-on" data-vem="rev">Multiple de revenu</button>
+              <button type="button" class="seg__btn" data-vem="berkus">Berkus</button>
+              <button type="button" class="seg__btn" data-vem="scorecard">Scorecard</button>
+            </div>
+          </div>
+          <div class="card__desc" id="ve-desc"></div>
+
+          <div class="ve-grid">
+            <div class="ve-inputs">
+              <!-- Méthode 1 : multiple de revenu -->
+              <div class="ve-body" data-vem-body="rev">
+                <div class="ve-two">
+                  <div class="field" style="margin-bottom:0">
+                    <label class="field__lab" for="ve-arr">Chiffre d'affaires annuel</label>
+                    <div class="inp-wrap">
+                      <input class="inp inp--money" type="text" inputmode="numeric" id="ve-arr" value="500 000" />
+                      <span class="inp-wrap__suf">€</span>
+                    </div>
+                    <div class="card__desc" style="margin:6px 0 0">Récurrent (ARR) pour un SaaS, sinon le CA des 12 derniers mois.</div>
+                  </div>
+                  <div class="field" style="margin-bottom:0">
+                    <label class="field__lab">Profil de croissance</label>
+                    <div class="ve-growth" id="ve-growth">
+                      <label class="radio-chip is-on" data-g="low">
+                        <input type="radio" name="ve-g" value="low" checked />
+                        Prudente <small>&lt; 30 %/an · ×2 à ×4</small>
+                      </label>
+                      <label class="radio-chip" data-g="mid">
+                        <input type="radio" name="ve-g" value="mid" />
+                        Solide <small>30 à 80 %/an · ×4 à ×8</small>
+                      </label>
+                      <label class="radio-chip" data-g="high">
+                        <input type="radio" name="ve-g" value="high" />
+                        Forte <small>&gt; 80 %/an · ×8 à ×15</small>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Méthode 2 : Berkus -->
+              <div class="ve-body" id="ve-berkus" data-vem-body="berkus" hidden>
+                <div class="ve-slider-row">
+                  <div class="ve-slider-top">
+                    <span class="ve-slider-lab">Idée &amp; proposition de valeur <small>valeur de base du projet</small></span>
+                    <span class="ve-slider-val" data-for="b1">250 k€</span>
+                  </div>
+                  <input class="ve-slider" id="b1" type="range" min="0" max="500000" step="25000" value="250000" data-fmt="keur" />
+                </div>
+                <div class="ve-slider-row">
+                  <div class="ve-slider-top">
+                    <span class="ve-slider-lab">Prototype / technologie <small>réduit le risque technologique</small></span>
+                    <span class="ve-slider-val" data-for="b2">250 k€</span>
+                  </div>
+                  <input class="ve-slider" id="b2" type="range" min="0" max="500000" step="25000" value="250000" data-fmt="keur" />
+                </div>
+                <div class="ve-slider-row">
+                  <div class="ve-slider-top">
+                    <span class="ve-slider-lab">Équipe dirigeante <small>réduit le risque d'exécution</small></span>
+                    <span class="ve-slider-val" data-for="b3">250 k€</span>
+                  </div>
+                  <input class="ve-slider" id="b3" type="range" min="0" max="500000" step="25000" value="250000" data-fmt="keur" />
+                </div>
+                <div class="ve-slider-row">
+                  <div class="ve-slider-top">
+                    <span class="ve-slider-lab">Traction &amp; relations marché <small>réduit le risque de marché</small></span>
+                    <span class="ve-slider-val" data-for="b4">250 k€</span>
+                  </div>
+                  <input class="ve-slider" id="b4" type="range" min="0" max="500000" step="25000" value="250000" data-fmt="keur" />
+                </div>
+                <div class="ve-slider-row">
+                  <div class="ve-slider-top">
+                    <span class="ve-slider-lab">Produit lancé / premières ventes <small>réduit le risque de production</small></span>
+                    <span class="ve-slider-val" data-for="b5">250 k€</span>
+                  </div>
+                  <input class="ve-slider" id="b5" type="range" min="0" max="500000" step="25000" value="250000" data-fmt="keur" />
+                </div>
+              </div>
+
+              <!-- Méthode 3 : Scorecard -->
+              <div class="ve-body" id="ve-scorecard" data-vem-body="scorecard" hidden>
+                <div class="field">
+                  <label class="field__lab" for="ve-base">Valorisation moyenne des sociétés comparables</label>
+                  <div class="inp-wrap">
+                    <input class="inp inp--money" type="text" inputmode="numeric" id="ve-base" value="2 000 000" />
+                    <span class="inp-wrap__suf">€</span>
+                  </div>
+                  <div class="card__desc" style="margin:6px 0 0">La valorisation pre-money moyenne, à un stade équivalent, dans votre secteur et votre région.</div>
+                </div>
+                <div class="ve-slider-row">
+                  <div class="ve-slider-top">
+                    <span class="ve-slider-lab">Solidité de l'équipe <small>poids 30 %</small></span>
+                    <span class="ve-slider-val" data-for="s1">100 %</span>
+                  </div>
+                  <input class="ve-slider" id="s1" type="range" min="50" max="150" step="5" value="100" data-fmt="pct" data-w="0.30" />
+                </div>
+                <div class="ve-slider-row">
+                  <div class="ve-slider-top">
+                    <span class="ve-slider-lab">Taille de l'opportunité de marché <small>poids 25 %</small></span>
+                    <span class="ve-slider-val" data-for="s2">100 %</span>
+                  </div>
+                  <input class="ve-slider" id="s2" type="range" min="50" max="150" step="5" value="100" data-fmt="pct" data-w="0.25" />
+                </div>
+                <div class="ve-slider-row">
+                  <div class="ve-slider-top">
+                    <span class="ve-slider-lab">Produit / technologie <small>poids 15 %</small></span>
+                    <span class="ve-slider-val" data-for="s3">100 %</span>
+                  </div>
+                  <input class="ve-slider" id="s3" type="range" min="50" max="150" step="5" value="100" data-fmt="pct" data-w="0.15" />
+                </div>
+                <div class="ve-slider-row">
+                  <div class="ve-slider-top">
+                    <span class="ve-slider-lab">Environnement concurrentiel <small>poids 10 %</small></span>
+                    <span class="ve-slider-val" data-for="s4">100 %</span>
+                  </div>
+                  <input class="ve-slider" id="s4" type="range" min="50" max="150" step="5" value="100" data-fmt="pct" data-w="0.10" />
+                </div>
+                <div class="ve-slider-row">
+                  <div class="ve-slider-top">
+                    <span class="ve-slider-lab">Marketing / ventes / partenariats <small>poids 10 %</small></span>
+                    <span class="ve-slider-val" data-for="s5">100 %</span>
+                  </div>
+                  <input class="ve-slider" id="s5" type="range" min="50" max="150" step="5" value="100" data-fmt="pct" data-w="0.10" />
+                </div>
+                <div class="ve-slider-row">
+                  <div class="ve-slider-top">
+                    <span class="ve-slider-lab">Besoin de financement à venir <small>poids 5 %</small></span>
+                    <span class="ve-slider-val" data-for="s6">100 %</span>
+                  </div>
+                  <input class="ve-slider" id="s6" type="range" min="50" max="150" step="5" value="100" data-fmt="pct" data-w="0.05" />
+                </div>
+                <div class="ve-slider-row">
+                  <div class="ve-slider-top">
+                    <span class="ve-slider-lab">Autres facteurs <small>poids 5 %</small></span>
+                    <span class="ve-slider-val" data-for="s7">100 %</span>
+                  </div>
+                  <input class="ve-slider" id="s7" type="range" min="50" max="150" step="5" value="100" data-fmt="pct" data-w="0.05" />
+                </div>
+              </div>
+            </div>
+
+            <div class="ve-out">
+              <div class="ve-out__lab">Valorisation estimée</div>
+              <div class="ve-out__val" id="ve-result">—</div>
+              <div class="ve-out__range" id="ve-range"></div>
+              <button type="button" class="ve-use" id="ve-use">Utiliser comme pre-money ↓</button>
+              <div class="ve-out__note">Une estimation indicative, pas un prix. La valorisation finale se négocie ; utilisez-la comme point de départ du simulateur.</div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <div class="dil__grid">
         <!-- COLONNE SAISIE -->
@@ -219,7 +425,7 @@
                 <button type="button" class="seg__btn" data-mode="shares">Nb d'actions</button>
               </div>
             </div>
-            <div class="card__desc" id="sh-desc">Le capital <b>avant</b> le tour, en % du capital (fully diluted : intégrez le pool d'options existant et les BSA/BSPCE déjà attribués). Le total doit faire 100 %.</div>
+            <div class="card__desc" id="sh-desc">Le capital <b>avant</b> le tour, en % du capital (<span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span> : intégrez le <span class="term" data-term="pool" tabindex="0">pool d'options</span> existant et les <span class="term" data-term="bsa" tabindex="0">BSA</span>/<span class="term" data-term="bspce" tabindex="0">BSPCE</span> déjà attribués). Le total doit faire 100 %.</div>
             <div class="rows rows--sh">
               <div class="rows__head">
                 <span>Actionnaire</span>
@@ -245,7 +451,7 @@
                 <button type="button" class="seg__btn" data-basis="pct">% cédé</button>
               </div>
             </div>
-            <div class="card__desc" id="basis-desc">La valo pre-money n'est pas toujours facile à estimer. Vous pouvez aussi raisonner en <b>post-money</b> ou directement en <b>% cédé au tour</b> — l'outil déduit le reste.</div>
+            <div class="card__desc" id="basis-desc">La valo <span class="term" data-term="pre-money" tabindex="0">pre-money</span> n'est pas toujours facile à estimer. Vous pouvez aussi raisonner en <b><span class="term" data-term="post-money" tabindex="0">post-money</span></b> ou directement en <b><span class="term" data-term="pct-cede" tabindex="0">% cédé au tour</span></b> — l'outil déduit le reste.</div>
             <div class="field">
               <label class="field__lab" for="valo-input" id="valo-lab">Valorisation pre-money</label>
               <div class="inp-wrap">
@@ -291,7 +497,7 @@
             <div class="card__h">3 · Pool d'options (optionnel)</div>
             <label class="pool-toggle">
               <input type="checkbox" id="pool-on" />
-              <span>Créer ou agrandir un pool d'options (BSPCE / stock-options)</span>
+              <span>Créer ou agrandir un <span class="term" data-term="pool" tabindex="0">pool d'options</span> (<span class="term" data-term="bspce" tabindex="0">BSPCE</span> / <span class="term" data-term="stock-options" tabindex="0">stock-options</span>)</span>
             </label>
             <div class="pool-body" id="pool-body" hidden>
               <div class="field" style="margin-top:12px">
@@ -329,7 +535,7 @@
 
           <div class="kpis">
             <div class="kpi kpi--accent">
-              <div class="kpi__lab">Valorisation post-money</div>
+              <div class="kpi__lab">Valorisation <span class="term" data-term="post-money" tabindex="0">post-money</span></div>
               <div class="kpi__val" id="k-post">—</div>
               <div class="kpi__sub" id="k-post-sub">pre-money + montant levé</div>
             </div>
@@ -344,14 +550,14 @@
               <div class="kpi__sub" id="k-inv-sub">du capital post-money</div>
             </div>
             <div class="kpi">
-              <div class="kpi__lab">Dilution des fondateurs</div>
+              <div class="kpi__lab"><span class="term" data-term="dilution" tabindex="0">Dilution</span> des fondateurs</div>
               <div class="kpi__val" id="k-fdil">—</div>
               <div class="kpi__sub" id="k-fdil-sub"></div>
             </div>
           </div>
 
           <div class="card" style="margin-top:18px">
-            <div class="card__h">Répartition du capital (fully diluted)</div>
+            <div class="card__h">Répartition du capital (<span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span>)</div>
             <div class="ownbar-wrap">
               <div class="ownbar-row">
                 <div class="ownbar-lab"><span>Avant</span><span id="own-before-tot"></span></div>
@@ -366,7 +572,7 @@
           </div>
 
           <div class="card">
-            <div class="card__h">Cap table détaillée — avant / après</div>
+            <div class="card__h"><span class="term" data-term="cap-table" tabindex="0">Cap table</span> détaillée — avant / après</div>
             <div class="rtable-wrap">
               <table class="rtable" id="rtable">
                 <thead>
@@ -385,8 +591,8 @@
           </div>
 
           <p class="note">
-            <b>Fully diluted</b> : la répartition intègre le pool d'options et les instruments convertibles comme s'ils étaient déjà des actions — c'est la seule base honnête pour mesurer votre dilution réelle.<br />
-            <b>Option pool shuffle</b> : un pool créé « avant le tour » gonfle le pre-money en actions et ne dilue que les actionnaires existants — l'investisseur obtient son pourcentage « net de pool ». Créé « après », il dilue aussi l'investisseur. C'est un point de négociation à part entière.
+            <b><span class="term" data-term="fully-diluted" tabindex="0">Fully diluted</span></b> : la répartition intègre le <span class="term" data-term="pool" tabindex="0">pool d'options</span> et les <span class="term" data-term="convertibles" tabindex="0">instruments convertibles</span> comme s'ils étaient déjà des actions — c'est la seule base honnête pour mesurer votre <span class="term" data-term="dilution" tabindex="0">dilution</span> réelle.<br />
+            <b><span class="term" data-term="shuffle" tabindex="0">Option pool shuffle</span></b> : un pool créé « avant le tour » gonfle le pre-money en actions et ne dilue que les actionnaires existants — l'investisseur obtient son pourcentage « net de pool ». Créé « après », il dilue aussi l'investisseur. C'est un point de négociation à part entière.
           </p>
         </div>
       </div>
@@ -884,9 +1090,9 @@
       const lab = document.getElementById('valo-lab');
       const suf = document.getElementById('valo-suf');
       const inp = document.getElementById('valo-input');
-      if (basis === 'pre') { lab.textContent = 'Valorisation pre-money'; suf.textContent = '€'; inp.setAttribute('inputmode', 'numeric'); }
-      else if (basis === 'post') { lab.textContent = 'Valorisation post-money'; suf.textContent = '€'; inp.setAttribute('inputmode', 'numeric'); }
-      else { lab.textContent = 'Capital cédé au tour'; suf.textContent = '%'; inp.setAttribute('inputmode', 'decimal'); }
+      if (basis === 'pre') { lab.innerHTML = 'Valorisation <span class="term" data-term="pre-money" tabindex="0">pre-money</span>'; suf.textContent = '€'; inp.setAttribute('inputmode', 'numeric'); }
+      else if (basis === 'post') { lab.innerHTML = 'Valorisation <span class="term" data-term="post-money" tabindex="0">post-money</span>'; suf.textContent = '€'; inp.setAttribute('inputmode', 'numeric'); }
+      else { lab.innerHTML = '<span class="term" data-term="pct-cede" tabindex="0">Capital cédé au tour</span>'; suf.textContent = '%'; inp.setAttribute('inputmode', 'decimal'); }
       const poolOn = document.getElementById('pool-on').checked;
       document.getElementById('pct-interp').hidden = !(basis === 'pct' && poolOn);
       document.querySelectorAll('#pct-interp .radio-chip').forEach(chip => {
@@ -918,10 +1124,13 @@
       document.querySelectorAll('#mode-seg .seg__btn').forEach(b => b.classList.toggle('is-on', b.dataset.mode === mode));
       document.getElementById('sh-col-lab').textContent = mode === 'pct' ? '%' : 'Actions';
       document.getElementById('sh-total-lab').textContent = mode === 'pct' ? 'Total' : "Total actions avant l'opération";
+      const fdTerms = '<span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span> : <span class="term" data-term="pool" tabindex="0">pool d\'options</span> existant et <span class="term" data-term="bsa" tabindex="0">BSA</span>/<span class="term" data-term="bspce" tabindex="0">BSPCE</span> déjà attribués inclus';
       document.getElementById('sh-desc').innerHTML = mode === 'pct'
-        ? "Le capital <b>avant</b> le tour, en % du capital (fully diluted : pool d'options existant et BSA/BSPCE déjà attribués inclus). Le total doit faire 100 %."
-        : "Le capital <b>avant</b> le tour, en nombre d'actions (fully diluted : pool d'options existant et BSA/BSPCE déjà attribués inclus).";
-      document.getElementById('k-pps-lab').textContent = mode === 'pct' ? 'Capital cédé ce tour' : 'Prix par action';
+        ? `Le capital <b>avant</b> le tour, en % du capital (${fdTerms}). Le total doit faire 100 %.`
+        : `Le capital <b>avant</b> le tour, en nombre d'actions (${fdTerms}).`;
+      document.getElementById('k-pps-lab').innerHTML = mode === 'pct'
+        ? 'Capital cédé ce tour'
+        : '<span class="term" data-term="pps" tabindex="0">Prix par action</span>';
     }
 
     // Bascule de mode : convertit les valeurs saisies pour ne rien perdre
@@ -1009,7 +1218,169 @@
       else window.location.href = 'dossiers.html';
     });
 
+    // ---------- Estimateur de valorisation ----------
+    let veMethod = 'rev';
+    let veValo = 0;
+    // Multiples appliqués au CA selon le profil de croissance : [bas, médian, haut]
+    const VE_GROWTH = { low: [2, 3, 4], mid: [4, 6, 8], high: [8, 11, 15] };
+    const VE_DESC = {
+      rev: "Adapté aux sociétés qui génèrent déjà du chiffre d'affaires. On applique au CA un multiple d'autant plus élevé que la croissance est forte.",
+      berkus: "Pour une startup pré-revenu. On valorise cinq leviers de réduction du risque, chacun jusqu'à 500 k€ (plafond 2,5 M€).",
+      scorecard: "Pour un stade amorçage. On part de la valorisation moyenne des sociétés comparables, ajustée selon vos forces et faiblesses.",
+    };
+
+    const veEst = document.getElementById('valo-est');
+
+    // Met à jour les libellés des curseurs (k€ ou %)
+    function veSyncSliders() {
+      veEst.querySelectorAll('.ve-slider').forEach(s => {
+        const lab = veEst.querySelector(`.ve-slider-val[data-for="${s.id}"]`);
+        if (!lab) return;
+        const v = Number(s.value);
+        lab.textContent = s.dataset.fmt === 'pct' ? `${v} %` : `${Math.round(v / 1000)} k€`;
+      });
+    }
+
+    // Calcule la valorisation estimée selon la méthode active
+    function veCompute() {
+      if (veMethod === 'rev') {
+        const arr = parseNum(document.getElementById('ve-arr').value);
+        const g = (document.querySelector('input[name="ve-g"]:checked') || {}).value || 'low';
+        const [lo, mid, hi] = VE_GROWTH[g];
+        return {
+          valo: arr * mid, low: arr * lo, high: arr * hi, ok: arr > 0,
+          range: arr > 0 ? `Fourchette ${eur0(arr * lo)} – ${eur0(arr * hi)} · CA × ${mid}` : '',
+        };
+      }
+      if (veMethod === 'berkus') {
+        const sum = [...veEst.querySelectorAll('#ve-berkus .ve-slider')].reduce((a, s) => a + Number(s.value), 0);
+        return { valo: sum, ok: sum > 0, range: 'Somme des 5 leviers · plafond 2,5 M€' };
+      }
+      // scorecard
+      const base = parseNum(document.getElementById('ve-base').value);
+      let mult = 0;
+      veEst.querySelectorAll('#ve-scorecard .ve-slider').forEach(s => {
+        mult += Number(s.dataset.w) * (Number(s.value) / 100);
+      });
+      return { valo: base * mult, ok: base > 0, range: base > 0 ? `× ${mult.toFixed(2)} de la moyenne (${eur0(base)})` : '' };
+    }
+
+    function veRender() {
+      veSyncSliders();
+      const r = veCompute();
+      veValo = r.ok && r.valo > 0 ? r.valo : 0;
+      document.getElementById('ve-result').textContent = veValo > 0 ? eur0(veValo) : '—';
+      document.getElementById('ve-range').textContent = veValo > 0 ? r.range : '';
+      document.getElementById('ve-use').disabled = !(veValo > 0);
+    }
+
+    // Bascule de méthode
+    document.getElementById('ve-method-seg').addEventListener('click', (e) => {
+      const btn = e.target.closest('.seg__btn');
+      if (!btn) return;
+      veMethod = btn.dataset.vem;
+      veEst.querySelectorAll('#ve-method-seg .seg__btn').forEach(b => b.classList.toggle('is-on', b.dataset.vem === veMethod));
+      veEst.querySelectorAll('.ve-body').forEach(b => { b.hidden = (b.dataset.vemBody !== veMethod); });
+      document.getElementById('ve-desc').textContent = VE_DESC[veMethod];
+      veRender();
+    });
+
+    // Recalcul à chaque interaction dans l'estimateur
+    veEst.addEventListener('input', () => veRender());
+    veEst.addEventListener('change', (e) => {
+      if (e.target.closest('.ve-growth')) {
+        veEst.querySelectorAll('.ve-growth .radio-chip').forEach(c => c.classList.toggle('is-on', c.querySelector('input').checked));
+      }
+      veRender();
+    });
+    // Reformatage des montants à la sortie du champ
+    veEst.addEventListener('blur', (e) => {
+      if (e.target.id === 've-arr' || e.target.id === 've-base') {
+        e.target.value = fmtLiveInt(e.target.value);
+        veRender();
+      }
+    }, true);
+
+    // Reporte l'estimation dans le simulateur (pre-money)
+    document.getElementById('ve-use').addEventListener('click', () => {
+      if (!(veValo > 0)) return;
+      document.getElementById('valo-input').value = nfInt.format(Math.round(veValo));
+      if (basis !== 'pre') { basis = 'pre'; syncBasisUI(); }
+      recompute();
+      document.getElementById('valo-input').closest('.card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const btn = document.getElementById('ve-use');
+      btn.textContent = '✓ Reportée dans le simulateur';
+      setTimeout(() => { btn.textContent = 'Utiliser comme pre-money ↓'; }, 1900);
+    });
+
+    // ---------- Info-bulles de définition (survol des termes) ----------
+    const GLOSSARY = {
+      'pre-money':     "<b>Pre-money</b> — valeur de la société négociée <b>avant</b> l'entrée de l'argent du tour. Rapportée au capital, elle fixe le prix par action.",
+      'post-money':    "<b>Post-money</b> = pre-money + montant levé. La part d'un investisseur = montant investi ÷ post-money.",
+      'pps':           "<b>Prix par action</b> = pre-money ÷ actions existantes (fully diluted). Prix payé par les nouveaux investisseurs pour chaque action.",
+      'fully-diluted': "<b>Fully diluted</b> — capital compté en incluant tous les titres convertibles en actions (pool, BSPCE, BSA, convertibles), comme s'ils étaient déjà exercés. La seule base honnête pour mesurer une dilution.",
+      'cap-table':     "<b>Cap table</b> (table de capitalisation) — le tableau de qui détient quoi : chaque actionnaire, son nombre d'actions et son pourcentage.",
+      'dilution':      "<b>Dilution</b> — baisse de votre pourcentage de détention quand la société émet de nouvelles actions. Votre nombre d'actions ne change pas, mais pèse une part plus petite d'un capital plus grand.",
+      'pool':          "<b>Pool d'options (ESOP)</b> — réserve d'actions mise de côté pour motiver et recruter salariés et dirigeants, exprimée en % du capital post-money.",
+      'bspce':         "<b>BSPCE</b> — Bons de Souscription de Parts de Créateur d'Entreprise. Droit français réservé aux salariés/dirigeants d'acheter plus tard des actions à un prix fixé aujourd'hui, avec fiscalité avantageuse.",
+      'bsa':           "<b>BSA</b> — Bons de Souscription d'Actions. Droit d'acheter des actions futures à un prix convenu, attribuable aussi à des non-salariés (advisors, investisseurs).",
+      'stock-options': "<b>Stock-options</b> — droit d'acheter des actions à un prix fixé, en récompense de l'implication dans la société. En France, ce rôle est le plus souvent joué par les BSPCE.",
+      'shuffle':       "<b>Option pool shuffle</b> — selon que le pool est créé <b>avant</b> le tour (dilue les seuls fondateurs) ou <b>après</b> (dilue tout le monde, investisseur inclus). Un point de négociation qui peut coûter plusieurs points aux fondateurs.",
+      'convertibles':  "<b>Instruments convertibles</b> — titres qui deviendront des actions plus tard (obligations convertibles, SAFE, BSA AIR). Pas encore des actions, mais comptés dans le fully diluted car ils diluent à terme.",
+      'pct-cede':      "<b>% cédé au tour</b> — part du capital post-money remise aux nouveaux entrants lors du tour. « Net de pool » = investisseurs seuls ; « investisseur + pool » = investisseurs plus le nouveau pool.",
+    };
+    (function initTips() {
+      const tip = document.createElement('div');
+      tip.className = 'tip';
+      tip.setAttribute('role', 'tooltip');
+      document.body.appendChild(tip);
+      let current = null;
+      function show(el) {
+        const def = GLOSSARY[el.dataset.term];
+        if (!def) return;
+        tip.innerHTML = def;
+        tip.classList.add('is-on');
+        const r = el.getBoundingClientRect();
+        const w = tip.offsetWidth, h = tip.offsetHeight;
+        let left = r.left + r.width / 2 - w / 2;
+        left = Math.max(10, Math.min(left, window.innerWidth - w - 10));
+        let top = r.top - h - 9;
+        if (top < 10) top = r.bottom + 9;            // bascule sous le terme si pas de place
+        tip.style.left = Math.round(left) + 'px';
+        tip.style.top = Math.round(top) + 'px';
+        current = el;
+      }
+      function hide() { tip.classList.remove('is-on'); current = null; }
+      document.addEventListener('mouseover', (e) => {
+        const t = e.target.closest('.term');
+        if (t && t !== current) show(t);
+      });
+      document.addEventListener('mouseout', (e) => {
+        const t = e.target.closest('.term');
+        if (!t) return;
+        const to = e.relatedTarget;
+        if (!to || !to.closest || !to.closest('.term')) hide();
+      });
+      document.addEventListener('focusin', (e) => {
+        const t = e.target.closest && e.target.closest('.term');
+        if (t) show(t);
+      });
+      document.addEventListener('focusout', (e) => {
+        if (e.target.closest && e.target.closest('.term')) hide();
+      });
+      // Tactile : une tape affiche / masque la définition
+      document.addEventListener('click', (e) => {
+        const t = e.target.closest('.term');
+        if (t) { current === t ? hide() : show(t); }
+        else if (current) hide();
+      });
+      window.addEventListener('scroll', () => { if (current) hide(); }, true);
+      window.addEventListener('resize', hide);
+    })();
+
     // Init
+    document.getElementById('ve-desc').textContent = VE_DESC[veMethod];
+    veRender();
     updateModeUI();
     loadExample();
   </script>
