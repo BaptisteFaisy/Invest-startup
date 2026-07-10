@@ -156,9 +156,33 @@
     .note { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.6; margin-top: 16px; }
     .note b { color: rgba(255,255,255,0.8); }
 
-    .dil__actions { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+    .dil__actions { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; align-items: center; }
     .dil__actions .btn { background: rgba(255,255,255,0.06); color: #fff; border-color: rgba(255,255,255,0.2); }
     .dil__actions .btn:hover { border-color: rgba(255,255,255,0.5); }
+    .example-picker { display: flex; align-items: center; gap: 8px; }
+    .example-picker__lab { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+    .example-picker__sel { font-family: 'Libre Franklin', sans-serif; font-size: 12.5px; color: #fff; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.2); border-radius: 9px; padding: 8px 10px; cursor: pointer; max-width: 260px; }
+    .example-picker__sel:hover { border-color: rgba(255,255,255,0.5); }
+    .example-picker__sel:focus { outline: none; border-color: #3b82f6; }
+    .example-picker__sel option { color: #08090c; }
+
+    /* Historique des simulations */
+    .hist-list { display: flex; flex-direction: column; gap: 10px; }
+    .hist-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 12px 13px; border: 1px solid rgba(8,9,12,0.08); border-radius: 11px; transition: border-color .12s; }
+    .hist-item:hover { border-color: rgba(8,9,12,0.18); }
+    .hist-item__name { font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 700; color: #08090c; }
+    .hist-item__meta { font-size: 11px; color: #a8a8b3; margin-top: 2px; }
+    .hist-item__chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .hist-chip { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 600; color: #4b4b56; background: #f2f2f0; border-radius: 6px; padding: 3px 8px; white-space: nowrap; }
+    .hist-item__actions { display: flex; flex-direction: column; gap: 6px; flex: none; }
+    .hist-btn { font-family: 'Archivo', sans-serif; font-size: 11.5px; font-weight: 600; border-radius: 8px; padding: 6px 10px; cursor: pointer; border: 1px solid rgba(8,9,12,0.14); background: #fff; color: #08090c; transition: .12s; white-space: nowrap; }
+    .hist-load:hover { border-color: #2563eb; color: #2563eb; }
+    .hist-del { color: #b0b0bb; padding: 6px 9px; }
+    .hist-del:hover { border-color: #ef4444; color: #ef4444; }
+    @media (max-width: 520px) {
+      .hist-item { flex-direction: column; }
+      .hist-item__actions { flex-direction: row; }
+    }
 
     /* Lexique */
     .lexique { margin-top: 46px; }
@@ -528,7 +552,22 @@
         <!-- COLONNE RÉSULTATS -->
         <div class="dil__results">
           <div class="dil__actions">
+            <div class="example-picker">
+              <label class="example-picker__lab" for="example-select">Exemple</label>
+              <select class="example-picker__sel" id="example-select">
+                <option value="0">Amorçage — pool créé avant le tour</option>
+                <option value="1">Série A — historiques + pool existant</option>
+                <option value="2">Négociation en % cédé</option>
+              </select>
+            </div>
             <button type="button" class="btn" id="reset-btn">↺ Réinitialiser l'exemple</button>
+            <button type="button" class="btn" id="save-sim-btn">💾 Enregistrer cette simulation</button>
+          </div>
+
+          <div class="card" id="hist-card" hidden>
+            <div class="card__h">Historique des simulations</div>
+            <div class="card__desc">Enregistré dans ce navigateur. Chargez une simulation précédente pour la reprendre ou la comparer.</div>
+            <div class="hist-list" id="hist-list"></div>
           </div>
 
           <div id="warn-box"></div>
@@ -657,18 +696,55 @@
     };
 
     // ---------- Données d'exemple ----------
-    const EXAMPLE = {
-      shareholders: [
-        { name: 'Fondateur A', shares: 500000, type: 'founder' },
-        { name: 'Fondateur B', shares: 400000, type: 'founder' },
-        { name: 'Pool BSPCE existant', shares: 100000, type: 'pool0' },
-      ],
-      investors: [
-        { name: 'Investisseur lead', amount: 1000000 },
-      ],
-      premoney: 4000000,
-      pool: { on: true, pct: 10, timing: 'pre' },
-    };
+    // Trois scénarios réalistes couvrant les principaux cas d'usage du simulateur.
+    const EXAMPLES = [
+      {
+        label: 'Amorçage — pool créé avant le tour',
+        basis: 'pre',
+        shareholders: [
+          { name: 'Fondateur A', shares: 500000, type: 'founder' },
+          { name: 'Fondateur B', shares: 400000, type: 'founder' },
+          { name: 'Pool BSPCE existant', shares: 100000, type: 'pool0' },
+        ],
+        investors: [
+          { name: 'Investisseur lead', amount: 1000000 },
+        ],
+        valo: 4000000,
+        interp: 'net',
+        pool: { on: true, pct: 10, timing: 'pre' },
+      },
+      {
+        label: 'Série A — historiques + pool existant',
+        basis: 'post',
+        shareholders: [
+          { name: 'Fondateur A', shares: 4500000, type: 'founder' },
+          { name: 'Fondateur B', shares: 3000000, type: 'founder' },
+          { name: 'Investisseur Seed', shares: 1500000, type: 'invest0' },
+          { name: 'Pool existant', shares: 1000000, type: 'pool0' },
+        ],
+        investors: [
+          { name: 'Lead Série A', amount: 4000000 },
+          { name: 'Investisseur suiveur', amount: 1000000 },
+        ],
+        valo: 20000000,
+        interp: 'net',
+        pool: { on: true, pct: 12, timing: 'post' },
+      },
+      {
+        label: 'Négociation en % cédé',
+        basis: 'pct',
+        shareholders: [
+          { name: 'Fondateur A', shares: 600000, type: 'founder' },
+          { name: 'Fondateur B', shares: 400000, type: 'founder' },
+        ],
+        investors: [
+          { name: 'Investisseur', amount: 700000 },
+        ],
+        valo: 20,
+        interp: 'net',
+        pool: { on: true, pct: 10, timing: 'pre' },
+      },
+    ];
 
     const shRowsEl = document.getElementById('sh-rows');
     const invRowsEl = document.getElementById('inv-rows');
@@ -697,24 +773,27 @@
     }
     function escAttr(s) { return String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
 
-    // Convertit les actionnaires de l'exemple (stockés en actions) vers le mode courant
-    function exampleShRows() {
-      const tot = EXAMPLE.shareholders.reduce((a, s) => a + s.shares, 0) || 1;
-      return EXAMPLE.shareholders.map(s => ({
+    // Convertit les actionnaires d'un exemple (stockés en actions) vers le mode courant
+    function exampleShRows(ex) {
+      const tot = ex.shareholders.reduce((a, s) => a + s.shares, 0) || 1;
+      return ex.shareholders.map(s => ({
         name: s.name, type: s.type,
         value: mode === 'pct' ? (s.shares / tot * 100) : s.shares,
       }));
     }
 
-    function loadExample() {
-      basis = 'pre';
-      shRowsEl.innerHTML = exampleShRows().map(shRowHTML).join('');
-      invRowsEl.innerHTML = EXAMPLE.investors.map(invRowHTML).join('');
-      document.getElementById('valo-input').value = nfInt.format(EXAMPLE.premoney);
-      document.querySelector('input[name="pct-interp"][value="net"]').checked = true;
-      document.getElementById('pool-on').checked = EXAMPLE.pool.on;
-      document.getElementById('pool-pct').value = String(EXAMPLE.pool.pct);
-      document.querySelectorAll('input[name="pool-timing"]').forEach(r => { r.checked = (r.value === EXAMPLE.pool.timing); });
+    function loadExample(idx) {
+      const i = typeof idx === 'number' ? idx : Number(document.getElementById('example-select').value) || 0;
+      const ex = EXAMPLES[i] || EXAMPLES[0];
+      document.getElementById('example-select').value = String(i);
+      basis = ex.basis;
+      shRowsEl.innerHTML = exampleShRows(ex).map(shRowHTML).join('');
+      invRowsEl.innerHTML = ex.investors.map(invRowHTML).join('');
+      document.getElementById('valo-input').value = ex.basis === 'pct' ? fmtPctInput(ex.valo) : nfInt.format(ex.valo);
+      document.querySelector(`input[name="pct-interp"][value="${ex.interp}"]`).checked = true;
+      document.getElementById('pool-on').checked = ex.pool.on;
+      document.getElementById('pool-pct').value = String(ex.pool.pct);
+      document.querySelectorAll('input[name="pool-timing"]').forEach(r => { r.checked = (r.value === ex.pool.timing); });
       syncBasisUI();
       syncPoolUI();
       recompute();
@@ -1147,7 +1226,139 @@
       }
     });
 
-    document.getElementById('reset-btn').addEventListener('click', loadExample);
+    document.getElementById('reset-btn').addEventListener('click', () => loadExample());
+    document.getElementById('example-select').addEventListener('change', (e) => loadExample(Number(e.target.value)));
+
+    // ---------- Historique des simulations (enregistré dans ce navigateur) ----------
+    const HISTORY_KEY = 'liquidplus_dilution_history_v1';
+    const HISTORY_MAX = 30;
+
+    function loadHistory() {
+      try {
+        const list = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+        return Array.isArray(list) ? list : [];
+      } catch { return []; }
+    }
+    function saveHistory(list) {
+      try { localStorage.setItem(HISTORY_KEY, JSON.stringify(list)); } catch {}
+    }
+
+    // Capture l'état complet du formulaire (indépendant du mode / de la base courants)
+    function captureSnapshot() {
+      const shareholders = [...shRowsEl.querySelectorAll('[data-role="sh"]')].map(r => ({
+        name: r.querySelector('.in-name').value.trim() || 'Sans nom',
+        value: parseNum(r.querySelector('.in-shares').value),
+        type: r.querySelector('.in-type').value,
+      }));
+      const investors = [...invRowsEl.querySelectorAll('[data-role="inv"]')].map(r => ({
+        name: r.querySelector('.in-iname').value.trim() || 'Investisseur',
+        amount: parseNum(r.querySelector('.in-amount').value),
+      }));
+      const interpEl = document.querySelector('input[name="pct-interp"]:checked');
+      const timingEl = document.querySelector('input[name="pool-timing"]:checked');
+      return {
+        mode, basis,
+        shareholders, investors,
+        valoRaw: parseNum(document.getElementById('valo-input').value),
+        pctInterp: interpEl ? interpEl.value : 'net',
+        pool: {
+          on: document.getElementById('pool-on').checked,
+          pct: parseNum(document.getElementById('pool-pct').value),
+          timing: timingEl ? timingEl.value : 'pre',
+        },
+      };
+    }
+
+    // Restaure un état sauvegardé dans le formulaire
+    function restoreSnapshot(s) {
+      mode = s.mode;
+      basis = s.basis;
+      shRowsEl.innerHTML = s.shareholders.map(shRowHTML).join('');
+      invRowsEl.innerHTML = s.investors.map(inv => invRowHTML({ name: inv.name, amount: inv.amount })).join('');
+      document.getElementById('valo-input').value = basis === 'pct' ? fmtPctInput(s.valoRaw) : (s.valoRaw ? nfInt.format(Math.round(s.valoRaw)) : '');
+      document.querySelectorAll('input[name="pct-interp"]').forEach(r => { r.checked = (r.value === s.pctInterp); });
+      document.getElementById('pool-on').checked = s.pool.on;
+      document.getElementById('pool-pct').value = s.pool.pct ? String(s.pool.pct) : '';
+      document.querySelectorAll('input[name="pool-timing"]').forEach(r => { r.checked = (r.value === s.pool.timing); });
+      updateModeUI();
+      syncBasisUI();
+      syncPoolUI();
+      recompute();
+    }
+
+    function renderHistory() {
+      const list = loadHistory();
+      const card = document.getElementById('hist-card');
+      const body = document.getElementById('hist-list');
+      if (!list.length) { card.hidden = true; body.innerHTML = ''; return; }
+      card.hidden = false;
+      body.innerHTML = list.map(entry => {
+        const d = new Date(entry.savedAt);
+        const dateStr = `${d.toLocaleDateString('fr-FR')} · ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+        const s = entry.summary;
+        return `<div class="hist-item" data-id="${entry.id}">
+          <div class="hist-item__main">
+            <div class="hist-item__name">${escAttr(entry.name)}</div>
+            <div class="hist-item__meta">${dateStr}</div>
+            <div class="hist-item__chips">
+              <span class="hist-chip">Pre-money ${eur0(s.premoney)}</span>
+              <span class="hist-chip">Post-money ${eur0(s.postV)}</span>
+              <span class="hist-chip">Levé ${eur0(s.raised)}</span>
+              <span class="hist-chip">Dilution fondateurs −${pct1(s.founderDilution)}</span>
+            </div>
+          </div>
+          <div class="hist-item__actions">
+            <button type="button" class="hist-btn hist-load">Charger</button>
+            <button type="button" class="hist-btn hist-del" title="Supprimer">×</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function saveCurrentSimulation() {
+      const st = readState();
+      const r = compute(st);
+      if (st.roundError || r.error) {
+        alert("Impossible d'enregistrer : complétez d'abord une cap table et une valorisation cohérentes.");
+        return;
+      }
+      const now = new Date();
+      const defaultName = `Simulation du ${now.toLocaleDateString('fr-FR')} à ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+      const name = (prompt('Nom de cette simulation :', defaultName) || '').trim();
+      if (!name) return;
+      const entry = {
+        id: 'sim_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+        name,
+        savedAt: Date.now(),
+        summary: {
+          premoney: st.premoney,
+          postV: r.postV,
+          raised: r.I,
+          founderDilution: r.founderPctBefore - r.founderPctAfter,
+        },
+        state: captureSnapshot(),
+      };
+      const list = loadHistory();
+      list.unshift(entry);
+      if (list.length > HISTORY_MAX) list.length = HISTORY_MAX;
+      saveHistory(list);
+      renderHistory();
+    }
+
+    document.getElementById('save-sim-btn').addEventListener('click', saveCurrentSimulation);
+    document.getElementById('hist-list').addEventListener('click', (e) => {
+      const item = e.target.closest('.hist-item');
+      if (!item) return;
+      const id = item.dataset.id;
+      if (e.target.closest('.hist-load')) {
+        const entry = loadHistory().find(x => x.id === id);
+        if (entry) restoreSnapshot(entry.state);
+      } else if (e.target.closest('.hist-del')) {
+        if (!confirm('Supprimer cette simulation de l\'historique ?')) return;
+        saveHistory(loadHistory().filter(x => x.id !== id));
+        renderHistory();
+      }
+    });
 
     // Retour en arrière
     document.getElementById('page-back-btn').addEventListener('click', () => {
@@ -1319,7 +1530,8 @@
     document.getElementById('ve-desc').textContent = VE_DESC[veMethod];
     veRender();
     updateModeUI();
-    loadExample();
+    loadExample(0);
+    renderHistory();
   </script>
 </body>
 </html>
