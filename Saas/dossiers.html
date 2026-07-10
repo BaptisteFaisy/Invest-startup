@@ -3361,6 +3361,7 @@
         <div class="documents-card__actions">
           <button class="documents-action-btn" type="button" data-new-folder>+ Nouveau dossier</button>
           <button class="documents-action-btn" type="button" data-import-folder>Importer des fichiers</button>
+          ${categories && categories.length ? '<button class="documents-action-btn" type="button" data-collapse-categories>Fermer tous les dossiers</button>' : ''}
         </div>` : '';
       card.className = 'folder folder--phase open';
       if ((f.track || 'classic') === 'bsa-air' && f.key) card.id = 'phase-' + f.key;
@@ -3378,8 +3379,15 @@
       const body = card.querySelector('.folder__body');
       const newFolderBtn = card.querySelector('[data-new-folder]');
       const importFolderBtn = card.querySelector('[data-import-folder]');
+      const collapseCategoriesBtn = card.querySelector('[data-collapse-categories]');
       if (newFolderBtn) newFolderBtn.addEventListener('click', createFolder);
       if (importFolderBtn) importFolderBtn.addEventListener('click', () => openImport(f.id, ''));
+      if (collapseCategoriesBtn) {
+        collapseCategoriesBtn.addEventListener('click', () => {
+          categories.forEach(category => { docCategoryOpen[f.id + ':' + category.key] = false; });
+          render();
+        });
+      }
       // Le guide « 🎓 Comprendre cette étape » n'apparaît plus dans la carte du
       // dossier : il est réservé à la fenêtre d'étape ouverte via la frise.
       if (categories && categories.length) {
