@@ -47,6 +47,27 @@
     /* La carte suivante (notamment « Documents ») garde son propre espace. */
     #resume:not(:empty) { margin-bottom: 28px; }
 
+    /* Bandeau « prochaines priorités » — bulle blanche en haut de chaque page d'étape.
+       Le contenu est calculé côté client à partir des documents manquants / à valider
+       (aucun appel à l'IA : zéro token). */
+    #next-actions:not(:empty) { margin-bottom: 20px; }
+    .next-actions { background: #fff; border-radius: 20px; box-shadow: 0 12px 40px rgba(0,0,0,0.28); padding: 17px 20px 15px; }
+    .next-actions__head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .next-actions__ic { width: 30px; height: 30px; flex: none; display: grid; place-items: center; border-radius: 9px; background: linear-gradient(135deg, #6366f1, #818cf8); color: #fff; }
+    .next-actions__ic svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .next-actions__title { font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 0.02em; text-transform: uppercase; color: #08090c; }
+    .next-actions__hint { margin-left: auto; font-size: 11.5px; color: #6b6b78; white-space: nowrap; }
+    .next-actions__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+    .next-actions__link { width: 100%; display: flex; align-items: center; gap: 12px; padding: 11px 12px; border: 1px solid rgba(8,9,12,0.08); border-radius: 12px; background: #faf9f6; cursor: pointer; text-align: left; transition: border-color .15s, background .15s; }
+    .next-actions__link:hover { background: #f2f0ea; border-color: rgba(8,9,12,0.18); }
+    .next-actions__rank { flex: none; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 7px; background: #08090c; color: #fff; font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 11px; }
+    .next-actions__main { flex: 1; min-width: 0; }
+    .next-actions__text { display: block; font-size: 14px; font-weight: 600; letter-spacing: -0.01em; color: #08090c; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .next-actions__step { display: block; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #6b6b78; margin-top: 2px; }
+    .next-actions__go { flex: none; color: #6b6b78; font-size: 16px; line-height: 1; }
+    .next-actions__link:hover .next-actions__go { color: #08090c; }
+    .next-actions__empty { margin: 0; font-size: 14px; line-height: 1.5; color: #26272c; }
+
     /* Dossiers (phases de levée) */
     .folder { background: var(--card); border: 1px solid var(--line); border-radius: 14px; margin-bottom: 12px; overflow: hidden; transition: border-color .15s, box-shadow .15s; }
     .folder.is-drag { border-color: var(--blue, #3b82f6); box-shadow: 0 0 0 2px rgba(59,130,246,0.25); }
@@ -330,7 +351,10 @@
     .topbar__search-field svg { width:17px; height:17px; flex:none; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
     .topbar__search-input { width:100%; min-width:0; border:0; outline:0; background:transparent; color:#fff; font:500 13px/1.2 'Libre Franklin', sans-serif; }
     .topbar__search-input::placeholder { color:rgba(255,255,255,0.56); }
-    .topbar__search-results { position:absolute; top:calc(100% + 8px); right:0; z-index:80; width:min(430px, calc(100vw - 28px)); padding:7px; border:1px solid rgba(255,255,255,0.13); border-radius:12px; background:#15161b; box-shadow:0 18px 42px rgba(0,0,0,0.42); }
+    .topbar__search-results { position:absolute; top:calc(100% + 8px); right:0; z-index:80; width:min(430px, calc(100vw - 28px)); max-height:min(62vh, 460px); overflow-y:auto; overscroll-behavior:contain; padding:7px; border:1px solid rgba(255,255,255,0.13); border-radius:12px; background:#15161b; box-shadow:0 18px 42px rgba(0,0,0,0.42); scrollbar-width:thin; scrollbar-color:rgba(255,255,255,0.22) transparent; }
+    .topbar__search-results::-webkit-scrollbar { width:8px; }
+    .topbar__search-results::-webkit-scrollbar-thumb { border-radius:8px; background:rgba(255,255,255,0.2); }
+    .topbar__search-summary { position:sticky; top:-7px; z-index:1; margin:-7px -7px 0; background:#15161b; }
     .topbar__search-results[hidden] { display:none; }
     .topbar__search-summary { padding:6px 8px 8px; color:rgba(255,255,255,0.52); font:700 10px/1.25 'Archivo', sans-serif; letter-spacing:.09em; text-transform:uppercase; }
     .topbar__search-empty { margin:0; padding:10px 8px; color:rgba(255,255,255,0.72); font-size:13px; }
@@ -716,6 +740,10 @@
       </div>
 
       <div id="error" class="err" hidden></div>
+
+      <!-- Prochaines priorités : suggestions calculées d'après l'état réel du dossier
+           (documents manquants / à valider). Uniquement sur les pages d'étapes. -->
+      <div id="next-actions"></div>
 
       <!-- Reprendre : dernier document ouvert (accès rapide) -->
       <div id="resume"></div>
@@ -2143,6 +2171,124 @@
         </div>`;
     }
 
+    /* ═══════════ Bandeau « prochaines priorités » (0 token) ═══════════
+       Suggestions déterministes calculées à partir de l'état réel du dossier :
+       profil de levée non renseigné, documents attendus manquants ou pas encore
+       validés, dans l'ordre des étapes. Aucun appel à l'IA. */
+    const naBulbIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg>';
+
+    // Documents attendus manquants (à ajouter) ou fournis mais pas validés (à valider)
+    // pour une étape. On applique les mêmes règles que phaseStatus : un document
+    // « si applicable » (mark 'opt') non fourni ne bloque pas.
+    function phaseGaps(f) {
+      const state = f.items_state || {};
+      const items = Array.isArray(f.checklist) ? f.checklist : [];
+      const marks = f.marks || [];
+      const toAdd = [], toValidate = [];
+      items.forEach((item, idx) => {
+        if (marks[idx] === 'opt') return;
+        const slug = slugify(item);
+        const st = state[slug] || {};
+        const isLinked = st.document_id != null && docs.some(d => d.id === st.document_id);
+        if (!isLinked) toAdd.push(item);
+        else if (!st.final) toValidate.push(item);
+      });
+      return { toAdd, toValidate };
+    }
+
+    function computeNextActions() {
+      const type = getRaiseType();
+      if (RAISE_SOON[type]) return null; // parcours pas encore disponible
+      let phases;
+      if (type === 'classic') {
+        phases = folders.filter(f => isSystemPhase(f) && (f.track || 'classic') === 'classic').filter(isClassicPhaseVisible);
+      } else if (type === 'bsa-air') {
+        phases = folders.filter(f => isSystemPhase(f) && (f.track || 'classic') === 'bsa-air');
+      } else {
+        return null;
+      }
+      const isClassic = type === 'classic';
+      const actions = [];
+
+      // 1) Profil de la levée pas encore renseigné (ni société, ni fondateurs).
+      const prof = fundraisingProfile || {};
+      const noProfile = !String(prof.company_name || '').trim() && !((prof.founders || []).length);
+      if (noProfile) {
+        actions.push({ text: 'Renseignez le profil de votre levée', step: 'Ma levée', key: isClassic ? 'mise-en-ordre' : 'bsa-profile' });
+      }
+
+      // 2) Documents manquants puis documents à valider, étape par étape.
+      for (const f of phases) {
+        if (f.key === 'mise-en-ordre') continue;
+        if (isClassic && CLASSIC_SOON_STEPS.has(f.key)) continue; // étape « Bientôt »
+        const label = friseLabel(f);
+        const { toAdd, toValidate } = phaseGaps(f);
+        toAdd.forEach(item => actions.push({ text: 'Ajouter « ' + item + ' »', step: label, key: f.key }));
+        toValidate.forEach(item => actions.push({ text: 'Valider « ' + item + ' »', step: label, key: f.key }));
+        if (actions.length >= 6) break; // assez de matière pour prioriser
+      }
+
+      if (!actions.length) return { done: true, items: [] };
+      return { done: false, items: actions.slice(0, 3) };
+    }
+
+    const nextActionsHost = document.getElementById('next-actions');
+    function renderNextActions() {
+      if (!nextActionsHost) return;
+      const type = getRaiseType();
+      // Pas de bandeau sur un parcours « bientôt disponible » ni sur une étape « Bientôt ».
+      if (RAISE_SOON[type] || (type === 'classic' && selectedClassicStep && CLASSIC_SOON_STEPS.has(selectedClassicStep))) {
+        nextActionsHost.innerHTML = '';
+        return;
+      }
+      const data = computeNextActions();
+      if (!data) { nextActionsHost.innerHTML = ''; return; }
+
+      const isClassic = type === 'classic';
+      const openStep = (key) => {
+        if (key === 'bsa-profile') return openBsaStepCard('bsa-profile');
+        return isClassic ? openClassicStepPage(key) : openBsaStepCard(key);
+      };
+
+      const section = document.createElement('section');
+      section.className = 'next-actions' + (data.done ? ' is-done' : '');
+      if (data.done) {
+        section.innerHTML =
+          '<div class="next-actions__head">'
+          + '<span class="next-actions__ic">' + naBulbIcon + '</span>'
+          + '<span class="next-actions__title">Prochaines priorités</span>'
+          + '</div>'
+          + '<p class="next-actions__empty">Tout est à jour : les documents attendus sont fournis et validés. 🎉</p>';
+      } else {
+        const rows = data.items.map((a, i) =>
+          '<li class="next-actions__item">'
+          + '<button class="next-actions__link" type="button" data-na-step="' + esc(a.key) + '">'
+          + '<span class="next-actions__rank">' + (i + 1) + '</span>'
+          + '<span class="next-actions__main">'
+          + '<span class="next-actions__text">' + esc(a.text) + '</span>'
+          + (a.step ? '<span class="next-actions__step">Étape · ' + esc(a.step) + '</span>' : '')
+          + '</span>'
+          + '<span class="next-actions__go" aria-hidden="true">→</span>'
+          + '</button></li>').join('');
+        section.innerHTML =
+          '<div class="next-actions__head">'
+          + '<span class="next-actions__ic">' + naBulbIcon + '</span>'
+          + '<span class="next-actions__title">Prochaines priorités</span>'
+          + '<span class="next-actions__hint">D\'après l\'état de votre dossier</span>'
+          + '</div>'
+          + '<ol class="next-actions__list">' + rows + '</ol>';
+      }
+      nextActionsHost.innerHTML = '';
+      nextActionsHost.appendChild(section);
+      section.querySelectorAll('[data-na-step]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const key = btn.getAttribute('data-na-step');
+          if (key) openStep(key);
+          if (navDrawer) navDrawer.close();
+        });
+      });
+    }
+
     function render() {
       const track = getRaiseType();
       // La sélection BSA-AIR doit être établie avant de dessiner le menu afin
@@ -2158,6 +2304,7 @@
         if (bsaFoldersEl) bsaFoldersEl.innerHTML = '';
         syncClassicActions(-1);
         setTopbarStepLabel('');
+        renderNextActions();
         refreshFmodal();
         return;
       }
@@ -2192,6 +2339,7 @@
         }
       }
 
+      renderNextActions();
       refreshFmodal(); // conservé pour les fenêtres déjà ouvertes depuis une ancienne session
     }
 

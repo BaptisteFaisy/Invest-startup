@@ -25,6 +25,13 @@
     .topbar .btn--ghost { color: #fff !important; border-color: rgba(255,255,255,0.35) !important; }
     .topbar .btn--ghost:hover { color: #fff !important; border-color: rgba(255,255,255,0.65) !important; }
 
+    /* Retour en arrière — chevron discret en haut à gauche de la page */
+    .page-back-row { width: 100%; box-sizing: border-box; max-width: 1180px; margin: 0 auto; padding: 16px 24px 0; }
+    .page-back { width: 32px; height: 32px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
+    .page-back:hover { opacity: 0.68; transform: translateX(-1px); }
+    .page-back:focus-visible { outline: none; opacity: 1; }
+    .page-back svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
     .dil { max-width: 1180px; margin: 0 auto; padding: 34px 24px 90px; }
     .dil__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
     .dil__title { font-size: 30px; letter-spacing: -0.03em; color: #fff; margin-top: 6px; }
@@ -40,6 +47,17 @@
     .card { background: #fff; border-radius: 16px; padding: 20px 20px 22px; box-shadow: 0 10px 34px rgba(0,0,0,0.35); margin-bottom: 18px; }
     .card__h { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #6b6b78; margin-bottom: 4px; }
     .card__desc { font-size: 12.5px; color: #8a8a95; line-height: 1.5; margin-bottom: 14px; }
+    .card__toprow { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+    .card__toprow .card__h { margin-bottom: 0; }
+
+    /* Bascule %/actions */
+    .seg { display: inline-flex; background: #f0f0ee; border-radius: 9px; padding: 3px; gap: 2px; flex: none; }
+    .seg__btn { font-family: 'Archivo', sans-serif; font-size: 11.5px; font-weight: 600; color: #6b6b78; background: transparent; border: 0; border-radius: 7px; padding: 5px 11px; cursor: pointer; transition: .12s; white-space: nowrap; }
+    .seg__btn:hover { color: #08090c; }
+    .seg__btn.is-on { background: #fff; color: #08090c; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+
+    .rowsum b.is-warn { color: #d97706; }
+    .rowsum .warn-hint { color: #d97706; font-weight: 400; font-size: 11.5px; }
 
     /* Champs */
     .field { margin-bottom: 14px; }
@@ -128,6 +146,9 @@
     .rt-delta--flat { color: #a8a8b3; }
     .rtable tr.rt-total td { border-top: 2px solid rgba(8,9,12,0.12); border-bottom: 0; padding-top: 11px; font-family: 'Archivo', sans-serif; font-weight: 700; }
     .rtable tr.rt-new td { background: rgba(37,99,235,0.035); }
+    /* Mode % : on masque les colonnes en nombre d'actions (notionnelles) */
+    .rtable.is-pct { min-width: 0; }
+    .rtable.is-pct .col-abs { display: none; }
 
     .warn { display: flex; gap: 10px; background: rgba(217,119,6,0.1); border: 1px solid rgba(217,119,6,0.28); border-radius: 12px; padding: 13px 15px; margin-bottom: 16px; font-size: 13px; line-height: 1.5; color: #92400e; }
     .warn svg { width: 18px; height: 18px; flex: none; stroke: #d97706; stroke-width: 1.9; fill: none; margin-top: 1px; }
@@ -138,6 +159,21 @@
     .dil__actions { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
     .dil__actions .btn { background: rgba(255,255,255,0.06); color: #fff; border-color: rgba(255,255,255,0.2); }
     .dil__actions .btn:hover { border-color: rgba(255,255,255,0.5); }
+
+    /* Lexique */
+    .lexique { margin-top: 46px; }
+    .lexique__title { font-size: 22px; letter-spacing: -0.02em; color: #fff; margin-top: 6px; }
+    .lexique__sub { color: rgba(255,255,255,0.62); font-size: 14px; margin-top: 8px; line-height: 1.6; max-width: 680px; }
+    .lexique__cat { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.42); margin: 26px 0 12px; }
+    .lexique__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    @media (max-width: 720px) { .lexique__grid { grid-template-columns: 1fr; } }
+    .glo { background: #fff; border-radius: 14px; padding: 16px 18px 17px; box-shadow: 0 8px 26px rgba(0,0,0,0.3); }
+    .glo__term { font-family: 'Archivo', sans-serif; font-size: 14.5px; font-weight: 700; color: #08090c; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+    .glo__en { font-size: 11.5px; font-weight: 500; color: #a8a8b3; font-style: italic; }
+    .glo__def { font-size: 13px; color: #55555f; line-height: 1.58; margin-top: 8px; }
+    .glo__def b { color: #08090c; font-weight: 600; }
+    .glo__def + .glo__def { margin-top: 7px; }
+    .glo__f { font-family: 'Archivo', sans-serif; font-size: 12px; color: #2563eb; background: rgba(37,99,235,0.07); border-radius: 6px; padding: 1px 6px; }
 
     @media (max-width: 520px) {
       .dil { padding: 24px 14px 80px; }
@@ -161,21 +197,33 @@
       </div>
     </header>
 
+    <div class="page-back-row">
+      <button type="button" class="page-back" id="page-back-btn" aria-label="Revenir en arrière" title="Revenir en arrière">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+    </div>
+
     <main class="dil">
       <div class="dil__eyebrow">Outil</div>
       <h1 class="dil__title">Simulation de dilution</h1>
-      <p class="dil__sub">Renseignez votre cap table actuelle et les paramètres du tour. Le simulateur calcule le post-money, le prix par action, les actions émises et votre dilution — le tout en <b>fully diluted</b> (pool d'options et instruments convertibles inclus).</p>
+      <p class="dil__sub">Renseignez votre cap table actuelle — <b>en % suffit</b>, pas besoin du nombre exact d'actions — et les paramètres du tour. Le simulateur calcule le post-money, votre dilution et la répartition du capital, le tout en <b>fully diluted</b> (pool d'options et convertibles inclus).</p>
 
       <div class="dil__grid">
         <!-- COLONNE SAISIE -->
         <form id="dil-form" autocomplete="off">
           <div class="card">
-            <div class="card__h">1 · Cap table actuelle</div>
-            <div class="card__desc">Le capital <b>avant</b> le tour, en nombre d'actions (fully diluted : intégrez le pool d'options existant et les BSA/BSPCE déjà attribués).</div>
+            <div class="card__toprow">
+              <div class="card__h">1 · Cap table actuelle</div>
+              <div class="seg" id="mode-seg">
+                <button type="button" class="seg__btn is-on" data-mode="pct">En %</button>
+                <button type="button" class="seg__btn" data-mode="shares">Nb d'actions</button>
+              </div>
+            </div>
+            <div class="card__desc" id="sh-desc">Le capital <b>avant</b> le tour, en % du capital (fully diluted : intégrez le pool d'options existant et les BSA/BSPCE déjà attribués). Le total doit faire 100 %.</div>
             <div class="rows rows--sh">
               <div class="rows__head">
                 <span>Actionnaire</span>
-                <span class="r">Actions</span>
+                <span class="r" id="sh-col-lab">%</span>
                 <span>Catégorie</span>
                 <span></span>
               </div>
@@ -183,18 +231,42 @@
             </div>
             <button type="button" class="addrow" id="add-sh">+ Ajouter un actionnaire</button>
             <div class="rowsum">
-              <span>Total actions avant l'opération</span>
+              <span id="sh-total-lab">Total</span>
               <b id="sh-total">—</b>
             </div>
           </div>
 
           <div class="card">
-            <div class="card__h">2 · Le tour de financement</div>
+            <div class="card__toprow">
+              <div class="card__h">2 · Le tour de financement</div>
+              <div class="seg" id="basis-seg">
+                <button type="button" class="seg__btn is-on" data-basis="pre">Pre-money</button>
+                <button type="button" class="seg__btn" data-basis="post">Post-money</button>
+                <button type="button" class="seg__btn" data-basis="pct">% cédé</button>
+              </div>
+            </div>
+            <div class="card__desc" id="basis-desc">La valo pre-money n'est pas toujours facile à estimer. Vous pouvez aussi raisonner en <b>post-money</b> ou directement en <b>% cédé au tour</b> — l'outil déduit le reste.</div>
             <div class="field">
-              <label class="field__lab" for="premoney">Valorisation pre-money</label>
+              <label class="field__lab" for="valo-input" id="valo-lab">Valorisation pre-money</label>
               <div class="inp-wrap">
-                <input class="inp inp--money" type="text" inputmode="numeric" id="premoney" value="4 000 000" />
-                <span class="inp-wrap__suf">€</span>
+                <input class="inp inp--money" type="text" inputmode="numeric" id="valo-input" value="4 000 000" />
+                <span class="inp-wrap__suf" id="valo-suf">€</span>
+              </div>
+              <div class="card__desc" id="valo-help" style="margin:6px 0 0"></div>
+            </div>
+            <div class="field" id="pct-interp" hidden>
+              <label class="field__lab">Ce % correspond à</label>
+              <div class="radio-row">
+                <label class="radio-chip is-on" data-interp="net">
+                  <input type="radio" name="pct-interp" value="net" checked />
+                  Part investisseur
+                  <small>net de pool</small>
+                </label>
+                <label class="radio-chip" data-interp="total">
+                  <input type="radio" name="pct-interp" value="total" />
+                  Investisseur + pool
+                  <small>total du tour</small>
+                </label>
               </div>
             </div>
             <div class="field">
@@ -262,7 +334,7 @@
               <div class="kpi__sub" id="k-post-sub">pre-money + montant levé</div>
             </div>
             <div class="kpi">
-              <div class="kpi__lab">Prix par action</div>
+              <div class="kpi__lab" id="k-pps-lab">Prix par action</div>
               <div class="kpi__val" id="k-pps">—</div>
               <div class="kpi__sub" id="k-pps-sub"></div>
             </div>
@@ -296,13 +368,13 @@
           <div class="card">
             <div class="card__h">Cap table détaillée — avant / après</div>
             <div class="rtable-wrap">
-              <table class="rtable">
+              <table class="rtable" id="rtable">
                 <thead>
                   <tr>
                     <th class="l">Actionnaire</th>
-                    <th>Actions avant</th>
+                    <th class="col-abs">Actions avant</th>
                     <th>% avant</th>
-                    <th>Actions après</th>
+                    <th class="col-abs">Actions après</th>
                     <th>% après</th>
                     <th>Évolution</th>
                   </tr>
@@ -318,6 +390,86 @@
           </p>
         </div>
       </div>
+
+      <!-- LEXIQUE -->
+      <section class="lexique" id="lexique">
+        <div class="dil__eyebrow">Lexique</div>
+        <h2 class="lexique__title">Les termes de la dilution, définis</h2>
+        <p class="lexique__sub">Le vocabulaire d'un tour de table peut sembler opaque. Voici les termes employés par cet outil — et quelques-uns que vous croiserez en négociation — expliqués simplement mais précisément.</p>
+
+        <div class="lexique__cat">Valorisation</div>
+        <div class="lexique__grid">
+          <div class="glo">
+            <div class="glo__term">Pre-money <span class="glo__en">valorisation avant le tour</span></div>
+            <p class="glo__def">Valeur négociée de la société <b>juste avant</b> que l'argent des investisseurs n'entre. Rapportée au nombre d'actions existantes, elle fixe le prix par action du tour. C'est le principal point de négociation : plus le pre-money est élevé, moins vous vous diluez à montant levé égal.</p>
+          </div>
+          <div class="glo">
+            <div class="glo__term">Post-money <span class="glo__en">valorisation après le tour</span></div>
+            <p class="glo__def"><span class="glo__f">post-money = pre-money + montant levé</span></p>
+            <p class="glo__def">Valeur de la société une fois l'argent entré. C'est la base des pourcentages : la part d'un investisseur = <b>montant investi ÷ post-money</b>.</p>
+          </div>
+          <div class="glo">
+            <div class="glo__term">Prix par action <span class="glo__en">PPS — price per share</span></div>
+            <p class="glo__def"><span class="glo__f">PPS = pre-money ÷ actions existantes (fully diluted)</span></p>
+            <p class="glo__def">Prix auquel les nouveaux investisseurs achètent leurs actions. Il sert à convertir chaque montant investi en nombre d'actions émises. En mode « % » cet outil le remplace par le capital cédé, car le nombre d'actions y est notionnel.</p>
+          </div>
+          <div class="glo">
+            <div class="glo__term">% cédé au tour</div>
+            <p class="glo__def">Part du capital <b>post-money</b> remise aux nouveaux entrants. « Net de pool » = la part des investisseurs seuls ; « investisseur + pool » = investisseurs plus le nouveau pool d'options créé au passage.</p>
+          </div>
+        </div>
+
+        <div class="lexique__cat">Capital &amp; détention</div>
+        <div class="lexique__grid">
+          <div class="glo">
+            <div class="glo__term">Cap table <span class="glo__en">table de capitalisation</span></div>
+            <p class="glo__def">Le tableau qui recense <b>qui détient quoi</b> : chaque actionnaire, son nombre d'actions et son pourcentage. C'est la photo du capital, avant et après chaque opération.</p>
+          </div>
+          <div class="glo">
+            <div class="glo__term">Fully diluted <span class="glo__en">capital pleinement dilué</span></div>
+            <p class="glo__def">Le capital compté en incluant <b>tous les titres qui peuvent devenir des actions</b> (pool d'options, BSPCE, BSA, obligations convertibles, SAFE), comme s'ils étaient déjà exercés. C'est la seule base honnête pour mesurer une dilution : elle ne cache aucun titre « en attente » qui vous diluera plus tard.</p>
+          </div>
+          <div class="glo">
+            <div class="glo__term">Dilution</div>
+            <p class="glo__def">La baisse de votre <b>pourcentage</b> de détention quand la société émet de nouvelles actions. Votre nombre d'actions ne bouge pas, mais il représente une part plus petite d'un gâteau plus grand.</p>
+            <p class="glo__def"><b>Absolue</b> : les points de % perdus (ex. 45 % → 36 % = −9 pts). <b>Relative</b> : ces points rapportés à votre départ (−9 / 45 = −20 %).</p>
+          </div>
+          <div class="glo">
+            <div class="glo__term">Instruments convertibles</div>
+            <p class="glo__def">Titres qui se transformeront en actions plus tard, souvent au tour suivant : <b>obligations convertibles</b>, <b>SAFE</b>, <b>BSA AIR</b>. Ils ne sont pas encore des actions mais comptent dans le fully diluted, car ils diluent à terme.</p>
+          </div>
+        </div>
+
+        <div class="lexique__cat">Pool d'options &amp; titres pour salariés</div>
+        <div class="lexique__grid">
+          <div class="glo">
+            <div class="glo__term">Pool d'options <span class="glo__en">ESOP — employee stock option pool</span></div>
+            <p class="glo__def">Réserve d'actions (ou de droits d'en souscrire) mise de côté pour <b>attirer et motiver les salariés et dirigeants</b>. Exprimée en % du capital post-money. La constituer ou l'agrandir dilue les actionnaires — d'où l'importance de savoir <b>quand</b> on le fait.</p>
+          </div>
+          <div class="glo">
+            <div class="glo__term">BSPCE <span class="glo__en">Bons de Souscription de Parts de Créateur d'Entreprise</span></div>
+            <p class="glo__def">Instrument <b>français</b> réservé aux salariés et dirigeants de jeunes sociétés : le droit d'acheter plus tard des actions à un prix fixé aujourd'hui, avec une fiscalité avantageuse. C'est la brique la plus courante d'un pool d'options en France.</p>
+          </div>
+          <div class="glo">
+            <div class="glo__term">BSA <span class="glo__en">Bons de Souscription d'Actions</span></div>
+            <p class="glo__def">Droit d'acheter des actions futures à un prix convenu. Proche du BSPCE mais <b>attribuable à des non-salariés</b> (advisors, prestataires, investisseurs), sans le régime fiscal réservé des BSPCE.</p>
+          </div>
+          <div class="glo">
+            <div class="glo__term">Stock-options</div>
+            <p class="glo__def">Terme générique pour un <b>droit d'acheter des actions à un prix fixé</b>, en récompense de l'implication dans la société. En France, ce rôle est le plus souvent joué par les BSPCE.</p>
+          </div>
+        </div>
+
+        <div class="lexique__cat">Le point piège</div>
+        <div class="lexique__grid">
+          <div class="glo" style="grid-column: 1 / -1">
+            <div class="glo__term">Option pool shuffle <span class="glo__en">le « tour de passe-passe » du pool</span></div>
+            <p class="glo__def">Le moment de négociation où l'on décide si le pool d'options est créé ou agrandi <b>avant</b> ou <b>après</b> le tour — un détail qui peut coûter plusieurs points aux fondateurs.</p>
+            <p class="glo__def"><b>Avant le tour</b> : le pool gonfle le pre-money en actions et ne dilue <b>que les actionnaires existants</b> (les fondateurs). L'investisseur obtient son pourcentage « net de pool », sans en supporter le coût. C'est la demande classique des VC.</p>
+            <p class="glo__def"><b>Après le tour</b> : le pool dilue <b>tout le monde</b>, l'investisseur compris. Plus favorable aux fondateurs. Basculez l'option « Quand le pool est-il créé ? » dans l'outil pour voir l'écart chiffré.</p>
+          </div>
+        </div>
+      </section>
     </main>
   </div>
 
@@ -341,6 +493,17 @@
       if (!v) return '';
       return nfInt.format(Math.round(v));
     };
+    // Formate une valeur de pourcentage (jusqu'à 2 décimales, style FR)
+    const fmtPctInput = (v) => (!v ? '' : v.toLocaleString('fr-FR', { maximumFractionDigits: 2 }));
+
+    // Mode de saisie de la cap table : 'pct' (défaut) ou 'shares'
+    let mode = 'pct';
+    // Base de saisie du tour : 'pre' (pre-money), 'post' (post-money) ou 'pct' (% cédé)
+    let basis = 'pre';
+    // Formate la valeur d'une ligne d'actionnaire selon le mode
+    const fmtRowVal = (v) => (mode === 'pct' ? fmtPctInput(v) : (v ? nfInt.format(Math.round(v)) : ''));
+    // Base notionnelle d'actions utilisée quand on passe de % vers nombre d'actions
+    const NOTIONAL_BASE = 1000000;
 
     const CATS = {
       founder: { label: 'Fondateurs', cls: 'c-founder', color: '#4f46e5' },
@@ -369,9 +532,11 @@
 
     function shRowHTML(sh) {
       const opt = (v, l) => `<option value="${v}"${sh.type === v ? ' selected' : ''}>${l}</option>`;
+      const im = mode === 'pct' ? 'decimal' : 'numeric';
+      const ph = mode === 'pct' ? '0' : '0';
       return `<div class="row" data-role="sh">
         <input class="inp in-name" type="text" value="${escAttr(sh.name)}" placeholder="Nom" />
-        <input class="inp inp--money in-shares" type="text" inputmode="numeric" value="${sh.shares ? nfInt.format(sh.shares) : ''}" placeholder="0" />
+        <input class="inp inp--money in-shares" type="text" inputmode="${im}" value="${fmtRowVal(sh.value)}" placeholder="${ph}" />
         <select class="sel in-type">
           ${opt('founder', 'Fondateur')}
           ${opt('invest0', 'Investisseur')}
@@ -389,15 +554,56 @@
     }
     function escAttr(s) { return String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
 
+    // Convertit les actionnaires de l'exemple (stockés en actions) vers le mode courant
+    function exampleShRows() {
+      const tot = EXAMPLE.shareholders.reduce((a, s) => a + s.shares, 0) || 1;
+      return EXAMPLE.shareholders.map(s => ({
+        name: s.name, type: s.type,
+        value: mode === 'pct' ? (s.shares / tot * 100) : s.shares,
+      }));
+    }
+
     function loadExample() {
-      shRowsEl.innerHTML = EXAMPLE.shareholders.map(shRowHTML).join('');
+      basis = 'pre';
+      shRowsEl.innerHTML = exampleShRows().map(shRowHTML).join('');
       invRowsEl.innerHTML = EXAMPLE.investors.map(invRowHTML).join('');
-      document.getElementById('premoney').value = nfInt.format(EXAMPLE.premoney);
+      document.getElementById('valo-input').value = nfInt.format(EXAMPLE.premoney);
+      document.querySelector('input[name="pct-interp"][value="net"]').checked = true;
       document.getElementById('pool-on').checked = EXAMPLE.pool.on;
       document.getElementById('pool-pct').value = String(EXAMPLE.pool.pct);
       document.querySelectorAll('input[name="pool-timing"]').forEach(r => { r.checked = (r.value === EXAMPLE.pool.timing); });
+      syncBasisUI();
       syncPoolUI();
       recompute();
+    }
+
+    // ---------- Dérivation de la pre-money selon la base de saisie ----------
+    // Renvoie { premoney, error }. « error » vaut 'pctInvalid' si le % est incohérent.
+    function resolvePremoney(base, raw, I, pool, interp) {
+      if (base === 'pre') return { premoney: raw, error: null };
+      if (base === 'post') return { premoney: raw - I, error: null };
+      // base === 'pct' : raw est un pourcentage cédé au tour
+      const g = raw / 100;
+      if (!(g > 0 && g < 1)) return { premoney: 0, error: raw >= 100 ? 'pctInvalid' : null };
+      const p = pool.on ? pool.pct : 0;
+      if (!pool.on) {
+        // Sans pool : part investisseur = montant / post-money → post = I/g
+        return { premoney: I / g - I, error: null };
+      }
+      if (pool.timing === 'pre') {
+        // Pool avant le tour : part investisseur nette = I / post-money.
+        if (interp === 'total') {
+          if (g <= p) return { premoney: 0, error: 'pctInvalid' };
+          return { premoney: I / (g - p) - I, error: null }; // g = investisseur + pool
+        }
+        return { premoney: I / g - I, error: null };           // g = investisseur net
+      }
+      // Pool après le tour : le pool dilue aussi l'investisseur → part nette = (1−p)·I/post.
+      if (interp === 'total') {
+        if (g <= p) return { premoney: 0, error: 'pctInvalid' };
+        return { premoney: (1 - p) * I / (g - p) - I, error: null }; // g = investisseur + pool
+      }
+      return { premoney: (1 - p) * I / g - I, error: null };         // g = investisseur net
     }
 
     // ---------- Lecture de l'état ----------
@@ -411,12 +617,17 @@
         name: r.querySelector('.in-iname').value.trim() || 'Investisseur',
         amount: parseNum(r.querySelector('.in-amount').value),
       }));
-      const premoney = parseNum(document.getElementById('premoney').value);
+      const I = investors.reduce((a, s) => a + s.amount, 0);
       const poolOn = document.getElementById('pool-on').checked;
       const poolPct = parseNum(document.getElementById('pool-pct').value) / 100;
       const timingEl = document.querySelector('input[name="pool-timing"]:checked');
       const timing = timingEl ? timingEl.value : 'pre';
-      return { shareholders, investors, premoney, pool: { on: poolOn, pct: poolPct, timing } };
+      const pool = { on: poolOn, pct: poolPct, timing };
+      const interpEl = document.querySelector('input[name="pct-interp"]:checked');
+      const interp = interpEl ? interpEl.value : 'net';
+      const raw = parseNum(document.getElementById('valo-input').value);
+      const { premoney, error } = resolvePremoney(basis, raw, I, pool, interp);
+      return { shareholders, investors, premoney, pool, roundError: error };
     }
 
     // ---------- Calcul ----------
@@ -502,15 +713,50 @@
       const r = compute(st);
 
       // Totaux de saisie
-      document.getElementById('sh-total').textContent = st.shareholders.reduce((a, s) => a + s.shares, 0) > 0
-        ? num0(r.E) + ' actions' : '—';
+      const shTotalEl = document.getElementById('sh-total');
+      const sumVal = st.shareholders.reduce((a, s) => a + s.shares, 0);
+      if (mode === 'pct') {
+        const off = Math.abs(sumVal - 100) > 0.1;
+        shTotalEl.classList.toggle('is-warn', off && sumVal > 0);
+        shTotalEl.innerHTML = sumVal > 0
+          ? `${fmtPctInput(sumVal)} %${off ? ' <span class="warn-hint">(doit faire 100 %)</span>' : ''}`
+          : '—';
+      } else {
+        shTotalEl.classList.remove('is-warn');
+        shTotalEl.textContent = sumVal > 0 ? num0(r.E) + ' actions' : '—';
+      }
       document.getElementById('inv-total').textContent = r.I > 0 ? eur0(r.I) : '—';
+      // La colonne « nombre d'actions » n'a de sens qu'en mode actions
+      document.getElementById('rtable').classList.toggle('is-pct', mode === 'pct');
 
       const warnBox = document.getElementById('warn-box');
       const kPost = document.getElementById('k-post');
       const kPps = document.getElementById('k-pps');
       const kInv = document.getElementById('k-inv');
       const kFdil = document.getElementById('k-fdil');
+
+      // Aide sous le champ : rappelle les valeurs dérivées selon la base de saisie
+      const valoHelp = document.getElementById('valo-help');
+      if (st.premoney > 0 && !st.roundError) {
+        if (basis === 'pre') valoHelp.textContent = `≈ post-money ${eur0(r.postV)}`;
+        else if (basis === 'post') valoHelp.textContent = `≈ pre-money ${eur0(st.premoney)}`;
+        else valoHelp.textContent = `≈ pre-money ${eur0(st.premoney)} · post-money ${eur0(r.postV)}`;
+      } else {
+        valoHelp.textContent = '';
+      }
+
+      // % cédé incohérent (≥ 100 % ou inférieur à la taille du pool)
+      if (st.roundError === 'pctInvalid') {
+        warnBox.innerHTML = warnHTML('Le pourcentage cédé est incohérent avec le tour : il doit être compris entre 0 et 100 % et, si le pool est inclus, rester supérieur à la taille du pool.');
+        document.getElementById('k-post').textContent = '—';
+        document.getElementById('k-post-sub').textContent = 'pre-money + montant levé';
+        kPps.textContent = '—'; kInv.textContent = '—'; kFdil.textContent = '—';
+        document.getElementById('k-pps-sub').textContent = '';
+        document.getElementById('k-fdil-sub').textContent = '';
+        document.getElementById('rtable-body').innerHTML = '';
+        renderBars(null);
+        return;
+      }
 
       // Post-money toujours affichable si on a pre + montant
       document.getElementById('k-post').textContent = (st.premoney > 0) ? eur0(r.postV) : '—';
@@ -535,8 +781,14 @@
       }
       warnBox.innerHTML = '';
 
-      kPps.textContent = r.pps >= 100 ? eur0(r.pps) : r.pps.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 4 }) + ' €';
-      document.getElementById('k-pps-sub').textContent = `${num0(r.invSharesTotal)} actions émises`;
+      if (mode === 'pct') {
+        // En mode %, le prix par action est notionnel : on montre la part cédée au tour.
+        kPps.textContent = pct1(r.invPct + r.poolPct);
+        document.getElementById('k-pps-sub').textContent = 'nouveaux titres (invest. + pool)';
+      } else {
+        kPps.textContent = r.pps >= 100 ? eur0(r.pps) : r.pps.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 4 }) + ' €';
+        document.getElementById('k-pps-sub').textContent = `${num0(r.invSharesTotal)} actions émises`;
+      }
       kInv.textContent = pct1(r.invPct);
       const fdil = r.founderPctBefore - r.founderPctAfter;
       kFdil.textContent = '−' + pct1(fdil);
@@ -567,8 +819,13 @@
 
       before.innerHTML = seg(r.segBefore, r.E);
       after.innerHTML = seg(r.segAfter, r.T);
-      document.getElementById('own-before-tot').textContent = num0(r.E) + ' actions';
-      document.getElementById('own-after-tot').textContent = num0(r.T) + ' actions';
+      if (mode === 'pct') {
+        document.getElementById('own-before-tot').textContent = '100 %';
+        document.getElementById('own-after-tot').textContent = '100 %';
+      } else {
+        document.getElementById('own-before-tot').textContent = num0(r.E) + ' actions';
+        document.getElementById('own-after-tot').textContent = num0(r.T) + ' actions';
+      }
 
       legend.innerHTML = r.usedCats.map(c =>
         `<span class="legend__it"><span class="legend__sw ${CATS[c].cls}"></span>${CATS[c].label}</span>`
@@ -591,18 +848,18 @@
         }
         return `<tr class="${isNew ? 'rt-new' : ''}">
           <td class="l"><span class="rt-name"><span class="rt-dot ${c.cls}"></span>${escAttr(row.name)}</span></td>
-          <td class="rt-num">${row.before > 0 ? num0(row.before) : '—'}</td>
+          <td class="rt-num col-abs">${row.before > 0 ? num0(row.before) : '—'}</td>
           <td class="rt-num">${row.before > 0 ? pct1(row.pctBefore) : '—'}</td>
-          <td class="rt-num">${num0(row.after)}</td>
+          <td class="rt-num col-abs">${num0(row.after)}</td>
           <td class="rt-num rt-pct-after">${pct2(row.pctAfter)}</td>
           <td>${delta}</td>
         </tr>`;
       };
       const totalRow = `<tr class="rt-total">
         <td class="l">Total (fully diluted)</td>
-        <td class="rt-num">${num0(r.E)}</td>
+        <td class="rt-num col-abs">${num0(r.E)}</td>
         <td class="rt-num">100 %</td>
-        <td class="rt-num">${num0(r.T)}</td>
+        <td class="rt-num col-abs">${num0(r.T)}</td>
         <td class="rt-num">100 %</td>
         <td></td>
       </tr>`;
@@ -617,6 +874,76 @@
         const r = chip.querySelector('input');
         chip.classList.toggle('is-on', r.checked);
       });
+      // Le choix d'interprétation du % n'a de sens qu'en base « % cédé » avec pool actif
+      document.getElementById('pct-interp').hidden = !(basis === 'pct' && on);
+    }
+
+    // Met à jour les libellés / champs qui dépendent de la base de saisie du tour
+    function syncBasisUI() {
+      document.querySelectorAll('#basis-seg .seg__btn').forEach(b => b.classList.toggle('is-on', b.dataset.basis === basis));
+      const lab = document.getElementById('valo-lab');
+      const suf = document.getElementById('valo-suf');
+      const inp = document.getElementById('valo-input');
+      if (basis === 'pre') { lab.textContent = 'Valorisation pre-money'; suf.textContent = '€'; inp.setAttribute('inputmode', 'numeric'); }
+      else if (basis === 'post') { lab.textContent = 'Valorisation post-money'; suf.textContent = '€'; inp.setAttribute('inputmode', 'numeric'); }
+      else { lab.textContent = 'Capital cédé au tour'; suf.textContent = '%'; inp.setAttribute('inputmode', 'decimal'); }
+      const poolOn = document.getElementById('pool-on').checked;
+      document.getElementById('pct-interp').hidden = !(basis === 'pct' && poolOn);
+      document.querySelectorAll('#pct-interp .radio-chip').forEach(chip => {
+        chip.classList.toggle('is-on', chip.querySelector('input').checked);
+      });
+    }
+
+    // Bascule de base : convertit la valeur saisie pour conserver le même tour
+    function setBasis(nb) {
+      if (nb === basis || (nb !== 'pre' && nb !== 'post' && nb !== 'pct')) return;
+      const st = readState();
+      const r = compute(st);
+      const I = st.investors.reduce((a, s) => a + s.amount, 0);
+      const inp = document.getElementById('valo-input');
+      let out = '';
+      if (st.premoney > 0 && !st.roundError && !r.error) {
+        if (nb === 'pre') out = nfInt.format(Math.round(st.premoney));
+        else if (nb === 'post') out = nfInt.format(Math.round(st.premoney + I));
+        else out = fmtPctInput(r.invPct * 100); // % investisseur net
+      }
+      inp.value = out;
+      basis = nb;
+      syncBasisUI();
+      recompute();
+    }
+
+    // Met à jour tous les libellés qui dépendent du mode (% / nombre d'actions)
+    function updateModeUI() {
+      document.querySelectorAll('#mode-seg .seg__btn').forEach(b => b.classList.toggle('is-on', b.dataset.mode === mode));
+      document.getElementById('sh-col-lab').textContent = mode === 'pct' ? '%' : 'Actions';
+      document.getElementById('sh-total-lab').textContent = mode === 'pct' ? 'Total' : "Total actions avant l'opération";
+      document.getElementById('sh-desc').innerHTML = mode === 'pct'
+        ? "Le capital <b>avant</b> le tour, en % du capital (fully diluted : pool d'options existant et BSA/BSPCE déjà attribués inclus). Le total doit faire 100 %."
+        : "Le capital <b>avant</b> le tour, en nombre d'actions (fully diluted : pool d'options existant et BSA/BSPCE déjà attribués inclus).";
+      document.getElementById('k-pps-lab').textContent = mode === 'pct' ? 'Capital cédé ce tour' : 'Prix par action';
+    }
+
+    // Bascule de mode : convertit les valeurs saisies pour ne rien perdre
+    function setMode(newMode) {
+      if (newMode === mode || (newMode !== 'pct' && newMode !== 'shares')) return;
+      const rows = [...shRowsEl.querySelectorAll('[data-role="sh"]')];
+      const vals = rows.map(r => parseNum(r.querySelector('.in-shares').value));
+      const sum = vals.reduce((a, b) => a + b, 0);
+      rows.forEach((r, i) => {
+        const inp = r.querySelector('.in-shares');
+        let v = vals[i];
+        if (mode === 'shares' && newMode === 'pct') {
+          v = sum > 0 ? (v / sum * 100) : 0;             // actions → % du capital
+        } else if (mode === 'pct' && newMode === 'shares') {
+          v = Math.round(v / 100 * NOTIONAL_BASE);        // % → base notionnelle d'actions
+        }
+        inp.setAttribute('inputmode', newMode === 'pct' ? 'decimal' : 'numeric');
+        inp.value = newMode === 'pct' ? fmtPctInput(v) : (v ? nfInt.format(v) : '');
+      });
+      mode = newMode;
+      updateModeUI();
+      recompute();
     }
 
     const form = document.getElementById('dil-form');
@@ -627,19 +954,40 @@
     });
     form.addEventListener('change', (e) => {
       if (e.target.name === 'pool-timing') syncPoolUI();
+      if (e.target.name === 'pct-interp') syncBasisUI();
       recompute();
     });
-    // Reformatage des champs montant à la sortie du champ
+    // Reformatage des champs à la sortie du champ (dépend du mode pour la cap table)
     form.addEventListener('blur', (e) => {
-      if (e.target.classList && (e.target.classList.contains('in-shares') || e.target.classList.contains('in-amount') || e.target.id === 'premoney')) {
-        e.target.value = fmtLiveInt(e.target.value);
+      const t = e.target;
+      if (!t.classList) return;
+      if (t.classList.contains('in-shares')) {
+        t.value = mode === 'pct' ? fmtPctInput(parseNum(t.value)) : fmtLiveInt(t.value);
+        recompute();
+      } else if (t.id === 'valo-input') {
+        t.value = basis === 'pct' ? fmtPctInput(parseNum(t.value)) : fmtLiveInt(t.value);
+        recompute();
+      } else if (t.classList.contains('in-amount')) {
+        t.value = fmtLiveInt(t.value);
         recompute();
       }
     }, true);
 
+    // Bascule % / nombre d'actions
+    document.getElementById('mode-seg').addEventListener('click', (e) => {
+      const btn = e.target.closest('.seg__btn');
+      if (btn) setMode(btn.dataset.mode);
+    });
+
+    // Bascule pre-money / post-money / % cédé
+    document.getElementById('basis-seg').addEventListener('click', (e) => {
+      const btn = e.target.closest('.seg__btn');
+      if (btn) setBasis(btn.dataset.basis);
+    });
+
     // Ajout / suppression de lignes
     document.getElementById('add-sh').addEventListener('click', () => {
-      shRowsEl.insertAdjacentHTML('beforeend', shRowHTML({ name: '', shares: 0, type: 'invest0' }));
+      shRowsEl.insertAdjacentHTML('beforeend', shRowHTML({ name: '', value: 0, type: 'invest0' }));
       recompute();
     });
     document.getElementById('add-inv').addEventListener('click', () => {
@@ -655,7 +1003,14 @@
 
     document.getElementById('reset-btn').addEventListener('click', loadExample);
 
+    // Retour en arrière
+    document.getElementById('page-back-btn').addEventListener('click', () => {
+      if (window.history.length > 1) window.history.back();
+      else window.location.href = 'dossiers.html';
+    });
+
     // Init
+    updateModeUI();
     loadExample();
   </script>
 </body>
