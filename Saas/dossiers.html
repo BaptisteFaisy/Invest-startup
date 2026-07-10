@@ -1356,6 +1356,15 @@
       dashboardSearchResultsEl.innerHTML = '';
     }
 
+    // Outils accessibles depuis le menu latéral, indexés dans la recherche.
+    const DASHBOARD_TOOLS = [
+      { label: 'Éditeur', href: 'editor.html', newTab: true, keywords: ['outil', 'editeur', 'rediger', 'clauses', 'term sheet'] },
+      { label: 'Comparer', href: 'compare.html', keywords: ['outil', 'comparer', 'comparaison', 'confronter'] },
+      { label: 'Dilution', href: 'dilution.html', newTab: true, keywords: ['outil', 'dilution', 'simulation', 'cap table', 'conversion'] },
+      { label: 'Documents', href: 'documents.html', newTab: true, keywords: ['outil', 'documents', 'fichiers', 'pieces'] },
+      { label: 'Data room', href: 'data-room.html', newTab: true, keywords: ['outil', 'data room', 'dataroom', 'audit', 'due diligence'] },
+    ];
+
     function searchDashboard(query) {
       const needle = normalizeSearch(query).trim();
       if (!needle) return [];
@@ -1373,6 +1382,9 @@
         const folder = folders.find(item => item.id === doc.folder_id);
         add({ type: 'document', id: doc.id, kind: doc.kind, label: doc.name || 'Document sans titre', folder }, [doc.name, doc.kind, folder && friseLabel(folder)]);
       });
+      DASHBOARD_TOOLS.forEach(tool => {
+        add({ type: 'tool', href: tool.href, newTab: tool.newTab, label: tool.label }, [tool.label, ...(tool.keywords || [])]);
+      });
       return matches;
     }
 
@@ -1388,12 +1400,17 @@
       }
       dashboardSearchResultsEl.innerHTML = `
         <p class="topbar__search-summary">${matches.length} résultat${matches.length > 1 ? 's' : ''}</p>
-        ${matches.map((match, index) => `<button class="topbar__search-result" type="button" data-search-result="${index}"><span class="topbar__search-result-kind">${match.type === 'step' ? 'Étape' : 'Document'}</span><span class="topbar__search-result-name">${esc(match.label)}</span></button>`).join('')}`;
+        ${matches.map((match, index) => `<button class="topbar__search-result" type="button" data-search-result="${index}"><span class="topbar__search-result-kind">${match.type === 'step' ? 'Étape' : match.type === 'tool' ? 'Outil' : 'Document'}</span><span class="topbar__search-result-name">${esc(match.label)}</span></button>`).join('')}`;
       dashboardSearchResultsEl.querySelectorAll('[data-search-result]').forEach(button => {
         button.addEventListener('click', () => {
           const match = matches[Number(button.dataset.searchResult)];
           if (!match) return;
           closeDashboardSearch({ clear: true });
+          if (match.type === 'tool') {
+            if (match.newTab) window.open(match.href, '_blank', 'noopener');
+            else window.location.href = match.href;
+            return;
+          }
           if (match.type === 'step') {
             if (match.track === 'bsa-air') openBsaStepCard(match.key);
             else openClassicStepPage(match.key);
