@@ -44,6 +44,8 @@
     .resume-toggle:hover { background: rgba(255,255,255,0.12); color: #fff; }
     .resume-toggle[aria-expanded="false"] svg { transform: rotate(-90deg); }
     .resume-card.is-collapsed { display: none; }
+    /* La carte suivante (notamment « Documents ») garde son propre espace. */
+    #resume:not(:empty) { margin-bottom: 28px; }
 
     /* Dossiers (phases de levée) */
     .folder { background: var(--card); border: 1px solid var(--line); border-radius: 14px; margin-bottom: 12px; overflow: hidden; transition: border-color .15s, box-shadow .15s; }
@@ -322,6 +324,20 @@
     .hamburger { flex:none; position:relative; z-index:62; width:38px; height:38px; display:grid; place-items:center; border:1px solid rgba(255,255,255,0.22); border-radius:10px; background:transparent; color:#fff; cursor:pointer; padding:0; transition:border-color .15s, background .15s; }
     .hamburger:hover { border-color:rgba(255,255,255,0.55); background:rgba(255,255,255,0.06); }
     .hamburger svg { width:18px; height:18px; stroke:currentColor; stroke-width:2; stroke-linecap:round; fill:none; }
+    .topbar__search { position:relative; width:min(340px, 30vw); }
+    .topbar__search-field { height:38px; display:flex; align-items:center; gap:8px; padding:0 11px; border:1px solid rgba(255,255,255,0.22); border-radius:10px; background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.65); transition:border-color .15s, background .15s, box-shadow .15s; }
+    .topbar__search-field:focus-within { border-color:rgba(255,255,255,0.62); background:rgba(255,255,255,0.07); box-shadow:0 0 0 3px rgba(255,255,255,0.08); color:#fff; }
+    .topbar__search-field svg { width:17px; height:17px; flex:none; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .topbar__search-input { width:100%; min-width:0; border:0; outline:0; background:transparent; color:#fff; font:500 13px/1.2 'Libre Franklin', sans-serif; }
+    .topbar__search-input::placeholder { color:rgba(255,255,255,0.56); }
+    .topbar__search-results { position:absolute; top:calc(100% + 8px); right:0; z-index:80; width:min(430px, calc(100vw - 28px)); padding:7px; border:1px solid rgba(255,255,255,0.13); border-radius:12px; background:#15161b; box-shadow:0 18px 42px rgba(0,0,0,0.42); }
+    .topbar__search-results[hidden] { display:none; }
+    .topbar__search-summary { padding:6px 8px 8px; color:rgba(255,255,255,0.52); font:700 10px/1.25 'Archivo', sans-serif; letter-spacing:.09em; text-transform:uppercase; }
+    .topbar__search-empty { margin:0; padding:10px 8px; color:rgba(255,255,255,0.72); font-size:13px; }
+    .topbar__search-result { width:100%; display:flex; align-items:center; gap:10px; padding:9px 8px; border:0; border-radius:8px; background:transparent; color:#fff; cursor:pointer; text-align:left; }
+    .topbar__search-result:hover, .topbar__search-result:focus-visible { background:rgba(255,255,255,0.09); outline:0; }
+    .topbar__search-result-kind { flex:none; min-width:70px; color:rgba(255,255,255,0.48); font:700 10px/1.2 'Archivo', sans-serif; letter-spacing:.07em; text-transform:uppercase; }
+    .topbar__search-result-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; font-weight:600; }
     .drawer-backdrop { position:fixed; inset:0; background:transparent; opacity:0; visibility:hidden; transition:visibility .2s; z-index:60; }
     .drawer-backdrop.is-open { opacity:1; visibility:visible; }
     .drawer { position:fixed; top:0; bottom:0; width:280px; max-width:82vw; background:#0c0d11; border-right:1px solid rgba(255,255,255,0.08); box-shadow:0 0 40px rgba(0,0,0,0.5); z-index:61; display:flex; flex-direction:column; transition:transform .22s ease; }
@@ -601,10 +617,12 @@
     .step-info__text { color:#3d3e45; font-size:13.8px; line-height:1.55; margin-top:4px; }
     .step-info__outcome { margin:0; padding:12px 14px; border-left:3px solid #08090c; background:#f4f2ee; border-radius:10px; color:#26272c; font-size:14px; line-height:1.55; }
     @media (max-width:680px) {
-      .topbar { height:auto !important; min-height:56px; flex-wrap:wrap; align-items:flex-start; gap:10px; padding:10px 14px !important; }
-      .topbar__left { width:100%; justify-content:space-between; gap:10px; }
+      .topbar { height:auto !important; min-height:56px; flex-wrap:nowrap; align-items:center; gap:8px; padding:10px 14px !important; }
+      .topbar__left { width:auto; flex:none; gap:10px; }
       .topbar__doc { display:none; }
-      .topbar__actions { width:100%; flex-wrap:wrap; gap:8px; }
+      .topbar__actions { width:auto; min-width:0; flex:1; flex-wrap:nowrap; gap:8px; }
+      .topbar__search { width:100%; min-width:0; }
+      .topbar__search-input { font-size:12.5px; }
       .topbar .btn { flex:1 1 calc(50% - 4px); min-width:0; padding:8px 10px; }
       .topbar .aimax { flex:1 1 calc(50% - 4px); justify-content:center; }
     }
@@ -628,6 +646,13 @@
         <span class="topbar__doc" id="topbar-doc-label">Tableau de bord</span>
       </div>
       <div class="topbar__actions">
+        <form class="topbar__search" id="dashboard-search" role="search">
+          <label class="topbar__search-field" for="dashboard-search-input">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+            <input class="topbar__search-input" id="dashboard-search-input" type="search" placeholder="Rechercher" autocomplete="off" aria-controls="dashboard-search-results" />
+          </label>
+          <div class="topbar__search-results" id="dashboard-search-results" aria-live="polite" hidden></div>
+        </form>
         <button type="button" class="hamburger" id="actions-menu-btn" aria-label="Ouvrir le menu" aria-controls="actions-drawer" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
@@ -645,7 +670,7 @@
           <a class="drawer__link" href="../marche.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Marché</a>
           <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
           <a class="drawer__link" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/></svg>Tâches</a>
-          <a class="drawer__link" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
+          <a class="drawer__link" href="dilution.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
         </div>
         <div class="drawer__sep" id="nav-steps-sep" hidden></div>
         <div class="drawer__section-title" id="nav-steps-title" hidden>Étapes de la levée</div>
@@ -665,7 +690,7 @@
         <a class="drawer__link" href="../marche.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Marché<span class="drawer__soon-tag">Bientôt</span></a>
         <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
         <a class="drawer__link" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>Tâches</a>
-        <a class="drawer__link" href="#" title="Simulation de dilution"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
+        <a class="drawer__link" href="dilution.html" target="_blank" rel="noopener" title="Simulation de dilution"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
         <div class="drawer__sep"></div>
         <a class="drawer__link" href="compte.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>Mon compte</a>
         <a class="drawer__link" href="#"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback</a>
@@ -1224,6 +1249,86 @@
     let folders = [];
     let docs    = [];
     let fundraisingProfile = normalizeFundraisingProfile({});
+    const dashboardSearchForm = document.getElementById('dashboard-search');
+    const dashboardSearchInput = document.getElementById('dashboard-search-input');
+    const dashboardSearchResultsEl = document.getElementById('dashboard-search-results');
+
+    function normalizeSearch(value) {
+      return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('fr-FR');
+    }
+
+    function closeDashboardSearch({ clear = false } = {}) {
+      if (clear && dashboardSearchInput) dashboardSearchInput.value = '';
+      if (!dashboardSearchResultsEl) return;
+      dashboardSearchResultsEl.hidden = true;
+      dashboardSearchResultsEl.innerHTML = '';
+    }
+
+    function searchDashboard(query) {
+      const needle = normalizeSearch(query).trim();
+      if (!needle) return [];
+      const matches = [];
+      const add = (result, values) => {
+        if (matches.length >= 8 || !values.some(value => normalizeSearch(value).includes(needle))) return;
+        matches.push(result);
+      };
+
+      folders.filter(isSystemPhase).forEach(folder => {
+        const track = folder.track || 'classic';
+        add({ type: 'step', track, key: folder.key, label: friseLabel(folder) }, [folder.name, friseLabel(folder), ...(folder.checklist || [])]);
+      });
+      docs.forEach(doc => {
+        const folder = folders.find(item => item.id === doc.folder_id);
+        add({ type: 'document', id: doc.id, kind: doc.kind, label: doc.name || 'Document sans titre', folder }, [doc.name, doc.kind, folder && friseLabel(folder)]);
+      });
+      return matches;
+    }
+
+    function renderDashboardSearchResults() {
+      if (!dashboardSearchInput || !dashboardSearchResultsEl) return;
+      const query = dashboardSearchInput.value.trim();
+      if (!query) { closeDashboardSearch(); return; }
+      const matches = searchDashboard(query);
+      dashboardSearchResultsEl.hidden = false;
+      if (!matches.length) {
+        dashboardSearchResultsEl.innerHTML = `<p class="topbar__search-empty">Aucun résultat pour « ${esc(query)} ».</p>`;
+        return;
+      }
+      dashboardSearchResultsEl.innerHTML = `
+        <p class="topbar__search-summary">${matches.length} résultat${matches.length > 1 ? 's' : ''}</p>
+        ${matches.map((match, index) => `<button class="topbar__search-result" type="button" data-search-result="${index}"><span class="topbar__search-result-kind">${match.type === 'step' ? 'Étape' : 'Document'}</span><span class="topbar__search-result-name">${esc(match.label)}</span></button>`).join('')}`;
+      dashboardSearchResultsEl.querySelectorAll('[data-search-result]').forEach(button => {
+        button.addEventListener('click', () => {
+          const match = matches[Number(button.dataset.searchResult)];
+          if (!match) return;
+          closeDashboardSearch({ clear: true });
+          if (match.type === 'step') {
+            if (match.track === 'bsa-air') openBsaStepCard(match.key);
+            else openClassicStepPage(match.key);
+            return;
+          }
+          if (match.kind === 'termsheet') {
+            window.location.href = `editor.html?doc=${encodeURIComponent(match.id)}`;
+          } else if (match.folder && isSystemPhase(match.folder)) {
+            if ((match.folder.track || 'classic') === 'bsa-air') openBsaStepCard(match.folder.key);
+            else openClassicStepPage(match.folder.key);
+          }
+        });
+      });
+    }
+
+    if (dashboardSearchForm) dashboardSearchForm.addEventListener('submit', event => event.preventDefault());
+    if (dashboardSearchInput) dashboardSearchInput.addEventListener('input', renderDashboardSearchResults);
+    document.addEventListener('keydown', event => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k' && dashboardSearchInput) {
+        event.preventDefault();
+        dashboardSearchInput.focus();
+      }
+      if (event.key === 'Escape' && document.activeElement === dashboardSearchInput) {
+        closeDashboardSearch({ clear: true });
+        dashboardSearchInput.blur();
+      }
+    });
     const openState = {}; // mémorise les dossiers dépliés entre deux rendus
     const pendingUploads = []; // fichiers en cours de téléversement ({ name, size, folderId })
     const pendingSlots   = {}; // téléversements en cours vers un slot précis (clé folderId:slug → nom)
@@ -1857,6 +1962,7 @@
         } catch {}
         renderResume();
         render();
+        renderDashboardSearchResults();
         loaded = true;
       } catch {
         foldersEl.innerHTML = '';
