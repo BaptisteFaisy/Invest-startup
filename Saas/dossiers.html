@@ -365,9 +365,14 @@
     .drawer__link svg { width:18px; height:18px; flex:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; fill:none; opacity:.85; }
     .drawer__sep { height:1px; margin:8px 4px; background:rgba(255,255,255,0.08); }
     .drawer__section-title { font-family:'Archivo',sans-serif; font-size:10.5px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; color:rgba(255,255,255,0.42); padding:6px 12px 6px; }
-    .drawer__link--step { align-items:center; }
+    .drawer__link--step { flex-direction:column; align-items:stretch; gap:9px; }
+    .drawer__step-row { display:flex; align-items:center; gap:12px; }
     .drawer__step-num { flex:none; width:22px; height:22px; display:grid; place-items:center; border-radius:6px; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.72); font-family:'Archivo',sans-serif; font-weight:800; font-size:11px; }
     .drawer__step-num svg { width:14px; height:14px; opacity:1; }
+    /* Barre d'avancement sous chaque étape : plus elle est verte, plus l'étape est aboutie.
+       Pour « Ma levée », elle reflète l'avancement global de la levée. */
+    .drawer__step-bar { height:4px; margin-left:34px; border-radius:99px; background:rgba(255,255,255,0.09); overflow:hidden; }
+    .drawer__step-bar > span { display:block; height:100%; width:0; border-radius:99px; background:linear-gradient(90deg,#10b981,#34d399); transition:width .45s ease; }
     .drawer__link--step.is-done .drawer__step-num { background:rgba(16,185,129,0.20); color:#34d399; }
     .drawer__link--step.is-current { background:rgba(99,102,241,0.13); color:#fff; }
     .drawer__link--step.is-current .drawer__step-num { background:rgba(99,102,241,0.30); color:#a5b4fc; }
@@ -1930,7 +1935,11 @@
 
       if (track === 'classic') {
         ensureClassicStep(phases);
-        renderFrise(track, phases);
+        if (selectedClassicStep === 'mise-en-ordre') {
+          renderFrise(track, phases);
+        } else if (friseClassicEl) {
+          friseClassicEl.innerHTML = '';
+        }
         renderClassicBody(phases, container);
       } else {
         if (friseClassicEl) friseClassicEl.innerHTML = '';
@@ -2298,8 +2307,11 @@
 
       const stats = phases.map(phaseStatus);
       const currentIdx = stats.findIndex(s => !s.complete);
+      // Avancement global de la levée : proportion d'étapes terminées.
+      const globalFrac = stats.length ? stats.filter(s => s.complete).length / stats.length : 0;
       phases.forEach((f, i) => {
-        const done = stats[i].complete;
+        const s = stats[i];
+        const done = s.complete;
         const isCurrent = i === currentIdx;
         const isActive = type === 'classic' && selectedClassicStep === f.key;
         const btn = document.createElement('button');
@@ -2310,7 +2322,14 @@
         const badge = done
           ? '<svg viewBox="0 0 24 24" aria-hidden="true">' + friseCheckPath + '</svg>'
           : String(num);
-        btn.innerHTML = '<span class="drawer__step-num">' + badge + '</span>' + esc(friseLabel(f));
+        // « Ma levée » (mise-en-ordre) : la barre suit l'avancement global.
+        // Sinon : proportion de documents validés dans l'étape.
+        const stepFrac = s.total > 0 ? s.done / s.total : (done ? 1 : 0);
+        const barFrac = f.key === 'mise-en-ordre' ? globalFrac : stepFrac;
+        const pct = Math.max(0, Math.min(100, Math.round(barFrac * 100)));
+        btn.innerHTML =
+          '<span class="drawer__step-row"><span class="drawer__step-num">' + badge + '</span>' + esc(friseLabel(f)) + '</span>'
+          + '<span class="drawer__step-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><span style="width:' + pct + '%"></span></span>';
         btn.addEventListener('click', () => {
           if (type === 'classic') openClassicStepPage(f.key);
           else openBsaStepCard(f.key);
