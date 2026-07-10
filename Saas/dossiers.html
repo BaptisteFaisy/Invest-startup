@@ -2492,13 +2492,17 @@
 
     // Ouvre le parcours BSA-AIR sur l'étape choisie.
     function openBsaStepCard(key) {
+      // Chaque étape BSA-AIR remplace le corps de la page. On mémorise le
+      // défilement courant et on le restaure après le re-rendu pour arriver au
+      // même niveau vertical que celui quitté sur l'étape précédente, plutôt
+      // que d'être ramené en haut de la carte.
+      const prevScroll = window.pageYOffset || document.documentElement.scrollTop || 0;
       selectedBsaStep = key || selectedBsaStep;
       storeBsaStep(selectedBsaStep);
       try { localStorage.setItem(raiseKey(), 'bsa-air'); } catch {}
       syncUrlState('bsa-air', selectedBsaStep);
       applyRaiseType('bsa-air');
-      const el = selectedBsaStep ? document.getElementById('phase-' + selectedBsaStep) : null;
-      if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.scrollTo(0, prevScroll);
     }
 
     // Étapes de la levée listées dans le tiroir de navigation gauche.
