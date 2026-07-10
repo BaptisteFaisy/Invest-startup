@@ -245,9 +245,11 @@
 
       <!-- Canevas + page éditable -->
       <div class="editor-canvas">
-        <button type="button" class="editor-back" id="page-back-btn" aria-label="Revenir en arrière" title="Revenir en arrière">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
-        </button>
+        <div class="editor-back-wrap">
+          <button type="button" class="editor-back" id="page-back-btn" aria-label="Revenir en arrière" title="Revenir en arrière">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+        </div>
         <div class="paper" id="paper">
           <div class="sheet-bg" id="sheet-bg" aria-hidden="true"></div>
           <div class="page" id="page" contenteditable="true" spellcheck="false"></div>

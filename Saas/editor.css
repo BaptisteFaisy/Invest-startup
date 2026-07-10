@@ -207,10 +207,12 @@
 /* Canevas gris + page blanche */
 .editor-canvas { overflow-y: auto; background: #e9e7e2; padding: 36px 24px 80px; }
 /* Retour en arrière : petit chevron flottant en haut à gauche du canevas.
-   La marge basse négative annule l'espace pris pour ne pas décaler la page. */
-.editor-back { position: sticky; top: 0; z-index: 6; float: left; width: 32px; height: 32px; margin: 0 0 -32px 0; display: grid; place-items: center; padding: 0; border: 0; border-radius: 8px; background: rgba(255,255,255,0.92); color: #08090c; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.14); opacity: 0.9; transition: opacity .15s ease, transform .15s ease; }
+   Le conteneur collant est de hauteur nulle : il ne décale jamais la page et
+   reste épinglé en haut au défilement ; le bouton est positionné à l'intérieur. */
+.editor-back-wrap { position: sticky; top: 0; z-index: 6; height: 0; }
+.editor-back { position: absolute; top: 8px; left: 4px; width: 32px; height: 32px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 8px; background: #0f172a; color: #fff; cursor: pointer; box-shadow: 0 3px 10px rgba(0,0,0,0.28); opacity: 0.92; transition: opacity .15s ease, transform .15s ease; }
 .editor-back:hover { opacity: 1; transform: translateX(-1px); }
-.editor-back:focus-visible { outline: none; opacity: 1; box-shadow: 0 0 0 2px rgba(8,9,12,0.5); }
+.editor-back:focus-visible { outline: none; opacity: 1; box-shadow: 0 0 0 2px rgba(15,23,42,0.55); }
 .editor-back svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
 /* Conteneur paginé : pile de feuilles A4 + zone éditable au-dessus */
 .paper { position: relative; width: 820px; max-width: 100%; margin: 0 auto; }
