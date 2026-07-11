@@ -26,7 +26,11 @@
    pour rester cliquable) : on décale son titre pour ne plus passer dessous. */
 .drawer--left .drawer__head { padding-left:66px; }
 .drawer__title { font-family:'Archivo',sans-serif; font-size:14px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#fff; }
-.drawer__body { flex:1; overflow-y:auto; padding:10px; display:flex; flex-direction:column; gap:2px; }
+.drawer__body { flex:1; overflow-y:auto; padding:10px; display:flex; flex-direction:column; gap:2px; scrollbar-width:thin; scrollbar-color:#fff transparent; }
+/* Barre de défilement fine et blanche sur le fond sombre du tiroir. */
+.drawer__body::-webkit-scrollbar { width:6px; }
+.drawer__body::-webkit-scrollbar-track { background:transparent; }
+.drawer__body::-webkit-scrollbar-thumb { background:#fff; border-radius:6px; }
 /* La barre de défilement du menu de navigation reste sur son bord extérieur. */
 .drawer--left .drawer__body { direction:rtl; }
 .drawer--left .drawer__body > * { direction:ltr; }
@@ -35,6 +39,6 @@
 .drawer__link.is-current { background:rgba(255,255,255,0.10); color:#fff; }
 .drawer__link svg { width:18px; height:18px; flex:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; fill:none; opacity:.85; }
 .drawer__sep { height:1px; margin:8px 4px; background:rgba(255,255,255,0.08); }
-.drawer__section-title { font-family:'Archivo',sans-serif; font-size:12px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; color:rgba(255,255,255,0.42); padding:6px 12px 6px; }
+.drawer__section-title { font-family:'Archivo',sans-serif; font-size:12px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; color:#fff; padding:6px 12px 6px; }
 .drawer__soon-tag { margin-left:auto; flex:none; font-family:'Archivo',sans-serif; font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#a5b4fc; background:rgba(99,102,241,0.20); padding:2px 7px; border-radius:99px; }
 .drawer__unread-dot { margin-left:auto; flex:none; width:8px; height:8px; border-radius:50%; background:#ef4444; box-shadow:0 0 0 2px rgba(239,68,68,0.25); }

@@ -198,6 +198,18 @@
       .hist-item__actions { flex-direction: row; }
     }
 
+    /* Boîte de dialogue de saisie (remplace prompt(), non supporté par Electron) */
+    .ask-backdrop { position: fixed; inset: 0; z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(8,9,12,0.55); }
+    .ask-backdrop.is-on { display: flex; }
+    .ask-box { width: 100%; max-width: 420px; background: #fff; border-radius: 14px; padding: 20px 20px 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.4); }
+    .ask-box__title { font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; color: #08090c; margin-bottom: 12px; }
+    .ask-box__input { width: 100%; box-sizing: border-box; font-family: 'Libre Franklin', sans-serif; font-size: 14px; color: #08090c; background: #f7f7f5; border: 1px solid rgba(8,9,12,0.16); border-radius: 9px; padding: 10px 12px; }
+    .ask-box__input:focus { outline: none; border-color: #2563eb; }
+    .ask-box__actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+    .ask-box__btn { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; border-radius: 9px; padding: 8px 14px; cursor: pointer; border: 1px solid rgba(8,9,12,0.14); background: #fff; color: #08090c; transition: .12s; }
+    .ask-box__btn:hover { border-color: rgba(8,9,12,0.3); }
+    .ask-box__btn--primary { background: #2563eb; border-color: #2563eb; color: #fff; }
+    .ask-box__btn--primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
 
     /* Termes survolables (info-bulle de définition) */
     .term { border-bottom: 1px dashed currentColor; cursor: help; }
@@ -244,9 +256,9 @@
 
     <!-- Menu hamburger gauche : navigation -->
     <div class="drawer-backdrop" id="nav-backdrop" data-drawer-close></div>
-    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Navigation">
+    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Étapes de la levée">
       <div class="drawer__head">
-        <span class="drawer__title">Navigation</span>
+        <span class="drawer__title">Étapes de la levée</span>
       </div>
       <nav class="drawer__body">
         <a class="drawer__link" href="tableau-de-bord.html"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Tableau de bord</a>
@@ -262,9 +274,9 @@
 
     <!-- Menu hamburger droite : compte & actions -->
     <div class="drawer-backdrop" id="actions-backdrop" data-drawer-close></div>
-    <aside class="drawer drawer--right" id="actions-drawer" role="dialog" aria-modal="true" aria-label="Menu">
+    <aside class="drawer drawer--right" id="actions-drawer" role="dialog" aria-modal="true" aria-label="Outils">
       <div class="drawer__head">
-        <span class="drawer__title">Menu</span>
+        <span class="drawer__title">Outils</span>
       </div>
       <nav class="drawer__body">
         <a class="drawer__link" href="tableau-de-bord.html"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Tableau de bord</a>
@@ -1252,7 +1264,7 @@
       }
       const now = new Date();
       const defaultName = `Simulation du ${now.toLocaleDateString('fr-FR')} à ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
-      const name = (prompt('Nom de cette simulation :', defaultName) || '').trim();
+      const name = ((await askText('Nom de cette simulation :', defaultName, 'Enregistrer')) || '').trim();
       if (!name) return;
       const entry = {
         id: 'sim_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
@@ -1404,6 +1416,43 @@
       window.addEventListener('resize', hide);
     })();
 
+    // Boîte de dialogue de saisie promise-based (window.prompt est indisponible sous Electron)
+    function askText(message, defaultValue = '', okLabel = 'Valider') {
+      return new Promise((resolve) => {
+        const backdrop = document.getElementById('ask-backdrop');
+        const titleEl = document.getElementById('ask-title');
+        const inputEl = document.getElementById('ask-input');
+        const okBtn = document.getElementById('ask-ok');
+        const cancelBtn = document.getElementById('ask-cancel');
+        titleEl.textContent = message;
+        inputEl.value = defaultValue;
+        okBtn.textContent = okLabel;
+        backdrop.classList.add('is-on');
+        inputEl.focus();
+        inputEl.select();
+
+        function cleanup(result) {
+          backdrop.classList.remove('is-on');
+          okBtn.removeEventListener('click', onOk);
+          cancelBtn.removeEventListener('click', onCancel);
+          backdrop.removeEventListener('mousedown', onBackdrop);
+          inputEl.removeEventListener('keydown', onKey);
+          resolve(result);
+        }
+        function onOk() { cleanup(inputEl.value); }
+        function onCancel() { cleanup(null); }
+        function onBackdrop(e) { if (e.target === backdrop) cleanup(null); }
+        function onKey(e) {
+          if (e.key === 'Enter') { e.preventDefault(); onOk(); }
+          else if (e.key === 'Escape') { e.preventDefault(); onCancel(); }
+        }
+        okBtn.addEventListener('click', onOk);
+        cancelBtn.addEventListener('click', onCancel);
+        backdrop.addEventListener('mousedown', onBackdrop);
+        inputEl.addEventListener('keydown', onKey);
+      });
+    }
+
     // Init : formulaire vide par défaut (l'utilisateur choisit un exemple s'il le souhaite)
     updateModeUI();
     resetForm();
@@ -1418,5 +1467,17 @@
       recompute();
     }
   </script>
+
+  <!-- Boîte de dialogue de saisie (remplace window.prompt, indisponible sous Electron) -->
+  <div class="ask-backdrop" id="ask-backdrop">
+    <div class="ask-box" role="dialog" aria-modal="true" aria-labelledby="ask-title">
+      <div class="ask-box__title" id="ask-title"></div>
+      <input type="text" class="ask-box__input" id="ask-input" autocomplete="off" />
+      <div class="ask-box__actions">
+        <button type="button" class="ask-box__btn" id="ask-cancel">Annuler</button>
+        <button type="button" class="ask-box__btn ask-box__btn--primary" id="ask-ok">Valider</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
