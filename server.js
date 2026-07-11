@@ -206,6 +206,7 @@ async function deleteUserAccountById(id) {
     col('saas_valuation_estimations').deleteMany({ user_id: id }),
     col('saas_fundraising_profiles').deleteMany({ user_id: id }),
     col('saas_claude_usage').deleteMany({ user_id: id }),
+    col('saas_compare_history').deleteMany({ user_id: id }),
   ]);
   await col('users').deleteOne({ id });
 }
@@ -3091,6 +3092,37 @@ app.get('/api/saas/documents', requireAuth, async (req, res) => {
   res.json({ documents: docs });
 });
 
+// ─── SaaS : historique des comparaisons IA ────────────────────────────────────
+// Deux historiques distincts (paramètre ?mode=versions|investors) : évolution
+// d'un document au fil de la négociation, et comparaison de propositions de
+// plusieurs investisseurs. Sans mode, on renvoie les deux mélangés.
+app.get('/api/saas/compare-history', requireAuth, async (req, res) => {
+  const mode = req.query.mode === 'investors' ? 'investors'
+             : req.query.mode === 'versions'  ? 'versions'  : null;
+  const filter = { user_id: req.user.id };
+  if (mode) filter.mode = mode;
+  const history = await col('saas_compare_history')
+    .find(filter, { projection: { _id: 0, user_id: 0, result: 0 } })
+    .sort({ id: -1 }).limit(100).toArray();
+  res.json({ history });
+});
+
+// Détail complet d'une comparaison archivée (pour ré-afficher le résultat).
+app.get('/api/saas/compare-history/:id', requireAuth, async (req, res) => {
+  const id  = Number(req.params.id);
+  const row = await col('saas_compare_history').findOne(
+    { id, user_id: req.user.id }, { projection: { _id: 0, user_id: 0 } });
+  if (!row) return res.status(404).json({ error: 'Comparaison introuvable' });
+  res.json(row);
+});
+
+app.delete('/api/saas/compare-history/:id', requireAuth, async (req, res) => {
+  const id = Number(req.params.id);
+  const r  = await col('saas_compare_history').deleteOne({ id, user_id: req.user.id });
+  if (!r.deletedCount) return res.status(404).json({ error: 'Comparaison introuvable' });
+  res.json({ success: true });
+});
+
 // ─── SaaS : term sheets éditées (stockées en base, pas de fichier) ────────────
 // Enregistre / met à jour le document de travail (apparaît dans « Mes documents »).
 app.post('/api/saas/termsheets', requireAuth, async (req, res) => {
@@ -5042,6 +5074,48 @@ Règles de forme :
   return { ...result, meta: { title, docs: metas } };
 }
 
+// ─── Historique des comparaisons IA ────────────────────────────────────────────
+// Chaque comparaison terminée (versions d'un même document, ou term sheets de
+// plusieurs investisseurs) est archivée pour que le fondateur puisse la retrouver
+// plus tard sans relancer l'analyse. Deux historiques distincts selon le "mode" :
+//   'versions'  → évolution d'un document entre le fondateur et un investisseur ;
+//   'investors' → propositions de plusieurs investisseurs comparées entre elles.
+const COMPARE_HISTORY_MAX = 50; // par utilisateur ET par mode
+async function saveCompareHistory(userId, mode, result) {
+  try {
+    if (!userId || !result || (mode !== 'versions' && mode !== 'investors')) return;
+    const meta = result.meta || {};
+    const list = mode === 'investors'
+      ? (Array.isArray(meta.docs) ? meta.docs : [])
+      : (Array.isArray(meta.versions) ? meta.versions : []);
+    // Rien d'exploitable (toutes les versions identiques, aucune comparaison) :
+    // on n'archive pas une coquille vide.
+    const hasContent = mode === 'investors'
+      ? !!(result.overallSummary || (Array.isArray(result.criteria) && result.criteria.length))
+      : !!(result.overallSummary || (Array.isArray(result.transitions) && result.transitions.some(t => t && Array.isArray(t.changes) && t.changes.length)));
+    if (!hasContent) return;
+
+    const id = await nextId('saas_compare_history');
+    const entry = {
+      id, user_id: userId, mode,
+      title: String(meta.title || 'Comparaison').slice(0, 200),
+      summary: String(result.overallSummary || '').slice(0, 600),
+      verdict: String(result.verdict || '').slice(0, 60),
+      item_count: list.length,
+      items: list.map(x => String((mode === 'investors' ? (x.investor || x.name) : (x.label || x.name)) || '').slice(0, 120)).filter(Boolean),
+      result,
+      created_at: new Date().toISOString(),
+    };
+    await col('saas_compare_history').insertOne(entry);
+
+    // Bornage : on ne conserve que les COMPARE_HISTORY_MAX plus récentes par mode.
+    const stale = await col('saas_compare_history')
+      .find({ user_id: userId, mode }, { projection: { id: 1 } })
+      .sort({ id: -1 }).skip(COMPARE_HISTORY_MAX).toArray();
+    if (stale.length) await col('saas_compare_history').deleteMany({ user_id: userId, id: { $in: stale.map(s => s.id) } });
+  } catch (e) { console.error('saveCompareHistory:', e.message); }
+}
+
 // ─── Exécuteurs par type de tâche ──────────────────────────────────────────────
 const JOB_RUNNERS = {
   // Analyse « choses à faire » d'un document (depuis la liste des dossiers).
@@ -5094,6 +5168,7 @@ const JOB_RUNNERS = {
     const result = await computeDocCompareMulti(job.userId, job.payload || {}, job._abort.signal, job.max);
     jobBailIfCancelled(job);
     job.result = result;
+    await saveCompareHistory(job.userId, 'versions', result);
     const nv = (result.meta && Array.isArray(result.meta.versions)) ? result.meta.versions.length : 0;
     const nc = (result.transitions || []).reduce((s, t) => s + ((t.changes && t.changes.length) || 0), 0);
     jobStep(job, 'compare', 'done', nc ? `${nv} versions · ${nc} changement${nc > 1 ? 's' : ''}` : `${nv} versions comparées`);
@@ -5109,6 +5184,7 @@ const JOB_RUNNERS = {
     const result = await computeDocCompareInvestors(job.userId, job.payload || {}, job._abort.signal, job.max);
     jobBailIfCancelled(job);
     job.result = result;
+    await saveCompareHistory(job.userId, 'investors', result);
     const nd = (result.meta && Array.isArray(result.meta.docs)) ? result.meta.docs.length : 0;
     jobStep(job, 'compare', 'done', `${nd} propositions comparées`);
     jobProgress(job, 100);

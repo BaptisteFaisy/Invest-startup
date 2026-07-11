@@ -191,6 +191,22 @@
     .trans__intent__lab { display: block; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #93c5fd; margin-bottom: 6px; }
     .trans__intent b { color: #fff; }
     .trans__empty { color: rgba(255,255,255,0.5); font-size: 13px; font-style: italic; }
+
+    /* Historique des comparaisons déjà lancées (une frise par mode) */
+    .cmp-hist { margin-top: 30px; }
+    .cmp-hist__h { display: flex; align-items: baseline; gap: 10px; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; margin-bottom: 14px; }
+    .cmp-hist__hint { font-weight: 600; letter-spacing: 0.03em; color: rgba(255,255,255,0.42); }
+    .cmp-hist__list { display: flex; flex-direction: column; gap: 8px; }
+    .histrow { display: flex; align-items: stretch; gap: 8px; }
+    .histrow__main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; background: #fff; border-radius: 12px; padding: 12px 14px; cursor: pointer; border: 1px solid transparent; text-align: left; font: inherit; transition: border-color .15s; }
+    .histrow__main:hover { border-color: #3b82f6; }
+    .histrow__name { font-weight: 700; color: #08090c; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .histrow__items { font-size: 12.5px; color: #4b5563; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .histrow__meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-family: 'Archivo', sans-serif; font-size: 11.5px; color: #6b6b78; margin-top: 2px; }
+    .histrow__verdict { font-weight: 700; letter-spacing: 0.02em; padding: 2px 8px; border-radius: 99px; }
+    .histrow__del { flex: none; width: 40px; display: grid; place-items: center; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: rgba(255,255,255,0.6); cursor: pointer; transition: color .15s, border-color .15s, background .15s; }
+    .histrow__del:hover { color: #f87171; border-color: rgba(220,38,38,0.4); background: rgba(220,38,38,0.1); }
+    .histrow__del svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
   </style>
   <script src="auth.js?v=3"></script>
   <script src="tasks.js?v=2" defer></script>
@@ -311,6 +327,12 @@
             <div class="reco__text" id="reco-text"></div>
           </div>
         </div>
+
+        <!-- Historique : comparaisons de versions déjà lancées -->
+        <div class="cmp-hist" id="hist" hidden>
+          <div class="cmp-hist__h"><span>Comparaisons précédentes</span><span class="cmp-hist__hint">cliquez pour rouvrir</span></div>
+          <div class="cmp-hist__list" id="hist-list"></div>
+        </div>
       </div>
 
       <!-- Comparaison de plusieurs documents INDÉPENDANTS du même type (ex. term
@@ -356,6 +378,12 @@
             <div class="reco__h">Conseil fondateur</div>
             <div class="reco__text" id="reco-inv-text"></div>
           </div>
+        </div>
+
+        <!-- Historique : comparaisons entre investisseurs déjà lancées -->
+        <div class="cmp-hist" id="hist-inv" hidden>
+          <div class="cmp-hist__h"><span>Comparaisons précédentes</span><span class="cmp-hist__hint">cliquez pour rouvrir</span></div>
+          <div class="cmp-hist__list" id="hist-inv-list"></div>
         </div>
       </div>
 
@@ -712,6 +740,8 @@
         docpickEl.hidden = true;
         introEl.hidden = true;
         renderResult(job.result);
+        // La comparaison vient d'être archivée côté serveur : on rafraîchit la frise.
+        refreshHistory('versions');
       }
     }
 
@@ -819,6 +849,8 @@
       });
       introInvEl.hidden = false;
       updateInvIntro();
+      // Historique des comparaisons entre investisseurs (masqué s'il est vide).
+      refreshHistory('investors');
     }
 
     function invSelectedRows() {
@@ -923,6 +955,8 @@
         docpickInvEl.hidden = true;
         introInvEl.hidden = true;
         renderInvResult(job.result);
+        // La comparaison vient d'être archivée côté serveur : on rafraîchit la frise.
+        refreshHistory('investors');
       }
     }
 
@@ -978,6 +1012,85 @@
       else { const full = await LiquidTasks.fetchResult(job.id); if (full) { finishInvCompare(full); LiquidTasks.dismiss(job.id); } }
     }
 
+    // ── Historique des comparaisons (deux frises distinctes selon le mode) ─────
+    // 'versions'  → évolution d'un document (fondateur ↔ investisseur) ;
+    // 'investors' → propositions de plusieurs investisseurs comparées entre elles.
+    const HIST = {
+      versions:  { wrap: 'hist',     list: 'hist-list',     verdict: true },
+      investors: { wrap: 'hist-inv', list: 'hist-inv-list', verdict: false },
+    };
+
+    async function fetchHistory(mode) {
+      try {
+        const r = await fetch('/api/saas/compare-history?mode=' + mode, { credentials: 'include' });
+        if (!r.ok) return [];
+        const d = await r.json();
+        return Array.isArray(d.history) ? d.history : [];
+      } catch { return []; }
+    }
+
+    async function openHistoryEntry(id, mode) {
+      let row = null;
+      try {
+        const r = await fetch('/api/saas/compare-history/' + id, { credentials: 'include' });
+        if (r.ok) row = await r.json();
+      } catch { /* ignore */ }
+      if (!row || !row.result) return;
+      if (mode === 'investors') {
+        docpickInvEl.hidden = true; introInvEl.hidden = true; errorInvEl.hidden = true;
+        document.getElementById('hist-inv').hidden = true;
+        renderInvResult(row.result);
+      } else {
+        docpickEl.hidden = true; vpickEl.hidden = true; introEl.hidden = true; errorEl.hidden = true;
+        document.getElementById('hist').hidden = true;
+        renderResult(row.result);
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function histRowEl(h, mode) {
+      const row = document.createElement('div');
+      row.className = 'histrow';
+      const main = document.createElement('button');
+      main.type = 'button'; main.className = 'histrow__main';
+      const when  = h.created_at ? fmtDate(h.created_at) : '';
+      const count = h.item_count
+        ? h.item_count + (mode === 'investors' ? ' proposition' : ' version') + (h.item_count > 1 ? 's' : '')
+        : '';
+      const items = Array.isArray(h.items) ? h.items.filter(Boolean) : [];
+      const verdict = (HIST[mode].verdict && h.verdict)
+        ? `<span class="histrow__verdict ${verdictClass(h.verdict)}">${esc(h.verdict)}</span>` : '';
+      main.innerHTML =
+        `<span class="histrow__name">${esc(h.title || 'Comparaison')}</span>`
+        + (items.length ? `<span class="histrow__items">${esc(items.join(' · '))}</span>` : '')
+        + `<span class="histrow__meta">${verdict}${[count, when].filter(Boolean).map(esc).join(' · ')}</span>`;
+      main.addEventListener('click', () => openHistoryEntry(h.id, mode));
+      const del = document.createElement('button');
+      del.type = 'button'; del.className = 'histrow__del'; del.title = 'Supprimer de l\'historique';
+      del.setAttribute('aria-label', 'Supprimer cette comparaison de l\'historique');
+      del.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>';
+      del.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        del.disabled = true;
+        try { await fetch('/api/saas/compare-history/' + h.id, { method: 'DELETE', credentials: 'include' }); } catch { /* ignore */ }
+        refreshHistory(mode);
+      });
+      row.append(main, del);
+      return row;
+    }
+
+    async function refreshHistory(mode) {
+      const cfg = HIST[mode];
+      const wrap = document.getElementById(cfg.wrap);
+      const list = document.getElementById(cfg.list);
+      if (!wrap || !list) return;
+      const hist = await fetchHistory(mode);
+      if (!hist.length) { wrap.hidden = true; list.innerHTML = ''; return; }
+      list.innerHTML = '';
+      hist.forEach(h => list.appendChild(histRowEl(h, mode)));
+      wrap.hidden = false;
+    }
+
     async function init() {
       const user = await requireAuth();
       if (!user) return;
@@ -1010,6 +1123,9 @@
         cancelBtn.addEventListener('click', (e) => { e.preventDefault(); cancelAnalyze(); });
         updateIntro();
       }
+
+      // Historique des comparaisons de versions déjà lancées (masqué s'il est vide).
+      refreshHistory('versions');
 
       if (window.LiquidTasks) {
         LiquidTasks.on('goto', (j) => {
