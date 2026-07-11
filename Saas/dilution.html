@@ -37,6 +37,10 @@
     .dil__title { font-size: 30px; letter-spacing: -0.03em; color: #fff; margin-top: 6px; }
     .dil__sub { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 8px; line-height: 1.6; max-width: 720px; }
 
+    .dil__next { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 10px; }
+    .dil__next .btn { background: rgba(255,255,255,0.06); color: #fff; border-color: rgba(255,255,255,0.2); }
+    .dil__next .btn:hover { border-color: rgba(255,255,255,0.5); }
+
     /* Disposition 2 colonnes : saisie à gauche, résultats à droite */
     .dil__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 22px; margin-top: 26px; align-items: start; }
     @media (max-width: 940px) { .dil__grid { grid-template-columns: minmax(0, 1fr); } }
@@ -441,6 +445,11 @@
             <b><span class="term" data-term="shuffle" tabindex="0">Option pool shuffle</span></b> : un pool créé « avant le tour » gonfle le pre-money en actions et ne dilue que les actionnaires existants — l'investisseur obtient son pourcentage « net de pool ». Créé « après », il dilue aussi l'investisseur. C'est un point de négociation à part entière.
           </p>
         </div>
+      </div>
+
+      <div class="dil__next">
+        <a class="btn" href="valorisation.html">Simulateur de valorisation →</a>
+        <a class="btn" href="exit.html">Simulateur d'exit →</a>
       </div>
 
       <!-- LEXIQUE -->

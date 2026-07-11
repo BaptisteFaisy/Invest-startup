@@ -37,6 +37,10 @@
     .ext__title { font-size: 30px; letter-spacing: -0.03em; color: #fff; margin-top: 6px; }
     .ext__sub { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 8px; line-height: 1.6; max-width: 760px; }
 
+    .ext__next { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 10px; }
+    .ext__next .btn { background: rgba(255,255,255,0.06); color: #fff; border-color: rgba(255,255,255,0.2); }
+    .ext__next .btn:hover { border-color: rgba(255,255,255,0.5); }
+
     /* Bascule Sortie totale / partielle */
     .type-seg-row { margin-top: 22px; }
     .type-seg { display: inline-flex; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 11px; padding: 4px; gap: 3px; }
@@ -329,6 +333,11 @@
 
           <p class="note" id="result-note"></p>
         </div>
+      </div>
+
+      <div class="ext__next">
+        <a class="btn" href="valorisation.html">Simulateur de valorisation →</a>
+        <a class="btn" href="dilution.html">Simulateur de dilution →</a>
       </div>
 
       <!-- LEXIQUE -->
