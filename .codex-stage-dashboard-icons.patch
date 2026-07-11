@@ -1,0 +1,15 @@
+diff --git a/Saas/tableau-de-bord.html b/Saas/tableau-de-bord.html
+--- a/Saas/tableau-de-bord.html
++++ b/Saas/tableau-de-bord.html
+@@ -853,1 +853,1 @@
+-          <a class="drawer__link" href="compare.html">Comparer</a>
++          <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
+@@ -857,1 +857,1 @@
+-          <a class="drawer__link" href="exit.html" target="_blank" rel="noopener">Exit</a>
++          <a class="drawer__link" href="exit.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Exit</a>
+@@ -876,1 +876,1 @@
+-        <a class="drawer__link" href="compare.html">Comparer</a>
++        <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
+@@ -880,1 +880,1 @@
+-        <a class="drawer__link" href="exit.html" target="_blank" rel="noopener" title="Simulateur d'exit">Exit</a>
++        <a class="drawer__link" href="exit.html" target="_blank" rel="noopener" title="Simulateur d'exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Exit</a>
