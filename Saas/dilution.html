@@ -42,11 +42,9 @@
     .dil__next .btn { background: rgba(255,255,255,0.06); color: #fff; border-color: rgba(255,255,255,0.2); }
     .dil__next .btn:hover { border-color: rgba(255,255,255,0.5); }
 
-    /* Disposition 2 colonnes : saisie à gauche, résultats à droite */
-    .dil__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 22px; margin-top: 26px; align-items: start; }
-    @media (max-width: 940px) { .dil__grid { grid-template-columns: minmax(0, 1fr); } }
-    .dil__results { position: sticky; top: 78px; }
-    @media (max-width: 940px) { .dil__results { position: static; } }
+    /* Disposition en une colonne : toute la saisie au-dessus, résultats en dessous */
+    .dil__grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; margin-top: 26px; align-items: start; }
+    .dil__results { position: static; }
 
     /* En-têtes de colonne : rappellent où saisir et où lire les résultats */
     .dil__col-head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; }
