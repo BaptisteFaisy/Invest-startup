@@ -35,7 +35,9 @@
       const badge = s.done
         ? '<svg viewBox="0 0 24 24" aria-hidden="true">' + friseCheckPath + '</svg>'
         : String(s.num);
-      const soon = s.soon ? '<span class="drawer__soon-tag">Bientôt</span>' : '';
+      const soon = s.soon && s.key !== 'confidentialite'
+        ? '<span class="drawer__soon-tag">Bientôt</span>'
+        : '';
       const pct = (s.pct == null) ? null : Math.max(0, Math.min(100, Math.round(s.pct)));
       const bar = (pct == null) ? '' :
         '<span class="drawer__step-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'
