@@ -2289,13 +2289,28 @@
     // En l'absence de request list, le fondateur peut explicitement afficher la
     // préparation exhaustive Liquid+. Elle reste purement temporaire : la
     // checklist de l'investisseur la remplacera dès son import.
+    // Filtre une checklist Liquid+ selon la portée choisie par le fondateur :
+    // 'required' = indispensables seulement, 'optional' = si applicables
+    // seulement, 'all' (ou absent) = les deux.
+    function filterDDFallbackByScope(checklist, marks, scope) {
+      if (!scope || scope === 'all') return { checklist, marks };
+      const keep = [];
+      checklist.forEach((_, idx) => {
+        const isOptional = marks[idx] === 'opt';
+        if ((scope === 'optional') === isOptional) keep.push(idx);
+      });
+      return {
+        checklist: keep.map(idx => checklist[idx]),
+        marks: keep.map(idx => marks[idx]),
+      };
+    }
     function fallbackChecklistFor(f) {
       if (!f) return null;
       if (f.key === 'due-diligence-preliminaire') {
-        return { checklist: DD_PRELIMINARY_DOCUMENTS, marks: DD_PRELIMINARY_MARKS };
+        return filterDDFallbackByScope(DD_PRELIMINARY_DOCUMENTS, DD_PRELIMINARY_MARKS, f.dd_fallback_scope);
       }
       if (f.key === 'due-diligence') {
-        return { checklist: DD_COMPLETE_DOCUMENTS, marks: DD_COMPLETE_MARKS };
+        return filterDDFallbackByScope(DD_COMPLETE_DOCUMENTS, DD_COMPLETE_MARKS, f.dd_fallback_scope);
       }
       return null;
     }
@@ -3674,6 +3689,51 @@
       });
     }
 
+    // Choix des documents à inclure dans la checklist Liquid+ générée : les
+    // indispensables et/ou les « si applicables ». Renvoie 'all' / 'required' /
+    // 'optional', ou null si l'utilisateur annule.
+    function promptDDChecklistScope() {
+      return new Promise(resolve => {
+        const overlay = document.createElement('div');
+        overlay.className = 'fmodal is-open';
+        overlay.style.zIndex = '1200';
+        overlay.innerHTML = `
+          <div class="fmodal__backdrop" data-cancel></div>
+          <div class="fmodal__dialog" style="max-width:440px">
+            <div class="fmodal__head">
+              <div class="fmodal__titles"><h2 class="fmodal__title">Générer la checklist avec Liquid+</h2></div>
+              <button class="fmodal__close" type="button" data-cancel aria-label="Fermer">&times;</button>
+            </div>
+            <div class="fmodal__body">
+              <p style="margin:0 0 12px;color:#475569;font-size:13.5px;line-height:1.5">Choisissez les documents à inclure dans la checklist de préparation.</p>
+              <label style="display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:14px;color:#0f172a">
+                <input type="checkbox" data-scope-required checked /> Documents indispensables
+              </label>
+              <label style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:14px;color:#0f172a">
+                <input type="checkbox" data-scope-optional checked /> Documents si applicables
+              </label>
+              <p class="scope-err" style="display:none;margin:8px 0 0;color:#b91c1c;font-size:12.5px">Sélectionnez au moins une catégorie.</p>
+              <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
+                <button type="button" class="documents-action-btn" data-cancel>Annuler</button>
+                <button type="button" class="documents-action-btn" data-ok style="background:#2563eb;color:#fff;border-color:#2563eb">Générer</button>
+              </div>
+            </div>
+          </div>`;
+        document.body.appendChild(overlay);
+        const reqBox = overlay.querySelector('[data-scope-required]');
+        const optBox = overlay.querySelector('[data-scope-optional]');
+        const errEl = overlay.querySelector('.scope-err');
+        let done = false;
+        const close = (result) => { if (done) return; done = true; overlay.remove(); resolve(result); };
+        overlay.querySelectorAll('[data-cancel]').forEach(el => el.addEventListener('click', () => close(null)));
+        overlay.querySelector('[data-ok]').addEventListener('click', () => {
+          const required = reqBox.checked, optional = optBox.checked;
+          if (!required && !optional) { errEl.style.display = 'block'; return; }
+          close(required && optional ? 'all' : required ? 'required' : 'optional');
+        });
+      });
+    }
+
     function investorChecklistEl(f) {
       const lists = investorChecklistsOf(f);
       const imported = hasInvestorChecklists(f);
@@ -3685,7 +3745,7 @@
         ? `${lists.length} checklist${lists.length > 1 ? 's' : ''} importée${lists.length > 1 ? 's' : ''} · ${(f.checklist || []).length} document${(f.checklist || []).length > 1 ? 's' : ''} demandé${(f.checklist || []).length > 1 ? 's' : ''} au total. Chaque document indique à quel(s) investisseur(s) l’envoyer.`
         : fallbackActive
           ? 'Préparation Liquid+ temporaire affichée tant que vous n’avez pas de request list. L’import d’une checklist investisseur la remplacera automatiquement.'
-          : 'Importez la request list de chaque investisseur (PDF/Word). Vous pourrez nommer l’investisseur juste après. Vous pouvez aussi générer une checklist de préparation ou lister directement les modèles Liquid+.';
+          : 'Importez la request list de chaque investisseur (PDF/Word). Vous pourrez nommer l’investisseur juste après. Vous pouvez aussi générer directement la checklist avec Liquid+.';
 
       box.innerHTML = `
         <div class="dd-checklists__head">
@@ -3696,8 +3756,7 @@
           <div class="dd-checklists__actions">
             <button type="button" class="documents-action-btn" data-dd-import>Importer une checklist</button>
             ${!imported ? `
-              <button type="button" class="documents-action-btn" data-dd-generate ${fallbackActive ? 'disabled title="La checklist Liquid+ est déjà générée"' : ''}>Générer une checklist</button>
-              <button type="button" class="documents-action-btn" data-dd-fallback>${fallbackActive ? 'Masquer les modèles Liquid+' : 'Lister les modèles Liquid+'}</button>
+              <button type="button" class="documents-action-btn" data-dd-fallback>${fallbackActive ? 'Masquer la checklist Liquid+' : 'Générer la checklist avec Liquid+'}</button>
             ` : ''}
           </div>
         </div>`;
@@ -3746,10 +3805,13 @@
       }
 
       box.querySelector('[data-dd-import]').addEventListener('click', () => openInvestorChecklistImport(f.id));
-      const generateBtn = box.querySelector('[data-dd-generate]');
-      if (generateBtn) generateBtn.addEventListener('click', () => generateDDChecklist(f.id));
       const fallbackBtn = box.querySelector('[data-dd-fallback]');
-      if (fallbackBtn) fallbackBtn.addEventListener('click', () => toggleDDFallbackModels(f.id, !fallbackActive));
+      if (fallbackBtn) fallbackBtn.addEventListener('click', async () => {
+        if (fallbackActive) { toggleDDFallbackModels(f.id, false); return; }
+        const scope = await promptDDChecklistScope();
+        if (!scope) return;
+        toggleDDFallbackModels(f.id, true, scope);
+      });
       return box;
     }
 
@@ -5469,14 +5531,14 @@
       }).catch(() => { showErr('Impossible de joindre le serveur.'); load(); });
     }
 
-    async function toggleDDFallbackModels(folderId, enabled) {
+    async function toggleDDFallbackModels(folderId, enabled, scope) {
       showErr('');
       try {
         const r = await fetch('/api/saas/folders/' + folderId + '/dd-fallback', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ enabled: !!enabled }),
+          body: JSON.stringify({ enabled: !!enabled, scope: scope || 'all' }),
         });
         const data = await r.json().catch(() => ({}));
         if (!r.ok) {
@@ -5487,12 +5549,6 @@
       } catch {
         showErr('Impossible de joindre le serveur.');
       }
-    }
-
-    // Génère la checklist de préparation Liquid+ pour cette étape. L'accès à la
-    // liste des modèles reste une action distincte dans l'interface.
-    function generateDDChecklist(folderId) {
-      return toggleDDFallbackModels(folderId, true);
     }
 
     // Téléverse un ou plusieurs fichiers, éventuellement dans un dossier précis

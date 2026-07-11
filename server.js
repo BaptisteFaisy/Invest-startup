@@ -3306,7 +3306,7 @@ app.post('/api/saas/folders/:id/investor-checklist', requireAuth, saasUpload.sin
   // Liquid+ » est automatiquement désactivé sans supprimer les documents créés.
   await col('saas_folders').updateOne(
     { id, user_id: req.user.id },
-    { $set: update, $unset: { dd_fallback_models: '' } },
+    { $set: update, $unset: { dd_fallback_models: '', dd_fallback_scope: '' } },
   );
   const saved = await col('saas_folders').findOne({ id, user_id: req.user.id });
   res.status(201).json({ folder: publicFolder(saved), document: publicDoc(doc), items, checklist_id: entry.id });
@@ -3362,6 +3362,7 @@ app.delete('/api/saas/folders/:id/investor-checklist/:checklistId', requireAuth,
         $unset: {
           investor_checklists: '', investor_checklist_document_id: '',
           checklist_origin: '', checklist_updated_at: '', dd_fallback_models: '',
+          dd_fallback_scope: '',
         },
       },
     );
@@ -3430,11 +3431,13 @@ app.put('/api/saas/folders/:id/dd-fallback', requireAuth, async (req, res) => {
     return res.status(409).json({ error: 'La checklist de l’investisseur est déjà la source de vérité pour cette étape.' });
 
   const enabled = !!req.body?.enabled;
+  const scopeRaw = String(req.body?.scope || 'all');
+  const scope = ['all', 'required', 'optional'].includes(scopeRaw) ? scopeRaw : 'all';
   await col('saas_folders').updateOne(
     { id, user_id: req.user.id },
     enabled
-      ? { $set: { dd_fallback_models: true } }
-      : { $unset: { dd_fallback_models: '' } },
+      ? { $set: { dd_fallback_models: true, dd_fallback_scope: scope } }
+      : { $unset: { dd_fallback_models: '', dd_fallback_scope: '' } },
   );
   const saved = await col('saas_folders').findOne({ id, user_id: req.user.id });
   res.json({ success: true, folder: publicFolder(saved) });
@@ -3491,6 +3494,7 @@ app.delete('/api/saas/documents/:id', requireAuth, async (req, res) => {
             $unset: {
               investor_checklists: '', investor_checklist_document_id: '',
               checklist_origin: '', checklist_updated_at: '', dd_fallback_models: '',
+              dd_fallback_scope: '',
             },
           },
         );
