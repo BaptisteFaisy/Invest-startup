@@ -28,24 +28,11 @@
 
     .section-label { display: flex; align-items: center; justify-content: space-between; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #fff; margin: 34px 0 14px; }
 
-    /* Carte mise en avant (reprendre où vous en étiez) : un seul bloc, une ligne par élément récent */
-    .resume-card { background: var(--dark); border-radius: 20px; padding: 4px 22px; }
-    .resume-row { display: flex; align-items: center; gap: 12px; padding: 13px 0; }
-    .resume-row + .resume-row { border-top: 1px solid var(--line); }
-    .resume-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; background: #6366f1; }
-    .resume-dot.is-done { background: #10b981; }
-    .resume-row__main { flex: 1; min-width: 0; }
-    .resume-row__name { font-weight: 700; font-size: 13px; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .resume-row__meta { font-family: 'Archivo', sans-serif; font-size: 11px; color: var(--on-dark-mut); margin-top: 2px; }
-    .resume-row__actions { display: flex; gap: 6px; flex: none; }
-    .resume-row__actions .btn { padding: 6px 10px; font-size: 12px; min-height: 30px; min-width: 0; }
+    /* Chevron de repli, partagé par « prochaines priorités ». */
     .resume-toggle { width: 28px; height: 28px; flex: none; display: grid; place-items: center; border: 0; border-radius: 6px; background: transparent; color: rgba(255,255,255,0.55); cursor: pointer; padding: 0; transition: color .15s, background .15s; }
     .resume-toggle svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s ease; }
     .resume-toggle:hover { background: rgba(255,255,255,0.12); color: #fff; }
     .resume-toggle[aria-expanded="false"] svg { transform: rotate(-90deg); }
-    .resume-card.is-collapsed { display: none; }
-    /* La carte suivante (notamment « Documents ») garde son propre espace. */
-    #resume:not(:empty) { margin-bottom: 28px; }
 
     /* Bandeau « prochaines priorités » — même traitement que « Reprendre où vous en
        étiez » : un libellé de section (hors bloc) suivi d'une liste de lignes qui se
@@ -57,8 +44,12 @@
     .next-actions-card.is-collapsed { display: none; }
     .next-actions__list { list-style: none; margin: 0; padding: 0; }
     .next-actions__item + .next-actions__item { border-top: 1px solid var(--line); }
-    .next-actions__link { width: 100%; display: flex; align-items: center; gap: 12px; padding: 13px 0; border: 0; background: transparent; cursor: pointer; text-align: left; font: inherit; }
+    .next-actions__link { width: 100%; display: flex; align-items: center; gap: 12px; padding: 13px 0; border: 0; background: transparent; cursor: pointer; text-align: left; font: inherit; color: inherit; text-decoration: none; }
     .next-actions__rank { flex: none; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 7px; background: rgba(255,255,255,0.1); color: var(--on-dark); font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 11px; }
+    /* Dernière ligne « reprendre » : distincte des priorités numérotées (repère ↩,
+       séparateur renforcé) pour ne pas se confondre avec la première. */
+    .next-actions__item--resume { border-top: 1px solid var(--line); }
+    .next-actions__rank--resume { background: rgba(99,102,241,0.22); color: #c7c9ff; font-size: 13px; }
     .next-actions__main { flex: 1; min-width: 0; }
     .next-actions__text { display: block; font-size: 13px; font-weight: 700; letter-spacing: -0.01em; color: var(--on-dark); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .next-actions__step { display: block; font-family: 'Archivo', sans-serif; font-size: 11px; color: var(--on-dark-mut); margin-top: 2px; }
@@ -508,14 +499,6 @@
     .drawer__soon-tag { margin-left:auto; flex:none; font-family:'Archivo',sans-serif; font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#a5b4fc; background:rgba(99,102,241,0.20); padding:2px 7px; border-radius:99px; }
     .drawer__unread-dot { margin-left:auto; flex:none; width:8px; height:8px; border-radius:50%; background:#ef4444; box-shadow:0 0 0 2px rgba(239,68,68,0.25); }
 
-    /* Carte Reprendre — bulle blanche */
-    .resume-card { background: #fff !important; border-radius: 20px !important; box-shadow: 0 12px 40px rgba(0,0,0,0.45) !important; }
-    .resume-row + .resume-row { border-top-color: rgba(8,9,12,0.08) !important; }
-    .resume-row__name { color: #08090c !important; }
-    .resume-row__meta { color: #6b6b78 !important; }
-    .resume-row__actions .btn--light { background: #f4f2ee !important; color: #08090c !important; border: 1px solid rgba(8,9,12,0.1) !important; }
-    .resume-row__actions .btn--light:hover { background: #e8e6e2 !important; }
-
     /* Titres et labels de page */
     .dossiers__eyebrow { color: #fff !important; }
     .dossiers__title { color: #fff !important; }
@@ -853,11 +836,9 @@
       <div id="error" class="err" hidden></div>
 
       <!-- Prochaines priorités : suggestions calculées d'après l'état réel du dossier
-           (documents manquants / à valider). Uniquement sur les pages d'étapes. -->
+           (documents manquants / à valider), suivies de « reprendre où vous en
+           étiez » (dernier document travaillé). Uniquement sur les pages d'étapes. -->
       <div id="next-actions"></div>
-
-      <!-- Reprendre : dernier document ouvert (accès rapide) -->
-      <div id="resume"></div>
 
       <!-- Vue : levée classique (actions de préférence) -->
       <div id="classic-view">
@@ -2499,7 +2480,6 @@
             localStorage.setItem(raiseKey(), fundraisingProfile.raise_type);
           }
         } catch {}
-        renderResume();
         render();
         renderDashboardSearchResults();
         revealGlobalSearchTarget();
@@ -2508,54 +2488,6 @@
         foldersEl.innerHTML = '';
         showErr('Impossible de charger vos dossiers.');
       }
-    }
-
-    // Carte « Reprendre » : accès rapide aux 3 derniers documents touchés
-    // (créés ou modifiés), tous types confondus. Les documents sont déjà
-    // triés par updated_at/created_at décroissant côté serveur, donc cette
-    // liste reflète la dernière activité réelle de l'utilisateur, qu'il
-    // soit resté connecté ou qu'il vienne de se reconnecter. Affichée en
-    // haut, indépendamment du parcours.
-    let resumeCollapsed = false;
-    function renderResume() {
-      const host = document.getElementById('resume');
-      if (!host) return;
-      const recent = docs
-        .slice()
-        .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))
-        .slice(0, 3);
-      if (!recent.length) { host.innerHTML = ''; return; }
-      const toggleLabel = resumeCollapsed ? 'Afficher les documents récents' : 'Masquer les documents récents';
-      host.innerHTML = `
-        <div class="section-label">
-          <span>Reprendre où vous en étiez</span>
-          <button class="resume-toggle" type="button" aria-expanded="${resumeCollapsed ? 'false' : 'true'}" aria-label="${toggleLabel}" title="${toggleLabel}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6l6 -6"/></svg></button>
-        </div>
-        <div class="resume-card${resumeCollapsed ? ' is-collapsed' : ''}">${recent.map(resumeRowHtml).join('')}</div>`;
-      host.querySelector('.resume-toggle').addEventListener('click', () => {
-        resumeCollapsed = !resumeCollapsed;
-        renderResume();
-      });
-    }
-
-    // Pastille de statut : violet = term sheet encore en cours d'édition dans
-    // l'outil, vert = document déjà finalisé (importé tel quel, rien à reprendre).
-    function resumeRowHtml(d) {
-      const isTermsheet = d.kind === 'termsheet';
-      const label = isTermsheet ? 'Term sheet en cours' : 'Document importé';
-      const editBtn = isTermsheet ? `<a href="editor.html?doc=${d.id}" class="btn btn--light" target="_blank" rel="noopener">Éditer</a>` : '';
-      return `
-        <div class="resume-row">
-          <span class="resume-dot${isTermsheet ? '' : ' is-done'}"></span>
-          <div class="resume-row__main">
-            <div class="resume-row__name">${esc(d.name)}</div>
-            <div class="resume-row__meta">${label} · modifié le ${fmtDate(d.updated_at || d.created_at)}</div>
-          </div>
-          <div class="resume-row__actions">
-            ${editBtn}
-            <a href="/api/saas/documents/${d.id}/download" class="btn btn--light">Télécharger</a>
-          </div>
-        </div>`;
     }
 
     /* ═══════════ Bandeau « prochaines priorités » (0 token) ═══════════
@@ -2577,7 +2509,7 @@
         const st = state[slug] || {};
         const isLinked = st.document_id != null && docs.some(d => d.id === st.document_id);
         if (!isLinked) toAdd.push(item);
-        else if (!st.final) toValidate.push(item);
+        else if (!st.final) toValidate.push({ item, docId: st.document_id });
       });
       return { toAdd, toValidate };
     }
@@ -2610,12 +2542,23 @@
         const label = friseLabel(f);
         const { toAdd, toValidate } = phaseGaps(f);
         toAdd.forEach(item => actions.push({ text: 'Ajouter « ' + item + ' »', step: label, key: f.key }));
-        toValidate.forEach(item => actions.push({ text: 'Valider « ' + item + ' »', step: label, key: f.key }));
+        toValidate.forEach(({ item, docId }) => actions.push({ text: 'Valider « ' + item + ' »', step: label, key: f.key, docId }));
         if (actions.length >= 6) break; // assez de matière pour prioriser
       }
 
-      if (!actions.length) return { done: true, items: [] };
-      return { done: false, items: actions.slice(0, 3) };
+      // « Reprendre où vous en étiez » n'est plus une carte à part : c'est la
+      // dernière priorité, l'accès direct au document travaillé en dernier.
+      // Elle reste distincte des tâches calculées et — surtout — ne doit pas
+      // se réduire à la première : si la priorité n°1 vise déjà ce document
+      // (ex. « Valider … »), reprendre ferait doublon, on l'omet.
+      const recentDoc = docs
+        .slice()
+        .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))[0] || null;
+
+      const items = actions.slice(0, 3);
+      if (!items.length) return { done: true, items: [], resume: recentDoc };
+      const resume = recentDoc && !(items[0] && items[0].docId === recentDoc.id) ? recentDoc : null;
+      return { done: false, items, resume };
     }
 
     const nextActionsHost = document.getElementById('next-actions');
@@ -2637,12 +2580,31 @@
         return isClassic ? openClassicStepPage(key) : openBsaStepCard(key);
       };
 
+      // Dernière priorité : reprendre le document travaillé en dernier.
+      // Ligne distincte (repère « ↩ » au lieu d'un rang), un lien direct vers
+      // le document plutôt qu'une navigation d'étape.
+      const resumeItemHtml = (doc) => {
+        const isTermsheet = doc.kind === 'termsheet';
+        const href = isTermsheet ? ('editor.html?doc=' + doc.id) : ('/api/saas/documents/' + doc.id + '/download');
+        const tgt = isTermsheet ? ' target="_blank" rel="noopener"' : '';
+        return '<li class="next-actions__item next-actions__item--resume">'
+          + '<a class="next-actions__link" href="' + href + '"' + tgt + '>'
+          + '<span class="next-actions__rank next-actions__rank--resume" aria-hidden="true">↩</span>'
+          + '<span class="next-actions__main">'
+          + '<span class="next-actions__text">Reprendre « ' + esc(doc.name) + ' »</span>'
+          + '<span class="next-actions__step">Là où vous vous êtes arrêté · modifié le ' + fmtDate(doc.updated_at || doc.created_at) + '</span>'
+          + '</span>'
+          + '<span class="next-actions__go" aria-hidden="true">→</span>'
+          + '</a></li>';
+      };
+
       const section = document.createElement('section');
       section.className = data.done ? 'is-done' : '';
       if (data.done) {
         section.innerHTML =
           '<div class="section-label"><span>Prochaines priorités</span></div>'
-          + '<p class="next-actions__empty">Tout est à jour : les documents attendus sont fournis et validés. 🎉</p>';
+          + '<p class="next-actions__empty">Tout est à jour : les documents attendus sont fournis et validés. 🎉</p>'
+          + (data.resume ? '<div class="next-actions-card"><ol class="next-actions__list">' + resumeItemHtml(data.resume) + '</ol></div>' : '');
       } else {
         const rows = data.items.map((a, i) =>
           '<li class="next-actions__item">'
@@ -2653,7 +2615,8 @@
           + (a.step ? '<span class="next-actions__step">Étape · ' + esc(a.step) + '</span>' : '')
           + '</span>'
           + '<span class="next-actions__go" aria-hidden="true">→</span>'
-          + '</button></li>').join('');
+          + '</button></li>').join('')
+          + (data.resume ? resumeItemHtml(data.resume) : '');
         const toggleLabel = nextActionsCollapsed ? 'Afficher les prochaines priorités' : 'Masquer les prochaines priorités';
         section.innerHTML =
           '<div class="section-label"><span>Prochaines priorités</span>'
