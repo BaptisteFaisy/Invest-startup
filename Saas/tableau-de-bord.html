@@ -1580,23 +1580,37 @@
       };
       // Après le changement d'étape, le contenu de la page est rendu à nouveau.
       // On attend donc l'image suivante avant de viser la ligne du document ou du modèle.
-      const scrollToSearchTarget = match => {
+      // Certaines étapes n'affichent aucune liste de fichiers (« Ma levée » montre le
+      // profil de levée, « Investisseurs » et « Gouvernance » affichent « Bientôt ») :
+      // la ligne exacte n'existe alors pas dans le DOM. Dans ce cas on se rabat sur la
+      // carte de l'étape (#phase-<clé>) pour au moins amener l'utilisatrice au bon
+      // endroit, au lieu de ne rien faire.
+      const scrollToSearchTarget = (match, folder) => {
         const selector = match.type === 'document'
           ? `[data-search-document-id="${match.id}"]`
           : match.type === 'model'
             ? `[data-search-folder-id="${match.folderId}"][data-search-item-slug="${match.slug}"]`
             : null;
-        if (!selector) return;
-        requestAnimationFrame(() => {
-          const target = document.querySelector(selector);
-          if (!target) return;
-          // Le document peut se trouver dans une catégorie repliée : on la déplie
-          // avant de faire défiler la page pour que la cible soit bien visible.
-          const collapsedCategory = target.closest('.doc-category.is-collapsed');
-          const toggle = collapsedCategory && collapsedCategory.querySelector('[data-category-toggle]');
-          if (toggle) toggle.click();
-          target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        });
+        const fallbackId = folder && folder.key ? 'phase-' + folder.key : null;
+        let tries = 0;
+        const tick = () => {
+          const target = selector ? document.querySelector(selector) : null;
+          if (target) {
+            // Le document peut se trouver dans une catégorie repliée : on la déplie
+            // avant de faire défiler la page pour que la cible soit bien visible.
+            const collapsedCategory = target.closest('.doc-category.is-collapsed');
+            const toggle = collapsedCategory && collapsedCategory.querySelector('[data-category-toggle]');
+            if (toggle) toggle.click();
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+          }
+          // Le rendu de l'étape est synchrone, mais on laisse quelques images de
+          // marge avant de conclure que la ligne n'existe pas sur cette étape.
+          if (++tries < 6) { requestAnimationFrame(tick); return; }
+          const fallback = fallbackId ? document.getElementById(fallbackId) : null;
+          if (fallback) fallback.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+        requestAnimationFrame(tick);
       };
       dashboardSearchResultsEl.innerHTML = `
         <p class="topbar__search-summary">${matches.length} résultat${matches.length > 1 ? 's' : ''}</p>
@@ -1641,7 +1655,7 @@
           closeDashboardSearch({ clear: true });
           if ((folder.track || 'classic') === 'bsa-air') openBsaStepCard(folder.key);
           else openClassicStepPage(folder.key);
-          scrollToSearchTarget(match);
+          scrollToSearchTarget(match, folder);
         });
       });
     }
@@ -2603,6 +2617,9 @@
     function stepSoonEl(f) {
       const el = document.createElement('section');
       el.className = 'raise-soon';
+      // Ancre de repli pour la recherche : permet d'amener l'utilisatrice sur
+      // cette étape « Bientôt » quand le fichier recherché y est rattaché.
+      if (f && f.key) el.id = 'phase-' + f.key;
       el.innerHTML = `
         <span class="raise-soon__badge">Bientôt</span>
         <h2 class="raise-soon__title">${esc(friseLabel(f))}</h2>
