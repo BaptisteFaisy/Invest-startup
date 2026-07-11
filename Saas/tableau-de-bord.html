@@ -2500,7 +2500,16 @@
       section.querySelectorAll('[data-na-step]').forEach(btn => {
         btn.addEventListener('click', () => {
           const key = btn.getAttribute('data-na-step');
-          if (key) openStep(key);
+          if (key) {
+            openStep(key);
+            // La navigation d'une étape conserve volontairement le défilement
+            // lorsqu'elle vient du menu. Depuis cette liste, en revanche,
+            // l'utilisatrice attend d'être amenée au document à traiter.
+            requestAnimationFrame(() => {
+              const target = document.getElementById('phase-' + key);
+              if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+          }
           if (navDrawer) navDrawer.close();
         });
       });
@@ -2573,7 +2582,9 @@
       syncClassicActions(idx);
       setTopbarStepLabel(friseLabel(selected));
       if (selected.key === 'mise-en-ordre') {
-        container.appendChild(fundraisingProfileEl());
+        const profileCard = fundraisingProfileEl();
+        profileCard.id = 'phase-' + selected.key;
+        container.appendChild(profileCard);
       }
       if (CLASSIC_SOON_STEPS.has(selected.key)) {
         container.appendChild(stepSoonEl(selected));
@@ -3571,7 +3582,7 @@
           ${categories && categories.length ? '<button class="documents-action-btn" type="button" data-collapse-categories>Fermer tous les dossiers</button>' : ''}
         </div>` : '';
       card.className = 'folder folder--phase open';
-      if ((f.track || 'classic') === 'bsa-air' && f.key) card.id = 'phase-' + f.key;
+      if (f.key) card.id = 'phase-' + f.key;
       card.innerHTML = `
         <div class="folder__head" style="cursor:default">
           <div class="folder__ic">${esc(icon)}</div>
