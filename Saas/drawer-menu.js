@@ -195,3 +195,178 @@
     if (typeof logout === 'function') logout(); else location.href = 'login.html';
   });
 })();
+
+// Recherche partagée : elle est ajoutée aux barres supérieures des pages outils.
+// Le tableau de bord conserve sa recherche dédiée, qui connaît également les
+// éléments de chaque étape et les modèles de documents.
+(function setupGlobalSearch() {
+  const actions = document.querySelector('.topbar__actions');
+  if (!actions || document.getElementById('dashboard-search') || actions.querySelector('.global-search')) return;
+
+  const search = document.createElement('form');
+  search.className = 'global-search';
+  search.setAttribute('role', 'search');
+  search.innerHTML = `
+    <label class="global-search__field" for="global-search-input">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4.5 4.5"></path></svg>
+      <input class="global-search__input" id="global-search-input" type="search" placeholder="Rechercher" autocomplete="off" aria-controls="global-search-results" />
+      <kbd class="global-search__shortcut" aria-hidden="true">⌘K</kbd>
+    </label>
+    <div class="global-search__results" id="global-search-results" aria-live="polite" hidden></div>`;
+
+  const menuButton = actions.querySelector('#actions-menu-btn');
+  actions.insertBefore(search, menuButton || null);
+
+  const input = search.querySelector('.global-search__input');
+  const resultsEl = search.querySelector('.global-search__results');
+  const tools = [
+    { type: 'Page', label: 'Tableau de bord', href: 'tableau-de-bord.html', keywords: ['accueil', 'dossiers', 'levee', 'levée', 'roadmap'] },
+    { type: 'Outil', label: 'Éditeur', href: 'editor.html', keywords: ['rediger', 'rédiger', 'clauses', 'term sheet', 'document'] },
+    { type: 'Outil', label: 'Comparer', href: 'compare.html', keywords: ['comparaison', 'versions', 'contrat'] },
+    { type: 'Outil', label: 'Tâches', href: 'taches.html', keywords: ['tache', 'todo', 'checklist', 'organisation'] },
+    { type: 'Outil', label: 'Valorisation', href: 'valorisation.html', keywords: ['estimation', 'berkus', 'scorecard', 'pre money', 'prix'] },
+    { type: 'Outil', label: 'Dilution', href: 'dilution.html', keywords: ['cap table', 'simulation', 'actions'] },
+    { type: 'Outil', label: 'Exit', href: 'exit.html', keywords: ['sortie', 'cession', 'liquidation', 'waterfall'] },
+    { type: 'Outil', label: 'Documents', href: 'documents.html', keywords: ['fichiers', 'pieces', 'pièces'] },
+    { type: 'Outil', label: 'Data room', href: 'data-room.html', keywords: ['dataroom', 'audit', 'due diligence'] },
+    { type: 'Page', label: 'Mon compte', href: 'compte.html', keywords: ['profil', 'abonnement', 'securite', 'sécurité'] },
+    { type: 'Page', label: 'Feedback', href: 'feedback.html', keywords: ['support', 'aide', 'message', 'bug'] },
+    { type: 'Page', label: 'Marché', href: 'marche.html', keywords: ['marche', 'marché', 'analyse'] },
+  ];
+  let documents = [];
+  let folders = [];
+  let dataLoaded = false;
+  let dataLoading = false;
+  let currentMatches = [];
+
+  const normalize = value => String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase('fr-FR');
+  const esc = value => String(value == null ? '' : value).replace(/[&<>\"]/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[char]));
+
+  function close({ clear = false } = {}) {
+    if (clear) input.value = '';
+    currentMatches = [];
+    resultsEl.hidden = true;
+    resultsEl.innerHTML = '';
+  }
+
+  function dashboardTarget(folderId, documentId) {
+    const params = new URLSearchParams();
+    if (folderId != null) params.set('targetFolder', String(folderId));
+    if (documentId != null) params.set('targetDocument', String(documentId));
+    return 'tableau-de-bord.html?' + params.toString();
+  }
+
+  function entries() {
+    const folderById = new Map(folders.map(folder => [String(folder.id), folder]));
+    const documentEntries = documents.map(document => {
+      const folder = folderById.get(String(document.folder_id));
+      const name = document.name || 'Document sans titre';
+      return {
+        type: 'Document', label: name,
+        detail: folder && folder.name ? folder.name : 'Mes documents',
+        href: document.kind === 'termsheet'
+          ? 'editor.html?doc=' + encodeURIComponent(document.id)
+          : dashboardTarget(document.folder_id, document.id),
+        keywords: [name, document.kind, folder && folder.name],
+      };
+    });
+    const folderEntries = folders.map(folder => ({
+      type: 'Dossier', label: folder.name || 'Dossier sans titre', detail: 'Tableau de bord',
+      href: dashboardTarget(folder.id),
+      keywords: [folder.name, folder.key, folder.track, ...(folder.checklist || [])],
+    }));
+    return [...tools, ...documentEntries, ...folderEntries];
+  }
+
+  function find(query) {
+    const needle = normalize(query).trim();
+    if (!needle) return [];
+    return entries()
+      .map(entry => {
+        const label = normalize(entry.label);
+        const values = [entry.label, entry.detail, ...(entry.keywords || [])].map(normalize);
+        const position = label.indexOf(needle);
+        const matches = values.some(value => value.includes(needle));
+        return { entry, matches, score: position === 0 ? 0 : position >= 0 ? 1 : 2 };
+      })
+      .filter(result => result.matches)
+      .sort((a, b) => a.score - b.score || a.entry.label.localeCompare(b.entry.label, 'fr'))
+      .slice(0, 10)
+      .map(result => result.entry);
+  }
+
+  function render() {
+    const query = input.value.trim();
+    if (!query) { close(); return; }
+    currentMatches = find(query);
+    resultsEl.hidden = false;
+    if (!currentMatches.length) {
+      resultsEl.innerHTML = `<p class="global-search__empty">Aucun résultat pour « ${esc(query)} ».</p>`;
+      return;
+    }
+    resultsEl.innerHTML = `
+      <p class="global-search__summary">${currentMatches.length} résultat${currentMatches.length > 1 ? 's' : ''}</p>
+      ${currentMatches.map((match, index) => `
+        <button class="global-search__result" type="button" data-global-search-result="${index}">
+          <span class="global-search__kind">${esc(match.type)}</span>
+          <span class="global-search__copy"><span class="global-search__name">${esc(match.label)}</span>${match.detail ? `<span class="global-search__detail">${esc(match.detail)}</span>` : ''}</span>
+        </button>`).join('')}`;
+  }
+
+  function go(match) {
+    if (!match || !match.href) return;
+    close({ clear: true });
+    window.location.href = match.href;
+  }
+
+  async function loadData() {
+    if (dataLoaded || dataLoading) return;
+    dataLoading = true;
+    try {
+      const [foldersResponse, documentsResponse] = await Promise.all([
+        fetch('/api/saas/folders', { credentials: 'include' }),
+        fetch('/api/saas/documents', { credentials: 'include' }),
+      ]);
+      if (foldersResponse.ok) folders = (await foldersResponse.json()).folders || [];
+      if (documentsResponse.ok) documents = (await documentsResponse.json()).documents || [];
+      dataLoaded = true;
+      if (input.value.trim()) render();
+    } catch {
+      // La recherche de navigation reste disponible même si les documents ne sont pas joignables.
+    } finally {
+      dataLoading = false;
+    }
+  }
+
+  search.addEventListener('submit', event => {
+    event.preventDefault();
+    go(currentMatches[0]);
+  });
+  input.addEventListener('focus', loadData);
+  input.addEventListener('input', () => {
+    render();
+    loadData();
+  });
+  resultsEl.addEventListener('click', event => {
+    const button = event.target.closest('[data-global-search-result]');
+    if (button) go(currentMatches[Number(button.dataset.globalSearchResult)]);
+  });
+  document.addEventListener('pointerdown', event => {
+    if (!search.contains(event.target)) close();
+  });
+  document.addEventListener('keydown', event => {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      input.focus();
+    }
+    if (event.key === 'Escape' && document.activeElement === input) {
+      close({ clear: true });
+      input.blur();
+    }
+  });
+})();

@@ -845,7 +845,7 @@
 
     <main class="dossiers">
       <div class="dossiers__head">
-        <input type="file" id="file-input" accept=".pdf,.doc,.docx" multiple hidden />
+        <input type="file" id="file-input" accept=".pdf,.doc,.docx,.xlsx,.xls,.png,.jpg,.jpeg" multiple hidden />
         <input type="file" id="investor-checklist-input" accept=".pdf,.doc,.docx" hidden />
       </div>
 
@@ -1773,6 +1773,45 @@
     const pendingSlots   = {}; // téléversements en cours vers un slot précis (clé folderId:slug → nom)
     const todosOpen = {}; // mémorise les listes « choses à faire » dépliées (clé folderId:slug)
     const versionsOpen = {}; // mémorise les historiques de versions dépliés (clé folderId:slug)
+    // Les liens de recherche des autres pages du SaaS peuvent viser un dossier
+    // ou un document précis du tableau de bord.
+    function revealGlobalSearchTarget() {
+      const url = currentUrlState();
+      if (!url) return;
+      const folderId = url.searchParams.get('targetFolder');
+      const documentId = url.searchParams.get('targetDocument');
+      if (!folderId && !documentId) return;
+
+      const targetDocument = docs.find(doc => String(doc.id) === String(documentId));
+      const folder = folders.find(item => String(item.id) === String(folderId))
+        || folders.find(item => String(item.id) === String(targetDocument && targetDocument.folder_id));
+      if (folder && isSystemPhase(folder)) {
+        if ((folder.track || 'classic') === 'bsa-air') openBsaStepCard(folder.key);
+        else openClassicStepPage(folder.key);
+      }
+
+      const selector = documentId ? `[data-search-document-id="${CSS.escape(String(documentId))}"]` : null;
+      const fallbackId = folder && folder.key ? 'phase-' + folder.key : null;
+      let tries = 0;
+      const scrollToTarget = () => {
+        const target = selector && document.querySelector(selector);
+        const fallback = fallbackId && document.getElementById(fallbackId);
+        if (target || fallback) {
+          (target || fallback).scrollIntoView({ behavior: 'smooth', block: target ? 'center' : 'start' });
+        } else if (++tries < 6) {
+          requestAnimationFrame(scrollToTarget);
+        }
+      };
+      requestAnimationFrame(scrollToTarget);
+
+      const cleanUrl = currentUrlState();
+      if (cleanUrl) {
+        cleanUrl.searchParams.delete('targetFolder');
+        cleanUrl.searchParams.delete('targetDocument');
+        history.replaceState(history.state, '', cleanUrl);
+      }
+    }
+
     const ddDoc = (label, mark = 'req') => ({ label, mark });
     const ddLabels = items => items.map(item => item.label);
     const ddMarks = items => items.map(item => item.mark || '');
@@ -2446,6 +2485,7 @@
         renderResume();
         render();
         renderDashboardSearchResults();
+        revealGlobalSearchTarget();
         loaded = true;
       } catch {
         foldersEl.innerHTML = '';
@@ -3645,7 +3685,7 @@
         ? `${lists.length} checklist${lists.length > 1 ? 's' : ''} importée${lists.length > 1 ? 's' : ''} · ${(f.checklist || []).length} document${(f.checklist || []).length > 1 ? 's' : ''} demandé${(f.checklist || []).length > 1 ? 's' : ''} au total. Chaque document indique à quel(s) investisseur(s) l’envoyer.`
         : fallbackActive
           ? 'Préparation Liquid+ temporaire affichée tant que vous n’avez pas de request list. L’import d’une checklist investisseur la remplacera automatiquement.'
-          : 'Importez la request list de chaque investisseur (PDF/Word). Vous pourrez nommer l’investisseur juste après. Vous pouvez aussi utiliser temporairement la liste complète Liquid+.';
+          : 'Importez la request list de chaque investisseur (PDF/Word). Vous pourrez nommer l’investisseur juste après. Vous pouvez aussi générer une checklist de préparation ou lister directement les modèles Liquid+.';
 
       box.innerHTML = `
         <div class="dd-checklists__head">
@@ -3655,7 +3695,10 @@
           </div>
           <div class="dd-checklists__actions">
             <button type="button" class="documents-action-btn" data-dd-import>Importer une checklist</button>
-            ${!imported ? `<button type="button" class="documents-action-btn" data-dd-fallback>${fallbackActive ? 'Masquer les modèles Liquid+' : 'Préparer avec les modèles Liquid+'}</button>` : ''}
+            ${!imported ? `
+              <button type="button" class="documents-action-btn" data-dd-generate ${fallbackActive ? 'disabled title="La checklist Liquid+ est déjà générée"' : ''}>Générer une checklist</button>
+              <button type="button" class="documents-action-btn" data-dd-fallback>${fallbackActive ? 'Masquer les modèles Liquid+' : 'Lister les modèles Liquid+'}</button>
+            ` : ''}
           </div>
         </div>`;
 
@@ -3703,6 +3746,8 @@
       }
 
       box.querySelector('[data-dd-import]').addEventListener('click', () => openInvestorChecklistImport(f.id));
+      const generateBtn = box.querySelector('[data-dd-generate]');
+      if (generateBtn) generateBtn.addEventListener('click', () => generateDDChecklist(f.id));
       const fallbackBtn = box.querySelector('[data-dd-fallback]');
       if (fallbackBtn) fallbackBtn.addEventListener('click', () => toggleDDFallbackModels(f.id, !fallbackActive));
       return box;
@@ -3845,8 +3890,6 @@
       category.items.forEach((item, offset) => {
         ol.appendChild(roadItem(f, categoryItemLabel(item), categoryItemIndex(item, startIndex + offset)));
       });
-      const body = section.querySelector('.doc-category__body');
-      body.appendChild(phaseLooseFilesEl(f, linkedIds, category.key, 'Fichiers libres de ce dossier'));
       attachCardDrop(section, f.id, category.key);
       return section;
     }
@@ -5444,6 +5487,12 @@
       } catch {
         showErr('Impossible de joindre le serveur.');
       }
+    }
+
+    // Génère la checklist de préparation Liquid+ pour cette étape. L'accès à la
+    // liste des modèles reste une action distincte dans l'interface.
+    function generateDDChecklist(folderId) {
+      return toggleDDFallbackModels(folderId, true);
     }
 
     // Téléverse un ou plusieurs fichiers, éventuellement dans un dossier précis
