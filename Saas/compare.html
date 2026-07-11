@@ -110,6 +110,44 @@
     .docpick__item__meta { margin-left: auto; font-family: 'Archivo', sans-serif; font-size: 12px; color: #6b6b78; flex: none; }
     .docpick__empty { color: rgba(255,255,255,0.62); font-size: 14px; line-height: 1.6; }
 
+    /* Bascule entre les deux modes du comparateur */
+    .cmp__tabs { display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
+    .cmp__tab { font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.01em; padding: 9px 16px; border-radius: 99px; border: 1px solid rgba(255,255,255,0.18); background: transparent; color: rgba(255,255,255,0.65); cursor: pointer; transition: background .15s, border-color .15s, color .15s; }
+    .cmp__tab:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
+    .cmp__tab.is-active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+
+    /* Sélecteur multi-documents (comparaison entre investisseurs) : case + nom + input investisseur */
+    .docpick__row { display: flex; align-items: center; gap: 12px; width: 100%; background: #fff; border-radius: 12px; padding: 11px 14px; cursor: pointer; }
+    .docpick__row input[type=checkbox] { width: 17px; height: 17px; accent-color: #3b82f6; flex: none; cursor: pointer; }
+    .docpick__row__name { font-weight: 700; color: #08090c; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px; }
+    .docpick__row__date { font-family: 'Archivo', sans-serif; font-size: 11.5px; color: #6b6b78; flex: none; }
+    .docpick__row__inv { margin-left: auto; width: 180px; flex: none; font: inherit; font-size: 13px; padding: 7px 10px; border-radius: 8px; border: 1px solid #d8d8de; color: #08090c; cursor: text; }
+    .docpick__row__inv:disabled { background: #f3f3f5; color: #9a9aa3; cursor: not-allowed; }
+    .docpick__row__inv::placeholder { color: #9a9aa3; }
+
+    /* Tableau de comparaison critère par critère (term sheets de plusieurs investisseurs) */
+    .cmptable-wrap { margin-top: 26px; }
+    .cmptable-scroll { overflow-x: auto; border-radius: 14px; box-shadow: 0 8px 26px rgba(0,0,0,0.3); }
+    .cmptable { border-collapse: collapse; width: 100%; min-width: 480px; background: #fff; }
+    .cmptable th, .cmptable td { padding: 10px 14px; font-size: 13.5px; text-align: left; border-bottom: 1px solid #eef0f3; vertical-align: top; }
+    .cmptable thead th { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #6b6b78; background: #f8f9fb; white-space: nowrap; }
+    .cmptable tbody th { font-weight: 700; color: #08090c; white-space: nowrap; }
+    .cmptable td { color: #374151; }
+    .cmptable td.is-best { background: rgba(22,163,74,0.08); color: #14532d; font-weight: 600; }
+    .cmptable tbody tr:last-child th, .cmptable tbody tr:last-child td { border-bottom: none; }
+
+    /* Cartes de synthèse par investisseur */
+    .invcards { margin-top: 26px; display: grid; gap: 14px; }
+    .invcard { background: #fff; border-radius: 14px; padding: 16px 18px; box-shadow: 0 8px 26px rgba(0,0,0,0.3); }
+    .invcard__top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .invcard__name { font-weight: 700; font-size: 15px; color: #08090c; letter-spacing: -0.01em; }
+    .invcard__summary { margin-top: 10px; font-size: 13.5px; line-height: 1.55; color: #374151; }
+    .invcard__list { margin-top: 10px; }
+    .invcard__lab { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6b6b78; margin-bottom: 4px; }
+    .invcard__lab--strength { color: #15803d; }
+    .invcard__lab--concern { color: #b45309; }
+    .invcard ul { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.55; color: #374151; }
+
     /* Sélecteur des versions à comparer (cochables) */
     .vpick__row { display: flex; align-items: center; gap: 12px; background: #fff; border-radius: 12px; padding: 11px 14px; cursor: pointer; }
     .vpick__row input { width: 17px; height: 17px; accent-color: #3b82f6; flex: none; cursor: pointer; }
@@ -202,6 +240,7 @@
         <a class="drawer__link" href="exit.html" target="_blank" rel="noopener" title="Simulateur d'exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Exit</a>
         <a class="drawer__link" href="documents.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>Documents</a>
         <a class="drawer__link" href="data-room.html" target="_blank" rel="noopener" title="Data room"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/></svg>Data room</a>
+        <a class="drawer__link" href="investisseurs.html" target="_blank" rel="noopener" title="Pipeline investisseurs"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>Investisseurs</a>
         <div class="drawer__sep"></div>
         <a class="drawer__link" href="compte.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>Mon compte</a>
         <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Écrire au fondateur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
@@ -220,48 +259,103 @@
     <main class="cmp">
       <div class="cmp__eyebrow">Analyse IA</div>
       <h1 class="cmp__title">Comparer les versions</h1>
-      <p class="cmp__sub">Toutes les modifications d'un document au fil de la négociation, dans l'ordre chronologique — qui a probablement rédigé chaque version, et les intentions derrière chaque changement.</p>
+      <p class="cmp__sub" id="cmp-sub">Toutes les modifications d'un document au fil de la négociation, dans l'ordre chronologique — qui a probablement rédigé chaque version, et les intentions derrière chaque changement.</p>
 
-      <!-- Choix du document (ouverture directe de l'outil, sans version pré-sélectionnée) -->
-      <div class="docpick" id="docpick" hidden>
-        <div class="docpick__h">Choisissez un document à analyser</div>
-        <div class="docpick__list" id="docpick-list"></div>
+      <!-- Ne s'affiche qu'à l'ouverture générale de l'outil (pas sur un lien direct
+           « comparer ces 2 versions » venant de l'éditeur ou du tableau de bord). -->
+      <div class="cmp__tabs" id="cmp-tabs" hidden>
+        <button type="button" class="cmp__tab is-active" data-tab="versions">Versions d'un même document</button>
+        <button type="button" class="cmp__tab" data-tab="investors">Term sheets de plusieurs investisseurs</button>
       </div>
 
-      <!-- Sélecteur des versions à comparer (par défaut : toutes, ordre chronologique) -->
-      <div class="vpick" id="vpick" hidden>
-        <div class="vpick__h"><span id="vpick-title">Versions à comparer</span><span class="vpick__hint">ordre chronologique</span></div>
-        <div class="vpick__list" id="vpick-list"></div>
-      </div>
+      <div id="panel-versions">
+        <!-- Choix du document (ouverture directe de l'outil, sans version pré-sélectionnée) -->
+        <div class="docpick" id="docpick" hidden>
+          <div class="docpick__h">Choisissez un document à analyser</div>
+          <div class="docpick__list" id="docpick-list"></div>
+        </div>
 
-      <div class="cmp__intro" id="intro" hidden>
-        <p class="cmp__introtext" id="introtext">Lancez l'analyse pour comparer les versions sélectionnées avec l'IA. Cela peut prendre quelques secondes.</p>
-        <div class="cmp__actions">
-          <button class="cmp-btn cmp-btn--go" id="analyze-btn">Analyser</button>
-          <button class="cmp-btn cmp-btn--cancel" id="cancel-btn" disabled>Annuler</button>
-          <button type="button" class="aimax" data-aimax-toggle aria-pressed="false" title="Mode rapide. Cliquez pour une comparaison approfondie « Max »."><span class="aimax__i" aria-hidden="true">✦</span><span>Max</span></button>
+        <!-- Sélecteur des versions à comparer (par défaut : toutes, ordre chronologique) -->
+        <div class="vpick" id="vpick" hidden>
+          <div class="vpick__h"><span id="vpick-title">Versions à comparer</span><span class="vpick__hint">ordre chronologique</span></div>
+          <div class="vpick__list" id="vpick-list"></div>
+        </div>
+
+        <div class="cmp__intro" id="intro" hidden>
+          <p class="cmp__introtext" id="introtext">Lancez l'analyse pour comparer les versions sélectionnées avec l'IA. Cela peut prendre quelques secondes.</p>
+          <div class="cmp__actions">
+            <button class="cmp-btn cmp-btn--go" id="analyze-btn">Analyser</button>
+            <button class="cmp-btn cmp-btn--cancel" id="cancel-btn" disabled>Annuler</button>
+            <button type="button" class="aimax" data-aimax-toggle aria-pressed="false" title="Mode rapide. Cliquez pour une comparaison approfondie « Max »."><span class="aimax__i" aria-hidden="true">✦</span><span>Max</span></button>
+          </div>
+        </div>
+
+        <div class="cmp__loading" id="loading" hidden>
+          <div class="spin"></div>
+          <div>Analyse des versions par l'IA… cela peut prendre quelques secondes.</div>
+        </div>
+
+        <div class="cmp__err" id="error" hidden></div>
+
+        <div id="result" hidden>
+          <div id="verdict-wrap" style="margin-top:22px" hidden><span class="verdict" id="verdict"></span></div>
+          <div class="summary" id="summary-card" hidden>
+            <div class="summary__h">Synthèse de la négociation</div>
+            <div class="summary__text" id="summary-text"></div>
+          </div>
+
+          <div class="timeline" id="timeline" hidden></div>
+
+          <div class="reco" id="reco-card" hidden>
+            <div class="reco__h">Conseil fondateur</div>
+            <div class="reco__text" id="reco-text"></div>
+          </div>
         </div>
       </div>
 
-      <div class="cmp__loading" id="loading" hidden>
-        <div class="spin"></div>
-        <div>Analyse des versions par l'IA… cela peut prendre quelques secondes.</div>
-      </div>
-
-      <div class="cmp__err" id="error" hidden></div>
-
-      <div id="result" hidden>
-        <div id="verdict-wrap" style="margin-top:22px" hidden><span class="verdict" id="verdict"></span></div>
-        <div class="summary" id="summary-card" hidden>
-          <div class="summary__h">Synthèse de la négociation</div>
-          <div class="summary__text" id="summary-text"></div>
+      <!-- Comparaison de plusieurs documents INDÉPENDANTS du même type (ex. term
+           sheets envoyées par des investisseurs différents) : pas de chronologie
+           ni d'auteur, une comparaison critère par critère. -->
+      <div id="panel-investors" hidden>
+        <div class="docpick" id="docpick-inv">
+          <div class="docpick__h">Sélectionnez au moins deux documents à comparer, et indiquez l'investisseur de chacun</div>
+          <div class="docpick__list" id="docpick-inv-list"></div>
         </div>
 
-        <div class="timeline" id="timeline" hidden></div>
+        <div class="cmp__intro" id="intro-inv" hidden>
+          <p class="cmp__introtext" id="introtext-inv">Sélectionnez au moins deux documents à comparer.</p>
+          <div class="cmp__actions">
+            <button class="cmp-btn cmp-btn--go" id="analyze-inv-btn">Analyser</button>
+            <button class="cmp-btn cmp-btn--cancel" id="cancel-inv-btn" disabled>Annuler</button>
+            <button type="button" class="aimax" data-aimax-toggle aria-pressed="false" title="Mode rapide. Cliquez pour une comparaison approfondie « Max »."><span class="aimax__i" aria-hidden="true">✦</span><span>Max</span></button>
+          </div>
+        </div>
 
-        <div class="reco" id="reco-card" hidden>
-          <div class="reco__h">Conseil fondateur</div>
-          <div class="reco__text" id="reco-text"></div>
+        <div class="cmp__loading" id="loading-inv" hidden>
+          <div class="spin"></div>
+          <div>Analyse des propositions par l'IA… cela peut prendre quelques secondes.</div>
+        </div>
+
+        <div class="cmp__err" id="error-inv" hidden></div>
+
+        <div id="result-inv" hidden>
+          <div id="verdict-inv-wrap" style="margin-top:22px" hidden><span class="verdict" id="verdict-inv"></span></div>
+          <div class="summary" id="summary-inv-card" hidden>
+            <div class="summary__h">Synthèse comparative</div>
+            <div class="summary__text" id="summary-inv-text"></div>
+          </div>
+
+          <div class="cmptable-wrap" id="cmptable-wrap" hidden>
+            <div class="changes__h">Comparaison critère par critère</div>
+            <div class="cmptable-scroll"><table class="cmptable" id="cmptable"></table></div>
+          </div>
+
+          <div class="invcards" id="invcards" hidden></div>
+
+          <div class="reco" id="reco-inv-card" hidden>
+            <div class="reco__h">Conseil fondateur</div>
+            <div class="reco__text" id="reco-inv-text"></div>
+          </div>
         </div>
       </div>
 
@@ -307,6 +401,41 @@
       loadingEl.hidden = true;
       errorEl.hidden = false;
       errorEl.textContent = msg;
+    }
+
+    // ── Bascule Versions / Investisseurs (uniquement à l'ouverture générale) ──
+    const JOB_TYPE_INV = 'doc-compare-investors';
+    const tabsEl           = document.getElementById('cmp-tabs');
+    const panelVersionsEl  = document.getElementById('panel-versions');
+    const panelInvestorsEl = document.getElementById('panel-investors');
+    const cmpSubEl         = document.getElementById('cmp-sub');
+    const loadingInvEl     = document.getElementById('loading-inv');
+    const errorInvEl       = document.getElementById('error-inv');
+    const resultInvEl      = document.getElementById('result-inv');
+    const docpickInvEl     = document.getElementById('docpick-inv');
+    const introInvEl       = document.getElementById('intro-inv');
+    const introtextInvEl   = document.getElementById('introtext-inv');
+    const analyzeInvBtn    = document.getElementById('analyze-inv-btn');
+    const cancelInvBtn     = document.getElementById('cancel-inv-btn');
+
+    const SUB_TEXT = {
+      versions: "Toutes les modifications d'un document au fil de la négociation, dans l'ordre chronologique — qui a probablement rédigé chaque version, et les intentions derrière chaque changement.",
+      investors: "Comparez des term sheets (ou tout autre document comparable) proposées par différents investisseurs, critère par critère, pour choisir avec qui avancer.",
+    };
+    let invInited = false;
+    function switchTab(tab) {
+      const toInv = tab === 'investors';
+      panelVersionsEl.hidden = toInv;
+      panelInvestorsEl.hidden = !toInv;
+      [...tabsEl.querySelectorAll('.cmp__tab')].forEach(b => b.classList.toggle('is-active', b.dataset.tab === tab));
+      cmpSubEl.textContent = SUB_TEXT[tab] || SUB_TEXT.versions;
+      if (toInv && !invInited) { invInited = true; initInvestorsPanel(); }
+    }
+
+    function showInvError(msg) {
+      loadingInvEl.hidden = true;
+      errorInvEl.hidden = false;
+      errorInvEl.textContent = msg;
     }
 
     const VERDICT_CLASS = [
@@ -638,34 +767,258 @@
       else { const full = await LiquidTasks.fetchResult(job.id); if (full) { finishCompare(full); LiquidTasks.dismiss(job.id); } }
     }
 
+    // ── Comparaison de term sheets de plusieurs investisseurs ─────────────────
+    // Documents INDÉPENDANTS (pas des versions successives) : on liste tous les
+    // documents du fondateur, il en coche au moins deux et nomme l'investisseur
+    // associé à chacun.
+    let invCandidates = [];
+
+    async function initInvestorsPanel() {
+      const list = document.getElementById('docpick-inv-list');
+      list.innerHTML = '<div class="docpick__empty">Chargement…</div>';
+      let docs = [];
+      try {
+        const r = await fetch('/api/saas/documents', { credentials: 'include' });
+        const d = await r.json();
+        docs = (d.documents || []).filter(x => !x.is_investor_checklist);
+      } catch { /* liste vide */ }
+      invCandidates = docs;
+      if (!docs.length) {
+        list.innerHTML = '<div class="docpick__empty">Aucun document à comparer pour l\'instant. Importez plusieurs term sheets (une par investisseur) depuis « Documents », puis revenez ici.</div>';
+        return;
+      }
+      list.innerHTML = '';
+      docs.forEach((doc, i) => {
+        const row = document.createElement('div');
+        row.className = 'docpick__row';
+        row.dataset.i = i;
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.addEventListener('change', () => { inp.disabled = !cb.checked; updateInvIntro(); });
+        const name = document.createElement('span');
+        name.className = 'docpick__row__name';
+        name.textContent = doc.name || 'Document';
+        name.title = doc.name || '';
+        const date = document.createElement('span');
+        date.className = 'docpick__row__date';
+        const when = doc.updated_at || doc.created_at;
+        date.textContent = when ? fmtDate(when) : '';
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.className = 'docpick__row__inv';
+        inp.placeholder = 'Nom de l\'investisseur';
+        inp.disabled = true;
+        inp.addEventListener('input', updateInvIntro);
+        row.append(cb, name, date, inp);
+        row.addEventListener('click', (e) => {
+          if (e.target === cb || e.target === inp) return;
+          cb.checked = !cb.checked;
+          cb.dispatchEvent(new Event('change'));
+        });
+        list.appendChild(row);
+      });
+      introInvEl.hidden = false;
+      updateInvIntro();
+    }
+
+    function invSelectedRows() {
+      return [...document.querySelectorAll('#docpick-inv-list .docpick__row')]
+        .map(row => ({ row, cb: row.querySelector('input[type=checkbox]'), inp: row.querySelector('.docpick__row__inv') }))
+        .filter(x => x.cb.checked);
+    }
+
+    function selectedInvEntries() {
+      return invSelectedRows().map((x, idx) => {
+        const doc = invCandidates[Number(x.row.dataset.i)];
+        return { docId: doc.id, investor: x.inp.value.trim() || ('Investisseur ' + (idx + 1)) };
+      });
+    }
+
+    function updateInvIntro() {
+      const n = selectedInvEntries().length;
+      analyzeInvBtn.disabled = n < 2 || !!currentInvJobId;
+      introtextInvEl.textContent = n < 2
+        ? 'Sélectionnez au moins deux documents à comparer, et indiquez (facultatif) le nom de l\'investisseur pour chacun.'
+        : 'Comparer les ' + n + ' propositions sélectionnées critère par critère avec l\'IA : ce qui diffère et laquelle est la plus favorable. Cela peut prendre quelques secondes.';
+    }
+
+    function changesTableRow(c, n) {
+      let row = `<th>${esc(c.name)}</th>`;
+      for (let i = 0; i < n; i++) row += `<td class="${c.bestIndex === i ? 'is-best' : ''}">${esc(c.values[i] || '')}</td>`;
+      return row;
+    }
+
+    function renderInvResult(data) {
+      loadingInvEl.hidden = true;
+      resultInvEl.hidden = false;
+
+      const metas = (data.meta && Array.isArray(data.meta.docs)) ? data.meta.docs : [];
+      const names = metas.map(m => m.investor || m.name || 'Investisseur');
+
+      if (data.overallSummary) {
+        document.getElementById('summary-inv-text').textContent = data.overallSummary;
+        document.getElementById('summary-inv-card').hidden = false;
+      }
+
+      const criteria = Array.isArray(data.criteria) ? data.criteria : [];
+      if (criteria.length && names.length) {
+        const table = document.getElementById('cmptable');
+        table.innerHTML = '<thead><tr><th>Critère</th>' + names.map(nm => `<th>${esc(nm)}</th>`).join('') + '</tr></thead>';
+        const tbody = document.createElement('tbody');
+        criteria.forEach(c => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = changesTableRow(c, names.length);
+          tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        document.getElementById('cmptable-wrap').hidden = false;
+      }
+
+      const perInvestor = Array.isArray(data.perInvestor) ? data.perInvestor : [];
+      if (perInvestor.length) {
+        const wrap = document.getElementById('invcards');
+        wrap.innerHTML = '';
+        perInvestor.forEach((p, i) => {
+          const card = document.createElement('div');
+          card.className = 'invcard';
+          const strengths = Array.isArray(p.strengths) ? p.strengths : [];
+          const concerns  = Array.isArray(p.concerns) ? p.concerns : [];
+          card.innerHTML =
+            `<div class="invcard__top">
+               <span class="invcard__name">${esc(names[i] || 'Investisseur ' + (i + 1))}</span>
+               ${p.verdict ? `<span class="verdict ${verdictClass(p.verdict)}">${esc(p.verdict)}</span>` : ''}
+             </div>
+             ${p.summary ? `<div class="invcard__summary">${esc(p.summary)}</div>` : ''}
+             ${strengths.length ? `<div class="invcard__list"><div class="invcard__lab invcard__lab--strength">Points forts</div><ul>${strengths.map(s => `<li>${esc(s)}</li>`).join('')}</ul></div>` : ''}
+             ${concerns.length ? `<div class="invcard__list"><div class="invcard__lab invcard__lab--concern">Points de vigilance</div><ul>${concerns.map(s => `<li>${esc(s)}</li>`).join('')}</ul></div>` : ''}`;
+          wrap.appendChild(card);
+        });
+        wrap.hidden = false;
+      }
+
+      if (data.recommendation) {
+        document.getElementById('reco-inv-text').textContent = data.recommendation;
+        document.getElementById('reco-inv-card').hidden = false;
+      }
+
+      if (!data.overallSummary && !criteria.length && !perInvestor.length && !data.recommendation) {
+        showInvError('Aucune comparaison exploitable n\'a pu être établie entre les documents sélectionnés.');
+        resultInvEl.hidden = true;
+      }
+    }
+
+    let currentInvJobId = null;
+
+    function setInvAnalyzing(on) {
+      analyzeInvBtn.disabled = on || selectedInvEntries().length < 2;
+      analyzeInvBtn.textContent = on ? 'Analyse…' : 'Analyser';
+      cancelInvBtn.disabled = !on;
+      loadingInvEl.hidden = !on;
+    }
+
+    function finishInvCompare(job) {
+      currentInvJobId = null;
+      setInvAnalyzing(false);
+      if (job && job.result) {
+        docpickInvEl.hidden = true;
+        introInvEl.hidden = true;
+        renderInvResult(job.result);
+      }
+    }
+
+    async function watchInvCompare(id) {
+      currentInvJobId = id;
+      for (;;) {
+        if (currentInvJobId !== id) return;
+        let job = null;
+        try { job = await LiquidTasks.fetchResult(id); } catch { await sleep(1600); continue; }
+        if (!job) { setInvAnalyzing(false); currentInvJobId = null; return; }
+        if (job.status === 'done')      { finishInvCompare(job); LiquidTasks.dismiss(id); return; }
+        if (job.status === 'error')     { showInvError(job.error || 'La comparaison a échoué. Réessayez dans un instant.'); setInvAnalyzing(false); currentInvJobId = null; return; }
+        if (job.status === 'cancelled') { setInvAnalyzing(false); introInvEl.hidden = false; currentInvJobId = null; return; }
+        await sleep(1600);
+      }
+    }
+
+    async function analyzeInvestors() {
+      if (currentInvJobId) return;
+      const entries = selectedInvEntries();
+      if (entries.length < 2) { showInvError('Sélectionnez au moins deux documents à comparer.'); return; }
+      errorInvEl.hidden = true;
+      resultInvEl.hidden = true;
+      setInvAnalyzing(true);
+      try {
+        const { id } = await LiquidTasks.launch({
+          type: JOB_TYPE_INV,
+          payload: { title: 'Term sheets', docs: entries },
+          label: 'Comparaison de ' + entries.length + ' propositions',
+          location: { url: jobLocation },
+        });
+        watchInvCompare(id);
+      } catch (err) {
+        showInvError(err && err.message ? err.message : 'Impossible de lancer la comparaison.');
+        setInvAnalyzing(false);
+      }
+    }
+
+    function cancelInvAnalyze() {
+      if (currentInvJobId) { LiquidTasks.cancel(currentInvJobId); currentInvJobId = null; }
+      setInvAnalyzing(false);
+      introInvEl.hidden = false;
+    }
+
+    async function reconcileInvestors() {
+      if (!window.LiquidTasks) return;
+      let jobs = [];
+      try { jobs = await LiquidTasks.list(); } catch { return; }
+      const job = jobs.find(j => j.type === JOB_TYPE_INV && j.location && j.location.url === jobLocation
+        && (j.status === 'running' || j.status === 'done'));
+      if (!job) return;
+      if (job.status === 'running') { setInvAnalyzing(true); watchInvCompare(job.id); }
+      else { const full = await LiquidTasks.fetchResult(job.id); if (full) { finishInvCompare(full); LiquidTasks.dismiss(job.id); } }
+    }
+
     async function init() {
       const user = await requireAuth();
       if (!user) return;
       document.querySelector('.app').classList.add('ready');
 
+      // Les tabs ne s'affichent qu'à l'ouverture générale de l'outil : un lien
+      // direct « comparer ces 2 versions » (éditeur, tableau de bord) reste sur
+      // le flux versions, sans distraire avec le second mode.
+      const genericEntry = !docId && !(oldId || oldVid) && !(newId || newVid);
+      if (genericEntry) {
+        tabsEl.hidden = false;
+        tabsEl.querySelectorAll('.cmp__tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+      }
+      analyzeInvBtn.addEventListener('click', analyzeInvestors);
+      cancelInvBtn.addEventListener('click', (e) => { e.preventDefault(); cancelInvAnalyze(); });
+
       await loadCandidates();
 
       // Aucune version ciblée : on propose de choisir un document éditable.
       if (!candidates.length) {
-        if (!docId && !(oldId || oldVid) && !(newId || newVid)) { await renderDocPicker(); return; }
-        showError('Comparaison impossible : versions non spécifiées. Revenez aux dossiers ou à l\'éditeur et relancez la comparaison.');
-        return;
-      }
-      if (candidates.length < 2) {
+        if (genericEntry) await renderDocPicker();
+        else showError('Comparaison impossible : versions non spécifiées. Revenez aux dossiers ou à l\'éditeur et relancez la comparaison.');
+      } else if (candidates.length < 2) {
         showError(docId
           ? 'Ce document n\'a qu\'une seule version. Validez d\'autres versions dans l\'éditeur (bouton « Valider la version ») pour retracer leur évolution, puis revenez ici.'
           : 'Il faut au moins deux versions à comparer.');
-        return;
+      } else {
+        renderVPicker();
+        analyzeBtn.addEventListener('click', analyze);
+        cancelBtn.addEventListener('click', (e) => { e.preventDefault(); cancelAnalyze(); });
+        updateIntro();
       }
 
-      renderVPicker();
-      analyzeBtn.addEventListener('click', analyze);
-      cancelBtn.addEventListener('click', (e) => { e.preventDefault(); cancelAnalyze(); });
-      updateIntro();
-
       if (window.LiquidTasks) {
-        LiquidTasks.on('goto', (j) => { if (j && j.type === JOB_TYPE && j.location && j.location.url === jobLocation) reconcileCompare(); });
+        LiquidTasks.on('goto', (j) => {
+          if (!j || !j.location || j.location.url !== jobLocation) return;
+          if (j.type === JOB_TYPE) reconcileCompare();
+          else if (j.type === JOB_TYPE_INV) reconcileInvestors();
+        });
         reconcileCompare();
+        reconcileInvestors();
       }
     }
 

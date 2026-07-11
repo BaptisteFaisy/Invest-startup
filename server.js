@@ -2826,6 +2826,85 @@ app.delete('/api/saas/tasks/:id', requireAuth, async (req, res) => {
   res.json({ success: true });
 });
 
+// ─── Pipeline investisseurs (suivi manuel des investisseurs par le fondateur) ─
+const INVESTOR_STAGES = ['a_contacter', 'contacte', 'interesse', 'due_diligence', 'negociation', 'engage', 'decline'];
+
+function publicInvestor(inv) {
+  const { _id, user_id, ...rest } = inv;
+  return rest;
+}
+
+app.get('/api/saas/investors', requireAuth, async (req, res) => {
+  const investors = await col('saas_investors')
+    .find({ user_id: req.user.id }, { projection: { _id: 0, user_id: 0 } })
+    .sort({ order: 1, id: 1 })
+    .toArray();
+  res.json({ investors });
+});
+
+app.post('/api/saas/investors', requireAuth, async (req, res) => {
+  const name = (req.body?.name || '').trim().slice(0, 200);
+  if (!name) return res.status(400).json({ error: "Nom de l'investisseur requis" });
+  const firm    = (req.body?.firm || '').toString().trim().slice(0, 200);
+  const email   = (req.body?.email || '').toString().trim().slice(0, 200);
+  const phone   = (req.body?.phone || '').toString().trim().slice(0, 60);
+  const notes   = (req.body?.notes || '').toString().trim().slice(0, 2000);
+  const stage   = INVESTOR_STAGES.includes(req.body?.stage) ? req.body.stage : 'a_contacter';
+  const amountRaw = Number(req.body?.amount);
+  const amount = Number.isFinite(amountRaw) && amountRaw > 0 ? amountRaw : null;
+
+  const id   = await nextId('saas_investors');
+  const last = await col('saas_investors').findOne({ user_id: req.user.id }, { sort: { order: -1 }, projection: { order: 1 } });
+  const investor = {
+    id, user_id: req.user.id, name, firm, email, phone, amount, stage, notes,
+    order: (last?.order ?? -1) + 1, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+  };
+  await col('saas_investors').insertOne(investor);
+  res.status(201).json({ investor: publicInvestor(investor) });
+});
+
+app.put('/api/saas/investors/:id', requireAuth, async (req, res) => {
+  const id       = Number(req.params.id);
+  const investor = await col('saas_investors').findOne({ id, user_id: req.user.id });
+  if (!investor) return res.status(404).json({ error: 'Investisseur introuvable' });
+
+  const body  = req.body || {};
+  const set   = {};
+  const unset = {};
+
+  if ('name' in body) {
+    const name = (body.name || '').trim().slice(0, 200);
+    if (!name) return res.status(400).json({ error: "Nom de l'investisseur requis" });
+    set.name = name;
+  }
+  if ('firm' in body)  set.firm  = (body.firm || '').toString().trim().slice(0, 200);
+  if ('email' in body) set.email = (body.email || '').toString().trim().slice(0, 200);
+  if ('phone' in body) set.phone = (body.phone || '').toString().trim().slice(0, 60);
+  if ('notes' in body) set.notes = (body.notes || '').toString().trim().slice(0, 2000);
+  if ('stage' in body && INVESTOR_STAGES.includes(body.stage)) set.stage = body.stage;
+  if ('amount' in body) {
+    const amountRaw = Number(body.amount);
+    if (Number.isFinite(amountRaw) && amountRaw > 0) set.amount = amountRaw;
+    else unset.amount = '';
+  }
+
+  if (Object.keys(set).length || Object.keys(unset).length) {
+    set.updated_at = new Date().toISOString();
+    const update = { $set: set };
+    if (Object.keys(unset).length) update.$unset = unset;
+    await col('saas_investors').updateOne({ id, user_id: req.user.id }, update);
+  }
+  res.json({ success: true });
+});
+
+app.delete('/api/saas/investors/:id', requireAuth, async (req, res) => {
+  const id       = Number(req.params.id);
+  const investor = await col('saas_investors').findOne({ id, user_id: req.user.id });
+  if (!investor) return res.status(404).json({ error: 'Investisseur introuvable' });
+  await col('saas_investors').deleteOne({ id, user_id: req.user.id });
+  res.json({ success: true });
+});
+
 // Range (ou retire) un document dans un dossier.
 app.put('/api/saas/documents/:id/folder', requireAuth, async (req, res) => {
   const id  = Number(req.params.id);
@@ -4821,6 +4900,111 @@ Règles de forme :
   return { ...result, meta: { title, versions: metas, total: totalCount } };
 }
 
+// Comparaison de PLUSIEURS documents INDÉPENDANTS du même type (typiquement des
+// term sheets envoyées par des investisseurs DIFFÉRENTS). Contrairement à
+// computeDocCompareMulti, ce ne sont pas des versions successives d'un même
+// document : pas de tri chronologique, pas d'inférence d'auteur. On demande à
+// l'IA une comparaison CRITÈRE PAR CRITÈRE (valorisation, préférence de
+// liquidation, anti-dilution, gouvernance…) pour aider le fondateur à choisir
+// avec quel investisseur avancer.
+async function computeDocCompareInvestors(userId, body, signal, thinking) {
+  async function resolveEntry(entry) {
+    const docId = Number(entry?.docId);
+    if (!docId) return null;
+    const d = await col('saas_documents').findOne({ id: docId, user_id: userId });
+    if (!d) return null;
+    const investor = shortText(entry?.investor, 80) || d.name || 'Investisseur';
+    return { doc: d, meta: { id: docId, name: d.name, investor } };
+  }
+
+  const entries = Array.isArray(body?.docs) ? body.docs.slice(0, 8) : [];
+  if (entries.length < 2) { const e = new Error('Sélectionnez au moins deux documents à comparer.'); e.status = 400; throw e; }
+
+  let sides = (await Promise.all(entries.map(resolveEntry))).filter(Boolean);
+  const seen = new Set();
+  sides = sides.filter(s => { const k = 'd' + s.meta.id; if (seen.has(k)) return false; seen.add(k); return true; });
+  if (sides.length < 2) { const e = new Error('Au moins deux des documents sélectionnés sont introuvables.'); e.status = 404; throw e; }
+
+  const texts = await Promise.all(sides.map(s => docPlainText(s.doc)));
+  const usable = sides.map((s, i) => ({ side: s, text: (texts[i] || '').trim() })).filter(x => x.text);
+  if (usable.length < 2) { const e = new Error('Impossible d\'extraire le texte d\'au moins deux documents (format non supporté — image, tableur — ou fichiers vides). La comparaison IA fonctionne pour les PDF, les Word et les documents éditables.'); e.status = 422; throw e; }
+
+  const n = usable.length;
+  const perBudget = Math.max(2500, Math.floor(46000 / n));
+  const title = String(body?.title || 'Term sheets');
+  const metas = usable.map(x => x.side.meta);
+
+  const cacheHash = aiHash('doc-compare-investors-' + (thinking ? 'max' : 'fast'), [title, ...usable.map(x => x.text.slice(0, perBudget))]);
+  const cached = await aiCacheGet(cacheHash);
+  if (cached) return { ...cached, meta: { title, docs: metas }, cached: true };
+
+  const docsBlock = usable.map((x, i) => `═══ PROPOSITION ${i + 1} — ${x.side.meta.investor} ═══\n${x.text.slice(0, perBudget)}`).join('\n\n');
+
+  const system =
+`Tu es l'assistant juridique de « liquid + », un outil pour fondateurs de startup en levée de fonds.
+On te donne ${n} documents INDÉPENDANTS du même type (term sheets, ou autres documents de levée comparables), chacun proposé par un investisseur DIFFÉRENT — ce ne sont PAS des versions successives d'un même document, mais des propositions concurrentes que le fondateur doit comparer pour choisir avec qui avancer.
+
+Titre / contexte : « ${title} »
+
+${docsBlock}
+
+Ta mission :
+
+1) CRITÈRES CLÉS. Identifie les critères de négociation qui apparaissent dans au moins un des documents (parmi, sans s'y limiter : valorisation pre/post-money, montant levé, type d'instrument, préférence de liquidation, anti-dilution, board/gouvernance, matières réservées, vesting/leaver, pro-rata, exclusivité, conditions suspensives, frais). Pour chaque critère, indique CE QUE PROPOSE CHAQUE INVESTISSEUR (une valeur courte par proposition ; "Non précisé" si absent) et lequel est le PLUS FAVORABLE AU FONDATEUR sur ce point précis.
+
+2) SYNTHÈSE PAR INVESTISSEUR. Pour chaque proposition, un verdict global ('Favorable au fondateur' | 'Plutôt neutre' | 'Vigilance requise' | 'Défavorable au fondateur'), un résumé (1-2 phrases), 1 à 3 points forts et 1 à 3 points de vigilance pour le fondateur.
+
+3) RECOMMANDATION. 2 à 4 phrases : quelle(s) proposition(s) semblent les plus intéressantes pour le fondateur et pourquoi, et quels points précis négocier avec les autres.
+
+Renvoie aussi "overallSummary" (1-2 phrases situant l'écart global entre les propositions).
+
+Règles de forme :
+- Pour chaque critère : "name" (court), "values" un tableau de ${n} chaînes (une par proposition, DANS L'ORDRE des propositions ci-dessus), "bestIndex" (index 0-based de la proposition la plus favorable au fondateur sur ce critère, ou null si équivalent/non comparable).
+- Classe les critères du plus structurant au moins structurant pour le fondateur.`;
+
+  const response = await glmChat({
+    system,
+    messages: [{ role: 'user', content: `Compare ces ${n} propositions d'investisseurs critère par critère et donne une recommandation au fondateur.` }],
+    maxTokens: 16000, thinking: !!thinking, json: true,
+    jsonHint: 'Format : {"overallSummary":"...","criteria":[{"name":"Valorisation pre-money","values":["8M€","6M€"],"bestIndex":0}],"perInvestor":[{"verdict":"Vigilance requise","summary":"...","strengths":["..."],"concerns":["..."]}],"recommendation":"..."}',
+    signal,
+  });
+  await recordClaudeUsage(userId, response);
+  const data = glmJson(response);
+
+  const verdictsSet = new Set(['Favorable au fondateur', 'Plutôt neutre', 'Vigilance requise', 'Défavorable au fondateur']);
+
+  const rawCriteria = Array.isArray(data.criteria) ? data.criteria : [];
+  const criteria = rawCriteria.slice(0, 24).map(c => {
+    const values = Array.isArray(c?.values) ? c.values : [];
+    const vals = [];
+    for (let i = 0; i < n; i++) vals.push(String(values[i] || '').slice(0, 200) || 'Non précisé');
+    const bi = Number.isInteger(c?.bestIndex) && c.bestIndex >= 0 && c.bestIndex < n ? c.bestIndex : null;
+    return { name: String(c?.name || 'Critère').slice(0, 100), values: vals, bestIndex: bi };
+  }).filter(c => c.name);
+
+  const rawPer = Array.isArray(data.perInvestor) ? data.perInvestor : [];
+  const perInvestor = [];
+  for (let i = 0; i < n; i++) {
+    const rp = rawPer[i] || {};
+    perInvestor.push({
+      verdict: verdictsSet.has(rp.verdict) ? rp.verdict : '',
+      summary: String(rp.summary || '').slice(0, 400),
+      strengths: Array.isArray(rp.strengths) ? rp.strengths.slice(0, 5).map(s => String(s).slice(0, 200)) : [],
+      concerns: Array.isArray(rp.concerns) ? rp.concerns.slice(0, 5).map(s => String(s).slice(0, 200)) : [],
+    });
+  }
+
+  const result = {
+    overallSummary: typeof data.overallSummary === 'string' ? data.overallSummary : '',
+    criteria,
+    perInvestor,
+    recommendation: typeof data.recommendation === 'string' ? data.recommendation : '',
+  };
+  if (result.overallSummary || criteria.length) await aiCacheSet(cacheHash, result);
+  return { ...result, meta: { title, docs: metas } };
+}
+
 // ─── Exécuteurs par type de tâche ──────────────────────────────────────────────
 const JOB_RUNNERS = {
   // Analyse « choses à faire » d'un document (depuis la liste des dossiers).
@@ -4876,6 +5060,20 @@ const JOB_RUNNERS = {
     const nv = (result.meta && Array.isArray(result.meta.versions)) ? result.meta.versions.length : 0;
     const nc = (result.transitions || []).reduce((s, t) => s + ((t.changes && t.changes.length) || 0), 0);
     jobStep(job, 'compare', 'done', nc ? `${nv} versions · ${nc} changement${nc > 1 ? 's' : ''}` : `${nv} versions comparées`);
+    jobProgress(job, 100);
+  },
+
+  // Comparaison IA de PLUSIEURS documents indépendants (ex. term sheets de
+  // différents investisseurs) : tableau critère par critère + verdict par proposition.
+  async 'doc-compare-investors'(job) {
+    job.indeterminate = true;
+    jobStep(job, 'compare', 'progress', 'Comparaison des propositions…');
+    jobProgress(job, 12);
+    const result = await computeDocCompareInvestors(job.userId, job.payload || {}, job._abort.signal, job.max);
+    jobBailIfCancelled(job);
+    job.result = result;
+    const nd = (result.meta && Array.isArray(result.meta.docs)) ? result.meta.docs.length : 0;
+    jobStep(job, 'compare', 'done', `${nd} propositions comparées`);
     jobProgress(job, 100);
   },
 
