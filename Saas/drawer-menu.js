@@ -95,10 +95,8 @@
 
       if (!opensDrawer) return;
       if (side === 'left') {
-        actionsDrawer && actionsDrawer.close();
         navDrawer && navDrawer.open();
       } else {
-        navDrawer && navDrawer.close();
         actionsDrawer && actionsDrawer.open();
       }
     }, { passive: true });

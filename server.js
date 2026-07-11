@@ -935,6 +935,78 @@ app.delete('/api/admin/startups/:id', requireAdmin, async (req, res) => {
 
 // ─── Feedback : messagerie utilisateur ↔ fondateur (aucun appel IA, juste Mongo) ─
 // Un seul fil de discussion par utilisateur, identifié par user_id.
+// ─── Simulations de dilution ─────────────────────────────────────────────────
+// L'historique est rattaché au compte plutôt qu'à un navigateur : il reste donc
+// disponible après un changement d'appareil ou un nettoyage du cache local.
+const DILUTION_HISTORY_MAX = 30;
+
+function asFiniteNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : 0;
+}
+
+function normalizeDilutionSimulation(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const name = String(raw.name || '').trim().slice(0, 160);
+  if (!name || !raw.state || typeof raw.state !== 'object' || Array.isArray(raw.state)) return null;
+
+  // Une simulation est petite. Cette limite évite d'utiliser cet endpoint comme
+  // stockage générique tout en laissant de la marge pour une cap table détaillée.
+  let serialized;
+  try { serialized = JSON.stringify(raw.state); } catch { return null; }
+  if (Buffer.byteLength(serialized, 'utf8') > 100_000) return null;
+
+  const savedAt = asFiniteNumber(raw.savedAt) || Date.now();
+  return {
+    id: crypto.randomUUID(),
+    name,
+    savedAt,
+    summary: {
+      premoney: asFiniteNumber(raw.summary?.premoney),
+      postV: asFiniteNumber(raw.summary?.postV),
+      raised: asFiniteNumber(raw.summary?.raised),
+      founderDilution: asFiniteNumber(raw.summary?.founderDilution),
+    },
+    state: raw.state,
+  };
+}
+
+async function pruneDilutionHistory(userId) {
+  const obsolete = await col('saas_dilution_simulations')
+    .find({ user_id: userId }, { projection: { _id: 1 } })
+    .sort({ savedAt: -1, created_at: -1 })
+    .skip(DILUTION_HISTORY_MAX)
+    .toArray();
+  if (obsolete.length) {
+    await col('saas_dilution_simulations').deleteMany({ _id: { $in: obsolete.map(entry => entry._id) } });
+  }
+}
+
+app.get('/api/saas/dilution-simulations', requireAuth, async (req, res) => {
+  const simulations = await col('saas_dilution_simulations')
+    .find({ user_id: req.user.id }, { projection: { _id: 0, user_id: 0, created_at: 0 } })
+    .sort({ savedAt: -1, created_at: -1 })
+    .limit(DILUTION_HISTORY_MAX)
+    .toArray();
+  res.json({ simulations });
+});
+
+app.post('/api/saas/dilution-simulations', requireAuth, async (req, res) => {
+  const simulation = normalizeDilutionSimulation(req.body?.simulation);
+  if (!simulation) return res.status(400).json({ error: 'Simulation invalide ou trop volumineuse.' });
+
+  const record = { ...simulation, user_id: req.user.id, created_at: new Date().toISOString() };
+  await col('saas_dilution_simulations').insertOne(record);
+  await pruneDilutionHistory(req.user.id);
+  res.status(201).json({ simulation });
+});
+
+app.delete('/api/saas/dilution-simulations/:id', requireAuth, async (req, res) => {
+  const result = await col('saas_dilution_simulations').deleteOne({ id: req.params.id, user_id: req.user.id });
+  if (!result.deletedCount) return res.status(404).json({ error: 'Simulation introuvable.' });
+  res.json({ success: true });
+});
+
 app.get('/api/saas/feedback', requireAuth, async (req, res) => {
   const thread = await col('feedback_threads').findOne({ user_id: req.user.id });
   if (thread?.unread_by_user) {
@@ -3286,6 +3358,14 @@ async function dataroomFolderDocs(userId, folder) {
   return docs.filter(isDataroomExportableDoc);
 }
 
+function dataroomZipCategory(folder, doc) {
+  const linkedItem = Object.entries(folder.items_state || {})
+    .find(([, state]) => Number(state?.document_id) === Number(doc.id));
+  const key = linkedItem?.[0] || String(doc.category_key || '');
+  const title = (folder.checklist || []).find(item => checklistSlug(item) === key);
+  return sanitizePathPart(title || key || 'Fichiers généraux', 100);
+}
+
 // ─── État OAuth éphémère (10 min) : associe le `state` renvoyé par le fournisseur
 // à l'utilisateur qui a initié la connexion (même rôle que totpSetupStore).
 const dataroomOAuthState = new Map();
@@ -3625,15 +3705,20 @@ app.get('/api/saas/dataroom/zip', requireAuth, async (req, res) => {
   });
   archive.pipe(res);
 
-  const usedNames = new Set();
+  const usedPaths = new Set();
   for (const d of docs) {
     const buf = dataroomFileBufferFor(d);
     if (!buf) continue;
     const base = sanitizePathPart(dataroomFileNameFor(d), 150);
-    let finalName = base, n = 2;
-    while (usedNames.has(finalName)) { finalName = base.replace(/(\.[^.]+)?$/, (m) => ` (${n})${m || ''}`); n++; }
-    usedNames.add(finalName);
-    archive.append(buf, { name: finalName });
+    const category = dataroomZipCategory(folder, d);
+    let finalName = base, finalPath = category + '/' + finalName, n = 2;
+    while (usedPaths.has(finalPath)) {
+      finalName = base.replace(/(\.[^.]+)?$/, (m) => ' (' + n + ')' + (m || ''));
+      finalPath = category + '/' + finalName;
+      n++;
+    }
+    usedPaths.add(finalPath);
+    archive.append(buf, { name: finalPath });
   }
   await archive.finalize();
 });

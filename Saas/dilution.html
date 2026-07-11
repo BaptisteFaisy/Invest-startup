@@ -26,9 +26,9 @@
     .topbar .btn--ghost { color: #fff !important; border-color: rgba(255,255,255,0.35) !important; }
     .topbar .btn--ghost:hover { color: #fff !important; border-color: rgba(255,255,255,0.65) !important; }
 
-    /* Retour en arrière — chevron discret en haut à gauche de la page */
-    .page-back-row { width: 100%; box-sizing: border-box; max-width: 1180px; margin: 0 auto; padding: 16px 24px 0; position: sticky; top: 57px; z-index: 15; background: #08090c; }
-    .page-back { width: 32px; height: 32px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
+    /* Retour en arrière : le chevron reste visible sans bandeau au défilement. */
+    .page-back-row { height: 48px; }
+    .page-back { position: fixed; top: 68px; left: max(12px, calc(50% - 606px)); z-index: 15; width: 32px; height: 32px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
     .page-back:hover { opacity: 0.68; transform: translateX(-1px); }
     .page-back:focus-visible { outline: none; opacity: 1; }
     .page-back svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
@@ -190,6 +190,9 @@
     .hist-load:hover { border-color: #2563eb; color: #2563eb; }
     .hist-del { color: #b0b0bb; padding: 6px 9px; }
     .hist-del:hover { border-color: #ef4444; color: #ef4444; }
+    .hist-status { min-height: 18px; margin: -5px 0 10px; font-size: 11.5px; color: #6b6b78; }
+    .hist-status--ok { color: #15803d; }
+    .hist-status--warn { color: #b45309; }
     @media (max-width: 520px) {
       .hist-item { flex-direction: column; }
       .hist-item__actions { flex-direction: row; }
@@ -322,6 +325,13 @@
             <button type="button" class="btn" id="save-sim-btn">💾 Enregistrer cette simulation</button>
           </div>
 
+          <div class="card" id="hist-card" hidden>
+            <div class="card__h">Historique des simulations</div>
+            <div class="card__desc">Vos simulations enregistrées. Chargez-en une pour la reprendre ou la comparer.</div>
+            <div class="hist-status" id="hist-status" role="status" aria-live="polite"></div>
+            <div class="hist-list" id="hist-list"></div>
+          </div>
+
           <div class="card">
             <div class="card__toprow">
               <div class="card__h">1 · Cap table actuelle</div>
@@ -438,12 +448,6 @@
               <div class="dil__col-lab">Résultats</div>
               <p class="dil__col-sub">Se met à jour automatiquement au fur et à mesure de votre saisie à gauche.</p>
             </div>
-          </div>
-
-          <div class="card" id="hist-card" hidden>
-            <div class="card__h">Historique des simulations</div>
-            <div class="card__desc">Enregistré dans ce navigateur. Chargez une simulation précédente pour la reprendre ou la comparer.</div>
-            <div class="hist-list" id="hist-list"></div>
           </div>
 
           <div id="warn-box"></div>
@@ -1114,9 +1118,10 @@
       else loadExample(Number(v));
     });
 
-    // ---------- Historique des simulations (enregistré dans ce navigateur) ----------
+    // ---------- Historique des simulations (synchronisé avec le compte) ----------
     const HISTORY_KEY = 'liquidplus_dilution_history_v1';
     const HISTORY_MAX = 30;
+    let historyEntries = [];
 
     function loadHistory() {
       try {
@@ -1125,7 +1130,45 @@
       } catch { return []; }
     }
     function saveHistory(list) {
-      try { localStorage.setItem(HISTORY_KEY, JSON.stringify(list)); } catch {}
+      try {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function setHistoryStatus(message = '', tone = '') {
+      const el = document.getElementById('hist-status');
+      el.textContent = message;
+      el.className = `hist-status${tone ? ` hist-status--${tone}` : ''}`;
+    }
+
+    async function requestHistory(path = '', options = {}) {
+      const response = await fetch(`/api/saas/dilution-simulations${path}`, {
+        credentials: 'include',
+        ...options,
+        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'Impossible d’enregistrer l’historique.');
+      }
+      return response.json();
+    }
+
+    function updateHistory(list, status, tone) {
+      const unique = new Map();
+      (Array.isArray(list) ? list : []).forEach(entry => {
+        if (entry && entry.id) unique.set(entry.id, entry);
+      });
+      historyEntries = [...unique.values()]
+        .sort((a, b) => Number(b.savedAt || 0) - Number(a.savedAt || 0))
+        .slice(0, HISTORY_MAX);
+      const stored = saveHistory(historyEntries);
+      renderHistory();
+      if (status) setHistoryStatus(status, tone);
+      return stored;
     }
 
     // Capture l'état complet du formulaire (indépendant du mode / de la base courants)
@@ -1172,7 +1215,7 @@
     }
 
     function renderHistory() {
-      const list = loadHistory();
+      const list = historyEntries;
       const card = document.getElementById('hist-card');
       const body = document.getElementById('hist-list');
       if (!list.length) { card.hidden = true; body.innerHTML = ''; return; }
@@ -1200,7 +1243,7 @@
       }).join('');
     }
 
-    function saveCurrentSimulation() {
+    async function saveCurrentSimulation() {
       const st = readState();
       const r = compute(st);
       if (st.roundError || r.error) {
@@ -1223,11 +1266,21 @@
         },
         state: captureSnapshot(),
       };
-      const list = loadHistory();
-      list.unshift(entry);
-      if (list.length > HISTORY_MAX) list.length = HISTORY_MAX;
-      saveHistory(list);
-      renderHistory();
+      const localSaved = updateHistory([entry, ...historyEntries], 'Enregistrement de la simulation…');
+
+      try {
+        const data = await requestHistory('', {
+          method: 'POST',
+          body: JSON.stringify({ simulation: entry }),
+        });
+        const saved = data.simulation;
+        updateHistory(historyEntries.map(item => item.id === entry.id ? saved : item), 'Simulation enregistrée.', 'ok');
+      } catch (error) {
+        const message = localSaved
+          ? 'Simulation enregistrée sur cet appareil. La synchronisation du compte sera réessayée à la prochaine ouverture.'
+          : 'Impossible d’enregistrer la simulation : le stockage est indisponible.';
+        setHistoryStatus(message, 'warn');
+      }
     }
 
     document.getElementById('save-sim-btn').addEventListener('click', saveCurrentSimulation);
@@ -1236,14 +1289,47 @@
       if (!item) return;
       const id = item.dataset.id;
       if (e.target.closest('.hist-load')) {
-        const entry = loadHistory().find(x => x.id === id);
+        const entry = historyEntries.find(x => x.id === id);
         if (entry) restoreSnapshot(entry.state);
       } else if (e.target.closest('.hist-del')) {
         if (!confirm('Supprimer cette simulation de l\'historique ?')) return;
-        saveHistory(loadHistory().filter(x => x.id !== id));
-        renderHistory();
+        const previous = historyEntries;
+        updateHistory(previous.filter(x => x.id !== id), 'Simulation supprimée.', 'ok');
+        if (!id.startsWith('sim_')) {
+          requestHistory('/' + encodeURIComponent(id), { method: 'DELETE' }).catch(() => {
+            updateHistory(previous, 'La suppression n’a pas pu être synchronisée. Réessayez plus tard.', 'warn');
+          });
+        }
       }
     });
+
+    async function hydrateHistory() {
+      const localEntries = loadHistory();
+      const initialLocalIds = new Set(localEntries.map(entry => entry.id));
+      historyEntries = localEntries;
+      renderHistory();
+      try {
+        const data = await requestHistory();
+        const remoteEntries = Array.isArray(data.simulations) ? data.simulations : [];
+        // Les simulations créées avant la synchronisation par compte restent accessibles
+        // et sont importées une seule fois (leurs identifiants locaux commencent par sim_).
+        const legacyEntries = localEntries.filter(entry => String(entry.id || '').startsWith('sim_'));
+        const migrated = await Promise.all(legacyEntries.map(async (entry) => {
+          const result = await requestHistory('', {
+            method: 'POST',
+            body: JSON.stringify({ simulation: entry }),
+          });
+          return result.simulation;
+        }));
+        // Conserve un enregistrement déclenché pendant le chargement de l'historique.
+        const pendingEntries = historyEntries.filter(entry =>
+          String(entry.id || '').startsWith('sim_') && !initialLocalIds.has(entry.id)
+        );
+        updateHistory([...remoteEntries, ...migrated, ...pendingEntries], migrated.length ? 'Historique synchronisé avec votre compte.' : '', migrated.length ? 'ok' : '');
+      } catch {
+        if (historyEntries.length) setHistoryStatus('Historique enregistré sur cet appareil.', 'warn');
+      }
+    }
 
     // Retour en arrière
     document.getElementById('page-back-btn').addEventListener('click', () => {
@@ -1321,7 +1407,7 @@
     // Init : formulaire vide par défaut (l'utilisateur choisit un exemple s'il le souhaite)
     updateModeUI();
     resetForm();
-    renderHistory();
+    hydrateHistory();
 
     // Valorisation reportée depuis l'estimateur (outil à part) : ?premoney=NNN
     const urlPremoney = parseNum(new URLSearchParams(window.location.search).get('premoney'));

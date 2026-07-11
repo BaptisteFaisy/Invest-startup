@@ -1,4 +1,8 @@
 /* ═══════════ Menus hamburger (gauche & droite), partagés par les pages outils ═══════════ */
+/* La barre reste au-dessus des fonds des deux tiroirs : ainsi, après avoir
+   ouvert un menu, l'autre hamburger reste utilisable pour ouvrir les deux
+   panneaux en même temps, comme sur le tableau de bord. */
+.topbar { z-index:70 !important; }
 .hamburger { flex:none; position:relative; z-index:62; width:38px; height:38px; display:grid; place-items:center; border:1px solid rgba(255,255,255,0.22); border-radius:10px; background:transparent; color:#fff; cursor:pointer; padding:0; transition:border-color .15s, background .15s; }
 .hamburger:hover { border-color:rgba(255,255,255,0.55); background:rgba(255,255,255,0.06); }
 .hamburger svg { width:18px; height:18px; stroke:currentColor; stroke-width:2; stroke-linecap:round; fill:none; }

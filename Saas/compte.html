@@ -72,6 +72,21 @@
     .account-delete-button:hover { color: #f87171; }
     .account-delete-button:disabled { opacity: 0.58; cursor: not-allowed; }
 
+    /* Data room */
+    .dataroom-providers { display: flex; flex-direction: column; gap: 10px; }
+    .dataroom-provider { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 15px 0; border-bottom: 1px solid rgba(8,9,12,0.08); }
+    .dataroom-provider:first-child { padding-top: 0; }
+    .dataroom-provider:last-child { border-bottom: 0; padding-bottom: 0; }
+    .dataroom-provider__name { font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; color: #08090c; }
+    .dataroom-provider__status { font-size: 12.5px; color: #6b6b78; margin-top: 3px; line-height: 1.4; }
+    .dataroom-provider__status--on { color: #15803d; }
+    .dataroom-provider__status--warn { color: #b45309; }
+    .dataroom-provider .btn { flex: none; min-height: 0; padding: 8px 14px; font-size: 12.5px; }
+    .dataroom-export-select { display: grid; gap: 6px; margin: 2px 0 18px; font-size: 0.86rem; font-weight: 700; color: #08090c; }
+    .dataroom-export-select select { width: 100%; }
+    .dataroom-export-hint { margin: 14px 0 0; color: #6b6b78; font-size: 0.82rem; line-height: 1.5; }
+    .dataroom-export-empty { padding: 13px 14px; border-radius: 10px; background: #f4f2ee; color: #6b6b78; font-size: 0.87rem; line-height: 1.5; }
+
     .setup { margin-top: 22px; border-top: 1px solid rgba(8,9,12,0.08); padding-top: 22px; display: none; }
     .setup.open { display: block; }
     .setup__hint { font-size: 0.86rem; color: #6b6b78; margin: 0 0 16px; line-height: 1.55; }
@@ -236,6 +251,29 @@
         </div>
       </div>
 
+      <!-- ── Onglet Data room ── -->
+      <div id="tab-dataroom" class="tab-panel">
+        <div class="card">
+          <h3 class="card__title">Comptes cloud connectés</h3>
+          <p class="card__desc">Connectez un compte Google Drive ou Dropbox pour envoyer vos documents de due diligence directement dans votre espace.</p>
+          <div class="dataroom-providers" id="dataroom-cloud-providers"></div>
+          <div id="dataroom-alert" class="alert" hidden style="margin-top:16px"></div>
+        </div>
+
+        <div class="card">
+          <h3 class="card__title">Data rooms spécialisées</h3>
+          <p class="card__desc">Préparez un ZIP structuré pour l’importer dans Datasite, Intralinks, Ansarada ou Firmex. Aucune autorisation d’accès à votre compte n’est nécessaire.</p>
+          <label class="dataroom-export-select" for="dataroom-folder-select">
+            Dossier de due diligence à exporter
+            <select class="input" id="dataroom-folder-select" disabled>
+              <option>Chargement des dossiers…</option>
+            </select>
+          </label>
+          <div class="dataroom-providers" id="dataroom-specialized-providers"></div>
+          <p class="dataroom-export-hint">Le ZIP contient les pièces disponibles, rangées par rubrique, prêtes à être importées dans la plateforme choisie.</p>
+        </div>
+      </div>
+
       <button type="button" class="account-logout-line" id="logout-btn">Déconnexion</button>
       <button type="button" class="account-delete-button" id="delete-account-btn">Supprimer mon compte</button>
     </main>
@@ -253,7 +291,8 @@
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
         tab.classList.add('active');
-        document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+        const panel = document.getElementById('tab-' + tab.dataset.tab);
+        if (panel) panel.classList.add('active');
       });
     });
 
@@ -295,6 +334,12 @@
     });
 
     // ── Garde d'authentification + pré-remplissage du profil ──────────────────
+    const DATAROOM_PROVIDER_LABELS = { google_drive: 'Google Drive', dropbox: 'Dropbox' };
+    const DATAROOM_PRO_PROVIDERS = ['Datasite', 'Intralinks', 'Ansarada', 'Firmex'];
+    const DATAROOM_FOLDER_KEYS = new Set(['due-diligence-preliminaire', 'due-diligence']);
+    let dataroomConnections = [];
+    let dataroomFolders = [];
+
     requireAuth().then((user) => {
       if (!user) return;
       document.getElementById('profile-name').value  = user.name || '';
@@ -302,6 +347,7 @@
       document.querySelector('.app').classList.add('ready');
       load2FAStatus();
       loadUsage();
+      loadDataroomSettings();
     });
 
     function showAlert(id, type, msg) {
@@ -310,6 +356,164 @@
       el.textContent = msg;
       el.hidden = false;
     }
+
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function showDataroomAlert(type, message) {
+      showAlert('dataroom-alert', type, message);
+    }
+
+    function handleDataroomReturnParams() {
+      const params = new URLSearchParams(window.location.search);
+      const connected = params.get('dataroom_connected');
+      const error = params.get('dataroom_error');
+      if (!connected && !error) return;
+
+      document.querySelector('[data-tab="dataroom"]').click();
+      showDataroomAlert(
+        connected ? 'success' : 'error',
+        connected
+          ? (DATAROOM_PROVIDER_LABELS[connected] || connected) + ' est maintenant connecté.'
+          : 'La connexion à la data room a échoué. Réessayez.'
+      );
+      params.delete('dataroom_connected');
+      params.delete('dataroom_error');
+      const query = params.toString();
+      window.history.replaceState({}, '', window.location.pathname + (query ? '?' + query : ''));
+    }
+
+    async function loadDataroomSettings() {
+      try {
+        const [connectionsResponse, foldersResponse] = await Promise.all([
+          fetch('/api/saas/dataroom/connections', { credentials: 'include' }),
+          fetch('/api/saas/folders', { credentials: 'include' }),
+        ]);
+        if (connectionsResponse.status === 401 || foldersResponse.status === 401) {
+          window.location.href = 'login.html';
+          return;
+        }
+        dataroomConnections = connectionsResponse.ok
+          ? ((await connectionsResponse.json()).connections || [])
+          : [];
+        dataroomFolders = foldersResponse.ok
+          ? ((await foldersResponse.json()).folders || []).filter(folder => DATAROOM_FOLDER_KEYS.has(folder.key))
+          : [];
+        renderDataroomCloudProviders();
+        renderDataroomSpecializedProviders();
+        handleDataroomReturnParams();
+      } catch {
+        document.getElementById('dataroom-cloud-providers').innerHTML =
+          '<div class="dataroom-export-empty">Impossible de charger vos connexions de data room.</div>';
+        document.getElementById('dataroom-specialized-providers').innerHTML =
+          '<div class="dataroom-export-empty">Impossible de charger vos dossiers de due diligence.</div>';
+      }
+    }
+
+    function renderDataroomCloudProviders() {
+      const host = document.getElementById('dataroom-cloud-providers');
+      host.innerHTML = '';
+      Object.keys(DATAROOM_PROVIDER_LABELS).forEach(provider => {
+        const connection = dataroomConnections.find(item => item.provider === provider);
+        const connected = !!connection && connection.status !== 'revoked';
+        const expired = !!connection && connection.status === 'revoked';
+        const statusClass = connected ? 'dataroom-provider__status--on' : expired ? 'dataroom-provider__status--warn' : '';
+        const status = connected
+          ? 'Connecté — ' + esc(connection.account_label || '')
+          : expired ? 'Connexion expirée — reconnectez votre compte' : 'Non connecté';
+        const row = document.createElement('div');
+        row.className = 'dataroom-provider';
+        row.innerHTML =
+          '<div>' +
+            '<div class="dataroom-provider__name">' + DATAROOM_PROVIDER_LABELS[provider] + '</div>' +
+            '<div class="dataroom-provider__status ' + statusClass + '">' + status + '</div>' +
+          '</div>';
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'btn ' + (connected ? 'btn--ghost' : 'btn--primary');
+        button.textContent = connected ? 'Déconnecter' : 'Connecter';
+        button.addEventListener('click', () => {
+          if (connected) disconnectDataroomProvider(provider, button);
+          else {
+            window.location.href = '/api/saas/dataroom/' + provider + '/connect?return_to='
+              + encodeURIComponent('/saas/compte.html');
+          }
+        });
+        row.appendChild(button);
+        host.appendChild(row);
+      });
+    }
+
+    async function disconnectDataroomProvider(provider, button) {
+      const label = DATAROOM_PROVIDER_LABELS[provider];
+      if (!confirm('Déconnecter ' + label + ' ? Vous ne pourrez plus y envoyer de fichiers tant que vous ne l’aurez pas reconnecté.')) return;
+      const previousText = button.textContent;
+      button.disabled = true;
+      button.textContent = 'Déconnexion…';
+      try {
+        const response = await fetch('/api/saas/dataroom/connections/' + provider, {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          showDataroomAlert('error', data.error || 'Impossible de déconnecter ' + label + '.');
+          button.disabled = false;
+          button.textContent = previousText;
+          return;
+        }
+        dataroomConnections = dataroomConnections.filter(item => item.provider !== provider);
+        renderDataroomCloudProviders();
+      } catch {
+        showDataroomAlert('error', 'Impossible de joindre le serveur.');
+        button.disabled = false;
+        button.textContent = previousText;
+      }
+    }
+
+    function renderDataroomSpecializedProviders() {
+      const select = document.getElementById('dataroom-folder-select');
+      const host = document.getElementById('dataroom-specialized-providers');
+      const selectedFolderId = select.value;
+      select.innerHTML = '';
+
+      if (!dataroomFolders.length) {
+        select.add(new Option('Aucun dossier de due diligence disponible', ''));
+        select.disabled = true;
+        host.innerHTML = '<div class="dataroom-export-empty">Ouvrez un dossier « Due diligence » depuis le tableau de bord, puis ajoutez-y des documents avant de préparer un ZIP.</div>';
+        return;
+      }
+
+      dataroomFolders.forEach(folder => {
+        const option = new Option(folder.name || 'Dossier de due diligence', String(folder.id));
+        if (String(folder.id) === selectedFolderId) option.selected = true;
+        select.add(option);
+      });
+      select.disabled = false;
+
+      const folderId = select.value;
+      const zipUrl = '/api/saas/dataroom/zip?' + new URLSearchParams({ folder_id: folderId }).toString();
+      host.innerHTML = '';
+      DATAROOM_PRO_PROVIDERS.forEach(provider => {
+        const row = document.createElement('div');
+        row.className = 'dataroom-provider';
+        row.innerHTML =
+          '<div>' +
+            '<div class="dataroom-provider__name">' + provider + '</div>' +
+            '<div class="dataroom-provider__status">Import manuel sécurisé (ZIP)</div>' +
+          '</div>';
+        const link = document.createElement('a');
+        link.className = 'btn btn--ghost';
+        link.href = zipUrl;
+        link.textContent = 'Télécharger le ZIP';
+        link.setAttribute('aria-label', 'Télécharger le ZIP pour ' + provider);
+        row.appendChild(link);
+        host.appendChild(row);
+      });
+    }
+
+    document.getElementById('dataroom-folder-select').addEventListener('change', renderDataroomSpecializedProviders);
 
     // ── Enregistrer le profil ─────────────────────────────────────────────────
     document.getElementById('profile-form').addEventListener('submit', async (e) => {
