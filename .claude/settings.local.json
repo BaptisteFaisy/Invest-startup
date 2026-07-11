@@ -1,9 +1,10 @@
 {
   "permissions": {
-    "defaultMode": "bypassPermissions",
     "allow": [
-      "WebSearch"
-    ]
+      "WebSearch",
+      "Bash(git fetch *)"
+    ],
+    "defaultMode": "bypassPermissions"
   },
   "hooks": {
     "PostToolUse": [

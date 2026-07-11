@@ -406,14 +406,13 @@
     const DATAROOM_PROVIDER_LABELS = { google_drive: 'Google Drive', dropbox: 'Dropbox' };
     // Data rooms spécialisées : produits « enterprise » sans API d'inscription.
     // On ne peut pas créer le compte à la place de l'utilisateur — on l'amène en un
-    // clic sur le tunnel officiel du fournisseur. Ansarada est le seul réellement
-    // self-service (compte gratuit en ligne) ; les autres passent par un contact
-    // commercial, d'où le libellé « Demander un accès » plutôt que « Créer un compte ».
+    // clic sur le tunnel officiel du fournisseur. Le libellé est uniformisé à
+    // « Créer un compte » pour toutes les data rooms.
     const DATAROOM_PRO_PROVIDERS = [
       { name: 'Ansarada',   url: 'https://www.ansarada.com/data-room',                            action: 'Créer un compte',    note: 'Compte gratuit pour démarrer, sans carte bancaire' },
-      { name: 'Datasite',   url: 'https://www.datasite.com/',                                      action: 'Demander un accès',  note: 'Accès sur demande auprès de Datasite (essai possible)' },
-      { name: 'Intralinks', url: 'https://www.intralinks.com/products/virtual-data-room',          action: 'Demander un accès',  note: 'Démo et accès sur demande auprès d’Intralinks' },
-      { name: 'Firmex',     url: 'https://www.firmex.com/signup/data-room-request-a-quote/',       action: 'Demander un accès',  note: 'Devis et démo sur demande auprès de Firmex' },
+      { name: 'Datasite',   url: 'https://www.datasite.com/',                                      action: 'Créer un compte',    note: 'Accès sur demande auprès de Datasite (essai possible)' },
+      { name: 'Intralinks', url: 'https://www.intralinks.com/products/virtual-data-room',          action: 'Créer un compte',    note: 'Démo et accès sur demande auprès d’Intralinks' },
+      { name: 'Firmex',     url: 'https://www.firmex.com/signup/data-room-request-a-quote/',       action: 'Créer un compte',    note: 'Devis et démo sur demande auprès de Firmex' },
     ];
     const DATAROOM_FOLDER_KEYS = new Set(['due-diligence-preliminaire', 'due-diligence']);
     let dataroomConnections = [];
