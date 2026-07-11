@@ -26,7 +26,7 @@
     .topbar .btn--ghost:hover { color: #fff !important; border-color: rgba(255,255,255,0.65) !important; }
 
     /* Retour en arrière — chevron discret en haut à gauche de la page */
-    .page-back-row { width: 100%; box-sizing: border-box; max-width: 1180px; margin: 0 auto; padding: 16px 24px 0; }
+    .page-back-row { width: 100%; box-sizing: border-box; max-width: 1180px; margin: 0 auto; padding: 16px 24px 0; position: sticky; top: 57px; z-index: 15; background: #08090c; }
     .page-back { width: 32px; height: 32px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
     .page-back:hover { opacity: 0.68; transform: translateX(-1px); }
     .page-back:focus-visible { outline: none; opacity: 1; }
@@ -46,6 +46,12 @@
     @media (max-width: 940px) { .dil__grid { grid-template-columns: minmax(0, 1fr); } }
     .dil__results { position: sticky; top: 78px; }
     @media (max-width: 940px) { .dil__results { position: static; } }
+
+    /* En-têtes de colonne : rappellent où saisir et où lire les résultats */
+    .dil__col-head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; }
+    .dil__col-num { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 800; background: #3b82f6; color: #fff; }
+    .dil__col-lab { font-family: 'Archivo', sans-serif; font-size: 16px; font-weight: 800; color: #fff; }
+    .dil__col-sub { font-size: 12.5px; color: rgba(255,255,255,0.55); margin-top: 3px; line-height: 1.5; }
 
     /* Cartes blanches */
     .card { background: #fff; border-radius: 16px; padding: 20px 20px 22px; box-shadow: 0 10px 34px rgba(0,0,0,0.35); margin-bottom: 18px; }
@@ -188,20 +194,6 @@
       .hist-item__actions { flex-direction: row; }
     }
 
-    /* Lexique */
-    .lexique { margin-top: 46px; }
-    .lexique__title { font-size: 22px; letter-spacing: -0.02em; color: #fff; margin-top: 6px; }
-    .lexique__sub { color: rgba(255,255,255,0.62); font-size: 14px; margin-top: 8px; line-height: 1.6; max-width: 680px; }
-    .lexique__cat { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.42); margin: 26px 0 12px; }
-    .lexique__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-    @media (max-width: 720px) { .lexique__grid { grid-template-columns: 1fr; } }
-    .glo { background: #fff; border-radius: 14px; padding: 16px 18px 17px; box-shadow: 0 8px 26px rgba(0,0,0,0.3); }
-    .glo__term { font-family: 'Archivo', sans-serif; font-size: 14.5px; font-weight: 700; color: #08090c; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
-    .glo__en { font-size: 11.5px; font-weight: 500; color: #a8a8b3; font-style: italic; }
-    .glo__def { font-size: 13px; color: #55555f; line-height: 1.58; margin-top: 8px; }
-    .glo__def b { color: #08090c; font-weight: 600; }
-    .glo__def + .glo__def { margin-top: 7px; }
-    .glo__f { font-family: 'Archivo', sans-serif; font-size: 12px; color: #2563eb; background: rgba(37,99,235,0.07); border-radius: 6px; padding: 1px 6px; }
 
     /* Termes survolables (info-bulle de définition) */
     .term { border-bottom: 1px dashed currentColor; cursor: help; }
@@ -252,6 +244,28 @@
       <div class="dil__grid">
         <!-- COLONNE SAISIE -->
         <form id="dil-form" autocomplete="off">
+          <div class="dil__col-head">
+            <div class="dil__col-num">1</div>
+            <div>
+              <div class="dil__col-lab">À remplir — vos données</div>
+              <p class="dil__col-sub">Les champs sont vides par défaut : entrez les infos de votre startup, ou chargez un exemple ci-dessous pour voir le simulateur en action.</p>
+            </div>
+          </div>
+
+          <div class="dil__actions">
+            <div class="example-picker">
+              <label class="example-picker__lab" for="example-select">Exemple</label>
+              <select class="example-picker__sel" id="example-select">
+                <option value="" selected>— Partir d'un formulaire vide —</option>
+                <option value="0">Amorçage — pool créé avant le tour</option>
+                <option value="1">Série A — historiques + pool existant</option>
+                <option value="2">Négociation en % cédé</option>
+              </select>
+            </div>
+            <button type="button" class="btn" id="reset-btn">↺ Vider le formulaire</button>
+            <button type="button" class="btn" id="save-sim-btn">💾 Enregistrer cette simulation</button>
+          </div>
+
           <div class="card">
             <div class="card__toprow">
               <div class="card__h">1 · Cap table actuelle</div>
@@ -290,7 +304,7 @@
             <div class="field">
               <label class="field__lab" for="valo-input" id="valo-lab">Valorisation pre-money</label>
               <div class="inp-wrap">
-                <input class="inp inp--money" type="text" inputmode="numeric" id="valo-input" value="4 000 000" />
+                <input class="inp inp--money" type="text" inputmode="numeric" id="valo-input" value="" placeholder="0" />
                 <span class="inp-wrap__suf" id="valo-suf">€</span>
               </div>
               <div class="card__desc" id="valo-help" style="margin:6px 0 0"></div>
@@ -362,17 +376,12 @@
 
         <!-- COLONNE RÉSULTATS -->
         <div class="dil__results">
-          <div class="dil__actions">
-            <div class="example-picker">
-              <label class="example-picker__lab" for="example-select">Exemple</label>
-              <select class="example-picker__sel" id="example-select">
-                <option value="0">Amorçage — pool créé avant le tour</option>
-                <option value="1">Série A — historiques + pool existant</option>
-                <option value="2">Négociation en % cédé</option>
-              </select>
+          <div class="dil__col-head">
+            <div class="dil__col-num">2</div>
+            <div>
+              <div class="dil__col-lab">Résultats</div>
+              <p class="dil__col-sub">Se met à jour automatiquement au fur et à mesure de votre saisie à gauche.</p>
             </div>
-            <button type="button" class="btn" id="reset-btn">↺ Réinitialiser l'exemple</button>
-            <button type="button" class="btn" id="save-sim-btn">💾 Enregistrer cette simulation</button>
           </div>
 
           <div class="card" id="hist-card" hidden>
@@ -452,22 +461,6 @@
         <a class="btn" href="exit.html">Simulateur d'exit →</a>
       </div>
 
-      <!-- LEXIQUE -->
-      <section class="lexique" id="lexique">
-        <div class="dil__eyebrow">Lexique</div>
-        <h2 class="lexique__title">Les termes de la dilution, définis</h2>
-        <p class="lexique__sub">Le vocabulaire d'un tour de table peut sembler opaque. Voici les termes employés par cet outil — et quelques-uns que vous croiserez en négociation — expliqués simplement mais précisément.</p>
-
-        <div class="lexique__cat">Le point piège</div>
-        <div class="lexique__grid">
-          <div class="glo" style="grid-column: 1 / -1">
-            <div class="glo__term">Option pool shuffle <span class="glo__en">le « tour de passe-passe » du pool</span></div>
-            <p class="glo__def">Le moment de négociation où l'on décide si le pool d'options est créé ou agrandi <b>avant</b> ou <b>après</b> le tour — un détail qui peut coûter plusieurs points aux fondateurs.</p>
-            <p class="glo__def"><b>Avant le tour</b> : le pool gonfle le pre-money en actions et ne dilue <b>que les actionnaires existants</b> (les fondateurs). L'investisseur obtient son pourcentage « net de pool », sans en supporter le coût. C'est la demande classique des VC.</p>
-            <p class="glo__def"><b>Après le tour</b> : le pool dilue <b>tout le monde</b>, l'investisseur compris. Plus favorable aux fondateurs. Basculez l'option « Quand le pool est-il créé ? » dans l'outil pour voir l'écart chiffré.</p>
-          </div>
-        </div>
-      </section>
     </main>
   </div>
 
@@ -610,6 +603,22 @@
       document.getElementById('pool-on').checked = ex.pool.on;
       document.getElementById('pool-pct').value = String(ex.pool.pct);
       document.querySelectorAll('input[name="pool-timing"]').forEach(r => { r.checked = (r.value === ex.pool.timing); });
+      syncBasisUI();
+      syncPoolUI();
+      recompute();
+    }
+
+    // Formulaire vide, prêt à recevoir les données de l'utilisateur.
+    function resetForm() {
+      document.getElementById('example-select').value = '';
+      basis = 'pre';
+      shRowsEl.innerHTML = shRowHTML({ name: '', value: 0, type: 'founder' });
+      invRowsEl.innerHTML = invRowHTML({ name: '', amount: 0 });
+      document.getElementById('valo-input').value = '';
+      document.querySelector('input[name="pct-interp"][value="net"]').checked = true;
+      document.getElementById('pool-on').checked = false;
+      document.getElementById('pool-pct').value = '10';
+      document.querySelectorAll('input[name="pool-timing"]').forEach(r => { r.checked = (r.value === 'pre'); });
       syncBasisUI();
       syncPoolUI();
       recompute();
@@ -1042,8 +1051,12 @@
       }
     });
 
-    document.getElementById('reset-btn').addEventListener('click', () => loadExample());
-    document.getElementById('example-select').addEventListener('change', (e) => loadExample(Number(e.target.value)));
+    document.getElementById('reset-btn').addEventListener('click', () => resetForm());
+    document.getElementById('example-select').addEventListener('change', (e) => {
+      const v = e.target.value;
+      if (v === '') resetForm();
+      else loadExample(Number(v));
+    });
 
     // ---------- Historique des simulations (enregistré dans ce navigateur) ----------
     const HISTORY_KEY = 'liquidplus_dilution_history_v1';
@@ -1178,7 +1191,9 @@
 
     // Retour en arrière
     document.getElementById('page-back-btn').addEventListener('click', () => {
-      if (window.history.length > 1) window.history.back();
+      const ref = document.referrer;
+      if (ref && new URL(ref).origin === location.origin) window.location.href = ref;
+      else if (window.history.length > 1) window.history.back();
       else window.location.href = 'tableau-de-bord.html';
     });
 
@@ -1247,9 +1262,9 @@
       window.addEventListener('resize', hide);
     })();
 
-    // Init
+    // Init : formulaire vide par défaut (l'utilisateur choisit un exemple s'il le souhaite)
     updateModeUI();
-    loadExample(0);
+    resetForm();
     renderHistory();
 
     // Valorisation reportée depuis l'estimateur (outil à part) : ?premoney=NNN
