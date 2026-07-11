@@ -359,32 +359,33 @@
     .ip-loading { color: #6b6b78; font-size: 14px; padding: 18px 4px; }
     .ip-err { font-size: 14px; color: #991b1b; background: #fee2e2; border: 1px solid rgba(220,38,38,0.25); border-radius: 12px; padding: 14px 16px; margin-top: 18px; line-height: 1.55; }
 
-    .ip-board { display: flex; gap: 14px; margin-top: 22px; overflow-x: auto; padding-bottom: 12px; }
-    .ip-col { flex: 0 0 250px; background: #f7f6f3; border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; min-height: 120px; }
-    .ip-col.is-dragover { border-color: var(--blue); background: #eff6ff; }
-    .ip-col__head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-    .ip-col__dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
-    .ip-col__title { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #08090c; flex: 1; }
-    .ip-col__count { background: rgba(8,9,12,0.08); color: #08090c; border-radius: 999px; font-size: 11px; padding: 2px 8px; }
-    .ip-col__total { font-size: 11.5px; color: #6b6b78; margin-bottom: 8px; }
-    .ip-col__empty { color: #9a978f; font-size: 12.5px; padding: 10px 2px; }
-    .ip-col__body { display: flex; flex-direction: column; gap: 8px; min-height: 40px; }
-
-    .ip-card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 11px 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); cursor: grab; }
-    .ip-card.is-dragging { opacity: 0.4; }
-    .ip-card__name { font-size: 13.5px; font-weight: 700; color: #08090c; word-break: break-word; }
-    .ip-card__firm { font-size: 12px; color: #6b6b78; margin-top: 1px; }
-    .ip-card__amount { display: inline-block; margin-top: 6px; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: rgba(22,163,74,0.12); color: #16a34a; }
-    .ip-card__notes { font-size: 12px; color: #6b6b78; margin-top: 6px; line-height: 1.4; white-space: pre-wrap; }
-    .ip-card__meta { margin-top: 6px; font-size: 11.5px; color: #9a978f; }
-    .ip-card__row { display: flex; align-items: center; gap: 6px; margin-top: 9px; }
-    .ip-card__stage-select { flex: 1; min-width: 0; font-size: 11.5px; padding: 6px 8px; border-radius: 8px; background: #f4f3f1; border: 1px solid #e7e5e1; color: #08090c; }
+    .ip-board { margin-top: 22px; overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+    .ip-table { width: 100%; min-width: 980px; border-collapse: collapse; table-layout: fixed; }
+    .ip-table th { padding: 11px 12px; background: #f7f6f3; border-bottom: 1px solid var(--line); color: #6b6b78; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-align: left; text-transform: uppercase; }
+    .ip-table td { padding: 12px; border-bottom: 1px solid #eceae6; color: #08090c; font-size: 12.5px; vertical-align: middle; }
+    .ip-table tbody tr:last-child td { border-bottom: 0; }
+    .ip-table tbody tr:hover { background: #fafafa; }
+    .ip-table__investor { width: 18%; }
+    .ip-table__contact { width: 17%; }
+    .ip-table__amount { width: 12%; }
+    .ip-table__stage { width: 25%; }
+    .ip-table__notes { width: 23%; }
+    .ip-table__action { width: 5%; text-align: right !important; }
+    .ip-card__name { font-size: 13.5px; font-weight: 700; color: #08090c; overflow-wrap: anywhere; }
+    .ip-card__firm { font-size: 12px; color: #6b6b78; margin-top: 2px; overflow-wrap: anywhere; }
+    .ip-card__amount { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; color: #15803d; white-space: nowrap; }
+    .ip-card__notes { color: #6b6b78; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .ip-card__meta { color: #6b6b78; line-height: 1.5; overflow-wrap: anywhere; }
+    .ip-card__stage-wrap { display: flex; align-items: center; gap: 8px; }
+    .ip-card__stage-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+    .ip-card__stage-select { width: 100%; min-width: 0; font-size: 11.5px; padding: 7px 8px; border-radius: 8px; background: #f4f3f1; border: 1px solid #e7e5e1; color: #08090c; }
     .ip-card__del { flex: none; width: 26px; height: 26px; display: grid; place-items: center; border: 0; background: transparent; color: #b0aca3; cursor: pointer; border-radius: 8px; }
     .ip-card__del:hover { background: #fdeeee; color: #dc2626; }
     .ip-card__del svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
     @media (max-width: 720px) {
       .ip-form__grid, .ip-form__grid2 { grid-template-columns: 1fr; }
+      .ip-board { border-radius: 10px; }
     }
 
     /* Parcours BSA-AIR : roadlist numérotée des documents par étape */
@@ -2815,20 +2816,22 @@
        Le corps de la page d'étape étant reconstruit à chaque rendu, les données du pipeline
        sont mises en cache au niveau du module et rechargées une seule fois. */
     const INV_STAGES = [
-      { key: 'a_contacter',    label: 'À contacter',    dot: '#9a978f' },
-      { key: 'contacte',       label: 'Contacté',       dot: '#3b82f6' },
-      { key: 'interesse',      label: 'Intéressé',      dot: '#8b5cf6' },
-      { key: 'due_diligence',  label: 'Due diligence',  dot: '#d97706' },
-      { key: 'negociation',    label: 'Négociation',    dot: '#f97316' },
-      { key: 'engage',         label: 'Engagé',         dot: '#16a34a' },
-      { key: 'decline',        label: 'Décliné',        dot: '#dc2626' },
+      { key: 'a_contacter',                         label: 'À contacter',                                  dot: '#9a978f' },
+      { key: 'contacte',                            label: 'Contacté',                                     dot: '#3b82f6' },
+      { key: 'interesse',                           label: 'Intéressé',                                    dot: '#8b5cf6' },
+      { key: 'due_diligence_preliminaire',          label: 'Due diligence préliminaire',                    dot: '#d97706' },
+      { key: 'lettre_intention_negociation',        label: "Lettre d'intention en cours de négociation",     dot: '#f97316' },
+      { key: 'lettre_intention_signee',             label: "Lettre d'intention signée",                     dot: '#ea580c' },
+      { key: 'due_diligence_poussee',               label: 'Due diligence poussée',                         dot: '#ca8a04' },
+      { key: 'contrats_negociation',                label: 'Contrats en cours de négociation',              dot: '#0d9488' },
+      { key: 'contrats_signes',                     label: 'Contrats signés',                               dot: '#16a34a' },
+      { key: 'gouvernance',                         label: 'Gouvernance',                                     dot: '#15803d' },
     ];
     const invMoney = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
     function invFmtAmount(n) { return n == null ? null : invMoney.format(n); }
 
     let invPipeline = [];
     let invPipelineLoaded = false;
-    let invDraggedId = null;
 
     async function invApi(path, opts) {
       const r = await fetch(path, Object.assign({ credentials: 'include' }, opts || {}));
@@ -2909,53 +2912,63 @@
       const stageSelect = root.querySelector('[data-in="stage"]');
       invFillStageSelect(stageSelect, 'a_contacter');
 
-      function invCard(inv) {
-        const el = document.createElement('div');
-        el.className = 'ip-card';
-        el.draggable = true;
+      function invRow(inv) {
+        const el = document.createElement('tr');
         el.dataset.id = inv.id;
-        el.addEventListener('dragstart', () => { invDraggedId = inv.id; el.classList.add('is-dragging'); });
-        el.addEventListener('dragend', () => { invDraggedId = null; el.classList.remove('is-dragging'); });
-
+        const investorCell = document.createElement('td');
         const name = document.createElement('div');
         name.className = 'ip-card__name';
         name.textContent = inv.name;
-        el.appendChild(name);
+        investorCell.appendChild(name);
 
         if (inv.firm) {
           const firm = document.createElement('div');
           firm.className = 'ip-card__firm';
           firm.textContent = inv.firm;
-          el.appendChild(firm);
+          investorCell.appendChild(firm);
         }
-        if (inv.amount) {
-          const amount = document.createElement('span');
-          amount.className = 'ip-card__amount';
-          amount.textContent = invFmtAmount(inv.amount);
-          el.appendChild(amount);
-        }
-        if (inv.email || inv.phone) {
-          const meta = document.createElement('div');
-          meta.className = 'ip-card__meta';
-          meta.textContent = [inv.email, inv.phone].filter(Boolean).join(' · ');
-          el.appendChild(meta);
-        }
-        if (inv.notes) {
-          const notes = document.createElement('div');
-          notes.className = 'ip-card__notes';
-          notes.textContent = inv.notes;
-          el.appendChild(notes);
-        }
+        el.appendChild(investorCell);
 
-        const row = document.createElement('div');
-        row.className = 'ip-card__row';
+        const contactCell = document.createElement('td');
+        contactCell.className = 'ip-card__meta';
+        if (inv.email || inv.phone) {
+          [inv.email, inv.phone].filter(Boolean).forEach(value => {
+            const line = document.createElement('div');
+            line.textContent = value;
+            contactCell.appendChild(line);
+          });
+        } else {
+          contactCell.textContent = '—';
+        }
+        el.appendChild(contactCell);
+
+        const amountCell = document.createElement('td');
+        amountCell.className = 'ip-card__amount';
+        amountCell.textContent = inv.amount ? invFmtAmount(inv.amount) : '—';
+        el.appendChild(amountCell);
+
+        const stageCell = document.createElement('td');
+        const stageWrap = document.createElement('div');
+        stageWrap.className = 'ip-card__stage-wrap';
+        const stageDot = document.createElement('span');
+        stageDot.className = 'ip-card__stage-dot';
+        stageDot.style.background = INV_STAGES.find(stage => stage.key === inv.stage)?.dot || '#9a978f';
+        stageWrap.appendChild(stageDot);
         const select = document.createElement('select');
         select.className = 'ip-card__stage-select';
         select.setAttribute('aria-label', 'Changer le stade de ' + inv.name);
         invFillStageSelect(select, inv.stage);
         select.addEventListener('change', () => moveStage(inv.id, select.value));
-        row.appendChild(select);
+        stageWrap.appendChild(select);
+        stageCell.appendChild(stageWrap);
+        el.appendChild(stageCell);
 
+        const notesCell = document.createElement('td');
+        notesCell.className = 'ip-card__notes';
+        notesCell.textContent = inv.notes || '—';
+        el.appendChild(notesCell);
+
+        const actionCell = document.createElement('td');
         const del = document.createElement('button');
         del.type = 'button';
         del.className = 'ip-card__del';
@@ -2963,9 +2976,8 @@
         del.title = 'Supprimer';
         del.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1 -2 2H8a2 2 0 0 1 -2 -2L5 6"/></svg>';
         del.addEventListener('click', () => deleteInvestor(inv.id));
-        row.appendChild(del);
-
-        el.appendChild(row);
+        actionCell.appendChild(del);
+        el.appendChild(actionCell);
         return el;
       }
 
@@ -2975,48 +2987,38 @@
         let totalPipelineAmount = 0;
         let engagedCount = 0;
 
-        INV_STAGES.forEach(stage => {
-          const items = invPipeline.filter(inv => inv.stage === stage.key);
-          const total = items.reduce((sum, inv) => sum + (inv.amount || 0), 0);
-          if (stage.key === 'engage') { totalEngagedAmount += total; engagedCount = items.length; }
-          if (stage.key !== 'decline') totalPipelineAmount += total;
-
-          const col = document.createElement('div');
-          col.className = 'ip-col';
-          col.dataset.stage = stage.key;
-          col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('is-dragover'); });
-          col.addEventListener('dragleave', () => col.classList.remove('is-dragover'));
-          col.addEventListener('drop', e => {
-            e.preventDefault();
-            col.classList.remove('is-dragover');
-            if (invDraggedId != null) moveStage(invDraggedId, stage.key);
-          });
-
-          const head = document.createElement('div');
-          head.className = 'ip-col__head';
-          head.innerHTML = `<span class="ip-col__dot" style="background:${stage.dot}"></span><span class="ip-col__title">${esc(stage.label)}</span><span class="ip-col__count">${items.length}</span>`;
-          col.appendChild(head);
-
-          if (total > 0) {
-            const totalEl = document.createElement('div');
-            totalEl.className = 'ip-col__total';
-            totalEl.textContent = invFmtAmount(total);
-            col.appendChild(totalEl);
+        invPipeline.forEach(inv => {
+          totalPipelineAmount += inv.amount || 0;
+          if (inv.stage === 'contrats_signes' || inv.stage === 'gouvernance') {
+            totalEngagedAmount += inv.amount || 0;
+            engagedCount += 1;
           }
-
-          const body = document.createElement('div');
-          body.className = 'ip-col__body';
-          if (!items.length) {
-            const empty = document.createElement('div');
-            empty.className = 'ip-col__empty';
-            empty.textContent = 'Aucun investisseur.';
-            body.appendChild(empty);
-          } else {
-            items.forEach(inv => body.appendChild(invCard(inv)));
-          }
-          col.appendChild(body);
-          boardEl.appendChild(col);
         });
+
+        const table = document.createElement('table');
+        table.className = 'ip-table';
+        table.innerHTML = `<thead><tr>
+          <th class="ip-table__investor">Investisseur</th>
+          <th class="ip-table__contact">Contact</th>
+          <th class="ip-table__amount">Ticket envisagé</th>
+          <th class="ip-table__stage">Statut</th>
+          <th class="ip-table__notes">Notes</th>
+          <th class="ip-table__action"><span class="sr-only">Actions</span></th>
+        </tr></thead>`;
+        const tbody = document.createElement('tbody');
+        if (!invPipeline.length) {
+          const emptyRow = document.createElement('tr');
+          const emptyCell = document.createElement('td');
+          emptyCell.colSpan = 6;
+          emptyCell.className = 'ip-card__notes';
+          emptyCell.textContent = 'Aucun investisseur dans le pipeline.';
+          emptyRow.appendChild(emptyCell);
+          tbody.appendChild(emptyRow);
+        } else {
+          invPipeline.forEach(inv => tbody.appendChild(invRow(inv)));
+        }
+        table.appendChild(tbody);
+        boardEl.appendChild(table);
 
         root.querySelector('[data-stat="count"]').textContent = String(invPipeline.length);
         root.querySelector('[data-stat="engaged"]').textContent = String(engagedCount);

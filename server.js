@@ -3011,10 +3011,28 @@ app.get('/api/saas/activity', requireAuth, async (req, res) => {
 });
 
 // ─── Pipeline investisseurs (suivi manuel des investisseurs par le fondateur) ─
-const INVESTOR_STAGES = ['a_contacter', 'contacte', 'interesse', 'due_diligence', 'negociation', 'engage', 'decline'];
+const INVESTOR_STAGES = [
+  'a_contacter',
+  'contacte',
+  'interesse',
+  'due_diligence_preliminaire',
+  'lettre_intention_negociation',
+  'lettre_intention_signee',
+  'due_diligence_poussee',
+  'contrats_negociation',
+  'contrats_signes',
+  'gouvernance',
+];
+const LEGACY_INVESTOR_STAGES = {
+  due_diligence: 'due_diligence_preliminaire',
+  negociation: 'lettre_intention_negociation',
+  engage: 'contrats_signes',
+  decline: 'a_contacter',
+};
 
 function publicInvestor(inv) {
   const { _id, user_id, ...rest } = inv;
+  rest.stage = LEGACY_INVESTOR_STAGES[rest.stage] || rest.stage;
   return rest;
 }
 
@@ -3023,7 +3041,7 @@ app.get('/api/saas/investors', requireAuth, async (req, res) => {
     .find({ user_id: req.user.id }, { projection: { _id: 0, user_id: 0 } })
     .sort({ order: 1, id: 1 })
     .toArray();
-  res.json({ investors });
+  res.json({ investors: investors.map(publicInvestor) });
 });
 
 app.post('/api/saas/investors', requireAuth, async (req, res) => {
