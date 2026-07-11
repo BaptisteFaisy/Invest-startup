@@ -125,7 +125,7 @@
       <div id="dr-folders"></div>
 
       <div class="dil__foot">
-        <a href="dossiers.html" class="btn btn--ghost">← Retour aux dossiers</a>
+        <a href="tableau-de-bord.html" class="btn btn--ghost">← Retour au tableau de bord</a>
       </div>
     </main>
   </div>
@@ -155,7 +155,7 @@
 
   <script>
     document.getElementById('page-back-btn').addEventListener('click', () => {
-      window.location.href = 'dossiers.html';
+      window.location.href = 'tableau-de-bord.html';
     });
 
     const DATAROOM_PROVIDER_LABELS = { google_drive: 'Google Drive', dropbox: 'Dropbox' };
@@ -263,7 +263,7 @@
       const host = document.getElementById('dr-folders');
       const ddFolders = folders.filter(f => DATAROOM_FOLDER_KEYS.includes(f.key));
       if (!ddFolders.length) {
-        host.innerHTML = '<div class="dr-empty">Aucun dossier de due diligence pour l\'instant. Ouvrez un dossier « Due diligence » depuis <a href="dossiers.html">Mes dossiers</a> et ajoutez-y des documents pour pouvoir les envoyer ici.</div>';
+        host.innerHTML = '<div class="dr-empty">Aucun dossier de due diligence pour l\'instant. Ouvrez un dossier « Due diligence » depuis <a href="tableau-de-bord.html">votre tableau de bord</a> et ajoutez-y des documents pour pouvoir les envoyer ici.</div>';
         return;
       }
       const wrap = document.createElement('div');

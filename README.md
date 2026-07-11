@@ -66,7 +66,7 @@ invest-startup/
 │   └── public/         # Images publiques (logos catalog)
 │
 └── Saas/               # Servi sous /saas par express.static
-    ├── dossiers.html   # Page centrale du SaaS (~1 400 lignes HTML+JS inline)
+    ├── tableau-de-bord.html   # Page centrale du SaaS (~1 400 lignes HTML+JS inline)
     ├── editor.html     # Shell de l'éditeur
     ├── editor.js       # Éditeur (~2 700 lignes)
     ├── editor.css
@@ -300,7 +300,7 @@ Le `slug` est la clé de l'item dans `items_state`. Lors du link :
 
 Pour délier : `{ document_id: null }` → supprime le champ `document_id` et remet `final: false`.
 
-### Ordre d'affichage dans `dossiers.html`
+### Ordre d'affichage dans `tableau-de-bord.html`
 
 ```
 1. « Document en cours » (dernier termsheet modifié, carte sombre dynamique)
@@ -312,7 +312,7 @@ Pour délier : `{ document_id: null }` → supprime le champ `document_id` et re
 Le "Document en cours" est rendu dynamiquement en tête de `render()` : il trouve le termsheet avec le `updated_at` le plus récent parmi tous les docs du user.
 
 ### Anti-doublon dans le rendu
-`dossiers.html` construit pour chaque dossier un `Set checklistLinked` à partir des `items_state[*].document_id`. La liste de fichiers du dossier filtre ensuite ces IDs pour éviter l'affichage double. Les termsheets non classés sont en plus exclus du dossier "Fichiers importés" (ils s'affichent dans "Document en cours").
+`tableau-de-bord.html` construit pour chaque dossier un `Set checklistLinked` à partir des `items_state[*].document_id`. La liste de fichiers du dossier filtre ensuite ces IDs pour éviter l'affichage double. Les termsheets non classés sont en plus exclus du dossier "Fichiers importés" (ils s'affichent dans "Document en cours").
 
 ```js
 const checklistLinked = new Set(
@@ -326,7 +326,7 @@ const inFolder = docs.filter(d =>
 ```
 
 ### Correspondance slug ↔ fichier template
-`dossiers.html` contient un dictionnaire `MODELS` (Set de slugs) indiquant quels points de checklist ont un fichier template dans `Saas/ressources/modeles/`. La conversion nom → slug utilise `slugify()` (accents normalisés, espaces→tirets, caractères spéciaux→vides).
+`tableau-de-bord.html` contient un dictionnaire `MODELS` (Set de slugs) indiquant quels points de checklist ont un fichier template dans `Saas/ressources/modeles/`. La conversion nom → slug utilise `slugify()` (accents normalisés, espaces→tirets, caractères spéciaux→vides).
 
 ---
 
@@ -334,7 +334,7 @@ const inFolder = docs.filter(d =>
 
 ### Flux de création depuis un modèle (`useTemplate`)
 ```
-1. dossiers.html : fetch('/saas/ressources/modeles/<slug>.html')
+1. tableau-de-bord.html : fetch('/saas/ressources/modeles/<slug>.html')
 2. POST /api/saas/termsheets { name, html, folder_id }
    → stocke le doc en base, renvoie { id }
 3. PUT /api/saas/folders/:folderId/checklist { slug, document_id: id }
@@ -503,7 +503,7 @@ Pas de bundler, pas de build step. Les pages sont des fichiers HTML servis stati
 // Sinon injecte le nom de l'utilisateur dans le DOM
 ```
 
-### État applicatif dans `dossiers.html`
+### État applicatif dans `tableau-de-bord.html`
 Pas de store centralisé. L'état est maintenu dans des variables de module et le DOM est rechargé par une fonction `render()` après chaque mutation. Les données sont fetché une seule fois au chargement via `Promise.all([fetch('/api/saas/folders'), fetch('/api/saas/documents')])`.
 
 ### Frise — états des pastilles (`renderFrise`)
@@ -518,7 +518,7 @@ const urlFolderId = new URLSearchParams(location.search).get('folder');
 L'éditeur expose ses fonctions sur `window` pour l'interopérabilité (certains handlers HTML appellent des fonctions globales).
 
 ### Drag & drop
-`dossiers.html` implémente un drag & drop natif (`dragstart`, `dragover`, `drop`) pour :
+`tableau-de-bord.html` implémente un drag & drop natif (`dragstart`, `dragover`, `drop`) pour :
 - Réordonner les points de checklist (ordre local uniquement, non persisté)
 - Déposer des fichiers locaux sur un dossier ou un point de checklist
 

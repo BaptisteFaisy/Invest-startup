@@ -55,7 +55,7 @@
         <span class="topbar__doc">Marché</span>
       </div>
       <div class="topbar__actions">
-        <a href="dossiers.html" class="btn btn--ghost">← Dossiers</a>
+        <a href="tableau-de-bord.html" class="btn btn--ghost">← Tableau de bord</a>
         <button class="btn btn--ghost" id="logout-btn">Déconnexion</button>
       </div>
     </header>
@@ -78,7 +78,7 @@
       </div>
 
       <div class="mkt__foot">
-        <a href="dossiers.html" class="btn btn--ghost">← Retour aux dossiers</a>
+        <a href="tableau-de-bord.html" class="btn btn--ghost">← Retour au tableau de bord</a>
       </div>
     </main>
   </div>
@@ -87,7 +87,7 @@
     document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); logout(); });
     document.getElementById('page-back-btn').addEventListener('click', () => {
       if (window.history.length > 1) window.history.back();
-      else window.location.href = 'dossiers.html';
+      else window.location.href = 'tableau-de-bord.html';
     });
 
     async function init() {

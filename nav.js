@@ -47,7 +47,7 @@
     if (!nl || !nl.querySelector('a.nav-link')) return;
     if (nl.querySelector('.saas-nav-link')) return; // déjà présent
     const link = document.createElement('a');
-    link.href = '/saas/dossiers.html';
+    link.href = '/saas/tableau-de-bord.html';
     link.className = 'nav-link saas-nav-link';
     link.textContent = 'liquid + SaaS';
     // On l'insère juste avant le nom d'utilisateur (ou le bouton de déconnexion)

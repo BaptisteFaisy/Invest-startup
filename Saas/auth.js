@@ -46,6 +46,6 @@ async function refreshNav() {
   }
   if (ctaBtn) {
     ctaBtn.textContent = 'Mon espace';
-    ctaBtn.href = 'dossiers.html';
+    ctaBtn.href = 'tableau-de-bord.html';
   }
 }

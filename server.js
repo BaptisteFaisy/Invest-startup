@@ -847,7 +847,7 @@ app.get('/auth/google/callback', async (req, res) => {
       const appToken = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
       return res.redirect(`liquidplus://auth?token=${encodeURIComponent(appToken)}`);
     }
-    res.redirect(ADMIN_EMAILS.includes(user.email) ? '/admin.html' : hasAccountTypes(user) ? '/saas/dossiers.html' : '/saas/onboarding.html');
+    res.redirect(ADMIN_EMAILS.includes(user.email) ? '/admin.html' : hasAccountTypes(user) ? '/saas/tableau-de-bord.html' : '/saas/onboarding.html');
   } catch (err) {
     console.error('Google OAuth error:', err.message);
     fromApp  ? res.redirect('liquidplus://auth?error=google_failed')
@@ -3289,7 +3289,7 @@ async function dataroomFolderDocs(userId, folder) {
 // ─── État OAuth éphémère (10 min) : associe le `state` renvoyé par le fournisseur
 // à l'utilisateur qui a initié la connexion (même rôle que totpSetupStore).
 const dataroomOAuthState = new Map();
-const DATAROOM_RETURN_PATHS = new Set(['/saas/dossiers.html', '/saas/data-room.html']);
+const DATAROOM_RETURN_PATHS = new Set(['/saas/tableau-de-bord.html', '/saas/data-room.html']);
 function dataroomReturnPath(value) {
   if (typeof value !== 'string') return null;
   try {

@@ -125,7 +125,7 @@
         <span class="topbar__doc">Comparaison de versions</span>
       </div>
       <div class="topbar__actions">
-        <a href="dossiers.html" class="btn btn--ghost">← Dossiers</a>
+        <a href="tableau-de-bord.html" class="btn btn--ghost">← Tableau de bord</a>
         <a href="editor.html" class="btn btn--ghost" target="_blank" rel="noopener">Éditeur</a>
         <button class="btn btn--ghost" id="logout-btn">Déconnexion</button>
       </div>
@@ -193,7 +193,7 @@
       </div>
 
       <div class="cmp__foot">
-        <a href="dossiers.html" class="btn btn--ghost">← Retour aux dossiers</a>
+        <a href="tableau-de-bord.html" class="btn btn--ghost">← Retour au tableau de bord</a>
       </div>
     </main>
   </div>
@@ -202,7 +202,7 @@
     document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); logout(); });
     document.getElementById('page-back-btn').addEventListener('click', () => {
       if (window.history.length > 1) window.history.back();
-      else window.location.href = 'dossiers.html';
+      else window.location.href = 'tableau-de-bord.html';
     });
 
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }

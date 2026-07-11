@@ -114,7 +114,7 @@
           if (!res.ok) { window.location.replace('login.html'); return; }
           const data = await res.json();
           if (data.user && Array.isArray(data.user.account_types) && data.user.account_types.length) {
-            window.location.replace('dossiers.html');
+            window.location.replace('tableau-de-bord.html');
           }
         } catch { /* on laisse l'utilisateur choisir */ }
       })();

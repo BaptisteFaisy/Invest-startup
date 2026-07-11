@@ -289,7 +289,7 @@
           const name = data.user.full_name ? data.user.full_name.split(' ')[0] : data.user.email;
           document.getElementById('nav-links').innerHTML = `
             <a class="nav-link" href="settings.html">Paramètres</a>
-            <a class="nav-link saas-nav-link" href="/saas/dossiers.html">liquid + SaaS</a>
+            <a class="nav-link saas-nav-link" href="/saas/tableau-de-bord.html">liquid + SaaS</a>
             <span class="nav-link nav-user-name">${name}</span>
             <button class="button ghost" id="nav-logout">Se déconnecter</button>
           `;
@@ -297,7 +297,7 @@
             <button class="nav-hamburger" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><span></span><span></span><span></span></button>
             <a href="index.html">Accueil</a>
             <a href="settings.html">Paramètres</a>
-            <a href="/saas/dossiers.html">liquid + SaaS</a>
+            <a href="/saas/tableau-de-bord.html">liquid + SaaS</a>
             <button id="mobile-logout" style="margin-top:16px;font-size:1.1rem;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer;font-family:inherit;">Se déconnecter</button>
           `;
           document.getElementById('nav-logout').addEventListener('click', async () => {
@@ -325,7 +325,7 @@
         <div class="hero__badge"><span class="hero__dot"></span>Votre agent IA avocat</div>
         <h1>Le volet juridique de votre levée de fonds<br><em>en toute confiance.</em></h1>
         <div class="hero__actions">
-          <a href="/saas/dossiers.html" class="btn-lg btn-lg--white">Préparer ma levée de fonds</a>
+          <a href="/saas/tableau-de-bord.html" class="btn-lg btn-lg--white">Préparer ma levée de fonds</a>
           <a href="#how" class="btn-lg btn-lg--outline">Voir les étapes</a>
         </div>
 
@@ -569,7 +569,7 @@
       <section class="cta">
         <h2>Votre prochain document juridique,<br>rédigé et négocié en autonomie.</h2>
         <p>Rejoignez les fondateurs qui pilotent leur levée sans attendre un avocat.</p>
-        <a href="/saas/dossiers.html" class="btn-lg btn-lg--white">Préparer ma levée de fonds</a>
+        <a href="/saas/tableau-de-bord.html" class="btn-lg btn-lg--white">Préparer ma levée de fonds</a>
       </section>
 
     </main>
@@ -583,7 +583,7 @@
         </div>
         <div class="footer__col">
           <h4>Produit</h4>
-          <a href="/saas/dossiers.html">Préparer ma levée de fonds</a>
+          <a href="/saas/tableau-de-bord.html">Préparer ma levée de fonds</a>
           <a href="#how">Les étapes</a>
         </div>
         <div class="footer__col">

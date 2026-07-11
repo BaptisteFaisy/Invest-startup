@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>liquid + — Dossiers</title>
+  <title>liquid + — Tableau de bord</title>
   <meta name="description" content="Tous vos documents juridiques de levée de fonds, au même endroit." />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -4585,7 +4585,7 @@
           type: 'doc-analyze',
           label: 'Analyse — ' + (doc.name || 'document'),
           payload: { title: doc.name, text, folderId, slug },
-          location: { url: 'dossiers.html?todo=' + folderId + ':' + encodeURIComponent(slug) },
+          location: { url: 'tableau-de-bord.html?todo=' + folderId + ':' + encodeURIComponent(slug) },
         });
         btn.textContent = 'Analyse lancée ✓';
         // Ouvre le panneau dès la fin (couvre aussi un résultat instantané servi en cache).
