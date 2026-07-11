@@ -37,7 +37,7 @@
   });
 })();
 
-// Injecte l'onglet « liquid + SaaS » dans la nav pour les utilisateurs connectés
+// Injecte l'onglet « liquid+ SaaS » dans la nav pour les utilisateurs connectés
 (function () {
   let checked = false;     // une seule requête /api/auth/me
   let isUser  = null;      // null = pas encore vérifié, true/false ensuite
@@ -49,7 +49,7 @@
     const link = document.createElement('a');
     link.href = '/saas/tableau-de-bord.html';
     link.className = 'nav-link saas-nav-link';
-    link.textContent = 'liquid + SaaS';
+    link.textContent = 'liquid+ SaaS';
     // On l'insère juste avant le nom d'utilisateur (ou le bouton de déconnexion)
     const anchor = nl.querySelector('.nav-user-name') || nl.querySelector('button');
     if (anchor) nl.insertBefore(link, anchor);

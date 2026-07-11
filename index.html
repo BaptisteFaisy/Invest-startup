@@ -289,7 +289,7 @@
           const name = data.user.full_name ? data.user.full_name.split(' ')[0] : data.user.email;
           document.getElementById('nav-links').innerHTML = `
             <a class="nav-link" href="settings.html">Paramètres</a>
-            <a class="nav-link saas-nav-link" href="/saas/tableau-de-bord.html">liquid + SaaS</a>
+            <a class="nav-link saas-nav-link" href="/saas/tableau-de-bord.html">liquid+ SaaS</a>
             <span class="nav-link nav-user-name">${name}</span>
             <button class="button ghost" id="nav-logout">Se déconnecter</button>
           `;
@@ -297,7 +297,7 @@
             <button class="nav-hamburger" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><span></span><span></span><span></span></button>
             <a href="index.html">Accueil</a>
             <a href="settings.html">Paramètres</a>
-            <a href="/saas/tableau-de-bord.html">liquid + SaaS</a>
+            <a href="/saas/tableau-de-bord.html">liquid+ SaaS</a>
             <button id="mobile-logout" style="margin-top:16px;font-size:1.1rem;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer;font-family:inherit;">Se déconnecter</button>
           `;
           document.getElementById('nav-logout').addEventListener('click', async () => {

@@ -450,7 +450,7 @@
       fetch('/api/auth/me',{credentials:'include'}).then(r=>r.ok?r.json():null).then(data=>{
         if(!data?.user)return;
         const name=data.user.full_name?data.user.full_name.split(' ')[0]:data.user.email;
-        document.getElementById('nav-links').innerHTML=`<a class="nav-link nav-link--active" href="marche.html">Ressources</a><a class="nav-link saas-nav-link" href="/saas/tableau-de-bord.html">liquid + SaaS</a><span class="nav-link nav-user-name">${name}</span><button class="button ghost" id="nav-logout">Se déconnecter</button>`;
+        document.getElementById('nav-links').innerHTML=`<a class="nav-link nav-link--active" href="marche.html">Ressources</a><a class="nav-link saas-nav-link" href="/saas/tableau-de-bord.html">liquid+ SaaS</a><span class="nav-link nav-user-name">${name}</span><button class="button ghost" id="nav-logout">Se déconnecter</button>`;
         document.getElementById('mobile-menu').innerHTML=`<button class="nav-hamburger" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><span></span><span></span><span></span></button><a href="index.html">Accueil</a><a href="marche.html">Ressources</a><a href="settings.html">Paramètres</a><button class="button" style="margin-top:16px;width:100%;padding:14px;" id="mobile-logout">Se déconnecter</button>`;
         document.getElementById('nav-logout')?.addEventListener('click',async()=>{await fetch('/api/auth/logout',{method:'POST',credentials:'include'});window.location.reload();});
         document.getElementById('mobile-logout')?.addEventListener('click',async()=>{await fetch('/api/auth/logout',{method:'POST',credentials:'include'});window.location.reload();});
