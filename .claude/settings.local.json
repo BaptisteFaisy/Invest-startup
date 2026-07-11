@@ -1,6 +1,9 @@
 {
   "permissions": {
-    "defaultMode": "bypassPermissions"
+    "defaultMode": "bypassPermissions",
+    "allow": [
+      "WebSearch"
+    ]
   },
   "hooks": {
     "PostToolUse": [
@@ -10,8 +13,7 @@
           {
             "type": "command",
             "command": "python \"C:\\Users\\gaiam\\.agentsroom\\hooks\\notify-agentsroom.py\"",
-            "async": true,
-            "_agentsroomHook": true
+            "async": true
           }
         ]
       }
@@ -22,8 +24,7 @@
           {
             "type": "command",
             "command": "python \"C:\\Users\\gaiam\\.agentsroom\\hooks\\notify-agentsroom.py\"",
-            "async": true,
-            "_agentsroomHook": true
+            "async": true
           }
         ]
       }
@@ -34,8 +35,7 @@
           {
             "type": "command",
             "command": "python \"C:\\Users\\gaiam\\.agentsroom\\hooks\\notify-agentsroom.py\"",
-            "async": true,
-            "_agentsroomHook": true
+            "async": true
           }
         ]
       }
@@ -46,8 +46,7 @@
           {
             "type": "command",
             "command": "python \"C:\\Users\\gaiam\\.agentsroom\\hooks\\notify-agentsroom.py\"",
-            "async": true,
-            "_agentsroomHook": true
+            "async": true
           }
         ]
       }
@@ -58,8 +57,7 @@
           {
             "type": "command",
             "command": "python \"C:\\Users\\gaiam\\.agentsroom\\hooks\\notify-agentsroom.py\"",
-            "async": true,
-            "_agentsroomHook": true
+            "async": true
           }
         ]
       }
@@ -70,8 +68,7 @@
           {
             "type": "command",
             "command": "python \"C:\\Users\\gaiam\\.agentsroom\\hooks\\notify-agentsroom.py\"",
-            "async": true,
-            "_agentsroomHook": true
+            "async": true
           }
         ]
       }
@@ -82,8 +79,7 @@
           {
             "type": "command",
             "command": "python \"C:\\Users\\gaiam\\.agentsroom\\hooks\\notify-agentsroom.py\"",
-            "async": true,
-            "_agentsroomHook": true
+            "async": true
           }
         ]
       }
