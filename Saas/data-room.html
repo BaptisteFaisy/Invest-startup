@@ -200,9 +200,9 @@
           <div id="dataroom-modal-providers" class="dr-providers"></div>
         </div>
         <div class="pick__section">
-          <div class="pick__label">Sans compte connecté</div>
-          <a class="btn btn--ghost" id="dataroom-modal-zip" href="#" rel="noopener">Télécharger le dossier DD en ZIP</a>
-          <div class="dr-hint">À importer manuellement dans Datasite, Intralinks ou une autre data room professionnelle.</div>
+          <div class="pick__label">Data rooms spécialisées</div>
+          <div id="dataroom-modal-pro" class="dr-providers"></div>
+          <div class="dr-hint">Ces plateformes n'ont pas de connexion directe : téléchargez le dossier de due diligence en ZIP, puis importez-le dans l'outil choisi.</div>
         </div>
         <div class="pick__err" id="dataroom-modal-err"></div>
       </div>
@@ -215,6 +215,7 @@
     });
 
     const DATAROOM_PROVIDER_LABELS = { google_drive: 'Google Drive', dropbox: 'Dropbox' };
+    const DATAROOM_PRO_PROVIDERS = ['Datasite', 'Intralinks', 'Ansarada', 'Firmex'];
     const DATAROOM_FOLDER_KEYS = ['due-diligence-preliminaire', 'due-diligence'];
 
     let folders = [];
@@ -387,7 +388,7 @@
     // ---- Modal : choisir le compte cloud vers lequel envoyer le document ----
     const dataroomModal       = document.getElementById('dataroom-modal');
     const dataroomProvidersEl = document.getElementById('dataroom-modal-providers');
-    const dataroomZip         = document.getElementById('dataroom-modal-zip');
+    const dataroomProEl       = document.getElementById('dataroom-modal-pro');
     const dataroomErr         = document.getElementById('dataroom-modal-err');
     let dataroomCtx = null; // { id, categoryTitle }
 
@@ -422,12 +423,33 @@
       });
     }
 
+    function renderDataroomProProviders(zipUrl) {
+      dataroomProEl.innerHTML = '';
+      DATAROOM_PRO_PROVIDERS.forEach(name => {
+        const row = document.createElement('div');
+        row.className = 'dr-provider';
+        row.innerHTML = `
+          <div>
+            <div class="dr-provider__label">${esc(name)}</div>
+            <div class="dr-provider__sub">Export manuel (ZIP)</div>
+          </div>`;
+        const link = document.createElement('a');
+        link.className = 'btn btn--ghost';
+        link.href = zipUrl;
+        link.rel = 'noopener';
+        link.textContent = 'Télécharger';
+        row.appendChild(link);
+        dataroomProEl.appendChild(row);
+      });
+    }
+
     function openDataroomModal(ctx) {
       dataroomCtx = ctx;
       dataroomErr.textContent = '';
       dataroomErr.classList.remove('is-shown');
       renderDataroomProviders();
-      dataroomZip.href = '/api/saas/dataroom/zip?' + new URLSearchParams({ folder_id: String(ctx.folderId) }).toString();
+      const zipUrl = '/api/saas/dataroom/zip?' + new URLSearchParams({ folder_id: String(ctx.folderId) }).toString();
+      renderDataroomProProviders(zipUrl);
       dataroomModal.classList.add('is-open');
     }
     function closeDataroomModal() { dataroomModal.classList.remove('is-open'); dataroomCtx = null; }

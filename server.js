@@ -3289,7 +3289,7 @@ async function dataroomFolderDocs(userId, folder) {
 // ─── État OAuth éphémère (10 min) : associe le `state` renvoyé par le fournisseur
 // à l'utilisateur qui a initié la connexion (même rôle que totpSetupStore).
 const dataroomOAuthState = new Map();
-const DATAROOM_RETURN_PATHS = new Set(['/saas/tableau-de-bord.html', '/saas/data-room.html']);
+const DATAROOM_RETURN_PATHS = new Set(['/saas/tableau-de-bord.html', '/saas/data-room.html', '/saas/compte.html']);
 function dataroomReturnPath(value) {
   if (typeof value !== 'string') return null;
   try {
