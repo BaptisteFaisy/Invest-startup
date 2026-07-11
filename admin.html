@@ -26,7 +26,7 @@
     /* ── Messagerie feedback ── */
     .msg-layout { display: flex; min-height: 360px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: rgba(255,255,255,0.04); }
     .msg-list { width: 250px; flex: none; border-right: 1px solid var(--line); overflow-y: auto; max-height: 520px; }
-    .msg-list-item { padding: 12px 14px; border-bottom: 1px solid var(--line); cursor: pointer; transition: background .12s; }
+    .msg-list-item { display: block; width: 100%; padding: 12px 14px; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; transition: background .12s; }
     .msg-list-item:last-child { border-bottom: 0; }
     .msg-list-item:hover { background: rgba(255,255,255,0.08); }
     .msg-list-item.active { background: rgba(255,255,255,0.12); }
@@ -134,29 +134,40 @@
     function renderThreadList() {
       const el = document.getElementById('msg-list');
       if (!threads.length) { el.innerHTML = '<p style="padding:14px;color:var(--muted);font-size:.85rem;">Aucun message pour l\'instant.</p>'; return; }
-      el.innerHTML = threads.map(t => {
+      el.innerHTML = threads.map((t, index) => {
         const last = (t.messages && t.messages[0]) || null;
         const name = t.user_name || t.user_email || t.user_id;
-        return `<div class="msg-list-item${t.user_id === activeThreadUserId ? ' active' : ''}" onclick="openThread('${t.user_id}')">
+        return `<button type="button" class="msg-list-item${t.id === activeThreadId ? ' active' : ''}" data-thread-index="${index}">
           <div class="msg-list-item__name">${t.unread_by_admin ? '<span class="msg-list-item__dot"></span>' : ''}${escHtml(name)}</div>
           <div class="msg-list-item__preview">${last ? escHtml(last.text) : ''}</div>
           <div class="msg-list-item__time">${last ? fmtMsgTime(last.created_at) : ''}</div>
-        </div>`;
+        </button>`;
       }).join('');
     }
+
+    document.getElementById('msg-list').addEventListener('click', (event) => {
+      const item = event.target.closest('[data-thread-index]');
+      if (!item) return;
+      const thread = threads[Number(item.dataset.threadIndex)];
+      if (thread) openThread(thread);
+    });
 
     function renderBubble(m) {
       const out = m.from === 'admin';
       return `<div class="msg-row ${out ? 'msg-row--out' : 'msg-row--in'}"><div class="msg-bubble">${escHtml(m.text)}<span class="msg-bubble__time">${fmtMsgTime(m.created_at)}</span></div></div>`;
     }
 
-    async function openThread(userId) {
-      activeThreadUserId = userId;
+    let activeThreadId = null;
+
+    async function openThread(threadSummary) {
+      activeThreadId = threadSummary.id;
+      activeThreadUserId = threadSummary.user_id;
       renderThreadList();
       const panel = document.getElementById('msg-panel');
       panel.innerHTML = '<p class="msg-panel__empty">Chargement…</p>';
       try {
-        const r = await fetch(`/api/admin/feedback/${encodeURIComponent(userId)}`, { credentials: 'include' });
+        const identifier = threadSummary.id || threadSummary.user_id;
+        const r = await fetch(`/api/admin/feedback/${encodeURIComponent(identifier)}`, { credentials: 'include' });
         if (!r.ok) {
           const err = await r.json().catch(() => ({}));
           panel.innerHTML = `<p class="msg-panel__empty">Erreur : ${escHtml(err.error || ('HTTP ' + r.status))}</p>`;
@@ -193,13 +204,15 @@
       const btn = document.getElementById('msg-reply-btn');
       btn.disabled = true;
       try {
-        const r = await fetch(`/api/admin/feedback/${activeThreadUserId}`, {
+        const identifier = activeThreadId || activeThreadUserId;
+        const r = await fetch(`/api/admin/feedback/${encodeURIComponent(identifier)}`, {
           method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text }),
         });
         if (!r.ok) throw new Error();
         input.value = '';
-        await openThread(activeThreadUserId);
+        const active = threads.find(t => t.id === activeThreadId || t.user_id === activeThreadUserId);
+        if (active) await openThread(active);
         await loadThreads();
       } catch {
         alert('Erreur lors de l\'envoi de la réponse.');

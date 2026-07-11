@@ -196,10 +196,6 @@
   });
 })();
 
-// Les outils Comparer et Exit sont volontairement affichés sans pictogramme.
-document.querySelectorAll('.drawer__link[href="compare.html"] > svg, .drawer__link[href="exit.html"] > svg')
-  .forEach(icon => icon.remove());
-
 // Recherche partagée : elle est ajoutée aux barres supérieures des pages outils.
 // Le tableau de bord conserve sa recherche dédiée, qui connaît également les
 // éléments de chaque étape et les modèles de documents.
@@ -233,7 +229,6 @@ document.querySelectorAll('.drawer__link[href="compare.html"] > svg, .drawer__li
     { type: 'Outil', label: 'Exit', href: 'exit.html', keywords: ['sortie', 'cession', 'liquidation', 'waterfall'] },
     { type: 'Outil', label: 'Documents', href: 'documents.html', keywords: ['fichiers', 'pieces', 'pièces'] },
     { type: 'Outil', label: 'Data room', href: 'data-room.html', keywords: ['dataroom', 'audit', 'due diligence'] },
-    { type: 'Outil', label: 'Investisseurs', href: 'investisseurs.html', keywords: ['pipeline', 'crm', 'prospects', 'levee', 'levée', 'stade', 'suivi'] },
     { type: 'Page', label: 'Mon compte', href: 'compte.html', keywords: ['profil', 'abonnement', 'securite', 'sécurité'] },
     { type: 'Page', label: 'Feedback', href: 'feedback.html', keywords: ['support', 'aide', 'message', 'bug'] },
     { type: 'Page', label: 'Marché', href: 'marche.html', keywords: ['marche', 'marché', 'analyse'] },

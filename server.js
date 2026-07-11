@@ -1191,22 +1191,27 @@ app.get('/api/admin/feedback', requireAdmin, async (req, res) => {
   res.json({ threads });
 });
 
-app.get('/api/admin/feedback/:userId', requireAdmin, async (req, res) => {
-  const thread = await col('feedback_threads').findOne({ user_id: req.params.userId }, { projection: { _id: 0 } });
+function feedbackThreadFilter(identifier) {
+  return { $or: [{ id: identifier }, { user_id: identifier }] };
+}
+
+app.get('/api/admin/feedback/:identifier', requireAdmin, async (req, res) => {
+  const filter = feedbackThreadFilter(req.params.identifier);
+  const thread = await col('feedback_threads').findOne(filter, { projection: { _id: 0 } });
   if (!thread) return res.status(404).json({ error: 'Fil introuvable' });
   if (thread.unread_by_admin) {
-    await col('feedback_threads').updateOne({ user_id: req.params.userId }, { $set: { unread_by_admin: false } });
+    await col('feedback_threads').updateOne(filter, { $set: { unread_by_admin: false } });
   }
   res.json({ thread });
 });
 
-app.post('/api/admin/feedback/:userId', requireAdmin, async (req, res) => {
+app.post('/api/admin/feedback/:identifier', requireAdmin, async (req, res) => {
   const text = String(req.body?.text || '').trim().slice(0, 4000);
   if (!text) return res.status(400).json({ error: 'Message vide' });
   const now     = new Date().toISOString();
   const message = { id: crypto.randomUUID(), from: 'admin', text, created_at: now };
   const result  = await col('feedback_threads').updateOne(
-    { user_id: req.params.userId },
+    feedbackThreadFilter(req.params.identifier),
     { $push: { messages: message }, $set: { unread_by_user: true, updated_at: now } },
   );
   if (!result.matchedCount) return res.status(404).json({ error: 'Fil introuvable' });
