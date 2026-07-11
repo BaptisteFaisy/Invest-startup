@@ -1612,6 +1612,18 @@
         };
         requestAnimationFrame(tick);
       };
+      // Amène un résultat « document » ou « modèle » à son emplacement : on ouvre
+      // l'étape puis on défile jusqu'à sa ligne. Volontairement, on n'ouvre PAS
+      // l'éditeur et on ne génère PAS le modèle — l'utilisatrice est simplement
+      // conduite à l'endroit où se trouve (ou se prépare) le fichier.
+      const goToSearchTarget = match => {
+        const folder = gotoFolder(match);
+        if (!folder) return false;
+        if ((folder.track || 'classic') === 'bsa-air') openBsaStepCard(folder.key);
+        else openClassicStepPage(folder.key);
+        scrollToSearchTarget(match, folder);
+        return true;
+      };
       dashboardSearchResultsEl.innerHTML = `
         <p class="topbar__search-summary">${matches.length} résultat${matches.length > 1 ? 's' : ''}</p>
         ${matches.map((match, index) => `
@@ -1629,20 +1641,20 @@
             else window.location.href = match.href;
             return;
           }
-          if (match.type === 'model') {
-            useTemplate(match.folderId, match.slug, match.item, null, match.modelSlug);
-            return;
-          }
           if (match.type === 'step') {
             if (match.track === 'bsa-air') openBsaStepCard(match.key);
             else openClassicStepPage(match.key);
             return;
           }
-          if (match.kind === 'termsheet') {
+          // Documents et modèles : on conduit à l'emplacement du fichier plutôt que
+          // d'ouvrir l'éditeur ou de générer le modèle directement.
+          if (goToSearchTarget(match)) return;
+          // Repli si le résultat n'a pas d'emplacement d'étape sur le tableau de bord
+          // (cas rare : document dans un dossier hors parcours).
+          if (match.type === 'model') {
+            useTemplate(match.folderId, match.slug, match.item, null, match.modelSlug);
+          } else if (match.kind === 'termsheet') {
             window.location.href = `editor.html?doc=${encodeURIComponent(match.id)}`;
-          } else if (match.folder && isSystemPhase(match.folder)) {
-            if ((match.folder.track || 'classic') === 'bsa-air') openBsaStepCard(match.folder.key);
-            else openClassicStepPage(match.folder.key);
           }
         });
       });
@@ -1650,12 +1662,9 @@
         button.addEventListener('click', event => {
           event.stopPropagation();
           const match = matches[Number(button.dataset.searchGoto)];
-          const folder = match && gotoFolder(match);
-          if (!folder) return;
+          if (!match) return;
           closeDashboardSearch({ clear: true });
-          if ((folder.track || 'classic') === 'bsa-air') openBsaStepCard(folder.key);
-          else openClassicStepPage(folder.key);
-          scrollToSearchTarget(match, folder);
+          goToSearchTarget(match);
         });
       });
     }
