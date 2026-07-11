@@ -93,6 +93,8 @@
     .dr-provider__label { font: 700 13.5px 'Archivo', sans-serif; color: #08090c; }
     .dr-provider__sub { font-size: 11.5px; color: #6b6b78; margin-top: 2px; }
     .dr-provider .btn { padding: 7px 12px; font-size: 12.5px; min-height: 0; }
+    .dr-provider__actions { display: flex; flex-direction: column; gap: 6px; flex: none; }
+    .dr-provider__actions .btn { text-align: center; white-space: nowrap; }
     .dr-hint { font-size: 12px; color: #6b6b78; margin-top: 8px; line-height: 1.5; }
   </style>
   <script src="auth.js?v=3"></script>
@@ -192,7 +194,7 @@
         <div class="pick__section">
           <div class="pick__label">Data rooms spécialisées</div>
           <div id="dataroom-modal-pro" class="dr-providers"></div>
-          <div class="dr-hint">Ces plateformes n'ont pas de connexion directe : téléchargez le dossier de due diligence en ZIP, puis importez-le dans l'outil choisi.</div>
+          <div class="dr-hint">Ces plateformes n'ont pas de connexion directe : créez votre compte sur la plateforme de votre choix, puis téléchargez le dossier de due diligence en ZIP et importez-le dans l'outil.</div>
         </div>
         <div class="pick__err" id="dataroom-modal-err"></div>
       </div>
@@ -205,7 +207,15 @@
     });
 
     const DATAROOM_PROVIDER_LABELS = { google_drive: 'Google Drive', dropbox: 'Dropbox' };
-    const DATAROOM_PRO_PROVIDERS = ['Datasite', 'Intralinks', 'Ansarada', 'Firmex'];
+    // Data rooms spécialisées : produits « enterprise » sans API d'inscription.
+    // On ne peut pas créer le compte à la place de l'utilisateur — on l'amène en un
+    // clic sur le tunnel officiel du fournisseur, puis il importe le ZIP structuré.
+    const DATAROOM_PRO_PROVIDERS = [
+      { name: 'Ansarada',   url: 'https://www.ansarada.com/data-room',                   note: 'Compte gratuit pour démarrer, sans carte bancaire' },
+      { name: 'Datasite',   url: 'https://www.datasite.com/',                            note: 'Accès sur demande auprès de Datasite (essai possible)' },
+      { name: 'Intralinks', url: 'https://www.intralinks.com/products/virtual-data-room', note: 'Démo et accès sur demande auprès d’Intralinks' },
+      { name: 'Firmex',     url: 'https://www.firmex.com/signup/data-room-request-a-quote/', note: 'Devis et démo sur demande auprès de Firmex' },
+    ];
     const DATAROOM_FOLDER_KEYS = ['due-diligence-preliminaire', 'due-diligence'];
 
     let folders = [];
@@ -415,20 +425,34 @@
 
     function renderDataroomProProviders(zipUrl) {
       dataroomProEl.innerHTML = '';
-      DATAROOM_PRO_PROVIDERS.forEach(name => {
+      DATAROOM_PRO_PROVIDERS.forEach(provider => {
         const row = document.createElement('div');
         row.className = 'dr-provider';
         row.innerHTML = `
           <div>
-            <div class="dr-provider__label">${esc(name)}</div>
-            <div class="dr-provider__sub">Export manuel (ZIP)</div>
+            <div class="dr-provider__label">${esc(provider.name)}</div>
+            <div class="dr-provider__sub">${esc(provider.note)}</div>
           </div>`;
-        const link = document.createElement('a');
-        link.className = 'btn btn--ghost';
-        link.href = zipUrl;
-        link.rel = 'noopener';
-        link.textContent = 'Télécharger';
-        row.appendChild(link);
+        const actions = document.createElement('div');
+        actions.className = 'dr-provider__actions';
+
+        const signup = document.createElement('a');
+        signup.className = 'btn btn--primary';
+        signup.href = provider.url;
+        signup.target = '_blank';
+        signup.rel = 'noopener noreferrer';
+        signup.textContent = 'Créer un compte';
+        signup.setAttribute('aria-label', 'Créer un compte sur ' + provider.name);
+        actions.appendChild(signup);
+
+        const dl = document.createElement('a');
+        dl.className = 'btn btn--ghost';
+        dl.href = zipUrl;
+        dl.rel = 'noopener';
+        dl.textContent = 'Télécharger le ZIP';
+        actions.appendChild(dl);
+
+        row.appendChild(actions);
         dataroomProEl.appendChild(row);
       });
     }

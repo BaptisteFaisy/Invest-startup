@@ -94,6 +94,9 @@
     .dataroom-provider__status--on { color: #15803d; }
     .dataroom-provider__status--warn { color: #b45309; }
     .dataroom-provider .btn { flex: none; min-height: 0; padding: 8px 14px; font-size: 12.5px; }
+    .dataroom-provider__pick { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
+    .dataroom-provider__label { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 700; color: #08090c; }
+    .dataroom-provider__pick .input { max-width: 280px; padding: 9px 14px; font-size: 0.9rem; }
     .dataroom-export-select { display: grid; gap: 6px; margin: 2px 0 18px; font-size: 0.86rem; font-weight: 700; color: #08090c; }
     .dataroom-export-select select { width: 100%; }
     .dataroom-export-hint { margin: 10px 0 0; color: #6b6b78; font-size: 0.82rem; line-height: 1.5; }
@@ -559,25 +562,32 @@
     // bouton de téléchargement par fournisseur — un seul export est proposé en bas.
     function renderDataroomSignupProviders() {
       const host = document.getElementById('dataroom-specialized-providers');
-      host.innerHTML = '';
-      DATAROOM_PRO_PROVIDERS.forEach(provider => {
-        const row = document.createElement('div');
-        row.className = 'dataroom-provider';
-        row.innerHTML =
-          '<div>' +
-            '<div class="dataroom-provider__name">' + esc(provider.name) + '</div>' +
-            '<div class="dataroom-provider__status">' + esc(provider.note) + '</div>' +
-          '</div>';
-        const link = document.createElement('a');
-        link.className = 'btn btn--ghost';
+      host.innerHTML =
+        '<div class="dataroom-provider">' +
+          '<div class="dataroom-provider__pick">' +
+            '<label class="dataroom-provider__label" for="dataroom-pro-select">Plateforme</label>' +
+            '<select class="input" id="dataroom-pro-select"></select>' +
+            '<div class="dataroom-provider__status" id="dataroom-pro-note"></div>' +
+          '</div>' +
+          '<a class="btn btn--ghost" id="dataroom-pro-link" target="_blank" rel="noopener noreferrer"></a>' +
+        '</div>';
+
+      const select = document.getElementById('dataroom-pro-select');
+      DATAROOM_PRO_PROVIDERS.forEach((provider, i) => {
+        select.add(new Option(provider.name, String(i)));
+      });
+
+      const note = document.getElementById('dataroom-pro-note');
+      const link = document.getElementById('dataroom-pro-link');
+      function syncSelectedProvider() {
+        const provider = DATAROOM_PRO_PROVIDERS[Number(select.value)] || DATAROOM_PRO_PROVIDERS[0];
+        note.textContent = provider.note;
         link.href = provider.url;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
         link.textContent = provider.action;
         link.setAttribute('aria-label', provider.action + ' sur ' + provider.name);
-        row.appendChild(link);
-        host.appendChild(row);
-      });
+      }
+      select.addEventListener('change', syncSelectedProvider);
+      syncSelectedProvider();
     }
 
     // Sélecteur de dossier + bouton d'export ZIP. Le bouton reste désactivé tant
