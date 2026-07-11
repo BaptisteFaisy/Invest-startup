@@ -202,6 +202,7 @@ async function deleteUserAccountById(id) {
     col('saas_doc_versions').deleteMany({ user_id: id }),
     col('saas_folders').deleteMany({ user_id: id }),
     col('saas_dilution_simulations').deleteMany({ user_id: id }),
+    col('saas_valuation_estimations').deleteMany({ user_id: id }),
     col('saas_fundraising_profiles').deleteMany({ user_id: id }),
     col('saas_claude_usage').deleteMany({ user_id: id }),
   ]);
@@ -1005,6 +1006,76 @@ app.post('/api/saas/dilution-simulations', requireAuth, async (req, res) => {
 app.delete('/api/saas/dilution-simulations/:id', requireAuth, async (req, res) => {
   const result = await col('saas_dilution_simulations').deleteOne({ id: req.params.id, user_id: req.user.id });
   if (!result.deletedCount) return res.status(404).json({ error: 'Simulation introuvable.' });
+  res.json({ success: true });
+});
+
+// ─── Estimations de valorisation ─────────────────────────────────────────────
+// Même principe que l'historique de dilution : rattaché au compte plutôt qu'au
+// navigateur, il survit donc à un changement d'appareil ou à un nettoyage du cache.
+const VALUATION_HISTORY_MAX = 30;
+
+function normalizeValuationEstimation(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const name = String(raw.name || '').trim().slice(0, 160);
+  if (!name || !raw.state || typeof raw.state !== 'object' || Array.isArray(raw.state)) return null;
+
+  // Une estimation est petite : cette limite évite d'utiliser l'endpoint comme
+  // stockage générique tout en laissant de la marge pour les trois méthodes.
+  let serialized;
+  try { serialized = JSON.stringify(raw.state); } catch { return null; }
+  if (Buffer.byteLength(serialized, 'utf8') > 100_000) return null;
+
+  const savedAt = asFiniteNumber(raw.savedAt) || Date.now();
+  const low = Number(raw.summary?.low);
+  const high = Number(raw.summary?.high);
+  return {
+    id: crypto.randomUUID(),
+    name,
+    savedAt,
+    summary: {
+      method: String(raw.summary?.method || '').slice(0, 40),
+      methodLabel: String(raw.summary?.methodLabel || '').slice(0, 80),
+      valo: asFiniteNumber(raw.summary?.valo),
+      low: Number.isFinite(low) ? low : null,
+      high: Number.isFinite(high) ? high : null,
+    },
+    state: raw.state,
+  };
+}
+
+async function pruneValuationHistory(userId) {
+  const obsolete = await col('saas_valuation_estimations')
+    .find({ user_id: userId }, { projection: { _id: 1 } })
+    .sort({ savedAt: -1, created_at: -1 })
+    .skip(VALUATION_HISTORY_MAX)
+    .toArray();
+  if (obsolete.length) {
+    await col('saas_valuation_estimations').deleteMany({ _id: { $in: obsolete.map(entry => entry._id) } });
+  }
+}
+
+app.get('/api/saas/valuation-estimations', requireAuth, async (req, res) => {
+  const estimations = await col('saas_valuation_estimations')
+    .find({ user_id: req.user.id }, { projection: { _id: 0, user_id: 0, created_at: 0 } })
+    .sort({ savedAt: -1, created_at: -1 })
+    .limit(VALUATION_HISTORY_MAX)
+    .toArray();
+  res.json({ estimations });
+});
+
+app.post('/api/saas/valuation-estimations', requireAuth, async (req, res) => {
+  const estimation = normalizeValuationEstimation(req.body?.estimation);
+  if (!estimation) return res.status(400).json({ error: 'Estimation invalide ou trop volumineuse.' });
+
+  const record = { ...estimation, user_id: req.user.id, created_at: new Date().toISOString() };
+  await col('saas_valuation_estimations').insertOne(record);
+  await pruneValuationHistory(req.user.id);
+  res.status(201).json({ estimation });
+});
+
+app.delete('/api/saas/valuation-estimations/:id', requireAuth, async (req, res) => {
+  const result = await col('saas_valuation_estimations').deleteOne({ id: req.params.id, user_id: req.user.id });
+  if (!result.deletedCount) return res.status(404).json({ error: 'Estimation introuvable.' });
   res.json({ success: true });
 });
 

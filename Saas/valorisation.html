@@ -124,6 +124,46 @@
     .val__next .btn { background: rgba(255,255,255,0.06); color: #fff; border-color: rgba(255,255,255,0.2); }
     .val__next .btn:hover { border-color: rgba(255,255,255,0.5); }
 
+    /* Bouton d'enregistrement dans le panneau de résultat */
+    .ve-save { margin-top: 8px; background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.35); }
+    .ve-save:hover { background: rgba(255,255,255,0.08); }
+    .ve-save:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* Historique des estimations */
+    .hist-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }
+    .hist-empty { font-size: 13px; color: #6b6b78; padding: 6px 2px; }
+    .hist-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 12px 13px; border: 1px solid rgba(8,9,12,0.08); border-radius: 11px; transition: border-color .12s; }
+    .hist-item:hover { border-color: rgba(8,9,12,0.18); }
+    .hist-item__name { font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 700; color: #08090c; }
+    .hist-item__meta { font-size: 11px; color: #a8a8b3; margin-top: 2px; }
+    .hist-item__chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .hist-chip { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 600; color: #4b4b56; background: #f2f2f0; border-radius: 6px; padding: 3px 8px; white-space: nowrap; }
+    .hist-item__actions { display: flex; flex-direction: column; gap: 6px; flex: none; }
+    .hist-btn { font-family: 'Archivo', sans-serif; font-size: 11.5px; font-weight: 600; border-radius: 8px; padding: 6px 10px; cursor: pointer; border: 1px solid rgba(8,9,12,0.14); background: #fff; color: #08090c; transition: .12s; white-space: nowrap; }
+    .hist-load:hover { border-color: #2563eb; color: #2563eb; }
+    .hist-del { color: #b0b0bb; padding: 6px 9px; }
+    .hist-del:hover { border-color: #ef4444; color: #ef4444; }
+    .hist-status { min-height: 18px; margin: -4px 0 10px; font-size: 11.5px; color: #6b6b78; }
+    .hist-status--ok { color: #15803d; }
+    .hist-status--warn { color: #b45309; }
+    @media (max-width: 520px) {
+      .hist-item { flex-direction: column; }
+      .hist-item__actions { flex-direction: row; }
+    }
+
+    /* Boîte de dialogue de saisie (remplace window.prompt, indisponible sous Electron) */
+    .ask-backdrop { position: fixed; inset: 0; z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(8,9,12,0.55); }
+    .ask-backdrop.is-on { display: flex; }
+    .ask-box { width: 100%; max-width: 420px; background: #fff; border-radius: 14px; padding: 20px 20px 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.4); }
+    .ask-box__title { font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; color: #08090c; margin-bottom: 12px; }
+    .ask-box__input { width: 100%; box-sizing: border-box; font-family: 'Libre Franklin', sans-serif; font-size: 14px; color: #08090c; background: #f7f7f5; border: 1px solid rgba(8,9,12,0.16); border-radius: 9px; padding: 10px 12px; }
+    .ask-box__input:focus { outline: none; border-color: #2563eb; }
+    .ask-box__actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+    .ask-box__btn { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; border-radius: 9px; padding: 8px 14px; cursor: pointer; border: 1px solid rgba(8,9,12,0.14); background: #fff; color: #08090c; transition: .12s; }
+    .ask-box__btn:hover { border-color: rgba(8,9,12,0.3); }
+    .ask-box__btn--primary { background: #2563eb; border-color: #2563eb; color: #fff; }
+    .ask-box__btn--primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
+
     @media (max-width: 520px) {
       .val { padding: 24px 14px 80px; }
       .val__title { font-size: 25px; }
@@ -356,10 +396,18 @@
               <div class="ve-out__val" id="ve-result">—</div>
               <div class="ve-out__range" id="ve-range"></div>
               <button type="button" class="ve-use" id="ve-use">Utiliser dans le simulateur de dilution →</button>
+              <button type="button" class="ve-use ve-save" id="ve-save">💾 Enregistrer cette estimation</button>
               <div class="ve-out__note">Une estimation indicative, pas un prix. La valorisation finale se négocie ; utilisez-la comme point de départ.</div>
             </div>
           </div>
         </div>
+      </section>
+
+      <section class="card val__history" id="hist-card">
+        <div class="card__h">Historique des estimations</div>
+        <div class="card__desc">Vos estimations enregistrées. Chargez-en une pour la reprendre ou la comparer.</div>
+        <div class="hist-status" id="hist-status" role="status" aria-live="polite"></div>
+        <div class="hist-list" id="hist-list"></div>
       </section>
 
       <div class="val__next">
@@ -472,6 +520,8 @@
       document.getElementById('ve-result').textContent = veValo > 0 ? eur0(veValo) : '—';
       document.getElementById('ve-range').textContent = veValo > 0 ? r.range : '';
       document.getElementById('ve-use').disabled = !(veValo > 0);
+      const saveBtn = document.getElementById('ve-save');
+      if (saveBtn) saveBtn.disabled = !(veValo > 0);
     }
 
     document.getElementById('ve-method-seg').addEventListener('click', (e) => {
@@ -562,8 +612,263 @@
       window.addEventListener('resize', hide);
     })();
 
+    // ---------- Historique des estimations (synchronisé avec le compte) ----------
+    const VE_METHOD_LABELS = { rev: 'Multiple de revenu', berkus: 'Berkus', scorecard: 'Scorecard' };
+    const HISTORY_KEY = 'liquidplus_valuation_history_v1';
+    const HISTORY_MAX = 30;
+    let historyEntries = [];
+
+    function escAttr(s) { return String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+
+    function loadHistory() {
+      try {
+        const list = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+        return Array.isArray(list) ? list : [];
+      } catch { return []; }
+    }
+    function saveHistory(list) {
+      try {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function setHistoryStatus(message = '', tone = '') {
+      const el = document.getElementById('hist-status');
+      el.textContent = message;
+      el.className = `hist-status${tone ? ` hist-status--${tone}` : ''}`;
+    }
+
+    async function requestHistory(path = '', options = {}) {
+      const response = await fetch(`/api/saas/valuation-estimations${path}`, {
+        credentials: 'include',
+        ...options,
+        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'Impossible d’enregistrer l’historique.');
+      }
+      return response.json();
+    }
+
+    function updateHistory(list, status, tone) {
+      const unique = new Map();
+      (Array.isArray(list) ? list : []).forEach(entry => {
+        if (entry && entry.id) unique.set(entry.id, entry);
+      });
+      historyEntries = [...unique.values()]
+        .sort((a, b) => Number(b.savedAt || 0) - Number(a.savedAt || 0))
+        .slice(0, HISTORY_MAX);
+      const stored = saveHistory(historyEntries);
+      renderHistory();
+      if (status) setHistoryStatus(status, tone);
+      return stored;
+    }
+
+    // Capture l'état complet de l'estimateur (les trois méthodes), indépendant de la méthode courante
+    function captureSnapshot() {
+      const growthEl = document.querySelector('input[name="ve-g"]:checked');
+      return {
+        method: veMethod,
+        arr: parseNum(document.getElementById('ve-arr').value),
+        growth: growthEl ? growthEl.value : 'low',
+        growthRate: parseNum(document.getElementById('ve-growth-rate').value),
+        berkus: ['b1', 'b2', 'b3', 'b4', 'b5'].map(id => Number(document.getElementById(id).value)),
+        base: parseNum(document.getElementById('ve-base').value),
+        scorecard: ['s1', 's2', 's3', 's4', 's5', 's6', 's7'].map(id => Number(document.getElementById(id).value)),
+      };
+    }
+
+    // Restaure un état sauvegardé dans le formulaire
+    function restoreSnapshot(s) {
+      veMethod = s.method || 'rev';
+      document.getElementById('ve-arr').value = s.arr ? nfInt.format(Math.round(s.arr)) : '';
+      const growth = s.growth || 'low';
+      veEst.querySelectorAll('input[name="ve-g"]').forEach(r => { r.checked = (r.value === growth); });
+      veEst.querySelectorAll('.ve-growth .radio-chip').forEach(c => c.classList.toggle('is-on', c.querySelector('input').checked));
+      document.getElementById('ve-growth-rate').value = s.growthRate ? String(s.growthRate) : '';
+      (Array.isArray(s.berkus) ? s.berkus : []).forEach((v, i) => { const el = document.getElementById('b' + (i + 1)); if (el) el.value = v; });
+      document.getElementById('ve-base').value = s.base ? nfInt.format(Math.round(s.base)) : '';
+      (Array.isArray(s.scorecard) ? s.scorecard : []).forEach((v, i) => { const el = document.getElementById('s' + (i + 1)); if (el) el.value = v; });
+      veEst.querySelectorAll('#ve-method-seg .seg__btn').forEach(b => b.classList.toggle('is-on', b.dataset.vem === veMethod));
+      veEst.querySelectorAll('.ve-body').forEach(b => { b.hidden = (b.dataset.vemBody !== veMethod); });
+      veRender();
+    }
+
+    function renderHistory() {
+      const list = historyEntries;
+      const body = document.getElementById('hist-list');
+      if (!list.length) {
+        body.innerHTML = '<div class="hist-empty">Aucune estimation enregistrée pour l\'instant. Réglez vos paramètres puis cliquez sur « 💾 Enregistrer cette estimation » pour la retrouver ici.</div>';
+        return;
+      }
+      body.innerHTML = list.map(entry => {
+        const d = new Date(entry.savedAt);
+        const dateStr = `${d.toLocaleDateString('fr-FR')} · ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+        const s = entry.summary || {};
+        const rangeChip = (s.low != null && s.high != null)
+          ? `<span class="hist-chip">Fourchette ${eur0(s.low)} – ${eur0(s.high)}</span>`
+          : '';
+        return `<div class="hist-item" data-id="${entry.id}">
+          <div class="hist-item__main">
+            <div class="hist-item__name">${escAttr(entry.name)}</div>
+            <div class="hist-item__meta">${dateStr}</div>
+            <div class="hist-item__chips">
+              <span class="hist-chip">${escAttr(s.methodLabel || VE_METHOD_LABELS[s.method] || 'Méthode')}</span>
+              <span class="hist-chip">Valorisation ${eur0(s.valo)}</span>
+              ${rangeChip}
+            </div>
+          </div>
+          <div class="hist-item__actions">
+            <button type="button" class="hist-btn hist-load">Charger</button>
+            <button type="button" class="hist-btn hist-del" title="Supprimer">×</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    async function saveCurrentEstimation() {
+      const r = veCompute();
+      if (!(r.ok && r.valo > 0)) {
+        alert("Impossible d'enregistrer : renseignez d'abord des données donnant une valorisation positive.");
+        return;
+      }
+      const now = new Date();
+      const defaultName = `Estimation ${VE_METHOD_LABELS[veMethod]} du ${now.toLocaleDateString('fr-FR')} à ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+      const name = ((await askText('Nom de cette estimation :', defaultName, 'Enregistrer')) || '').trim();
+      if (!name) return;
+      const entry = {
+        id: 'val_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+        name,
+        savedAt: Date.now(),
+        summary: {
+          method: veMethod,
+          methodLabel: VE_METHOD_LABELS[veMethod],
+          valo: r.valo,
+          low: (r.low != null ? r.low : null),
+          high: (r.high != null ? r.high : null),
+        },
+        state: captureSnapshot(),
+      };
+      const localSaved = updateHistory([entry, ...historyEntries], 'Enregistrement de l’estimation…');
+
+      try {
+        const data = await requestHistory('', {
+          method: 'POST',
+          body: JSON.stringify({ estimation: entry }),
+        });
+        const saved = data.estimation;
+        updateHistory(historyEntries.map(item => item.id === entry.id ? saved : item), 'Estimation enregistrée.', 'ok');
+      } catch (error) {
+        const message = localSaved
+          ? 'Estimation enregistrée sur cet appareil. La synchronisation du compte sera réessayée à la prochaine ouverture.'
+          : 'Impossible d’enregistrer l’estimation : le stockage est indisponible.';
+        setHistoryStatus(message, 'warn');
+      }
+    }
+
+    document.getElementById('ve-save').addEventListener('click', saveCurrentEstimation);
+    document.getElementById('hist-list').addEventListener('click', (e) => {
+      const item = e.target.closest('.hist-item');
+      if (!item) return;
+      const id = item.dataset.id;
+      if (e.target.closest('.hist-load')) {
+        const entry = historyEntries.find(x => x.id === id);
+        if (entry) restoreSnapshot(entry.state);
+      } else if (e.target.closest('.hist-del')) {
+        if (!confirm('Supprimer cette estimation de l\'historique ?')) return;
+        const previous = historyEntries;
+        updateHistory(previous.filter(x => x.id !== id), 'Estimation supprimée.', 'ok');
+        if (!id.startsWith('val_')) {
+          requestHistory('/' + encodeURIComponent(id), { method: 'DELETE' }).catch(() => {
+            updateHistory(previous, 'La suppression n’a pas pu être synchronisée. Réessayez plus tard.', 'warn');
+          });
+        }
+      }
+    });
+
+    async function hydrateHistory() {
+      const localEntries = loadHistory();
+      const initialLocalIds = new Set(localEntries.map(entry => entry.id));
+      historyEntries = localEntries;
+      renderHistory();
+      try {
+        const data = await requestHistory();
+        const remoteEntries = Array.isArray(data.estimations) ? data.estimations : [];
+        // Les estimations créées avant la synchronisation par compte restent accessibles
+        // et sont importées une seule fois (leurs identifiants locaux commencent par val_).
+        const legacyEntries = localEntries.filter(entry => String(entry.id || '').startsWith('val_'));
+        const migrated = await Promise.all(legacyEntries.map(async (entry) => {
+          const result = await requestHistory('', {
+            method: 'POST',
+            body: JSON.stringify({ estimation: entry }),
+          });
+          return result.estimation;
+        }));
+        // Conserve un enregistrement déclenché pendant le chargement de l'historique.
+        const pendingEntries = historyEntries.filter(entry =>
+          String(entry.id || '').startsWith('val_') && !initialLocalIds.has(entry.id)
+        );
+        updateHistory([...remoteEntries, ...migrated, ...pendingEntries], migrated.length ? 'Historique synchronisé avec votre compte.' : '', migrated.length ? 'ok' : '');
+      } catch {
+        if (historyEntries.length) setHistoryStatus('Historique enregistré sur cet appareil.', 'warn');
+      }
+    }
+
+    function askText(message, defaultValue = '', okLabel = 'Valider') {
+      return new Promise((resolve) => {
+        const backdrop = document.getElementById('ask-backdrop');
+        const titleEl = document.getElementById('ask-title');
+        const inputEl = document.getElementById('ask-input');
+        const okBtn = document.getElementById('ask-ok');
+        const cancelBtn = document.getElementById('ask-cancel');
+        titleEl.textContent = message;
+        inputEl.value = defaultValue;
+        okBtn.textContent = okLabel;
+        backdrop.classList.add('is-on');
+        inputEl.focus();
+        inputEl.select();
+
+        function cleanup(result) {
+          backdrop.classList.remove('is-on');
+          okBtn.removeEventListener('click', onOk);
+          cancelBtn.removeEventListener('click', onCancel);
+          backdrop.removeEventListener('mousedown', onBackdrop);
+          inputEl.removeEventListener('keydown', onKey);
+          resolve(result);
+        }
+        function onOk() { cleanup(inputEl.value); }
+        function onCancel() { cleanup(null); }
+        function onBackdrop(e) { if (e.target === backdrop) cleanup(null); }
+        function onKey(e) {
+          if (e.key === 'Enter') { e.preventDefault(); onOk(); }
+          else if (e.key === 'Escape') { e.preventDefault(); onCancel(); }
+        }
+        okBtn.addEventListener('click', onOk);
+        cancelBtn.addEventListener('click', onCancel);
+        backdrop.addEventListener('mousedown', onBackdrop);
+        inputEl.addEventListener('keydown', onKey);
+      });
+    }
+
     // Init
     veRender();
+    hydrateHistory();
   </script>
+
+  <!-- Boîte de dialogue de saisie (remplace window.prompt, indisponible sous Electron) -->
+  <div class="ask-backdrop" id="ask-backdrop">
+    <div class="ask-box" role="dialog" aria-modal="true" aria-labelledby="ask-title">
+      <div class="ask-box__title" id="ask-title"></div>
+      <input type="text" class="ask-box__input" id="ask-input" autocomplete="off" />
+      <div class="ask-box__actions">
+        <button type="button" class="ask-box__btn" id="ask-cancel">Annuler</button>
+        <button type="button" class="ask-box__btn ask-box__btn--primary" id="ask-ok">Valider</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
