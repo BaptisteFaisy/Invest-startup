@@ -97,14 +97,9 @@
     .dataroom-provider__pick { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
     .dataroom-provider__label { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 700; color: #08090c; }
     .dataroom-provider__pick .input { max-width: 280px; padding: 9px 14px; font-size: 0.9rem; }
-    .dataroom-export-select { display: grid; gap: 6px; margin: 2px 0 18px; font-size: 0.86rem; font-weight: 700; color: #08090c; }
-    .dataroom-export-select select { width: 100%; }
-    .dataroom-export-hint { margin: 10px 0 0; color: #6b6b78; font-size: 0.82rem; line-height: 1.5; }
-    .dataroom-export-hint--error { color: #b91c1c; }
-    .dataroom-export-block { margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(8,9,12,0.08); }
-    .dataroom-export-block .dataroom-export-select { margin: 0 0 12px; }
-    #dataroom-zip-btn:disabled { opacity: 0.55; cursor: not-allowed; }
     .dataroom-export-empty { padding: 13px 14px; border-radius: 10px; background: #f4f2ee; color: #6b6b78; font-size: 0.87rem; line-height: 1.5; }
+    .dataroom-tool-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 16px; font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 700; color: #08090c; text-decoration: none; border-bottom: 1.5px solid rgba(8,9,12,0.2); padding-bottom: 1px; }
+    .dataroom-tool-link:hover { border-bottom-color: #08090c; }
 
     .setup { margin-top: 22px; border-top: 1px solid rgba(8,9,12,0.08); padding-top: 22px; display: none; }
     .setup.open { display: block; }
@@ -330,19 +325,9 @@
 
         <div class="card">
           <h3 class="card__title">Data rooms spécialisées</h3>
-          <p class="card__desc">Créez votre compte sur la plateforme de votre choix — Ansarada est gratuit pour démarrer — puis importez-y le ZIP structuré de votre dossier de due diligence. Aucune autorisation d’accès à votre compte liquid + n’est nécessaire.</p>
+          <p class="card__desc">Créez votre compte sur la plateforme de votre choix — Ansarada est gratuit pour démarrer. Le ZIP structuré de votre dossier de due diligence se prépare depuis l’outil Data room, prêt à être importé dans la plateforme. Aucune autorisation d’accès à votre compte liquid + n’est nécessaire.</p>
           <div class="dataroom-providers" id="dataroom-specialized-providers"></div>
-
-          <div class="dataroom-export-block">
-            <label class="dataroom-export-select" for="dataroom-folder-select">
-              Dossier de due diligence à exporter en ZIP
-              <select class="input" id="dataroom-folder-select" disabled>
-                <option>Chargement des dossiers…</option>
-              </select>
-            </label>
-            <button type="button" class="btn btn--primary" id="dataroom-zip-btn" disabled>Télécharger le ZIP</button>
-            <p class="dataroom-export-hint" id="dataroom-export-msg">Le ZIP contient les pièces disponibles, rangées par rubrique, prêtes à être importées dans la plateforme choisie.</p>
-          </div>
+          <a class="dataroom-tool-link" href="data-room.html">Préparer le ZIP depuis l’outil Data room →</a>
         </div>
       </div>
 
@@ -417,9 +402,7 @@
       { name: 'Intralinks', url: 'https://www.intralinks.com/products/virtual-data-room',          action: 'Créer un compte',    note: 'Démo et accès sur demande auprès d’Intralinks' },
       { name: 'Firmex',     url: 'https://www.firmex.com/signup/data-room-request-a-quote/',       action: 'Créer un compte',    note: 'Devis et démo sur demande auprès de Firmex' },
     ];
-    const DATAROOM_FOLDER_KEYS = new Set(['due-diligence-preliminaire', 'due-diligence']);
     let dataroomConnections = [];
-    let dataroomFolders = [];
 
     requireAuth().then((user) => {
       if (!user) return;
@@ -467,32 +450,22 @@
 
     async function loadDataroomSettings() {
       try {
-        const [connectionsResponse, foldersResponse] = await Promise.all([
-          fetch('/api/saas/dataroom/connections', { credentials: 'include' }),
-          fetch('/api/saas/folders', { credentials: 'include' }),
-        ]);
-        if (connectionsResponse.status === 401 || foldersResponse.status === 401) {
+        const connectionsResponse = await fetch('/api/saas/dataroom/connections', { credentials: 'include' });
+        if (connectionsResponse.status === 401) {
           window.location.href = 'login.html';
           return;
         }
         dataroomConnections = connectionsResponse.ok
           ? ((await connectionsResponse.json()).connections || [])
           : [];
-        dataroomFolders = foldersResponse.ok
-          ? ((await foldersResponse.json()).folders || []).filter(folder => DATAROOM_FOLDER_KEYS.has(folder.key))
-          : [];
         renderDataroomCloudProviders();
         renderDataroomSignupProviders();
-        renderDataroomExport();
         handleDataroomReturnParams();
       } catch {
         document.getElementById('dataroom-cloud-providers').innerHTML =
           '<div class="dataroom-export-empty">Impossible de charger vos connexions de data room.</div>';
         // Les liens d'inscription sont statiques : on les affiche même hors ligne.
         renderDataroomSignupProviders();
-        const msg = document.getElementById('dataroom-export-msg');
-        msg.className = 'dataroom-export-hint dataroom-export-hint--error';
-        msg.textContent = 'Impossible de charger vos dossiers de due diligence.';
       }
     }
 
@@ -589,85 +562,6 @@
       select.addEventListener('change', syncSelectedProvider);
       syncSelectedProvider();
     }
-
-    // Sélecteur de dossier + bouton d'export ZIP. Le bouton reste désactivé tant
-    // qu'aucun dossier de due diligence n'existe.
-    function renderDataroomExport() {
-      const select = document.getElementById('dataroom-folder-select');
-      const button = document.getElementById('dataroom-zip-btn');
-      const msg = document.getElementById('dataroom-export-msg');
-      const selectedFolderId = select.value;
-      select.innerHTML = '';
-
-      if (!dataroomFolders.length) {
-        select.add(new Option('Aucun dossier de due diligence disponible', ''));
-        select.disabled = true;
-        button.disabled = true;
-        msg.className = 'dataroom-export-hint';
-        msg.textContent = 'Ouvrez un dossier « Due diligence » depuis le tableau de bord, puis ajoutez-y des documents avant de préparer un ZIP.';
-        return;
-      }
-
-      dataroomFolders.forEach(folder => {
-        const option = new Option(folder.name || 'Dossier de due diligence', String(folder.id));
-        if (String(folder.id) === selectedFolderId) option.selected = true;
-        select.add(option);
-      });
-      select.disabled = false;
-      button.disabled = false;
-      msg.className = 'dataroom-export-hint';
-      msg.textContent = 'Le ZIP contient les pièces disponibles, rangées par rubrique, prêtes à être importées dans la plateforme choisie.';
-    }
-
-    // Téléchargement du ZIP via fetch (et non un lien direct) pour intercepter les
-    // erreurs — dossier sans pièce exportable, session expirée — et afficher un
-    // message lisible au lieu d'une réponse JSON brute dans l'onglet.
-    async function downloadDataroomZip(button) {
-      const select = document.getElementById('dataroom-folder-select');
-      const msg = document.getElementById('dataroom-export-msg');
-      const folderId = select.value;
-      if (!folderId) return;
-
-      const previousText = button.textContent;
-      button.disabled = true;
-      button.textContent = 'Préparation…';
-      msg.className = 'dataroom-export-hint';
-      msg.textContent = 'Préparation du ZIP…';
-      try {
-        const res = await fetch('/api/saas/dataroom/zip?' + new URLSearchParams({ folder_id: folderId }).toString(), { credentials: 'include' });
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          msg.className = 'dataroom-export-hint dataroom-export-hint--error';
-          msg.textContent = res.status === 404
-            ? 'Ce dossier ne contient encore aucune pièce à exporter. Ajoutez des documents (ou personnalisez un modèle) dans ce dossier de due diligence, puis réessayez.'
-            : (data.error || 'Impossible de préparer le ZIP. Réessayez.');
-          return;
-        }
-        const blob = await res.blob();
-        const disposition = res.headers.get('Content-Disposition') || '';
-        const match = disposition.match(/filename="?([^"]+)"?/);
-        const filename = match ? match[1] : 'data-room.zip';
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-        msg.className = 'dataroom-export-hint';
-        msg.textContent = 'ZIP téléchargé. Importez-le dans la plateforme choisie.';
-      } catch {
-        msg.className = 'dataroom-export-hint dataroom-export-hint--error';
-        msg.textContent = 'Impossible de préparer le ZIP. Vérifiez votre connexion et réessayez.';
-      } finally {
-        button.disabled = false;
-        button.textContent = previousText;
-      }
-    }
-
-    document.getElementById('dataroom-folder-select').addEventListener('change', renderDataroomExport);
-    document.getElementById('dataroom-zip-btn').addEventListener('click', (e) => downloadDataroomZip(e.currentTarget));
 
     // ── Enregistrer le profil ─────────────────────────────────────────────────
     document.getElementById('profile-form').addEventListener('submit', async (e) => {
