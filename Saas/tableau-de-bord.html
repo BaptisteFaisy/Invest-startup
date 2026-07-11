@@ -5346,13 +5346,23 @@
         const data = await r.json().catch(() => ({}));
         if (!r.ok) {
           showErr(data.error || 'Import de la checklist échoué.');
+          errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
           return;
         }
-        // Le serveur a fusionné la nouvelle checklist avec les précédentes : on
-        // recharge pour afficher la roadlist consolidée et le suivi par investisseur.
-        await load();
+        // La réponse contient l'état complet du dossier mis à jour : on l'utilise
+        // directement pour que la nouvelle checklist apparaisse sans dépendre
+        // d'un second chargement réseau. Repli complet si la réponse est incomplète.
+        const at = folders.findIndex(f => f.id === folderId);
+        if (data.folder && at !== -1) {
+          folders[at] = data.folder;
+          if (data.document && !docs.some(d => d.id === data.document.id)) docs.push(data.document);
+          render();
+        } else {
+          await load();
+        }
       } catch {
         showErr('Impossible de joindre le serveur.');
+        errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
 
