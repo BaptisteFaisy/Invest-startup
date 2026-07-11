@@ -250,10 +250,6 @@
       }
     });
 
-    inputEl.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); formEl.requestSubmit(); }
-    });
-
     requireAuth().then((user) => {
       if (!user) return;
       document.querySelector('.app').classList.add('ready');
