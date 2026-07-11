@@ -121,7 +121,6 @@
       <div class="tabs">
         <button class="tab active" data-tab="profile">Profil</button>
         <button class="tab" data-tab="security">Sécurité</button>
-        <button class="tab" data-tab="dataroom">Data room</button>
       </div>
 
       <!-- ── Onglet Profil ── -->
@@ -236,35 +235,6 @@
         </div>
       </div>
 
-      <!-- ── Onglet Data room ── -->
-      <div id="tab-dataroom" class="tab-panel">
-        <div class="card">
-          <h3 class="card__title">Data room externe</h3>
-          <p class="card__desc">Connectez un compte cloud pour envoyer directement vos fichiers de due diligence (préliminaire ou poussée) vers une data room externe, depuis Mes dossiers.</p>
-          <div id="dataroom-alert" class="alert" hidden></div>
-          <div class="sec-row" style="margin-top:6px">
-            <div style="flex:1;min-width:0">
-              <h3 class="card__title" style="font-size:0.98rem">Google Drive</h3>
-              <div id="dataroom-badge-google_drive"></div>
-            </div>
-            <div class="sec-row__actions">
-              <button class="btn btn--primary" id="dataroom-connect-google_drive">Connecter</button>
-              <button class="btn btn--danger" id="dataroom-disconnect-google_drive" style="display:none">Déconnecter</button>
-            </div>
-          </div>
-          <div class="sec-row" style="margin-top:22px;padding-top:22px;border-top:1px solid rgba(8,9,12,0.08)">
-            <div style="flex:1;min-width:0">
-              <h3 class="card__title" style="font-size:0.98rem">Dropbox</h3>
-              <div id="dataroom-badge-dropbox"></div>
-            </div>
-            <div class="sec-row__actions">
-              <button class="btn btn--primary" id="dataroom-connect-dropbox">Connecter</button>
-              <button class="btn btn--danger" id="dataroom-disconnect-dropbox" style="display:none">Déconnecter</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <button type="button" class="account-logout-line" id="logout-btn">Déconnexion</button>
       <button type="button" class="account-delete-button" id="delete-account-btn">Supprimer mon compte</button>
     </main>
@@ -331,70 +301,6 @@
       document.querySelector('.app').classList.add('ready');
       load2FAStatus();
       loadUsage();
-      loadDataroomConnections();
-      handleDataroomReturnParams();
-    });
-
-    // ── Data room externe (Google Drive / Dropbox) ────────────────────────────
-    const DATAROOM_PROVIDER_LABELS = { google_drive: 'Google Drive', dropbox: 'Dropbox' };
-
-    function handleDataroomReturnParams() {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('tab') === 'dataroom') {
-        document.querySelector('.tab[data-tab="dataroom"]').click();
-      }
-      const connected = params.get('dataroom_connected');
-      const error      = params.get('dataroom_error');
-      if (connected) showAlert('dataroom-alert', 'success', `${DATAROOM_PROVIDER_LABELS[connected] || connected} connecté avec succès.`);
-      else if (error) showAlert('dataroom-alert', 'error', 'Connexion à la data room impossible. Réessayez.');
-      if (connected || error || params.get('tab') === 'dataroom') {
-        params.delete('tab'); params.delete('dataroom_connected'); params.delete('dataroom_error');
-        const qs = params.toString();
-        window.history.replaceState({}, '', window.location.pathname + (qs ? '?' + qs : ''));
-      }
-    }
-
-    function loadDataroomConnections() {
-      fetch('/api/saas/dataroom/connections', { credentials: 'include' })
-        .then(r => r.ok ? r.json() : { connections: [] })
-        .then(data => renderDataroomConnections(data.connections || []))
-        .catch(() => renderDataroomConnections([]));
-    }
-
-    function renderDataroomConnections(connections) {
-      Object.keys(DATAROOM_PROVIDER_LABELS).forEach(provider => {
-        const conn = connections.find(c => c.provider === provider);
-        const badgeEl      = document.getElementById('dataroom-badge-' + provider);
-        const connectBtn   = document.getElementById('dataroom-connect-' + provider);
-        const disconnectBtn = document.getElementById('dataroom-disconnect-' + provider);
-        if (conn && conn.status !== 'revoked') {
-          badgeEl.innerHTML = `<span class="badge-on"><svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="#16a34a"/></svg>Connecté — ${conn.account_label || ''}</span>`;
-          connectBtn.style.display = 'none';
-          disconnectBtn.style.display = 'inline-flex';
-        } else if (conn && conn.status === 'revoked') {
-          badgeEl.innerHTML = '<span class="badge-off">Connexion expirée — reconnectez votre compte</span>';
-          connectBtn.style.display = 'inline-flex';
-          disconnectBtn.style.display = 'none';
-        } else {
-          badgeEl.innerHTML = '<span class="badge-off">Non connecté</span>';
-          connectBtn.style.display = 'inline-flex';
-          disconnectBtn.style.display = 'none';
-        }
-      });
-    }
-
-    Object.keys(DATAROOM_PROVIDER_LABELS).forEach(provider => {
-      document.getElementById('dataroom-connect-' + provider).addEventListener('click', () => {
-        window.location.href = '/api/saas/dataroom/' + provider + '/connect';
-      });
-      document.getElementById('dataroom-disconnect-' + provider).addEventListener('click', async () => {
-        if (!confirm(`Déconnecter ${DATAROOM_PROVIDER_LABELS[provider]} ? Vous ne pourrez plus y envoyer de fichiers tant que vous ne l'aurez pas reconnecté.`)) return;
-        try {
-          const res = await fetch('/api/saas/dataroom/connections/' + provider, { method: 'DELETE', credentials: 'include' });
-          if (res.ok) loadDataroomConnections();
-          else showAlert('dataroom-alert', 'error', 'Erreur lors de la déconnexion.');
-        } catch { showAlert('dataroom-alert', 'error', 'Impossible de joindre le serveur.'); }
-      });
     });
 
     function showAlert(id, type, msg) {

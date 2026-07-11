@@ -1819,7 +1819,7 @@ app.get('/api/saas/usage', requireAuth, async (req, res) => {
 // concrètement l'opération au fil de l'eau.
 // `FOLDERS_SEED_VERSION` est incrémentée à chaque évolution de cette liste pour
 // re-synchroniser automatiquement les dossiers système des utilisateurs.
-const FOLDERS_SEED_VERSION = 15;
+const FOLDERS_SEED_VERSION = 16;
 const ddDoc = (label, mark = 'req') => ({ label, mark });
 const ddLabels = items => items.map(item => item.label);
 const ddMarks = items => items.map(item => item.mark || '');
@@ -2238,7 +2238,9 @@ const FUNDRAISING_PHASES = [
   {
     key: 'due-diligence-preliminaire',
     name: '2 · Due diligence préliminaire',
-    checklist: DD_PRELIMINARY_DOCUMENTS,
+    // Cette liste vient exclusivement de la request list envoyée par
+    // l'investisseur : aucun document n'est présupposé par la plateforme.
+    checklist: [],
   },
   {
     key: 'term-sheet',
@@ -2251,7 +2253,9 @@ const FUNDRAISING_PHASES = [
   {
     key: 'due-diligence',
     name: '4 · Due diligence poussée',
-    checklist: DD_COMPLETE_DOCUMENTS,
+    // Cette liste vient exclusivement de la request list envoyée par
+    // l'investisseur : aucun document n'est présupposé par la plateforme.
+    checklist: [],
   },
   {
     key: 'documentation',
@@ -2372,9 +2376,9 @@ const BSA_AIR_PHASES = [
 const PHASE_MARKS = {
   'mise-en-ordre':     ['req', 'req', 'req', 'req', 'req', 'req', 'opt'],
   'confidentialite':   ['', 'req', 'opt'],
-  'due-diligence-preliminaire': DD_PRELIMINARY_MARKS,
+  'due-diligence-preliminaire': [],
   'term-sheet':        ['req', 'opt'],
-  'due-diligence':     DD_COMPLETE_MARKS,
+  'due-diligence':     [],
   'documentation':     ['req', 'req', 'opt', 'opt', 'opt', 'opt', 'opt'],
   'closing':           CLOSING_MARKS,
   'post-closing':      ['req', '', 'req'],
@@ -2487,7 +2491,13 @@ async function ensureUserFolders(userId) {
   }
 
   const sys = await col('saas_folders')
-    .find({ user_id: userId, system: true }, { projection: { id: 1, key: 1, seed_version: 1 } })
+    .find({ user_id: userId, system: true }, {
+      projection: {
+        id: 1, key: 1, seed_version: 1,
+        checklist: 1, marks: 1, items_state: 1,
+        investor_checklist_document_id: 1, checklist_origin: 1,
+      },
+    })
     .toArray();
 
   const upToDate = sys.length === PHASES.length
@@ -2510,9 +2520,29 @@ async function ensureUserFolders(userId) {
   for (let i = 0; i < PHASES.length; i++) {
     const p   = PHASES[i];
     const cur = byKey[p.key];
-    const set = { name: p.name, order: i, checklist: p.checklist, marks: p.marks, track: p.track, system: true, seed_version: FOLDERS_SEED_VERSION };
+    // Une checklist importée est propre à l'investisseur et ne doit jamais être
+    // écrasée par une évolution des dossiers système.
+    const keepsInvestorChecklist = !!(
+      cur
+      && cur.checklist_origin === 'investor'
+      && cur.investor_checklist_document_id != null
+      && Array.isArray(cur.checklist)
+    );
+    const set = {
+      name: p.name, order: i,
+      checklist: keepsInvestorChecklist ? cur.checklist : p.checklist,
+      marks: keepsInvestorChecklist ? (Array.isArray(cur.marks) ? cur.marks : []) : p.marks,
+      track: p.track, system: true, seed_version: FOLDERS_SEED_VERSION,
+    };
     if (cur) {
-      await col('saas_folders').updateOne({ id: cur.id, user_id: userId }, { $set: set, $unset: { required: '' } });
+      // Lors de la migration des anciennes roadlists DD, les anciennes liaisons
+      // deviennent des fichiers libres : elles ne doivent plus faire réapparaître
+      // des documents qui ne sont pas sur la checklist de l'investisseur.
+      const clearsLegacyDdState = !keepsInvestorChecklist
+        && INVESTOR_CHECKLIST_FOLDER_KEYS.has(p.key)
+        && cur.seed_version !== FOLDERS_SEED_VERSION;
+      const nextSet = clearsLegacyDdState ? { ...set, items_state: {} } : set;
+      await col('saas_folders').updateOne({ id: cur.id, user_id: userId }, { $set: nextSet, $unset: { required: '' } });
     } else {
       const id = await nextId('saas_folders');
       await col('saas_folders').insertOne({ id, user_id: userId, key: p.key, created_at: now, ...set });
@@ -2557,6 +2587,81 @@ app.delete('/api/saas/folders/:id', requireAuth, async (req, res) => {
   await col('saas_folders').deleteOne({ id, user_id: req.user.id });
   // Les documents qui étaient classés ici redeviennent « non classés ».
   await col('saas_documents').updateMany({ user_id: req.user.id, folder_id: id }, { $unset: { folder_id: '' } });
+  res.json({ success: true });
+});
+
+// ─── Tâches (checklist libre du fondateur, indépendante des dossiers) ────────
+const TASK_PRIORITIES = ['basse', 'moyenne', 'haute'];
+
+function publicTask(t) {
+  const { _id, user_id, ...rest } = t;
+  return rest;
+}
+
+app.get('/api/saas/tasks', requireAuth, async (req, res) => {
+  const tasks = await col('saas_tasks')
+    .find({ user_id: req.user.id }, { projection: { _id: 0, user_id: 0 } })
+    .sort({ done: 1, order: 1, id: 1 })
+    .toArray();
+  res.json({ tasks });
+});
+
+app.post('/api/saas/tasks', requireAuth, async (req, res) => {
+  const title = (req.body?.title || '').trim().slice(0, 200);
+  if (!title) return res.status(400).json({ error: 'Titre de la tâche requis' });
+  const notes    = (req.body?.notes || '').toString().trim().slice(0, 2000);
+  const priority = TASK_PRIORITIES.includes(req.body?.priority) ? req.body.priority : 'moyenne';
+  const dueRaw   = req.body?.due_date;
+  const dueDate  = dueRaw && !isNaN(Date.parse(dueRaw)) ? new Date(dueRaw).toISOString().slice(0, 10) : null;
+
+  const id   = await nextId('saas_tasks');
+  const last = await col('saas_tasks').findOne({ user_id: req.user.id }, { sort: { order: -1 }, projection: { order: 1 } });
+  const task = {
+    id, user_id: req.user.id, title, notes, priority, due_date: dueDate,
+    done: false, order: (last?.order ?? -1) + 1, created_at: new Date().toISOString(),
+  };
+  await col('saas_tasks').insertOne(task);
+  res.status(201).json({ task: publicTask(task) });
+});
+
+app.put('/api/saas/tasks/:id', requireAuth, async (req, res) => {
+  const id   = Number(req.params.id);
+  const task = await col('saas_tasks').findOne({ id, user_id: req.user.id });
+  if (!task) return res.status(404).json({ error: 'Tâche introuvable' });
+
+  const body = req.body || {};
+  const set = {};
+  const unset = {};
+
+  if ('title' in body) {
+    const title = (body.title || '').trim().slice(0, 200);
+    if (!title) return res.status(400).json({ error: 'Titre de la tâche requis' });
+    set.title = title;
+  }
+  if ('notes' in body) set.notes = (body.notes || '').toString().trim().slice(0, 2000);
+  if ('priority' in body && TASK_PRIORITIES.includes(body.priority)) set.priority = body.priority;
+  if ('due_date' in body) {
+    if (body.due_date && !isNaN(Date.parse(body.due_date))) set.due_date = new Date(body.due_date).toISOString().slice(0, 10);
+    else unset.due_date = '';
+  }
+  if ('done' in body) {
+    set.done = !!body.done;
+    if (set.done) set.completed_at = new Date().toISOString();
+    else unset.completed_at = '';
+  }
+
+  const update = {};
+  if (Object.keys(set).length)   update.$set = set;
+  if (Object.keys(unset).length) update.$unset = unset;
+  if (Object.keys(update).length) await col('saas_tasks').updateOne({ id, user_id: req.user.id }, update);
+  res.json({ success: true });
+});
+
+app.delete('/api/saas/tasks/:id', requireAuth, async (req, res) => {
+  const id   = Number(req.params.id);
+  const task = await col('saas_tasks').findOne({ id, user_id: req.user.id });
+  if (!task) return res.status(404).json({ error: 'Tâche introuvable' });
+  await col('saas_tasks').deleteOne({ id, user_id: req.user.id });
   res.json({ success: true });
 });
 
@@ -2727,6 +2832,11 @@ app.post('/api/saas/termsheets', requireAuth, async (req, res) => {
     const folderId = Number(req.body.folder_id);
     if (await col('saas_folders').findOne({ id: folderId, user_id: req.user.id })) doc.folder_id = folderId;
   }
+  const templateSource = shortText(req.body?.template_source, 120);
+  if (templateSource) {
+    doc.template_source = templateSource;
+    doc.is_personalized = false;
+  }
   await col('saas_documents').insertOne(doc);
   res.status(201).json({ id, document: publicDoc({ ...doc, html: undefined }) });
 });
@@ -2737,8 +2847,15 @@ app.put('/api/saas/termsheets/:id', requireAuth, async (req, res) => {
   const doc = await col('saas_documents').findOne({ id, user_id: req.user.id, kind: 'termsheet' });
   if (!doc) return res.status(404).json({ error: 'Term sheet introuvable' });
   const set = { updated_at: new Date().toISOString() };
-  if (typeof html === 'string') { set.html = html; set.size = Buffer.byteLength(html, 'utf8'); }
-  if (typeof name === 'string' && name.trim()) set.name = name.trim();
+  if (typeof html === 'string') {
+    set.html = html;
+    set.size = Buffer.byteLength(html, 'utf8');
+    if (doc.template_source && html !== (doc.html || '')) set.is_personalized = true;
+  }
+  if (typeof name === 'string' && name.trim()) {
+    set.name = name.trim();
+    if (doc.template_source && name.trim() !== doc.name) set.is_personalized = true;
+  }
   // Si le doc n'a pas encore de dossier et qu'un folder_id est fourni, on l'assigne.
   if (req.body?.folder_id != null && !doc.folder_id) {
     const fid = Number(req.body.folder_id);
@@ -2852,6 +2969,137 @@ app.post('/api/saas/documents', requireAuth, saasUpload.single('file'), async (r
   res.status(201).json({ document: publicDoc(doc) });
 });
 
+// ─── SaaS : checklist de due diligence envoyée par l'investisseur ────────────
+// Les deux étapes de due diligence ne contiennent volontairement aucun document
+// par défaut. Le fondateur importe la request list de l'investisseur ; son texte
+// devient alors la seule checklist affichée et la seule source de modèles proposés.
+const INVESTOR_CHECKLIST_FOLDER_KEYS = new Set(['due-diligence-preliminaire', 'due-diligence']);
+
+function checklistSlug(value) {
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function isChecklistHeading(value) {
+  const line = String(value || '').trim();
+  if (!line) return true;
+  if (/[:：]$/.test(line) && line.length < 120) return true;
+  return /^(?:checklist|request\s*list|liste\s+des\s+(?:documents|demandes)|documents?\s+(?:demandés|requis)|due\s+diligence|annexe|section|sommaire|table\s+des\s+matières|corporate|finance|financial|fiscal(?:ité)?|social|rh|commercial|contrats?|propriété\s+intellectuelle|pi|données|rgpd|contentieux|litiges?)$/i.test(line);
+}
+
+// Extraction volontairement déterministe : le fondateur reste maître de la liste
+// réellement reçue, sans dépendre d'un appel IA ni d'un modèle générique.
+function investorChecklistItemsFromText(text) {
+  const raw = String(text || '')
+    .replace(/\r/g, '\n')
+    .replace(/[•▪◦●]/g, '\n• ')
+    .replace(/\s+(?=(?:\d{1,3}[.)]|[a-zA-Z][.)]|\[[ xX]?\])\s+)/g, '\n');
+  const seen = new Set();
+  const items = [];
+
+  raw.split(/\n+/).forEach(source => {
+    let item = source
+      .replace(/^\s*(?:[•▪◦●\-–—]+|\[[ xX]?\]|\(?\d{1,3}(?:\.\d+)*[.)]|[a-zA-Z][.)])\s*/, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (item.length < 3 || item.length > 320 || isChecklistHeading(item)) return;
+    // Les en-têtes et notes de bas de page fréquents ne sont pas des pièces à fournir.
+    if (/^(?:page\s+\d+|confidentiel|strictement\s+confidentiel|prepared\s+for|préparé\s+pour)\b/i.test(item)) return;
+    const key = checklistSlug(item);
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    items.push(item);
+  });
+  return items.slice(0, 160);
+}
+
+app.post('/api/saas/folders/:id/investor-checklist', requireAuth, saasUpload.single('file'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Importez la checklist de l’investisseur au format PDF ou Word (max. 15 Mo).' });
+
+  const id = Number(req.params.id);
+  const folder = await col('saas_folders').findOne({ id, user_id: req.user.id });
+  if (!folder) return res.status(404).json({ error: 'Dossier introuvable' });
+  if (!INVESTOR_CHECKLIST_FOLDER_KEYS.has(folder.key))
+    return res.status(403).json({ error: 'Cette action est réservée aux étapes de due diligence.' });
+
+  const sourceExt = path.extname(req.file.originalname || '').toLowerCase();
+  if (!['.pdf', '.doc', '.docx'].includes(sourceExt))
+    return res.status(422).json({ error: 'La checklist doit être un PDF ou un document Word lisible.' });
+
+  const now = new Date().toISOString();
+  const doc = {
+    id: await nextId('saas_documents'), user_id: req.user.id,
+    name: (req.body?.name || req.file.originalname).trim(),
+    originalname: req.file.originalname,
+    mimetype: req.file.mimetype, size: req.file.size, data: req.file.buffer,
+    folder_id: id, is_investor_checklist: true,
+    checklist_phase_key: folder.key, created_at: now,
+  };
+  await col('saas_documents').insertOne(doc);
+
+  const extracted = await extractImportedText(doc);
+  const items = investorChecklistItemsFromText(extracted);
+  if (!items.length) {
+    await col('saas_documents').deleteOne({ id: doc.id, user_id: req.user.id });
+    return res.status(422).json({ error: 'La liste de documents n’a pas pu être lue. Importez un PDF/Word contenant une liste sélectionnable.' });
+  }
+
+  // Lors d'un remplacement, on conserve l'ancienne checklist en archive (sans
+  // l'afficher parmi les pièces à transmettre ni dans la data room).
+  if (folder.investor_checklist_document_id != null) {
+    await col('saas_documents').updateOne(
+      { id: folder.investor_checklist_document_id, user_id: req.user.id },
+      { $set: { is_investor_checklist: false, is_version: true, archived_at: now } },
+    );
+  }
+
+  const allowed = new Set(items.map(checklistSlug));
+  const itemsState = Object.fromEntries(Object.entries(folder.items_state || {})
+    .filter(([slug]) => allowed.has(slug)));
+  const update = {
+    checklist: items,
+    marks: [],
+    items_state: itemsState,
+    investor_checklist_document_id: doc.id,
+    checklist_origin: 'investor',
+    checklist_updated_at: now,
+  };
+  // La request list devient la source de vérité : le mode temporaire « modèles
+  // Liquid+ » est automatiquement désactivé sans supprimer les documents créés.
+  await col('saas_folders').updateOne(
+    { id, user_id: req.user.id },
+    { $set: update, $unset: { dd_fallback_models: '' } },
+  );
+  const saved = await col('saas_folders').findOne({ id, user_id: req.user.id });
+  res.status(201).json({ folder: publicFolder(saved), document: publicDoc(doc), items });
+});
+
+// Active ou masque, à la demande du fondateur, la checklist exhaustive de
+// préparation Liquid+ en attendant la request list de l'investisseur. Les
+// documents déjà générés restent dans le dossier ; seul leur affichage change.
+app.put('/api/saas/folders/:id/dd-fallback', requireAuth, async (req, res) => {
+  const id = Number(req.params.id);
+  const folder = await col('saas_folders').findOne({ id, user_id: req.user.id });
+  if (!folder) return res.status(404).json({ error: 'Dossier introuvable' });
+  if (!INVESTOR_CHECKLIST_FOLDER_KEYS.has(folder.key))
+    return res.status(403).json({ error: 'Cette action est réservée aux étapes de due diligence.' });
+  if (folder.checklist_origin === 'investor' && folder.investor_checklist_document_id != null)
+    return res.status(409).json({ error: 'La checklist de l’investisseur est déjà la source de vérité pour cette étape.' });
+
+  const enabled = !!req.body?.enabled;
+  await col('saas_folders').updateOne(
+    { id, user_id: req.user.id },
+    enabled
+      ? { $set: { dd_fallback_models: true } }
+      : { $unset: { dd_fallback_models: '' } },
+  );
+  const saved = await col('saas_folders').findOne({ id, user_id: req.user.id });
+  res.json({ success: true, folder: publicFolder(saved) });
+});
+
 app.get('/api/saas/documents/:id/download', requireAuth, async (req, res) => {
   const id  = Number(req.params.id);
   const doc = await col('saas_documents').findOne({ id, user_id: req.user.id });
@@ -2888,6 +3136,21 @@ app.delete('/api/saas/documents/:id', requireAuth, async (req, res) => {
   // Détache le document de toute checklist de phase qui le référence.
   const folders = await col('saas_folders').find({ user_id: req.user.id }).toArray();
   for (const f of folders) {
+    // La suppression de la request list remet l'étape dans son état initial :
+    // aucune pièce ni aucun modèle ne doit rester proposé par défaut.
+    if (f.investor_checklist_document_id === id) {
+      await col('saas_folders').updateOne(
+        { id: f.id, user_id: req.user.id },
+        {
+          $set: { checklist: [], marks: [], items_state: {} },
+          $unset: {
+            investor_checklist_document_id: '', checklist_origin: '',
+            checklist_updated_at: '', dd_fallback_models: '',
+          },
+        },
+      );
+      continue;
+    }
     if (!f.items_state) continue;
     let changed = false;
     const st = { ...f.items_state };
@@ -3002,19 +3265,50 @@ function publicDataroomConnection(c) {
 // Fichiers « libres » d'une catégorie (même logique que looseDocsFor côté client) :
 // rattachés au dossier + à la catégorie, pas une version archivée, pas déjà lié à
 // un slot de checklist (sinon le fichier apparaît en double dans l'UI).
+function isDataroomExportableDoc(doc) {
+  // Un modèle vient des ressources statiques et n'entre dans les documents de
+  // l'utilisateur qu'au moment où il est ouvert dans l'éditeur. Tant qu'il n'a
+  // pas été modifié, ce n'est pas un document de data room.
+  return !doc.is_version
+    && !doc.is_investor_checklist
+    && !(doc.kind === 'termsheet' && doc.template_source && doc.is_personalized === false);
+}
+
 async function dataroomLooseDocs(userId, folder, categoryKey) {
   const linkedIds = new Set(Object.values(folder.items_state || {}).map(s => s.document_id).filter(id => id != null));
   const key  = categoryKey || '';
   const docs = await col('saas_documents').find({ user_id: userId, folder_id: folder.id }).toArray();
-  return docs.filter(d => !d.is_version && !linkedIds.has(d.id) && String(d.category_key || '') === key);
+  return docs.filter(d => isDataroomExportableDoc(d) && !linkedIds.has(d.id) && String(d.category_key || '') === key);
+}
+
+async function dataroomFolderDocs(userId, folder) {
+  const docs = await col('saas_documents').find({ user_id: userId, folder_id: folder.id }).toArray();
+  return docs.filter(isDataroomExportableDoc);
 }
 
 // ─── État OAuth éphémère (10 min) : associe le `state` renvoyé par le fournisseur
 // à l'utilisateur qui a initié la connexion (même rôle que totpSetupStore).
 const dataroomOAuthState = new Map();
-function createDataroomState(userId, provider) {
+const DATAROOM_RETURN_PATHS = new Set(['/saas/dossiers.html', '/saas/data-room.html']);
+function dataroomReturnPath(value) {
+  if (typeof value !== 'string') return null;
+  try {
+    const url = new URL(value, BASE_URL);
+    return url.origin === new URL(BASE_URL).origin && DATAROOM_RETURN_PATHS.has(url.pathname)
+      ? url.pathname
+      : null;
+  } catch { return null; }
+}
+function dataroomCallbackUrl(entry, params = {}) {
+  const target = entry?.return_to || '/saas/data-room.html';
+  const url = new URL(target, BASE_URL);
+  Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
+  return url.pathname + url.search;
+}
+
+function createDataroomState(userId, provider, returnTo = null) {
   const state = crypto.randomBytes(24).toString('hex');
-  dataroomOAuthState.set(state, { user_id: userId, provider, created_at: Date.now() });
+  dataroomOAuthState.set(state, { user_id: userId, provider, return_to: returnTo, created_at: Date.now() });
   return state;
 }
 function consumeDataroomState(state) {
@@ -3052,7 +3346,7 @@ app.get('/api/saas/dataroom/:provider/connect', requireAuth, (req, res) => {
   if (!dataroomProviderConfigured(provider))
     return res.status(503).json({ error: `Connexion ${dataroomProviderLabel(provider)} non configurée sur le serveur.` });
 
-  const state = createDataroomState(req.user.id, provider);
+  const state = createDataroomState(req.user.id, provider, dataroomReturnPath(req.query.return_to));
   if (provider === 'google_drive') {
     const url = driveOAuthClient().generateAuthUrl({
       access_type: 'offline',
@@ -3085,16 +3379,16 @@ app.get('/api/saas/dataroom/:provider/callback', async (req, res) => {
   const { code, state, error } = req.query;
   const entry = state ? consumeDataroomState(String(state)) : null;
   if (!DATAROOM_PROVIDERS.has(provider) || !entry || entry.provider !== provider)
-    return res.redirect('/saas/compte.html?tab=dataroom&dataroom_error=state');
+    return res.redirect(dataroomCallbackUrl(null, { dataroom_error: 'state' }));
   if (error || !code)
-    return res.redirect('/saas/compte.html?tab=dataroom&dataroom_error=cancelled');
+    return res.redirect(dataroomCallbackUrl(entry, { dataroom_error: 'cancelled' }));
 
   try {
     if (provider === 'google_drive') {
       const oauth2Client = driveOAuthClient();
       const { tokens } = await oauth2Client.getToken(String(code));
       if (!tokens.refresh_token)
-        return res.redirect('/saas/compte.html?tab=dataroom&dataroom_error=no_refresh_token');
+        return res.redirect(dataroomCallbackUrl(entry, { dataroom_error: 'no_refresh_token' }));
       oauth2Client.setCredentials(tokens);
       const { data: profile } = await google.oauth2({ version: 'v2', auth: oauth2Client }).userinfo.get();
       await upsertDataroomConnection(entry.user_id, provider, {
@@ -3107,7 +3401,7 @@ app.get('/api/saas/dataroom/:provider/callback', async (req, res) => {
         redirect_uri: `${BASE_URL}/api/saas/dataroom/dropbox/callback`,
       });
       if (!tokenData.refresh_token)
-        return res.redirect('/saas/compte.html?tab=dataroom&dataroom_error=no_refresh_token');
+        return res.redirect(dataroomCallbackUrl(entry, { dataroom_error: 'no_refresh_token' }));
       const dbx = new Dropbox({ accessToken: tokenData.access_token, fetch });
       const account = await dbx.usersGetCurrentAccount();
       await upsertDataroomConnection(entry.user_id, provider, {
@@ -3115,10 +3409,10 @@ app.get('/api/saas/dataroom/:provider/callback', async (req, res) => {
         refresh_token: tokenData.refresh_token,
       });
     }
-    res.redirect(`/saas/compte.html?tab=dataroom&dataroom_connected=${provider}`);
+    res.redirect(dataroomCallbackUrl(entry, { dataroom_connected: provider }));
   } catch (err) {
     console.error(`Dataroom OAuth callback error (${provider}):`, err.message);
-    res.redirect('/saas/compte.html?tab=dataroom&dataroom_error=exchange_failed');
+    res.redirect(dataroomCallbackUrl(entry, { dataroom_error: 'exchange_failed' }));
   }
 });
 
@@ -3260,6 +3554,8 @@ app.post('/api/saas/dataroom/:provider/push/document/:id', requireAuth, async (r
   const id  = Number(req.params.id);
   const doc = await col('saas_documents').findOne({ id, user_id: req.user.id });
   if (!doc) return res.status(404).json({ error: 'Document introuvable' });
+  if (!isDataroomExportableDoc(doc))
+    return res.status(422).json({ error: 'Personnalisez ce modèle avant de l’envoyer dans la data room.' });
   if (doc.folder_id == null) return res.status(400).json({ error: "Ce document n'est rattaché à aucun dossier de due diligence." });
 
   const folder = await col('saas_folders').findOne({ id: doc.folder_id, user_id: req.user.id });
@@ -3308,16 +3604,18 @@ app.post('/api/saas/dataroom/:provider/push/category', requireAuth, async (req, 
 // ─── Export ZIP (fallback data room « pro » sans API self-service) ───────────
 app.get('/api/saas/dataroom/zip', requireAuth, async (req, res) => {
   const folderId    = Number(req.query.folder_id);
-  const categoryKey = (req.query.category_key || '').toString();
   const folder = await col('saas_folders').findOne({ id: folderId, user_id: req.user.id });
   if (!folder) return res.status(404).json({ error: 'Dossier introuvable' });
   if (!DATAROOM_ALLOWED_FOLDER_KEYS.has(folder.key))
     return res.status(403).json({ error: 'Export ZIP disponible uniquement pour les phases de due diligence.' });
 
-  const docs = await dataroomLooseDocs(req.user.id, folder, categoryKey);
-  if (!docs.length) return res.status(404).json({ error: 'Aucun fichier à exporter dans cette catégorie.' });
+  // Le ZIP représente la data room du dossier, pas seulement la catégorie depuis
+  // laquelle le modal a été ouvert : il contient donc aussi les documents de
+  // checklist. Les modèles non personnalisés sont filtrés par la fonction ci-dessus.
+  const docs = await dataroomFolderDocs(req.user.id, folder);
+  if (!docs.length) return res.status(404).json({ error: 'Aucun fichier à exporter dans ce dossier.' });
 
-  const zipName = sanitizePathPart(req.query.category_title || categoryKey || folder.name, 100) + '.zip';
+  const zipName = sanitizePathPart(folder.name, 100) + '.zip';
   res.attachment(zipName);
   const archive = archiver('zip', { zlib: { level: 9 } });
   archive.on('error', (err) => {

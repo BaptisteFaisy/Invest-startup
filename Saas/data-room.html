@@ -34,11 +34,65 @@
     .dil__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
     .dil__title { font-size: 30px; letter-spacing: -0.03em; color: #fff; margin-top: 6px; }
     .dil__sub { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 8px; line-height: 1.6; }
-
-    .dil__soon { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 26px 24px; margin-top: 26px; color: rgba(255,255,255,0.85); font-size: 15px; line-height: 1.6; }
-    .dil__soon b { color: #fff; }
+    .dr-alert { margin-top: 18px; padding: 12px 14px; border-radius: 10px; font-size: 13px; line-height: 1.45; }
+    .dr-alert--success { color: #bbf7d0; background: rgba(22,163,74,0.14); border: 1px solid rgba(74,222,128,0.3); }
+    .dr-alert--error { color: #fecaca; background: rgba(220,38,38,0.14); border: 1px solid rgba(252,165,165,0.3); }
 
     .dil__foot { margin-top: 30px; }
+
+    /* Comptes cloud connectés */
+    .dr-section-label { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.55); margin: 34px 0 12px; }
+    .dr-accounts { display: flex; flex-direction: column; gap: 10px; }
+    .dr-account { display: flex; align-items: center; justify-content: space-between; gap: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 16px 18px; }
+    .dr-account__name { font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; color: #fff; }
+    .dr-account__status { font-size: 12.5px; color: rgba(255,255,255,0.55); margin-top: 3px; }
+    .dr-account__status--on { color: #34d399; }
+    .dr-account__status--warn { color: #f59e0b; }
+    .dr-account .btn { padding: 8px 14px; font-size: 12.5px; min-height: 0; }
+
+    /* Dossiers de due diligence */
+    .dr-folders { display: flex; flex-direction: column; gap: 12px; }
+    .dr-folder { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; overflow: hidden; }
+    .dr-folder__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px; cursor: pointer; }
+    .dr-folder__name { font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; color: #fff; }
+    .dr-folder__count { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 2px; }
+    .dr-folder__toggle { border: 0; background: none; color: #fff; font-size: 13px; cursor: pointer; padding: 4px; transition: transform .15s; }
+    .dr-folder.is-open .dr-folder__toggle { transform: rotate(180deg); }
+    .dr-folder__body { display: none; border-top: 1px solid rgba(255,255,255,0.1); padding: 12px 18px 16px; }
+    .dr-folder.is-open .dr-folder__body { display: block; }
+
+    .dr-doclist { display: flex; flex-direction: column; gap: 8px; }
+    .dr-doc { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 12px; }
+    .dr-doc__name { font-size: 13.5px; font-weight: 600; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dr-doc__meta { font-size: 11.5px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+    .dr-doc__sent { font-size: 11.5px; color: #34d399; margin-top: 2px; }
+    .dr-doc__actions { display: flex; gap: 8px; flex: none; }
+    .dr-doc-btn { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; color: #fff; background: transparent; border: 1px solid rgba(255,255,255,0.25); border-radius: 8px; padding: 6px 10px; cursor: pointer; text-decoration: none; white-space: nowrap; }
+    .dr-doc-btn:hover { border-color: #fff; }
+
+    .dr-empty { text-align: center; padding: 36px 20px; color: rgba(255,255,255,0.6); font-size: 14px; line-height: 1.6; background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.15); border-radius: 14px; }
+    .dr-empty a { color: #fff; text-decoration: underline; }
+
+    /* Modal : choisir le compte cloud vers lequel envoyer un document */
+    .pick { position: fixed; inset: 0; z-index: 1000; display: none; align-items: center; justify-content: center; padding: 24px; }
+    .pick.is-open { display: flex; }
+    .pick__backdrop { position: absolute; inset: 0; background: rgba(8,9,12,0.55); }
+    .pick__dialog { position: relative; width: 100%; max-width: 440px; background: #fff; border-radius: 16px; box-shadow: 0 24px 60px rgba(8,9,12,0.4); overflow: hidden; }
+    .pick__head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid rgba(8,9,12,0.08); }
+    .pick__title { margin: 0; font: 600 16px/1.2 'Archivo', sans-serif; color: #08090c; }
+    .pick__close { border: 0; background: none; font-size: 22px; line-height: 1; cursor: pointer; color: #6b6b78; padding: 2px 6px; border-radius: 8px; }
+    .pick__close:hover { color: #08090c; }
+    .pick__body { padding: 18px 20px; }
+    .pick__section + .pick__section { margin-top: 18px; padding-top: 18px; border-top: 1px solid rgba(8,9,12,0.08); }
+    .pick__label { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6b6b78; margin-bottom: 8px; }
+    .pick__err { display: none; margin-top: 12px; color: #b91c1c; font-size: 13px; }
+    .pick__err.is-shown { display: block; }
+    .dr-providers { display: flex; flex-direction: column; gap: 8px; }
+    .dr-provider { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #f4f2ee; border: 1px solid rgba(8,9,12,0.08); border-radius: 10px; padding: 10px 12px; }
+    .dr-provider__label { font: 700 13.5px 'Archivo', sans-serif; color: #08090c; }
+    .dr-provider__sub { font-size: 11.5px; color: #6b6b78; margin-top: 2px; }
+    .dr-provider .btn { padding: 7px 12px; font-size: 12.5px; min-height: 0; }
+    .dr-hint { font-size: 12px; color: #6b6b78; margin-top: 8px; line-height: 1.5; }
   </style>
   <script src="auth.js?v=3"></script>
   <script src="tasks.js?v=2" defer></script>
@@ -61,11 +115,14 @@
     <main class="dil">
       <div class="dil__eyebrow">Outil</div>
       <h1 class="dil__title">Data room</h1>
-      <p class="dil__sub">Organisez et partagez une data room sécurisée avec vos investisseurs : documents indexés, droits d'accès et suivi des consultations.</p>
+      <p class="dil__sub">Envoyez vos documents de due diligence vers un compte cloud connecté (Google Drive, Dropbox), directement depuis liquid +.</p>
+      <div id="dr-alert" hidden></div>
 
-      <div class="dil__soon">
-        <b>Bientôt disponible.</b> Cette data room dédiée est en cours de construction.
-      </div>
+      <div class="dr-section-label">Comptes connectés</div>
+      <div class="dr-accounts" id="dr-accounts"></div>
+
+      <div class="dr-section-label">Dossiers de due diligence</div>
+      <div id="dr-folders"></div>
 
       <div class="dil__foot">
         <a href="dossiers.html" class="btn btn--ghost">← Retour aux dossiers</a>
@@ -73,10 +130,286 @@
     </main>
   </div>
 
+  <!-- Modal : choisir le compte cloud vers lequel envoyer un document -->
+  <div class="pick" id="dataroom-modal" role="dialog" aria-modal="true" aria-labelledby="dataroom-modal-title">
+    <div class="pick__backdrop" data-dataroom-close></div>
+    <div class="pick__dialog">
+      <div class="pick__head">
+        <h2 class="pick__title" id="dataroom-modal-title">Envoyer vers une data room</h2>
+        <button class="pick__close" type="button" data-dataroom-close aria-label="Fermer">&times;</button>
+      </div>
+      <div class="pick__body">
+        <div class="pick__section">
+          <div class="pick__label">Compte cloud connecté</div>
+          <div id="dataroom-modal-providers" class="dr-providers"></div>
+        </div>
+        <div class="pick__section">
+          <div class="pick__label">Sans compte connecté</div>
+          <a class="btn btn--ghost" id="dataroom-modal-zip" href="#" rel="noopener">Télécharger le dossier DD en ZIP</a>
+          <div class="dr-hint">À importer manuellement dans Datasite, Intralinks ou une autre data room professionnelle.</div>
+        </div>
+        <div class="pick__err" id="dataroom-modal-err"></div>
+      </div>
+    </div>
+  </div>
+
   <script>
     document.getElementById('page-back-btn').addEventListener('click', () => {
-      if (window.history.length > 1) window.history.back();
-      else window.location.href = 'dossiers.html';
+      window.location.href = 'dossiers.html';
+    });
+
+    const DATAROOM_PROVIDER_LABELS = { google_drive: 'Google Drive', dropbox: 'Dropbox' };
+    const DATAROOM_FOLDER_KEYS = ['due-diligence-preliminaire', 'due-diligence'];
+
+    let folders = [];
+    let docs = [];
+    let connections = [];
+    const openFolders = {};
+
+    function handleDataroomReturnParams() {
+      const params = new URLSearchParams(window.location.search);
+      const connected = params.get('dataroom_connected');
+      const error = params.get('dataroom_error');
+      if (!connected && !error) return;
+      const alert = document.getElementById('dr-alert');
+      alert.hidden = false;
+      if (connected) {
+        alert.className = 'dr-alert dr-alert--success';
+        alert.textContent = (DATAROOM_PROVIDER_LABELS[connected] || connected) + ' est maintenant connecté.';
+      } else {
+        alert.className = 'dr-alert dr-alert--error';
+        alert.textContent = 'La connexion a échoué. Réessayez.';
+      }
+      params.delete('dataroom_connected');
+      params.delete('dataroom_error');
+      const qs = params.toString();
+      window.history.replaceState({}, '', window.location.pathname + (qs ? '?' + qs : ''));
+    }
+
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+    function fmtSize(b) {
+      if (b == null) return '';
+      if (b < 1024) return b + ' o';
+      if (b < 1024 * 1024) return (b / 1024).toFixed(0) + ' Ko';
+      return (b / (1024 * 1024)).toFixed(1) + ' Mo';
+    }
+    function fmtDate(s) {
+      if (!s) return '';
+      return new Date(s).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+    function dataroomLinksLabel(d) {
+      const links = Array.isArray(d.dataroom_links) ? d.dataroom_links : [];
+      if (!links.length) return '';
+      return '☁ Envoyé vers ' + links.map(l => DATAROOM_PROVIDER_LABELS[l.provider] || l.provider).join(', ');
+    }
+
+    async function load() {
+      try {
+        const [fr, dr, cr] = await Promise.all([
+          fetch('/api/saas/folders', { credentials: 'include' }),
+          fetch('/api/saas/documents', { credentials: 'include' }),
+          fetch('/api/saas/dataroom/connections', { credentials: 'include' }),
+        ]);
+        if (fr.status === 401 || dr.status === 401) { window.location.href = 'login.html'; return; }
+        folders = (await fr.json()).folders || [];
+        docs    = (await dr.json()).documents || [];
+        if (cr.ok) connections = (await cr.json()).connections || [];
+        renderAccounts();
+        renderFolders();
+      } catch {
+        document.getElementById('dr-folders').innerHTML = '<div class="dr-empty">Impossible de charger vos dossiers.</div>';
+      }
+    }
+
+    function renderAccounts() {
+      const host = document.getElementById('dr-accounts');
+      host.innerHTML = '';
+      Object.keys(DATAROOM_PROVIDER_LABELS).forEach(provider => {
+        const conn = connections.find(c => c.provider === provider);
+        const connected = !!conn && conn.status !== 'revoked';
+        const revoked = !!conn && conn.status === 'revoked';
+        const row = document.createElement('div');
+        row.className = 'dr-account';
+        row.innerHTML = `
+          <div>
+            <div class="dr-account__name">${DATAROOM_PROVIDER_LABELS[provider]}</div>
+            <div class="dr-account__status ${connected ? 'dr-account__status--on' : revoked ? 'dr-account__status--warn' : ''}">
+              ${connected ? 'Connecté — ' + esc(conn.account_label || '') : revoked ? 'Connexion expirée — reconnectez votre compte' : 'Non connecté'}
+            </div>
+          </div>`;
+        const btn = document.createElement('button');
+        btn.className = 'btn ' + (connected ? 'btn--ghost' : 'btn--primary');
+        btn.textContent = connected ? 'Déconnecter' : 'Connecter';
+        btn.addEventListener('click', () => {
+          if (connected) disconnectProvider(provider);
+          else window.location.href = '/api/saas/dataroom/' + provider + '/connect?return_to=' + encodeURIComponent('/saas/data-room.html');
+        });
+        row.appendChild(btn);
+        host.appendChild(row);
+      });
+    }
+
+    async function disconnectProvider(provider) {
+      if (!confirm(`Déconnecter ${DATAROOM_PROVIDER_LABELS[provider]} ? Vous ne pourrez plus y envoyer de fichiers tant que vous ne l'aurez pas reconnecté.`)) return;
+      try {
+        const res = await fetch('/api/saas/dataroom/connections/' + provider, { method: 'DELETE', credentials: 'include' });
+        if (res.ok) { connections = connections.filter(c => c.provider !== provider); renderAccounts(); }
+      } catch {}
+    }
+
+    function renderFolders() {
+      const host = document.getElementById('dr-folders');
+      const ddFolders = folders.filter(f => DATAROOM_FOLDER_KEYS.includes(f.key));
+      if (!ddFolders.length) {
+        host.innerHTML = '<div class="dr-empty">Aucun dossier de due diligence pour l\'instant. Ouvrez un dossier « Due diligence » depuis <a href="dossiers.html">Mes dossiers</a> et ajoutez-y des documents pour pouvoir les envoyer ici.</div>';
+        return;
+      }
+      const wrap = document.createElement('div');
+      wrap.className = 'dr-folders';
+      ddFolders.forEach(f => {
+        const folderDocs = docs.filter(d => d.folder_id === f.id && !d.is_version && !(d.kind === 'termsheet' && d.template_source && d.is_personalized === false));
+        const open = !!openFolders[f.id];
+        const card = document.createElement('div');
+        card.className = 'dr-folder' + (open ? ' is-open' : '');
+        card.innerHTML = `
+          <div class="dr-folder__head" data-folder-toggle>
+            <div>
+              <div class="dr-folder__name">${esc(f.name)}</div>
+              <div class="dr-folder__count">${folderDocs.length} document${folderDocs.length > 1 ? 's' : ''}</div>
+            </div>
+            <button class="dr-folder__toggle" type="button" aria-label="Afficher/masquer les documents">▾</button>
+          </div>
+          <div class="dr-folder__body"></div>`;
+        card.querySelector('[data-folder-toggle]').addEventListener('click', () => {
+          openFolders[f.id] = !openFolders[f.id];
+          renderFolders();
+        });
+        const body = card.querySelector('.dr-folder__body');
+        if (!folderDocs.length) {
+          body.innerHTML = '<div class="dr-doc__meta">Aucun document dans ce dossier pour l\'instant.</div>';
+        } else {
+          const list = document.createElement('div');
+          list.className = 'dr-doclist';
+          folderDocs
+            .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))
+            .forEach(d => list.appendChild(docRow(d)));
+          body.appendChild(list);
+        }
+        wrap.appendChild(card);
+      });
+      host.innerHTML = '';
+      host.appendChild(wrap);
+    }
+
+    function docRow(d) {
+      const label = dataroomLinksLabel(d);
+      const row = document.createElement('div');
+      row.className = 'dr-doc';
+      row.innerHTML = `
+        <div style="flex:1;min-width:0">
+          <div class="dr-doc__name" title="${esc(d.name)}">${esc(d.name)}</div>
+          <div class="dr-doc__meta">${fmtSize(d.size)} · ${fmtDate(d.created_at)}</div>
+          ${label ? `<div class="dr-doc__sent">${esc(label)}</div>` : ''}
+        </div>
+        <div class="dr-doc__actions"></div>`;
+      const actions = row.querySelector('.dr-doc__actions');
+      const dl = document.createElement('a');
+      dl.className = 'dr-doc-btn';
+      dl.textContent = 'Télécharger';
+      dl.href = '/api/saas/documents/' + d.id + '/download';
+      actions.appendChild(dl);
+      const send = document.createElement('button');
+      send.className = 'dr-doc-btn';
+      send.textContent = '☁ Envoyer';
+      send.addEventListener('click', () => openDataroomModal({ id: d.id, folderId: d.folder_id, categoryTitle: d.category_key || '' }));
+      actions.appendChild(send);
+      return row;
+    }
+
+    // ---- Modal : choisir le compte cloud vers lequel envoyer le document ----
+    const dataroomModal       = document.getElementById('dataroom-modal');
+    const dataroomProvidersEl = document.getElementById('dataroom-modal-providers');
+    const dataroomZip         = document.getElementById('dataroom-modal-zip');
+    const dataroomErr         = document.getElementById('dataroom-modal-err');
+    let dataroomCtx = null; // { id, categoryTitle }
+
+    function dataroomShowErr(m) { dataroomErr.textContent = m; dataroomErr.classList.add('is-shown'); }
+
+    function renderDataroomProviders() {
+      dataroomProvidersEl.innerHTML = '';
+      Object.keys(DATAROOM_PROVIDER_LABELS).forEach(provider => {
+        const conn = connections.find(c => c.provider === provider);
+        const connected = !!conn && conn.status !== 'revoked';
+        const row = document.createElement('div');
+        row.className = 'dr-provider';
+        row.innerHTML = `
+          <div>
+            <div class="dr-provider__label">${DATAROOM_PROVIDER_LABELS[provider]}</div>
+            <div class="dr-provider__sub">${connected ? esc(conn.account_label || 'Connecté') : 'Non connecté'}</div>
+          </div>`;
+        const btn = document.createElement('button');
+        if (connected) {
+          btn.className = 'btn btn--primary';
+          btn.textContent = 'Envoyer';
+          btn.addEventListener('click', () => sendToDataroom(provider, btn));
+        } else {
+          btn.className = 'btn btn--ghost';
+          btn.textContent = 'Connecter';
+          btn.addEventListener('click', () => {
+            window.location.href = '/api/saas/dataroom/' + provider + '/connect?return_to=' + encodeURIComponent('/saas/data-room.html');
+          });
+        }
+        row.appendChild(btn);
+        dataroomProvidersEl.appendChild(row);
+      });
+    }
+
+    function openDataroomModal(ctx) {
+      dataroomCtx = ctx;
+      dataroomErr.textContent = '';
+      dataroomErr.classList.remove('is-shown');
+      renderDataroomProviders();
+      dataroomZip.href = '/api/saas/dataroom/zip?' + new URLSearchParams({ folder_id: String(ctx.folderId) }).toString();
+      dataroomModal.classList.add('is-open');
+    }
+    function closeDataroomModal() { dataroomModal.classList.remove('is-open'); dataroomCtx = null; }
+    dataroomModal.addEventListener('click', (e) => { if (e.target.hasAttribute('data-dataroom-close')) closeDataroomModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && dataroomModal.classList.contains('is-open')) closeDataroomModal(); });
+
+    async function sendToDataroom(provider, btn) {
+      if (!dataroomCtx) return;
+      dataroomErr.textContent = '';
+      dataroomErr.classList.remove('is-shown');
+      btn.disabled = true;
+      const prevText = btn.textContent;
+      btn.textContent = 'Envoi…';
+      try {
+        const res = await fetch('/api/saas/dataroom/' + provider + '/push/document/' + dataroomCtx.id, {
+          method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ category_title: dataroomCtx.categoryTitle || '' }),
+        });
+        if (res.status === 401) { window.location.href = 'login.html'; return; }
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) { dataroomShowErr(data.error || 'Envoi échoué.'); btn.disabled = false; btn.textContent = prevText; return; }
+        if (data.document) {
+          const idx = docs.findIndex(x => x.id === data.document.id);
+          if (idx !== -1) docs[idx] = data.document;
+        }
+        btn.textContent = 'Envoyé ✓';
+        setTimeout(closeDataroomModal, 900);
+        renderFolders();
+      } catch {
+        dataroomShowErr('Impossible de joindre le serveur.');
+        btn.disabled = false; btn.textContent = prevText;
+      }
+    }
+
+    requireAuth().then((user) => {
+      if (!user) return;
+      handleDataroomReturnParams();
+      load();
     });
   </script>
 </body>
