@@ -45,6 +45,12 @@
       .back-btn { background: none; border: none; color: #5e5e6a; font-size: 0.85rem; cursor: pointer; padding: 0 0 16px; font-family: inherit; display: flex; align-items: center; gap: 4px; }
       .back-btn:hover { color: #080c14; }
       .code-big { letter-spacing: .2em; font-size: 1.4rem; text-align: center; }
+      .switch-box { background: #f4f6fa; border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 14px 16px; margin-bottom: 20px; }
+      .switch-box__label { font-size: 0.82rem; font-weight: 600; color: #5e5e6a; margin: 0 0 10px; }
+      .switch-accounts { display: grid; gap: 8px; }
+      .switch-account { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.12); background: #fff; color: #080c14; font-size: 0.88rem; font-weight: 600; text-align: left; cursor: pointer; transition: border-color .18s, background .18s; font-family: inherit; }
+      .switch-account:hover { border-color: #001839; background: #f7f9fc; }
+      .switch-account__avatar { width: 28px; height: 28px; flex: none; border-radius: 50%; background: #001839; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; }
     </style>
   </head>
   <body>
@@ -58,8 +64,13 @@
 
         <!-- ══ Panneau 1 : Email + mot de passe ══ -->
         <div id="panel-login" class="panel active">
-          <h1>Connexion</h1>
-          <p class="auth-lead">Accédez à votre espace investisseur.</p>
+          <h1 id="login-title">Connexion</h1>
+          <p class="auth-lead" id="login-lead">Accédez à votre espace investisseur.</p>
+
+          <div id="switch-box" class="switch-box" hidden>
+            <p class="switch-box__label">Choisissez un compte administrateur :</p>
+            <div id="switch-accounts" class="switch-accounts"></div>
+          </div>
 
           <div id="login-error" class="auth-alert auth-alert--error" role="alert" hidden></div>
 
@@ -149,6 +160,28 @@
         const el = document.getElementById('login-error');
         el.textContent = msgs[urlError] || `Erreur Google : ${urlError}`;
         el.hidden = false;
+      }
+
+      // ── Mode « Changer de compte » (login.html?switch=1) ─────────────────────
+      const ADMIN_EMAILS = ['baptiste.faisy@gmail.com', 'bg.fsg.invest@gmail.com', 'liquidplus.startups@gmail.com'];
+      if (new URLSearchParams(window.location.search).get('switch') === '1') {
+        document.getElementById('login-title').textContent = 'Changer de compte';
+        document.getElementById('login-lead').textContent = 'Sélectionnez un compte administrateur puis saisissez son mot de passe.';
+        const box = document.getElementById('switch-box');
+        const list = document.getElementById('switch-accounts');
+        const emailInput = document.querySelector('#login-form input[name="email"]');
+        list.innerHTML = ADMIN_EMAILS.map(email => `
+          <button type="button" class="switch-account" data-email="${email}">
+            <span class="switch-account__avatar">${email[0]}</span>
+            <span>${email}</span>
+          </button>`).join('');
+        list.querySelectorAll('.switch-account').forEach(btn => {
+          btn.addEventListener('click', () => {
+            emailInput.value = btn.dataset.email;
+            document.getElementById('login-password').focus();
+          });
+        });
+        box.hidden = false;
       }
 
       let tempToken = null;
