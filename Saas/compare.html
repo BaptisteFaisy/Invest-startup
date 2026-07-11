@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>liquid + — Comparer des versions</title>
-  <meta name="description" content="Comparaison de deux versions d'un document, alimentée par l'IA." />
+  <title>liquid + — Comparer les versions</title>
+  <meta name="description" content="Comparaison de plusieurs versions d'un document de levée : modifications, auteurs et intentions, expliqués par l'IA." />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="drawer-menu.css?v=4" />
   <style>
     /* L'attribut `hidden` doit toujours l'emporter : sans ça, les règles de type
-       `.cmp__loading { display:flex }` / `.vsrow { display:grid }` écrasent le
+       `.cmp__loading { display:flex }` / `.timeline { … }` écrasent le
        `display:none` du navigateur et l'élément reste visible malgré `hidden`. */
     [hidden] { display: none !important; }
 
@@ -41,22 +41,6 @@
     .cmp__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
     .cmp__title { font-size: 30px; letter-spacing: -0.03em; color: #fff; margin-top: 6px; }
     .cmp__sub { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 8px; }
-
-    /* Bandeau des deux versions (ancienne → nouvelle) */
-    .vsrow { display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; gap: 14px; margin: 26px 0 8px; }
-    .vscard { background: #fff; border-radius: 16px; padding: 16px 18px; box-shadow: 0 10px 34px rgba(0,0,0,0.35); display: flex; flex-direction: column; gap: 8px; }
-    .vscard__tag { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 9px; border-radius: 99px; align-self: flex-start; }
-    .vscard__tag--old { background: rgba(8,9,12,0.06); color: #6b6b78; }
-    .vscard__tag--new { background: rgba(59,130,246,0.12); color: #2563eb; }
-    .vscard__name { font-weight: 700; font-size: 15.5px; letter-spacing: -0.01em; color: #08090c; word-break: break-word; }
-    .vscard__meta { font-family: 'Archivo', sans-serif; font-size: 12.5px; color: #6b6b78; }
-    .vscard__dl { align-self: flex-start; margin-top: 4px; font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; color: #08090c; border: 1px solid rgba(8,9,12,0.2); border-radius: 8px; padding: 6px 11px; text-decoration: none; }
-    .vscard__dl:hover { border-color: rgba(8,9,12,0.55); }
-    .vsarrow { align-self: center; font-size: 24px; color: rgba(255,255,255,0.55); }
-    @media (max-width: 680px) {
-      .vsrow { grid-template-columns: 1fr; }
-      .vsarrow { transform: rotate(90deg); }
-    }
 
     /* États chargement / erreur */
     .cmp__loading { display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 26px 24px; color: rgba(255,255,255,0.85); font-size: 15px; margin-top: 22px; }
@@ -114,6 +98,61 @@
     .reco__text { font-size: 15px; line-height: 1.65; color: #e2e8f0; }
 
     .cmp__foot { margin-top: 30px; }
+
+    /* Sélecteur de document (ouverture directe de l'outil, sans paramètre) */
+    .docpick, .vpick { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px 22px; margin-top: 22px; }
+    .docpick__h, .vpick__h { display: flex; align-items: baseline; gap: 10px; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; margin-bottom: 14px; }
+    .vpick__hint { margin-left: auto; font-weight: 600; letter-spacing: 0.03em; color: rgba(255,255,255,0.42); }
+    .docpick__list, .vpick__list { display: flex; flex-direction: column; gap: 8px; }
+    .docpick__item { display: flex; align-items: center; gap: 12px; width: 100%; background: #fff; border-radius: 12px; padding: 12px 14px; cursor: pointer; border: 1px solid transparent; text-align: left; font: inherit; transition: border-color .15s; }
+    .docpick__item:hover { border-color: #3b82f6; }
+    .docpick__item__name { font-weight: 700; color: #08090c; font-size: 14.5px; }
+    .docpick__item__meta { margin-left: auto; font-family: 'Archivo', sans-serif; font-size: 12px; color: #6b6b78; flex: none; }
+    .docpick__empty { color: rgba(255,255,255,0.62); font-size: 14px; line-height: 1.6; }
+
+    /* Sélecteur des versions à comparer (cochables) */
+    .vpick__row { display: flex; align-items: center; gap: 12px; background: #fff; border-radius: 12px; padding: 11px 14px; cursor: pointer; }
+    .vpick__row input { width: 17px; height: 17px; accent-color: #3b82f6; flex: none; cursor: pointer; }
+    .vpick__row input:disabled { cursor: default; }
+    .vpick__tag { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; padding: 3px 9px; border-radius: 99px; background: rgba(8,9,12,0.06); color: #6b6b78; flex: none; }
+    .vpick__tag--last { background: rgba(59,130,246,0.12); color: #2563eb; }
+    .vpick__name { font-weight: 600; color: #08090c; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .vpick__date { margin-left: auto; font-family: 'Archivo', sans-serif; font-size: 12px; color: #6b6b78; flex: none; }
+
+    /* Frise chronologique des versions */
+    .timeline { position: relative; margin-top: 24px; }
+    .timeline::before { content: ''; position: absolute; left: 8px; top: 8px; bottom: 8px; width: 2px; background: rgba(255,255,255,0.14); border-radius: 2px; }
+    .tl-block { position: relative; padding-left: 34px; margin-bottom: 14px; }
+    .tl-block:last-child { margin-bottom: 0; }
+    .tl-mark { position: absolute; z-index: 1; }
+    .tl-ver .tl-mark { left: 1px; top: 14px; width: 16px; height: 16px; border-radius: 50%; background: #0b0d12; border: 3px solid #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.12); }
+    .tl-trans .tl-mark { left: 2px; top: 9px; width: 14px; height: 14px; display: grid; place-items: center; border-radius: 50%; background: #0b0d12; border: 2px solid rgba(255,255,255,0.28); color: rgba(255,255,255,0.72); font-size: 9px; line-height: 1; }
+
+    /* Carte d'une version (nœud de la frise) : nom, date, auteur inféré */
+    .verc { background: #fff; border-radius: 14px; padding: 14px 16px; box-shadow: 0 8px 26px rgba(0,0,0,0.3); }
+    .verc__top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .verc__tag { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; padding: 3px 9px; border-radius: 99px; background: rgba(8,9,12,0.06); color: #6b6b78; flex: none; }
+    .verc__tag--last { background: rgba(59,130,246,0.12); color: #2563eb; }
+    .verc__name { font-weight: 700; font-size: 14.5px; color: #08090c; letter-spacing: -0.01em; }
+    .verc__date { margin-left: auto; font-family: 'Archivo', sans-serif; font-size: 12px; color: #6b6b78; flex: none; }
+    .verc__author { margin-top: 11px; display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+    .abadge { display: inline-flex; align-items: center; gap: 7px; font-family: 'Archivo', sans-serif; font-size: 11.5px; font-weight: 700; letter-spacing: 0.01em; padding: 5px 11px; border-radius: 99px; }
+    .abadge__ico { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+    .abadge--founder  { background: rgba(22,163,74,0.12);  color: #15803d; } .abadge--founder .abadge__ico  { background: #16a34a; }
+    .abadge--investor { background: rgba(37,99,235,0.10);  color: #2563eb; } .abadge--investor .abadge__ico { background: #2563eb; }
+    .abadge--lawyer   { background: rgba(217,119,6,0.13);  color: #b45309; } .abadge--lawyer .abadge__ico   { background: #d97706; }
+    .abadge--unknown  { background: rgba(8,9,12,0.06);     color: #6b6b78; } .abadge--unknown .abadge__ico  { background: #9ca3af; }
+    .aconf { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 600; color: #8a867e; }
+    .verc__rat { margin-top: 9px; font-size: 13px; line-height: 1.55; color: #4b5563; }
+    .verc__rat b { color: #08090c; }
+
+    /* Transition entre deux versions : intention + liste des changements */
+    .trans__h { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 9px; display: flex; gap: 9px; align-items: baseline; }
+    .trans__count { color: rgba(255,255,255,0.4); font-weight: 600; letter-spacing: 0.02em; }
+    .trans__intent { background: linear-gradient(135deg, #172033, #0f1626); border: 1px solid rgba(59,130,246,0.22); border-radius: 12px; padding: 14px 16px; color: #dbe4f2; font-size: 14px; line-height: 1.6; margin-bottom: 12px; }
+    .trans__intent__lab { display: block; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #93c5fd; margin-bottom: 6px; }
+    .trans__intent b { color: #fff; }
+    .trans__empty { color: rgba(255,255,255,0.5); font-size: 13px; font-style: italic; }
   </style>
   <script src="auth.js?v=3"></script>
   <script src="tasks.js?v=2" defer></script>
@@ -180,27 +219,23 @@
 
     <main class="cmp">
       <div class="cmp__eyebrow">Analyse IA</div>
-      <h1 class="cmp__title">Comparaison de versions</h1>
-      <p class="cmp__sub">Ce qui a changé entre les deux versions de ce document, expliqué du point de vue du fondateur.</p>
+      <h1 class="cmp__title">Comparer les versions</h1>
+      <p class="cmp__sub">Toutes les modifications d'un document au fil de la négociation, dans l'ordre chronologique — qui a probablement rédigé chaque version, et les intentions derrière chaque changement.</p>
 
-      <div class="vsrow" id="vsrow" hidden>
-        <div class="vscard">
-          <span class="vscard__tag vscard__tag--old">Version précédente</span>
-          <div class="vscard__name" id="old-name">…</div>
-          <div class="vscard__meta" id="old-meta"></div>
-          <a class="vscard__dl" id="old-dl" href="#">Télécharger</a>
-        </div>
-        <div class="vsarrow" aria-hidden="true">→</div>
-        <div class="vscard">
-          <span class="vscard__tag vscard__tag--new">Nouvelle version</span>
-          <div class="vscard__name" id="new-name">…</div>
-          <div class="vscard__meta" id="new-meta"></div>
-          <a class="vscard__dl" id="new-dl" href="#">Télécharger</a>
-        </div>
+      <!-- Choix du document (ouverture directe de l'outil, sans version pré-sélectionnée) -->
+      <div class="docpick" id="docpick" hidden>
+        <div class="docpick__h">Choisissez un document à analyser</div>
+        <div class="docpick__list" id="docpick-list"></div>
+      </div>
+
+      <!-- Sélecteur des versions à comparer (par défaut : toutes, ordre chronologique) -->
+      <div class="vpick" id="vpick" hidden>
+        <div class="vpick__h"><span id="vpick-title">Versions à comparer</span><span class="vpick__hint">ordre chronologique</span></div>
+        <div class="vpick__list" id="vpick-list"></div>
       </div>
 
       <div class="cmp__intro" id="intro" hidden>
-        <p class="cmp__introtext">Lancez l'analyse pour comparer les deux versions avec l'IA et obtenir la synthèse des changements. Cela peut prendre quelques secondes.</p>
+        <p class="cmp__introtext" id="introtext">Lancez l'analyse pour comparer les versions sélectionnées avec l'IA. Cela peut prendre quelques secondes.</p>
         <div class="cmp__actions">
           <button class="cmp-btn cmp-btn--go" id="analyze-btn">Analyser</button>
           <button class="cmp-btn cmp-btn--cancel" id="cancel-btn" disabled>Annuler</button>
@@ -210,7 +245,7 @@
 
       <div class="cmp__loading" id="loading" hidden>
         <div class="spin"></div>
-        <div>Analyse des deux versions par l'IA… cela peut prendre quelques secondes.</div>
+        <div>Analyse des versions par l'IA… cela peut prendre quelques secondes.</div>
       </div>
 
       <div class="cmp__err" id="error" hidden></div>
@@ -218,14 +253,11 @@
       <div id="result" hidden>
         <div id="verdict-wrap" style="margin-top:22px" hidden><span class="verdict" id="verdict"></span></div>
         <div class="summary" id="summary-card" hidden>
-          <div class="summary__h">Synthèse</div>
+          <div class="summary__h">Synthèse de la négociation</div>
           <div class="summary__text" id="summary-text"></div>
         </div>
 
-        <div class="changes" id="changes-wrap" hidden>
-          <div class="changes__h" id="changes-h">Changements détectés</div>
-          <div id="changes-list"></div>
-        </div>
+        <div class="timeline" id="timeline" hidden></div>
 
         <div class="reco" id="reco-card" hidden>
           <div class="reco__h">Conseil fondateur</div>
@@ -249,16 +281,27 @@
     function fmtDate(s) { try { return new Date(s).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return ''; } }
     function qp(name) { return new URLSearchParams(location.search).get(name); }
 
-    // Chaque côté est soit un document (old / new), soit une version VALIDÉE de
-    // l'historique de l'éditeur (oldv / newv — stockée à part des documents).
+    const JOB_TYPE = 'doc-compare-multi';
+
+    // Modes d'entrée dans l'outil :
+    //   ?doc=<id>                              → historique complet d'un term sheet éditable
+    //   ?old=&new=  /  ?new=&oldv=  (legacy)   → 2 versions ciblées (liens existants)
+    //   (aucun paramètre)                      → on propose de choisir un document
+    const docId  = Number(qp('doc'));
     const oldId  = Number(qp('old'));
     const newId  = Number(qp('new'));
     const oldVid = Number(qp('oldv'));
     const newVid = Number(qp('newv'));
 
-    const loadingEl = document.getElementById('loading');
-    const errorEl   = document.getElementById('error');
-    const resultEl  = document.getElementById('result');
+    const loadingEl  = document.getElementById('loading');
+    const errorEl    = document.getElementById('error');
+    const resultEl   = document.getElementById('result');
+    const docpickEl  = document.getElementById('docpick');
+    const vpickEl    = document.getElementById('vpick');
+    const introEl    = document.getElementById('intro');
+    const introtextEl = document.getElementById('introtext');
+    const analyzeBtn = document.getElementById('analyze-btn');
+    const cancelBtn  = document.getElementById('cancel-btn');
 
     function showError(msg) {
       loadingEl.hidden = true;
@@ -268,32 +311,229 @@
 
     const VERDICT_CLASS = [
       { re: /favorable au fondateur/i,  cls: 'verdict--good' },
-      { re: /d[ée]favorable/i,           cls: 'verdict--bad' },
-      { re: /vigilance/i,                cls: 'verdict--warn' },
+      { re: /d[ée]favorable/i,          cls: 'verdict--bad' },
+      { re: /vigilance/i,               cls: 'verdict--warn' },
     ];
     function verdictClass(v) {
       for (const { re, cls } of VERDICT_CLASS) if (re.test(v)) return cls;
       return 'verdict--neutral';
     }
 
-    function fillMeta(meta) {
-      if (!meta) return;
-      document.getElementById('vsrow').hidden = false;
-      if (meta.old) {
-        document.getElementById('old-name').textContent = meta.old.name || ('Document #' + (oldId || oldVid));
-        document.getElementById('old-meta').textContent = meta.old.date
-          ? ((meta.old.version ? 'Validée le ' : 'Archivée le ') + fmtDate(meta.old.date)) : '';
-        // Les versions validées n'ont pas de téléchargement direct (instantanés internes).
-        if (meta.old.version) document.getElementById('old-dl').hidden = true;
-        else document.getElementById('old-dl').href = '/api/saas/documents/' + oldId + '/download';
+    // Classe l'auteur inféré par CAMP (le côté prime : « Avocat du fondateur » → fondateur,
+    // « Avocat de l'investisseur » → investisseur ; un conseil sans camp → neutre).
+    function authorClass(a) {
+      const s = String(a || '').toLowerCase();
+      if (/fondateur|founder/.test(s))                return 'founder';
+      if (/investisseur|investor|fonds|\bvc\b/.test(s)) return 'investor';
+      if (/avocat|conseil|juridique|lawyer|legal/.test(s)) return 'lawyer';
+      return 'unknown';
+    }
+
+    // ── Candidats (versions comparables) ──────────────────────────────────────
+    // Chaque candidat : { kind:'version'|'doc', id, name, date, current? }.
+    let candidates = [];
+    let compareTitle = '';
+
+    async function loadCandidates() {
+      if (docId) {
+        // Historique d'un term sheet éditable : versions validées (chronologique) + version actuelle.
+        const [meta, vers] = await Promise.all([
+          fetch('/api/saas/termsheets/' + docId, { credentials: 'include' }).then(r => r.ok ? r.json() : null).catch(() => null),
+          fetch('/api/saas/termsheets/' + docId + '/versions', { credentials: 'include' }).then(r => r.ok ? r.json() : null).catch(() => null),
+        ]);
+        compareTitle = (meta && meta.name) || 'Document';
+        // L'API renvoie la plus récente en tête : on inverse pour l'ordre chronologique.
+        const list = (vers && Array.isArray(vers.versions)) ? vers.versions.slice().reverse() : [];
+        list.forEach((v, i) => candidates.push({ kind: 'version', id: v.id, name: v.label || ('Version ' + (i + 1)), date: v.created_at }));
+        candidates.push({ kind: 'doc', id: docId, name: compareTitle, date: (meta && meta.updated_at) || null, current: true });
+        return;
       }
-      if (meta.new) {
-        document.getElementById('new-name').textContent = meta.new.name || ('Document #' + (newId || newVid));
-        document.getElementById('new-meta').textContent = meta.new.date
-          ? ((meta.new.version ? 'Validée le ' : 'Mise à jour le ') + fmtDate(meta.new.date)) : '';
-        if (meta.new.version) document.getElementById('new-dl').hidden = true;
-        else document.getElementById('new-dl').href = '/api/saas/documents/' + newId + '/download';
+      if ((oldId || oldVid) && (newId || newVid)) {
+        // Liens existants à 2 versions : le serveur ré-ordonne par date réelle.
+        if (oldVid) candidates.push({ kind: 'version', id: oldVid, name: 'Version précédente', date: null });
+        else        candidates.push({ kind: 'doc',     id: oldId,  name: 'Version précédente', date: null });
+        if (newVid) candidates.push({ kind: 'version', id: newVid, name: 'Nouvelle version', date: null, current: true });
+        else        candidates.push({ kind: 'doc',     id: newId,  name: 'Nouvelle version', date: null, current: true });
+        compareTitle = 'Document';
+        return;
       }
+    }
+
+    function selectedEntries() {
+      const cbs = [...document.querySelectorAll('#vpick-list input[type=checkbox]')];
+      return cbs.filter(cb => cb.checked)
+        .map(cb => candidates[Number(cb.dataset.i)])
+        .map(c => c.kind === 'version' ? { versionId: c.id } : { docId: c.id, label: c.name });
+    }
+
+    function renderVPicker() {
+      vpickEl.hidden = false;
+      document.getElementById('vpick-title').textContent = 'Versions de « ' + (compareTitle || 'ce document') + ' »';
+      const list = document.getElementById('vpick-list');
+      list.innerHTML = '';
+      const many = candidates.length > 2;   // cases décochables seulement s'il reste ≥ 2 versions
+      candidates.forEach((c, i) => {
+        const last = i === candidates.length - 1;
+        const row = document.createElement('label');
+        row.className = 'vpick__row';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox'; cb.checked = true; cb.dataset.i = i;
+        cb.disabled = !many;
+        cb.addEventListener('change', updateIntro);
+        const tag = document.createElement('span');
+        tag.className = 'vpick__tag' + (last ? ' vpick__tag--last' : '');
+        tag.textContent = (last && c.current) ? 'actuelle' : ('v' + (i + 1));
+        const name = document.createElement('span');
+        name.className = 'vpick__name';
+        name.textContent = c.name;
+        const date = document.createElement('span');
+        date.className = 'vpick__date';
+        date.textContent = c.date ? fmtDate(c.date) : '';
+        row.append(cb, tag, name, date);
+        list.appendChild(row);
+      });
+    }
+
+    function updateIntro() {
+      const n = selectedEntries().length;
+      introEl.hidden = false;
+      analyzeBtn.disabled = n < 2 || !!currentJobId;
+      introtextEl.textContent = n < 2
+        ? 'Sélectionnez au moins deux versions à comparer.'
+        : 'Comparer les ' + n + ' versions sélectionnées avec l\'IA : modifications, auteurs et intentions, dans l\'ordre chronologique. Cela peut prendre quelques secondes.';
+    }
+
+    // Choix du document quand l'outil est ouvert sans version pré-sélectionnée.
+    async function renderDocPicker() {
+      docpickEl.hidden = false;
+      const list = document.getElementById('docpick-list');
+      let docs = [];
+      try {
+        const r = await fetch('/api/saas/documents', { credentials: 'include' });
+        const d = await r.json();
+        docs = (d.documents || []).filter(x => x.kind === 'termsheet');
+      } catch { /* liste vide */ }
+      if (!docs.length) {
+        list.innerHTML = '<div class="docpick__empty">Aucun document éditable à comparer pour l\'instant. Créez un document dans l\'éditeur et validez-en plusieurs versions (bouton « Valider la version »), puis revenez ici.</div>';
+        return;
+      }
+      list.innerHTML = '';
+      docs.forEach(doc => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'docpick__item';
+        b.innerHTML = '<span class="docpick__item__name">' + esc(doc.name || 'Document') + '</span>'
+          + '<span class="docpick__item__meta">' + (doc.updated_at ? fmtDate(doc.updated_at) : '') + '</span>';
+        b.addEventListener('click', () => { location.href = 'compare.html?doc=' + doc.id; });
+        list.appendChild(b);
+      });
+    }
+
+    // ── Rendu du résultat : synthèse + verdict + frise + conseil ───────────────
+    function changeCardEl(c) {
+      const sev = ['haute', 'moyenne', 'basse'].includes(c.severity) ? c.severity : 'moyenne';
+      const nat = ['ajout', 'suppression', 'modification'].includes(c.nature) ? c.nature : 'modification';
+      const card = document.createElement('div');
+      card.className = 'chg chg--' + sev;
+      const sevLabel = sev === 'haute' ? 'Priorité haute' : sev === 'basse' ? 'Priorité basse' : 'Priorité moyenne';
+      let ba = '';
+      if (c.before || c.after) {
+        ba = '<div class="chg__ba">'
+          + (c.before ? `<div class="chg__col chg__col--before"><div class="chg__col__lab">Avant</div>${esc(c.before)}</div>` : '')
+          + (c.after  ? `<div class="chg__col chg__col--after"><div class="chg__col__lab">Après</div>${esc(c.after)}</div>` : '')
+          + '</div>';
+      }
+      card.innerHTML =
+        `<div class="chg__top">
+           <span class="chg__nature chg__nature--${nat}">${nat}</span>
+           <span class="chg__heading">${esc(c.heading || 'Changement')}</span>
+           <span class="chg__sev">${sevLabel}</span>
+         </div>
+         ${ba}
+         ${c.impact ? `<div class="chg__impact"><b>Impact —</b> ${esc(c.impact)}</div>` : ''}`;
+      return card;
+    }
+
+    function versionNodeEl(i, meta, ver, isLast) {
+      const block = document.createElement('div');
+      block.className = 'tl-block tl-ver';
+      const mark = document.createElement('span'); mark.className = 'tl-mark'; block.appendChild(mark);
+      const card = document.createElement('div'); card.className = 'verc';
+      const name = (meta && (meta.label || meta.name)) || ('Version ' + (i + 1));
+      const date = meta && meta.date ? fmtDate(meta.date) : '';
+      const author = (ver && ver.author) || 'Indéterminé';
+      const conf   = (ver && ver.authorConfidence) || '';
+      const rat    = (ver && ver.authorRationale) || '';
+      const acls   = authorClass(author);
+      card.innerHTML =
+        `<div class="verc__top">
+           <span class="verc__tag${isLast ? ' verc__tag--last' : ''}">${isLast ? 'Version actuelle' : 'v' + (i + 1)}</span>
+           <span class="verc__name">${esc(name)}</span>
+           ${date ? `<span class="verc__date">${esc(date)}</span>` : ''}
+         </div>
+         <div class="verc__author">
+           <span class="abadge abadge--${acls}"><span class="abadge__ico"></span>Rédigée par : ${esc(author)}</span>
+           ${conf ? `<span class="aconf">confiance ${esc(conf)}</span>` : ''}
+         </div>
+         ${rat ? `<div class="verc__rat">${esc(rat)}</div>` : ''}`;
+      block.appendChild(card);
+      return block;
+    }
+
+    function transitionEl(tr, i) {
+      const block = document.createElement('div');
+      block.className = 'tl-block tl-trans';
+      const mark = document.createElement('span'); mark.className = 'tl-mark'; mark.textContent = '↓'; block.appendChild(mark);
+      const wrap = document.createElement('div');
+      const changes = (tr && Array.isArray(tr.changes)) ? tr.changes : [];
+      const cnt = changes.length ? changes.length + ' changement' + (changes.length > 1 ? 's' : '') : 'aucun changement notable';
+      wrap.innerHTML = `<div class="trans__h">v${i + 1} → v${i + 2}<span class="trans__count">${cnt}</span></div>`;
+      if (tr && tr.intent) {
+        const box = document.createElement('div');
+        box.className = 'trans__intent';
+        box.innerHTML = '<span class="trans__intent__lab">Intention derrière ces modifications</span>' + esc(tr.intent);
+        wrap.appendChild(box);
+      }
+      if (changes.length) changes.forEach(c => wrap.appendChild(changeCardEl(c)));
+      else if (!(tr && tr.intent)) {
+        const em = document.createElement('div'); em.className = 'trans__empty';
+        em.textContent = 'Les deux versions sont identiques ou quasi identiques.';
+        wrap.appendChild(em);
+      }
+      block.appendChild(wrap);
+      return block;
+    }
+
+    function renderTimeline(data) {
+      const metas = (data.meta && Array.isArray(data.meta.versions)) ? data.meta.versions : [];
+      const versions = Array.isArray(data.versions) ? data.versions : [];
+      const transitions = Array.isArray(data.transitions) ? data.transitions : [];
+      const n = Math.max(metas.length, versions.length);
+      if (n < 2) return;
+      const tl = document.getElementById('timeline');
+      tl.innerHTML = '';
+      // Anti-troncature silencieuse : si plus de versions existaient que celles
+      // effectivement analysées, on le signale (échantillonnage chronologique).
+      const total = data.meta && data.meta.total;
+      if (total && total > n) {
+        const note = document.createElement('div');
+        note.className = 'trans__empty';
+        note.style.marginBottom = '14px';
+        note.textContent = `Analyse d'un échantillon de ${n} versions sur ${total} (la première et la dernière sont toujours incluses).`;
+        tl.appendChild(note);
+      }
+      for (let i = 0; i < n; i++) {
+        const ver = versions.find(v => Number(v.num) === i + 1) || versions[i];
+        tl.appendChild(versionNodeEl(i, metas[i], ver, i === n - 1));
+        if (i < n - 1) {
+          const tr = transitions.find(t => Number(t.from) === i + 1 && Number(t.to) === i + 2) || transitions[i];
+          tl.appendChild(transitionEl(tr, i));
+        }
+      }
+      tl.hidden = false;
+    }
+
+    function anyChanges(data) {
+      return Array.isArray(data.transitions) && data.transitions.some(t => t && Array.isArray(t.changes) && t.changes.length);
     }
 
     function renderResult(data) {
@@ -307,70 +547,31 @@
         v.classList.add(verdictClass(data.verdict));
         vw.hidden = false;
       }
-
-      if (data.summary) {
-        document.getElementById('summary-text').textContent = data.summary;
+      if (data.overallSummary) {
+        document.getElementById('summary-text').textContent = data.overallSummary;
         document.getElementById('summary-card').hidden = false;
       }
-
-      const changes = Array.isArray(data.changes) ? data.changes : [];
-      const list = document.getElementById('changes-list');
-      if (changes.length) {
-        document.getElementById('changes-h').textContent =
-          changes.length + ' changement' + (changes.length > 1 ? 's' : '') + ' détecté' + (changes.length > 1 ? 's' : '');
-        changes.forEach(c => {
-          const sev = ['haute', 'moyenne', 'basse'].includes(c.severity) ? c.severity : 'moyenne';
-          const nat = ['ajout', 'suppression', 'modification'].includes(c.nature) ? c.nature : 'modification';
-          const card = document.createElement('div');
-          card.className = 'chg chg--' + sev;
-          const sevLabel = sev === 'haute' ? 'Priorité haute' : sev === 'basse' ? 'Priorité basse' : 'Priorité moyenne';
-          let ba = '';
-          if (c.before || c.after) {
-            ba = '<div class="chg__ba">'
-              + (c.before ? `<div class="chg__col chg__col--before"><div class="chg__col__lab">Avant</div>${esc(c.before)}</div>` : '')
-              + (c.after  ? `<div class="chg__col chg__col--after"><div class="chg__col__lab">Après</div>${esc(c.after)}</div>` : '')
-              + '</div>';
-          }
-          card.innerHTML =
-            `<div class="chg__top">
-               <span class="chg__nature chg__nature--${nat}">${nat}</span>
-               <span class="chg__heading">${esc(c.heading || 'Changement')}</span>
-               <span class="chg__sev">${sevLabel}</span>
-             </div>
-             ${ba}
-             ${c.impact ? `<div class="chg__impact"><b>Impact —</b> ${esc(c.impact)}</div>` : ''}`;
-          list.appendChild(card);
-        });
-        document.getElementById('changes-wrap').hidden = false;
-      }
-
+      renderTimeline(data);
       if (data.recommendation) {
         document.getElementById('reco-text').textContent = data.recommendation;
         document.getElementById('reco-card').hidden = false;
       }
-
-      // Aucun contenu exploitable renvoyé (les deux versions sont peut-être identiques).
-      if (!data.summary && !changes.length && !data.recommendation) {
-        showError('Aucune différence notable n\'a été détectée entre les deux versions.');
+      // Rien d'exploitable (toutes les versions identiques).
+      if (!data.overallSummary && !anyChanges(data) && !data.recommendation) {
+        showError('Aucune différence notable n\'a été détectée entre les versions sélectionnées.');
         resultEl.hidden = true;
       }
     }
 
-    const introEl   = document.getElementById('intro');
-    const analyzeBtn = document.getElementById('analyze-btn');
-    const cancelBtn  = document.getElementById('cancel-btn');
-
-    // La comparaison tourne en TÂCHE DE FOND côté serveur : on peut se balader dans
-    // le SaaS pendant ce temps (suivi en haut à gauche). Cette page surveille sa tâche
-    // et affiche le résultat dès qu'il est prêt ; au retour, elle le réaffiche.
+    // ── Tâche de fond (analyse IA) ─────────────────────────────────────────────
     let currentJobId = null;
     const jobLocation = 'compare.html' + location.search;
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
     function setAnalyzing(on) {
-      analyzeBtn.disabled = on;
+      analyzeBtn.disabled = on || selectedEntries().length < 2;
       analyzeBtn.textContent = on ? 'Analyse…' : 'Analyser';
-      cancelBtn.disabled = !on;      // « Annuler » n'a de sens que pendant la requête
+      cancelBtn.disabled = !on;
       loadingEl.hidden = !on;
     }
 
@@ -378,18 +579,17 @@
       currentJobId = null;
       setAnalyzing(false);
       if (job && job.result) {
-        if (job.result.meta) fillMeta(job.result.meta);
+        vpickEl.hidden = true;
+        docpickEl.hidden = true;
         introEl.hidden = true;
         renderResult(job.result);
       }
     }
 
-    // Suit une tâche de comparaison jusqu'à son terme (indépendant du widget, robuste
-    // même si la tâche se termine avant le premier rafraîchissement du widget).
     async function watchCompare(id) {
       currentJobId = id;
       for (;;) {
-        if (currentJobId !== id) return;   // annulée ou remplacée
+        if (currentJobId !== id) return;
         let job = null;
         try { job = await LiquidTasks.fetchResult(id); } catch { await sleep(1600); continue; }
         if (!job) { setAnalyzing(false); currentJobId = null; return; }
@@ -400,21 +600,18 @@
       }
     }
 
-    // « Analyser » : lance la comparaison IA en tâche de fond.
     async function analyze() {
-      if (currentJobId) return;      // déjà une analyse en cours
-      errorEl.hidden  = true;
+      if (currentJobId) return;
+      const entries = selectedEntries();
+      if (entries.length < 2) { showError('Sélectionnez au moins deux versions à comparer.'); return; }
+      errorEl.hidden = true;
       resultEl.hidden = true;
       setAnalyzing(true);
-
-      const body = {};
-      if (oldVid) body.oldVersionId = oldVid; else body.oldId = oldId;
-      if (newVid) body.newVersionId = newVid; else body.newId = newId;
-
       try {
         const { id } = await LiquidTasks.launch({
-          type: 'doc-compare', payload: body,
-          label: 'Comparaison de versions',
+          type: JOB_TYPE,
+          payload: { title: compareTitle, versions: entries },
+          label: 'Comparaison de ' + entries.length + ' versions',
           location: { url: jobLocation },
         });
         watchCompare(id);
@@ -424,19 +621,17 @@
       }
     }
 
-    // « Annuler » : interrompt la tâche en cours (sans quitter la page).
     function cancelAnalyze() {
       if (currentJobId) { LiquidTasks.cancel(currentJobId); currentJobId = null; }
       setAnalyzing(false);
       introEl.hidden = false;
     }
 
-    // Au chargement : reprend une comparaison de CES versions déjà lancée en fond.
     async function reconcileCompare() {
       if (!window.LiquidTasks) return;
       let jobs = [];
       try { jobs = await LiquidTasks.list(); } catch { return; }
-      const job = jobs.find(j => j.type === 'doc-compare' && j.location && j.location.url === jobLocation
+      const job = jobs.find(j => j.type === JOB_TYPE && j.location && j.location.url === jobLocation
         && (j.status === 'running' || j.status === 'done'));
       if (!job) return;
       if (job.status === 'running') { setAnalyzing(true); watchCompare(job.id); }
@@ -448,18 +643,28 @@
       if (!user) return;
       document.querySelector('.app').classList.add('ready');
 
-      if (!(oldId || oldVid) || !(newId || newVid)) {
+      await loadCandidates();
+
+      // Aucune version ciblée : on propose de choisir un document éditable.
+      if (!candidates.length) {
+        if (!docId && !(oldId || oldVid) && !(newId || newVid)) { await renderDocPicker(); return; }
         showError('Comparaison impossible : versions non spécifiées. Revenez aux dossiers ou à l\'éditeur et relancez la comparaison.');
         return;
       }
+      if (candidates.length < 2) {
+        showError(docId
+          ? 'Ce document n\'a qu\'une seule version. Validez d\'autres versions dans l\'éditeur (bouton « Valider la version ») pour retracer leur évolution, puis revenez ici.'
+          : 'Il faut au moins deux versions à comparer.');
+        return;
+      }
 
+      renderVPicker();
       analyzeBtn.addEventListener('click', analyze);
       cancelBtn.addEventListener('click', (e) => { e.preventDefault(); cancelAnalyze(); });
-      introEl.hidden = false;
+      updateIntro();
 
-      // Reprise d'une comparaison lancée en fond + clic « Voir le résultat » du widget.
       if (window.LiquidTasks) {
-        LiquidTasks.on('goto', (j) => { if (j && j.type === 'doc-compare' && j.location && j.location.url === jobLocation) reconcileCompare(); });
+        LiquidTasks.on('goto', (j) => { if (j && j.type === JOB_TYPE && j.location && j.location.url === jobLocation) reconcileCompare(); });
         reconcileCompare();
       }
     }

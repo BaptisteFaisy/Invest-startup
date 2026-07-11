@@ -4573,6 +4573,18 @@ const COND_SIMPLE = {
   const listEl   = document.getElementById('verpanel-list');
   const valBtn   = document.getElementById('verpanel-validate');
   const closeBtn = document.getElementById('verpanel-close');
+  const cmpAllBtn = document.getElementById('verpanel-compare-all');
+
+  // Le bouton « Comparer tout l'historique » ouvre l'outil de comparaison sur
+  // TOUTES les versions du document (frise chronologique). Actif seulement quand
+  // au moins une version a été validée (il faut ≥ 2 points : versions + actuelle).
+  function syncCompareAll(versionCount) {
+    if (!cmpAllBtn) return;
+    const ready = !!currentDocId && versionCount > 0;
+    cmpAllBtn.setAttribute('aria-disabled', ready ? 'false' : 'true');
+    if (ready) cmpAllBtn.href = 'compare.html?doc=' + currentDocId;
+    else cmpAllBtn.removeAttribute('href');
+  }
 
   function escV(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
   function fmtVDate(s) {
@@ -4602,6 +4614,7 @@ const COND_SIMPLE = {
   async function refresh() {
     if (!currentDocId) {
       listEl.innerHTML = '<p class="verpanel__empty">Document pas encore enregistré : validez une première version pour démarrer l\'historique.</p>';
+      syncCompareAll(0);
       return;
     }
     listEl.innerHTML = '<p class="verpanel__empty">Chargement…</p>';
@@ -4616,6 +4629,7 @@ const COND_SIMPLE = {
   }
 
   function renderList(versions) {
+    syncCompareAll(versions.length);
     if (!versions.length) {
       listEl.innerHTML = '<p class="verpanel__empty">Aucune version validée pour l\'instant. Validez une version pour figer l\'état du document (par exemple avant de l\'envoyer à un investisseur) ; vous pourrez ensuite la comparer aux évolutions ou la restaurer.</p>';
       return;

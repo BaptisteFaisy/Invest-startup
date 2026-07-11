@@ -4394,6 +4394,160 @@ Règles :
   return { ...result, meta };
 }
 
+// Comparaison de PLUSIEURS versions successives d'un même document de levée
+// (term sheet, pacte, BSA-AIR, SAFE…). Chaque entrée est soit un document
+// (docId), soit une version validée (versionId). On les ordonne CHRONOLOGIQUEMENT
+// (par défaut), on extrait le texte de chacune, puis on demande à l'IA :
+//   • toutes les modifications réelles à chaque étape (v1→v2, v2→v3, …) ;
+//   • QUI a probablement rédigé chaque version — déduit du SENS des changements
+//     (protections investisseur renforcées ⇒ côté investisseur ; assouplissements
+//     ou protections fondateur ⇒ côté fondateur ; rédaction/définitions ⇒ conseil) ;
+//   • les INTENTIONS derrière chaque lot de modifications, expliquées au fondateur.
+async function computeDocCompareMulti(userId, body, signal, thinking) {
+  async function resolveEntry(entry) {
+    const versionId = Number(entry?.versionId);
+    if (versionId) {
+      const v = await col('saas_doc_versions').findOne({ id: versionId, user_id: userId });
+      if (!v) return null;
+      const name = v.label || ('Version du ' + new Date(v.created_at).toLocaleDateString('fr-FR'));
+      return { doc: { kind: 'termsheet', html: v.html, name }, meta: { id: versionId, version: true, name, label: v.label || '', date: v.created_at, kind: 'version' } };
+    }
+    const docId = Number(entry?.docId);
+    if (!docId) return null;
+    const d = await col('saas_documents').findOne({ id: docId, user_id: userId });
+    if (!d) return null;
+    return { doc: d, meta: { id: docId, version: false, name: d.name, label: String(entry?.label || ''), date: d.updated_at || d.created_at, kind: d.kind || 'file' } };
+  }
+
+  const entries = Array.isArray(body?.versions) ? body.versions.slice(0, 40) : [];
+  if (entries.length < 2) { const e = new Error('Sélectionnez au moins deux versions à comparer.'); e.status = 400; throw e; }
+
+  let sides = (await Promise.all(entries.map(resolveEntry))).filter(Boolean);
+  // Dédoublonnage (une même version / un même document listé deux fois).
+  const seen = new Set();
+  sides = sides.filter(s => { const k = (s.meta.version ? 'v' : 'd') + s.meta.id; if (seen.has(k)) return false; seen.add(k); return true; });
+  if (sides.length < 2) { const e = new Error('Au moins deux des versions sélectionnées sont introuvables.'); e.status = 404; throw e; }
+
+  // Ordre chronologique (par défaut). Tri stable : à date égale, l'ordre d'entrée
+  // est préservé (Array.prototype.sort est stable).
+  sides.sort((a, b) => new Date(a.meta.date || 0) - new Date(b.meta.date || 0));
+
+  // Bornage : au-delà de MAX versions, échantillonnage chronologique en gardant
+  // toujours la toute première et la toute dernière (l'arc de négociation complet).
+  const MAX = 8;
+  const totalCount = sides.length;
+  if (sides.length > MAX) {
+    const step = (sides.length - 1) / (MAX - 1);
+    const picked = [sides[0]];
+    for (let i = 1; i < MAX - 1; i++) picked.push(sides[Math.round(i * step)]);
+    picked.push(sides[sides.length - 1]);
+    sides = [...new Set(picked)];
+  }
+
+  // Texte brut de chaque version (budget de caractères partagé entre les versions).
+  const texts = await Promise.all(sides.map(s => docPlainText(s.doc)));
+  const usable = sides.map((s, i) => ({ side: s, text: (texts[i] || '').trim() })).filter(x => x.text);
+  if (usable.length < 2) { const e = new Error('Impossible d\'extraire le texte d\'au moins deux versions (format non supporté — image, tableur — ou fichiers vides). La comparaison IA fonctionne pour les PDF, les Word et les documents éditables.'); e.status = 422; throw e; }
+
+  const perBudget = Math.max(2500, Math.floor(46000 / usable.length));
+  const title = String(body?.title || usable[usable.length - 1].side.meta.name || 'Document');
+  const metas = usable.map((x, i) => ({ ...x.side.meta, num: i + 1 }));
+
+  const cacheHash = aiHash('doc-compare-multi-' + (thinking ? 'max' : 'fast'), [title, ...usable.map(x => x.text.slice(0, perBudget))]);
+  const cached = await aiCacheGet(cacheHash);
+  if (cached) return { ...cached, meta: { title, versions: metas, total: totalCount }, cached: true };
+
+  const n = usable.length;
+  const versionsBlock = usable.map((x, i) => {
+    const m = x.side.meta;
+    const when = m.date ? new Date(m.date).toLocaleDateString('fr-FR') : 'date inconnue';
+    const lab = m.label ? ` — « ${m.label} »` : '';
+    return `═══ VERSION ${i + 1} (${when}${lab}) ═══\n${x.text.slice(0, perBudget)}`;
+  }).join('\n\n');
+
+  const system =
+`Tu es l'assistant juridique de « liquid + », un outil pour fondateurs de startup en levée de fonds.
+On te donne ${n} versions SUCCESSIVES d'UN MÊME document juridique de levée (term sheet, pacte d'associés, BSA-AIR, SAFE, contrat de cession…), classées de la PLUS ANCIENNE (VERSION 1) à la PLUS RÉCENTE (VERSION ${n}). Tu analyses l'évolution du document au fil de la négociation et tu l'expliques du point de vue du fondateur.
+
+Titre du document : « ${title} »
+
+${versionsBlock}
+
+Ta mission — trois volets :
+
+1) MODIFICATIONS À CHAQUE ÉTAPE. Pour chaque transition (VERSION 1 → VERSION 2, VERSION 2 → VERSION 3, …, soit ${n - 1} transitions), repère les changements RÉELS et concrets : clauses ajoutées / supprimées, montants, valorisations, pourcentages, dates, durées modifiés, formulations renforcées ou affaiblies, obligations ou protections nouvelles. Ignore les différences purement cosmétiques (mise en page, ponctuation) SAUF si elles changent le sens juridique.
+
+2) QUI A RÉDIGÉ CHAQUE VERSION. Déduis, du SENS des modifications, quelle partie est probablement à l'origine de chaque version (tu ne disposes pas des métadonnées d'auteur : c'est une INFÉRENCE motivée, pas une certitude). Repères juridiques usuels en levée de fonds :
+   • Vont dans le sens de l'INVESTISSEUR (probablement rédigé par le fonds ou son avocat) : préférence de liquidation introduite/augmentée (1x → x2, non-participating → participating), anti-dilution (full ratchet, weighted average), clauses de véto / matières réservées, sièges au board / contrôle, drag-along élargi, bad leaver durci, vesting rallongé, pool d'options placé en pre-money, valorisation revue à la baisse, déclarations & garanties étendues, non-concurrence, reporting renforcé, liquidation preference cumulative.
+   • Vont dans le sens du FONDATEUR (probablement rédigé par le fondateur ou son avocat) : préférence ramenée à 1x non-participating, plafonnement de la garantie de passif, valorisation revue à la hausse, carve-out sur le vesting (accélération single/double trigger), pool réduit ou basculé en post-money, véto assoupli, good leaver élargi, pro-rata limité.
+   • Rédaction purement technique (définitions, renvois, mise en cohérence, boilerplate) sans camp gagnant clair : probablement un CONSEIL / avocat.
+   Pour la VERSION 1, indique qui a vraisemblablement produit le document de départ (souvent le term sheet de l'investisseur, ou le brouillon du fondateur selon le ton). Choisis "author" parmi : 'Fondateur', 'Avocat du fondateur', 'Investisseur', 'Avocat de l'investisseur', 'Indéterminé'. Donne "authorConfidence" ('élevée' | 'moyenne' | 'faible') et "authorRationale" (1 phrase justifiant l'inférence à partir des changements observés).
+
+3) INTENTIONS. Pour chaque transition, explique en 2 à 4 phrases, dans un langage clair pour un fondateur non-juriste, le POURQUOI et les intentions derrière ce lot de modifications : ce que la partie cherche à obtenir ou à se protéger, et ce que cela implique concrètement pour le fondateur (contrôle, dilution, argent en cas de sortie, gouvernance, risques).
+
+Renvoie aussi :
+- "overallSummary" : 2 à 4 phrases retraçant l'arc global de la négociation, de la VERSION 1 à la VERSION ${n}.
+- "verdict" : l'effet NET pour le fondateur entre la première et la dernière version, une expression parmi 'Favorable au fondateur', 'Plutôt neutre', 'Vigilance requise', 'Défavorable au fondateur'.
+- "recommendation" : 1 à 3 phrases de conseil concret et actionnable pour le fondateur au vu de cette évolution.
+
+Règles de forme :
+- Pour chaque changement : "heading" (titre court, ≤ 8 mots), "nature" ('ajout' | 'suppression' | 'modification'), "before" (ce que disait la version précédente, court ; "" si ajout), "after" (ce que dit la nouvelle version, court ; "" si suppression), "impact" (1 phrase sur la conséquence concrète côté fondateur), "severity" ('haute' | 'moyenne' | 'basse').
+- Dans chaque transition, classe les changements du plus important au moins important pour le fondateur.
+- Si deux versions consécutives sont identiques ou quasi identiques, renvoie une transition avec "changes" vide et un "intent" qui le signale.`;
+
+  const response = await glmChat({
+    system,
+    messages: [{ role: 'user', content: `Analyse l'évolution de ce document sur ses ${n} versions : qui a rédigé chaque version, ce qui a changé à chaque étape et les intentions derrière.` }],
+    maxTokens: 16000, thinking: !!thinking, json: true,
+    jsonHint: 'Format : {"overallSummary":"...","verdict":"Vigilance requise","versions":[{"index":1,"author":"Investisseur","authorConfidence":"moyenne","authorRationale":"..."}],"transitions":[{"from":1,"to":2,"intent":"...","changes":[{"heading":"...","nature":"modification","before":"...","after":"...","impact":"...","severity":"moyenne"}]}],"recommendation":"..."}',
+    signal,
+  });
+  await recordClaudeUsage(userId, response);
+  const data = glmJson(response);
+
+  const natures     = new Set(['ajout', 'suppression', 'modification']);
+  const severities  = new Set(['haute', 'moyenne', 'basse']);
+  const confidences = new Set(['élevée', 'moyenne', 'faible']);
+
+  const rawVersions = Array.isArray(data.versions) ? data.versions : [];
+  const versionsOut = [];
+  for (let i = 0; i < n; i++) {
+    const rv = rawVersions.find(v => v && Number(v.index) === i + 1) || rawVersions[i] || {};
+    versionsOut.push({
+      num: i + 1,
+      author:           String(rv.author || '').slice(0, 60) || 'Indéterminé',
+      authorConfidence: confidences.has(rv.authorConfidence) ? rv.authorConfidence : 'faible',
+      authorRationale:  String(rv.authorRationale || '').slice(0, 400),
+    });
+  }
+
+  const rawTrans = Array.isArray(data.transitions) ? data.transitions : [];
+  const transitionsOut = [];
+  for (let i = 0; i < n - 1; i++) {
+    const rt = rawTrans.find(t => t && Number(t.from) === i + 1 && Number(t.to) === i + 2) || rawTrans[i] || {};
+    const changes = Array.isArray(rt.changes) ? rt.changes.filter(c => c && (c.heading || c.impact)).slice(0, 30).map(c => ({
+      heading:  String(c.heading || '').slice(0, 160),
+      nature:   natures.has(c.nature) ? c.nature : 'modification',
+      before:   String(c.before || '').slice(0, 600),
+      after:    String(c.after || '').slice(0, 600),
+      impact:   String(c.impact || '').slice(0, 600),
+      severity: severities.has(c.severity) ? c.severity : 'moyenne',
+    })) : [];
+    transitionsOut.push({ from: i + 1, to: i + 2, intent: String(rt.intent || '').slice(0, 800), changes });
+  }
+
+  const result = {
+    overallSummary: typeof data.overallSummary === 'string' ? data.overallSummary : (typeof data.summary === 'string' ? data.summary : ''),
+    verdict:        typeof data.verdict === 'string' ? data.verdict : '',
+    versions:       versionsOut,
+    transitions:    transitionsOut,
+    recommendation: typeof data.recommendation === 'string' ? data.recommendation : '',
+  };
+  const anyChange = transitionsOut.some(t => t.changes.length);
+  if (result.overallSummary || anyChange) await aiCacheSet(cacheHash, result);
+  return { ...result, meta: { title, versions: metas, total: totalCount } };
+}
+
 // ─── Exécuteurs par type de tâche ──────────────────────────────────────────────
 const JOB_RUNNERS = {
   // Analyse « choses à faire » d'un document (depuis la liste des dossiers).
@@ -4435,6 +4589,20 @@ const JOB_RUNNERS = {
     job.result = result;
     const n = (result.changes || []).length;
     jobStep(job, 'compare', 'done', n ? `${n} changement${n > 1 ? 's' : ''}` : 'Aucun changement notable');
+    jobProgress(job, 100);
+  },
+
+  // Comparaison IA de PLUSIEURS versions (frise chronologique + auteurs + intentions).
+  async 'doc-compare-multi'(job) {
+    job.indeterminate = true;
+    jobStep(job, 'compare', 'progress', 'Comparaison des versions…');
+    jobProgress(job, 12);
+    const result = await computeDocCompareMulti(job.userId, job.payload || {}, job._abort.signal, job.max);
+    jobBailIfCancelled(job);
+    job.result = result;
+    const nv = (result.meta && Array.isArray(result.meta.versions)) ? result.meta.versions.length : 0;
+    const nc = (result.transitions || []).reduce((s, t) => s + ((t.changes && t.changes.length) || 0), 0);
+    jobStep(job, 'compare', 'done', nc ? `${nv} versions · ${nc} changement${nc > 1 ? 's' : ''}` : `${nv} versions comparées`);
     jobProgress(job, 100);
   },
 
