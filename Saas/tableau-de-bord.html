@@ -2924,6 +2924,12 @@
     // Parcours « Levée classique » → ouvre la page d'étape ; parcours
     // « BSA-AIR » → défile jusqu'à la carte de la phase correspondante.
     const navStepsEl = document.getElementById('nav-steps');
+    // Instantané des étapes calculées, partagé avec les pages outils : leur menu
+    // gauche (drawer-steps.js) le lit pour afficher les mêmes étapes et le même
+    // avancement, sans refaire les calculs. Réécrit à chaque rendu.
+    function persistNavStepsSnapshot(type, steps) {
+      try { localStorage.setItem('liquid_nav_steps', JSON.stringify({ raiseType: type, steps })); } catch {}
+    }
     function renderDrawerSteps() {
       if (!navStepsEl) return;
       const sep = document.getElementById('nav-steps-sep');
@@ -2943,7 +2949,8 @@
       if (sep) sep.hidden = true;
       if (title) title.hidden = !show;
       navStepsEl.innerHTML = '';
-      if (!show) return;
+      if (!show) { persistNavStepsSnapshot(type, []); return; }
+      const snap = [];
 
       const stats = phases.map(phaseStatus);
       const currentIdx = stats.findIndex(s => !s.complete);
@@ -2966,6 +2973,7 @@
           openBsaStepCard('bsa-profile');
           if (navDrawer) navDrawer.close();
         });
+        snap.push({ key: 'bsa-profile', label: 'Ma levée', num: 0, done: false, current: false, soon: false, pct });
         navStepsEl.appendChild(btn);
       }
 
@@ -3000,8 +3008,10 @@
           else openBsaStepCard(f.key);
           if (navDrawer) navDrawer.close();
         });
+        snap.push({ key: f.key, label: friseLabel(f), num, done, current: isCurrent, soon: isSoon, pct: isSoon ? null : pct });
         navStepsEl.appendChild(btn);
       });
+      persistNavStepsSnapshot(type, snap);
     }
 
     function renderFrise(track, phases) {

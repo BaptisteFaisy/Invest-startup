@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=6" />
   <link rel="stylesheet" href="editor.css?v=7" />
-  <link rel="stylesheet" href="drawer-menu.css?v=3" />
+  <link rel="stylesheet" href="drawer-menu.css?v=4" />
   <style>
     [hidden] { display: none !important; }
     .app { height: auto; overflow: visible; display: block; }
@@ -27,13 +27,13 @@
     .topbar .btn--ghost:hover { color: #fff !important; border-color: rgba(255,255,255,0.65) !important; }
 
     /* Retour en arrière : le chevron reste visible sans bandeau au défilement. */
-    .page-back-row { height: 48px; }
+    .page-back-row { height: 24px; }
     .page-back { position: fixed; top: 68px; left: max(12px, calc(50% - 606px)); z-index: 15; width: 32px; height: 32px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
     .page-back:hover { opacity: 0.68; transform: translateX(-1px); }
     .page-back:focus-visible { outline: none; opacity: 1; }
     .page-back svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
 
-    .dil { max-width: 1180px; margin: 0 auto; padding: 34px 24px 90px; }
+    .dil { max-width: 1180px; margin: 0 auto; padding: 24px 24px 90px; }
     .dil__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
     .dil__title { font-size: 30px; letter-spacing: -0.03em; color: #fff; margin-top: 6px; }
     .dil__sub { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 8px; line-height: 1.6; max-width: 720px; }
@@ -236,6 +236,7 @@
   <script src="auth.js?v=3"></script>
   <script src="tasks.js?v=2" defer></script>
   <script src="drawer-menu.js?v=2" defer></script>
+  <script src="drawer-steps.js?v=1" defer></script>
 </head>
 <body>
   <div class="app">
@@ -257,16 +258,10 @@
     <!-- Menu hamburger gauche : navigation -->
     <div class="drawer-backdrop" id="nav-backdrop" data-drawer-close></div>
     <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Étapes de la levée">
-      <div class="drawer__head">
-        <span class="drawer__title">Étapes de la levée</span>
-      </div>
+      <div class="drawer__head"></div>
       <nav class="drawer__body">
-        <a class="drawer__link" href="marche.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Marché<span class="drawer__soon-tag">Bientôt</span></a>
-        <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
-        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/></svg>Tâches</a>
-        <a class="drawer__link" href="valorisation.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Valorisation</a>
-        <a class="drawer__link" href="dilution.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
-        <a class="drawer__link" href="exit.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Exit</a>
+        <div class="drawer__section-title">Étapes de la levée</div>
+        <div id="nav-steps"><p class="drawer__steps-loading">Chargement des étapes…</p></div>
       </nav>
       <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
     </aside>
@@ -274,9 +269,7 @@
     <!-- Menu hamburger droite : compte & actions -->
     <div class="drawer-backdrop" id="actions-backdrop" data-drawer-close></div>
     <aside class="drawer drawer--right" id="actions-drawer" role="dialog" aria-modal="true" aria-label="Outils">
-      <div class="drawer__head">
-        <span class="drawer__title">Outils</span>
-      </div>
+      <div class="drawer__head"></div>
       <nav class="drawer__body">
         <div class="drawer__section-title">Outils</div>
         <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Éditeur</a>

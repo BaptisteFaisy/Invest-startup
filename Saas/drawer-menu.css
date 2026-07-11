@@ -21,7 +21,9 @@
 .drawer__resize:hover::after, .drawer__resize.is-drag::after { background:rgba(255,255,255,0.22); }
 .drawer--left .drawer__resize { right:-5px; }
 .drawer--right .drawer__resize { left:-5px; }
-.drawer__head { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:16px 18px; border-bottom:1px solid rgba(255,255,255,0.08); }
+/* Le titre du tiroir vit désormais dans le corps (.drawer__section-title) : la
+   tête ne sert plus que d'entretoise pour garder le corps sous la barre du haut. */
+.drawer__head { box-sizing:border-box; min-height:56px; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:16px 18px; border-bottom:1px solid rgba(255,255,255,0.08); }
 /* Le drawer gauche s'ouvre par-dessus le hamburger qui l'a déclenché (même z-index élevé
    pour rester cliquable) : on décale son titre pour ne plus passer dessous. */
 .drawer--left .drawer__head { padding-left:66px; }
@@ -42,3 +44,17 @@
 .drawer__section-title { font-family:'Archivo',sans-serif; font-size:12px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; color:#fff; padding:6px 12px 6px; }
 .drawer__soon-tag { margin-left:auto; flex:none; font-family:'Archivo',sans-serif; font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#a5b4fc; background:rgba(99,102,241,0.20); padding:2px 7px; border-radius:99px; }
 .drawer__unread-dot { margin-left:auto; flex:none; width:8px; height:8px; border-radius:50%; background:#ef4444; box-shadow:0 0 0 2px rgba(239,68,68,0.25); }
+
+/* ═══ Étapes de la levée (tiroir gauche des pages outils), reprises du tableau de bord ═══ */
+.drawer__link--step { flex-direction:column; align-items:stretch; gap:9px; }
+.drawer__step-row { display:flex; align-items:center; gap:12px; }
+.drawer__step-num { flex:none; width:22px; height:22px; display:grid; place-items:center; border-radius:6px; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.72); font-family:'Archivo',sans-serif; font-weight:800; font-size:11px; }
+.drawer__step-num svg { width:14px; height:14px; opacity:1; }
+/* Barre d'avancement sous chaque étape : plus elle est verte, plus l'étape est aboutie. */
+.drawer__step-bar { height:4px; margin-left:34px; border-radius:99px; background:rgba(255,255,255,0.09); overflow:hidden; }
+.drawer__step-bar > span { display:block; height:100%; width:0; border-radius:99px; background:linear-gradient(90deg,#10b981,#34d399); transition:width .45s ease; }
+.drawer__link--step.is-done .drawer__step-num { background:rgba(16,185,129,0.20); color:#34d399; }
+.drawer__link--step.is-current { background:rgba(99,102,241,0.13); color:#fff; }
+.drawer__link--step.is-current .drawer__step-num { background:rgba(99,102,241,0.30); color:#a5b4fc; }
+.drawer__steps-loading, .drawer__steps-empty { margin:0; padding:10px 12px; color:rgba(255,255,255,0.56); font-family:'Libre Franklin',sans-serif; font-size:13px; line-height:1.5; }
+.drawer__steps-empty a { color:#a5b4fc; }
