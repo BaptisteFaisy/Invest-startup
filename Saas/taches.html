@@ -81,6 +81,31 @@
     .tsk__loading { color: rgba(255,255,255,0.6); font-size: 14px; padding: 18px 4px; }
     .tsk__err { font-size: 14px; color: #f87171; background: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.25); border-radius: 12px; padding: 14px 16px; margin-top: 22px; line-height: 1.55; }
     .tsk__foot { margin-top: 30px; }
+
+    /* Journal d'activité (timeline de toutes les actions du compte) */
+    .tsk__activity { margin-top: 46px; padding-top: 26px; border-top: 1px solid rgba(255,255,255,0.08); }
+    .tsk__activity-sub { color: rgba(255,255,255,0.55); font-size: 13.5px; line-height: 1.5; margin: -4px 0 18px; }
+    .act-day { margin-top: 20px; }
+    .act-day:first-child { margin-top: 0; }
+    .act-day__label { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 10px; }
+    .act-row { display: flex; align-items: flex-start; gap: 12px; padding: 7px 0; position: relative; }
+    .act-row__dot { flex: none; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; margin-top: 1px; }
+    .act-row__dot svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .act-row__body { flex: 1; min-width: 0; }
+    .act-row__action { font-size: 13.5px; color: rgba(255,255,255,0.9); line-height: 1.4; }
+    .act-row__label { color: #fff; font-weight: 600; }
+    .act-row__time { font-size: 12px; color: rgba(255,255,255,0.42); margin-top: 1px; }
+    .act--document { background: rgba(59,130,246,0.14); color: #60a5fa; }
+    .act--version  { background: rgba(139,92,246,0.14); color: #a78bfa; }
+    .act--folder   { background: rgba(245,158,11,0.14); color: #fbbf24; }
+    .act--task     { background: rgba(22,163,74,0.16); color: #4ade80; }
+    .act--investor { background: rgba(236,72,153,0.14); color: #f472b6; }
+    .act--dilution, .act--valuation, .act--exit { background: rgba(20,184,166,0.14); color: #2dd4bf; }
+    .act--compare  { background: rgba(99,102,241,0.16); color: #818cf8; }
+    .act--profile  { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); }
+    .act-more { margin-top: 16px; }
+    .act-more__btn { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 9px; padding: 8px 16px; cursor: pointer; }
+    .act-more__btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
   </style>
   <script src="auth.js?v=3"></script>
   <script src="tasks.js?v=2" defer></script>
@@ -129,7 +154,7 @@
         <a class="drawer__link" href="exit.html" target="_blank" rel="noopener" title="Simulateur d'exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Exit</a>
         <a class="drawer__link" href="documents.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>Documents</a>
         <a class="drawer__link" href="data-room.html" target="_blank" rel="noopener" title="Data room"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/></svg>Data room</a>
-        <a class="drawer__link" href="investisseurs.html" target="_blank" rel="noopener" title="Pipeline investisseurs"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>Investisseurs</a>
+        <a class="drawer__link" href="tableau-de-bord.html?raise=classic&step=confidentialite" title="Pipeline investisseurs"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>Investisseurs</a>
         <div class="drawer__sep"></div>
         <a class="drawer__link" href="compte.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>Mon compte</a>
         <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Écrire au fondateur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
@@ -179,6 +204,17 @@
           <div class="tsk__section-h">Terminées <span class="tsk__count" id="done-count">0</span></div>
           <div id="done-list"></div>
           <div class="tsk__empty" id="done-empty" hidden>Aucune tâche terminée pour l'instant.</div>
+        </div>
+      </div>
+
+      <div class="tsk__section tsk__activity" id="activity-section" hidden>
+        <div class="tsk__section-h">Historique de votre activité <span class="tsk__count" id="activity-count">0</span></div>
+        <p class="tsk__activity-sub">Toutes vos actions depuis la création de votre compte : documents, versions, dossiers, investisseurs, simulations, comparaisons et tâches.</p>
+        <div class="tsk__loading" id="activity-loading">Chargement de l'historique…</div>
+        <div id="activity-list"></div>
+        <div class="tsk__empty" id="activity-empty" hidden>Aucune activité pour l'instant. Vos actions dans Liquid+ apparaîtront ici.</div>
+        <div class="act-more" id="activity-more" hidden>
+          <button type="button" class="act-more__btn" id="activity-more-btn">Afficher plus</button>
         </div>
       </div>
 
@@ -391,12 +427,128 @@
       }
     }
 
+    // ─── Journal d'activité ────────────────────────────────────────────────
+    const ACT_ICONS = {
+      document: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/>',
+      version:  '<path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/>',
+      folder:   '<path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/>',
+      task:     '<path d="M20 6 9 17l-5-5"/>',
+      investor: '<circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+      dilution: '<circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/>',
+      valuation:'<path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+      exit:     '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/>',
+      compare:  '<path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/>',
+      profile:  '<circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/>',
+    };
+
+    function actText(ev) {
+      const l = ev.label ? ' « ' + esc(ev.label) + ' »' : '';
+      switch (ev.type + '/' + ev.action) {
+        case 'document/created': return 'Document créé' + (l ? ' :' + l : '');
+        case 'document/updated': return 'Document modifié' + (l ? ' :' + l : '');
+        case 'version/created':  return 'Version enregistrée' + (l ? ' :' + l : '');
+        case 'folder/created':   return 'Dossier créé' + (l ? ' :' + l : '');
+        case 'task/created':     return 'Tâche ajoutée' + (l ? ' :' + l : '');
+        case 'task/done':        return 'Tâche terminée' + (l ? ' :' + l : '');
+        case 'investor/created': return 'Investisseur ajouté' + (l ? ' :' + l : '');
+        case 'investor/updated': return 'Investisseur mis à jour' + (l ? ' :' + l : '');
+        case 'dilution/saved':   return 'Simulation de dilution enregistrée' + (l ? ' :' + l : '');
+        case 'valuation/saved':  return 'Estimation de valorisation enregistrée' + (l ? ' :' + l : '');
+        case 'exit/saved':       return "Simulation d'exit enregistrée" + (l ? ' :' + l : '');
+        case 'compare/versions': return 'Comparaison de versions' + (l ? ' :' + l : '');
+        case 'compare/investors':return "Comparaison d'investisseurs" + (l ? ' :' + l : '');
+        case 'profile/updated':  return 'Profil de levée mis à jour';
+        default:                 return 'Action' + l;
+      }
+    }
+
+    function dayKey(d) { return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate(); }
+    function dayLabel(d) {
+      const now = new Date();
+      const today = dayKey(now);
+      const yest = new Date(now); yest.setDate(now.getDate() - 1);
+      if (dayKey(d) === today) return "Aujourd'hui";
+      if (dayKey(d) === dayKey(yest)) return 'Hier';
+      return d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: d.getFullYear() === now.getFullYear() ? undefined : 'numeric' });
+    }
+    function timeLabel(d) { return d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }); }
+
+    let activity = [];
+    let activityShown = 0;
+    const ACT_PAGE = 40;
+
+    function renderActivity() {
+      const listEl = document.getElementById('activity-list');
+      listEl.innerHTML = '';
+      const slice = activity.slice(0, activityShown);
+      let lastDay = null;
+      let dayEl = null;
+      slice.forEach(ev => {
+        const d = new Date(ev.at);
+        const key = dayKey(d);
+        if (key !== lastDay) {
+          lastDay = key;
+          dayEl = document.createElement('div');
+          dayEl.className = 'act-day';
+          const lab = document.createElement('div');
+          lab.className = 'act-day__label';
+          lab.textContent = dayLabel(d);
+          dayEl.appendChild(lab);
+          listEl.appendChild(dayEl);
+        }
+        const row = document.createElement('div');
+        row.className = 'act-row';
+        const dot = document.createElement('div');
+        dot.className = 'act-row__dot act--' + ev.type;
+        dot.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + (ACT_ICONS[ev.type] || ACT_ICONS.profile) + '</svg>';
+        const body = document.createElement('div');
+        body.className = 'act-row__body';
+        const action = document.createElement('div');
+        action.className = 'act-row__action';
+        action.innerHTML = actText(ev);
+        const time = document.createElement('div');
+        time.className = 'act-row__time';
+        time.textContent = timeLabel(d);
+        body.appendChild(action);
+        body.appendChild(time);
+        row.appendChild(dot);
+        row.appendChild(body);
+        dayEl.appendChild(row);
+      });
+      document.getElementById('activity-more').hidden = activityShown >= activity.length;
+    }
+
+    async function loadActivity() {
+      const sectionEl = document.getElementById('activity-section');
+      const loadingEl = document.getElementById('activity-loading');
+      const emptyEl   = document.getElementById('activity-empty');
+      sectionEl.hidden = false;
+      try {
+        const data = await api('/api/saas/activity');
+        activity = data.activity || [];
+        loadingEl.hidden = true;
+        document.getElementById('activity-count').textContent = String(activity.length);
+        if (!activity.length) { emptyEl.hidden = false; return; }
+        activityShown = Math.min(ACT_PAGE, activity.length);
+        renderActivity();
+      } catch (err) {
+        loadingEl.hidden = true;
+        emptyEl.hidden = false;
+        emptyEl.textContent = "Impossible de charger l'historique pour le moment.";
+      }
+    }
+
     async function init() {
       const user = await requireAuth();
       if (!user) return;
       document.querySelector('.app').classList.add('ready');
       document.getElementById('add-form').addEventListener('submit', addTask);
+      document.getElementById('activity-more-btn').addEventListener('click', () => {
+        activityShown = Math.min(activityShown + ACT_PAGE, activity.length);
+        renderActivity();
+      });
       loadTasks();
+      loadActivity();
     }
 
     init();

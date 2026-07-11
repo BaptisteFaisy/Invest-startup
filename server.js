@@ -2935,6 +2935,76 @@ app.delete('/api/saas/tasks/:id', requireAuth, async (req, res) => {
   res.json({ success: true });
 });
 
+// ─── Journal d'activité ───────────────────────────────────────────────────────
+// Historique unifié de TOUTES les actions du fondateur (pas seulement les
+// documents) depuis la création de son compte. Il est reconstruit À LA LECTURE à
+// partir des horodatages déjà présents dans chaque collection : aucune
+// journalisation dédiée n'est nécessaire, et l'historique est donc rétroactif —
+// il couvre tout ce qui existe encore, quelle que soit la date de l'action.
+const ACTIVITY_MAX = 250;
+
+// Certaines collections horodatent en millisecondes (savedAt), d'autres en chaîne
+// ISO. On normalise tout en ISO ; les valeurs illisibles sont ignorées.
+function activityIso(value) {
+  if (value == null) return null;
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+app.get('/api/saas/activity', requireAuth, async (req, res) => {
+  const uid = req.user.id;
+  const events = [];
+  const push = (at, type, action, label) => {
+    const iso = activityIso(at);
+    if (iso) events.push({ at: iso, type, action, label: label ? String(label).slice(0, 160) : '' });
+  };
+  // Deux horodatages sont « distincts » seulement s'ils sont espacés de plus d'une
+  // minute : sinon la modification enregistrée à la création n'est qu'un doublon.
+  const isDistinctUpdate = (created, updated) => {
+    if (!updated || updated === created) return false;
+    const c = new Date(created).getTime(), u = new Date(updated).getTime();
+    return isNaN(c) || isNaN(u) || (u - c) > 60000;
+  };
+
+  const [docs, versions, folders, tasks, investors, dilutions, valuations, exits, compares, profile] = await Promise.all([
+    col('saas_documents').find({ user_id: uid }, { projection: { name: 1, created_at: 1, updated_at: 1 } }).toArray(),
+    col('saas_doc_versions').find({ user_id: uid }, { projection: { label: 1, created_at: 1 } }).toArray(),
+    col('saas_folders').find({ user_id: uid }, { projection: { name: 1, key: 1, created_at: 1 } }).toArray(),
+    col('saas_tasks').find({ user_id: uid }, { projection: { title: 1, created_at: 1, completed_at: 1, done: 1 } }).toArray(),
+    col('saas_investors').find({ user_id: uid }, { projection: { name: 1, created_at: 1, updated_at: 1 } }).toArray(),
+    col('saas_dilution_simulations').find({ user_id: uid }, { projection: { name: 1, savedAt: 1, created_at: 1 } }).toArray(),
+    col('saas_valuation_estimations').find({ user_id: uid }, { projection: { name: 1, savedAt: 1, created_at: 1 } }).toArray(),
+    col('saas_exit_simulations').find({ user_id: uid }, { projection: { name: 1, savedAt: 1, created_at: 1 } }).toArray(),
+    col('saas_compare_history').find({ user_id: uid }, { projection: { title: 1, mode: 1, created_at: 1 } }).toArray(),
+    col('saas_fundraising_profiles').findOne({ user_id: uid }, { projection: { updated_at: 1, created_at: 1 } }),
+  ]);
+
+  docs.forEach(d => {
+    push(d.created_at, 'document', 'created', d.name);
+    if (isDistinctUpdate(d.created_at, d.updated_at)) push(d.updated_at, 'document', 'updated', d.name);
+  });
+  versions.forEach(v => push(v.created_at, 'version', 'created', v.label));
+  // Les dossiers « système » (étapes de la levée) sont créés automatiquement, pas
+  // par le fondateur : on ne garde que les dossiers qu'il a lui-même ajoutés.
+  folders.filter(f => !f.key).forEach(f => push(f.created_at, 'folder', 'created', f.name));
+  tasks.forEach(t => {
+    push(t.created_at, 'task', 'created', t.title);
+    if (t.done && t.completed_at) push(t.completed_at, 'task', 'done', t.title);
+  });
+  investors.forEach(i => {
+    push(i.created_at, 'investor', 'created', i.name);
+    if (isDistinctUpdate(i.created_at, i.updated_at)) push(i.updated_at, 'investor', 'updated', i.name);
+  });
+  dilutions.forEach(s => push(s.savedAt || s.created_at, 'dilution', 'saved', s.name));
+  valuations.forEach(s => push(s.savedAt || s.created_at, 'valuation', 'saved', s.name));
+  exits.forEach(s => push(s.savedAt || s.created_at, 'exit', 'saved', s.name));
+  compares.forEach(c => push(c.created_at, 'compare', c.mode === 'investors' ? 'investors' : 'versions', c.title));
+  if (profile) push(profile.updated_at || profile.created_at, 'profile', 'updated', null);
+
+  events.sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
+  res.json({ activity: events.slice(0, ACTIVITY_MAX) });
+});
+
 // ─── Pipeline investisseurs (suivi manuel des investisseurs par le fondateur) ─
 const INVESTOR_STAGES = ['a_contacter', 'contacte', 'interesse', 'due_diligence', 'negociation', 'engage', 'decline'];
 
