@@ -326,7 +326,7 @@
     .raise-soon__title { font-size: 22px; letter-spacing: -0.02em; margin: 14px 0 8px; }
     .raise-soon__text { color: #fff; font-size: 15px; max-width: 540px; margin: 0 auto 18px; line-height: 1.6; }
 
-    /* ═══ Étape « Investisseurs » : onglets Trouver / Pipeline (porté depuis investisseurs.html) ═══ */
+    /* ═══ Étape « Investisseurs » : onglets Trouver / Pipeline ═══ */
     .ip-root { display: block; }
     .ip-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--line); margin: 0 0 4px; }
     .ip-tab { padding: 11px 20px; font-family: 'Archivo', sans-serif; font-size: 13.5px; font-weight: 700; color: rgba(255,255,255,.62); cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; }
@@ -2787,7 +2787,7 @@
         container.appendChild(phaseCard(selected, idx, { title: 'Documents', icon: 'DOC', hideStep: true, documentActions: true, noAnchor: true }));
       }
       if (selected.key === 'confidentialite') {
-        // Étape « Investisseurs » : onglets Trouver / Pipeline (ex-investisseurs.html).
+        // Étape « Investisseurs » : onglets Trouver / Pipeline.
         container.appendChild(investorSectionEl());
       } else if (CLASSIC_SOON_STEPS.has(selected.key)) {
         container.appendChild(stepSoonEl(selected));
@@ -2811,8 +2811,7 @@
     }
 
     /* ═══════════ Étape « Investisseurs » : Trouver + Pipeline ═══════════
-       Contenu porté depuis l'ancienne page investisseurs.html. Le corps de la
-       page d'étape étant reconstruit à chaque rendu, les données du pipeline
+       Le corps de la page d'étape étant reconstruit à chaque rendu, les données du pipeline
        sont mises en cache au niveau du module et rechargées une seule fois. */
     const INV_STAGES = [
       { key: 'a_contacter',    label: 'À contacter',    dot: '#9a978f' },
