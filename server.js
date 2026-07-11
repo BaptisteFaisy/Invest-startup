@@ -2645,6 +2645,21 @@ async function ensureUserFolders(userId) {
     })
     .toArray();
 
+  // Les anciennes request lists n'avaient qu'un document source et une
+  // checklist fusionnée. On les convertit au premier chargement vers le nouveau
+  // tableau, pour qu'un second import s'ajoute à la première checklist au lieu
+  // de la remplacer.
+  for (const folder of sys) {
+    const checklists = investorChecklistsForFolder(folder);
+    if ((!Array.isArray(folder.investor_checklists) || !folder.investor_checklists.length) && checklists.length) {
+      await col('saas_folders').updateOne(
+        { id: folder.id, user_id: userId },
+        { $set: { investor_checklists: checklists } },
+      );
+      folder.investor_checklists = checklists;
+    }
+  }
+
   const upToDate = sys.length === PHASES.length
     && PHASES.every(p => sys.some(f => f.key === p.key && f.seed_version === FOLDERS_SEED_VERSION));
   if (upToDate) return;
@@ -3164,6 +3179,28 @@ function investorChecklistItemsFromText(text) {
 
 const MAX_INVESTOR_CHECKLISTS = 20;
 
+// Compatibilité avec l'ancien modèle : avant les checklists multiples, une
+// étape ne conservait que le document source et la liste extraite. Cette entrée
+// synthétique permet de préserver cette première checklist quand une seconde
+// est ajoutée après la migration.
+function investorChecklistsForFolder(folder) {
+  const current = Array.isArray(folder?.investor_checklists) ? folder.investor_checklists : [];
+  if (current.length) return current;
+  if (folder?.checklist_origin !== 'investor' || folder.investor_checklist_document_id == null) return [];
+
+  const items = Array.isArray(folder.checklist)
+    ? folder.checklist.filter(item => !!checklistSlug(item))
+    : [];
+  return [{
+    id: 1,
+    name: '',
+    document_id: Number(folder.investor_checklist_document_id),
+    created_at: folder.checklist_updated_at || folder.created_at || '',
+    items,
+    item_slugs: items.map(checklistSlug),
+  }];
+}
+
 // Identifiant stable d'une checklist investisseur au sein d'un dossier.
 function nextInvestorChecklistId(list) {
   return (Array.isArray(list) ? list : [])
@@ -3214,7 +3251,7 @@ app.post('/api/saas/folders/:id/investor-checklist', requireAuth, saasUpload.sin
   if (!INVESTOR_CHECKLIST_FOLDER_KEYS.has(folder.key))
     return res.status(403).json({ error: 'Cette action est réservée aux étapes de due diligence.' });
 
-  const existing = Array.isArray(folder.investor_checklists) ? folder.investor_checklists : [];
+  const existing = investorChecklistsForFolder(folder);
   if (existing.length >= MAX_INVESTOR_CHECKLISTS)
     return res.status(409).json({ error: `Vous ne pouvez pas dépasser ${MAX_INVESTOR_CHECKLISTS} checklists sur une étape.` });
 
