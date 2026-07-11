@@ -326,6 +326,67 @@
     .raise-soon__title { font-size: 22px; letter-spacing: -0.02em; margin: 14px 0 8px; }
     .raise-soon__text { color: #fff; font-size: 15px; max-width: 540px; margin: 0 auto 18px; line-height: 1.6; }
 
+    /* ═══ Étape « Investisseurs » : onglets Trouver / Pipeline (porté depuis investisseurs.html) ═══ */
+    .ip-root { display: block; }
+    .ip-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--line); margin: 0 0 4px; }
+    .ip-tab { padding: 11px 20px; font-family: 'Archivo', sans-serif; font-size: 13.5px; font-weight: 700; color: #6b6b78; cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; }
+    .ip-tab:hover { color: #08090c; }
+    .ip-tab.is-active { color: #08090c; border-bottom-color: var(--blue); }
+    .ip-panel { display: none; }
+    .ip-panel.is-active { display: block; }
+
+    .ip-soon { background: var(--card); border: 1px dashed var(--line); border-radius: 16px; padding: 40px 34px; margin-top: 22px; text-align: center; }
+    .ip-soon__badge { display: inline-flex; align-items: center; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--blue); background: #eef4ff; padding: 4px 11px; border-radius: 99px; margin-bottom: 14px; }
+    .ip-soon__h { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; color: #08090c; margin-bottom: 10px; }
+    .ip-soon__p { font-size: 14.5px; line-height: 1.6; color: #6b6b78; max-width: 540px; margin: 0 auto; }
+
+    .ip-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 20px; }
+    .ip-stat { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+    .ip-stat__label { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6b6b78; }
+    .ip-stat__value { font-size: 20px; font-weight: 700; color: #08090c; margin-top: 6px; letter-spacing: -0.02em; }
+
+    .ip-form { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; margin-top: 18px; }
+    .ip-form__grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 10px; }
+    .ip-form__grid2 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .ip-form input, .ip-form select, .ip-form textarea { background: #fff; border: 1px solid rgba(8,9,12,0.18); border-radius: 10px; padding: 10px 12px; font: inherit; font-size: 13.5px; color: #08090c; width: 100%; box-sizing: border-box; }
+    .ip-form input:focus, .ip-form select:focus, .ip-form textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(59,130,246,0.25); }
+    .ip-form textarea { resize: vertical; min-height: 40px; grid-column: 1 / -1; }
+    .ip-form__foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; }
+    .ip-form__err { color: #dc2626; font-size: 13px; }
+    .ip-form__add { margin-left: auto; font-family: 'Archivo', sans-serif; font-size: 13.5px; font-weight: 600; padding: 10px 20px; border-radius: 10px; cursor: pointer; border: 1px solid transparent; background: var(--blue); color: #fff; }
+    .ip-form__add:hover { background: #2563eb; }
+
+    .ip-loading { color: #6b6b78; font-size: 14px; padding: 18px 4px; }
+    .ip-err { font-size: 14px; color: #991b1b; background: #fee2e2; border: 1px solid rgba(220,38,38,0.25); border-radius: 12px; padding: 14px 16px; margin-top: 18px; line-height: 1.55; }
+
+    .ip-board { display: flex; gap: 14px; margin-top: 22px; overflow-x: auto; padding-bottom: 12px; }
+    .ip-col { flex: 0 0 250px; background: #f7f6f3; border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; min-height: 120px; }
+    .ip-col.is-dragover { border-color: var(--blue); background: #eff6ff; }
+    .ip-col__head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .ip-col__dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+    .ip-col__title { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #08090c; flex: 1; }
+    .ip-col__count { background: rgba(8,9,12,0.08); color: #08090c; border-radius: 999px; font-size: 11px; padding: 2px 8px; }
+    .ip-col__total { font-size: 11.5px; color: #6b6b78; margin-bottom: 8px; }
+    .ip-col__empty { color: #9a978f; font-size: 12.5px; padding: 10px 2px; }
+    .ip-col__body { display: flex; flex-direction: column; gap: 8px; min-height: 40px; }
+
+    .ip-card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 11px 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); cursor: grab; }
+    .ip-card.is-dragging { opacity: 0.4; }
+    .ip-card__name { font-size: 13.5px; font-weight: 700; color: #08090c; word-break: break-word; }
+    .ip-card__firm { font-size: 12px; color: #6b6b78; margin-top: 1px; }
+    .ip-card__amount { display: inline-block; margin-top: 6px; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: rgba(22,163,74,0.12); color: #16a34a; }
+    .ip-card__notes { font-size: 12px; color: #6b6b78; margin-top: 6px; line-height: 1.4; white-space: pre-wrap; }
+    .ip-card__meta { margin-top: 6px; font-size: 11.5px; color: #9a978f; }
+    .ip-card__row { display: flex; align-items: center; gap: 6px; margin-top: 9px; }
+    .ip-card__stage-select { flex: 1; min-width: 0; font-size: 11.5px; padding: 6px 8px; border-radius: 8px; background: #f4f3f1; border: 1px solid #e7e5e1; color: #08090c; }
+    .ip-card__del { flex: none; width: 26px; height: 26px; display: grid; place-items: center; border: 0; background: transparent; color: #b0aca3; cursor: pointer; border-radius: 8px; }
+    .ip-card__del:hover { background: #fdeeee; color: #dc2626; }
+    .ip-card__del svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    @media (max-width: 720px) {
+      .ip-form__grid, .ip-form__grid2 { grid-template-columns: 1fr; }
+    }
+
     /* Parcours BSA-AIR : roadlist numérotée des documents par étape */
     .bsa-intro { color: #fff; font-size: 14.5px; line-height: 1.65; margin: 6px 0 18px; }
     .bsa-list { list-style: decimal; margin: 6px 0 2px; padding-left: 26px; }
@@ -787,11 +848,11 @@
       <nav class="drawer__body">
         <div id="nav-tools">
           <a class="drawer__link" href="marche.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Marché<span class="drawer__soon-tag">Bientôt</span></a>
-          <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
+          <a class="drawer__link" href="compare.html">Comparer</a>
           <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/></svg>Tâches</a>
           <a class="drawer__link" href="valorisation.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Valorisation</a>
           <a class="drawer__link" href="dilution.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
-          <a class="drawer__link" href="exit.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Exit</a>
+          <a class="drawer__link" href="exit.html" target="_blank" rel="noopener">Exit</a>
         </div>
         <div class="drawer__sep" id="nav-steps-sep" hidden></div>
         <div class="drawer__section-title" id="nav-steps-title" hidden>Étapes de la levée</div>
@@ -810,14 +871,14 @@
         <div class="drawer__section-title">Outils</div>
         <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Éditeur</a>
         <a class="drawer__link" href="marche.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Marché<span class="drawer__soon-tag">Bientôt</span></a>
-        <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
+        <a class="drawer__link" href="compare.html">Comparer</a>
         <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>Tâches</a>
         <a class="drawer__link" href="valorisation.html" target="_blank" rel="noopener" title="Estimateur de valorisation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Valorisation</a>
         <a class="drawer__link" href="dilution.html" target="_blank" rel="noopener" title="Simulation de dilution"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
-        <a class="drawer__link" href="exit.html" target="_blank" rel="noopener" title="Simulateur d'exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Exit</a>
+        <a class="drawer__link" href="exit.html" target="_blank" rel="noopener" title="Simulateur d'exit">Exit</a>
         <a class="drawer__link" href="documents.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>Documents</a>
         <a class="drawer__link" href="data-room.html" target="_blank" rel="noopener" title="Data room"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/></svg>Data room</a>
-        <a class="drawer__link" href="investisseurs.html" target="_blank" rel="noopener" title="Pipeline investisseurs"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>Investisseurs</a>
+        <a class="drawer__link" href="tableau-de-bord.html?raise=classic&step=confidentialite" title="Pipeline investisseurs"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>Investisseurs</a>
         <div class="drawer__sep"></div>
         <a class="drawer__link" href="compte.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>Mon compte</a>
         <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Écrire au fondateur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
@@ -1593,7 +1654,7 @@
       { label: 'Feedback', href: 'feedback.html', newTab: true, keywords: ['outil', 'feedback', 'contact', 'support', 'fondateur', 'message', 'aide', 'bug'] },
       { label: 'Documents', href: 'documents.html', newTab: true, keywords: ['outil', 'documents', 'fichiers', 'pieces'] },
       { label: 'Data room', href: 'data-room.html', newTab: true, keywords: ['outil', 'data room', 'dataroom', 'audit', 'due diligence'] },
-      { label: 'Investisseurs', href: 'investisseurs.html', newTab: true, keywords: ['outil', 'pipeline', 'crm', 'prospects', 'stade', 'suivi'] },
+      { label: 'Investisseurs', href: 'tableau-de-bord.html?raise=classic&step=confidentialite', keywords: ['page', 'pipeline', 'crm', 'prospects', 'stade', 'suivi'] },
     ];
 
     function searchDashboard(query) {
@@ -2727,7 +2788,10 @@
         // fichier lui-même, au lieu de s'arrêter sur le formulaire de profil.
         container.appendChild(phaseCard(selected, idx, { title: 'Documents', icon: 'DOC', hideStep: true, documentActions: true, noAnchor: true }));
       }
-      if (CLASSIC_SOON_STEPS.has(selected.key)) {
+      if (selected.key === 'confidentialite') {
+        // Étape « Investisseurs » : onglets Trouver / Pipeline (ex-investisseurs.html).
+        container.appendChild(investorSectionEl());
+      } else if (CLASSIC_SOON_STEPS.has(selected.key)) {
         container.appendChild(stepSoonEl(selected));
       } else if (idx >= 2 && idx <= 7) {
         container.appendChild(phaseCard(selected, idx, { title: 'Documents', icon: 'DOC', hideStep: true, documentActions: true }));
@@ -2746,6 +2810,308 @@
         <h2 class="raise-soon__title">${esc(friseLabel(f))}</h2>
         <p class="raise-soon__text">Le détail de cette étape est en cours de construction. Il sera bientôt disponible ici.</p>`;
       return el;
+    }
+
+    /* ═══════════ Étape « Investisseurs » : Trouver + Pipeline ═══════════
+       Contenu porté depuis l'ancienne page investisseurs.html. Le corps de la
+       page d'étape étant reconstruit à chaque rendu, les données du pipeline
+       sont mises en cache au niveau du module et rechargées une seule fois. */
+    const INV_STAGES = [
+      { key: 'a_contacter',    label: 'À contacter',    dot: '#9a978f' },
+      { key: 'contacte',       label: 'Contacté',       dot: '#3b82f6' },
+      { key: 'interesse',      label: 'Intéressé',      dot: '#8b5cf6' },
+      { key: 'due_diligence',  label: 'Due diligence',  dot: '#d97706' },
+      { key: 'negociation',    label: 'Négociation',    dot: '#f97316' },
+      { key: 'engage',         label: 'Engagé',         dot: '#16a34a' },
+      { key: 'decline',        label: 'Décliné',        dot: '#dc2626' },
+    ];
+    const invMoney = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+    function invFmtAmount(n) { return n == null ? null : invMoney.format(n); }
+
+    let invPipeline = [];
+    let invPipelineLoaded = false;
+    let invDraggedId = null;
+
+    async function invApi(path, opts) {
+      const r = await fetch(path, Object.assign({ credentials: 'include' }, opts || {}));
+      let data = {};
+      try { data = await r.json(); } catch {}
+      if (!r.ok) throw new Error(data.error || 'Une erreur est survenue.');
+      return data;
+    }
+
+    function invFillStageSelect(select, value) {
+      select.innerHTML = INV_STAGES.map(s => `<option value="${s.key}">${esc(s.label)}</option>`).join('');
+      select.value = value;
+    }
+
+    function investorSectionEl() {
+      const root = document.createElement('section');
+      root.className = 'ip-root';
+      root.id = 'phase-confidentialite'; // ancre de recherche du tableau de bord
+      root.innerHTML = `
+        <div class="ip-tabs">
+          <button type="button" class="ip-tab" data-tab="find">Trouver des investisseurs</button>
+          <button type="button" class="ip-tab is-active" data-tab="pipeline">Pipeline investisseurs</button>
+        </div>
+        <div class="ip-panel" data-panel="find">
+          <div class="ip-soon">
+            <span class="ip-soon__badge">Bientôt</span>
+            <div class="ip-soon__h">Cet outil arrive bientôt</div>
+            <p class="ip-soon__p">Nous y travaillons. Revenez un peu plus tard pour découvrir ici des investisseurs pertinents à contacter, directement dans votre espace.</p>
+          </div>
+        </div>
+        <div class="ip-panel is-active" data-panel="pipeline">
+          <div class="ip-summary" data-el="summary" hidden>
+            <div class="ip-stat"><div class="ip-stat__label">Investisseurs</div><div class="ip-stat__value" data-stat="count">0</div></div>
+            <div class="ip-stat"><div class="ip-stat__label">Engagés</div><div class="ip-stat__value" data-stat="engaged">0</div></div>
+            <div class="ip-stat"><div class="ip-stat__label">Montant engagé</div><div class="ip-stat__value" data-stat="engaged-amount">—</div></div>
+            <div class="ip-stat"><div class="ip-stat__label">Pipeline en discussion</div><div class="ip-stat__value" data-stat="pipeline-amount">—</div></div>
+          </div>
+          <form class="ip-form" data-el="form">
+            <div class="ip-form__grid">
+              <input data-in="name" type="text" placeholder="Nom de l'investisseur *" maxlength="200" autocomplete="off" required />
+              <input data-in="firm" type="text" placeholder="Fonds / structure" maxlength="200" autocomplete="off" />
+              <select data-in="stage" aria-label="Stade initial"></select>
+            </div>
+            <div class="ip-form__grid2">
+              <input data-in="email" type="email" placeholder="Email" maxlength="200" autocomplete="off" />
+              <input data-in="phone" type="text" placeholder="Téléphone" maxlength="60" autocomplete="off" />
+              <input data-in="amount" type="number" min="0" step="1000" placeholder="Ticket envisagé (€)" />
+            </div>
+            <div class="ip-form__grid2">
+              <textarea data-in="notes" placeholder="Notes (contexte, prochaine étape…)" maxlength="2000"></textarea>
+            </div>
+            <div class="ip-form__foot">
+              <div class="ip-form__err" data-el="form-err" hidden></div>
+              <button type="submit" class="ip-form__add">Ajouter l'investisseur</button>
+            </div>
+          </form>
+          <div class="ip-loading" data-el="loading">Chargement…</div>
+          <div class="ip-err" data-el="error" hidden></div>
+          <div class="ip-board" data-el="board" hidden></div>
+        </div>`;
+
+      // Onglets
+      root.querySelectorAll('.ip-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          root.querySelectorAll('.ip-tab').forEach(t => t.classList.remove('is-active'));
+          root.querySelectorAll('.ip-panel').forEach(p => p.classList.remove('is-active'));
+          tab.classList.add('is-active');
+          const panel = root.querySelector('.ip-panel[data-panel="' + tab.dataset.tab + '"]');
+          if (panel) panel.classList.add('is-active');
+        });
+      });
+
+      const summaryEl = root.querySelector('[data-el="summary"]');
+      const loadingEl = root.querySelector('[data-el="loading"]');
+      const errorEl   = root.querySelector('[data-el="error"]');
+      const boardEl   = root.querySelector('[data-el="board"]');
+      const formEl    = root.querySelector('[data-el="form"]');
+      const stageSelect = root.querySelector('[data-in="stage"]');
+      invFillStageSelect(stageSelect, 'a_contacter');
+
+      function invCard(inv) {
+        const el = document.createElement('div');
+        el.className = 'ip-card';
+        el.draggable = true;
+        el.dataset.id = inv.id;
+        el.addEventListener('dragstart', () => { invDraggedId = inv.id; el.classList.add('is-dragging'); });
+        el.addEventListener('dragend', () => { invDraggedId = null; el.classList.remove('is-dragging'); });
+
+        const name = document.createElement('div');
+        name.className = 'ip-card__name';
+        name.textContent = inv.name;
+        el.appendChild(name);
+
+        if (inv.firm) {
+          const firm = document.createElement('div');
+          firm.className = 'ip-card__firm';
+          firm.textContent = inv.firm;
+          el.appendChild(firm);
+        }
+        if (inv.amount) {
+          const amount = document.createElement('span');
+          amount.className = 'ip-card__amount';
+          amount.textContent = invFmtAmount(inv.amount);
+          el.appendChild(amount);
+        }
+        if (inv.email || inv.phone) {
+          const meta = document.createElement('div');
+          meta.className = 'ip-card__meta';
+          meta.textContent = [inv.email, inv.phone].filter(Boolean).join(' · ');
+          el.appendChild(meta);
+        }
+        if (inv.notes) {
+          const notes = document.createElement('div');
+          notes.className = 'ip-card__notes';
+          notes.textContent = inv.notes;
+          el.appendChild(notes);
+        }
+
+        const row = document.createElement('div');
+        row.className = 'ip-card__row';
+        const select = document.createElement('select');
+        select.className = 'ip-card__stage-select';
+        select.setAttribute('aria-label', 'Changer le stade de ' + inv.name);
+        invFillStageSelect(select, inv.stage);
+        select.addEventListener('change', () => moveStage(inv.id, select.value));
+        row.appendChild(select);
+
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'ip-card__del';
+        del.setAttribute('aria-label', 'Supprimer ' + inv.name);
+        del.title = 'Supprimer';
+        del.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1 -2 2H8a2 2 0 0 1 -2 -2L5 6"/></svg>';
+        del.addEventListener('click', () => deleteInvestor(inv.id));
+        row.appendChild(del);
+
+        el.appendChild(row);
+        return el;
+      }
+
+      function render() {
+        boardEl.innerHTML = '';
+        let totalEngagedAmount = 0;
+        let totalPipelineAmount = 0;
+        let engagedCount = 0;
+
+        INV_STAGES.forEach(stage => {
+          const items = invPipeline.filter(inv => inv.stage === stage.key);
+          const total = items.reduce((sum, inv) => sum + (inv.amount || 0), 0);
+          if (stage.key === 'engage') { totalEngagedAmount += total; engagedCount = items.length; }
+          if (stage.key !== 'decline') totalPipelineAmount += total;
+
+          const col = document.createElement('div');
+          col.className = 'ip-col';
+          col.dataset.stage = stage.key;
+          col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('is-dragover'); });
+          col.addEventListener('dragleave', () => col.classList.remove('is-dragover'));
+          col.addEventListener('drop', e => {
+            e.preventDefault();
+            col.classList.remove('is-dragover');
+            if (invDraggedId != null) moveStage(invDraggedId, stage.key);
+          });
+
+          const head = document.createElement('div');
+          head.className = 'ip-col__head';
+          head.innerHTML = `<span class="ip-col__dot" style="background:${stage.dot}"></span><span class="ip-col__title">${esc(stage.label)}</span><span class="ip-col__count">${items.length}</span>`;
+          col.appendChild(head);
+
+          if (total > 0) {
+            const totalEl = document.createElement('div');
+            totalEl.className = 'ip-col__total';
+            totalEl.textContent = invFmtAmount(total);
+            col.appendChild(totalEl);
+          }
+
+          const body = document.createElement('div');
+          body.className = 'ip-col__body';
+          if (!items.length) {
+            const empty = document.createElement('div');
+            empty.className = 'ip-col__empty';
+            empty.textContent = 'Aucun investisseur.';
+            body.appendChild(empty);
+          } else {
+            items.forEach(inv => body.appendChild(invCard(inv)));
+          }
+          col.appendChild(body);
+          boardEl.appendChild(col);
+        });
+
+        root.querySelector('[data-stat="count"]').textContent = String(invPipeline.length);
+        root.querySelector('[data-stat="engaged"]').textContent = String(engagedCount);
+        root.querySelector('[data-stat="engaged-amount"]').textContent = totalEngagedAmount ? invFmtAmount(totalEngagedAmount) : '—';
+        root.querySelector('[data-stat="pipeline-amount"]').textContent = totalPipelineAmount ? invFmtAmount(totalPipelineAmount) : '—';
+        summaryEl.hidden = false;
+      }
+
+      async function moveStage(id, stage) {
+        const inv = invPipeline.find(x => x.id === id);
+        if (!inv || inv.stage === stage) return;
+        const prevStage = inv.stage;
+        inv.stage = stage;
+        render();
+        try {
+          await invApi('/api/saas/investors/' + id, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ stage }),
+          });
+        } catch (err) {
+          inv.stage = prevStage;
+          render();
+        }
+      }
+
+      async function deleteInvestor(id) {
+        const idx = invPipeline.findIndex(x => x.id === id);
+        if (idx < 0) return;
+        if (!window.confirm('Supprimer cet investisseur du pipeline ?')) return;
+        const removed = invPipeline[idx];
+        invPipeline.splice(idx, 1);
+        render();
+        try {
+          await invApi('/api/saas/investors/' + id, { method: 'DELETE' });
+        } catch (err) {
+          invPipeline.splice(idx, 0, removed);
+          render();
+        }
+      }
+
+      formEl.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const val = sel => root.querySelector('[data-in="' + sel + '"]').value;
+        const errEl = root.querySelector('[data-el="form-err"]');
+        errEl.hidden = true;
+        const name = val('name').trim();
+        if (!name) return;
+        try {
+          const { investor } = await invApi('/api/saas/investors', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name, firm: val('firm').trim(), stage: val('stage'),
+              email: val('email').trim(), phone: val('phone').trim(),
+              amount: val('amount') ? Number(val('amount')) : null,
+              notes: val('notes').trim(),
+            }),
+          });
+          invPipeline.push(investor);
+          render();
+          ['name', 'firm', 'email', 'phone', 'amount', 'notes'].forEach(k => { root.querySelector('[data-in="' + k + '"]').value = ''; });
+          stageSelect.value = 'a_contacter';
+          root.querySelector('[data-in="name"]').focus();
+        } catch (err) {
+          errEl.hidden = false;
+          errEl.textContent = err.message || "Impossible d'ajouter l'investisseur.";
+        }
+      });
+
+      async function load() {
+        if (invPipelineLoaded) {
+          loadingEl.hidden = true;
+          boardEl.hidden = false;
+          render();
+          return;
+        }
+        loadingEl.hidden = false;
+        errorEl.hidden = true;
+        try {
+          const data = await invApi('/api/saas/investors');
+          invPipeline = data.investors || [];
+          invPipelineLoaded = true;
+          loadingEl.hidden = true;
+          boardEl.hidden = false;
+          render();
+        } catch (err) {
+          loadingEl.hidden = true;
+          errorEl.hidden = false;
+          errorEl.textContent = err.message || 'Impossible de charger les investisseurs.';
+        }
+      }
+      load();
+
+      return root;
     }
 
     function syncClassicActions(idx) {

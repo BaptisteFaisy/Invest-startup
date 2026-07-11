@@ -196,6 +196,10 @@
   });
 })();
 
+// Les outils Comparer et Exit sont volontairement affichés sans pictogramme.
+document.querySelectorAll('.drawer__link[href="compare.html"] > svg, .drawer__link[href="exit.html"] > svg')
+  .forEach(icon => icon.remove());
+
 // Recherche partagée : elle est ajoutée aux barres supérieures des pages outils.
 // Le tableau de bord conserve sa recherche dédiée, qui connaît également les
 // éléments de chaque étape et les modèles de documents.
