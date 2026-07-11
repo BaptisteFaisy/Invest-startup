@@ -18,6 +18,7 @@ const OpenAI           = require('openai');
 const CloudConvert     = require('cloudconvert');
 const mammoth          = require('mammoth');
 const pdfParse         = require('pdf-parse');
+const ExcelJS          = require('exceljs');
 const { google }       = require('googleapis');
 const { Dropbox }      = require('dropbox');
 const archiver         = require('archiver');
@@ -1693,9 +1694,43 @@ Règles :
   }
 });
 
+// Texte lisible d'une cellule Excel, quel que soit son type (texte enrichi,
+// lien hypertexte, formule, date, nombre…).
+function xlsxCellText(value) {
+  if (value == null) return '';
+  if (typeof value === 'string') return value.trim();
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (value instanceof Date) return value.toLocaleDateString('fr-FR');
+  if (Array.isArray(value.richText)) return value.richText.map(r => r.text || '').join('').trim();
+  if (typeof value.text === 'string') return value.text.trim();
+  if (value.result != null) return xlsxCellText(value.result);
+  return '';
+}
+
+// Aplati un classeur Excel (.xlsx) en texte, une ligne par ligne de tableur,
+// pour réutiliser le même parseur de checklist que les PDF/Word.
+async function xlsxToText(buf) {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(buf);
+  const lines = [];
+  workbook.eachSheet(sheet => {
+    sheet.eachRow(row => {
+      // On garde la cellule la plus longue de la ligne (la description), les
+      // colonnes voisines (numéro, statut…) n'apportent que du bruit.
+      let best = '';
+      row.eachCell({ includeEmpty: false }, cell => {
+        const text = xlsxCellText(cell.value);
+        if (text.length > best.length) best = text;
+      });
+      if (best) lines.push(best);
+    });
+  });
+  return lines.join('\n');
+}
+
 // ─── SaaS : remplissage automatique des champs depuis les documents importés ───
 // Extrait (et met en cache dans le document) le texte brut d'un document importé
-// (PDF via pdf-parse, Word via mammoth, TXT tel quel). Renvoie '' si inexploitable.
+// (PDF via pdf-parse, Word via mammoth, Excel via exceljs, TXT tel quel). Renvoie '' si inexploitable.
 async function extractImportedText(doc) {
   if (typeof doc.extracted_text === 'string') return doc.extracted_text;
 
@@ -1713,6 +1748,8 @@ async function extractImportedText(doc) {
       const sample = buf.slice(0, 300).toString('utf8');
       if (/<html|<!DOCTYPE/i.test(sample)) text = buf.toString('utf8').replace(/<[^>]+>/g, ' ');
       else text = (await mammoth.extractRawText({ buffer: buf })).value || '';
+    } else if (ext === '.xlsx') {
+      text = await xlsxToText(buf);
     } else if (ext === '.txt') {
       text = buf.toString('utf8');
     }
@@ -1783,14 +1820,14 @@ app.post('/api/saas/autofill', requireAuth, enforceDailyCap, async (req, res) =>
   for (const d of docs) {
     if (sources.length >= 8) break;
     const ext = path.extname(d.originalname || d.name || '').toLowerCase();
-    if (!['.pdf', '.docx', '.doc', '.txt'].includes(ext)) { unsupported.push(d.name); continue; }
+    if (!['.pdf', '.docx', '.doc', '.xlsx', '.txt'].includes(ext)) { unsupported.push(d.name); continue; }
     const text = await extractImportedText(d);
     if (text) sources.push({ name: d.name, text });
     else unsupported.push(d.name);
   }
 
   if (!sources.length)
-    return res.status(422).json({ error: 'Aucun texte exploitable dans vos documents importés : le remplissage automatique lit les PDF, Word et TXT.' });
+    return res.status(422).json({ error: 'Aucun texte exploitable dans vos documents importés : le remplissage automatique lit les PDF, Word, Excel et TXT.' });
 
   // Budget de contexte réparti entre les documents.
   const PER_DOC = Math.max(2500, Math.floor(36000 / sources.length));
@@ -3322,7 +3359,7 @@ function pruneInvestorItemsState(itemsState, allowedSlugs, allowedChecklistIds) 
 }
 
 app.post('/api/saas/folders/:id/investor-checklist', requireAuth, saasUpload.single('file'), async (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'Importez la checklist de l’investisseur au format PDF ou Word (max. 15 Mo).' });
+  if (!req.file) return res.status(400).json({ error: 'Importez la checklist de l’investisseur au format PDF, Word ou Excel (max. 15 Mo).' });
 
   const id = Number(req.params.id);
   const folder = await col('saas_folders').findOne({ id, user_id: req.user.id });
@@ -3335,8 +3372,8 @@ app.post('/api/saas/folders/:id/investor-checklist', requireAuth, saasUpload.sin
     return res.status(409).json({ error: `Vous ne pouvez pas dépasser ${MAX_INVESTOR_CHECKLISTS} checklists sur une étape.` });
 
   const sourceExt = path.extname(req.file.originalname || '').toLowerCase();
-  if (!['.pdf', '.doc', '.docx'].includes(sourceExt))
-    return res.status(422).json({ error: 'La checklist doit être un PDF ou un document Word lisible.' });
+  if (!['.pdf', '.doc', '.docx', '.xlsx'].includes(sourceExt))
+    return res.status(422).json({ error: 'La checklist doit être un PDF, un document Word ou un fichier Excel (.xlsx) lisible.' });
 
   const now = new Date().toISOString();
   const investorName = shortText(req.body?.investor_name, 120);
@@ -3354,7 +3391,7 @@ app.post('/api/saas/folders/:id/investor-checklist', requireAuth, saasUpload.sin
   const items = investorChecklistItemsFromText(extracted);
   if (!items.length) {
     await col('saas_documents').deleteOne({ id: doc.id, user_id: req.user.id });
-    return res.status(422).json({ error: 'La liste de documents n’a pas pu être lue. Importez un PDF/Word contenant une liste sélectionnable.' });
+    return res.status(422).json({ error: 'La liste de documents n’a pas pu être lue. Importez un PDF/Word/Excel contenant une liste sélectionnable.' });
   }
 
   // Nouvelle checklist ajoutée à la suite des précédentes (jamais un remplacement) :
