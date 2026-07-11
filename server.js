@@ -3315,6 +3315,57 @@ app.delete('/api/saas/documents/:id', requireAuth, async (req, res) => {
   res.json({ success: true });
 });
 
+// Insère « (copie) » avant l'extension éventuelle (« contrat.pdf » → « contrat (copie).pdf »).
+function duplicateDocName(name) {
+  const s = String(name || 'Document').trim() || 'Document';
+  const m = /^(.*?)(\.[a-z0-9]+)$/i.exec(s);
+  return m ? `${m[1]} (copie)${m[2]}` : `${s} (copie)`;
+}
+
+// ─── SaaS : dupliquer un document ─────────────────────────────────────────────
+// Crée une copie indépendante (term sheet éditable OU fichier importé) rangée dans
+// le même dossier, jamais liée à un point de la roadlist : elle apparaît comme un
+// « fichier libre ». Le nom reçoit le suffixe « (copie) ». La copie ne conserve ni
+// le lien de modèle, ni l'historique de versions de l'original.
+app.post('/api/saas/documents/:id/duplicate', requireAuth, async (req, res) => {
+  const id  = Number(req.params.id);
+  const src = await col('saas_documents').findOne({ id, user_id: req.user.id });
+  if (!src) return res.status(404).json({ error: 'Document introuvable' });
+
+  const now   = new Date().toISOString();
+  const newId = await nextId('saas_documents');
+
+  // Term sheet : on recopie le HTML de travail (pas de binaire).
+  if (src.kind === 'termsheet') {
+    const html = src.html || '';
+    const copy = {
+      id: newId, user_id: req.user.id, kind: 'termsheet',
+      name: duplicateDocName(src.name || 'Term sheet'),
+      html, size: Buffer.byteLength(html, 'utf8'),
+      created_at: now, updated_at: now,
+    };
+    if (src.folder_id != null) copy.folder_id = src.folder_id;
+    if (src.category_key) copy.category_key = src.category_key;
+    await col('saas_documents').insertOne(copy);
+    return res.status(201).json({ document: publicDoc({ ...copy, html: undefined }) });
+  }
+
+  // Fichier importé : on recopie le binaire stocké en base.
+  const buf = toBuffer(src.data);
+  if (!buf) return res.status(404).json({ error: 'Fichier introuvable' });
+  const copy = {
+    id: newId, user_id: req.user.id,
+    name: duplicateDocName(src.name || src.originalname || 'Document'),
+    originalname: duplicateDocName(src.originalname || src.name || 'Document'),
+    mimetype: src.mimetype, size: buf.length, data: buf,
+    created_at: now,
+  };
+  if (src.folder_id != null) copy.folder_id = src.folder_id;
+  if (src.category_key) copy.category_key = src.category_key;
+  await col('saas_documents').insertOne(copy);
+  res.status(201).json({ document: publicDoc(copy) });
+});
+
 // ─── SaaS : conversion PDF ⇄ DOCX via CloudConvert ────────────────────────────
 async function convertViaCloudConvert(inputBuffer, inputFilename, outputFormat) {
   let job = await cloudConvert.jobs.create({

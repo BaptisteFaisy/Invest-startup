@@ -337,6 +337,50 @@
       .ver-row__acts { width: 100%; justify-content: flex-end; }
     }
 
+    /* Barre d'actions par document (icônes cohérentes) : Dupliquer · Éditer ·
+       Exporter · Envoyer data room · Valider · Versions · Supprimer.
+       Utilisée à l'identique dans la roadlist (bsa-item) et les fichiers libres (file). */
+    .docbar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+    .docbtn { position: relative; width: 31px; height: 31px; flex: none; display: inline-grid; place-items: center; padding: 0;
+      border: 1px solid rgba(8,9,12,0.18); border-radius: 8px; background: #fff; color: #08090c; cursor: pointer; text-decoration: none;
+      transition: background .15s, border-color .15s, color .15s, transform .05s; }
+    .docbtn:hover { background: #f2f0ea; border-color: rgba(8,9,12,0.42); }
+    .docbtn:active { transform: translateY(0.5px); }
+    .docbtn:focus-visible { outline: 2px solid #3b82f6; outline-offset: 1px; }
+    .docbtn svg { width: 16px; height: 16px; display: block; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+    .docbtn.is-disabled, .docbtn:disabled { opacity: .34; cursor: not-allowed; }
+    .docbtn.is-disabled:hover, .docbtn:disabled:hover { background: #fff; border-color: rgba(8,9,12,0.18); }
+    .docbtn.is-busy { opacity: .5; pointer-events: none; }
+    .docbtn.is-active { border-color: rgba(8,9,12,0.5); background: #eef0ff; color: #2540c0; }
+    .docbtn--ok { color: #16a34a; border-color: rgba(22,163,74,0.45); background: rgba(22,163,74,0.1); }
+    .docbtn--ok:hover { color: #16a34a; background: rgba(22,163,74,0.16); border-color: rgba(22,163,74,0.62); }
+    .docbtn--danger { color: #dc2626; border-color: rgba(220,38,38,0.28); }
+    .docbtn--danger:hover { color: #dc2626; background: rgba(220,38,38,0.08); border-color: rgba(220,38,38,0.5); }
+    .docbtn__badge { position: absolute; top: -6px; right: -6px; min-width: 15px; height: 15px; padding: 0 3px; display: grid; place-items: center;
+      font-family: 'Archivo', sans-serif; font-size: 9.5px; font-weight: 800; line-height: 1; color: #fff; background: #2563eb; border-radius: 99px; box-shadow: 0 0 0 2px #fff; }
+
+    /* Infobulle flottante (au survol/focus des boutons-icônes) : indique l'action.
+       Rattachée au body → jamais rognée par les cartes en overflow:hidden. */
+    .doctip { position: fixed; z-index: 1300; background: #08090c; color: #fff; font-family: 'Libre Franklin', sans-serif;
+      font-size: 12px; font-weight: 600; line-height: 1.2; padding: 6px 9px; border-radius: 7px;
+      box-shadow: 0 8px 22px rgba(8,9,12,0.32); pointer-events: none; white-space: nowrap; max-width: 260px;
+      animation: doctip-in .1s ease; }
+    @keyframes doctip-in { from { opacity: 0; } to { opacity: 1; } }
+
+    /* Menu flottant « Exporter » (PDF / Word) commun à toutes les lignes-document. */
+    .docmenu { position: fixed; z-index: 1200; min-width: 214px; background: #fff; border: 1px solid rgba(8,9,12,0.14);
+      border-radius: 12px; box-shadow: 0 18px 44px rgba(8,9,12,0.22); padding: 6px; animation: docmenu-in .12s ease; }
+    @keyframes docmenu-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+    .docmenu__item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; border: 0; background: none;
+      border-radius: 8px; font-family: 'Libre Franklin', sans-serif; font-size: 13.5px; font-weight: 600; color: #08090c; cursor: pointer; text-align: left; }
+    .docmenu__item:hover { background: #f2f0ea; }
+    .docmenu__item svg { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; color: #6b6b78; }
+
+    @media (max-width: 680px) {
+      .file { flex-wrap: wrap; }
+      .file__actions { width: 100%; justify-content: flex-end; margin-top: 8px; }
+    }
+
     @media (max-width: 680px) {
       .file__actions .fbtn { padding: 7px 9px; }
       .file__meta { display: none; }
@@ -3757,6 +3801,267 @@
     ['dragover', 'drop'].forEach(ev =>
       window.addEventListener(ev, (e) => { if (hasFiles(e)) e.preventDefault(); }, false));
 
+    // ═══ Barre d'actions par document (icônes cohérentes) ════════════════════
+    // Symboles partagés par la roadlist (bsa-item) et les fichiers libres (file) :
+    // Dupliquer · Éditer · Exporter · Envoyer vers la data room · Valider ·
+    // Historique des versions · Supprimer. Chaque bouton porte une infobulle au
+    // survol (data-tip) et un aria-label pour l'accessibilité.
+    const DOC_ICON = {
+      duplicate: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+      edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+      export: '<path d="M12 3v12"/><path d="m8 11 4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>',
+      dataroom: '<path d="M12 21v-8"/><path d="m8.5 16.5 3.5-3.5 3.5 3.5"/><path d="M20 17.5A4.5 4.5 0 0 0 18 9h-1.3A7 7 0 1 0 5 15.7"/>',
+      validate: '<path d="M20 6 9 17l-5-5"/>',
+      versions: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>',
+      del: '<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>',
+    };
+    function docIconSvg(name) {
+      return '<svg viewBox="0 0 24 24" aria-hidden="true">' + DOC_ICON[name] + '</svg>';
+    }
+
+    // Fabrique un bouton-icône (ou un lien si href). label → infobulle + aria-label.
+    function docBtn({ icon, label, href, onClick, variant, disabled, active, badge }) {
+      const el = document.createElement(href && !disabled ? 'a' : 'button');
+      el.className = 'docbtn' + (variant ? ' docbtn--' + variant : '') + (active ? ' is-active' : '');
+      if (el.tagName === 'BUTTON') el.type = 'button';
+      el.setAttribute('aria-label', label);
+      el.setAttribute('data-tip', label);
+      // Filet de secours natif si un navigateur ne déclenche pas le survol sur
+      // un bouton désactivé ; l'infobulle flottante reste l'affichage habituel.
+      el.title = label;
+      el.innerHTML = docIconSvg(icon) + (badge != null ? '<span class="docbtn__badge">' + badge + '</span>' : '');
+      if (disabled) {
+        el.classList.add('is-disabled');
+        el.setAttribute('aria-disabled', 'true');
+        if (el.tagName === 'BUTTON') el.disabled = true;
+      } else if (href) {
+        el.href = href;
+        if (onClick) el.addEventListener('click', onClick);
+      } else if (onClick) {
+        el.addEventListener('click', onClick);
+      }
+      return el;
+    }
+
+    // Infobulle flottante : indique l'action au survol/focus (boutons en icônes seules).
+    let docTipEl = null;
+    function hideDocTip() { if (docTipEl) { docTipEl.remove(); docTipEl = null; } }
+    function showDocTip(btn) {
+      const text = btn.getAttribute('data-tip');
+      if (!text) return;
+      hideDocTip();
+      const tip = document.createElement('div');
+      tip.className = 'doctip';
+      tip.textContent = text;
+      document.body.appendChild(tip);
+      const r = btn.getBoundingClientRect();
+      const w = tip.offsetWidth, h = tip.offsetHeight;
+      const vw = document.documentElement.clientWidth;
+      let top = r.top - h - 8;
+      if (top < 6) top = r.bottom + 8;
+      let left = Math.max(6, Math.min(r.left + r.width / 2 - w / 2, vw - w - 6));
+      tip.style.top = top + 'px';
+      tip.style.left = left + 'px';
+      docTipEl = tip;
+    }
+    document.addEventListener('mouseover', (e) => {
+      const btn = e.target.closest && e.target.closest('.docbtn');
+      if (btn) showDocTip(btn);
+    });
+    document.addEventListener('mouseout', (e) => {
+      const btn = e.target.closest && e.target.closest('.docbtn');
+      if (btn) hideDocTip();
+    });
+    document.addEventListener('focusin', (e) => {
+      const btn = e.target.closest && e.target.closest('.docbtn');
+      if (btn) showDocTip(btn);
+    });
+    document.addEventListener('focusout', hideDocTip);
+    window.addEventListener('scroll', hideDocTip, true);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeDocExportMenu(); hideDocTip(); } });
+
+    function setDocBtnBusy(el, busy) {
+      if (!el) return;
+      el.classList.toggle('is-busy', busy);
+      if (el.tagName === 'BUTTON') el.disabled = busy;
+      if (busy) hideDocTip();
+    }
+
+    function docIsEditable(doc) {
+      if (doc.kind === 'termsheet') return true;
+      const e = ext(doc.originalname || doc.name);
+      return e === 'docx' || e === 'doc';
+    }
+    // Un modèle Liquid+ ouvert mais non personnalisé n'est pas encore un vrai document.
+    function docIsDataroomEligible(doc) {
+      return !doc.is_version && !doc.is_investor_checklist &&
+        !(doc.kind === 'termsheet' && doc.template_source && doc.is_personalized === false);
+    }
+
+    function triggerDownload(url) {
+      const a = document.createElement('a');
+      a.href = url; a.rel = 'noopener';
+      document.body.appendChild(a); a.click(); a.remove();
+    }
+
+    function editDoc(doc, btn) {
+      if (doc.kind === 'termsheet') { window.open('editor.html?doc=' + doc.id, '_blank', 'noopener'); return; }
+      editInEditor(doc.id, btn); // DOCX → éditeur (gère l'état occupé sans effacer l'icône)
+    }
+
+    async function duplicateDoc(doc, btn) {
+      showErr('');
+      setDocBtnBusy(btn, true);
+      try {
+        const r = await fetch('/api/saas/documents/' + doc.id + '/duplicate', { method: 'POST', credentials: 'include' });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok || !data.document) { showErr(data.error || 'Duplication échouée.'); setDocBtnBusy(btn, false); return; }
+        docs.push(data.document);
+        render();
+      } catch { showErr('Impossible de joindre le serveur.'); setDocBtnBusy(btn, false); }
+    }
+
+    // Exporte en PDF ou Word : term sheet via /export, fichier importé via /convert
+    // (ou téléchargement direct s'il est déjà au bon format), puis télécharge le résultat.
+    async function exportDoc(doc, fmt, btn) {
+      showErr('');
+      setDocBtnBusy(btn, true);
+      const srcExt = doc.kind === 'termsheet' ? 'html' : ext(doc.originalname || doc.name);
+      try {
+        if (doc.kind !== 'termsheet' && srcExt === fmt) {
+          triggerDownload('/api/saas/documents/' + doc.id + '/download');
+          setDocBtnBusy(btn, false);
+          return;
+        }
+        const url = doc.kind === 'termsheet'
+          ? '/api/saas/termsheets/' + doc.id + '/export'
+          : '/api/saas/documents/' + doc.id + '/convert';
+        const r = await fetch(url, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', body: JSON.stringify({ to: fmt }),
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok || !data.document) {
+          showErr(data.error || 'Export échoué.');
+          errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setDocBtnBusy(btn, false);
+          return;
+        }
+        docs.push(data.document);
+        triggerDownload('/api/saas/documents/' + data.document.id + '/download');
+        render();
+      } catch { showErr('Impossible de joindre le serveur.'); setDocBtnBusy(btn, false); }
+    }
+
+    // Menu flottant « Exporter » (PDF / Word), partagé, positionné sous le bouton.
+    let docExportMenuEl = null;
+    function closeDocExportMenu() {
+      if (docExportMenuEl) { docExportMenuEl.remove(); docExportMenuEl = null; }
+      document.removeEventListener('click', onDocExportOutside, true);
+      window.removeEventListener('scroll', closeDocExportMenu, true);
+    }
+    function onDocExportOutside(e) {
+      if (docExportMenuEl && !docExportMenuEl.contains(e.target)) closeDocExportMenu();
+    }
+    function openDocExportMenu(anchor, doc) {
+      closeDocExportMenu();
+      hideDocTip();
+      const menu = document.createElement('div');
+      menu.className = 'docmenu';
+      menu.setAttribute('role', 'menu');
+      menu.innerHTML =
+        '<button type="button" class="docmenu__item" role="menuitem" data-fmt="pdf">' + docIconSvg('export') + '<span>Exporter en PDF</span></button>' +
+        '<button type="button" class="docmenu__item" role="menuitem" data-fmt="docx">' + docIconSvg('export') + '<span>Exporter en Word (.docx)</span></button>';
+      document.body.appendChild(menu);
+      const r = anchor.getBoundingClientRect();
+      const w = menu.offsetWidth, h = menu.offsetHeight;
+      const vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
+      let top = r.bottom + 6;
+      if (top + h > vh - 6) top = Math.max(6, r.top - h - 6);
+      const left = Math.max(8, Math.min(r.left, vw - w - 8));
+      menu.style.top = top + 'px';
+      menu.style.left = left + 'px';
+      menu.querySelectorAll('.docmenu__item').forEach(it => {
+        it.addEventListener('click', () => { const fmt = it.getAttribute('data-fmt'); closeDocExportMenu(); exportDoc(doc, fmt, anchor); });
+      });
+      docExportMenuEl = menu;
+      setTimeout(() => {
+        document.addEventListener('click', onDocExportOutside, true);
+        window.addEventListener('scroll', closeDocExportMenu, true);
+      }, 0);
+    }
+
+    function removeDoc(doc) {
+      if (!window.confirm('Supprimer définitivement « ' + (doc.name || 'ce document') + ' » ? Cette action est irréversible.')) return;
+      remove(doc.id);
+    }
+
+    // Construit la barre d'actions cohérente d'un document dans son conteneur.
+    // ctx.slug (+ folderId, versions, final, histKey) : document rattaché à un point
+    //   de la roadlist → ajoute Valider + Historique des versions. Sinon (fichier
+    //   libre) : sans ces deux actions (elles n'ont de sens que pour un point suivi).
+    function renderDocActions(actionsEl, doc, ctx) {
+      ctx = ctx || {};
+      const slotCtx = ctx.slug != null ? ctx : null;
+      actionsEl.classList.add('docbar');
+
+      actionsEl.appendChild(docBtn({
+        icon: 'duplicate', label: 'Dupliquer',
+        onClick: (e) => duplicateDoc(doc, e.currentTarget),
+      }));
+
+      const editable = docIsEditable(doc);
+      actionsEl.appendChild(docBtn({
+        icon: 'edit',
+        label: editable ? 'Éditer' : 'Éditer — convertissez d’abord en Word (Exporter ▸ Word)',
+        disabled: !editable,
+        onClick: editable ? ((e) => editDoc(doc, e.currentTarget)) : null,
+      }));
+
+      actionsEl.appendChild(docBtn({
+        icon: 'export', label: 'Exporter (PDF ou Word)',
+        onClick: (e) => openDocExportMenu(e.currentTarget, doc),
+      }));
+
+      const folder = folders.find(x => x.id === doc.folder_id);
+      const inDataroomFolder = isDataroomFolder(folder);
+      const drOk = inDataroomFolder && docIsDataroomEligible(doc);
+      const dataroomTip = !inDataroomFolder
+        ? 'Envoyer vers la data room — réservé aux phases de due diligence'
+        : !docIsDataroomEligible(doc)
+          ? 'Envoyer vers la data room — personnalisez ce modèle avant l’envoi'
+          : 'Envoyer vers la data room';
+      actionsEl.appendChild(docBtn({
+        icon: 'dataroom',
+        label: dataroomTip,
+        disabled: !drOk,
+        onClick: drOk ? (() => openDataroomModal({ type: 'document', id: doc.id, folderId: doc.folder_id, categoryTitle: doc.category_key || '' })) : null,
+      }));
+
+      if (slotCtx) {
+        actionsEl.appendChild(docBtn({
+          icon: 'validate',
+          label: slotCtx.final ? 'Validé — cliquer pour annuler la validation' : 'Valider ce document',
+          variant: slotCtx.final ? 'ok' : null,
+          onClick: () => setFinal(slotCtx.folderId, slotCtx.slug, !slotCtx.final),
+        }));
+        if (slotCtx.versions && slotCtx.versions.length) {
+          const open = !!versionsOpen[slotCtx.histKey];
+          actionsEl.appendChild(docBtn({
+            icon: 'versions',
+            label: 'Historique des versions (' + (slotCtx.versions.length + 1) + ')',
+            active: open, badge: slotCtx.versions.length + 1,
+            onClick: () => { versionsOpen[slotCtx.histKey] = !versionsOpen[slotCtx.histKey]; render(); },
+          }));
+        }
+      }
+
+      actionsEl.appendChild(docBtn({
+        icon: 'del', label: 'Supprimer', variant: 'danger',
+        onClick: () => removeDoc(doc),
+      }));
+    }
+
     // Une ligne « document attendu » : numéro (via <ol>), nom + badge, document lié,
     // boutons (Modèle / Ajouter / Ouvrir / détacher) et glisser-déposer pour rattacher
     // un fichier (ordinateur) ou un document existant à ce point précis.
@@ -3804,65 +4109,9 @@
       }
 
       if (linked) {
-        if (doc.kind === 'termsheet') {
-          const op = document.createElement('a');
-          op.className = 'fbtn fbtn--mini fbtn--accent';
-          op.textContent = 'Éditer';
-          op.href = 'editor.html?doc=' + doc.id;
-          op.target = '_blank';
-          op.rel = 'noopener';
-          acts.appendChild(op);
-          const dl = document.createElement('a');
-          dl.className = 'fbtn fbtn--mini';
-          dl.textContent = 'Télécharger';
-          dl.href = '/api/saas/documents/' + doc.id + '/download';
-          acts.appendChild(dl);
-        } else {
-          const docExt = ext(doc.originalname || doc.name);
-          if (docExt === 'docx' || docExt === 'doc') {
-            const ed = document.createElement('button');
-            ed.className = 'fbtn fbtn--mini fbtn--accent';
-            ed.textContent = 'Éditer';
-            ed.title = 'Ouvrir ce document dans l\'éditeur';
-            ed.addEventListener('click', () => editInEditor(doc.id, ed));
-            acts.appendChild(ed);
-          }
-          const dl = document.createElement('a');
-          dl.className = 'fbtn fbtn--mini';
-          dl.textContent = 'Télécharger';
-          dl.href = '/api/saas/documents/' + doc.id + '/download';
-          acts.appendChild(dl);
-        }
-        // Historique des versions : menu déroulant listant la version actuelle et
-        // les précédentes (téléchargement + comparaison IA par version).
-        if (versions.length) {
-          const histKey = f.id + ':' + slug;
-          const tog = document.createElement('button');
-          tog.className = 'fbtn fbtn--mini' + (versionsOpen[histKey] ? ' fbtn--accent' : '');
-          tog.textContent = '🕑 Versions (' + (versions.length + 1) + ') ' + (versionsOpen[histKey] ? '▲' : '▼');
-          tog.title = 'Voir l\'historique des versions de ce document';
-          tog.addEventListener('click', () => { versionsOpen[histKey] = !versionsOpen[histKey]; render(); });
-          acts.appendChild(tog);
-        }
-
-        // Valider / Annuler la validation du document lié.
-        const valBadge = document.createElement('span');
-        valBadge.className = 'fbtn--status' + (final ? ' fbtn--status--ok' : '');
-        valBadge.textContent = final ? 'Validé' : 'En attente';
-
-        const valBtn = document.createElement('button');
-        valBtn.className = 'fbtn fbtn--mini' + (final ? '' : ' fbtn--accent');
-        valBtn.textContent = final ? 'Annuler' : 'Valider';
-        valBtn.addEventListener('click', () => setFinal(f.id, slug, !final));
-        acts.appendChild(valBadge);
-        acts.appendChild(valBtn);
-
-        const un = document.createElement('button');
-        un.className = 'fbtn fbtn--mini fbtn--del';
-        un.textContent = '✕';
-        un.title = 'Détacher ce document';
-        un.addEventListener('click', () => linkDoc(f.id, slug, null));
-        acts.appendChild(un);
+        // Barre d'actions cohérente (icônes) : Dupliquer · Éditer · Exporter ·
+        // Envoyer data room · Valider · Historique des versions · Supprimer.
+        renderDocActions(acts, doc, { folderId: f.id, slug, versions, final, histKey: f.id + ':' + slug });
 
         // Drag depuis ce slot vers un autre slot : l'icône change en "grab" pour
         // signaler que l'élément est déplaçable.
@@ -4008,60 +4257,10 @@
 
       // Le déplacement se fait par glisser-déposer (le menu déroulant a été retiré).
 
-      if (isTermsheet) {
-        const open = document.createElement('a');
-        open.className = 'fbtn fbtn--accent';
-        open.textContent = 'Éditer';
-        open.href = 'editor.html?doc=' + d.id;
-        open.target = '_blank';
-        open.rel = 'noopener';
-        actions.appendChild(open);
-        const dl = document.createElement('a');
-        dl.className = 'fbtn';
-        dl.textContent = 'Télécharger';
-        dl.href = '/api/saas/documents/' + d.id + '/download';
-        actions.appendChild(dl);
-      } else {
-        if (e === 'docx' || e === 'doc') {
-          const ed = document.createElement('button');
-          ed.className = 'fbtn fbtn--accent';
-          ed.textContent = 'Éditer';
-          ed.title = 'Ouvrir ce document dans l\'éditeur';
-          ed.addEventListener('click', () => editInEditor(d.id, ed));
-          actions.appendChild(ed);
-        }
-        if (e === 'pdf') {
-          const cv = document.createElement('button');
-          cv.className = 'fbtn fbtn--accent';
-          cv.textContent = 'Convertir en DOCX';
-          cv.title = 'Convertir ce PDF en Word pour pouvoir l\'éditer';
-          cv.addEventListener('click', () => convert(d.id, 'docx', cv));
-          actions.appendChild(cv);
-        }
-        const dl = document.createElement('a');
-        dl.className = 'fbtn';
-        dl.textContent = 'Télécharger';
-        dl.href = '/api/saas/documents/' + d.id + '/download';
-        actions.appendChild(dl);
-      }
-
-      if (isDataroomFolder(d.folder_id != null ? folders.find(x => x.id === d.folder_id) : null)
-        && !(d.kind === 'termsheet' && d.template_source && d.is_personalized === false)) {
-        const send = document.createElement('button');
-        send.className = 'fbtn';
-        send.textContent = '☁ Envoyer';
-        send.title = 'Envoyer vers une data room externe';
-        send.addEventListener('click', () => openDataroomModal({
-          type: 'document', id: d.id, folderId: d.folder_id, categoryTitle: d.category_key || '',
-        }));
-        actions.appendChild(send);
-      }
-
-      const del = document.createElement('button');
-      del.className = 'fbtn fbtn--del';
-      del.textContent = 'Suppr.';
-      del.addEventListener('click', () => remove(d.id));
-      actions.appendChild(del);
+      // Barre d'actions cohérente (icônes) : Dupliquer · Éditer · Exporter ·
+      // Envoyer data room · Supprimer. Valider / Versions ne concernent que les
+      // documents rattachés à un point précis de la roadlist.
+      renderDocActions(actions, d, {});
 
       return row;
     }
@@ -4797,8 +4996,8 @@
     // Convertit un DOCX en term sheet éditable (côté serveur) puis ouvre l'éditeur.
     async function editInEditor(id, btnEl) {
       showErr('');
-      const old = btnEl.textContent;
-      btnEl.disabled = true; btnEl.textContent = 'Ouverture…';
+      // État occupé via classe (ne remplace pas le contenu → préserve l'icône).
+      setDocBtnBusy(btnEl, true);
       try {
         const r = await fetch('/api/saas/documents/' + id + '/to-editor', {
           method: 'POST', credentials: 'include',
@@ -4808,19 +5007,20 @@
           const msg = data.error || 'Impossible d\'ouvrir ce document dans l\'éditeur.';
           showErr(msg);
           errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          btnEl.disabled = false; btnEl.textContent = old;
+          setDocBtnBusy(btnEl, false);
           return;
         }
         if (!data.id) {
           showErr('Réponse inattendue du serveur. Réessayez.');
-          btnEl.disabled = false; btnEl.textContent = old;
+          setDocBtnBusy(btnEl, false);
           return;
         }
         window.open('editor.html?doc=' + data.id, '_blank', 'noopener');
+        setDocBtnBusy(btnEl, false);
       } catch {
         showErr('Impossible de joindre le serveur.');
         errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        btnEl.disabled = false; btnEl.textContent = old;
+        setDocBtnBusy(btnEl, false);
       }
     }
 
