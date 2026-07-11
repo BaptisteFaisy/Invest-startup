@@ -847,7 +847,7 @@
     <main class="dossiers">
       <div class="dossiers__head">
         <input type="file" id="file-input" accept=".pdf,.doc,.docx,.xlsx,.xls,.png,.jpg,.jpeg" multiple hidden />
-        <input type="file" id="investor-checklist-input" accept=".pdf,.doc,.docx,.xlsx,.xls" hidden />
+        <input type="file" id="investor-checklist-input" accept=".pdf,.doc,.docx" hidden />
       </div>
 
       <div id="error" class="err" hidden></div>
@@ -3747,7 +3747,7 @@
         ? `${lists.length} checklist${lists.length > 1 ? 's' : ''} importée${lists.length > 1 ? 's' : ''} · ${(f.checklist || []).length} document${(f.checklist || []).length > 1 ? 's' : ''} demandé${(f.checklist || []).length > 1 ? 's' : ''} au total. Chaque document indique à quel(s) investisseur(s) l’envoyer.`
         : fallbackActive
           ? 'Préparation Liquid+ temporaire affichée tant que vous n’avez pas de request list. L’import d’une checklist investisseur la remplacera automatiquement.'
-          : 'Importez la request list de chaque investisseur (PDF/Word/Excel). Vous pourrez nommer l’investisseur juste après. Vous pouvez aussi générer directement la checklist avec Liquid+.';
+          : 'Importez la request list de chaque investisseur (PDF/Word). Vous pourrez nommer l’investisseur juste après. Vous pouvez aussi générer directement la checklist avec Liquid+.';
 
       box.innerHTML = `
         <div class="dd-checklists__head">
