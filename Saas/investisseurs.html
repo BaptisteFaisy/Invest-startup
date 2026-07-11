@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Liquid+ — Investisseurs</title>
+  <meta name="description" content="Pilotez votre pipeline d'investisseurs : ajoutez-les à la main et suivez leur stade d'intérêt." />
+  <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=6" />
+  <link rel="stylesheet" href="drawer-menu.css?v=5" />
+  <style>
+    [hidden] { display: none !important; }
+
+    .app { visibility: hidden; }
+    .app.ready { visibility: visible; }
+    .app { height: auto; overflow: visible; display: block; }
+    body, .app { background: #08090c !important; }
+
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 56px; padding: 0 20px; background: #08090c !important; border-bottom: 1px solid rgba(255,255,255,0.07) !important; position: sticky; top: 0; z-index: 70; }
+    .topbar__left { display: flex; align-items: center; gap: 16px; min-width: 0; }
+    .topbar__actions { display: flex; align-items: center; gap: 8px; flex: none; }
+    .topbar .brand { color: #fff !important; display: flex; align-items: center; gap: 8px; }
+    .topbar .brand__plus { color: #fff !important; }
+    .topbar .brand__logo { display: block; flex: none; }
+    .topbar .btn--ghost { color: #fff !important; border-color: rgba(255,255,255,0.35) !important; }
+    .topbar .btn--ghost:hover { color: #fff !important; border-color: rgba(255,255,255,0.65) !important; }
+
+    .inv { max-width: 1180px; margin: 0 auto; padding: 24px 28px 90px; }
+    .page-back-row { height: 6px; }
+    .page-back { position: fixed; top: 56px; left: 16px; z-index: 15; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
+    .page-back:hover { opacity: 0.68; transform: translateX(-1px); }
+    .page-back:focus-visible { outline: none; opacity: 1; }
+    .page-back svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+    .inv__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
+    .inv__title { font-size: 30px; letter-spacing: -0.03em; color: #fff; margin-top: 6px; }
+    .inv__sub { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 8px; line-height: 1.55; max-width: 640px; }
+
+    /* Résumé */
+    .inv__summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 24px; }
+    .inv__stat { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 14px 16px; }
+    .inv__stat-label { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+    .inv__stat-value { font-size: 20px; font-weight: 700; color: #fff; margin-top: 6px; letter-spacing: -0.02em; }
+
+    /* Formulaire d'ajout */
+    .invform { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 18px 20px; margin-top: 22px; }
+    .invform__grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 10px; }
+    .invform__grid2 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .invform input, .invform select, .invform textarea {
+      background: #fff; border: 1px solid transparent; border-radius: 10px; padding: 10px 12px;
+      font: inherit; font-size: 13.5px; color: #08090c; width: 100%; box-sizing: border-box;
+    }
+    .invform input:focus, .invform select:focus, .invform textarea:focus { outline: none; box-shadow: 0 0 0 2px #3b82f6; }
+    .invform textarea { resize: vertical; min-height: 40px; grid-column: 1 / -1; }
+    .invform__foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; }
+    .invform__err { color: #f87171; font-size: 13px; }
+    .invform__add { margin-left: auto; font-family: 'Archivo', sans-serif; font-size: 13.5px; font-weight: 600; padding: 10px 20px; border-radius: 10px; cursor: pointer; border: 1px solid transparent; background: #3b82f6; color: #fff; }
+    .invform__add:hover { background: #2563eb; }
+
+    .inv__loading { color: rgba(255,255,255,0.6); font-size: 14px; padding: 18px 4px; }
+    .inv__err { font-size: 14px; color: #f87171; background: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.25); border-radius: 12px; padding: 14px 16px; margin-top: 22px; line-height: 1.55; }
+
+    /* Kanban */
+    .board { display: flex; gap: 14px; margin-top: 26px; overflow-x: auto; padding-bottom: 12px; }
+    .col { flex: 0 0 250px; background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; min-height: 120px; }
+    .col.is-dragover { border-color: #3b82f6; background: rgba(59,130,246,0.08); }
+    .col__head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .col__dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+    .col__title { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(255,255,255,0.85); flex: 1; }
+    .col__count { background: rgba(255,255,255,0.1); color: #fff; border-radius: 999px; font-size: 11px; padding: 2px 8px; }
+    .col__total { font-size: 11.5px; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+    .col__empty { color: rgba(255,255,255,0.4); font-size: 12.5px; padding: 10px 2px; }
+    .col__body { display: flex; flex-direction: column; gap: 8px; min-height: 40px; }
+
+    .card { background: #fff; border-radius: 12px; padding: 11px 12px; box-shadow: 0 6px 18px rgba(0,0,0,0.22); cursor: grab; }
+    .card.is-dragging { opacity: 0.4; }
+    .card__name { font-size: 13.5px; font-weight: 700; color: #08090c; word-break: break-word; }
+    .card__firm { font-size: 12px; color: #6b6b78; margin-top: 1px; }
+    .card__amount { display: inline-block; margin-top: 6px; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: rgba(22,163,74,0.12); color: #16a34a; }
+    .card__notes { font-size: 12px; color: #6b6b78; margin-top: 6px; line-height: 1.4; white-space: pre-wrap; }
+    .card__meta { margin-top: 6px; font-size: 11.5px; color: #9a978f; }
+    .card__row { display: flex; align-items: center; gap: 6px; margin-top: 9px; }
+    .card__stage-select { flex: 1; min-width: 0; font-size: 11.5px; padding: 6px 8px; border-radius: 8px; background: #f4f3f1; border: 1px solid #e7e5e1; color: #08090c; }
+    .card__del { flex: none; width: 26px; height: 26px; display: grid; place-items: center; border: 0; background: transparent; color: #b0aca3; cursor: pointer; border-radius: 8px; }
+    .card__del:hover { background: #fdeeee; color: #dc2626; }
+    .card__del svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .inv__foot { margin-top: 30px; }
+
+    @media (max-width: 720px) {
+      .invform__grid, .invform__grid2 { grid-template-columns: 1fr; }
+    }
+  </style>
+  <script src="auth.js?v=3"></script>
+  <script src="drawer-menu.js?v=3" defer></script>
+  <script src="drawer-steps.js?v=1" defer></script>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="topbar__left">
+        <button type="button" class="hamburger" id="nav-menu-btn" aria-label="Ouvrir la navigation" aria-controls="nav-drawer" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+        <a href="/index.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
+      </div>
+      <div class="topbar__actions">
+        <button type="button" class="hamburger" id="actions-menu-btn" aria-label="Ouvrir le menu" aria-controls="actions-drawer" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Menu hamburger gauche : navigation -->
+    <div class="drawer-backdrop" id="nav-backdrop" data-drawer-close></div>
+    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Étapes de la levée">
+      <div class="drawer__head"></div>
+      <nav class="drawer__body">
+        <div class="drawer__section-title">Étapes de la levée</div>
+        <div id="nav-steps"><p class="drawer__steps-loading">Chargement des étapes…</p></div>
+      </nav>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
+    </aside>
+
+    <!-- Menu hamburger droite : compte & actions -->
+    <div class="drawer-backdrop" id="actions-backdrop" data-drawer-close></div>
+    <aside class="drawer drawer--right" id="actions-drawer" role="dialog" aria-modal="true" aria-label="Outils">
+      <div class="drawer__head"></div>
+      <nav class="drawer__body">
+        <div class="drawer__section-title">Outils</div>
+        <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Éditeur</a>
+        <a class="drawer__link" href="marche.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Marché<span class="drawer__soon-tag">Bientôt</span></a>
+        <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
+        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>Tâches</a>
+        <a class="drawer__link" href="valorisation.html" target="_blank" rel="noopener" title="Estimateur de valorisation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Valorisation</a>
+        <a class="drawer__link" href="dilution.html" target="_blank" rel="noopener" title="Simulation de dilution"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
+        <a class="drawer__link" href="exit.html" target="_blank" rel="noopener" title="Simulateur d'exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Exit</a>
+        <a class="drawer__link" href="documents.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>Documents</a>
+        <a class="drawer__link" href="data-room.html" target="_blank" rel="noopener" title="Data room"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/></svg>Data room</a>
+        <a class="drawer__link" href="investisseurs.html" target="_blank" rel="noopener" title="Pipeline investisseurs"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>Investisseurs</a>
+        <div class="drawer__sep"></div>
+        <a class="drawer__link" href="compte.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>Mon compte</a>
+        <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Écrire au fondateur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
+        <div class="drawer__sep"></div>
+        <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>Déconnexion</button>
+      </nav>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
+    </aside>
+
+    <div class="page-back-row">
+      <button type="button" class="page-back" id="page-back-btn" aria-label="Revenir en arrière" title="Revenir en arrière">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+    </div>
+
+    <main class="inv">
+      <div class="inv__eyebrow">Levée de fonds</div>
+      <h1 class="inv__title">Pipeline investisseurs</h1>
+      <p class="inv__sub">Ajoutez vos investisseurs à la main et faites-les avancer d'un stade d'intérêt à l'autre : glissez-déposez une carte vers une autre colonne, ou changez le stade depuis la carte.</p>
+
+      <div class="inv__summary" id="summary" hidden>
+        <div class="inv__stat"><div class="inv__stat-label">Investisseurs</div><div class="inv__stat-value" id="stat-count">0</div></div>
+        <div class="inv__stat"><div class="inv__stat-label">Engagés</div><div class="inv__stat-value" id="stat-engaged">0</div></div>
+        <div class="inv__stat"><div class="inv__stat-label">Montant engagé</div><div class="inv__stat-value" id="stat-engaged-amount">—</div></div>
+        <div class="inv__stat"><div class="inv__stat-label">Pipeline en discussion</div><div class="inv__stat-value" id="stat-pipeline-amount">—</div></div>
+      </div>
+
+      <form class="invform" id="add-form">
+        <div class="invform__grid">
+          <input id="new-name" type="text" placeholder="Nom de l'investisseur *" maxlength="200" autocomplete="off" required />
+          <input id="new-firm" type="text" placeholder="Fonds / structure" maxlength="200" autocomplete="off" />
+          <select id="new-stage" aria-label="Stade initial"></select>
+        </div>
+        <div class="invform__grid2">
+          <input id="new-email" type="email" placeholder="Email" maxlength="200" autocomplete="off" />
+          <input id="new-phone" type="text" placeholder="Téléphone" maxlength="60" autocomplete="off" />
+          <input id="new-amount" type="number" min="0" step="1000" placeholder="Ticket envisagé (€)" />
+        </div>
+        <div class="invform__grid2">
+          <textarea id="new-notes" placeholder="Notes (contexte, prochaine étape…)" maxlength="2000"></textarea>
+        </div>
+        <div class="invform__foot">
+          <div class="invform__err" id="form-err" hidden></div>
+          <button type="submit" class="invform__add">Ajouter l'investisseur</button>
+        </div>
+      </form>
+
+      <div class="inv__loading" id="loading">Chargement…</div>
+      <div class="inv__err" id="error" hidden></div>
+
+      <div class="board" id="board" hidden></div>
+
+      <div class="inv__foot">
+        <a href="tableau-de-bord.html" class="btn btn--ghost">← Retour au tableau de bord</a>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    document.getElementById('page-back-btn').addEventListener('click', () => {
+      if (window.history.length > 1) window.history.back();
+      else window.location.href = 'tableau-de-bord.html';
+    });
+
+    const STAGES = [
+      { key: 'a_contacter',    label: 'À contacter',    dot: '#9a978f' },
+      { key: 'contacte',       label: 'Contacté',       dot: '#3b82f6' },
+      { key: 'interesse',      label: 'Intéressé',      dot: '#8b5cf6' },
+      { key: 'due_diligence',  label: 'Due diligence',  dot: '#d97706' },
+      { key: 'negociation',    label: 'Négociation',    dot: '#f97316' },
+      { key: 'engage',         label: 'Engagé',         dot: '#16a34a' },
+      { key: 'decline',        label: 'Décliné',        dot: '#dc2626' },
+    ];
+
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+    const money = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+    function fmtAmount(n) { return n == null ? null : money.format(n); }
+
+    const loadingEl = document.getElementById('loading');
+    const errorEl   = document.getElementById('error');
+    const boardEl   = document.getElementById('board');
+    const summaryEl = document.getElementById('summary');
+
+    let investors = [];
+    let draggedId = null;
+
+    async function api(path, opts) {
+      const r = await fetch(path, Object.assign({ credentials: 'include' }, opts || {}));
+      let data = {};
+      try { data = await r.json(); } catch {}
+      if (!r.ok) throw new Error(data.error || 'Une erreur est survenue.');
+      return data;
+    }
+
+    function fillStageSelect(select, value) {
+      select.innerHTML = STAGES.map(s => `<option value="${s.key}">${esc(s.label)}</option>`).join('');
+      select.value = value;
+    }
+
+    function card(inv) {
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.draggable = true;
+      el.dataset.id = inv.id;
+
+      el.addEventListener('dragstart', () => {
+        draggedId = inv.id;
+        el.classList.add('is-dragging');
+      });
+      el.addEventListener('dragend', () => {
+        draggedId = null;
+        el.classList.remove('is-dragging');
+      });
+
+      const name = document.createElement('div');
+      name.className = 'card__name';
+      name.textContent = inv.name;
+      el.appendChild(name);
+
+      if (inv.firm) {
+        const firm = document.createElement('div');
+        firm.className = 'card__firm';
+        firm.textContent = inv.firm;
+        el.appendChild(firm);
+      }
+
+      if (inv.amount) {
+        const amount = document.createElement('span');
+        amount.className = 'card__amount';
+        amount.textContent = fmtAmount(inv.amount);
+        el.appendChild(amount);
+      }
+
+      if (inv.email || inv.phone) {
+        const meta = document.createElement('div');
+        meta.className = 'card__meta';
+        meta.textContent = [inv.email, inv.phone].filter(Boolean).join(' · ');
+        el.appendChild(meta);
+      }
+
+      if (inv.notes) {
+        const notes = document.createElement('div');
+        notes.className = 'card__notes';
+        notes.textContent = inv.notes;
+        el.appendChild(notes);
+      }
+
+      const row = document.createElement('div');
+      row.className = 'card__row';
+
+      const select = document.createElement('select');
+      select.className = 'card__stage-select';
+      select.setAttribute('aria-label', 'Changer le stade de ' + inv.name);
+      fillStageSelect(select, inv.stage);
+      select.addEventListener('change', () => moveStage(inv.id, select.value));
+      row.appendChild(select);
+
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'card__del';
+      del.setAttribute('aria-label', 'Supprimer ' + inv.name);
+      del.title = 'Supprimer';
+      del.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>';
+      del.addEventListener('click', () => deleteInvestor(inv.id));
+      row.appendChild(del);
+
+      el.appendChild(row);
+      return el;
+    }
+
+    function render() {
+      boardEl.innerHTML = '';
+      let totalEngagedAmount = 0;
+      let totalPipelineAmount = 0;
+      let engagedCount = 0;
+
+      STAGES.forEach(stage => {
+        const items = investors.filter(inv => inv.stage === stage.key);
+        const total = items.reduce((sum, inv) => sum + (inv.amount || 0), 0);
+        if (stage.key === 'engage') { totalEngagedAmount += total; engagedCount = items.length; }
+        if (stage.key !== 'decline') totalPipelineAmount += total;
+
+        const col = document.createElement('div');
+        col.className = 'col';
+        col.dataset.stage = stage.key;
+
+        col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('is-dragover'); });
+        col.addEventListener('dragleave', () => col.classList.remove('is-dragover'));
+        col.addEventListener('drop', e => {
+          e.preventDefault();
+          col.classList.remove('is-dragover');
+          if (draggedId != null) moveStage(draggedId, stage.key);
+        });
+
+        const head = document.createElement('div');
+        head.className = 'col__head';
+        head.innerHTML = `<span class="col__dot" style="background:${stage.dot}"></span><span class="col__title">${esc(stage.label)}</span><span class="col__count">${items.length}</span>`;
+        col.appendChild(head);
+
+        if (total > 0) {
+          const totalEl = document.createElement('div');
+          totalEl.className = 'col__total';
+          totalEl.textContent = fmtAmount(total);
+          col.appendChild(totalEl);
+        }
+
+        const body = document.createElement('div');
+        body.className = 'col__body';
+        if (!items.length) {
+          const empty = document.createElement('div');
+          empty.className = 'col__empty';
+          empty.textContent = 'Aucun investisseur.';
+          body.appendChild(empty);
+        } else {
+          items.forEach(inv => body.appendChild(card(inv)));
+        }
+        col.appendChild(body);
+
+        boardEl.appendChild(col);
+      });
+
+      document.getElementById('stat-count').textContent = String(investors.length);
+      document.getElementById('stat-engaged').textContent = String(engagedCount);
+      document.getElementById('stat-engaged-amount').textContent = totalEngagedAmount ? fmtAmount(totalEngagedAmount) : '—';
+      document.getElementById('stat-pipeline-amount').textContent = totalPipelineAmount ? fmtAmount(totalPipelineAmount) : '—';
+      summaryEl.hidden = false;
+    }
+
+    async function loadInvestors() {
+      loadingEl.hidden = false;
+      errorEl.hidden = true;
+      try {
+        const data = await api('/api/saas/investors');
+        investors = data.investors || [];
+        loadingEl.hidden = true;
+        boardEl.hidden = false;
+        render();
+      } catch (err) {
+        loadingEl.hidden = true;
+        errorEl.hidden = false;
+        errorEl.textContent = err.message || 'Impossible de charger les investisseurs.';
+      }
+    }
+
+    async function addInvestor(e) {
+      e.preventDefault();
+      const nameInput   = document.getElementById('new-name');
+      const firmInput   = document.getElementById('new-firm');
+      const stageSelect = document.getElementById('new-stage');
+      const emailInput  = document.getElementById('new-email');
+      const phoneInput  = document.getElementById('new-phone');
+      const amountInput = document.getElementById('new-amount');
+      const notesInput  = document.getElementById('new-notes');
+      const errEl = document.getElementById('form-err');
+      errEl.hidden = true;
+
+      const name = nameInput.value.trim();
+      if (!name) return;
+
+      try {
+        const { investor } = await api('/api/saas/investors', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name, firm: firmInput.value.trim(), stage: stageSelect.value,
+            email: emailInput.value.trim(), phone: phoneInput.value.trim(),
+            amount: amountInput.value ? Number(amountInput.value) : null,
+            notes: notesInput.value.trim(),
+          }),
+        });
+        investors.push(investor);
+        render();
+        nameInput.value = ''; firmInput.value = ''; emailInput.value = '';
+        phoneInput.value = ''; amountInput.value = ''; notesInput.value = '';
+        stageSelect.value = 'a_contacter';
+        nameInput.focus();
+      } catch (err) {
+        errEl.hidden = false;
+        errEl.textContent = err.message || "Impossible d'ajouter l'investisseur.";
+      }
+    }
+
+    async function moveStage(id, stage) {
+      const inv = investors.find(x => x.id === id);
+      if (!inv || inv.stage === stage) return;
+      const prevStage = inv.stage;
+      inv.stage = stage;
+      render();
+      try {
+        await api('/api/saas/investors/' + id, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ stage }),
+        });
+      } catch (err) {
+        inv.stage = prevStage;
+        render();
+      }
+    }
+
+    async function deleteInvestor(id) {
+      const idx = investors.findIndex(x => x.id === id);
+      if (idx < 0) return;
+      if (!window.confirm('Supprimer cet investisseur du pipeline ?')) return;
+      const removed = investors[idx];
+      investors.splice(idx, 1);
+      render();
+      try {
+        await api('/api/saas/investors/' + id, { method: 'DELETE' });
+      } catch (err) {
+        investors.splice(idx, 0, removed);
+        render();
+      }
+    }
+
+    async function init() {
+      const user = await requireAuth();
+      if (!user) return;
+      fillStageSelect(document.getElementById('new-stage'), 'a_contacter');
+      document.querySelector('.app').classList.add('ready');
+      document.getElementById('add-form').addEventListener('submit', addInvestor);
+      loadInvestors();
+    }
+
+    init();
+  </script>
+</body>
+</html>

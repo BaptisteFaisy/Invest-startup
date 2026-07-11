@@ -229,6 +229,7 @@
     { type: 'Outil', label: 'Exit', href: 'exit.html', keywords: ['sortie', 'cession', 'liquidation', 'waterfall'] },
     { type: 'Outil', label: 'Documents', href: 'documents.html', keywords: ['fichiers', 'pieces', 'pièces'] },
     { type: 'Outil', label: 'Data room', href: 'data-room.html', keywords: ['dataroom', 'audit', 'due diligence'] },
+    { type: 'Outil', label: 'Investisseurs', href: 'investisseurs.html', keywords: ['pipeline', 'crm', 'prospects', 'levee', 'levée', 'stade', 'suivi'] },
     { type: 'Page', label: 'Mon compte', href: 'compte.html', keywords: ['profil', 'abonnement', 'securite', 'sécurité'] },
     { type: 'Page', label: 'Feedback', href: 'feedback.html', keywords: ['support', 'aide', 'message', 'bug'] },
     { type: 'Page', label: 'Marché', href: 'marche.html', keywords: ['marche', 'marché', 'analyse'] },
