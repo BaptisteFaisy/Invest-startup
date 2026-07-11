@@ -140,6 +140,10 @@
         el.hidden = false;
       }
 
+      if (new URLSearchParams(window.location.search).get('switch')) {
+        document.querySelector('#panel-login .auth-lead').textContent = 'Connectez-vous avec un autre compte administrateur.';
+      }
+
       let tempToken = null;
 
       function showPanel(id) {

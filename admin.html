@@ -157,6 +157,7 @@
       <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
       <div id="nav-links" class="nav-links">
         <span class="nav-link" id="admin-email" style="color:var(--muted);font-size:.85rem;"></span>
+        <button class="button ghost" id="nav-switch-account">Changer de compte</button>
         <button class="button ghost" id="nav-logout">Se déconnecter</button>
       </div>
     </div>
@@ -363,6 +364,10 @@
           await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
           window.location.href = 'login.html';
         });
+        document.getElementById('nav-switch-account').addEventListener('click', async () => {
+          await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+          window.location.href = 'login.html?switch=1';
+        });
         loadStartups();
         loadThreads();
       })
@@ -556,10 +561,20 @@
     async function openThread(userId) {
       activeThreadUserId = userId;
       renderThreadList();
-      const r = await fetch(`/api/admin/feedback/${userId}`, { credentials: 'include' });
-      if (!r.ok) return;
-      const data = await r.json();
-      renderPanel(data.thread);
+      const panel = document.getElementById('msg-panel');
+      panel.innerHTML = '<p class="msg-panel__empty">Chargement…</p>';
+      try {
+        const r = await fetch(`/api/admin/feedback/${encodeURIComponent(userId)}`, { credentials: 'include' });
+        if (!r.ok) {
+          const err = await r.json().catch(() => ({}));
+          panel.innerHTML = `<p class="msg-panel__empty">Erreur : ${escHtml(err.error || ('HTTP ' + r.status))}</p>`;
+          return;
+        }
+        const data = await r.json();
+        renderPanel(data.thread);
+      } catch {
+        panel.innerHTML = '<p class="msg-panel__empty">Impossible de charger la conversation.</p>';
+      }
     }
 
     function renderPanel(thread) {
