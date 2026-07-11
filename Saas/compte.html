@@ -15,10 +15,16 @@
   <style>
     body { background: #08090c; min-height: 100vh; }
 
-    /* Topbar noir (identique aux autres pages outils) : marque, goutte et menus */
+    /* Topbar noir (identique aux autres pages outils) : marque, goutte et menus.
+       La mise en page est déclarée en ligne pour ne pas dépendre d'editor.css :
+       sinon la barre s'empile verticalement si la feuille externe n'est pas chargée. */
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 56px; padding: 0 20px; background: #08090c !important; border-bottom: 1px solid rgba(255,255,255,0.07) !important; position: sticky; top: 0; z-index: 70; }
+    .topbar__left { display: flex; align-items: center; gap: 16px; min-width: 0; }
+    .topbar__actions { display: flex; align-items: center; gap: 8px; flex: none; }
     .topbar .brand { color: #fff !important; display: flex; align-items: center; gap: 8px; }
     .topbar .brand__plus { color: #fff !important; }
     .topbar .brand__logo { display: block; flex: none; }
+    .topbar__doc { color: #fff !important; border-left-color: rgba(255,255,255,0.2) !important; }
     .app { visibility: hidden; }
     .app.ready { visibility: visible; }
     /* editor.css verrouille .app à 100vh/overflow:hidden (éditeur plein écran).
