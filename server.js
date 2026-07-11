@@ -201,6 +201,7 @@ async function deleteUserAccountById(id) {
     col('saas_documents').deleteMany({ user_id: id }),
     col('saas_doc_versions').deleteMany({ user_id: id }),
     col('saas_folders').deleteMany({ user_id: id }),
+    col('saas_dilution_simulations').deleteMany({ user_id: id }),
     col('saas_fundraising_profiles').deleteMany({ user_id: id }),
     col('saas_claude_usage').deleteMany({ user_id: id }),
   ]);
