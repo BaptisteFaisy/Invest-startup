@@ -2640,6 +2640,7 @@ async function ensureUserFolders(userId) {
         id: 1, key: 1, seed_version: 1,
         checklist: 1, marks: 1, items_state: 1,
         investor_checklist_document_id: 1, checklist_origin: 1,
+        investor_checklists: 1,
       },
     })
     .toArray();
@@ -2669,7 +2670,8 @@ async function ensureUserFolders(userId) {
     const keepsInvestorChecklist = !!(
       cur
       && cur.checklist_origin === 'investor'
-      && cur.investor_checklist_document_id != null
+      && (cur.investor_checklist_document_id != null
+        || (Array.isArray(cur.investor_checklists) && cur.investor_checklists.length))
       && Array.isArray(cur.checklist)
     );
     const set = {
@@ -3160,6 +3162,49 @@ function investorChecklistItemsFromText(text) {
   return items.slice(0, 160);
 }
 
+const MAX_INVESTOR_CHECKLISTS = 20;
+
+// Identifiant stable d'une checklist investisseur au sein d'un dossier.
+function nextInvestorChecklistId(list) {
+  return (Array.isArray(list) ? list : [])
+    .reduce((max, c) => Math.max(max, Number(c && c.id) || 0), 0) + 1;
+}
+
+// Roadlist fusionnée (union dédupliquée par slug, dans l'ordre d'import des
+// checklists) à partir des checklists investisseurs conservées. Chaque ligne
+// n'apparaît qu'une fois même si plusieurs investisseurs la demandent : la
+// provenance (« demandé par ») est portée par investor_checklists[].item_slugs.
+function mergedInvestorChecklist(investorChecklists) {
+  const seen = new Set();
+  const checklist = [];
+  (investorChecklists || []).forEach(c => {
+    (c.items || []).forEach(item => {
+      const slug = checklistSlug(item);
+      if (!slug || seen.has(slug)) return;
+      seen.add(slug);
+      checklist.push(item);
+    });
+  });
+  return { checklist, marks: checklist.map(() => '') };
+}
+
+// Nettoie items_state après un changement de checklists : ne garde que les
+// slugs encore demandés et purge les références « envoyé à » vers des
+// investisseurs supprimés.
+function pruneInvestorItemsState(itemsState, allowedSlugs, allowedChecklistIds) {
+  const out = {};
+  for (const [slug, st] of Object.entries(itemsState || {})) {
+    if (!allowedSlugs.has(slug)) continue;
+    if (Array.isArray(st.sent)) {
+      const sent = st.sent.filter(cid => allowedChecklistIds.has(Number(cid)));
+      out[slug] = sent.length === st.sent.length ? st : { ...st, sent };
+    } else {
+      out[slug] = st;
+    }
+  }
+  return out;
+}
+
 app.post('/api/saas/folders/:id/investor-checklist', requireAuth, saasUpload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Importez la checklist de l’investisseur au format PDF ou Word (max. 15 Mo).' });
 
@@ -3169,11 +3214,16 @@ app.post('/api/saas/folders/:id/investor-checklist', requireAuth, saasUpload.sin
   if (!INVESTOR_CHECKLIST_FOLDER_KEYS.has(folder.key))
     return res.status(403).json({ error: 'Cette action est réservée aux étapes de due diligence.' });
 
+  const existing = Array.isArray(folder.investor_checklists) ? folder.investor_checklists : [];
+  if (existing.length >= MAX_INVESTOR_CHECKLISTS)
+    return res.status(409).json({ error: `Vous ne pouvez pas dépasser ${MAX_INVESTOR_CHECKLISTS} checklists sur une étape.` });
+
   const sourceExt = path.extname(req.file.originalname || '').toLowerCase();
   if (!['.pdf', '.doc', '.docx'].includes(sourceExt))
     return res.status(422).json({ error: 'La checklist doit être un PDF ou un document Word lisible.' });
 
   const now = new Date().toISOString();
+  const investorName = shortText(req.body?.investor_name, 120);
   const doc = {
     id: await nextId('saas_documents'), user_id: req.user.id,
     name: (req.body?.name || req.file.originalname).trim(),
@@ -3191,22 +3241,26 @@ app.post('/api/saas/folders/:id/investor-checklist', requireAuth, saasUpload.sin
     return res.status(422).json({ error: 'La liste de documents n’a pas pu être lue. Importez un PDF/Word contenant une liste sélectionnable.' });
   }
 
-  // Lors d'un remplacement, on conserve l'ancienne checklist en archive (sans
-  // l'afficher parmi les pièces à transmettre ni dans la data room).
-  if (folder.investor_checklist_document_id != null) {
-    await col('saas_documents').updateOne(
-      { id: folder.investor_checklist_document_id, user_id: req.user.id },
-      { $set: { is_investor_checklist: false, is_version: true, archived_at: now } },
-    );
-  }
-
-  const allowed = new Set(items.map(checklistSlug));
-  const itemsState = Object.fromEntries(Object.entries(folder.items_state || {})
-    .filter(([slug]) => allowed.has(slug)));
+  // Nouvelle checklist ajoutée à la suite des précédentes (jamais un remplacement) :
+  // chaque investisseur garde sa liste et son nom, la roadlist affichée est l'union.
+  const entry = {
+    id: nextInvestorChecklistId(existing),
+    name: investorName,
+    document_id: doc.id,
+    created_at: now,
+    items,
+    item_slugs: items.map(checklistSlug),
+  };
+  const investorChecklists = [...existing, entry];
+  const merged = mergedInvestorChecklist(investorChecklists);
+  const allowedSlugs = new Set(merged.checklist.map(checklistSlug));
+  const allowedIds = new Set(investorChecklists.map(c => Number(c.id)));
+  const itemsState = pruneInvestorItemsState(folder.items_state, allowedSlugs, allowedIds);
   const update = {
-    checklist: items,
-    marks: [],
+    checklist: merged.checklist,
+    marks: merged.marks,
     items_state: itemsState,
+    investor_checklists: investorChecklists,
     investor_checklist_document_id: doc.id,
     checklist_origin: 'investor',
     checklist_updated_at: now,
@@ -3218,7 +3272,112 @@ app.post('/api/saas/folders/:id/investor-checklist', requireAuth, saasUpload.sin
     { $set: update, $unset: { dd_fallback_models: '' } },
   );
   const saved = await col('saas_folders').findOne({ id, user_id: req.user.id });
-  res.status(201).json({ folder: publicFolder(saved), document: publicDoc(doc), items });
+  res.status(201).json({ folder: publicFolder(saved), document: publicDoc(doc), items, checklist_id: entry.id });
+});
+
+// Renomme l'investisseur associé à une checklist importée.
+app.patch('/api/saas/folders/:id/investor-checklist/:checklistId', requireAuth, async (req, res) => {
+  const id  = Number(req.params.id);
+  const cid = Number(req.params.checklistId);
+  const folder = await col('saas_folders').findOne({ id, user_id: req.user.id });
+  if (!folder) return res.status(404).json({ error: 'Dossier introuvable' });
+  if (!INVESTOR_CHECKLIST_FOLDER_KEYS.has(folder.key))
+    return res.status(403).json({ error: 'Cette action est réservée aux étapes de due diligence.' });
+  const list = Array.isArray(folder.investor_checklists) ? folder.investor_checklists : [];
+  if (!list.some(c => Number(c.id) === cid))
+    return res.status(404).json({ error: 'Checklist introuvable.' });
+
+  const name = shortText(req.body?.name, 120);
+  const next = list.map(c => (Number(c.id) === cid ? { ...c, name } : c));
+  await col('saas_folders').updateOne({ id, user_id: req.user.id }, { $set: { investor_checklists: next } });
+  const saved = await col('saas_folders').findOne({ id, user_id: req.user.id });
+  res.json({ success: true, folder: publicFolder(saved) });
+});
+
+// Retire une checklist investisseur : la roadlist est recalculée sur les
+// checklists restantes (les lignes que plus personne ne demande disparaissent),
+// et le fichier source est supprimé.
+app.delete('/api/saas/folders/:id/investor-checklist/:checklistId', requireAuth, async (req, res) => {
+  const id  = Number(req.params.id);
+  const cid = Number(req.params.checklistId);
+  const folder = await col('saas_folders').findOne({ id, user_id: req.user.id });
+  if (!folder) return res.status(404).json({ error: 'Dossier introuvable' });
+  if (!INVESTOR_CHECKLIST_FOLDER_KEYS.has(folder.key))
+    return res.status(403).json({ error: 'Cette action est réservée aux étapes de due diligence.' });
+  const list = Array.isArray(folder.investor_checklists) ? folder.investor_checklists : [];
+  const entry = list.find(c => Number(c.id) === cid);
+  if (!entry) return res.status(404).json({ error: 'Checklist introuvable.' });
+
+  if (entry.document_id != null) {
+    await col('saas_documents').deleteOne({ id: entry.document_id, user_id: req.user.id });
+    await col('saas_doc_versions').deleteMany({ user_id: req.user.id, document_id: entry.document_id });
+  }
+
+  const remaining = list.filter(c => Number(c.id) !== cid);
+  const now = new Date().toISOString();
+  if (!remaining.length) {
+    // Plus aucune checklist : l'étape revient à son état initial (aucune pièce ni
+    // modèle proposé par défaut), comme après la suppression de la dernière request list.
+    await col('saas_folders').updateOne(
+      { id, user_id: req.user.id },
+      {
+        $set: { checklist: [], marks: [], items_state: {} },
+        $unset: {
+          investor_checklists: '', investor_checklist_document_id: '',
+          checklist_origin: '', checklist_updated_at: '', dd_fallback_models: '',
+        },
+      },
+    );
+  } else {
+    const merged = mergedInvestorChecklist(remaining);
+    const allowedSlugs = new Set(merged.checklist.map(checklistSlug));
+    const allowedIds = new Set(remaining.map(c => Number(c.id)));
+    const itemsState = pruneInvestorItemsState(folder.items_state, allowedSlugs, allowedIds);
+    await col('saas_folders').updateOne(
+      { id, user_id: req.user.id },
+      {
+        $set: {
+          checklist: merged.checklist, marks: merged.marks, items_state: itemsState,
+          investor_checklists: remaining,
+          investor_checklist_document_id: remaining[remaining.length - 1].document_id,
+          checklist_origin: 'investor', checklist_updated_at: now,
+        },
+      },
+    );
+  }
+  const saved = await col('saas_folders').findOne({ id, user_id: req.user.id });
+  res.json({ success: true, folder: publicFolder(saved) });
+});
+
+// Marque (ou annule) l'envoi d'un document à un investisseur donné, pour suivre
+// « ce qu'il reste à envoyer et à qui ».
+app.put('/api/saas/folders/:id/checklist-item-sent', requireAuth, async (req, res) => {
+  const id = Number(req.params.id);
+  const folder = await col('saas_folders').findOne({ id, user_id: req.user.id });
+  if (!folder) return res.status(404).json({ error: 'Dossier introuvable' });
+  if (!INVESTOR_CHECKLIST_FOLDER_KEYS.has(folder.key))
+    return res.status(403).json({ error: 'Cette action est réservée aux étapes de due diligence.' });
+
+  const slug = checklistSlug(req.body?.slug);
+  const cid  = Number(req.body?.checklist_id);
+  const sent = !!req.body?.sent;
+  if (!slug || !cid) return res.status(400).json({ error: 'Requête incomplète.' });
+  if (!(folder.checklist || []).some(it => checklistSlug(it) === slug))
+    return res.status(404).json({ error: 'Élément introuvable sur cette étape.' });
+  if (!(folder.investor_checklists || []).some(c => Number(c.id) === cid))
+    return res.status(404).json({ error: 'Investisseur introuvable sur cette étape.' });
+
+  const state = { ...(folder.items_state || {}) };
+  const cur   = { ...(state[slug] || {}) };
+  const arr   = Array.isArray(cur.sent) ? cur.sent.map(Number).filter(Number.isFinite) : [];
+  const has   = arr.includes(cid);
+  if (sent && !has) arr.push(cid);
+  if (!sent && has) arr.splice(arr.indexOf(cid), 1);
+  cur.sent = arr;
+  state[slug] = cur;
+  await col('saas_folders').updateOne({ id, user_id: req.user.id }, { $set: { items_state: state } });
+  const saved = await col('saas_folders').findOne({ id, user_id: req.user.id });
+  res.json({ success: true, folder: publicFolder(saved) });
 });
 
 // Active ou masque, à la demande du fondateur, la checklist exhaustive de
@@ -3280,19 +3439,41 @@ app.delete('/api/saas/documents/:id', requireAuth, async (req, res) => {
   // Détache le document de toute checklist de phase qui le référence.
   const folders = await col('saas_folders').find({ user_id: req.user.id }).toArray();
   for (const f of folders) {
-    // La suppression de la request list remet l'étape dans son état initial :
-    // aucune pièce ni aucun modèle ne doit rester proposé par défaut.
-    if (f.investor_checklist_document_id === id) {
-      await col('saas_folders').updateOne(
-        { id: f.id, user_id: req.user.id },
-        {
-          $set: { checklist: [], marks: [], items_state: {} },
-          $unset: {
-            investor_checklist_document_id: '', checklist_origin: '',
-            checklist_updated_at: '', dd_fallback_models: '',
+    // Suppression directe d'un fichier source de checklist investisseur : on
+    // retire l'entrée correspondante et on recalcule la roadlist sur les
+    // checklists restantes (ou on réinitialise l'étape s'il n'en reste aucune).
+    const invList = Array.isArray(f.investor_checklists) ? f.investor_checklists : [];
+    const removedEntry = invList.find(c => c.document_id === id);
+    if (removedEntry || f.investor_checklist_document_id === id) {
+      const remaining = invList.filter(c => c.document_id !== id);
+      if (!remaining.length) {
+        await col('saas_folders').updateOne(
+          { id: f.id, user_id: req.user.id },
+          {
+            $set: { checklist: [], marks: [], items_state: {} },
+            $unset: {
+              investor_checklists: '', investor_checklist_document_id: '',
+              checklist_origin: '', checklist_updated_at: '', dd_fallback_models: '',
+            },
           },
-        },
-      );
+        );
+      } else {
+        const merged = mergedInvestorChecklist(remaining);
+        const allowedSlugs = new Set(merged.checklist.map(checklistSlug));
+        const allowedIds = new Set(remaining.map(c => Number(c.id)));
+        await col('saas_folders').updateOne(
+          { id: f.id, user_id: req.user.id },
+          {
+            $set: {
+              checklist: merged.checklist, marks: merged.marks,
+              items_state: pruneInvestorItemsState(f.items_state, allowedSlugs, allowedIds),
+              investor_checklists: remaining,
+              investor_checklist_document_id: remaining[remaining.length - 1].document_id,
+              checklist_origin: 'investor',
+            },
+          },
+        );
+      }
       continue;
     }
     if (!f.items_state) continue;

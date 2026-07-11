@@ -144,6 +144,40 @@
     .investor-checklist__file:hover { text-decoration:underline; }
     .investor-checklist__actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; flex:none; }
     @media (max-width: 620px) { .investor-checklist { align-items:flex-start; flex-direction:column; } .investor-checklist__actions { justify-content:flex-start; } }
+    /* Panneau « Checklists investisseurs » (plusieurs request lists nommées par étape de DD) */
+    .dd-checklists { margin:0 0 16px; padding:14px 16px; border:1px solid rgba(37,99,235,.22); border-radius:12px; background:#eff6ff; }
+    .dd-checklists__head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .dd-checklists__title { font-family:'Archivo',sans-serif; font-weight:700; color:#172554; font-size:14px; }
+    .dd-checklists__sub { margin:3px 0 0; color:#475569; font-size:12.5px; line-height:1.45; }
+    .dd-checklists__actions { display:flex; flex-wrap:wrap; gap:8px; }
+    .dd-checklists__list { list-style:none; margin:12px 0 0; padding:0; display:flex; flex-direction:column; gap:8px; }
+    .dd-checklist-row { display:flex; align-items:center; justify-content:space-between; gap:12px; background:#fff; border:1px solid rgba(37,99,235,.16); border-radius:10px; padding:9px 12px; }
+    .dd-checklist-row__main { min-width:0; }
+    .dd-checklist-row__name { font-family:'Archivo',sans-serif; font-weight:700; color:#0f172a; font-size:13.5px; }
+    .dd-checklist-row__meta { margin:2px 0 0; color:#64748b; font-size:12px; display:flex; flex-wrap:wrap; gap:4px 10px; align-items:center; }
+    .dd-checklist-row__file { color:#1d4ed8; font-weight:600; text-decoration:none; }
+    .dd-checklist-row__file:hover { text-decoration:underline; }
+    .dd-checklist-row__actions { display:flex; flex-wrap:wrap; gap:6px; flex:none; }
+    /* Récapitulatif « ce qu'il reste à envoyer et à qui » */
+    .dd-summary { margin:12px 0 0; padding-top:12px; border-top:1px dashed rgba(37,99,235,.20); }
+    .dd-summary__title { font-family:'Archivo',sans-serif; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#475569; margin-bottom:8px; }
+    .dd-summary__list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:6px; }
+    .dd-summary__inv { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:12.5px; color:#334155; }
+    .dd-summary__inv-name { font-weight:600; color:#0f172a; }
+    .dd-summary__badges { display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-end; }
+    .dd-summary__b { font-size:11.5px; font-weight:600; padding:2px 8px; border-radius:99px; white-space:nowrap; }
+    .dd-summary__b--todo { background:#fef3c7; color:#92400e; }
+    .dd-summary__b--missing { background:#fee2e2; color:#991b1b; }
+    .dd-summary__b--done { background:#dcfce7; color:#166534; }
+    /* Suivi d'envoi par investisseur, sous chaque document de la roadlist */
+    .bsa-item__send { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:8px; }
+    .bsa-item__send-label { font-size:11.5px; font-weight:600; color:#64748b; }
+    .dd-chip { font-size:11.5px; font-weight:600; padding:3px 10px; border-radius:99px; border:1px solid transparent; cursor:pointer; }
+    .dd-chip--todo { background:#fef3c7; color:#92400e; border-color:rgba(146,64,14,.20); }
+    .dd-chip--todo:hover { background:#fde68a; }
+    .dd-chip--sent { background:#dcfce7; color:#166534; border-color:rgba(22,101,52,.22); }
+    .dd-chip--sent:hover { background:#bbf7d0; }
+    .dd-chip--missing { background:#f1f5f9; color:#94a3b8; cursor:default; border-color:rgba(148,163,184,.25); }
     .cli { display: flex; align-items: center; gap: 12px; background: var(--card, #fff); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; }
     .cli__status { flex: none; width: 18px; text-align: center; font-size: 14px; line-height: 1; }
     .cli__status--todo { color: #fff; }
@@ -993,12 +1027,21 @@
     }
     document.getElementById('import-btn').addEventListener('click', () => openImport(null, ''));
     document.getElementById('new-folder-btn').addEventListener('click', createFolder);
-    investorChecklistInput.addEventListener('change', () => {
+    investorChecklistInput.addEventListener('change', async () => {
       const file = investorChecklistInput.files && investorChecklistInput.files[0];
       const folderId = investorChecklistFolderId;
       investorChecklistInput.value = '';
       investorChecklistFolderId = null;
-      if (file && folderId != null) importInvestorChecklist(folderId, file);
+      if (!file || folderId == null) return;
+      // Le nom de l'investisseur est demandé juste après l'import (modifiable ensuite).
+      const name = await promptText({
+        title: 'Nom de l’investisseur',
+        text: 'À quel investisseur correspond cette checklist ? (modifiable plus tard)',
+        placeholder: 'Ex. Kima Ventures, BpiFrance…',
+        confirmText: 'Importer la checklist',
+      });
+      if (name === null) return; // import annulé
+      importInvestorChecklist(folderId, file, name.trim());
     });
 
     /* ---- Type de levée : Levée classique / BSA-AIR / à définir ---- */
@@ -3479,29 +3522,186 @@
       return !!f && (f.key === 'due-diligence-preliminaire' || f.key === 'due-diligence');
     }
 
+    // ---- Checklists investisseurs (plusieurs request lists nommées par étape) ----
+    function investorChecklistsOf(f) {
+      return Array.isArray(f && f.investor_checklists) ? f.investor_checklists : [];
+    }
+    function hasInvestorChecklists(f) {
+      return f && f.checklist_origin === 'investor' && investorChecklistsOf(f).length > 0;
+    }
+    function investorLabel(c, idx) {
+      const n = (c && c.name || '').trim();
+      return n || ('Investisseur ' + (idx + 1));
+    }
+    // Investisseurs ayant demandé une ligne (par slug) → [{ c, idx }].
+    function investorsForSlug(f, slug) {
+      return investorChecklistsOf(f)
+        .map((c, idx) => ({ c, idx }))
+        .filter(({ c }) => Array.isArray(c.item_slugs)
+          ? c.item_slugs.includes(slug)
+          : (c.items || []).some(it => slugify(it) === slug));
+    }
+    function isSentTo(f, slug, cid) {
+      const st = (f.items_state || {})[slug] || {};
+      return Array.isArray(st.sent) && st.sent.map(Number).includes(Number(cid));
+    }
+    function isSlugLinked(f, slug) {
+      const st = (f.items_state || {})[slug];
+      return !!(st && st.document_id != null && docs.some(d => d.id === st.document_id));
+    }
+
+    // Classement thématique des lignes de checklist en « dossiers » (les request
+    // lists sont du texte libre : on range chaque ligne par mots-clés, avec un
+    // dossier « Autres documents demandés » en repli).
+    const DD_ITEM_THEMES = [
+      { key: 'corporate', title: 'Corporate, capital & gouvernance', kw: ['kbis', 'statut', 'capital', 'cap-table', 'capitalisation', 'actionnaire', 'rbe', 'beneficiaire', 'pacte', 'mandataire', 'greffe', 'immatricul', 'mouvements-de-titres', 'souscription', 'dilution', 'bspce', 'bsa', 'stock-option', 'aga', 'actions-gratuites', 'valeurs-mobilieres', 'organigramme-juridique', 'filiale', 'assemblee', 'conseil', 'convertibles', 'kyc'] },
+      { key: 'finance', title: 'Finance, comptabilité & fiscal', kw: ['comptes', 'comptable', 'bilan', 'resultat', 'tresorerie', 'bancaire', 'banque', 'fiscal', 'tva', 'liasse', 'balance', 'dette', 'emprunt', 'subvention', 'mrr', 'arr', 'runway', 'business-plan', 'previsionnel', 'budget', 'kpi', 'financiere', 'chiffre-d-affaires', 'factur', 'creances', 'covenant'] },
+      { key: 'social', title: 'Social, RH & management', kw: ['salarie', 'contrat-de-travail', 'remuneration', 'bonus', 'freelance', 'consultant', 'dirigeant', 'recrutement', 'vesting', 'urssaf', 'paie', 'leavers', 'management-package', 'employe'] },
+      { key: 'ip-tech', title: 'PI, tech & données', kw: ['propriete-intellectuelle', 'brevet', 'marque', 'nom-de-domaine', 'logiciel', 'open-source', 'code', 'roadmap', 'architecture', 'securite', 'rgpd', 'donnees', 'dpa', 'dpia', 'cookies', 'technique', 'hebergement', 'cloud'] },
+      { key: 'commercial', title: 'Commercial & contrats', kw: ['client', 'contrat', 'fournisseur', 'partenaire', 'cgv', 'cgu', 'commande', 'backlog', 'pipeline', 'licence', 'sow', 'prestataire', 'references-clients'] },
+      { key: 'conformite', title: 'Conformité, juridique & risques', kw: ['aml', 'sanction', 'corruption', 'conformite', 'reglementaire', 'agrement', 'autorisation', 'certification', 'contentieux', 'litige', 'avocat', 'assurance', 'sinistre', 'risque', 'bail', 'immobil', 'privileges', 'nantissement'] },
+      { key: 'data-room', title: 'Data room & divers', kw: ['data-room', 'q-a', 'index', 'nda'] },
+    ];
+    function classifyDdItem(label) {
+      const s = slugify(label);
+      for (const t of DD_ITEM_THEMES) { if (t.kw.some(k => s.includes(k))) return t; }
+      return { key: 'autres', title: 'Autres documents demandés' };
+    }
+    // Catégories dynamiques pour une étape pilotée par des checklists investisseurs :
+    // roadlist fusionnée, rangée par dossiers thématiques (indices conservés).
+    function investorChecklistCategories(f) {
+      const list = Array.isArray(f.checklist) ? f.checklist : [];
+      if (!list.length) return null;
+      const order = [...DD_ITEM_THEMES.map(t => t.key), 'autres'];
+      const buckets = new Map();
+      list.forEach((label, index) => {
+        const theme = classifyDdItem(label);
+        if (!buckets.has(theme.key)) buckets.set(theme.key, { key: theme.key, title: theme.title, items: [] });
+        buckets.get(theme.key).items.push({ label, index });
+      });
+      const cats = order.filter(k => buckets.has(k)).map(k => buckets.get(k));
+      return cats.length ? cats : null;
+    }
+
+    // Récapitulatif par investisseur : envoyés / à envoyer / manquants.
+    function investorSendStats(f, c) {
+      const slugs = Array.isArray(c.item_slugs) ? c.item_slugs : (c.items || []).map(slugify);
+      let total = 0, sent = 0, toSend = 0, missing = 0;
+      slugs.forEach(slug => {
+        total++;
+        const linked = isSlugLinked(f, slug);
+        if (!linked) { missing++; return; }
+        if (isSentTo(f, slug, c.id)) sent++; else toSend++;
+      });
+      return { total, sent, toSend, missing };
+    }
+
+    // Petite fenêtre de saisie texte (Promise<string|null>), style cohérent avec
+    // les modales de l'app. Résout avec la valeur saisie, ou null si annulé.
+    function promptText({ title = '', text = '', placeholder = '', value = '', confirmText = 'Valider', cancelText = 'Annuler' } = {}) {
+      return new Promise(resolve => {
+        const overlay = document.createElement('div');
+        overlay.className = 'fmodal is-open';
+        overlay.style.zIndex = '1200';
+        overlay.innerHTML = `
+          <div class="fmodal__backdrop" data-cancel></div>
+          <div class="fmodal__dialog" style="max-width:460px">
+            <div class="fmodal__head">
+              <div class="fmodal__titles"><h2 class="fmodal__title">${esc(title)}</h2></div>
+              <button class="fmodal__close" type="button" data-cancel aria-label="Fermer">&times;</button>
+            </div>
+            <div class="fmodal__body">
+              ${text ? `<p style="margin:0 0 12px;color:#475569;font-size:13.5px;line-height:1.5">${esc(text)}</p>` : ''}
+              <input type="text" class="prompt-input" placeholder="${esc(placeholder)}" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid rgba(8,9,12,.18);border-radius:10px;font-size:14px" />
+              <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
+                <button type="button" class="documents-action-btn" data-cancel>${esc(cancelText)}</button>
+                <button type="button" class="documents-action-btn" data-ok style="background:#2563eb;color:#fff;border-color:#2563eb">${esc(confirmText)}</button>
+              </div>
+            </div>
+          </div>`;
+        document.body.appendChild(overlay);
+        const input = overlay.querySelector('.prompt-input');
+        input.value = value || '';
+        let done = false;
+        const close = (result) => { if (done) return; done = true; overlay.remove(); resolve(result); };
+        overlay.querySelectorAll('[data-cancel]').forEach(el => el.addEventListener('click', () => close(null)));
+        overlay.querySelector('[data-ok]').addEventListener('click', () => close(input.value));
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') { e.preventDefault(); close(input.value); }
+          else if (e.key === 'Escape') { e.preventDefault(); close(null); }
+        });
+        setTimeout(() => { input.focus(); input.select(); }, 30);
+      });
+    }
+
     function investorChecklistEl(f) {
-      const sourceId = f.investor_checklist_document_id;
-      const source = sourceId != null ? docs.find(d => d.id === sourceId) : null;
-      const imported = f.checklist_origin === 'investor' && sourceId != null;
+      const lists = investorChecklistsOf(f);
+      const imported = hasInvestorChecklists(f);
       const fallbackActive = !imported && !!f.dd_fallback_models;
       const box = document.createElement('section');
-      box.className = 'investor-checklist';
+      box.className = 'dd-checklists';
+
+      const sub = imported
+        ? `${lists.length} checklist${lists.length > 1 ? 's' : ''} importée${lists.length > 1 ? 's' : ''} · ${(f.checklist || []).length} document${(f.checklist || []).length > 1 ? 's' : ''} demandé${(f.checklist || []).length > 1 ? 's' : ''} au total. Chaque document indique à quel(s) investisseur(s) l’envoyer.`
+        : fallbackActive
+          ? 'Préparation Liquid+ temporaire affichée tant que vous n’avez pas de request list. L’import d’une checklist investisseur la remplacera automatiquement.'
+          : 'Importez la request list de chaque investisseur (PDF/Word). Vous pourrez nommer l’investisseur juste après. Vous pouvez aussi utiliser temporairement la liste complète Liquid+.';
+
       box.innerHTML = `
-        <div>
-          <div class="investor-checklist__title">${imported
-            ? 'Checklist de l’investisseur'
-            : fallbackActive ? 'Préparation Liquid+ temporaire' : 'Checklist de l’investisseur à venir'}</div>
-          <p class="investor-checklist__text">${imported
-            ? `${(f.checklist || []).length} document${(f.checklist || []).length > 1 ? 's' : ''} demandé${(f.checklist || []).length > 1 ? 's' : ''} — seuls ces documents et leurs modèles éventuels sont proposés.`
-            : fallbackActive
-              ? 'La liste complète de préparation Liquid+ est affichée tant que vous n’avez pas la request list. Vous pouvez la masquer à tout moment ; l’import de la checklist investisseur la remplacera automatiquement.'
-              : 'Aucun document n’est proposé par défaut. Importez la request list reçue, ou utilisez temporairement la liste complète Liquid+ pour commencer à préparer vos documents.'}</p>
-          ${source ? `<a class="investor-checklist__file" href="/api/saas/documents/${source.id}/download">Télécharger ${esc(source.name)}</a>` : ''}
-        </div>
-        <div class="investor-checklist__actions">
-          <button type="button" class="documents-action-btn" data-dd-import>${imported ? 'Remplacer la checklist' : 'Importer la checklist'}</button>
-          ${!imported ? `<button type="button" class="documents-action-btn" data-dd-fallback>${fallbackActive ? 'Masquer les modèles Liquid+' : 'Préparer avec les modèles Liquid+'}</button>` : ''}
+        <div class="dd-checklists__head">
+          <div>
+            <div class="dd-checklists__title">Checklists investisseurs</div>
+            <p class="dd-checklists__sub">${sub}</p>
+          </div>
+          <div class="dd-checklists__actions">
+            <button type="button" class="documents-action-btn" data-dd-import>Importer une checklist</button>
+            ${!imported ? `<button type="button" class="documents-action-btn" data-dd-fallback>${fallbackActive ? 'Masquer les modèles Liquid+' : 'Préparer avec les modèles Liquid+'}</button>` : ''}
+          </div>
         </div>`;
+
+      if (lists.length) {
+        const ul = document.createElement('ul');
+        ul.className = 'dd-checklists__list';
+        lists.forEach((c, idx) => {
+          const source = c.document_id != null ? docs.find(d => d.id === c.document_id) : null;
+          const count = (Array.isArray(c.item_slugs) ? c.item_slugs : (c.items || [])).length;
+          const li = document.createElement('li');
+          li.className = 'dd-checklist-row';
+          li.innerHTML = `
+            <div class="dd-checklist-row__main">
+              <div class="dd-checklist-row__name">${esc(investorLabel(c, idx))}</div>
+              <div class="dd-checklist-row__meta">
+                <span>${count} document${count > 1 ? 's' : ''} demandé${count > 1 ? 's' : ''}</span>
+                ${source ? `<a class="dd-checklist-row__file" href="/api/saas/documents/${source.id}/download">Télécharger le fichier</a>` : ''}
+              </div>
+            </div>
+            <div class="dd-checklist-row__actions">
+              <button type="button" class="fbtn fbtn--mini" data-rename>Renommer</button>
+              <button type="button" class="fbtn fbtn--mini fbtn--del" data-remove title="Retirer cette checklist">✕</button>
+            </div>`;
+          li.querySelector('[data-rename]').addEventListener('click', () => renameInvestorChecklist(f.id, c.id, investorLabel(c, idx)));
+          li.querySelector('[data-remove]').addEventListener('click', () => removeInvestorChecklist(f.id, c.id, investorLabel(c, idx)));
+          ul.appendChild(li);
+        });
+        box.appendChild(ul);
+
+        // Récapitulatif « ce qu'il reste à envoyer et à qui ».
+        const summary = document.createElement('div');
+        summary.className = 'dd-summary';
+        const rows = lists.map((c, idx) => {
+          const s = investorSendStats(f, c);
+          const badges = [
+            s.sent ? `<span class="dd-summary__b dd-summary__b--done">${s.sent} envoyé${s.sent > 1 ? 's' : ''}</span>` : '',
+            s.toSend ? `<span class="dd-summary__b dd-summary__b--todo">${s.toSend} à envoyer</span>` : '',
+            s.missing ? `<span class="dd-summary__b dd-summary__b--missing">${s.missing} à produire</span>` : '',
+            (!s.toSend && !s.missing && s.total) ? `<span class="dd-summary__b dd-summary__b--done">tout envoyé ✓</span>` : '',
+          ].filter(Boolean).join('');
+          return `<li class="dd-summary__inv"><span class="dd-summary__inv-name">${esc(investorLabel(c, idx))}</span><span class="dd-summary__badges">${badges}</span></li>`;
+        }).join('');
+        summary.innerHTML = `<div class="dd-summary__title">Reste à envoyer, par investisseur</div><ul class="dd-summary__list">${rows}</ul>`;
+        box.appendChild(summary);
+      }
+
       box.querySelector('[data-dd-import]').addEventListener('click', () => openInvestorChecklistImport(f.id));
       const fallbackBtn = box.querySelector('[data-dd-fallback]');
       if (fallbackBtn) fallbackBtn.addEventListener('click', () => toggleDDFallbackModels(f.id, !fallbackActive));
@@ -3510,9 +3710,11 @@
 
     function documentCategoriesFor(f) {
       if (!f) return null;
-      // Les documents de due diligence doivent refléter la liste de demande de
-      // l'investisseur, pas les catégories génériques de la plateforme.
-      if (isInvestorChecklistPhase(f)) return null;
+      // Étape de DD pilotée par des checklists investisseurs : roadlist fusionnée,
+      // rangée par dossiers thématiques (le repli Liquid+ garde son affichage à plat).
+      if (isInvestorChecklistPhase(f)) {
+        return hasInvestorChecklists(f) ? investorChecklistCategories(f) : null;
+      }
       if (f.key === 'due-diligence') return DD_PUSHED_CATEGORIES;
       if (f.key === 'closing') return CLOSING_CATEGORIES;
       return indexedDocumentCategories(f, DOCUMENT_CATEGORY_DEFS[f.key]);
@@ -4160,6 +4362,44 @@
       // Panneau « historique des versions », déplié via le bouton « Versions (N) ».
       if (linked && versions.length && versionsOpen[f.id + ':' + slug]) {
         li.appendChild(versionHistoryEl(f, slug, doc, versions));
+      }
+
+      // Suivi d'envoi par investisseur : pour les étapes pilotées par des
+      // checklists investisseurs, chaque document rappelle à qui l'envoyer et
+      // permet de cocher l'envoi (une pastille par investisseur demandeur).
+      if (hasInvestorChecklists(f)) {
+        const requesters = investorsForSlug(f, slug);
+        if (requesters.length) {
+          const send = document.createElement('div');
+          send.className = 'bsa-item__send';
+          const label = document.createElement('span');
+          label.className = 'bsa-item__send-label';
+          label.textContent = linked ? 'À envoyer à :' : 'Demandé par :';
+          send.appendChild(label);
+          requesters.forEach(({ c, idx }) => {
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            const name = investorLabel(c, idx);
+            if (!linked) {
+              chip.className = 'dd-chip dd-chip--missing';
+              chip.textContent = name + ' · document manquant';
+              chip.title = 'Importez d’abord le document demandé pour pouvoir l’envoyer.';
+              chip.disabled = true;
+            } else if (isSentTo(f, slug, c.id)) {
+              chip.className = 'dd-chip dd-chip--sent';
+              chip.textContent = '✓ Envoyé à ' + name;
+              chip.title = 'Marquer comme non envoyé';
+              chip.addEventListener('click', () => setItemSent(f.id, slug, c.id, false));
+            } else {
+              chip.className = 'dd-chip dd-chip--todo';
+              chip.textContent = 'À envoyer à ' + name;
+              chip.title = 'Marquer comme envoyé à ' + name;
+              chip.addEventListener('click', () => setItemSent(f.id, slug, c.id, true));
+            }
+            send.appendChild(chip);
+          });
+          li.appendChild(send);
+        }
       }
 
       return li;
@@ -5093,11 +5333,12 @@
       }
     }
 
-    async function importInvestorChecklist(folderId, file) {
+    async function importInvestorChecklist(folderId, file, investorName = '') {
       if (!file) return;
       showErr('');
       const fd = new FormData();
       fd.append('file', file);
+      if (investorName) fd.append('investor_name', investorName);
       try {
         const r = await fetch('/api/saas/folders/' + folderId + '/investor-checklist', {
           method: 'POST', credentials: 'include', body: fd,
@@ -5107,12 +5348,72 @@
           showErr(data.error || 'Import de la checklist échoué.');
           return;
         }
-        // Le serveur a reconstruit la checklist à partir du fichier : on recharge
-        // afin d'afficher uniquement ses lignes et leurs modèles éventuels.
+        // Le serveur a fusionné la nouvelle checklist avec les précédentes : on
+        // recharge pour afficher la roadlist consolidée et le suivi par investisseur.
         await load();
       } catch {
         showErr('Impossible de joindre le serveur.');
       }
+    }
+
+    // Renomme l'investisseur d'une checklist (le nom est demandé, prérempli).
+    async function renameInvestorChecklist(folderId, checklistId, current) {
+      const name = await promptText({
+        title: 'Renommer l’investisseur',
+        text: 'Nom de l’investisseur associé à cette checklist.',
+        placeholder: 'Ex. Kima Ventures, BpiFrance…',
+        value: current || '',
+        confirmText: 'Enregistrer',
+      });
+      if (name === null) return;
+      showErr('');
+      try {
+        const r = await fetch('/api/saas/folders/' + folderId + '/investor-checklist/' + checklistId, {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', body: JSON.stringify({ name: name.trim() }),
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) { showErr(data.error || 'Renommage échoué.'); return; }
+        await load();
+      } catch { showErr('Impossible de joindre le serveur.'); }
+    }
+
+    // Retire une checklist investisseur (recalcule la roadlist côté serveur).
+    async function removeInvestorChecklist(folderId, checklistId, name) {
+      if (!confirm(`Retirer la checklist de « ${name} » ? Les documents qu’aucun autre investisseur ne demande disparaîtront de la liste.`)) return;
+      showErr('');
+      try {
+        const r = await fetch('/api/saas/folders/' + folderId + '/investor-checklist/' + checklistId, {
+          method: 'DELETE', credentials: 'include',
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) { showErr(data.error || 'Suppression échouée.'); return; }
+        await load();
+      } catch { showErr('Impossible de joindre le serveur.'); }
+    }
+
+    // Marque (ou annule) l'envoi d'un document à un investisseur — affichage
+    // optimiste, requête en arrière-plan (resynchronisation si échec).
+    function setItemSent(folderId, slug, checklistId, sent) {
+      showErr('');
+      const f = folders.find(x => x.id === folderId);
+      if (f) {
+        f.items_state = f.items_state || {};
+        const cur = { ...(f.items_state[slug] || {}) };
+        const arr = Array.isArray(cur.sent) ? cur.sent.map(Number).filter(Number.isFinite) : [];
+        const has = arr.includes(Number(checklistId));
+        if (sent && !has) arr.push(Number(checklistId));
+        if (!sent && has) arr.splice(arr.indexOf(Number(checklistId)), 1);
+        cur.sent = arr;
+        f.items_state[slug] = cur;
+        render();
+      }
+      fetch('/api/saas/folders/' + folderId + '/checklist-item-sent', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', body: JSON.stringify({ slug, checklist_id: checklistId, sent: !!sent }),
+      }).then(async (r) => {
+        if (!r.ok) { const d = await r.json().catch(() => ({})); showErr(d.error || 'Action échouée.'); load(); }
+      }).catch(() => { showErr('Impossible de joindre le serveur.'); load(); });
     }
 
     async function toggleDDFallbackModels(folderId, enabled) {
