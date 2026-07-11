@@ -39,6 +39,20 @@
     .inv__title { font-size: 30px; letter-spacing: -0.03em; color: #fff; margin-top: 6px; }
     .inv__sub { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 8px; line-height: 1.55; max-width: 640px; }
 
+    /* Onglets */
+    .tabs { display: flex; gap: 0; border-bottom: 1px solid rgba(255,255,255,0.12); margin: 26px 0 0; }
+    .tab { padding: 11px 20px; font-family: 'Archivo', sans-serif; font-size: 13.5px; font-weight: 700; color: rgba(255,255,255,0.5); cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; }
+    .tab:hover { color: #fff; }
+    .tab.active { color: #fff; border-bottom-color: #3b82f6; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Bientôt */
+    .inv__soon { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 40px 34px; margin-top: 26px; text-align: center; }
+    .inv__soon-badge { display: inline-flex; align-items: center; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #a5b4fc; background: rgba(99,102,241,0.20); padding: 4px 11px; border-radius: 99px; margin-bottom: 14px; }
+    .inv__soon-h { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; color: #fff; margin-bottom: 10px; }
+    .inv__soon-p { font-size: 14.5px; line-height: 1.6; color: rgba(255,255,255,0.7); max-width: 540px; margin: 0 auto; }
+
     /* Résumé */
     .inv__summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 24px; }
     .inv__stat { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 14px 16px; }
@@ -158,40 +172,55 @@
 
     <main class="inv">
       <div class="inv__eyebrow">Levée de fonds</div>
-      <h1 class="inv__title">Pipeline investisseurs</h1>
-      <p class="inv__sub">Ajoutez vos investisseurs à la main et faites-les avancer d'un stade d'intérêt à l'autre : glissez-déposez une carte vers une autre colonne, ou changez le stade depuis la carte.</p>
+      <h1 class="inv__title">Investisseurs</h1>
+      <p class="inv__sub">Trouvez des investisseurs pertinents et suivez votre pipeline d'un stade d'intérêt à l'autre.</p>
 
-      <div class="inv__summary" id="summary" hidden>
-        <div class="inv__stat"><div class="inv__stat-label">Investisseurs</div><div class="inv__stat-value" id="stat-count">0</div></div>
-        <div class="inv__stat"><div class="inv__stat-label">Engagés</div><div class="inv__stat-value" id="stat-engaged">0</div></div>
-        <div class="inv__stat"><div class="inv__stat-label">Montant engagé</div><div class="inv__stat-value" id="stat-engaged-amount">—</div></div>
-        <div class="inv__stat"><div class="inv__stat-label">Pipeline en discussion</div><div class="inv__stat-value" id="stat-pipeline-amount">—</div></div>
+      <div class="tabs">
+        <button type="button" class="tab" data-tab="find">Trouver des investisseurs</button>
+        <button type="button" class="tab active" data-tab="pipeline">Pipeline investisseurs</button>
       </div>
 
-      <form class="invform" id="add-form">
-        <div class="invform__grid">
-          <input id="new-name" type="text" placeholder="Nom de l'investisseur *" maxlength="200" autocomplete="off" required />
-          <input id="new-firm" type="text" placeholder="Fonds / structure" maxlength="200" autocomplete="off" />
-          <select id="new-stage" aria-label="Stade initial"></select>
+      <div id="tab-find" class="tab-panel">
+        <div class="inv__soon">
+          <span class="inv__soon-badge">Bientôt</span>
+          <div class="inv__soon-h">Cet outil arrive bientôt</div>
+          <p class="inv__soon-p">Nous y travaillons. Revenez un peu plus tard pour découvrir ici des investisseurs pertinents à contacter, directement dans votre espace.</p>
         </div>
-        <div class="invform__grid2">
-          <input id="new-email" type="email" placeholder="Email" maxlength="200" autocomplete="off" />
-          <input id="new-phone" type="text" placeholder="Téléphone" maxlength="60" autocomplete="off" />
-          <input id="new-amount" type="number" min="0" step="1000" placeholder="Ticket envisagé (€)" />
-        </div>
-        <div class="invform__grid2">
-          <textarea id="new-notes" placeholder="Notes (contexte, prochaine étape…)" maxlength="2000"></textarea>
-        </div>
-        <div class="invform__foot">
-          <div class="invform__err" id="form-err" hidden></div>
-          <button type="submit" class="invform__add">Ajouter l'investisseur</button>
-        </div>
-      </form>
+      </div>
 
-      <div class="inv__loading" id="loading">Chargement…</div>
-      <div class="inv__err" id="error" hidden></div>
+      <div id="tab-pipeline" class="tab-panel active">
+        <div class="inv__summary" id="summary" hidden>
+          <div class="inv__stat"><div class="inv__stat-label">Investisseurs</div><div class="inv__stat-value" id="stat-count">0</div></div>
+          <div class="inv__stat"><div class="inv__stat-label">Engagés</div><div class="inv__stat-value" id="stat-engaged">0</div></div>
+          <div class="inv__stat"><div class="inv__stat-label">Montant engagé</div><div class="inv__stat-value" id="stat-engaged-amount">—</div></div>
+          <div class="inv__stat"><div class="inv__stat-label">Pipeline en discussion</div><div class="inv__stat-value" id="stat-pipeline-amount">—</div></div>
+        </div>
 
-      <div class="board" id="board" hidden></div>
+        <form class="invform" id="add-form">
+          <div class="invform__grid">
+            <input id="new-name" type="text" placeholder="Nom de l'investisseur *" maxlength="200" autocomplete="off" required />
+            <input id="new-firm" type="text" placeholder="Fonds / structure" maxlength="200" autocomplete="off" />
+            <select id="new-stage" aria-label="Stade initial"></select>
+          </div>
+          <div class="invform__grid2">
+            <input id="new-email" type="email" placeholder="Email" maxlength="200" autocomplete="off" />
+            <input id="new-phone" type="text" placeholder="Téléphone" maxlength="60" autocomplete="off" />
+            <input id="new-amount" type="number" min="0" step="1000" placeholder="Ticket envisagé (€)" />
+          </div>
+          <div class="invform__grid2">
+            <textarea id="new-notes" placeholder="Notes (contexte, prochaine étape…)" maxlength="2000"></textarea>
+          </div>
+          <div class="invform__foot">
+            <div class="invform__err" id="form-err" hidden></div>
+            <button type="submit" class="invform__add">Ajouter l'investisseur</button>
+          </div>
+        </form>
+
+        <div class="inv__loading" id="loading">Chargement…</div>
+        <div class="inv__err" id="error" hidden></div>
+
+        <div class="board" id="board" hidden></div>
+      </div>
 
       <div class="inv__foot">
         <a href="tableau-de-bord.html" class="btn btn--ghost">← Retour au tableau de bord</a>
@@ -203,6 +232,16 @@
     document.getElementById('page-back-btn').addEventListener('click', () => {
       if (window.history.length > 1) window.history.back();
       else window.location.href = 'tableau-de-bord.html';
+    });
+
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        const panel = document.getElementById('tab-' + tab.dataset.tab);
+        if (panel) panel.classList.add('active');
+      });
     });
 
     const STAGES = [
