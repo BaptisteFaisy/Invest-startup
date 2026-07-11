@@ -122,6 +122,17 @@
     .kpi--accent .kpi__val { color: #fff; }
     .kpi--accent .kpi__sub { color: rgba(255,255,255,0.6); }
 
+    /* Sélecteur de base de calcul (pleinement dilué / non dilué) */
+    .dil__basis-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 2px 0 10px; }
+    .dil__basis-lab { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+    .seg--dark { background: rgba(255,255,255,0.06); }
+    .seg--dark .seg__btn { color: rgba(255,255,255,0.6); }
+    .seg--dark .seg__btn:hover { color: #fff; }
+    .seg--dark .seg__btn.is-on { background: rgba(255,255,255,0.14); color: #fff; box-shadow: none; }
+    .dil__basis-hint { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.55; margin: 0 0 16px; }
+    .dil__basis-hint b { color: rgba(255,255,255,0.8); }
+    .rt-muted { color: #b6b6c1; font-weight: 400; font-style: normal; }
+
     /* Barre de répartition */
     .ownbar-wrap { margin-top: 6px; }
     .ownbar-row { margin-bottom: 14px; }
@@ -301,7 +312,7 @@
     <main class="dil">
       <div class="dil__eyebrow">Outil</div>
       <h1 class="dil__title">Simulation de dilution</h1>
-      <p class="dil__sub">Renseignez votre <span class="term" data-term="cap-table" tabindex="0">cap table</span> actuelle — <b>en % suffit</b>, pas besoin du nombre exact d'actions — et les paramètres du tour. Le simulateur calcule le <span class="term" data-term="post-money" tabindex="0">post-money</span>, votre <span class="term" data-term="dilution" tabindex="0">dilution</span> et la répartition du capital, le tout en <b><span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span></b> (pool d'options et <span class="term" data-term="convertibles" tabindex="0">convertibles</span> inclus).</p>
+      <p class="dil__sub">Renseignez votre <span class="term" data-term="cap-table" tabindex="0">cap table</span> actuelle — <b>en % suffit</b>, pas besoin du nombre exact d'actions — et les paramètres du tour. Le simulateur calcule le <span class="term" data-term="post-money" tabindex="0">post-money</span>, votre <span class="term" data-term="dilution" tabindex="0">dilution</span> et la répartition du capital, à lire au choix en <b><span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span></b> (pool et <span class="term" data-term="convertibles" tabindex="0">convertibles</span> inclus) ou en <b><span class="term" data-term="non-dilue" tabindex="0">non dilué</span></b> (actions émises seulement).</p>
       <p class="dil__link"><a class="dil__link-a" href="valorisation.html">Vous ne connaissez pas votre valorisation ? Utilisez l'estimateur de valorisation →</a></p>
 
       <div class="dil__grid">
@@ -447,6 +458,15 @@
             </div>
           </div>
 
+          <div class="dil__basis-row">
+            <span class="dil__basis-lab">Base de calcul</span>
+            <div class="seg seg--dark" id="view-basis-seg">
+              <button type="button" class="seg__btn is-on" data-view="fd">Pleinement dilué</button>
+              <button type="button" class="seg__btn" data-view="issued">Non dilué</button>
+            </div>
+          </div>
+          <p class="dil__basis-hint" id="basis-hint"></p>
+
           <div id="warn-box"></div>
 
           <div class="kpis">
@@ -473,7 +493,7 @@
           </div>
 
           <div class="card" style="margin-top:18px">
-            <div class="card__h">Répartition du capital (<span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span>)</div>
+            <div class="card__h" id="own-card-h">Répartition du capital (<span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span>)</div>
             <div class="ownbar-wrap">
               <div class="ownbar-row">
                 <div class="ownbar-lab"><span>Avant</span><span id="own-before-tot"></span></div>
@@ -507,7 +527,8 @@
           </div>
 
           <p class="note">
-            <b><span class="term" data-term="fully-diluted" tabindex="0">Fully diluted</span></b> : la répartition intègre le <span class="term" data-term="pool" tabindex="0">pool d'options</span> et les <span class="term" data-term="convertibles" tabindex="0">instruments convertibles</span> comme s'ils étaient déjà des actions — c'est la seule base honnête pour mesurer votre <span class="term" data-term="dilution" tabindex="0">dilution</span> réelle.<br />
+            <b><span class="term" data-term="fully-diluted" tabindex="0">Fully diluted</span></b> : la répartition intègre le <span class="term" data-term="pool" tabindex="0">pool d'options</span> et les <span class="term" data-term="convertibles" tabindex="0">instruments convertibles</span> comme s'ils étaient déjà des actions — c'est la base retenue par les investisseurs et la mesure la plus prudente de votre <span class="term" data-term="dilution" tabindex="0">dilution</span>.<br />
+            <b><span class="term" data-term="non-dilue" tabindex="0">Non dilué</span></b> : la même opération sur les seules actions <b>déjà émises</b>. Votre part y paraît plus haute — l'écart avec le fully diluted mesure exactement le poids du pool à venir (l'« <i>overhang</i> »).<br />
             <b><span class="term" data-term="shuffle" tabindex="0">Option pool shuffle</span></b> : un pool créé « avant le tour » gonfle le pre-money en actions et ne dilue que les actionnaires existants — l'investisseur obtient son pourcentage « net de pool ». Créé « après », il dilue aussi l'investisseur. C'est un point de négociation à part entière.
           </p>
         </div>
@@ -555,6 +576,8 @@
     let mode = 'pct';
     // Base de saisie du tour : 'pre' (pre-money), 'post' (post-money) ou 'pct' (% cédé)
     let basis = 'pre';
+    // Base de lecture des résultats : 'fd' (pleinement dilué) ou 'issued' (non dilué / actions émises)
+    let resultsBasis = 'fd';
     // Formate la valeur d'une ligne d'actionnaire selon le mode
     const fmtRowVal = (v) => (mode === 'pct' ? fmtPctInput(v) : (v ? nfInt.format(Math.round(v)) : ''));
     // Base notionnelle d'actions utilisée quand on passe de % vers nombre d'actions
@@ -815,6 +838,25 @@
       res.segAfter = groups.map(g => ({ cat: g, val: res.rows.filter(r => r.cat === g).reduce((a, r) => a + r.after, 0) })).filter(s => s.val > 0);
       res.usedCats = groups.filter(g => res.rows.some(r => r.cat === g && (r.before > 0 || r.after > 0)));
 
+      // ---- Base « non diluée » (actions émises) : les pools sortent du dénominateur ----
+      // Le pool d'options (existant ou nouveau) est une réserve, pas des actions émises :
+      // on mesure alors chaque part sur les seules actions réellement en circulation.
+      const isPoolCat = (c) => c === 'pool0' || c === 'poolN';
+      const poolBefore = res.rows.filter(x => isPoolCat(x.cat)).reduce((a, x) => a + x.before, 0);
+      const poolAfter = res.rows.filter(x => isPoolCat(x.cat)).reduce((a, x) => a + x.after, 0);
+      res.Eiss = E - poolBefore;   // actions émises avant le tour
+      res.Tiss = T - poolAfter;    // actions émises après le tour
+      res.rows.forEach(x => {
+        x.pctBeforeIss = isPoolCat(x.cat) ? null : (res.Eiss > 0 ? x.before / res.Eiss : 0);
+        x.pctAfterIss = isPoolCat(x.cat) ? null : (res.Tiss > 0 ? x.after / res.Tiss : 0);
+      });
+      res.founderPctBeforeIss = res.Eiss > 0 ? fBefore / res.Eiss : 0;
+      res.founderPctAfterIss = res.Tiss > 0 ? fBefore / res.Tiss : 0;
+      res.invPctIss = res.Tiss > 0 ? invSharesTotal / res.Tiss : 0;
+      res.segBeforeIss = res.segBefore.filter(s => !isPoolCat(s.cat));
+      res.segAfterIss = res.segAfter.filter(s => !isPoolCat(s.cat));
+      res.usedCatsIss = res.usedCats.filter(c => !isPoolCat(c));
+
       return res;
     }
 
@@ -892,19 +934,23 @@
       }
       warnBox.innerHTML = '';
 
+      const iss = resultsBasis === 'issued';
       if (mode === 'pct') {
         // En mode %, le prix par action est notionnel : on montre la part cédée au tour.
-        kPps.textContent = pct1(r.invPct + r.poolPct);
-        document.getElementById('k-pps-sub').textContent = 'nouveaux titres (invest. + pool)';
+        kPps.textContent = pct1(iss ? r.invPctIss : (r.invPct + r.poolPct));
+        document.getElementById('k-pps-sub').textContent = iss ? 'actions émises aux investisseurs' : 'nouveaux titres (invest. + pool)';
       } else {
         kPps.textContent = r.pps >= 100 ? eur0(r.pps) : r.pps.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 4 }) + ' €';
         document.getElementById('k-pps-sub').textContent = `${num0(r.invSharesTotal)} actions émises`;
       }
-      kInv.textContent = pct1(r.invPct);
-      const fdil = r.founderPctBefore - r.founderPctAfter;
+      kInv.textContent = pct1(iss ? r.invPctIss : r.invPct);
+      document.getElementById('k-inv-sub').textContent = iss ? 'des actions émises' : 'du capital post-money';
+      const fBeforeV = iss ? r.founderPctBeforeIss : r.founderPctBefore;
+      const fAfterV = iss ? r.founderPctAfterIss : r.founderPctAfter;
+      const fdil = fBeforeV - fAfterV;
       kFdil.textContent = '−' + pct1(fdil);
-      const relDil = r.founderPctBefore > 0 ? (fdil / r.founderPctBefore) : 0;
-      document.getElementById('k-fdil-sub').textContent = `${pct1(r.founderPctBefore)} → ${pct1(r.founderPctAfter)} (soit −${pct1(relDil).replace(' %','')} % relatif)`;
+      const relDil = fBeforeV > 0 ? (fdil / fBeforeV) : 0;
+      document.getElementById('k-fdil-sub').textContent = `${pct1(fBeforeV)} → ${pct1(fAfterV)} (soit −${pct1(relDil).replace(' %','')} % relatif)`;
 
       renderBars(r);
       renderTable(r);
@@ -922,55 +968,75 @@
         document.getElementById('own-before-tot').textContent = '';
         document.getElementById('own-after-tot').textContent = ''; return; }
 
+      const iss = resultsBasis === 'issued';
+      const segBefore = iss ? r.segBeforeIss : r.segBefore;
+      const segAfter = iss ? r.segAfterIss : r.segAfter;
+      const totB = iss ? r.Eiss : r.E;
+      const totA = iss ? r.Tiss : r.T;
+      const cats = iss ? r.usedCatsIss : r.usedCats;
+
       const seg = (list, total) => list.map(s => {
-        const pct = s.val / total;
+        const pct = total > 0 ? s.val / total : 0;
         const c = CATS[s.cat];
         return `<div class="ownseg ${c.cls}" style="width:${(pct * 100).toFixed(3)}%" title="${c.label} — ${pct1(pct)}">${pct >= 0.06 ? pct1(pct) : ''}</div>`;
       }).join('');
 
-      before.innerHTML = seg(r.segBefore, r.E);
-      after.innerHTML = seg(r.segAfter, r.T);
+      before.innerHTML = seg(segBefore, totB);
+      after.innerHTML = seg(segAfter, totA);
       if (mode === 'pct') {
         document.getElementById('own-before-tot').textContent = '100 %';
         document.getElementById('own-after-tot').textContent = '100 %';
       } else {
-        document.getElementById('own-before-tot').textContent = num0(r.E) + ' actions';
-        document.getElementById('own-after-tot').textContent = num0(r.T) + ' actions';
+        document.getElementById('own-before-tot').textContent = num0(totB) + ' actions';
+        document.getElementById('own-after-tot').textContent = num0(totA) + ' actions';
       }
 
-      legend.innerHTML = r.usedCats.map(c =>
+      legend.innerHTML = cats.map(c =>
         `<span class="legend__it"><span class="legend__sw ${CATS[c].cls}"></span>${CATS[c].label}</span>`
       ).join('');
     }
 
     function renderTable(r) {
+      const iss = resultsBasis === 'issued';
+      const Eabs = iss ? r.Eiss : r.E;
+      const Tabs = iss ? r.Tiss : r.T;
       const body = document.getElementById('rtable-body');
       const rowHTML = (row) => {
         const c = CATS[row.cat];
         const isNew = (row.cat === 'investN' || row.cat === 'poolN');
+        const pctB = iss ? row.pctBeforeIss : row.pctBefore;
+        const pctA = iss ? row.pctAfterIss : row.pctAfter;
+        // En base non diluée, les lignes de pool ne sont pas des actions émises.
+        const excluded = iss && (pctA == null);
         let delta = '';
-        if (row.before === 0 && row.after > 0) {
+        if (excluded) {
+          delta = `<span class="rt-delta rt-muted">non émis</span>`;
+        } else if (row.before === 0 && row.after > 0) {
           delta = `<span class="rt-delta rt-delta--up">nouveau</span>`;
         } else {
-          const d = row.pctAfter - row.pctBefore;
+          const d = pctA - pctB;
           const cls = Math.abs(d) < 0.0005 ? 'rt-delta--flat' : (d < 0 ? 'rt-delta--down' : 'rt-delta--up');
           const sign = d > 0.0005 ? '+' : (d < -0.0005 ? '−' : '');
           delta = `<span class="rt-delta ${cls}">${sign}${pct1(Math.abs(d)).replace(' %','')} pt</span>`;
         }
+        const absBefore = excluded ? '<span class="rt-muted">—</span>' : (row.before > 0 ? num0(row.before) : '—');
+        const absAfter = excluded ? '<span class="rt-muted">—</span>' : num0(row.after);
+        const pctBefore = excluded ? '<span class="rt-muted">—</span>' : (row.before > 0 ? pct1(pctB) : '—');
+        const pctAfter = excluded ? '<span class="rt-muted">—</span>' : pct2(pctA);
         return `<tr class="${isNew ? 'rt-new' : ''}">
           <td class="l"><span class="rt-name"><span class="rt-dot ${c.cls}"></span>${escAttr(row.name)}</span></td>
-          <td class="rt-num col-abs">${row.before > 0 ? num0(row.before) : '—'}</td>
-          <td class="rt-num">${row.before > 0 ? pct1(row.pctBefore) : '—'}</td>
-          <td class="rt-num col-abs">${num0(row.after)}</td>
-          <td class="rt-num rt-pct-after">${pct2(row.pctAfter)}</td>
+          <td class="rt-num col-abs">${absBefore}</td>
+          <td class="rt-num">${pctBefore}</td>
+          <td class="rt-num col-abs">${absAfter}</td>
+          <td class="rt-num rt-pct-after">${pctAfter}</td>
           <td>${delta}</td>
         </tr>`;
       };
       const totalRow = `<tr class="rt-total">
-        <td class="l">Total (fully diluted)</td>
-        <td class="rt-num col-abs">${num0(r.E)}</td>
+        <td class="l">${iss ? 'Total (actions émises)' : 'Total (fully diluted)'}</td>
+        <td class="rt-num col-abs">${num0(Eabs)}</td>
         <td class="rt-num">100 %</td>
-        <td class="rt-num col-abs">${num0(r.T)}</td>
+        <td class="rt-num col-abs">${num0(Tabs)}</td>
         <td class="rt-num">100 %</td>
         <td></td>
       </tr>`;
@@ -1059,6 +1125,27 @@
       updateModeUI();
       recompute();
     }
+
+    // Met à jour les libellés qui dépendent de la base de lecture des résultats
+    function syncResultsBasisUI() {
+      document.querySelectorAll('#view-basis-seg .seg__btn').forEach(b => b.classList.toggle('is-on', b.dataset.view === resultsBasis));
+      const iss = resultsBasis === 'issued';
+      document.getElementById('own-card-h').innerHTML = iss
+        ? 'Répartition du capital (<span class="term" data-term="non-dilue" tabindex="0">non dilué</span>)'
+        : 'Répartition du capital (<span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span>)';
+      document.getElementById('basis-hint').innerHTML = iss
+        ? "Ne compte que les <b>actions déjà émises</b> : pool d'options et titres non exercés exclus. Votre part y paraît plus haute — l'écart avec le pleinement dilué correspond au poids du pool."
+        : "Compte le <b>pool d'options</b> et les convertibles comme des actions : la base retenue par les investisseurs et la mesure la plus prudente de votre dilution.";
+    }
+
+    // Bascule pleinement dilué / non dilué
+    document.getElementById('view-basis-seg').addEventListener('click', (e) => {
+      const btn = e.target.closest('.seg__btn');
+      if (!btn || btn.dataset.view === resultsBasis) return;
+      resultsBasis = btn.dataset.view;
+      syncResultsBasisUI();
+      recompute();
+    });
 
     const form = document.getElementById('dil-form');
     // Recalcule à chaque frappe / changement
@@ -1349,7 +1436,8 @@
       'pre-money':     "<b>Pre-money</b> — valeur de la société négociée <b>avant</b> l'entrée de l'argent du tour. Rapportée au capital, elle fixe le prix par action.",
       'post-money':    "<b>Post-money</b> = pre-money + montant levé. La part d'un investisseur = montant investi ÷ post-money.",
       'pps':           "<b>Prix par action</b> = pre-money ÷ actions existantes (fully diluted). Prix payé par les nouveaux investisseurs pour chaque action.",
-      'fully-diluted': "<b>Fully diluted</b> — capital compté en incluant tous les titres convertibles en actions (pool, BSPCE, BSA, convertibles), comme s'ils étaient déjà exercés. La seule base honnête pour mesurer une dilution.",
+      'fully-diluted': "<b>Fully diluted</b> — capital compté en incluant tous les titres convertibles en actions (pool, BSPCE, BSA, convertibles), comme s'ils étaient déjà exercés. La base la plus prudente pour mesurer une dilution, et celle que retiennent les investisseurs.",
+      'non-dilue':     "<b>Non dilué (actions émises)</b> — capital compté sur les seules actions réellement émises : pool d'options, BSPCE/BSA non exercés et convertibles non convertis sont exclus. Votre part y paraît plus haute qu'en fully diluted ; l'écart correspond au poids du pool.",
       'cap-table':     "<b>Cap table</b> (table de capitalisation) — le tableau de qui détient quoi : chaque actionnaire, son nombre d'actions et son pourcentage.",
       'dilution':      "<b>Dilution</b> — baisse de votre pourcentage de détention quand la société émet de nouvelles actions. Votre nombre d'actions ne change pas, mais pèse une part plus petite d'un capital plus grand.",
       'pool':          "<b>Pool d'options (ESOP)</b> — réserve d'actions mise de côté pour motiver et recruter salariés et dirigeants, exprimée en % du capital post-money.",
@@ -1448,6 +1536,7 @@
 
     // Init : formulaire vide par défaut (l'utilisateur choisit un exemple s'il le souhaite)
     updateModeUI();
+    syncResultsBasisUI();
     resetForm();
     hydrateHistory();
 
