@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>liquid + — Tâches</title>
+  <meta name="description" content="Votre check-list personnelle pour piloter la levée de fonds." />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=6" />
+  <style>
+    [hidden] { display: none !important; }
+
+    .app { visibility: hidden; }
+    .app.ready { visibility: visible; }
+    .app { height: auto; overflow: visible; display: block; }
+    body, .app { background: #08090c !important; }
+
+    /* Topbar noir (identique aux autres pages du SaaS) */
+    .topbar { background: #08090c !important; border-bottom: 1px solid rgba(255,255,255,0.07) !important; }
+    .topbar .brand { color: #fff !important; display: flex; align-items: center; gap: 8px; }
+    .topbar .brand__plus { color: #fff !important; }
+    .topbar .brand__logo { display: block; flex: none; }
+    .topbar__doc { color: #fff !important; border-left-color: rgba(255,255,255,0.2) !important; }
+    .topbar .btn--ghost { color: #fff !important; border-color: rgba(255,255,255,0.35) !important; }
+    .topbar .btn--ghost:hover { color: #fff !important; border-color: rgba(255,255,255,0.65) !important; }
+
+    .tsk { max-width: 760px; margin: 0 auto; padding: 40px 28px 90px; }
+    .page-back-row { width: 100%; box-sizing: border-box; max-width: 760px; margin: 0 auto; padding: 16px 28px 0; }
+    .page-back { width: 32px; height: 32px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
+    .page-back:hover { opacity: 0.68; transform: translateX(-1px); }
+    .page-back:focus-visible { outline: none; opacity: 1; }
+    .page-back svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    .tsk__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
+    .tsk__title { font-size: 30px; letter-spacing: -0.03em; color: #fff; margin-top: 6px; }
+    .tsk__sub { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 8px; line-height: 1.55; }
+
+    /* Formulaire d'ajout */
+    .tskform { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 18px 20px; margin-top: 26px; }
+    .tskform__row1 { display: flex; gap: 10px; }
+    .tskform__title { flex: 1; min-width: 0; background: #fff; border: 1px solid transparent; border-radius: 10px; padding: 11px 14px; font: inherit; font-size: 14.5px; color: #08090c; }
+    .tskform__title:focus { outline: none; box-shadow: 0 0 0 2px #3b82f6; }
+    .tskform__row2 { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+    .tskform__date, .tskform__prio { background: #fff; border: 1px solid transparent; border-radius: 10px; padding: 9px 12px; font: inherit; font-size: 13.5px; color: #08090c; }
+    .tskform__date:focus, .tskform__prio:focus { outline: none; box-shadow: 0 0 0 2px #3b82f6; }
+    .tskform__add { margin-left: auto; font-family: 'Archivo', sans-serif; font-size: 13.5px; font-weight: 600; padding: 10px 20px; border-radius: 10px; cursor: pointer; border: 1px solid transparent; background: #3b82f6; color: #fff; }
+    .tskform__add:hover { background: #2563eb; }
+    .tskform__err { color: #f87171; font-size: 13px; margin-top: 8px; }
+
+    /* Listes */
+    .tsk__section { margin-top: 30px; }
+    .tsk__section-h { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .tsk__count { background: rgba(255,255,255,0.1); color: #fff; border-radius: 999px; font-size: 11px; padding: 2px 8px; }
+    .tsk__empty { color: rgba(255,255,255,0.5); font-size: 14px; padding: 18px 4px; }
+
+    .titem { background: #fff; border-radius: 13px; padding: 13px 16px; margin-bottom: 9px; display: flex; align-items: center; gap: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
+    .titem--done { opacity: 0.62; }
+    .titem__cb { width: 19px; height: 19px; flex: none; cursor: pointer; accent-color: #3b82f6; }
+    .titem__main { flex: 1; min-width: 0; }
+    .titem__title { font-size: 14.5px; font-weight: 600; color: #08090c; word-break: break-word; cursor: text; }
+    .titem--done .titem__title { text-decoration: line-through; color: #6b6b78; }
+    .titem__title[contenteditable="true"] { outline: none; box-shadow: 0 0 0 2px #3b82f6; border-radius: 6px; padding: 2px 5px; margin: -2px -5px; }
+    .titem__notes { font-size: 12.5px; color: #6b6b78; margin-top: 3px; line-height: 1.4; }
+    .titem__meta { display: flex; align-items: center; gap: 6px; flex: none; }
+    .tag { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 8px; border-radius: 99px; white-space: nowrap; }
+    .tag--basse { background: rgba(22,163,74,0.12); color: #16a34a; }
+    .tag--moyenne { background: rgba(217,119,6,0.14); color: #b45309; }
+    .tag--haute { background: rgba(220,38,38,0.12); color: #dc2626; }
+    .tag--due { background: rgba(8,9,12,0.06); color: #6b6b78; }
+    .tag--overdue { background: rgba(220,38,38,0.12); color: #dc2626; }
+    .titem__del { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border: 0; background: transparent; color: #b0aca3; cursor: pointer; border-radius: 8px; }
+    .titem__del:hover { background: #fdeeee; color: #dc2626; }
+    .titem__del svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .tsk__loading { color: rgba(255,255,255,0.6); font-size: 14px; padding: 18px 4px; }
+    .tsk__err { font-size: 14px; color: #f87171; background: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.25); border-radius: 12px; padding: 14px 16px; margin-top: 22px; line-height: 1.55; }
+    .tsk__foot { margin-top: 30px; }
+  </style>
+  <script src="auth.js?v=3"></script>
+  <script src="tasks.js?v=2" defer></script>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="topbar__left">
+        <a href="/index.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
+        <span class="topbar__doc">Tâches</span>
+      </div>
+      <div class="topbar__actions">
+        <a href="dossiers.html" class="btn btn--ghost">← Dossiers</a>
+        <button class="btn btn--ghost" id="logout-btn">Déconnexion</button>
+      </div>
+    </header>
+
+    <div class="page-back-row">
+      <button type="button" class="page-back" id="page-back-btn" aria-label="Revenir en arrière" title="Revenir en arrière">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+    </div>
+
+    <main class="tsk">
+      <div class="tsk__eyebrow">Organisation</div>
+      <h1 class="tsk__title">Tâches</h1>
+      <p class="tsk__sub">Votre check-list personnelle pour piloter la levée : ajoutez ce qu'il reste à faire, priorisez, cochez au fur et à mesure.</p>
+
+      <form class="tskform" id="add-form">
+        <div class="tskform__row1">
+          <input class="tskform__title" id="new-title" type="text" placeholder="Ajouter une tâche…" maxlength="200" autocomplete="off" required />
+        </div>
+        <div class="tskform__row2">
+          <input class="tskform__date" id="new-date" type="date" aria-label="Échéance" />
+          <select class="tskform__prio" id="new-prio" aria-label="Priorité">
+            <option value="basse">Priorité basse</option>
+            <option value="moyenne" selected>Priorité moyenne</option>
+            <option value="haute">Priorité haute</option>
+          </select>
+          <button type="submit" class="tskform__add">Ajouter</button>
+        </div>
+        <div class="tskform__err" id="form-err" hidden></div>
+      </form>
+
+      <div class="tsk__loading" id="loading">Chargement…</div>
+      <div class="tsk__err" id="error" hidden></div>
+
+      <div id="lists" hidden>
+        <div class="tsk__section">
+          <div class="tsk__section-h">À faire <span class="tsk__count" id="pending-count">0</span></div>
+          <div id="pending-list"></div>
+          <div class="tsk__empty" id="pending-empty" hidden>Aucune tâche en attente. Ajoutez la première ci-dessus.</div>
+        </div>
+        <div class="tsk__section">
+          <div class="tsk__section-h">Terminées <span class="tsk__count" id="done-count">0</span></div>
+          <div id="done-list"></div>
+          <div class="tsk__empty" id="done-empty" hidden>Aucune tâche terminée pour l'instant.</div>
+        </div>
+      </div>
+
+      <div class="tsk__foot">
+        <a href="dossiers.html" class="btn btn--ghost">← Retour aux dossiers</a>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); logout(); });
+    document.getElementById('page-back-btn').addEventListener('click', () => {
+      if (window.history.length > 1) window.history.back();
+      else window.location.href = 'dossiers.html';
+    });
+
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+    function fmtDate(s) { try { return new Date(s + 'T00:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }); } catch { return ''; } }
+    function todayStr() { return new Date().toISOString().slice(0, 10); }
+    const PRIO_LABEL = { basse: 'Basse', moyenne: 'Moyenne', haute: 'Haute' };
+
+    const loadingEl = document.getElementById('loading');
+    const errorEl   = document.getElementById('error');
+    const listsEl   = document.getElementById('lists');
+    const pendingListEl  = document.getElementById('pending-list');
+    const doneListEl     = document.getElementById('done-list');
+    const pendingCountEl = document.getElementById('pending-count');
+    const doneCountEl    = document.getElementById('done-count');
+    const pendingEmptyEl = document.getElementById('pending-empty');
+    const doneEmptyEl    = document.getElementById('done-empty');
+
+    let tasks = [];
+
+    async function api(path, opts) {
+      const r = await fetch(path, Object.assign({ credentials: 'include' }, opts || {}));
+      let data = {};
+      try { data = await r.json(); } catch {}
+      if (!r.ok) throw new Error(data.error || 'Une erreur est survenue.');
+      return data;
+    }
+
+    function taskRow(t) {
+      const row = document.createElement('div');
+      row.className = 'titem' + (t.done ? ' titem--done' : '');
+      row.dataset.id = t.id;
+
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.className = 'titem__cb';
+      cb.checked = !!t.done;
+      cb.addEventListener('change', () => toggleDone(t.id, cb.checked));
+
+      const main = document.createElement('div');
+      main.className = 'titem__main';
+      const title = document.createElement('div');
+      title.className = 'titem__title';
+      title.textContent = t.title;
+      title.contentEditable = 'false';
+      title.addEventListener('click', () => {
+        if (title.contentEditable === 'true') return;
+        title.contentEditable = 'true';
+        title.focus();
+        document.getSelection().selectAllChildren(title);
+      });
+      title.addEventListener('blur', () => { title.contentEditable = 'false'; saveTitle(t.id, title); });
+      title.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); title.blur(); }
+        if (e.key === 'Escape') { title.textContent = t.title; title.blur(); }
+      });
+      main.appendChild(title);
+      if (t.notes) {
+        const notes = document.createElement('div');
+        notes.className = 'titem__notes';
+        notes.textContent = t.notes;
+        main.appendChild(notes);
+      }
+
+      const meta = document.createElement('div');
+      meta.className = 'titem__meta';
+      if (!t.done) {
+        const prioTag = document.createElement('span');
+        prioTag.className = 'tag tag--' + (t.priority || 'moyenne');
+        prioTag.textContent = PRIO_LABEL[t.priority] || 'Moyenne';
+        meta.appendChild(prioTag);
+        if (t.due_date) {
+          const overdue = t.due_date < todayStr();
+          const dueTag = document.createElement('span');
+          dueTag.className = 'tag ' + (overdue ? 'tag--overdue' : 'tag--due');
+          dueTag.textContent = (overdue ? 'En retard · ' : 'Éch. ') + fmtDate(t.due_date);
+          meta.appendChild(dueTag);
+        }
+      }
+
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'titem__del';
+      del.setAttribute('aria-label', 'Supprimer la tâche');
+      del.title = 'Supprimer';
+      del.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>';
+      del.addEventListener('click', () => deleteTask(t.id));
+
+      row.appendChild(cb);
+      row.appendChild(main);
+      row.appendChild(meta);
+      row.appendChild(del);
+      return row;
+    }
+
+    function render() {
+      const pending = tasks.filter(t => !t.done);
+      const done = tasks.filter(t => t.done);
+
+      pendingListEl.innerHTML = '';
+      pending.forEach(t => pendingListEl.appendChild(taskRow(t)));
+      pendingCountEl.textContent = String(pending.length);
+      pendingEmptyEl.hidden = pending.length > 0;
+
+      doneListEl.innerHTML = '';
+      done.forEach(t => doneListEl.appendChild(taskRow(t)));
+      doneCountEl.textContent = String(done.length);
+      doneEmptyEl.hidden = done.length > 0;
+    }
+
+    async function loadTasks() {
+      loadingEl.hidden = false;
+      errorEl.hidden = true;
+      try {
+        const data = await api('/api/saas/tasks');
+        tasks = data.tasks || [];
+        loadingEl.hidden = true;
+        listsEl.hidden = false;
+        render();
+      } catch (err) {
+        loadingEl.hidden = true;
+        errorEl.hidden = false;
+        errorEl.textContent = err.message || 'Impossible de charger les tâches.';
+      }
+    }
+
+    async function addTask(e) {
+      e.preventDefault();
+      const titleInput = document.getElementById('new-title');
+      const dateInput  = document.getElementById('new-date');
+      const prioSelect = document.getElementById('new-prio');
+      const errEl = document.getElementById('form-err');
+      errEl.hidden = true;
+
+      const title = titleInput.value.trim();
+      if (!title) return;
+
+      try {
+        const { task } = await api('/api/saas/tasks', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, due_date: dateInput.value || null, priority: prioSelect.value }),
+        });
+        tasks.push(task);
+        render();
+        titleInput.value = '';
+        dateInput.value = '';
+        prioSelect.value = 'moyenne';
+        titleInput.focus();
+      } catch (err) {
+        errEl.hidden = false;
+        errEl.textContent = err.message || 'Impossible d\'ajouter la tâche.';
+      }
+    }
+
+    async function toggleDone(id, done) {
+      const t = tasks.find(x => x.id === id);
+      if (!t) return;
+      t.done = done;
+      render();
+      try {
+        await api('/api/saas/tasks/' + id, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ done }),
+        });
+      } catch (err) {
+        t.done = !done;
+        render();
+      }
+    }
+
+    async function saveTitle(id, titleEl) {
+      const t = tasks.find(x => x.id === id);
+      if (!t) return;
+      const newTitle = titleEl.textContent.trim();
+      if (!newTitle || newTitle === t.title) { titleEl.textContent = t.title; return; }
+      try {
+        await api('/api/saas/tasks/' + id, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: newTitle }),
+        });
+        t.title = newTitle;
+      } catch (err) {
+        titleEl.textContent = t.title;
+      }
+    }
+
+    async function deleteTask(id) {
+      const idx = tasks.findIndex(x => x.id === id);
+      if (idx < 0) return;
+      const removed = tasks[idx];
+      tasks.splice(idx, 1);
+      render();
+      try {
+        await api('/api/saas/tasks/' + id, { method: 'DELETE' });
+      } catch (err) {
+        tasks.splice(idx, 0, removed);
+        render();
+      }
+    }
+
+    async function init() {
+      const user = await requireAuth();
+      if (!user) return;
+      document.querySelector('.app').classList.add('ready');
+      document.getElementById('add-form').addEventListener('submit', addTask);
+      loadTasks();
+    }
+
+    init();
+  </script>
+</body>
+</html>
