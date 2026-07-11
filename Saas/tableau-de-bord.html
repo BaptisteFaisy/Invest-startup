@@ -2605,6 +2605,11 @@
         const profileCard = fundraisingProfileEl();
         profileCard.id = 'phase-' + selected.key;
         container.appendChild(profileCard);
+        // Les documents fondateurs de cette étape (deck, statuts, cap table, RBE…)
+        // sont aussi listés ici, sous le profil, pour être consultables et surtout
+        // atteignables depuis la recherche : l'icône dossier défile alors jusqu'au
+        // fichier lui-même, au lieu de s'arrêter sur le formulaire de profil.
+        container.appendChild(phaseCard(selected, idx, { title: 'Documents', icon: 'DOC', hideStep: true, documentActions: true, noAnchor: true }));
       }
       if (CLASSIC_SOON_STEPS.has(selected.key)) {
         container.appendChild(stepSoonEl(selected));
@@ -3615,7 +3620,9 @@
           ${categories && categories.length ? '<button class="documents-action-btn" type="button" data-collapse-categories>Fermer tous les dossiers</button>' : ''}
         </div>` : '';
       card.className = 'folder folder--phase open';
-      if (f.key) card.id = 'phase-' + f.key;
+      // opts.noAnchor : évite un doublon d'id quand l'étape possède déjà une autre
+      // carte porteuse de #phase-<clé> (ex. « Ma levée » = profil + documents).
+      if (f.key && !opts.noAnchor) card.id = 'phase-' + f.key;
       card.innerHTML = `
         <div class="folder__head" style="cursor:default">
           <div class="folder__ic">${esc(icon)}</div>
