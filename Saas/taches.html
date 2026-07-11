@@ -19,8 +19,11 @@
     .app { height: auto; overflow: visible; display: block; }
     body, .app { background: #08090c !important; }
 
-    /* Topbar noir (identique aux autres pages du SaaS) */
-    .topbar { background: #08090c !important; border-bottom: 1px solid rgba(255,255,255,0.07) !important; }
+    /* Topbar noir (identique aux autres pages du SaaS). Mise en page en ligne :
+       cette page ne charge pas editor.css, donc sans ça la barre s'empile. */
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 56px; padding: 0 20px; background: #08090c !important; border-bottom: 1px solid rgba(255,255,255,0.07) !important; position: sticky; top: 0; z-index: 70; }
+    .topbar__left { display: flex; align-items: center; gap: 16px; min-width: 0; }
+    .topbar__actions { display: flex; align-items: center; gap: 8px; flex: none; }
     .topbar .brand { color: #fff !important; display: flex; align-items: center; gap: 8px; }
     .topbar .brand__plus { color: #fff !important; }
     .topbar .brand__logo { display: block; flex: none; }
