@@ -11,6 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=6" />
   <link rel="stylesheet" href="editor.css?v=7" />
+  <link rel="stylesheet" href="drawer-menu.css?v=1" />
   <style>
     [hidden] { display: none !important; }
     .app { height: auto; overflow: visible; display: block; }
@@ -26,7 +27,7 @@
     .topbar .btn--ghost:hover { color: #fff !important; border-color: rgba(255,255,255,0.65) !important; }
 
     /* Retour en arrière */
-    .page-back-row { width: 100%; box-sizing: border-box; max-width: 920px; margin: 0 auto; padding: 16px 24px 0; }
+    .page-back-row { width: 100%; box-sizing: border-box; max-width: 920px; margin: 0 auto; padding: 16px 24px 0; position: sticky; top: 57px; z-index: 15; background: #08090c; }
     .page-back { width: 32px; height: 32px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
     .page-back:hover { opacity: 0.68; transform: translateX(-1px); }
     .page-back:focus-visible { outline: none; opacity: 1; }
@@ -44,9 +45,14 @@
     .card__toprow { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 6px; flex-wrap: wrap; }
 
     .seg { display: inline-flex; background: #f0f0ee; border-radius: 9px; padding: 3px; gap: 2px; flex: none; }
-    .seg__btn { font-family: 'Archivo', sans-serif; font-size: 11.5px; font-weight: 600; color: #6b6b78; background: transparent; border: 0; border-radius: 7px; padding: 5px 11px; cursor: pointer; transition: .12s; white-space: nowrap; }
+    .seg__btn { font-family: 'Archivo', sans-serif; font-size: 11.5px; font-weight: 600; color: #6b6b78; background: transparent; border: 0; border-radius: 7px; padding: 5px 11px; cursor: pointer; transition: .12s; white-space: nowrap; text-decoration: underline dotted rgba(107,107,120,0.55); text-underline-offset: 3px; text-decoration-thickness: 1px; }
     .seg__btn:hover { color: #08090c; }
-    .seg__btn.is-on { background: #fff; color: #08090c; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+    .seg__btn.is-on { background: #fff; color: #08090c; box-shadow: 0 1px 3px rgba(0,0,0,0.12); text-decoration-color: rgba(8,9,12,0.35); }
+
+    /* Info-bulle d'explication des méthodes (survol du nom dans l'estimateur) */
+    .tip { position: fixed; z-index: 200; max-width: 280px; background: #0f1115; color: #e8e8ec; font-family: 'Libre Franklin', sans-serif; font-size: 12.5px; font-weight: 400; line-height: 1.5; text-align: left; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 12px 34px rgba(0,0,0,0.5); pointer-events: none; opacity: 0; transform: translateY(3px); transition: opacity .12s ease, transform .12s ease; }
+    .tip.is-on { opacity: 1; transform: translateY(0); }
+    .tip b { color: #fff; font-weight: 700; }
 
     .field { margin-bottom: 14px; }
     .field__lab { display: block; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #6b6b78; margin-bottom: 6px; }
@@ -72,6 +78,11 @@
     @media (max-width: 520px) { .ve-two { grid-template-columns: 1fr; } }
     .ve-growth { display: flex; flex-direction: column; gap: 8px; }
     .ve-growth .radio-chip { text-align: left; }
+    .radio-chip__custom-input { display: flex; align-items: center; gap: 6px; margin-top: 8px; opacity: 0.5; transition: opacity .12s; }
+    .radio-chip.is-on .radio-chip__custom-input { opacity: 1; }
+    .radio-chip__custom-input input { display: inline-block; width: 60px; font-family: 'Libre Franklin', sans-serif; font-size: 13px; color: #08090c; background: #fff; border: 1px solid rgba(8,9,12,0.16); border-radius: 7px; padding: 5px 7px; text-align: right; }
+    .radio-chip__custom-input input:focus { outline: none; border-color: #3b82f6; }
+    .radio-chip__custom-input span { font-size: 11.5px; color: #8a8a95; }
 
     /* Curseurs (Berkus / Scorecard) */
     .ve-slider-row { margin-bottom: 15px; }
@@ -121,15 +132,70 @@
   </style>
   <script src="auth.js?v=3"></script>
   <script src="tasks.js?v=2" defer></script>
+  <script src="drawer-menu.js?v=1" defer></script>
 </head>
 <body>
   <div class="app">
     <header class="topbar">
       <div class="topbar__left">
+        <button type="button" class="hamburger" id="nav-menu-btn" aria-label="Ouvrir la navigation" aria-controls="nav-drawer" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
         <a href="/index.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
         <span class="topbar__doc">Estimateur de valorisation</span>
       </div>
+      <div class="topbar__actions">
+        <button type="button" class="hamburger" id="actions-menu-btn" aria-label="Ouvrir le menu" aria-controls="actions-drawer" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        </button>
+      </div>
     </header>
+
+    <!-- Menu hamburger gauche : navigation -->
+    <div class="drawer-backdrop" id="nav-backdrop" data-drawer-close></div>
+    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Navigation">
+      <div class="drawer__head">
+        <span class="drawer__title">Navigation</span>
+      </div>
+      <nav class="drawer__body">
+        <a class="drawer__link" href="tableau-de-bord.html"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Tableau de bord</a>
+        <a class="drawer__link" href="marche.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Marché<span class="drawer__soon-tag">Bientôt</span></a>
+        <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
+        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/></svg>Tâches</a>
+        <a class="drawer__link" href="valorisation.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Valorisation</a>
+        <a class="drawer__link" href="dilution.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
+        <a class="drawer__link" href="exit.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Exit</a>
+      </nav>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
+    </aside>
+
+    <!-- Menu hamburger droite : compte & actions -->
+    <div class="drawer-backdrop" id="actions-backdrop" data-drawer-close></div>
+    <aside class="drawer drawer--right" id="actions-drawer" role="dialog" aria-modal="true" aria-label="Menu">
+      <div class="drawer__head">
+        <span class="drawer__title">Menu</span>
+      </div>
+      <nav class="drawer__body">
+        <a class="drawer__link" href="tableau-de-bord.html"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Tableau de bord</a>
+        <div class="drawer__sep"></div>
+        <div class="drawer__section-title">Outils</div>
+        <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Éditeur</a>
+        <a class="drawer__link" href="marche.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Marché<span class="drawer__soon-tag">Bientôt</span></a>
+        <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
+        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>Tâches</a>
+        <a class="drawer__link" href="valorisation.html" target="_blank" rel="noopener" title="Estimateur de valorisation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Valorisation</a>
+        <a class="drawer__link" href="dilution.html" target="_blank" rel="noopener" title="Simulation de dilution"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
+        <a class="drawer__link" href="exit.html" target="_blank" rel="noopener" title="Simulateur d'exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Exit</a>
+        <a class="drawer__link" href="documents.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>Documents</a>
+        <a class="drawer__link" href="data-room.html" target="_blank" rel="noopener" title="Data room"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/></svg>Data room</a>
+        <div class="drawer__sep"></div>
+        <a class="drawer__link" href="compte.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>Mon compte</a>
+        <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Écrire au fondateur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
+        <div class="drawer__sep"></div>
+        <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>Déconnexion</button>
+      </nav>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
+    </aside>
 
     <div class="page-back-row">
       <button type="button" class="page-back" id="page-back-btn" aria-label="Revenir en arrière" title="Revenir en arrière">
@@ -152,7 +218,6 @@
               <button type="button" class="seg__btn" data-vem="scorecard">Scorecard</button>
             </div>
           </div>
-          <div class="card__desc" id="ve-desc" style="margin-top:10px"></div>
 
           <div class="ve-grid">
             <div class="ve-inputs">
@@ -181,6 +246,14 @@
                       <label class="radio-chip" data-g="high">
                         <input type="radio" name="ve-g" value="high" />
                         Forte <small>&gt; 80 %/an · ×8 à ×15</small>
+                      </label>
+                      <label class="radio-chip radio-chip--custom" data-g="custom">
+                        <input type="radio" name="ve-g" value="custom" />
+                        Précis <small>indiquer mon taux de croissance</small>
+                        <span class="radio-chip__custom-input">
+                          <input class="inp" type="text" inputmode="decimal" id="ve-growth-rate" value="50" aria-label="Taux de croissance annuel" />
+                          <span>% /an</span>
+                        </span>
                       </label>
                     </div>
                   </div>
@@ -352,6 +425,33 @@
     let veValo = 0;
     // Multiples appliqués au CA selon le profil de croissance : [bas, médian, haut]
     const VE_GROWTH = { low: [2, 3, 4], mid: [4, 6, 8], high: [8, 11, 15] };
+    // Points d'ancrage (taux de croissance annuel % -> multiples) pour interpoler un taux précis,
+    // calés sur les mêmes bornes que les fourchettes prudente/solide/forte ci-dessus.
+    const VE_GROWTH_ANCHORS = [
+      { rate: 0, lo: 1, mid: 1.5, hi: 2 },
+      { rate: 15, lo: 2, mid: 3, hi: 4 },
+      { rate: 55, lo: 4, mid: 6, hi: 8 },
+      { rate: 100, lo: 8, mid: 11, hi: 15 },
+    ];
+    function veGrowthFromRate(ratePct) {
+      const r = Math.max(0, Number(ratePct) || 0);
+      const pts = VE_GROWTH_ANCHORS;
+      if (r <= pts[0].rate) return [pts[0].lo, pts[0].mid, pts[0].hi];
+      for (let i = 1; i < pts.length; i++) {
+        if (r <= pts[i].rate) {
+          const a = pts[i - 1], b = pts[i];
+          const t = (r - a.rate) / (b.rate - a.rate);
+          return [a.lo + (b.lo - a.lo) * t, a.mid + (b.mid - a.mid) * t, a.hi + (b.hi - a.hi) * t];
+        }
+      }
+      const last = pts[pts.length - 1];
+      return [last.lo, last.mid, last.hi];
+    }
+    function veGrowthTriple(g) {
+      if (g === 'custom') return veGrowthFromRate(parseNum(document.getElementById('ve-growth-rate').value));
+      return VE_GROWTH[g];
+    }
+    const veFmtMult = (v) => (Number.isInteger(v) ? String(v) : v.toFixed(1));
     const VE_DESC = {
       rev: "Adapté aux sociétés qui génèrent déjà du chiffre d'affaires. On applique au CA un multiple d'autant plus élevé que la croissance est forte.",
       berkus: "Pour une startup pré-revenu. On valorise cinq leviers de réduction du risque, chacun jusqu'à 500 k€ (plafond 2,5 M€).",
@@ -373,10 +473,10 @@
       if (veMethod === 'rev') {
         const arr = parseNum(document.getElementById('ve-arr').value);
         const g = (document.querySelector('input[name="ve-g"]:checked') || {}).value || 'low';
-        const [lo, mid, hi] = VE_GROWTH[g];
+        const [lo, mid, hi] = veGrowthTriple(g);
         return {
           valo: arr * mid, low: arr * lo, high: arr * hi, ok: arr > 0,
-          range: arr > 0 ? `Fourchette ${eur0(arr * lo)} – ${eur0(arr * hi)} · CA × ${mid}` : '',
+          range: arr > 0 ? `Fourchette ${eur0(arr * lo)} – ${eur0(arr * hi)} · CA × ${veFmtMult(mid)}` : '',
         };
       }
       if (veMethod === 'berkus') {
@@ -407,7 +507,6 @@
       veMethod = btn.dataset.vem;
       veEst.querySelectorAll('#ve-method-seg .seg__btn').forEach(b => b.classList.toggle('is-on', b.dataset.vem === veMethod));
       veEst.querySelectorAll('.ve-body').forEach(b => { b.hidden = (b.dataset.vemBody !== veMethod); });
-      document.getElementById('ve-desc').textContent = VE_DESC[veMethod];
       veRender();
     });
 
@@ -424,6 +523,14 @@
         veRender();
       }
     }, true);
+    document.getElementById('ve-growth-rate').addEventListener('focus', () => {
+      const customRadio = veEst.querySelector('input[name="ve-g"][value="custom"]');
+      if (customRadio && !customRadio.checked) {
+        customRadio.checked = true;
+        veEst.querySelectorAll('.ve-growth .radio-chip').forEach(c => c.classList.toggle('is-on', c.querySelector('input').checked));
+        veRender();
+      }
+    });
 
     document.getElementById('ve-use').addEventListener('click', () => {
       if (!(veValo > 0)) return;
@@ -431,12 +538,58 @@
     });
 
     document.getElementById('page-back-btn').addEventListener('click', () => {
-      if (window.history.length > 1) window.history.back();
+      const ref = document.referrer;
+      if (ref && new URL(ref).origin === location.origin) window.location.href = ref;
+      else if (window.history.length > 1) window.history.back();
       else window.location.href = 'tableau-de-bord.html';
     });
 
+    // Info-bulle : survol du nom d'une méthode dans l'estimateur
+    (function initMethodTips() {
+      const tip = document.createElement('div');
+      tip.className = 'tip';
+      tip.setAttribute('role', 'tooltip');
+      document.body.appendChild(tip);
+      let current = null;
+      function show(el) {
+        const def = VE_DESC[el.dataset.vem];
+        if (!def) return;
+        tip.textContent = def;
+        tip.classList.add('is-on');
+        const r = el.getBoundingClientRect();
+        const w = tip.offsetWidth, h = tip.offsetHeight;
+        let left = r.left + r.width / 2 - w / 2;
+        left = Math.max(10, Math.min(left, window.innerWidth - w - 10));
+        let top = r.top - h - 9;
+        if (top < 10) top = r.bottom + 9;
+        tip.style.left = Math.round(left) + 'px';
+        tip.style.top = Math.round(top) + 'px';
+        current = el;
+      }
+      function hide() { tip.classList.remove('is-on'); current = null; }
+      const seg = document.getElementById('ve-method-seg');
+      seg.addEventListener('mouseover', (e) => {
+        const b = e.target.closest('.seg__btn');
+        if (b && b !== current) show(b);
+      });
+      seg.addEventListener('mouseout', (e) => {
+        const b = e.target.closest('.seg__btn');
+        if (!b) return;
+        const to = e.relatedTarget;
+        if (!to || !to.closest || !to.closest('.seg__btn')) hide();
+      });
+      seg.addEventListener('focusin', (e) => {
+        const b = e.target.closest('.seg__btn');
+        if (b) show(b);
+      });
+      seg.addEventListener('focusout', (e) => {
+        if (e.target.closest('.seg__btn')) hide();
+      });
+      window.addEventListener('scroll', () => { if (current) hide(); }, true);
+      window.addEventListener('resize', hide);
+    })();
+
     // Init
-    document.getElementById('ve-desc').textContent = VE_DESC[veMethod];
     veRender();
   </script>
 </body>

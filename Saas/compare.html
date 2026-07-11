@@ -11,6 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=6" />
   <link rel="stylesheet" href="editor.css?v=7" />
+  <link rel="stylesheet" href="drawer-menu.css?v=1" />
   <style>
     /* L'attribut `hidden` doit toujours l'emporter : sans ça, les règles de type
        `.cmp__loading { display:flex }` / `.vsrow { display:grid }` écrasent le
@@ -32,7 +33,7 @@
     .topbar .btn--ghost:hover { color: #fff !important; border-color: rgba(255,255,255,0.65) !important; }
 
     .cmp { max-width: 940px; margin: 0 auto; padding: 40px 28px 90px; }
-    .page-back-row { width: 100%; box-sizing: border-box; max-width: 940px; margin: 0 auto; padding: 16px 28px 0; }
+    .page-back-row { width: 100%; box-sizing: border-box; max-width: 940px; margin: 0 auto; padding: 16px 28px 0; position: sticky; top: 0; z-index: 15; background: #08090c; }
     .page-back { width: 32px; height: 32px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
     .page-back:hover { opacity: 0.68; transform: translateX(-1px); }
     .page-back:focus-visible { outline: none; opacity: 1; }
