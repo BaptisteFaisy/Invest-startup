@@ -178,7 +178,9 @@
     .example-picker__sel option { color: #08090c; }
 
     /* Historique des simulations */
-    .hist-list { display: flex; flex-direction: column; gap: 10px; }
+    .dil__history { margin-top: 26px; }
+    .hist-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }
+    .hist-empty { font-size: 13px; color: #6b6b78; padding: 6px 2px; }
     .hist-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 12px 13px; border: 1px solid rgba(8,9,12,0.08); border-radius: 11px; transition: border-color .12s; }
     .hist-item:hover { border-color: rgba(8,9,12,0.18); }
     .hist-item__name { font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 700; color: #08090c; }
@@ -325,13 +327,6 @@
             </div>
             <button type="button" class="btn" id="reset-btn">↺ Vider le formulaire</button>
             <button type="button" class="btn" id="save-sim-btn">💾 Enregistrer cette simulation</button>
-          </div>
-
-          <div class="card" id="hist-card" hidden>
-            <div class="card__h">Historique des simulations</div>
-            <div class="card__desc">Vos simulations enregistrées. Chargez-en une pour la reprendre ou la comparer.</div>
-            <div class="hist-status" id="hist-status" role="status" aria-live="polite"></div>
-            <div class="hist-list" id="hist-list"></div>
           </div>
 
           <div class="card">
@@ -516,6 +511,13 @@
             <b><span class="term" data-term="shuffle" tabindex="0">Option pool shuffle</span></b> : un pool créé « avant le tour » gonfle le pre-money en actions et ne dilue que les actionnaires existants — l'investisseur obtient son pourcentage « net de pool ». Créé « après », il dilue aussi l'investisseur. C'est un point de négociation à part entière.
           </p>
         </div>
+      </div>
+
+      <div class="card dil__history" id="hist-card">
+        <div class="card__h">Historique des simulations</div>
+        <div class="card__desc">Vos simulations enregistrées. Chargez-en une pour la reprendre ou la comparer.</div>
+        <div class="hist-status" id="hist-status" role="status" aria-live="polite"></div>
+        <div class="hist-list" id="hist-list"></div>
       </div>
 
       <div class="dil__next">
@@ -1218,10 +1220,11 @@
 
     function renderHistory() {
       const list = historyEntries;
-      const card = document.getElementById('hist-card');
       const body = document.getElementById('hist-list');
-      if (!list.length) { card.hidden = true; body.innerHTML = ''; return; }
-      card.hidden = false;
+      if (!list.length) {
+        body.innerHTML = '<div class="hist-empty">Aucune simulation enregistrée pour l\'instant. Renseignez vos données puis cliquez sur « 💾 Enregistrer cette simulation » pour la retrouver ici.</div>';
+        return;
+      }
       body.innerHTML = list.map(entry => {
         const d = new Date(entry.savedAt);
         const dateStr = `${d.toLocaleDateString('fr-FR')} · ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
