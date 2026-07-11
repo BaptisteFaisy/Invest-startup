@@ -204,6 +204,7 @@ async function deleteUserAccountById(id) {
     col('saas_folders').deleteMany({ user_id: id }),
     col('saas_dilution_simulations').deleteMany({ user_id: id }),
     col('saas_valuation_estimations').deleteMany({ user_id: id }),
+    col('saas_exit_simulations').deleteMany({ user_id: id }),
     col('saas_fundraising_profiles').deleteMany({ user_id: id }),
     col('saas_claude_usage').deleteMany({ user_id: id }),
     col('saas_compare_history').deleteMany({ user_id: id }),
@@ -1078,6 +1079,76 @@ app.post('/api/saas/valuation-estimations', requireAuth, async (req, res) => {
 app.delete('/api/saas/valuation-estimations/:id', requireAuth, async (req, res) => {
   const result = await col('saas_valuation_estimations').deleteOne({ id: req.params.id, user_id: req.user.id });
   if (!result.deletedCount) return res.status(404).json({ error: 'Estimation introuvable.' });
+  res.json({ success: true });
+});
+
+// ─── Simulations d'exit ──────────────────────────────────────────────────────
+// Même principe que la dilution et la valorisation : l'historique est rattaché au
+// compte, il survit donc à un changement d'appareil ou à un nettoyage du cache.
+const EXIT_HISTORY_MAX = 30;
+
+function normalizeExitSimulation(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const name = String(raw.name || '').trim().slice(0, 160);
+  if (!name || !raw.state || typeof raw.state !== 'object' || Array.isArray(raw.state)) return null;
+
+  // Une simulation d'exit reste petite. Cette limite évite d'utiliser l'endpoint
+  // comme stockage générique tout en laissant de la marge pour une cap table détaillée.
+  let serialized;
+  try { serialized = JSON.stringify(raw.state); } catch { return null; }
+  if (Buffer.byteLength(serialized, 'utf8') > 100_000) return null;
+
+  const savedAt = asFiniteNumber(raw.savedAt) || Date.now();
+  const moic = Number(raw.summary?.moic);
+  return {
+    id: crypto.randomUUID(),
+    name,
+    savedAt,
+    summary: {
+      exitType: raw.summary?.exitType === 'partial' ? 'partial' : 'total',
+      amount: asFiniteNumber(raw.summary?.amount),
+      founderAmount: asFiniteNumber(raw.summary?.founderAmount),
+      investAmount: asFiniteNumber(raw.summary?.investAmount),
+      moic: Number.isFinite(moic) ? moic : null,
+      buyerPct: asFiniteNumber(raw.summary?.buyerPct),
+    },
+    state: raw.state,
+  };
+}
+
+async function pruneExitHistory(userId) {
+  const obsolete = await col('saas_exit_simulations')
+    .find({ user_id: userId }, { projection: { _id: 1 } })
+    .sort({ savedAt: -1, created_at: -1 })
+    .skip(EXIT_HISTORY_MAX)
+    .toArray();
+  if (obsolete.length) {
+    await col('saas_exit_simulations').deleteMany({ _id: { $in: obsolete.map(entry => entry._id) } });
+  }
+}
+
+app.get('/api/saas/exit-simulations', requireAuth, async (req, res) => {
+  const simulations = await col('saas_exit_simulations')
+    .find({ user_id: req.user.id }, { projection: { _id: 0, user_id: 0, created_at: 0 } })
+    .sort({ savedAt: -1, created_at: -1 })
+    .limit(EXIT_HISTORY_MAX)
+    .toArray();
+  res.json({ simulations });
+});
+
+app.post('/api/saas/exit-simulations', requireAuth, async (req, res) => {
+  const simulation = normalizeExitSimulation(req.body?.simulation);
+  if (!simulation) return res.status(400).json({ error: 'Simulation invalide ou trop volumineuse.' });
+
+  const record = { ...simulation, user_id: req.user.id, created_at: new Date().toISOString() };
+  await col('saas_exit_simulations').insertOne(record);
+  await pruneExitHistory(req.user.id);
+  res.status(201).json({ simulation });
+});
+
+app.delete('/api/saas/exit-simulations/:id', requireAuth, async (req, res) => {
+  const result = await col('saas_exit_simulations').deleteOne({ id: req.params.id, user_id: req.user.id });
+  if (!result.deletedCount) return res.status(404).json({ error: 'Simulation introuvable.' });
   res.json({ success: true });
 });
 

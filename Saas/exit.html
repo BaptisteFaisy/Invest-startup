@@ -185,6 +185,43 @@
     .tip.is-on { opacity: 1; transform: translateY(0); }
     .tip b { color: #fff; font-weight: 700; }
 
+    /* Historique des simulations d'exit */
+    .ext__history { margin-top: 26px; }
+    .hist-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px; }
+    .hist-empty { font-size: 13px; color: #6b6b78; padding: 6px 2px; }
+    .hist-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 12px 13px; border: 1px solid rgba(8,9,12,0.08); border-radius: 11px; transition: border-color .12s; }
+    .hist-item:hover { border-color: rgba(8,9,12,0.18); }
+    .hist-item__name { font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 700; color: #08090c; }
+    .hist-item__meta { font-size: 11px; color: #a8a8b3; margin-top: 2px; }
+    .hist-item__chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .hist-chip { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 600; color: #4b4b56; background: #f2f2f0; border-radius: 6px; padding: 3px 8px; white-space: nowrap; }
+    .hist-chip--type { color: #2563eb; background: rgba(37,99,235,0.09); }
+    .hist-item__actions { display: flex; flex-direction: column; gap: 6px; flex: none; }
+    .hist-btn { font-family: 'Archivo', sans-serif; font-size: 11.5px; font-weight: 600; border-radius: 8px; padding: 6px 10px; cursor: pointer; border: 1px solid rgba(8,9,12,0.14); background: #fff; color: #08090c; transition: .12s; white-space: nowrap; }
+    .hist-load:hover { border-color: #08090c; color: #08090c; }
+    .hist-del { color: #b0b0bb; padding: 6px 9px; }
+    .hist-del:hover { border-color: #ef4444; color: #ef4444; }
+    .hist-status { min-height: 18px; margin: -5px 0 10px; font-size: 11.5px; color: #6b6b78; }
+    .hist-status--ok { color: #15803d; }
+    .hist-status--warn { color: #b45309; }
+    @media (max-width: 520px) {
+      .hist-item { flex-direction: column; }
+      .hist-item__actions { flex-direction: row; }
+    }
+
+    /* Boîte de dialogue de saisie (remplace prompt(), non supporté par Electron) */
+    .ask-backdrop { position: fixed; inset: 0; z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(8,9,12,0.55); }
+    .ask-backdrop.is-on { display: flex; }
+    .ask-box { width: 100%; max-width: 420px; background: #fff; border-radius: 14px; padding: 20px 20px 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.4); }
+    .ask-box__title { font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; color: #08090c; margin-bottom: 12px; }
+    .ask-box__input { width: 100%; box-sizing: border-box; font-family: 'Libre Franklin', sans-serif; font-size: 14px; color: #08090c; background: #f7f7f5; border: 1px solid rgba(8,9,12,0.16); border-radius: 9px; padding: 10px 12px; }
+    .ask-box__input:focus { outline: none; border-color: #08090c; }
+    .ask-box__actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+    .ask-box__btn { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; border-radius: 9px; padding: 8px 14px; cursor: pointer; border: 1px solid rgba(8,9,12,0.14); background: #fff; color: #08090c; transition: .12s; }
+    .ask-box__btn:hover { border-color: rgba(8,9,12,0.3); }
+    .ask-box__btn--primary { background: #08090c; border-color: #08090c; color: #fff; }
+    .ask-box__btn--primary:hover { background: #26272e; border-color: #26272e; }
+
     @media (max-width: 520px) {
       .ext { padding: 24px 14px 80px; }
       .ext__title { font-size: 25px; }
@@ -347,6 +384,7 @@
         <div class="ext__results">
           <div class="ext__actions">
             <button type="button" class="btn" id="reset-btn">↺ Réinitialiser l'exemple</button>
+            <button type="button" class="btn" id="save-sim-btn">💾 Enregistrer cet exit</button>
           </div>
 
           <div id="warn-box"></div>
@@ -380,6 +418,13 @@
 
           <p class="note" id="result-note"></p>
         </div>
+      </div>
+
+      <div class="card ext__history" id="hist-card">
+        <div class="card__h">Historique des simulations d'exit</div>
+        <div class="card__desc">Vos scénarios de sortie enregistrés. Chargez-en un pour le reprendre ou comparer plusieurs prix de cession.</div>
+        <div class="hist-status" id="hist-status" role="status" aria-live="polite"></div>
+        <div class="hist-list" id="hist-list"></div>
       </div>
 
       <div class="ext__next">
@@ -1003,10 +1048,307 @@
       window.addEventListener('resize', hide);
     })();
 
+    // ---------- Historique des simulations d'exit (synchronisé avec le compte) ----------
+    const HISTORY_KEY = 'liquidplus_exit_history_v1';
+    const HISTORY_MAX = 30;
+    let historyEntries = [];
+
+    function loadHistory() {
+      try {
+        const list = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+        return Array.isArray(list) ? list : [];
+      } catch { return []; }
+    }
+    function saveHistory(list) {
+      try {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function setHistoryStatus(message = '', tone = '') {
+      const el = document.getElementById('hist-status');
+      el.textContent = message;
+      el.className = `hist-status${tone ? ` hist-status--${tone}` : ''}`;
+    }
+
+    async function requestHistory(path = '', options = {}) {
+      const response = await fetch(`/api/saas/exit-simulations${path}`, {
+        credentials: 'include',
+        ...options,
+        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error || 'Impossible d’enregistrer l’historique.');
+      }
+      return response.json();
+    }
+
+    function updateHistory(list, status, tone) {
+      const unique = new Map();
+      (Array.isArray(list) ? list : []).forEach(entry => {
+        if (entry && entry.id) unique.set(entry.id, entry);
+      });
+      historyEntries = [...unique.values()]
+        .sort((a, b) => Number(b.savedAt || 0) - Number(a.savedAt || 0))
+        .slice(0, HISTORY_MAX);
+      const stored = saveHistory(historyEntries);
+      renderHistory();
+      if (status) setHistoryStatus(status, tone);
+      return stored;
+    }
+
+    // Capture l'état complet du formulaire (indépendant du mode / type courants)
+    function captureSnapshot() {
+      const rows = [...shRowsEl.querySelectorAll('.xrow')].map(row => {
+        const type = row.querySelector('.in-type').value;
+        const o = {
+          name: row.querySelector('.in-name').value.trim() || 'Sans nom',
+          value: parseNum(row.querySelector('.in-shares').value),
+          type,
+          sellPct: parseNum(row.querySelector('.in-sellpct').value),
+        };
+        if (type === 'invest0') {
+          o.pref = {
+            invested: parseNum(row.querySelector('.in-invested').value),
+            multiple: parseNum(row.querySelector('.in-multiple').value) || 1,
+            participating: row.querySelector('.in-participating').checked,
+            cap: parseNum(row.querySelector('.in-cap').value) || 0,
+            rank: parseInt(row.querySelector('.in-rank').value, 10) || 1,
+            convert: row.querySelector('.in-convert').checked,
+          };
+        }
+        return o;
+      });
+      return {
+        mode, exitType, rows,
+        salePrice: parseNum(document.getElementById('sale-price').value),
+        fees: parseNum(document.getElementById('sale-fees').value),
+        debt: parseNum(document.getElementById('sale-debt').value),
+        partValo: parseNum(document.getElementById('part-valo').value),
+        buyer: document.getElementById('part-buyer').value.trim(),
+      };
+    }
+
+    // Restaure un état sauvegardé dans le formulaire
+    function restoreSnapshot(s) {
+      mode = s.mode === 'shares' ? 'shares' : 'pct';
+      shRowsEl.innerHTML = (Array.isArray(s.rows) ? s.rows : []).map(shRowHTML).join('');
+      document.getElementById('sale-price').value = s.salePrice ? nfInt.format(Math.round(s.salePrice)) : '';
+      document.getElementById('sale-fees').value = (s.fees != null ? String(s.fees) : '');
+      document.getElementById('sale-debt').value = s.debt ? nfInt.format(Math.round(s.debt)) : '0';
+      document.getElementById('part-valo').value = s.partValo ? nfInt.format(Math.round(s.partValo)) : '';
+      document.getElementById('part-buyer').value = s.buyer || '';
+      syncModeUI();
+      // Force le rafraîchissement de l'UI du type d'exit (setExitType est un no-op si égal)
+      const target = s.exitType === 'partial' ? 'partial' : 'total';
+      exitType = target === 'total' ? 'partial' : 'total';
+      setExitType(target); // enchaîne syncRowVisibility() + recompute()
+    }
+
+    function currentResult(st) {
+      if (exitType === 'total') {
+        const r = computeTotal(st);
+        return {
+          r,
+          summary: {
+            exitType: 'total',
+            amount: Math.max(0, r.net || 0),
+            founderAmount: r.founderTotal || 0,
+            investAmount: r.investTotal || 0,
+            moic: r.moicGlobal != null ? r.moicGlobal : null,
+            buyerPct: 0,
+          },
+        };
+      }
+      const r = computePartial(st);
+      return {
+        r,
+        summary: {
+          exitType: 'partial',
+          amount: r.totalProceeds || 0,
+          founderAmount: 0,
+          investAmount: 0,
+          moic: null,
+          buyerPct: r.buyerPct || 0,
+        },
+      };
+    }
+
+    function renderHistory() {
+      const list = historyEntries;
+      const body = document.getElementById('hist-list');
+      if (!list.length) {
+        body.innerHTML = '<div class="hist-empty">Aucune simulation enregistrée pour l\'instant. Renseignez vos données puis cliquez sur « 💾 Enregistrer cet exit » pour la retrouver ici.</div>';
+        return;
+      }
+      body.innerHTML = list.map(entry => {
+        const d = new Date(entry.savedAt);
+        const dateStr = `${d.toLocaleDateString('fr-FR')} · ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+        const s = entry.summary || {};
+        const chips = s.exitType === 'partial'
+          ? `<span class="hist-chip hist-chip--type">Sortie partielle</span>
+             <span class="hist-chip">Cession ${eur0(s.amount)}</span>
+             <span class="hist-chip">Capital transféré ${pct1(s.buyerPct || 0)}</span>`
+          : `<span class="hist-chip hist-chip--type">Sortie totale</span>
+             <span class="hist-chip">Produit net ${eur0(s.amount)}</span>
+             <span class="hist-chip">Fondateurs ${eur0(s.founderAmount || 0)}</span>
+             <span class="hist-chip">MOIC ${s.moic != null ? s.moic.toFixed(2) + '×' : '—'}</span>`;
+        return `<div class="hist-item" data-id="${entry.id}">
+          <div class="hist-item__main">
+            <div class="hist-item__name">${escAttr(entry.name)}</div>
+            <div class="hist-item__meta">${dateStr}</div>
+            <div class="hist-item__chips">${chips}</div>
+          </div>
+          <div class="hist-item__actions">
+            <button type="button" class="hist-btn hist-load">Charger</button>
+            <button type="button" class="hist-btn hist-del" title="Supprimer">×</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    async function saveCurrentExit() {
+      const st = readState();
+      const { summary } = currentResult(st);
+      if ((exitType === 'total' && (st.E <= 0 || st.salePrice <= 0)) ||
+          (exitType === 'partial' && (st.E <= 0 || st.partValo <= 0))) {
+        alert("Impossible d'enregistrer : complétez d'abord la cap table et les paramètres de la cession.");
+        return;
+      }
+      const now = new Date();
+      const defaultName = `Exit ${exitType === 'partial' ? 'partiel' : 'total'} du ${now.toLocaleDateString('fr-FR')} à ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+      const name = ((await askText('Nom de cette simulation :', defaultName, 'Enregistrer')) || '').trim();
+      if (!name) return;
+      const entry = {
+        id: 'exit_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+        name,
+        savedAt: Date.now(),
+        summary,
+        state: captureSnapshot(),
+      };
+      const localSaved = updateHistory([entry, ...historyEntries], 'Enregistrement de la simulation…');
+
+      try {
+        const data = await requestHistory('', {
+          method: 'POST',
+          body: JSON.stringify({ simulation: entry }),
+        });
+        const saved = data.simulation;
+        updateHistory(historyEntries.map(item => item.id === entry.id ? saved : item), 'Simulation enregistrée.', 'ok');
+      } catch (error) {
+        const message = localSaved
+          ? 'Simulation enregistrée sur cet appareil. La synchronisation du compte sera réessayée à la prochaine ouverture.'
+          : 'Impossible d’enregistrer la simulation : le stockage est indisponible.';
+        setHistoryStatus(message, 'warn');
+      }
+    }
+
+    document.getElementById('save-sim-btn').addEventListener('click', saveCurrentExit);
+    document.getElementById('hist-list').addEventListener('click', (e) => {
+      const item = e.target.closest('.hist-item');
+      if (!item) return;
+      const id = item.dataset.id;
+      if (e.target.closest('.hist-load')) {
+        const entry = historyEntries.find(x => x.id === id);
+        if (entry) restoreSnapshot(entry.state);
+      } else if (e.target.closest('.hist-del')) {
+        if (!confirm('Supprimer cette simulation de l\'historique ?')) return;
+        const previous = historyEntries;
+        updateHistory(previous.filter(x => x.id !== id), 'Simulation supprimée.', 'ok');
+        if (!id.startsWith('exit_')) {
+          requestHistory('/' + encodeURIComponent(id), { method: 'DELETE' }).catch(() => {
+            updateHistory(previous, 'La suppression n’a pas pu être synchronisée. Réessayez plus tard.', 'warn');
+          });
+        }
+      }
+    });
+
+    async function hydrateHistory() {
+      const localEntries = loadHistory();
+      const initialLocalIds = new Set(localEntries.map(entry => entry.id));
+      historyEntries = localEntries;
+      renderHistory();
+      try {
+        const data = await requestHistory();
+        const remoteEntries = Array.isArray(data.simulations) ? data.simulations : [];
+        // Les simulations créées avant la synchronisation par compte restent accessibles
+        // et sont importées une seule fois (leurs identifiants locaux commencent par exit_).
+        const legacyEntries = localEntries.filter(entry => String(entry.id || '').startsWith('exit_'));
+        const migrated = await Promise.all(legacyEntries.map(async (entry) => {
+          const result = await requestHistory('', {
+            method: 'POST',
+            body: JSON.stringify({ simulation: entry }),
+          });
+          return result.simulation;
+        }));
+        // Conserve un enregistrement déclenché pendant le chargement de l'historique.
+        const pendingEntries = historyEntries.filter(entry =>
+          String(entry.id || '').startsWith('exit_') && !initialLocalIds.has(entry.id)
+        );
+        updateHistory([...remoteEntries, ...migrated, ...pendingEntries], migrated.length ? 'Historique synchronisé avec votre compte.' : '', migrated.length ? 'ok' : '');
+      } catch {
+        if (historyEntries.length) setHistoryStatus('Historique enregistré sur cet appareil.', 'warn');
+      }
+    }
+
+    // Boîte de dialogue de saisie promise-based (window.prompt est indisponible sous Electron)
+    function askText(message, defaultValue = '', okLabel = 'Valider') {
+      return new Promise((resolve) => {
+        const backdrop = document.getElementById('ask-backdrop');
+        const titleEl = document.getElementById('ask-title');
+        const inputEl = document.getElementById('ask-input');
+        const okBtn = document.getElementById('ask-ok');
+        const cancelBtn = document.getElementById('ask-cancel');
+        titleEl.textContent = message;
+        inputEl.value = defaultValue;
+        okBtn.textContent = okLabel;
+        backdrop.classList.add('is-on');
+        inputEl.focus();
+        inputEl.select();
+
+        function cleanup(result) {
+          backdrop.classList.remove('is-on');
+          okBtn.removeEventListener('click', onOk);
+          cancelBtn.removeEventListener('click', onCancel);
+          backdrop.removeEventListener('mousedown', onBackdrop);
+          inputEl.removeEventListener('keydown', onKey);
+          resolve(result);
+        }
+        function onOk() { cleanup(inputEl.value); }
+        function onCancel() { cleanup(null); }
+        function onBackdrop(e) { if (e.target === backdrop) cleanup(null); }
+        function onKey(e) {
+          if (e.key === 'Enter') { e.preventDefault(); onOk(); }
+          else if (e.key === 'Escape') { e.preventDefault(); onCancel(); }
+        }
+        okBtn.addEventListener('click', onOk);
+        cancelBtn.addEventListener('click', onCancel);
+        backdrop.addEventListener('mousedown', onBackdrop);
+        inputEl.addEventListener('keydown', onKey);
+      });
+    }
+
     // Init
     syncModeUI();
     setExitType('total');
     loadExample();
+    hydrateHistory();
   </script>
+
+  <!-- Boîte de dialogue de saisie (remplace window.prompt, indisponible sous Electron) -->
+  <div class="ask-backdrop" id="ask-backdrop">
+    <div class="ask-box" role="dialog" aria-modal="true" aria-labelledby="ask-title">
+      <div class="ask-box__title" id="ask-title"></div>
+      <input type="text" class="ask-box__input" id="ask-input" autocomplete="off" />
+      <div class="ask-box__actions">
+        <button type="button" class="ask-box__btn" id="ask-cancel">Annuler</button>
+        <button type="button" class="ask-box__btn ask-box__btn--primary" id="ask-ok">Valider</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
