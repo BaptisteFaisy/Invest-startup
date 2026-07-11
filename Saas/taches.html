@@ -87,7 +87,13 @@
     .tsk__activity-sub { color: rgba(255,255,255,0.55); font-size: 13.5px; line-height: 1.5; margin: -4px 0 18px; }
     .act-day { margin-top: 20px; }
     .act-day:first-child { margin-top: 0; }
-    .act-day__label { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 10px; }
+    .act-day__toggle { width: 100%; display: flex; align-items: center; gap: 8px; margin: 0 0 10px; padding: 5px 0; border: 0; background: transparent; color: rgba(255,255,255,0.4); cursor: pointer; text-align: left; }
+    .act-day__toggle:hover { color: rgba(255,255,255,0.7); }
+    .act-day__label { flex: 1; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+    .act-day__count { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0; color: rgba(255,255,255,0.35); }
+    .act-day__chevron { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform .16s ease; }
+    .act-day.is-collapsed .act-day__chevron { transform: rotate(-90deg); }
+    .act-day.is-collapsed .act-day__rows { display: none; }
     .act-row { display: flex; align-items: flex-start; gap: 12px; padding: 7px 0; position: relative; }
     .act-row__dot { flex: none; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; margin-top: 1px; }
     .act-row__dot svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -474,25 +480,52 @@
 
     let activity = [];
     let activityShown = 0;
+    const collapsedActivityDays = new Set();
     const ACT_PAGE = 40;
 
     function renderActivity() {
       const listEl = document.getElementById('activity-list');
       listEl.innerHTML = '';
       const slice = activity.slice(0, activityShown);
+      const countsByDay = slice.reduce((counts, ev) => {
+        const key = dayKey(new Date(ev.at));
+        counts[key] = (counts[key] || 0) + 1;
+        return counts;
+      }, {});
       let lastDay = null;
       let dayEl = null;
+      let rowsEl = null;
       slice.forEach(ev => {
         const d = new Date(ev.at);
         const key = dayKey(d);
         if (key !== lastDay) {
           lastDay = key;
           dayEl = document.createElement('div');
-          dayEl.className = 'act-day';
-          const lab = document.createElement('div');
+          dayEl.className = 'act-day' + (collapsedActivityDays.has(key) ? ' is-collapsed' : '');
+          const toggle = document.createElement('button');
+          toggle.type = 'button';
+          toggle.className = 'act-day__toggle';
+          toggle.setAttribute('aria-expanded', collapsedActivityDays.has(key) ? 'false' : 'true');
+          const lab = document.createElement('span');
           lab.className = 'act-day__label';
           lab.textContent = dayLabel(d);
-          dayEl.appendChild(lab);
+          const count = document.createElement('span');
+          count.className = 'act-day__count';
+          count.textContent = countsByDay[key] + (countsByDay[key] > 1 ? ' actions' : ' action');
+          toggle.appendChild(lab);
+          toggle.appendChild(count);
+          toggle.insertAdjacentHTML('beforeend', '<svg class="act-day__chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>');
+          const currentDayEl = dayEl;
+          toggle.addEventListener('click', () => {
+            const collapsed = currentDayEl.classList.toggle('is-collapsed');
+            toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+            if (collapsed) collapsedActivityDays.add(key);
+            else collapsedActivityDays.delete(key);
+          });
+          rowsEl = document.createElement('div');
+          rowsEl.className = 'act-day__rows';
+          dayEl.appendChild(toggle);
+          dayEl.appendChild(rowsEl);
           listEl.appendChild(dayEl);
         }
         const row = document.createElement('div');
@@ -512,7 +545,7 @@
         body.appendChild(time);
         row.appendChild(dot);
         row.appendChild(body);
-        dayEl.appendChild(row);
+        rowsEl.appendChild(row);
       });
       document.getElementById('activity-more').hidden = activityShown >= activity.length;
     }
