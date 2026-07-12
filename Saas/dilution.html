@@ -87,6 +87,7 @@
     .rows__head, .row { display: grid; align-items: center; gap: 8px; }
     .rows--sh .rows__head, .rows--sh .row { grid-template-columns: 1fr 118px 128px 30px; }
     .rows--inv .rows__head, .rows--inv .row { grid-template-columns: 1fr 132px 30px; }
+    .rows--conv .rows__head, .rows--conv .row { grid-template-columns: 1fr 92px 60px 92px 30px; }
     .rows__head { padding: 0 2px 6px; }
     .rows__head span { font-family: 'Archivo', sans-serif; font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #a8a8b3; }
     .rows__head span.r { text-align: right; }
@@ -152,6 +153,7 @@
     .c-pool0 { background: #d97706; }
     .c-investN { background: #9333ea; }
     .c-poolN { background: #db2777; }
+    .c-convert { background: #0ea5e9; }
 
     /* Table résultat */
     .rtable-wrap { overflow-x: auto; margin-top: 4px; }
@@ -177,6 +179,19 @@
 
     .warn { display: flex; gap: 10px; background: rgba(217,119,6,0.1); border: 1px solid rgba(217,119,6,0.28); border-radius: 12px; padding: 13px 15px; margin-bottom: 16px; font-size: 13px; line-height: 1.5; color: #92400e; }
     .warn svg { width: 18px; height: 18px; flex: none; stroke: #d97706; stroke-width: 1.9; fill: none; margin-top: 1px; }
+
+    /* Encarts d'information sur les clauses (convertibles / anti-dilution) */
+    .clause-info { display: grid; gap: 10px; margin: 16px 0 0; }
+    .clause-info:empty { margin: 0; }
+    .clause-note { display: flex; gap: 10px; border-radius: 12px; padding: 12px 14px; font-size: 12.5px; line-height: 1.5; }
+    .clause-note svg { width: 17px; height: 17px; flex: none; stroke-width: 1.9; fill: none; margin-top: 1px; }
+    .clause-note b { font-weight: 700; }
+    .clause-note--conv { background: rgba(14,165,233,0.1); border: 1px solid rgba(14,165,233,0.3); color: #075985; }
+    .clause-note--conv svg { stroke: #0ea5e9; }
+    .clause-note--down { background: rgba(220,38,38,0.09); border: 1px solid rgba(220,38,38,0.28); color: #991b1b; }
+    .clause-note--down svg { stroke: #dc2626; }
+    .clause-note--calm { background: rgba(8,9,12,0.04); border: 1px solid rgba(8,9,12,0.1); color: #4b4b56; }
+    .clause-note--calm svg { stroke: #8a8a95; }
 
     .note { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.6; margin-top: 16px; }
     .note b { color: rgba(255,255,255,0.8); }
@@ -245,6 +260,7 @@
       .card { padding: 16px 14px 18px; }
       .rows--sh .rows__head, .rows--sh .row { grid-template-columns: 1fr 72px 92px 28px; gap: 6px; }
       .rows--inv .rows__head, .rows--inv .row { grid-template-columns: 1fr 100px 28px; gap: 6px; }
+      .rows--conv .rows__head, .rows--conv .row { grid-template-columns: 1fr 70px 50px 70px 28px; gap: 6px; }
       .row .inp, .row .sel { padding: 8px 7px; font-size: 12.5px; }
       .kpi__val { font-size: 19px; }
     }
@@ -449,6 +465,64 @@
               </div>
             </div>
           </div>
+
+          <div class="card">
+            <div class="card__h">4 · Clause anti-dilution (protection down round)</div>
+            <label class="pool-toggle">
+              <input type="checkbox" id="anti-on" />
+              <span>Simuler une clause <span class="term" data-term="anti-dilution" tabindex="0">anti-dilution</span> sur les investisseurs existants</span>
+            </label>
+            <div class="pool-body" id="anti-body" hidden>
+              <div class="card__desc" style="margin-top:12px">Ne se déclenche qu'en cas de <span class="term" data-term="down-round" tabindex="0">down round</span> — un tour à un prix par action <b>inférieur</b> à celui payé par vos investisseurs existants. La société leur réémet des actions pour compenser, ce qui <b>dilue davantage les fondateurs</b>.</div>
+              <label class="field__lab">Type de protection</label>
+              <div class="radio-row">
+                <label class="radio-chip is-on" data-anti="ratchet">
+                  <input type="radio" name="anti-type" value="ratchet" checked />
+                  <span class="term" data-term="ratchet" tabindex="0">Full ratchet</span>
+                  <small>Protection maximale — la plus dure pour le fondateur</small>
+                </label>
+                <label class="radio-chip" data-anti="wa">
+                  <input type="radio" name="anti-type" value="wa" />
+                  <span class="term" data-term="weighted-average" tabindex="0">Moyenne pondérée</span>
+                  <small>Broad-based — standard de marché, plus douce</small>
+                </label>
+              </div>
+              <div class="field" style="margin-top:14px">
+                <label class="field__lab" for="anti-invested">Montant investi par les investisseurs protégés</label>
+                <div class="inp-wrap">
+                  <input class="inp inp--money" type="text" inputmode="numeric" id="anti-invested" value="" placeholder="0" />
+                  <span class="inp-wrap__suf">€</span>
+                </div>
+                <div class="card__desc" style="margin:6px 0 0">Sert à retrouver leur <b>prix d'entrée</b> (montant ÷ actions détenues). Les actions protégées sont les lignes de catégorie « Investisseur » de votre cap table.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card__h">5 · Convertibles qui se convertissent (BSA AIR / SAFE / OC)</div>
+            <label class="pool-toggle">
+              <input type="checkbox" id="conv-on" />
+              <span>Des <span class="term" data-term="convertibles" tabindex="0">convertibles</span> se convertissent à ce tour</span>
+            </label>
+            <div class="pool-body" id="conv-body" hidden>
+              <div class="card__desc" style="margin-top:12px">Chaque instrument se convertit au prix <b>le plus favorable</b> pour son porteur entre la <span class="term" data-term="decote" tabindex="0">décote</span> sur le prix du tour et le <span class="term" data-term="plafond" tabindex="0">plafond</span> de valorisation. Plus le prix de conversion est bas, plus il émet d'actions — donc plus il dilue les fondateurs.</div>
+              <div class="rows rows--conv" style="margin-top:12px">
+                <div class="rows__head">
+                  <span>Instrument</span>
+                  <span class="r">Montant (€)</span>
+                  <span class="r">Décote %</span>
+                  <span class="r">Plafond (€)</span>
+                  <span></span>
+                </div>
+                <div id="conv-rows"></div>
+              </div>
+              <button type="button" class="addrow" id="add-conv">+ Ajouter un convertible</button>
+              <div class="rowsum">
+                <span>Total converti</span>
+                <b id="conv-total">—</b>
+              </div>
+            </div>
+          </div>
         </form>
 
         <!-- COLONNE RÉSULTATS -->
@@ -495,6 +569,8 @@
             </div>
           </div>
 
+          <div class="clause-info" id="clause-info"></div>
+
           <div class="card" style="margin-top:18px">
             <div class="card__h" id="own-card-h">Répartition du capital (<span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span>)</div>
             <div class="ownbar-wrap">
@@ -532,7 +608,8 @@
           <p class="note">
             <b><span class="term" data-term="fully-diluted" tabindex="0">Fully diluted</span></b> : la répartition intègre le <span class="term" data-term="pool" tabindex="0">pool d'options</span> et les <span class="term" data-term="convertibles" tabindex="0">instruments convertibles</span> comme s'ils étaient déjà des actions — c'est la base retenue par les investisseurs et la mesure la plus prudente de votre <span class="term" data-term="dilution" tabindex="0">dilution</span>.<br />
             <b><span class="term" data-term="non-dilue" tabindex="0">Non dilué</span></b> : la même opération sur les seules actions <b>déjà émises</b>. Votre part y paraît plus haute — l'écart avec le fully diluted mesure exactement le poids du pool à venir (l'« <i>overhang</i> »).<br />
-            <b><span class="term" data-term="shuffle" tabindex="0">Option pool shuffle</span></b> : un pool créé « avant le tour » gonfle le pre-money en actions et ne dilue que les actionnaires existants — l'investisseur obtient son pourcentage « net de pool ». Créé « après », il dilue aussi l'investisseur. C'est un point de négociation à part entière.
+            <b><span class="term" data-term="shuffle" tabindex="0">Option pool shuffle</span></b> : un pool créé « avant le tour » gonfle le pre-money en actions et ne dilue que les actionnaires existants — l'investisseur obtient son pourcentage « net de pool ». Créé « après », il dilue aussi l'investisseur. C'est un point de négociation à part entière.<br />
+            <b><span class="term" data-term="anti-dilution" tabindex="0">Anti-dilution</span> & <span class="term" data-term="convertibles" tabindex="0">convertibles</span></b> : ces clauses n'émettent des actions qu'en surplus du tour de base — elles sont donc appliquées <b>par-dessus</b> le calcul principal et diluent tout le monde au prorata, les fondateurs en premier. Le prix par action du tour reste calculé sur la cap table saisie (les conversions ne le recalculent pas). Une estimation, à confirmer avec vos conseils.
           </p>
         </div>
       </div>
@@ -592,6 +669,7 @@
       pool0:   { label: 'Pool existant', cls: 'c-pool0', color: '#d97706' },
       investN: { label: 'Nouveaux investisseurs', cls: 'c-investN', color: '#9333ea' },
       poolN:   { label: 'Nouveau pool', cls: 'c-poolN', color: '#db2777' },
+      convert: { label: 'Convertibles convertis', cls: 'c-convert', color: '#0ea5e9' },
     };
 
     // ---------- Données d'exemple ----------
@@ -647,6 +725,7 @@
 
     const shRowsEl = document.getElementById('sh-rows');
     const invRowsEl = document.getElementById('inv-rows');
+    const convRowsEl = document.getElementById('conv-rows');
 
     function shRowHTML(sh) {
       const opt = (v, l) => `<option value="${v}"${sh.type === v ? ' selected' : ''}>${l}</option>`;
@@ -667,6 +746,16 @@
       return `<div class="row" data-role="inv">
         <input class="inp in-iname" type="text" value="${escAttr(inv.name)}" placeholder="Nom" />
         <input class="inp inp--money in-amount" type="text" inputmode="numeric" value="${inv.amount ? nfInt.format(inv.amount) : ''}" placeholder="0" />
+        <button type="button" class="row__del" title="Supprimer">×</button>
+      </div>`;
+    }
+    function convRowHTML(c) {
+      c = c || {};
+      return `<div class="row" data-role="conv">
+        <input class="inp in-cname" type="text" value="${escAttr(c.name)}" placeholder="BSA AIR…" />
+        <input class="inp inp--money in-camount" type="text" inputmode="numeric" value="${c.amount ? nfInt.format(c.amount) : ''}" placeholder="0" />
+        <input class="inp inp--money in-cdiscount" type="text" inputmode="decimal" value="${c.discount ? fmtPctInput(c.discount) : ''}" placeholder="20" />
+        <input class="inp inp--money in-ccap" type="text" inputmode="numeric" value="${c.cap ? nfInt.format(c.cap) : ''}" placeholder="—" />
         <button type="button" class="row__del" title="Supprimer">×</button>
       </div>`;
     }
@@ -693,9 +782,21 @@
       document.getElementById('pool-on').checked = ex.pool.on;
       document.getElementById('pool-pct').value = String(ex.pool.pct);
       document.querySelectorAll('input[name="pool-timing"]').forEach(r => { r.checked = (r.value === ex.pool.timing); });
+      resetClauses();
       syncBasisUI();
       syncPoolUI();
+      syncAntiUI();
+      syncConvUI();
       recompute();
+    }
+
+    // Remet à zéro les modules de clauses (anti-dilution + convertibles)
+    function resetClauses() {
+      document.getElementById('anti-on').checked = false;
+      document.getElementById('anti-invested').value = '';
+      document.querySelectorAll('input[name="anti-type"]').forEach(r => { r.checked = (r.value === 'ratchet'); });
+      document.getElementById('conv-on').checked = false;
+      convRowsEl.innerHTML = convRowHTML({});
     }
 
     // Formulaire vide, prêt à recevoir les données de l'utilisateur.
@@ -709,8 +810,11 @@
       document.getElementById('pool-on').checked = false;
       document.getElementById('pool-pct').value = '10';
       document.querySelectorAll('input[name="pool-timing"]').forEach(r => { r.checked = (r.value === 'pre'); });
+      resetClauses();
       syncBasisUI();
       syncPoolUI();
+      syncAntiUI();
+      syncConvUI();
       recompute();
     }
 
@@ -764,7 +868,27 @@
       const interp = interpEl ? interpEl.value : 'net';
       const raw = parseNum(document.getElementById('valo-input').value);
       const { premoney, error } = resolvePremoney(basis, raw, I, pool, interp);
-      return { shareholders, investors, premoney, pool, roundError: error };
+
+      // Clause anti-dilution (protection des investisseurs existants en down round)
+      const antiTypeEl = document.querySelector('input[name="anti-type"]:checked');
+      const anti = {
+        on: document.getElementById('anti-on').checked,
+        type: antiTypeEl ? antiTypeEl.value : 'ratchet',
+        invested: parseNum(document.getElementById('anti-invested').value),
+      };
+
+      // Convertibles qui se convertissent à ce tour
+      const convOn = document.getElementById('conv-on').checked;
+      const convertibles = convOn
+        ? [...convRowsEl.querySelectorAll('[data-role="conv"]')].map(r => ({
+            name: r.querySelector('.in-cname').value.trim() || 'Convertible',
+            amount: parseNum(r.querySelector('.in-camount').value),
+            discount: parseNum(r.querySelector('.in-cdiscount').value),
+            cap: parseNum(r.querySelector('.in-ccap').value),
+          })).filter(c => c.amount > 0)
+        : [];
+
+      return { shareholders, investors, premoney, pool, roundError: error, anti, convertibles };
     }
 
     // ---------- Calcul ----------
@@ -805,8 +929,60 @@
       }
 
       const invSharesTotal = I / pps;
+
+      // ---- Convertibles (BSA AIR / SAFE / OC) : conversion au prix le plus favorable ----
+      // Prix « décote » = pps·(1 − d) ; prix « plafond » = cap ÷ actions FD pre-money (E).
+      // Le porteur convertit au plus bas des deux : plus le prix est bas, plus il obtient d'actions.
+      const convRows = [];
+      let convSharesTotal = 0;
+      (st.convertibles || []).forEach(c => {
+        if (!(c.amount > 0)) return;
+        const dPrice = pps * (1 - (c.discount || 0) / 100);
+        const capPrice = (c.cap > 0 && E > 0) ? (c.cap / E) : Infinity;
+        let convPrice = Math.min(dPrice > 0 ? dPrice : pps, capPrice);
+        if (!(convPrice > 0) || !isFinite(convPrice)) convPrice = pps;
+        const sh = c.amount / convPrice;
+        convSharesTotal += sh;
+        convRows.push({ name: c.name, cat: 'convert', before: 0, after: sh });
+      });
+
+      // ---- Anti-dilution : protection des investisseurs existants en cas de down round ----
+      // Prix d'entrée protégé = montant investi ÷ actions détenues (catégorie « invest0 »).
+      // En down round (prix du tour < prix d'entrée), on réémet des actions aux protégés.
+      let antiRow = null, antiInfo = null;
+      if (st.anti && st.anti.on) {
+        const protShares = st.shareholders.filter(s => s.type === 'invest0').reduce((a, s) => a + s.shares, 0);
+        const protInvest = st.anti.invested;
+        if (protShares > 0 && protInvest > 0) {
+          const oldPrice = protInvest / protShares;
+          const newPrice = pps;
+          const triggered = newPrice < oldPrice - 1e-9;
+          let ncp = oldPrice, bonus = 0;
+          if (triggered) {
+            if (st.anti.type === 'wa') {
+              // Moyenne pondérée broad-based : NCP = OCP · (A + B) / (A + C)
+              const A = E, B = I / oldPrice, C = invSharesTotal;
+              ncp = oldPrice * (A + B) / (A + C);
+            } else {
+              ncp = newPrice; // full ratchet : le prix de conversion s'aligne sur le tour
+            }
+            bonus = Math.max(0, protInvest / ncp - protShares);
+          }
+          antiInfo = { type: st.anti.type, oldPrice, newPrice, ncp, bonus, triggered };
+          if (bonus > 0.5) antiRow = { name: 'Ajustement anti-dilution', cat: 'invest0', before: 0, after: bonus };
+        } else {
+          antiInfo = { incomplete: true };
+        }
+      }
+
+      // Les convertibles et l'ajustement anti-dilution émettent des actions supplémentaires :
+      // ils s'ajoutent au total et diluent tout le monde au prorata (les fondateurs en tête).
+      T += convSharesTotal + (antiRow ? antiRow.after : 0);
+
       res.pps = pps;
       res.poolShares = poolShares;
+      res.convSharesTotal = convSharesTotal;
+      res.antiInfo = antiInfo;
       res.T = T;
       res.invSharesTotal = invSharesTotal;
       res.invPct = invSharesTotal / T;
@@ -821,6 +997,8 @@
         const sh = inv.amount / pps;
         rows.push({ name: inv.name, cat: 'investN', before: 0, after: sh });
       });
+      convRows.forEach(r => rows.push(r));
+      if (antiRow) rows.push(antiRow);
       if (poolShares > 0.5) {
         rows.push({ name: 'Nouveau pool d\'options', cat: 'poolN', before: 0, after: poolShares });
       }
@@ -836,7 +1014,7 @@
       res.founderPctAfter = fBefore / T;
 
       // Segments pour la barre (groupés par catégorie)
-      const groups = ['founder', 'invest0', 'pool0', 'investN', 'poolN'];
+      const groups = ['founder', 'invest0', 'convert', 'pool0', 'investN', 'poolN'];
       res.segBefore = groups.map(g => ({ cat: g, val: res.rows.filter(r => r.cat === g).reduce((a, r) => a + r.before, 0) })).filter(s => s.val > 0);
       res.segAfter = groups.map(g => ({ cat: g, val: res.rows.filter(r => r.cat === g).reduce((a, r) => a + r.after, 0) })).filter(s => s.val > 0);
       res.usedCats = groups.filter(g => res.rows.some(r => r.cat === g && (r.before > 0 || r.after > 0)));
@@ -882,6 +1060,8 @@
         shTotalEl.textContent = sumVal > 0 ? num0(r.E) + ' actions' : '—';
       }
       document.getElementById('inv-total').textContent = r.I > 0 ? eur0(r.I) : '—';
+      const convInvested = (st.convertibles || []).reduce((a, c) => a + c.amount, 0);
+      document.getElementById('conv-total').textContent = convInvested > 0 ? eur0(convInvested) : '—';
       // La colonne « nombre d'actions » n'a de sens qu'en mode actions
       document.getElementById('rtable').classList.toggle('is-pct', mode === 'pct');
 
@@ -910,6 +1090,7 @@
         document.getElementById('k-pps-sub').textContent = '';
         document.getElementById('k-fdil-sub').textContent = '';
         document.getElementById('rtable-body').innerHTML = '';
+        document.getElementById('clause-info').innerHTML = '';
         renderBars(null);
         return;
       }
@@ -925,6 +1106,7 @@
         document.getElementById('k-pps-sub').textContent = '';
         document.getElementById('k-fdil-sub').textContent = '';
         document.getElementById('rtable-body').innerHTML = '<tr><td class="l" colspan="6" style="color:#a8a8b3;text-align:center;padding:20px 0">Renseignez au moins une valorisation pre-money et un actionnaire.</td></tr>';
+        document.getElementById('clause-info').innerHTML = '';
         renderBars(null);
         return;
       }
@@ -932,6 +1114,7 @@
         warnBox.innerHTML = warnHTML('Le pool demandé est trop grand par rapport au tour : il ne reste pas assez de place pour l\'existant. Réduisez la taille du pool ou augmentez la valorisation.');
         kPps.textContent = '—'; kInv.textContent = '—'; kFdil.textContent = '—';
         document.getElementById('rtable-body').innerHTML = '';
+        document.getElementById('clause-info').innerHTML = '';
         renderBars(null);
         return;
       }
@@ -955,8 +1138,41 @@
       const relDil = fBeforeV > 0 ? (fdil / fBeforeV) : 0;
       document.getElementById('k-fdil-sub').textContent = `${pct1(fBeforeV)} → ${pct1(fAfterV)} (soit −${pct1(relDil).replace(' %','')} % relatif)`;
 
+      renderClauseInfo(r);
       renderBars(r);
       renderTable(r);
+    }
+
+    // Encarts explicatifs sur les clauses activées (convertibles + anti-dilution)
+    function renderClauseInfo(r) {
+      const box = document.getElementById('clause-info');
+      const iconInfo = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>';
+      const iconDown = '<svg viewBox="0 0 24 24"><path d="M12 5v14M12 19l-6-6M12 19l6-6"/></svg>';
+      const notes = [];
+
+      // Convertibles convertis
+      if (r.convSharesTotal > 0.5) {
+        const pctT = r.T > 0 ? r.convSharesTotal / r.T : 0;
+        notes.push(`<div class="clause-note clause-note--conv">${iconInfo}<div><b>Convertibles convertis</b> — les instruments (BSA AIR / SAFE) prennent <b>${pct1(pctT)}</b> du capital post-money${mode === 'shares' ? ` (${num0(r.convSharesTotal)} actions)` : ''}, avant tout apport d'argent nouveau au tour. Cette part vient s'ajouter à la dilution des fondateurs.</div></div>`);
+      }
+
+      // Anti-dilution
+      const a = r.antiInfo;
+      if (a) {
+        if (a.incomplete) {
+          notes.push(`<div class="clause-note clause-note--calm">${iconInfo}<div><b>Clause anti-dilution</b> — renseignez le montant investi par les investisseurs protégés <b>et</b> ajoutez-les à la cap table (catégorie « Investisseur ») pour l'activer.</div></div>`);
+        } else if (!a.triggered) {
+          const ratio = a.oldPrice > 0 ? a.newPrice / a.oldPrice : 1;
+          notes.push(`<div class="clause-note clause-note--calm">${iconInfo}<div><b>Anti-dilution — pas de <span class="term" data-term="down-round" tabindex="0">down round</span></b> : le prix du tour vaut <b>${pct1(ratio)}</b> du prix d'entrée des investisseurs protégés (≥ 100 %). La clause ne se déclenche pas, aucune action supplémentaire n'est émise.</div></div>`);
+        } else {
+          const down = a.oldPrice > 0 ? (1 - a.newPrice / a.oldPrice) : 0;
+          const pctBonus = r.T > 0 ? a.bonus / r.T : 0;
+          const label = a.type === 'wa' ? 'moyenne pondérée' : 'full ratchet';
+          notes.push(`<div class="clause-note clause-note--down">${iconDown}<div><b>Down round de −${pct1(down)}</b> : la clause anti-dilution (<b>${label}</b>) réémet ${mode === 'shares' ? `${num0(a.bonus)} actions` : 'des actions'} aux investisseurs protégés, soit <b>${pct1(pctBonus)}</b> de capital supplémentaire pris aux fondateurs${a.type === 'ratchet' ? '. En moyenne pondérée, cette réémission serait nettement plus faible.' : '.'}</div></div>`);
+        }
+      }
+
+      box.innerHTML = notes.join('');
     }
 
     function warnHTML(msg) {
@@ -1058,6 +1274,19 @@
       document.getElementById('pct-interp').hidden = !(basis === 'pct' && on);
     }
 
+    // Affiche / masque le corps de la clause anti-dilution + surligne le type choisi
+    function syncAntiUI() {
+      document.getElementById('anti-body').hidden = !document.getElementById('anti-on').checked;
+      document.querySelectorAll('.radio-chip[data-anti]').forEach(chip => {
+        chip.classList.toggle('is-on', chip.querySelector('input').checked);
+      });
+    }
+
+    // Affiche / masque le corps du module convertibles
+    function syncConvUI() {
+      document.getElementById('conv-body').hidden = !document.getElementById('conv-on').checked;
+    }
+
     // Met à jour les libellés / champs qui dépendent de la base de saisie du tour
     function syncBasisUI() {
       document.querySelectorAll('#basis-seg .seg__btn').forEach(b => b.classList.toggle('is-on', b.dataset.basis === basis));
@@ -1154,11 +1383,14 @@
     // Recalcule à chaque frappe / changement
     form.addEventListener('input', (e) => {
       if (e.target.id === 'pool-on') syncPoolUI();
+      if (e.target.id === 'anti-on') syncAntiUI();
+      if (e.target.id === 'conv-on') syncConvUI();
       recompute();
     });
     form.addEventListener('change', (e) => {
       if (e.target.name === 'pool-timing') syncPoolUI();
       if (e.target.name === 'pct-interp') syncBasisUI();
+      if (e.target.name === 'anti-type') syncAntiUI();
       recompute();
     });
     // Reformatage des champs à la sortie du champ (dépend du mode pour la cap table)
@@ -1171,8 +1403,11 @@
       } else if (t.id === 'valo-input') {
         t.value = basis === 'pct' ? fmtPctInput(parseNum(t.value)) : fmtLiveInt(t.value);
         recompute();
-      } else if (t.classList.contains('in-amount')) {
+      } else if (t.classList.contains('in-amount') || t.classList.contains('in-camount') || t.classList.contains('in-ccap') || t.id === 'anti-invested') {
         t.value = fmtLiveInt(t.value);
+        recompute();
+      } else if (t.classList.contains('in-cdiscount')) {
+        t.value = fmtPctInput(parseNum(t.value));
         recompute();
       }
     }, true);
@@ -1196,6 +1431,10 @@
     });
     document.getElementById('add-inv').addEventListener('click', () => {
       invRowsEl.insertAdjacentHTML('beforeend', invRowHTML({ name: '', amount: 0 }));
+      recompute();
+    });
+    document.getElementById('add-conv').addEventListener('click', () => {
+      convRowsEl.insertAdjacentHTML('beforeend', convRowHTML({}));
       recompute();
     });
     document.addEventListener('click', (e) => {
@@ -1276,8 +1515,15 @@
         name: r.querySelector('.in-iname').value.trim() || 'Investisseur',
         amount: parseNum(r.querySelector('.in-amount').value),
       }));
+      const convertibles = [...convRowsEl.querySelectorAll('[data-role="conv"]')].map(r => ({
+        name: r.querySelector('.in-cname').value.trim() || 'Convertible',
+        amount: parseNum(r.querySelector('.in-camount').value),
+        discount: parseNum(r.querySelector('.in-cdiscount').value),
+        cap: parseNum(r.querySelector('.in-ccap').value),
+      }));
       const interpEl = document.querySelector('input[name="pct-interp"]:checked');
       const timingEl = document.querySelector('input[name="pool-timing"]:checked');
+      const antiTypeEl = document.querySelector('input[name="anti-type"]:checked');
       return {
         mode, basis,
         shareholders, investors,
@@ -1288,6 +1534,13 @@
           pct: parseNum(document.getElementById('pool-pct').value),
           timing: timingEl ? timingEl.value : 'pre',
         },
+        anti: {
+          on: document.getElementById('anti-on').checked,
+          type: antiTypeEl ? antiTypeEl.value : 'ratchet',
+          invested: parseNum(document.getElementById('anti-invested').value),
+        },
+        convOn: document.getElementById('conv-on').checked,
+        convertibles,
       };
     }
 
@@ -1302,9 +1555,19 @@
       document.getElementById('pool-on').checked = s.pool.on;
       document.getElementById('pool-pct').value = s.pool.pct ? String(s.pool.pct) : '';
       document.querySelectorAll('input[name="pool-timing"]').forEach(r => { r.checked = (r.value === s.pool.timing); });
+      // Clauses (rétrocompatible : absentes des anciennes simulations enregistrées)
+      const anti = s.anti || { on: false, type: 'ratchet', invested: 0 };
+      document.getElementById('anti-on').checked = !!anti.on;
+      document.getElementById('anti-invested').value = anti.invested ? nfInt.format(Math.round(anti.invested)) : '';
+      document.querySelectorAll('input[name="anti-type"]').forEach(r => { r.checked = (r.value === (anti.type || 'ratchet')); });
+      document.getElementById('conv-on').checked = !!s.convOn;
+      const convs = (s.convertibles && s.convertibles.length) ? s.convertibles : [{}];
+      convRowsEl.innerHTML = convs.map(convRowHTML).join('');
       updateModeUI();
       syncBasisUI();
       syncPoolUI();
+      syncAntiUI();
+      syncConvUI();
       recompute();
     }
 
@@ -1450,6 +1713,12 @@
       'shuffle':       "<b>Option pool shuffle</b> — selon que le pool est créé <b>avant</b> le tour (dilue les seuls fondateurs) ou <b>après</b> (dilue tout le monde, investisseur inclus). Un point de négociation qui peut coûter plusieurs points aux fondateurs.",
       'convertibles':  "<b>Instruments convertibles</b> — titres qui deviendront des actions plus tard (obligations convertibles, SAFE, BSA AIR). Pas encore des actions, mais comptés dans le fully diluted car ils diluent à terme.",
       'pct-cede':      "<b>% cédé au tour</b> — part du capital post-money remise aux nouveaux entrants lors du tour. « Net de pool » = investisseurs seuls ; « investisseur + pool » = investisseurs plus le nouveau pool.",
+      'anti-dilution': "<b>Clause anti-dilution</b> — protège un investisseur en cas de <b>down round</b> (tour à un prix inférieur au sien) en lui réémettant des actions pour abaisser son prix d'entrée moyen. La dilution supplémentaire est supportée par les fondateurs.",
+      'down-round':    "<b>Down round</b> — tour de financement réalisé à un prix par action <b>inférieur</b> à celui du tour précédent. C'est le seul cas où une clause anti-dilution se déclenche.",
+      'ratchet':       "<b>Full ratchet</b> — anti-dilution la plus agressive : le prix d'entrée de l'investisseur protégé est ramené <b>au prix du nouveau tour</b>, quelle que soit l'ampleur de l'émission. Réémission maximale, dilution fondateurs maximale.",
+      'weighted-average': "<b>Moyenne pondérée (broad-based)</b> — anti-dilution standard de marché : le nouveau prix d'entrée est une moyenne pondérée tenant compte du <b>volume</b> émis au tour. Bien plus douce que le full ratchet.",
+      'decote':        "<b>Décote</b> — remise (ex. 20 %) accordée au porteur d'un convertible sur le prix par action du tour, pour récompenser sa prise de risque antérieure. Prix de conversion = prix du tour × (1 − décote).",
+      'plafond':       "<b>Plafond (valuation cap)</b> — valorisation maximale à laquelle un convertible se convertit. Si la valo du tour dépasse le plafond, le porteur convertit au prix « plafond », plus avantageux. Prix = plafond ÷ actions pre-money.",
     };
     (function initTips() {
       const tip = document.createElement('div');
