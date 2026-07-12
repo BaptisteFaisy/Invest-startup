@@ -16,7 +16,7 @@
       --muted: #9c9a94;
       --line: rgba(255,255,255,0.14);
     }
-    .admin-wrap { max-width: 900px; margin: 0 auto; padding: 40px var(--gutter) 80px; }
+    .admin-wrap { max-width: 1120px; margin: 0 auto; padding: 40px var(--gutter) 80px; }
     .admin-title { font-family: var(--font-heading); font-size: 2rem; font-weight: 400; margin-bottom: 8px; }
     .admin-sub { color: var(--muted); margin-bottom: 48px; font-size: 0.9rem; }
 
@@ -47,6 +47,19 @@
     .msg-reply-form { display: flex; gap: 10px; align-items: flex-end; }
     .msg-reply-form textarea { flex: 1; resize: none; min-height: 42px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,0.06); font-family: inherit; font-size: 0.88rem; color: var(--text); }
     .msg-reply-form textarea:focus { outline: none; border-color: var(--accent); }
+    .admin-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+    .admin-card { padding:18px; border:1px solid var(--line); border-radius:14px; background:rgba(255,255,255,.04); }
+    .admin-card h3 { margin:0 0 8px; font-size:1rem; }
+    .admin-card p { margin:4px 0; color:var(--muted); font-size:.82rem; }
+    .admin-card select, .admin-card textarea { width:100%; margin-top:10px; padding:9px 10px; border:1px solid var(--line); border-radius:9px; color:var(--text); background:#111; font:inherit; }
+    .admin-card textarea { min-height:74px; resize:vertical; }
+    .admin-actions { display:flex; gap:8px; align-items:center; margin-top:12px; }
+    .admin-pill { display:inline-flex; padding:4px 8px; border:1px solid var(--line); border-radius:99px; font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; }
+    .proposal-list { display:grid; gap:10px; margin-top:18px; }
+    .proposal-row { display:flex; justify-content:space-between; align-items:center; gap:15px; padding:13px 15px; border:1px solid var(--line); border-radius:11px; font-size:.84rem; }
+    .proposal-row small { display:block; color:var(--muted); margin-top:4px; }
+    .notice { color:var(--muted); font-size:.85rem; }
+    @media (max-width:760px) { .admin-grid { grid-template-columns:1fr; } }
     @media (max-width: 640px) { .msg-layout { flex-direction: column; } .msg-list { width: 100%; max-height: 200px; border-right: 0; border-bottom: 1px solid var(--line); } }
   </style>
 </head>
@@ -64,7 +77,25 @@
 
   <div class="admin-wrap">
     <h1 class="admin-title">Espace admin</h1>
-    <p class="admin-sub">Messagerie avec les utilisateurs de la plateforme.</p>
+    <p class="admin-sub">Gestion des avocats, attribution des clients et messagerie.</p>
+
+    <div class="admin-section">
+      <h2>Comptes avocats</h2>
+      <div class="admin-grid" id="lawyer-list"><p class="notice">Chargement…</p></div>
+    </div>
+
+    <div class="admin-section">
+      <h2>Proposer et attribuer un client</h2>
+      <form class="admin-card" id="proposal-form">
+        <div class="admin-grid">
+          <label>Avocat actif<select id="proposal-lawyer" required></select></label>
+          <label>Client fondateur<select id="proposal-client" required></select></label>
+        </div>
+        <textarea id="proposal-message" maxlength="1000" placeholder="Contexte de la proposition (facultatif)"></textarea>
+        <div class="admin-actions"><button class="button primary" type="submit">Envoyer la proposition</button><span class="notice" id="proposal-notice"></span></div>
+      </form>
+      <div class="proposal-list" id="proposal-list"></div>
+    </div>
 
     <!-- Messagerie feedback -->
     <div class="admin-section">
@@ -102,6 +133,7 @@
           window.location.href = 'login.html?switch=1';
         });
         loadThreads();
+        loadLawyerManagement();
       })
       .catch(err => {
         document.querySelector('.admin-wrap').innerHTML = `
@@ -220,6 +252,39 @@
         btn.disabled = false;
       }
     }
+
+    const LAWYER_STATUS_LABELS = { pending:'À valider', active:'Actif', suspended:'Suspendu', rejected:'Refusé' };
+    let adminLawyers = [], adminFounders = [], adminProposals = [];
+    async function adminJson(url, opts) {
+      const r = await fetch(url, Object.assign({ credentials:'include' }, opts || {}));
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.error || 'Erreur serveur');
+      return data;
+    }
+    async function loadLawyerManagement() {
+      try {
+        const [l,f,p] = await Promise.all([adminJson('/api/admin/lawyers'), adminJson('/api/admin/founders'), adminJson('/api/admin/client-proposals')]);
+        adminLawyers=l.lawyers||[]; adminFounders=f.founders||[]; adminProposals=p.proposals||[];
+        renderLawyers(); renderProposalForm(); renderProposals();
+      } catch(e) { document.getElementById('lawyer-list').innerHTML='<p class="notice">'+escHtml(e.message)+'</p>'; }
+    }
+    function renderLawyers() {
+      const el=document.getElementById('lawyer-list');
+      if(!adminLawyers.length){el.innerHTML='<p class="notice">Aucun compte avocat.</p>';return;}
+      el.innerHTML=adminLawyers.map(l=>`<article class="admin-card"><h3>${escHtml(l.full_name||l.email)}</h3><p>${escHtml(l.email)}</p><p>${escHtml(l.profile?.specialty||'Profil professionnel non complété')} ${l.profile?.city?'· '+escHtml(l.profile.city):''}</p><div class="admin-actions"><span class="admin-pill">${escHtml(LAWYER_STATUS_LABELS[l.lawyer_status]||l.lawyer_status)}</span><select data-lawyer-status="${l.id}" aria-label="Changer le statut"><option value="pending">À valider</option><option value="active">Actif</option><option value="suspended">Suspendu</option><option value="rejected">Refusé</option></select></div></article>`).join('');
+      el.querySelectorAll('[data-lawyer-status]').forEach(s=>{s.value=adminLawyers.find(l=>String(l.id)===s.dataset.lawyerStatus).lawyer_status;s.addEventListener('change',async()=>{try{await adminJson('/api/admin/lawyers/'+s.dataset.lawyerStatus+'/status',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:s.value})});await loadLawyerManagement();}catch(e){alert(e.message);}})});
+    }
+    function renderProposalForm(){
+      document.getElementById('proposal-lawyer').innerHTML=adminLawyers.filter(l=>l.lawyer_status==='active').map(l=>`<option value="${l.id}">${escHtml(l.full_name||l.email)}</option>`).join('');
+      document.getElementById('proposal-client').innerHTML=adminFounders.map(f=>`<option value="${f.id}">${escHtml(f.company_name||f.full_name||f.email)} — ${escHtml(f.email)}</option>`).join('');
+    }
+    function renderProposals(){
+      const el=document.getElementById('proposal-list');
+      if(!adminProposals.length){el.innerHTML='<p class="notice">Aucune proposition.</p>';return;}
+      el.innerHTML=adminProposals.map(p=>`<div class="proposal-row"><div><strong>${escHtml(p.client_name)}</strong> → ${escHtml(p.lawyer_name)}<small>${escHtml(p.message||'Sans message')} · ${escHtml(p.status)}</small></div>${p.status==='accepted'?`<button class="button primary" data-assign="${escHtml(p.id)}">Attribuer</button>`:''}</div>`).join('');
+      el.querySelectorAll('[data-assign]').forEach(b=>b.addEventListener('click',async()=>{try{await adminJson('/api/admin/client-proposals/'+encodeURIComponent(b.dataset.assign)+'/assign',{method:'POST'});await loadLawyerManagement();}catch(e){alert(e.message);}}));
+    }
+    document.getElementById('proposal-form').addEventListener('submit',async(e)=>{e.preventDefault();const n=document.getElementById('proposal-notice');n.textContent='Envoi…';try{await adminJson('/api/admin/client-proposals',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lawyer_id:Number(document.getElementById('proposal-lawyer').value),client_id:Number(document.getElementById('proposal-client').value),message:document.getElementById('proposal-message').value})});document.getElementById('proposal-message').value='';n.textContent='Proposition envoyée.';await loadLawyerManagement();}catch(err){n.textContent=err.message;}});
   </script>
 </body>
 </html>

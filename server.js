@@ -205,6 +205,8 @@ async function deleteUserAccountById(id) {
     col('saas_folders').deleteMany({ user_id: id }),
     col('saas_dilution_simulations').deleteMany({ user_id: id }),
     col('saas_lawyer_profiles').deleteMany({ user_id: id }),
+    col('saas_avocat').deleteMany({ $or: [{ user_id: id }, { lawyer_user_id: id }] }),
+    col('lawyer_client_proposals').deleteMany({ $or: [{ client_id: id }, { lawyer_id: id }] }),
     col('saas_valuation_estimations').deleteMany({ user_id: id }),
     col('saas_exit_simulations').deleteMany({ user_id: id }),
     col('saas_fundraising_profiles').deleteMany({ user_id: id }),
@@ -449,6 +451,7 @@ function publicAuthUser(user) {
     account_types: Array.isArray(user.account_types) ? user.account_types : [],
     theme: user.theme === 'dark' ? 'dark' : 'paper',
     lawyer_profile_completed: !!user.lawyer_profile_completed,
+    lawyer_status: user.account_types?.includes('avocat') ? (user.lawyer_status || 'pending') : null,
     is_admin: ADMIN_EMAILS.includes(user.email),
   };
 }
@@ -487,6 +490,14 @@ function requireAdmin(req, res, next) {
       return res.status(403).json({ error: 'Accès réservé aux administrateurs' });
     req.user = payload; next();
   } catch { res.status(401).json({ error: 'Session expirée' }); }
+}
+
+async function requireLawyer(req, res, next) {
+  const user = await col('users').findOne({ id: req.user.id }, { projection: { account_types: 1, lawyer_status: 1 } });
+  if (!user?.account_types?.includes('avocat')) return res.status(403).json({ error: 'Accès réservé aux avocats' });
+  if ((user.lawyer_status || 'pending') !== 'active') return res.status(403).json({ error: 'Votre compte avocat doit être activé par un administrateur' });
+  req.lawyer = user;
+  next();
 }
 
 function requireStartupAuth(req, res, next) {
@@ -3295,8 +3306,20 @@ function avocatPublicState(state) {
   };
 }
 
+async function platformLawyerPublic(userId) {
+  const state = await col('saas_avocat').findOne({ user_id: userId });
+  if (!state?.lawyer_user_id || state.mode !== 'platform') return null;
+  const [user, profile] = await Promise.all([
+    col('users').findOne({ id: state.lawyer_user_id }, { projection: { full_name: 1, email: 1, lawyer_status: 1 } }),
+    col('saas_lawyer_profiles').findOne({ user_id: state.lawyer_user_id }, { projection: { _id: 0, user_id: 0 } }),
+  ]);
+  if (!user || user.lawyer_status !== 'active') return null;
+  return { id: `platform-${state.lawyer_user_id}`, lead: user.full_name || user.email, name: profile?.city ? `Avocat à ${profile.city}` : 'Avocat Liquid+', barreau: profile?.city || '', speciality: profile?.specialty || '', bio: 'Avocat attribué à votre dossier par Liquid+.', email: user.email };
+}
+
 app.get('/api/saas/avocat/overview', requireAuth, async (req, res) => {
   const state = await getOrInitAvocatState(req.user.id);
+  const platformLawyer = await platformLawyerPublic(req.user.id);
   const requests = await col('saas_avocat_requests')
     .find({ user_id: req.user.id }, { projection: { _id: 0, user_id: 0 } })
     .sort({ id: -1 }).toArray();
@@ -3304,7 +3327,7 @@ app.get('/api/saas/avocat/overview', requireAuth, async (req, res) => {
     prestations: AVOCAT_PRESTATIONS,
     partners:    AVOCAT_PARTNERS,
     statuses:    AVOCAT_REQUEST_STATUSES,
-    ...avocatPublicState(state),
+    ...(platformLawyer ? { mode: 'assigned', partner: platformLawyer, own_lawyer: null } : avocatPublicState(state)),
     requests,
   });
 });
@@ -3841,6 +3864,83 @@ Réponds en français avec un objet JSON contenant "intro" (2 phrases maximum) e
     console.error('guided-document-draft error:', err.message);
     res.status(502).json({ error: 'Impossible de générer le brouillon pour le moment.' });
   }
+});
+
+// Gestion administrateur des comptes avocat et de leur portefeuille clients.
+const LAWYER_ACCOUNT_STATUSES = ['pending', 'active', 'suspended', 'rejected'];
+
+app.get('/api/admin/lawyers', requireAdmin, async (_req, res) => {
+  const users = await col('users').find({ account_types: 'avocat' }, { projection: { _id: 0, password: 0, totp_secret: 0 } }).sort({ created_at: -1 }).toArray();
+  const ids = users.map(u => u.id);
+  const profiles = await col('saas_lawyer_profiles').find({ user_id: { $in: ids } }, { projection: { _id: 0 } }).toArray();
+  const byUser = new Map(profiles.map(p => [p.user_id, p]));
+  res.json({ lawyers: users.map(u => ({ ...u, lawyer_status: u.lawyer_status || 'pending', profile: byUser.get(u.id) || null })) });
+});
+
+app.patch('/api/admin/lawyers/:id/status', requireAdmin, async (req, res) => {
+  const id = Number(req.params.id), status = String(req.body?.status || '');
+  if (!LAWYER_ACCOUNT_STATUSES.includes(status)) return res.status(400).json({ error: 'Statut invalide' });
+  const result = await col('users').updateOne({ id, account_types: 'avocat' }, { $set: { lawyer_status: status, lawyer_status_updated_at: new Date().toISOString() } });
+  if (!result.matchedCount) return res.status(404).json({ error: 'Avocat introuvable' });
+  res.json({ success: true, status });
+});
+
+app.get('/api/admin/founders', requireAdmin, async (_req, res) => {
+  const users = await col('users').find({ account_types: 'fondateur' }, { projection: { _id: 0, id: 1, email: 1, full_name: 1, created_at: 1 } }).sort({ created_at: -1 }).toArray();
+  const profiles = await col('saas_fundraising_profiles').find({ user_id: { $in: users.map(u => u.id) } }, { projection: { _id: 0, user_id: 1, company_name: 1 } }).toArray();
+  const companies = new Map(profiles.map(p => [p.user_id, p.company_name]));
+  res.json({ founders: users.map(u => ({ ...u, company_name: companies.get(u.id) || '' })) });
+});
+
+app.get('/api/admin/client-proposals', requireAdmin, async (_req, res) => {
+  const proposals = await col('lawyer_client_proposals').find({}, { projection: { _id: 0 } }).sort({ created_at: -1 }).toArray();
+  res.json({ proposals });
+});
+
+app.post('/api/admin/client-proposals', requireAdmin, async (req, res) => {
+  const lawyerId = Number(req.body?.lawyer_id), clientId = Number(req.body?.client_id);
+  const [lawyer, client] = await Promise.all([
+    col('users').findOne({ id: lawyerId, account_types: 'avocat', lawyer_status: 'active' }),
+    col('users').findOne({ id: clientId, account_types: 'fondateur' }),
+  ]);
+  if (!lawyer) return res.status(404).json({ error: 'Avocat actif introuvable' });
+  if (!client) return res.status(404).json({ error: 'Client fondateur introuvable' });
+  const duplicate = await col('lawyer_client_proposals').findOne({ lawyer_id: lawyerId, client_id: clientId, status: { $in: ['proposed', 'accepted', 'assigned'] } });
+  if (duplicate) return res.status(409).json({ error: 'Une proposition est déjà ouverte pour ce binôme' });
+  const now = new Date().toISOString();
+  const proposal = { id: crypto.randomUUID(), lawyer_id: lawyerId, lawyer_name: lawyer.full_name || lawyer.email, client_id: clientId, client_name: client.full_name || client.email, client_email: client.email, message: shortText(req.body?.message, 1000), status: 'proposed', created_at: now, updated_at: now };
+  await col('lawyer_client_proposals').insertOne(proposal);
+  res.status(201).json({ proposal });
+});
+
+app.post('/api/admin/client-proposals/:id/assign', requireAdmin, async (req, res) => {
+  const proposal = await col('lawyer_client_proposals').findOne({ id: req.params.id });
+  if (!proposal) return res.status(404).json({ error: 'Proposition introuvable' });
+  if (proposal.status !== 'accepted') return res.status(409).json({ error: "L’avocat doit accepter la proposition avant l’attribution" });
+  const now = new Date().toISOString();
+  await Promise.all([
+    col('lawyer_client_proposals').updateOne({ id: proposal.id }, { $set: { status: 'assigned', assigned_at: now, updated_at: now } }),
+    col('saas_avocat').updateOne({ user_id: proposal.client_id }, { $set: { mode: 'platform', lawyer_user_id: proposal.lawyer_id, partner_id: null, own_lawyer: null, updated_at: now }, $setOnInsert: { created_at: now } }, { upsert: true }),
+  ]);
+  res.json({ success: true });
+});
+
+app.get('/api/lawyer/client-proposals', requireAuth, requireLawyer, async (req, res) => {
+  const proposals = await col('lawyer_client_proposals').find({ lawyer_id: req.user.id }, { projection: { _id: 0 } }).sort({ created_at: -1 }).toArray();
+  res.json({ proposals });
+});
+
+app.patch('/api/lawyer/client-proposals/:id', requireAuth, requireLawyer, async (req, res) => {
+  const status = String(req.body?.status || '');
+  if (!['accepted', 'declined'].includes(status)) return res.status(400).json({ error: 'Réponse invalide' });
+  const result = await col('lawyer_client_proposals').updateOne({ id: req.params.id, lawyer_id: req.user.id, status: 'proposed' }, { $set: { status, responded_at: new Date().toISOString(), updated_at: new Date().toISOString() } });
+  if (!result.matchedCount) return res.status(409).json({ error: 'Cette proposition a déjà été traitée' });
+  res.json({ success: true, status });
+});
+
+app.get('/api/lawyer/clients', requireAuth, requireLawyer, async (req, res) => {
+  const clients = await col('lawyer_client_proposals').find({ lawyer_id: req.user.id, status: 'assigned' }, { projection: { _id: 0 } }).sort({ assigned_at: -1 }).toArray();
+  res.json({ clients });
 });
 
 // Enregistre / met à jour le document de travail (apparaît dans « Mes documents »).
