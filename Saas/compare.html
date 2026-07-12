@@ -117,6 +117,26 @@
     .cmp__tab:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
     .cmp__tab.is-active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
 
+    /* Arbre déterministe des versions et échanges (aucune analyse IA). */
+    .linhead { display:flex; align-items:center; gap:12px; margin-top:22px; padding:14px 16px; border:1px solid rgba(255,255,255,.1); border-radius:14px; background:rgba(255,255,255,.04); }
+    .linhead__title { color:#fff; font:700 15px/1.3 'Archivo',sans-serif; }
+    .linhead__meta { margin-left:auto; color:rgba(255,255,255,.5); font-size:12px; }
+    .lintree { margin-top:22px; overflow-x:auto; padding:4px 4px 18px; }
+    .lintree ul { list-style:none; margin:0; padding-left:34px; position:relative; }
+    .lintree > ul { padding-left:0; }
+    .lintree ul ul::before { content:''; position:absolute; left:15px; top:-12px; bottom:25px; border-left:1px solid rgba(255,255,255,.2); }
+    .lintree li { position:relative; padding:8px 0; min-width:350px; }
+    .lintree ul ul > li::before { content:''; position:absolute; left:-19px; top:35px; width:19px; border-top:1px solid rgba(255,255,255,.2); }
+    .linnode { display:flex; align-items:center; gap:12px; width:min(620px,calc(100vw - 100px)); padding:12px 14px; border-radius:13px; background:#fff; box-shadow:0 7px 22px rgba(0,0,0,.25); }
+    .linnode--root { border:2px solid #3b82f6; }
+    .linnode--snap { background:#eef5ff; box-shadow:none; }
+    .linnode__ico { flex:none; width:34px; height:34px; display:grid; place-items:center; border-radius:10px; background:#eef0f3; font-size:16px; }
+    .linnode--snap .linnode__ico { background:#dbeafe; color:#2563eb; }
+    .linnode__main { min-width:0; flex:1; }
+    .linnode__name { display:block; color:#08090c; font-weight:700; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .linnode__meta { display:block; margin-top:3px; color:#6b6b78; font-size:11.5px; line-height:1.4; }
+    .linnode__open { flex:none; color:#2563eb; font:700 11.5px/1 'Archivo',sans-serif; text-decoration:none; padding:7px 9px; border-radius:8px; background:#eff6ff; }
+
     /* Sélecteur multi-documents (comparaison entre investisseurs) : case + nom + input investisseur */
     .docpick__row { display: flex; align-items: center; gap: 12px; width: 100%; background: #fff; border-radius: 12px; padding: 11px 14px; cursor: pointer; }
     .docpick__row input[type=checkbox] { width: 17px; height: 17px; accent-color: #3b82f6; flex: none; cursor: pointer; }
@@ -278,7 +298,7 @@
 
     <main class="cmp tool-has-help">
       <button type="button" class="help-bulb" aria-label="Comprendre cet outil" title="Comprendre cet outil"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg></button>
-      <div class="cmp__eyebrow">Analyse IA</div>
+      <div class="cmp__eyebrow" id="cmp-eyebrow">Analyse IA</div>
       <h1 class="cmp__title">Comparer les versions</h1>
       <div class="help-pop" hidden>
         <div class="help-pop__label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg> Comprendre cet outil</div>
@@ -290,6 +310,7 @@
       <div class="cmp__tabs" id="cmp-tabs" hidden>
         <button type="button" class="cmp__tab is-active" data-tab="versions">Versions d'un même document</button>
         <button type="button" class="cmp__tab" data-tab="investors">Term sheets de plusieurs investisseurs</button>
+        <button type="button" class="cmp__tab" data-tab="lineage">Arbre des versions</button>
       </div>
 
       <div id="panel-versions">
@@ -395,6 +416,18 @@
         </div>
       </div>
 
+      <div id="panel-lineage" hidden>
+        <div class="docpick" id="docpick-lineage">
+          <div class="docpick__h">Choisissez une lignée de documents</div>
+          <div class="docpick__list" id="docpick-lineage-list"></div>
+        </div>
+        <div class="cmp__err" id="error-lineage" hidden></div>
+        <div id="lineage-result" hidden>
+          <div class="linhead"><div class="linhead__title" id="lineage-title"></div><div class="linhead__meta" id="lineage-meta"></div></div>
+          <div class="lintree" id="lineage-tree"></div>
+        </div>
+      </div>
+
       <div class="cmp__foot">
         <a href="tableau-de-bord.html" class="btn btn--ghost">← Retour au tableau de bord</a>
       </div>
@@ -444,7 +477,9 @@
     const tabsEl           = document.getElementById('cmp-tabs');
     const panelVersionsEl  = document.getElementById('panel-versions');
     const panelInvestorsEl = document.getElementById('panel-investors');
+    const panelLineageEl   = document.getElementById('panel-lineage');
     const cmpSubEl         = document.getElementById('cmp-sub');
+    const cmpEyebrowEl     = document.getElementById('cmp-eyebrow');
     const loadingInvEl     = document.getElementById('loading-inv');
     const errorInvEl       = document.getElementById('error-inv');
     const resultInvEl      = document.getElementById('result-inv');
@@ -457,15 +492,108 @@
     const SUB_TEXT = {
       versions: "Toutes les modifications d'un document au fil de la négociation, dans l'ordre chronologique — qui a probablement rédigé chaque version, et les intentions derrière chaque changement.",
       investors: "Comparez des term sheets (ou tout autre document comparable) proposées par différents investisseurs, critère par critère, pour choisir avec qui avancer.",
+      lineage: "Visualisez l'arbre factuel des versions, branches et échanges déclarés. Cette vue n'utilise aucune IA.",
     };
     let invInited = false;
+    let lineageInited = false;
     function switchTab(tab) {
       const toInv = tab === 'investors';
-      panelVersionsEl.hidden = toInv;
+      const toLineage = tab === 'lineage';
+      panelVersionsEl.hidden = toInv || toLineage;
       panelInvestorsEl.hidden = !toInv;
+      panelLineageEl.hidden = !toLineage;
       [...tabsEl.querySelectorAll('.cmp__tab')].forEach(b => b.classList.toggle('is-active', b.dataset.tab === tab));
       cmpSubEl.textContent = SUB_TEXT[tab] || SUB_TEXT.versions;
+      cmpEyebrowEl.textContent = toLineage ? 'Historique factuel · sans IA' : 'Analyse IA';
       if (toInv && !invInited) { invInited = true; initInvestorsPanel(); }
+      if (toLineage && !lineageInited) { lineageInited = true; initLineagePanel(); }
+    }
+
+    // ── Arbre complet des filiations (sans IA) ───────────────────────────────
+    function lineageParty(node, investors) {
+      if (node.node_type === 'snapshot') return 'Instantané validé dans l’éditeur';
+      if (node.origin === 'lawyer') return 'Reçu de l’avocat';
+      if (node.origin === 'investor') {
+        const inv = investors.find(i => Number(i.id) === Number(node.origin_party_id));
+        return 'Reçu de ' + (inv ? (inv.firm ? inv.name + ' — ' + inv.firm : inv.name) : 'un investisseur');
+      }
+      return 'Créé par vous';
+    }
+    function lineageDate(value) {
+      if (!value) return '';
+      try { return new Intl.DateTimeFormat('fr-FR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }).format(new Date(value)); }
+      catch { return ''; }
+    }
+    function makeLineageNode(node, investors, transmissions, isRoot) {
+      const li = document.createElement('li');
+      const snap = node.node_type === 'snapshot';
+      const card = document.createElement('div');
+      card.className = 'linnode' + (snap ? ' linnode--snap' : '') + (isRoot ? ' linnode--root' : '');
+      const tx = transmissions.filter(t => Number(t.document_id) === Number(node.doc_id));
+      const txLabel = tx.length ? ' · ' + tx.map(t => t.direction === 'sent' ? 'envoyé' : 'reçu').join(', ') : '';
+      const date = lineageDate(node.date || node.created_at);
+      card.innerHTML = '<span class="linnode__ico">' + (snap ? '✎' : node.origin === 'investor' || node.origin === 'lawyer' ? '📥' : '📄') + '</span>' +
+        '<span class="linnode__main"><span class="linnode__name">' + esc(node.name || (snap ? 'Instantané éditeur' : 'Document')) + '</span>' +
+        '<span class="linnode__meta">' + esc(lineageParty(node, investors) + txLabel + (date ? ' · ' + date : '')) + '</span></span>';
+      const open = document.createElement('a');
+      open.className = 'linnode__open'; open.target = '_blank'; open.rel = 'noopener'; open.textContent = 'Ouvrir';
+      open.href = snap ? '/api/saas/termsheets/' + node.doc_id + '/versions/' + node.version_id + '/preview'
+        : node.kind === 'termsheet' ? 'editor.html?doc=' + node.doc_id : '/api/saas/documents/' + node.doc_id + '/download';
+      card.appendChild(open); li.appendChild(card); return li;
+    }
+    function renderLineageTree(data) {
+      const nodes = Array.isArray(data.nodes) ? data.nodes : [];
+      const docs = nodes.filter(n => n.node_type === 'document');
+      const snaps = nodes.filter(n => n.node_type === 'snapshot');
+      const investors = Array.isArray(data.investors) ? data.investors : [];
+      const transmissions = Array.isArray(data.transmissions) ? data.transmissions : [];
+      const byParent = new Map(), snapByDoc = new Map();
+      docs.forEach(n => { const p = n.parent_document_id || 0; if (!byParent.has(p)) byParent.set(p, []); byParent.get(p).push(n); });
+      snaps.forEach(n => { if (!snapByDoc.has(n.doc_id)) snapByDoc.set(n.doc_id, []); snapByDoc.get(n.doc_id).push(n); });
+      const roots = docs.filter(n => !n.parent_document_id || !docs.some(d => d.doc_id === n.parent_document_id));
+      const build = (doc, root) => {
+        const li = makeLineageNode(doc, investors, transmissions, root);
+        const children = [...(snapByDoc.get(doc.doc_id) || []), ...(byParent.get(doc.doc_id) || [])];
+        if (children.length) {
+          const ul = document.createElement('ul');
+          children.forEach(n => ul.appendChild(n.node_type === 'snapshot' ? makeLineageNode(n, investors, transmissions, false) : build(n, false)));
+          li.appendChild(ul);
+        }
+        return li;
+      };
+      const tree = document.getElementById('lineage-tree'); tree.innerHTML = '';
+      const ul = document.createElement('ul'); roots.forEach(r => ul.appendChild(build(r, true))); tree.appendChild(ul);
+      const root = roots[0] || docs[0];
+      document.getElementById('lineage-title').textContent = root ? root.name : 'Lignée';
+      document.getElementById('lineage-meta').textContent = docs.length + ' document' + (docs.length > 1 ? 's' : '') + ' · ' + snaps.length + ' instantané' + (snaps.length > 1 ? 's' : '');
+      document.getElementById('lineage-result').hidden = false;
+    }
+    async function openLineage(id) {
+      const err = document.getElementById('error-lineage'); err.hidden = true;
+      try {
+        const r = await fetch('/api/saas/documents/' + id + '/lineage', { credentials:'include' });
+        if (!r.ok) throw new Error();
+        renderLineageTree(await r.json());
+      } catch { err.textContent = 'Impossible de charger cet arbre.'; err.hidden = false; }
+    }
+    async function initLineagePanel() {
+      const list = document.getElementById('docpick-lineage-list');
+      try {
+        const r = await fetch('/api/saas/documents', { credentials:'include' });
+        const data = r.ok ? await r.json() : {};
+        const docs = Array.isArray(data.documents) ? data.documents : [];
+        const roots = new Map();
+        docs.forEach(d => { const key = d.lineage_id || d.id; if (!roots.has(key) || d.id === key) roots.set(key, d); });
+        list.innerHTML = '';
+        [...roots.values()].sort((a,b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at)).forEach(d => {
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'docpick__item';
+          const key = d.lineage_id || d.id;
+          const count = docs.filter(x => (x.lineage_id || x.id) === key).length;
+          b.innerHTML = '<span class="docpick__item__name">' + esc(d.name) + '</span><span class="docpick__item__meta">' + count + ' document' + (count > 1 ? 's' : '') + '</span>';
+          b.addEventListener('click', () => openLineage(d.id)); list.appendChild(b);
+        });
+        if (!list.children.length) list.innerHTML = '<div class="docpick__empty">Aucun document pour l’instant.</div>';
+      } catch { list.innerHTML = '<div class="docpick__empty">Impossible de charger les lignées.</div>'; }
     }
 
     function showInvError(msg) {

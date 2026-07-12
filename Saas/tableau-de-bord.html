@@ -84,7 +84,7 @@
     .folder__count { font-family: 'Archivo', sans-serif; font-size: 12.5px; color: #fff; margin-top: 2px; }
     .folder__actions { display: flex; gap: 8px; flex: none; }
     .documents-card__actions { display:flex; align-items:center; gap:8px; flex:none; flex-wrap:wrap; justify-content:flex-end; }
-    .documents-action-btn { font-family:'Archivo',sans-serif; font-size:12px; font-weight:700; color:#08090c; background:#fff; border:1px solid rgba(8,9,12,0.18); border-radius:8px; padding:8px 10px; cursor:pointer; white-space:nowrap; }
+    .documents-action-btn { display:inline-flex; align-items:center; font-family:'Archivo',sans-serif; font-size:12px; font-weight:700; color:#08090c; background:#fff; border:1px solid rgba(8,9,12,0.18); border-radius:8px; padding:8px 10px; cursor:pointer; white-space:nowrap; text-decoration:none; }
     .documents-action-btn:hover { background:#f0f0ee; border-color:rgba(8,9,12,0.34); }
     .folder__body { display: none; padding: 4px 14px 16px; }
     .folder.open .folder__body { display: block; }
@@ -184,7 +184,7 @@
     .dd-summary__b--missing { background:#fee2e2; color:#991b1b; }
     .dd-summary__b--done { background:#dcfce7; color:#166534; }
     /* Suivi d'envoi par investisseur, sous chaque document de la roadlist */
-    .bsa-item__send { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:8px; }
+    .bsa-item__send { display:flex; flex-wrap:nowrap; align-items:center; gap:6px; margin-top:8px; }
     .bsa-item__send-label { font-size:11.5px; font-weight:600; color:#64748b; }
     .dd-chip { font-size:11.5px; font-weight:600; padding:3px 10px; border-radius:99px; border:1px solid transparent; cursor:pointer; }
     .dd-chip--todo { background:#fef3c7; color:#92400e; border-color:rgba(146,64,14,.20); }
@@ -2544,6 +2544,11 @@
     function fmtDate(s) { try { return new Date(s).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return ''; } }
     function ext(name) { const m = /\.([a-z0-9]+)$/i.exec(name || ''); return m ? m[1].toLowerCase() : ''; }
     function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+    function createDocumentHref(folderId, categoryKey = '') {
+      const params = new URLSearchParams({ folder: String(folderId) });
+      if (categoryKey) params.set('category', categoryKey);
+      return 'editor.html?' + params.toString();
+    }
     function normalizeFundraisingProfile(input) {
       const p = input && typeof input === 'object' ? input : {};
       const founders = Array.isArray(p.founders) ? p.founders : [];
@@ -4815,6 +4820,7 @@
       box.innerHTML = `
         <div class="phase-files__head">
           <div class="phase-files__title">${esc(title)}</div>
+          <a class="documents-action-btn" href="${esc(createDocumentHref(f.id, categoryKey))}" target="_blank" rel="noopener">Créer un document</a>
         </div>`;
       if (!loose.length && !pendings.length) {
         const drop = document.createElement('div');
@@ -4851,6 +4857,7 @@
             <div class="doc-category__count">${categoryExpectedCountText(count)}</div>
           </div>
           <div class="doc-category__actions">
+            <a class="documents-action-btn" href="${esc(createDocumentHref(f.id, category.key))}" target="_blank" rel="noopener">Créer un document</a>
             <button class="documents-action-btn" type="button" data-category-import>Importer des fichiers</button>
             ${isDataroomFolder(f) ? '<button class="documents-action-btn" type="button" data-category-dataroom>☁ Envoyer vers…</button>' : ''}
             <button class="doc-category__toggle" type="button" data-category-toggle aria-expanded="${open ? 'true' : 'false'}" aria-label="${open ? 'Réduire' : 'Agrandir'} ${esc(category.title)}" title="${open ? 'Réduire' : 'Agrandir'} ce dossier">v</button>
@@ -4931,6 +4938,7 @@
             <div class="doc-category__count">${countTxt}</div>
           </div>
           <div class="doc-category__actions">
+            <a class="documents-action-btn" href="${esc(createDocumentHref(f.id, catKey))}" target="_blank" rel="noopener">Créer un document</a>
             <button class="documents-action-btn" type="button" data-category-import>Importer des fichiers</button>
             <button class="doc-category__toggle" type="button" data-category-toggle aria-expanded="${open ? 'true' : 'false'}" aria-label="${open ? 'Réduire' : 'Agrandir'} ${esc(investorDocLabel(inv))}" title="${open ? 'Réduire' : 'Agrandir'} ce dossier">v</button>
           </div>
@@ -4988,6 +4996,7 @@
             <div class="doc-category__count">documents communs ou non rattachés à un investisseur</div>
           </div>
           <div class="doc-category__actions">
+            <a class="documents-action-btn" href="${esc(createDocumentHref(f.id, catKey))}" target="_blank" rel="noopener">Créer un document</a>
             <button class="documents-action-btn" type="button" data-category-import>Importer des fichiers</button>
             <button class="doc-category__toggle" type="button" data-category-toggle aria-expanded="${open ? 'true' : 'false'}" aria-label="${open ? 'Réduire' : 'Agrandir'} ${esc(title)}" title="${open ? 'Réduire' : 'Agrandir'} ce dossier">v</button>
           </div>
@@ -5103,6 +5112,7 @@
       const stepLabel = opts.hideStep ? '' : `<div class="folder__step">Étape ${stepNum}</div>`;
       const actions = opts.documentActions ? `
         <div class="documents-card__actions">
+          <a class="documents-action-btn" href="${esc(createDocumentHref(f.id))}" target="_blank" rel="noopener">Créer un document</a>
           <button class="documents-action-btn" type="button" data-new-folder>+ Nouveau dossier</button>
           <button class="documents-action-btn" type="button" data-import-folder>Importer des fichiers</button>
           ${categories && categories.length ? '<button class="documents-action-btn" type="button" data-collapse-categories>Fermer tous les dossiers</button>' : ''}

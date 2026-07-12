@@ -3816,7 +3816,11 @@ app.post('/api/saas/termsheets', requireAuth, async (req, res) => {
   // Rangement direct dans une phase (utilisé par les modèles de la roadlist).
   if (req.body && req.body.folder_id) {
     const folderId = Number(req.body.folder_id);
-    if (await col('saas_folders').findOne({ id: folderId, user_id: req.user.id })) doc.folder_id = folderId;
+    if (await col('saas_folders').findOne({ id: folderId, user_id: req.user.id })) {
+      doc.folder_id = folderId;
+      const categoryKey = (req.body.category_key || '').toString().trim().slice(0, 80);
+      if (categoryKey) doc.category_key = categoryKey;
+    }
   }
   const templateSource = shortText(req.body?.template_source, 120);
   if (templateSource) {

@@ -1569,6 +1569,7 @@ if (analyzeBtn) analyzeBtn.addEventListener('click', () => analyzeFull(analyzeBt
 let currentDocId = null;
 const docNameEl = document.querySelector('.topbar__doc');
 const urlFolderId = new URLSearchParams(location.search).get('folder');
+const urlCategoryKey = new URLSearchParams(location.search).get('category');
 
 // Nom proposé pour le document (à partir du sous-titre LUMIO SAS, etc.).
 // Sans titre détecté dans la page (document importé), on garde le nom affiché
@@ -1606,6 +1607,7 @@ async function saveTermsheet() {
   const html = termsheetHtml();
   const body = { name, html };
   if (urlFolderId) body.folder_id = Number(urlFolderId);
+  if (urlCategoryKey) body.category_key = urlCategoryKey;
   try {
     const res = currentDocId
       ? await fetch('/api/saas/termsheets/' + currentDocId, {
