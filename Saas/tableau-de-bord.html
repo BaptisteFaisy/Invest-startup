@@ -3005,11 +3005,6 @@
         const profileCard = fundraisingProfileEl();
         profileCard.id = 'phase-' + selected.key;
         container.appendChild(profileCard);
-        // Les documents fondateurs de cette étape (deck, statuts, cap table, RBE…)
-        // sont aussi listés ici, sous le profil, pour être consultables et surtout
-        // atteignables depuis la recherche : l'icône dossier défile alors jusqu'au
-        // fichier lui-même, au lieu de s'arrêter sur le formulaire de profil.
-        container.appendChild(phaseCard(selected, idx, { title: 'Documents', icon: 'DOC', hideStep: true, documentActions: true, noAnchor: true }));
       }
       if (selected.key === 'confidentialite') {
         // Étape « Investisseurs » : onglets Trouver / Pipeline.
