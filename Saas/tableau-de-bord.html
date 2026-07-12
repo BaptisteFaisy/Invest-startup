@@ -101,6 +101,15 @@
     .doc-category__toggle:hover { background:#f4f2ee; border-color:rgba(8,9,12,0.34); }
     .doc-category.is-collapsed .doc-category__toggle { transform:rotate(180deg); }
     .doc-category.is-collapsed .doc-category__body { display:none; }
+    /* Étapes de négociation : un dossier par investisseur */
+    .doc-category--investor .doc-category__head { background:#eff6ff; border-bottom-color:rgba(37,99,235,.16); }
+    .doc-category--investor { border-color:rgba(37,99,235,.22); }
+    .inv-folder__stage { display:inline-block; margin-left:8px; padding:1px 8px; border-radius:999px; background:#dbeafe; color:#1d4ed8; font-family:'Archivo',sans-serif; font-size:10.5px; font-weight:700; vertical-align:middle; letter-spacing:.02em; }
+    .neg-intro { margin:0 0 12px; }
+    .neg-intro__text { margin:0; color:#475569; font-size:13px; line-height:1.5; }
+    .neg-intro__text a { color:#1d4ed8; font-weight:600; text-decoration:none; }
+    .neg-intro__text a:hover { text-decoration:underline; }
+    .neg-empty { margin:0 0 12px; padding:16px; border:1px dashed rgba(37,99,235,.30); border-radius:12px; background:#f8fafc; color:#475569; font-size:13px; line-height:1.5; }
     .doc-category__body { padding:10px 12px 12px; }
     .doc-category__body .bsa-list { margin-top:0; }
     .doc-category__drop { margin-top:10px; font-size:12.5px; line-height:1.45; color:#6b6b78; text-align:center; border:1px dashed rgba(8,9,12,0.18); border-radius:9px; padding:10px 12px; background:#fff; }
@@ -2555,14 +2564,22 @@
       // après un échec d'action optimiste, dont le message doit rester visible.
       if (!loaded) foldersEl.innerHTML = '<p class="empty">Chargement…</p>';
       try {
-        const [fr, dr, pr, cr] = await Promise.all([
+        const [fr, dr, pr, cr, ir] = await Promise.all([
           fetch('/api/saas/folders',   { credentials: 'include' }),
           fetch('/api/saas/documents', { credentials: 'include' }),
           fetch('/api/saas/fundraising-profile', { credentials: 'include' }).catch(() => null),
           fetch('/api/saas/dataroom/connections', { credentials: 'include' }).catch(() => null),
+          fetch('/api/saas/investors', { credentials: 'include' }).catch(() => null),
         ]);
         if (fr.status === 401 || dr.status === 401) { window.location.href = 'login.html'; return; }
         folders = (await fr.json()).folders || [];
+        // Le pipeline investisseurs est chargé dès l'ouverture : les étapes de
+        // négociation (lettre d'intention, négociation) classent leurs documents
+        // par investisseur et l'avancement des étapes en dépend.
+        if (ir && ir.ok) {
+          invPipeline = (await ir.json().catch(() => ({}))).investors || [];
+          invPipelineLoaded = true;
+        }
         applyChecklistOverrides();
         applyDDFallbackModels();
         docs    = (await dr.json()).documents || [];
@@ -2606,6 +2623,22 @@
       const items = Array.isArray(f.checklist) ? f.checklist : [];
       const marks = f.marks || [];
       const toAdd = [], toValidate = [];
+      // Étapes de négociation : les documents sont propres à chaque investisseur,
+      // les manques sont donc listés par investisseur.
+      if (isNegotiationPhase(f)) {
+        investorsForPhase(f).forEach(inv => {
+          const who = investorDocLabel(inv);
+          items.forEach((item, idx) => {
+            if (marks[idx] === 'opt') return;
+            const st = state[investorSlug(inv.id, slugify(item))] || {};
+            const isLinked = st.document_id != null && docs.some(d => d.id === st.document_id);
+            const label = who + ' · ' + item;
+            if (!isLinked) toAdd.push(label);
+            else if (!st.final) toValidate.push({ item: label, docId: st.document_id });
+          });
+        });
+        return { toAdd, toValidate };
+      }
       items.forEach((item, idx) => {
         if (marks[idx] === 'opt') return;
         const slug = slugify(item);
@@ -3543,7 +3576,77 @@
       return match ? Number(match[1]) : fallback;
     }
 
+    // ── Étapes de négociation classées par investisseur ─────────────────────
+    // Deux étapes de la levée classique (lettre d'intention, négociation)
+    // produisent des documents PROPRES à chaque investisseur : ils ne sont pas
+    // communs, mais négociés séparément avec chaque investisseur du pipeline.
+    // On y range donc les documents attendus dans un dossier par investisseur,
+    // alimenté par le pipeline (étape « Investisseurs ») filtré sur le statut.
+    // L'état d'un document est stocké dans items_state sous une clé composite
+    // « inv<id>::<slug> » ; les points de terminaison de liaison acceptent déjà
+    // n'importe quelle clé, aucun changement serveur n'est nécessaire.
+    const INVESTOR_STAGE_ORDER = [
+      'a_contacter', 'contacte', 'interesse', 'due_diligence_preliminaire',
+      'lettre_intention_negociation', 'lettre_intention_signee', 'due_diligence_poussee',
+      'contrats_negociation', 'contrats_signes', 'gouvernance',
+    ];
+    // Libellés lisibles des statuts (réutilise ceux du pipeline).
+    const INVESTOR_STAGE_LABELS = Object.fromEntries(INV_STAGES.map(s => [s.key, s.label]));
+    // Étape → statut minimal du pipeline pour qu'un investisseur y apparaisse.
+    const NEGOTIATION_PHASE_MIN_STAGE = {
+      'term-sheet': 'lettre_intention_negociation',
+      'documentation': 'contrats_negociation',
+    };
+    function isNegotiationPhase(f) {
+      return !!(f && NEGOTIATION_PHASE_MIN_STAGE[f.key]);
+    }
+    function stageIndex(stage) {
+      const i = INVESTOR_STAGE_ORDER.indexOf(stage);
+      return i === -1 ? 0 : i;
+    }
+    // Investisseurs du pipeline concernés par cette étape (statut ≥ seuil), dans
+    // l'ordre du pipeline. Un investisseur qui a dépassé l'étape y reste (ses
+    // documents ne disparaissent pas quand il avance dans le pipeline).
+    function investorsForPhase(f) {
+      const min = NEGOTIATION_PHASE_MIN_STAGE[f && f.key];
+      if (!min) return [];
+      const minIdx = stageIndex(min);
+      return (invPipeline || []).filter(inv => stageIndex(inv.stage) >= minIdx);
+    }
+    function investorSlug(invId, baseSlug) { return 'inv' + invId + '::' + baseSlug; }
+    function investorDocLabel(inv) {
+      const name = (inv && inv.name || '').trim() || 'Investisseur';
+      const firm = (inv && inv.firm || '').trim();
+      return firm ? name + ' — ' + firm : name;
+    }
+
+    // Avancement d'une étape de négociation : chaque investisseur doit avoir ses
+    // documents attendus (hors « si applicable » absents) fournis et validés.
+    function negotiationPhaseStatus(f) {
+      const state = f.items_state || {};
+      const items = Array.isArray(f.checklist) ? f.checklist : [];
+      const marks = f.marks || [];
+      const investors = investorsForPhase(f);
+      let total = 0, done = 0, linked = 0;
+      investors.forEach(inv => {
+        items.forEach((item, idx) => {
+          const slug = investorSlug(inv.id, slugify(item));
+          const st = state[slug] || {};
+          const isLinked = st.document_id != null && docs.some(d => d.id === st.document_id);
+          const final = isLinked && !!st.final;
+          const skippable = marks[idx] === 'opt' && !isLinked;
+          if (!skippable) total++;
+          if (final) done++;
+          if (isLinked) linked++;
+        });
+      });
+      // Sans investisseur au bon statut, l'étape n'est pas « terminable » : elle
+      // reste grise tant qu'aucun investisseur n'y est arrivé.
+      return { total, done, linked, complete: total > 0 && done === total, started: (done > 0 || linked > 0), count: items.length * investors.length };
+    }
+
     function phaseStatus(f) {
+      if (isNegotiationPhase(f)) return negotiationPhaseStatus(f);
       const state = f.items_state || {};
       const items = Array.isArray(f.checklist) ? f.checklist : [];
       let total = 0, done = 0, linked = 0;
@@ -4536,6 +4639,134 @@
       return section;
     }
 
+    // ── Rendu « un dossier par investisseur » pour les étapes de négociation ──
+    // Tous les documents liés dans l'étape (quelle que soit la clé composite),
+    // pour ne pas les réafficher comme fichiers libres.
+    function negotiationLinkedIds(f) {
+      return new Set(
+        Object.values(f.items_state || {})
+          .map(st => st && st.document_id)
+          .filter(id => id != null && docs.some(d => d.id === id))
+      );
+    }
+    // Avancement des documents d'un investisseur dans l'étape (mêmes règles que
+    // phaseStatus : « si applicable » absent ne bloque pas).
+    function investorFolderStatus(f, inv) {
+      const state = f.items_state || {};
+      const marks = f.marks || [];
+      let total = 0, done = 0;
+      (f.checklist || []).forEach((item, idx) => {
+        const st = state[investorSlug(inv.id, slugify(item))] || {};
+        const isLinked = st.document_id != null && docs.some(d => d.id === st.document_id);
+        if (marks[idx] === 'opt' && !isLinked) return;
+        total++;
+        if (isLinked && st.final) done++;
+      });
+      return { total, done, complete: total > 0 && done === total };
+    }
+
+    // Dossier repliable d'un investisseur : la checklist de l'étape, chaque ligne
+    // liée à un document PROPRE à cet investisseur (clé composite inv<id>::<slug>).
+    function investorFolderEl(f, inv, linkedIds) {
+      const catKey = 'inv' + inv.id;
+      const stateKey = f.id + ':' + catKey;
+      const open = docCategoryOpen[stateKey] !== false;
+      const s = investorFolderStatus(f, inv);
+      const section = document.createElement('section');
+      section.className = 'doc-category doc-category--investor' + (open ? '' : ' is-collapsed');
+      const countTxt = s.total
+        ? (s.complete ? 'tous les documents validés ✓' : s.done + ' / ' + s.total + ' validé' + (s.done > 1 ? 's' : ''))
+        : 'documents à préparer';
+      const stageTag = INVESTOR_STAGE_LABELS[inv.stage]
+        ? '<span class="inv-folder__stage">' + esc(INVESTOR_STAGE_LABELS[inv.stage]) + '</span>' : '';
+      section.innerHTML = `
+        <div class="doc-category__head">
+          <div class="doc-category__main">
+            <div class="doc-category__title">${esc(investorDocLabel(inv))}${stageTag}</div>
+            <div class="doc-category__count">${countTxt}</div>
+          </div>
+          <div class="doc-category__actions">
+            <button class="documents-action-btn" type="button" data-category-import>Importer des fichiers</button>
+            <button class="doc-category__toggle" type="button" data-category-toggle aria-expanded="${open ? 'true' : 'false'}" aria-label="${open ? 'Réduire' : 'Agrandir'} ${esc(investorDocLabel(inv))}" title="${open ? 'Réduire' : 'Agrandir'} ce dossier">v</button>
+          </div>
+        </div>
+        <div class="doc-category__body">
+          <ol class="bsa-list"></ol>
+        </div>`;
+      section.querySelector('[data-category-import]').addEventListener('click', () => openImport(f.id, catKey));
+      const toggle = section.querySelector('[data-category-toggle]');
+      toggle.addEventListener('click', () => {
+        const nextOpen = section.classList.contains('is-collapsed');
+        section.classList.toggle('is-collapsed', !nextOpen);
+        docCategoryOpen[stateKey] = nextOpen;
+        toggle.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
+      });
+      const ol = section.querySelector('.bsa-list');
+      (f.checklist || []).forEach((item, idx) => {
+        ol.appendChild(roadItem(f, item, idx, investorSlug(inv.id, slugify(item))));
+      });
+      // Fichiers importés dans le dossier de cet investisseur, non encore liés.
+      section.querySelector('.doc-category__body')
+        .appendChild(phaseLooseFilesEl(f, linkedIds, catKey, 'Autres fichiers de cet investisseur'));
+      attachCardDrop(section, f.id, catKey);
+      return section;
+    }
+
+    // Corps complet d'une étape de négociation : un dossier par investisseur du
+    // pipeline au bon statut, + un repli pour d'éventuels documents « historiques »
+    // rangés avant le classement par investisseur, + les fichiers généraux.
+    function negotiationBodyEl(f, body) {
+      const investors = investorsForPhase(f);
+      const linkedIds = negotiationLinkedIds(f);
+
+      const intro = document.createElement('div');
+      intro.className = 'neg-intro';
+      const minLabel = INVESTOR_STAGE_LABELS[NEGOTIATION_PHASE_MIN_STAGE[f.key]] || '';
+      intro.innerHTML = `<p class="neg-intro__text">Ces documents se négocient séparément avec chaque investisseur : ils sont donc classés par investisseur. La liste reprend les investisseurs de votre <a href="#" data-open-pipeline>pipeline</a> au statut « ${esc(minLabel)} » ou plus avancé.</p>`;
+      const pipeLink = intro.querySelector('[data-open-pipeline]');
+      if (pipeLink) pipeLink.addEventListener('click', (e) => { e.preventDefault(); openClassicStepPage('confidentialite'); });
+      body.appendChild(intro);
+
+      if (!investors.length) {
+        const empty = document.createElement('div');
+        empty.className = 'neg-empty';
+        empty.innerHTML = `Aucun investisseur à cette étape pour l'instant. Faites avancer un investisseur jusqu'au statut « ${esc(minLabel)} » dans votre pipeline pour préparer ses documents ici.`;
+        body.appendChild(empty);
+      } else {
+        const wrap = document.createElement('div');
+        wrap.className = 'doc-categories';
+        investors.forEach(inv => wrap.appendChild(investorFolderEl(f, inv, linkedIds)));
+        body.appendChild(wrap);
+      }
+
+      // Repli : documents éventuellement liés à la checklist AVANT le classement par
+      // investisseur (clés non composites). Affiché seulement s'il en existe.
+      const legacy = (f.checklist || [])
+        .map((item, idx) => ({ item, idx, slug: slugify(item) }))
+        .filter(({ slug }) => {
+          const st = (f.items_state || {})[slug];
+          return st && st.document_id != null && docs.some(d => d.id === st.document_id);
+        });
+      if (legacy.length) {
+        const sec = document.createElement('section');
+        sec.className = 'doc-category';
+        sec.innerHTML = `
+          <div class="doc-category__head">
+            <div class="doc-category__main">
+              <div class="doc-category__title">Documents non attribués à un investisseur</div>
+              <div class="doc-category__count">à reclasser dans un dossier investisseur</div>
+            </div>
+          </div>
+          <div class="doc-category__body"><ol class="bsa-list"></ol></div>`;
+        const ol = sec.querySelector('.bsa-list');
+        legacy.forEach(({ item, idx }) => ol.appendChild(roadItem(f, item, idx)));
+        body.appendChild(sec);
+      }
+
+      // Fichiers généraux (non rattachés à un investisseur).
+      body.appendChild(phaseLooseFilesEl(f, linkedIds, '', 'Fichiers importés de manière générale'));
+    }
+
     // Carte d'une phase : checklist numérotée + fichiers libres de la phase + dépôt.
     function phaseCard(f, pi, opts = {}) {
       const list = Array.isArray(f.checklist) ? f.checklist : [];
@@ -4582,9 +4813,20 @@
       if (importFolderBtn) importFolderBtn.addEventListener('click', () => openImport(f.id, ''));
       if (collapseCategoriesBtn) {
         collapseCategoriesBtn.addEventListener('click', () => {
-          categories.forEach(category => { docCategoryOpen[f.id + ':' + category.key] = false; });
+          if (isNegotiationPhase(f)) {
+            investorsForPhase(f).forEach(inv => { docCategoryOpen[f.id + ':inv' + inv.id] = false; });
+          } else {
+            categories.forEach(category => { docCategoryOpen[f.id + ':' + category.key] = false; });
+          }
           render();
         });
+      }
+      // Étapes de négociation : classement « un dossier par investisseur » plutôt
+      // qu'un classement thématique commun (les documents diffèrent par investisseur).
+      if (isNegotiationPhase(f)) {
+        negotiationBodyEl(f, body);
+        attachCardDrop(card, f.id, '');
+        return card;
       }
       if (isInvestorChecklistPhase(f)) body.appendChild(investorChecklistEl(f));
       // Le guide « 🎓 Comprendre cette étape » n'apparaît plus dans la carte du
@@ -4952,8 +5194,9 @@
     // Une ligne « document attendu » : numéro (via <ol>), nom + badge, document lié,
     // boutons (Modèle / Ajouter / Ouvrir / détacher) et glisser-déposer pour rattacher
     // un fichier (ordinateur) ou un document existant à ce point précis.
-    function roadItem(f, item, idx) {
-      const slug   = slugify(item);
+    function roadItem(f, item, idx, slugOverride) {
+      const baseSlug = slugify(item);
+      const slug   = slugOverride || baseSlug;
       const st     = (f.items_state || {})[slug] || {};
       const doc    = st.document_id != null ? docs.find(d => d.id === st.document_id) : null;
       const linked = !!doc;
@@ -4985,7 +5228,7 @@
 
       // Générer un modèle pré-rempli (si un modèle existe — alias inclus — et qu'aucun
       // document n'est lié). Le slug du modèle peut différer du slug de l'item (alias).
-      const modelSlug = !linked ? modelSlugFor(slug, item) : null;
+      const modelSlug = !linked ? modelSlugFor(baseSlug, item) : null;
       if (modelSlug) {
         const b = document.createElement('button');
         b.className = 'fbtn fbtn--mini fbtn--accent';
