@@ -26,6 +26,14 @@
     .dossiers__sub { color: #fff; font-size: 15px; margin-top: 8px; }
     .dossiers__head .btn { cursor: pointer; }
 
+    /* Ampoule « Comprendre cette étape » : en haut à droite de chaque vue d'étape.
+       Contour blanc sur fond noir, reprend l'ampoule qui figurait sur la frise. */
+    .step-guide-btn { margin-left: auto; flex: none; width: 40px; height: 40px; display: grid; place-items: center; padding: 0; border-radius: 50%; background: #08090c; border: 1.5px solid rgba(255,255,255,0.7); color: #fff; cursor: pointer; transition: border-color .15s, background .15s, transform .12s; }
+    .step-guide-btn:hover { border-color: #fff; background: #15161b; }
+    .step-guide-btn:active { transform: scale(.94); }
+    .step-guide-btn svg { width: 20px; height: 20px; display: block; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+    .step-guide-btn[hidden] { display: none; }
+
     .section-label { display: flex; align-items: center; justify-content: space-between; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #fff; margin: 34px 0 14px; }
 
     /* Chevron de repli, partagé par « prochaines priorités ». */
@@ -750,44 +758,7 @@
     /* Erreur */
     .err { color: #f87171 !important; background: rgba(220,38,38,0.1) !important; border-color: rgba(220,38,38,0.25) !important; }
 
-    /* ═══════════ Tableau de bord : frise et vues par étape ═══════════ */
-    .frise { background:#fff; border-radius:16px; box-shadow:0 10px 26px rgba(0,0,0,0.22); padding:16px 18px; margin:22px 0 14px; }
-    .frise.is-complete { box-shadow:0 10px 26px rgba(0,0,0,0.22); }
-    .frise__head { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:14px; }
-    .frise__eyebrow { font-family:'Archivo',sans-serif; font-size:11px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:rgba(255,255,255,0.62); }
-    .frise__title { font-family:'Archivo',sans-serif; font-size:18px; font-weight:700; letter-spacing:0; color:#fff; margin-top:5px; }
-    .frise.is-complete .frise__title { color:#16a34a; }
-    .frise__right { display:flex; align-items:center; gap:12px; margin-left:auto; }
-    .frise__progress { display:flex; align-items:center; gap:10px; }
-    .frise__progress-num { font-family:'Archivo',sans-serif; font-size:12.5px; font-weight:700; color:#fff; white-space:nowrap; }
-    .frise__progress-bar { width:130px; height:7px; border-radius:99px; background:rgba(255,255,255,0.14); overflow:hidden; }
-    .frise__progress-bar > i { display:block; height:100%; border-radius:99px; background:#3b82f6; width:calc(var(--frac,0) * 100%); transition:width .6s cubic-bezier(.2,.8,.2,1), background .4s; }
-    .frise.is-complete .frise__progress-bar > i { background:#16a34a; }
-    .frise__toggle { width:28px; height:28px; flex:none; display:grid; place-items:center; border:0; border-radius:6px; background:transparent; color:rgba(255,255,255,0.55); cursor:pointer; padding:0; transition:color .15s, background .15s; }
-    .frise__toggle svg { width:18px; height:18px; display:block; fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; transition:transform .2s ease; }
-    .frise__toggle:hover { background:rgba(255,255,255,0.12); color:#fff; }
-    .frise__toggle[aria-expanded="false"] svg { transform:rotate(-90deg); }
-    .frise.is-collapsed { display:none; }
-
-    .frise__track { overflow:visible; }
-    .frise__points { display:grid; grid-template-columns:repeat(9, minmax(0, 1fr)); gap:7px; }
-    .frise__point { --c:#374151; --bg:#f8fafc; --glow:rgba(55,65,81,0.18); position:relative; box-sizing:border-box; min-width:0; overflow:visible; display:flex; flex-direction:column; align-items:center; text-align:center; background:var(--bg); border:3px solid transparent; border-radius:12px; padding:14px 9px 12px; cursor:pointer; transition:transform .12s ease, box-shadow .14s ease, border-color .14s ease; }
-    .frise__point.is-done { --c:#10b981; --bg:#f0fdf4; --glow:rgba(16,185,129,0.20); }
-    .frise__point.is-current { --c:#6366f1; --bg:#eef2ff; --glow:rgba(99,102,241,0.20); }
-    .frise__point.is-done, .frise__point.is-current { border-color:var(--c); }
-    .frise__point:active { transform:scale(.97); }
-    .frise__point.is-selected { border-color:var(--c); box-shadow:0 10px 20px var(--glow); transform:translateY(-5px); z-index:1; }
-    .frise__chip { width:32px; height:32px; flex:none; display:grid; place-items:center; border-radius:9px; background:#fff; color:var(--c); box-shadow:0 1px 4px rgba(0,0,0,0.08); font-family:'Archivo',sans-serif; font-weight:800; font-size:13px; }
-    .frise__chip svg { width:18px; height:18px; display:block; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
-    .frise__point.is-done .frise__chip svg { stroke-width:3; }
-    .frise__idea { position:absolute; z-index:2; top:7px; right:7px; width:20px; height:20px; display:grid; place-items:center; border-radius:6px; background:rgba(255,255,255,0.9); border:1px solid rgba(8,9,12,0.08); color:#a3a9b5; line-height:1; cursor:help; opacity:.45; transition:opacity .15s, color .15s, border-color .15s; }
-    .frise__point:hover .frise__idea { opacity:1; }
-    .frise__idea:hover { color:#475569; border-color:rgba(8,9,12,0.2); }
-    .frise__idea svg { width:13px; height:13px; display:block; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; pointer-events:none; }
-    .frise__label { margin-top:9px; color:#0f172a; font-family:'Archivo',sans-serif; font-size:10.5px; font-weight:700; letter-spacing:0; line-height:1.25; overflow-wrap:anywhere; }
-    .frise__point.is-todo { border-color:#374151; }
-    .frise__point.is-todo .frise__label { color:#374151; }
-    .frise__state { margin-top:5px; color:var(--c); font-family:'Archivo',sans-serif; font-size:8.5px; font-weight:700; letter-spacing:0.02em; text-transform:uppercase; }
+    /* ═══════════ Tableau de bord : vues par étape ═══════════ */
 
     .dash-overview { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; margin:14px 0 14px; }
     .dash-metric { background:#fff; border:1px solid rgba(255,255,255,0.1); border-radius:14px; padding:18px; box-shadow:0 10px 26px rgba(0,0,0,0.22); }
@@ -822,33 +793,9 @@
       .raise-founder-remove { justify-self:end; }
     }
 
-    @keyframes frise-pop { 0%{transform:scale(1)} 45%{transform:scale(1.04)} 100%{transform:scale(1)} }
-    @keyframes frise-card-pulse { 0%{transform:scale(1)} 30%{transform:scale(1.008)} 100%{transform:scale(1)} }
-    .frise.is-celebrate { animation:frise-card-pulse .6s ease; }
-    .frise.is-celebrate .frise__point.is-done { animation:frise-pop .5s ease both; }
-    .frise.is-celebrate .frise__point:nth-child(1){animation-delay:0s}
-    .frise.is-celebrate .frise__point:nth-child(2){animation-delay:.05s}
-    .frise.is-celebrate .frise__point:nth-child(3){animation-delay:.10s}
-    .frise.is-celebrate .frise__point:nth-child(4){animation-delay:.15s}
-    .frise.is-celebrate .frise__point:nth-child(5){animation-delay:.20s}
-    .frise.is-celebrate .frise__point:nth-child(6){animation-delay:.25s}
-    .frise.is-celebrate .frise__point:nth-child(7){animation-delay:.30s}
-    .frise.is-celebrate .frise__point:nth-child(8){animation-delay:.35s}
-    .frise.is-celebrate .frise__point:nth-child(9){animation-delay:.40s}
-
     @media (max-width:760px) {
-      .frise__points { grid-template-columns:repeat(5, minmax(0, 1fr)); }
       .dash-overview { grid-template-columns:1fr; }
     }
-    @media (max-width:680px) {
-      .frise { padding:14px; }
-      .frise__head { align-items:stretch; flex-direction:column; }
-      .frise__right { width:100%; align-items:center; justify-content:space-between; flex-direction:row; gap:8px; }
-      .frise__progress { flex:1; min-width:0; }
-      .frise__progress-bar { width:96px; }
-      .frise__points { grid-template-columns:repeat(3, minmax(0, 1fr)); }
-    }
-    @media (prefers-reduced-motion:reduce) { .frise, .frise * { animation:none !important; transition:none !important; } }
 
     /* ── Fenêtre d'une étape (déclenchée par la frise) : explication + documents ── */
     .fmodal { position:fixed; inset:0; z-index:990; display:none; align-items:center; justify-content:center; padding:24px; }
@@ -982,6 +929,7 @@
       <div class="dossiers__head">
         <input type="file" id="file-input" accept=".pdf,.doc,.docx,.xlsx,.xls,.png,.jpg,.jpeg" multiple hidden />
         <input type="file" id="investor-checklist-input" accept=".pdf,.doc,.docx,.xlsx" hidden />
+        <button type="button" id="step-guide-btn" class="step-guide-btn" hidden aria-label="Comprendre cette étape" title="Comprendre cette étape"></button>
       </div>
 
       <div id="error" class="err" hidden></div>
@@ -993,9 +941,6 @@
 
       <!-- Vue : levée classique (actions de préférence) -->
       <div id="classic-view">
-
-      <!-- Frise interactive : cliquez une étape pour son explication + ses documents -->
-      <div id="frise-classic"></div>
 
       <div id="classic-actions" class="classic-actions" hidden>
         <button class="btn btn--ghost btn--lg" id="new-folder-btn">+ Nouveau dossier</button>
@@ -2836,11 +2781,11 @@
       }
       renderDrawerSteps();
       if (RAISE_SOON[track]) {
-        if (friseClassicEl) friseClassicEl.innerHTML = '';
         if (foldersEl) foldersEl.innerHTML = '';
         if (bsaFoldersEl) bsaFoldersEl.innerHTML = '';
         syncClassicActions(-1);
         setTopbarStepLabel('');
+        updateStepGuideButton(null);
         renderNextActions();
         refreshFmodal();
         return;
@@ -2852,19 +2797,14 @@
 
       if (track === 'classic') {
         ensureClassicStep(phases);
-        if (selectedClassicStep === 'mise-en-ordre') {
-          renderFrise(track, phases);
-        } else if (friseClassicEl) {
-          friseClassicEl.innerHTML = '';
-        }
         renderClassicBody(phases, container);
       } else {
-        if (friseClassicEl) friseClassicEl.innerHTML = '';
         syncClassicActions(-1);
         selectedClassicStep = null;
         const selectedKey = ensureBsaStep(phases);
         if (selectedKey === 'bsa-profile') {
           setTopbarStepLabel('Ma levée');
+          updateStepGuideButton(null);
           const bsaProfileCard = fundraisingProfileEl();
           bsaProfileCard.id = 'phase-bsa-profile';
           container.appendChild(bsaProfileCard);
@@ -2872,6 +2812,7 @@
           const selected = phases.find(f => f.key === selectedKey);
           const idx = phases.findIndex(f => f.key === selectedKey);
           setTopbarStepLabel(selected ? friseLabel(selected) : '');
+          updateStepGuideButton(selected || null);
           if (selected) container.appendChild(phaseCard(selected, idx));
         }
       }
@@ -2885,6 +2826,7 @@
       if (!selected) {
         syncClassicActions(-1);
         setTopbarStepLabel('');
+        updateStepGuideButton(null);
         container.appendChild(importCard());
         return;
       }
@@ -2892,6 +2834,7 @@
       const idx = phases.findIndex(f => f.id === selected.id);
       syncClassicActions(idx);
       setTopbarStepLabel(friseLabel(selected));
+      updateStepGuideButton(selected);
       if (selected.key === 'mise-en-ordre') {
         const profileCard = fundraisingProfileEl();
         profileCard.id = 'phase-' + selected.key;
@@ -3589,14 +3532,7 @@
       return card;
     }
 
-    /* ═══════════ Frise interactive du parcours de la levée ═══════════
-       Une tuile par étape ; clic → vue dédiée sous la frise. Une tuile devient
-       verte dès que tous ses documents attendus sont validés. Quand toutes les
-       tuiles le sont, la frise entière passe en état complet (animation). */
-    const friseClassicEl = document.getElementById('frise-classic');
-    const friseBsaEl     = document.getElementById('frise-bsa');
-
-    // Libellés courts des pastilles (le nom complet reste dans la fenêtre).
+    // Libellés courts des étapes (le nom complet reste dans la fenêtre).
     const FRISE_LABELS = {
       'mise-en-ordre': 'Ma levée',
       'confidentialite': 'Investisseurs',
@@ -3716,24 +3652,10 @@
       return { total, done, linked, complete: total > 0 && done === total, started: (done > 0 || linked > 0), count: items.length };
     }
 
-    const friseCelebrated = {}; // track -> déjà « tout vert » (n'anime qu'à la bascule)
-    const friseCollapsed = {};
     const bulbIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg>';
 
-    // Icône (contour) par étape de la frise. Une étape validée affiche une coche.
+    // Coche affichée sur une étape validée (badge du menu des étapes).
     const friseCheckPath = '<path d="M5 12l5 5l10 -10"/>';
-    const FRISE_ICONS = {
-      'mise-en-ordre': '<path d="M4 13a8 8 0 0 1 7 7a6 6 0 0 0 3 -5a9 9 0 0 0 6 -8a3 3 0 0 0 -3 -3a9 9 0 0 0 -8 6a6 6 0 0 0 -5 3"/><path d="M7 14a6 6 0 0 0 -3 6a6 6 0 0 0 6 -3"/><path d="M14 9a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/>',
-      'confidentialite': '<path d="M5 7a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0 -3 -3.85"/>',
-      'due-diligence-preliminaire': '<path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"/><path d="M21 21l-6 -6"/>',
-      'term-sheet': '<path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"/><path d="M9 9l1 0"/><path d="M9 13l6 0"/><path d="M9 17l6 0"/>',
-      'due-diligence': '<path d="M5 21h14"/><path d="M6 18h2"/><path d="M7 18v3"/><path d="M9 11l3 3l6 -6l-3 -3l-6 6"/><path d="M10.5 12.5l-1.5 1.5"/><path d="M17 3l3 3"/><path d="M12 21a6 6 0 0 0 3.715 -10.712"/>',
-      'documentation': '<path d="M21 14l-3 -3h-7a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1h9a1 1 0 0 1 1 1v10"/><path d="M14 15v2a1 1 0 0 1 -1 1h-7l-3 3v-10a1 1 0 0 1 1 -1h2"/>',
-      'closing': '<path d="M3 19c3.333 -2 5 -4 5 -6c0 -3 -1 -3 -2 -3s-2.032 1.085 -2 3c.034 2.048 1.658 2.877 2.5 4c1.5 2 2.5 2.5 3.5 1c.667 -1 1.167 -1.833 1.5 -2.5c1 2.333 2.333 3.5 4 3.5h2.5"/><path d="M20 17v-12c0 -1.121 -.879 -2 -2 -2s-2 .879 -2 2v12l2 2l2 -2"/><path d="M16 7h4"/>',
-      'post-closing': '<path d="M9.615 20h-2.615a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8"/><path d="M14 19l2 2l4 -4"/><path d="M9 8h4"/><path d="M9 12h2"/>',
-      'gouvernance': '<path d="M3 21l18 0"/><path d="M3 10l18 0"/><path d="M5 6l7 -3l7 3"/><path d="M4 10l0 11"/><path d="M20 10l0 11"/><path d="M8 14l0 3"/><path d="M12 14l0 3"/><path d="M16 14l0 3"/>',
-    };
-    const friseFallbackIcon = '<path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2"/>';
 
     const raiseHelpModal = document.getElementById('raise-help-modal');
     const raiseHelpTitle = document.getElementById('raise-help-title');
@@ -3792,14 +3714,6 @@
       });
     }
 
-    function isFriseCollapsed(track) {
-      if (friseCollapsed[track] == null) friseCollapsed[track] = false;
-      return !!friseCollapsed[track];
-    }
-    function setFriseCollapsed(track, collapsed) {
-      friseCollapsed[track] = !!collapsed;
-      renderFrise(track);
-    }
     function openClassicStepPage(key) {
       // Mémorise le défilement courant : le re-rendu ci-dessous remplace le
       // corps de la page et ferait sauter l'écran en haut. On le restaure pour
@@ -3932,81 +3846,7 @@
       persistNavStepsSnapshot(type, snap);
     }
 
-    function renderFrise(track, phases) {
-      const host = track === 'bsa-air' ? friseBsaEl : friseClassicEl;
-      if (!host) return;
-      if (track !== 'classic') { host.innerHTML = ''; return; }
-      phases = phases || folders.filter(f => isSystemPhase(f) && (f.track || 'classic') === track);
-      phases = phases.filter(isClassicPhaseVisible);
-      if (!phases.length) { host.innerHTML = ''; return; }
-
-      const stats = phases.map(phaseStatus);
-      const completed = stats.filter(s => s.complete).length;
-      const allComplete = completed === phases.length;
-      const frac = completed / phases.length;
-
-      const collapsed = isFriseCollapsed(track);
-      const el = document.createElement('section');
-      el.className = 'frise' + (allComplete ? ' is-complete' : '') + (collapsed ? ' is-collapsed' : '');
-      el.style.setProperty('--frac', String(frac));
-      el.innerHTML = `
-        <div class="frise__track">
-          <div class="frise__points"></div>
-        </div>`;
-
-      const toggleLabel = collapsed ? 'Afficher les étapes de votre levée' : 'Masquer les étapes de votre levée';
-      const header = document.createElement('div');
-      header.className = 'section-label';
-      header.innerHTML = `
-        <span>Les étapes de votre levée</span>
-        <button class="frise__toggle" type="button" aria-expanded="${collapsed ? 'false' : 'true'}" aria-label="${toggleLabel}" title="${toggleLabel}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6l6 -6"/></svg></button>`;
-      header.querySelector('.frise__toggle').addEventListener('click', () => setFriseCollapsed(track, !collapsed));
-
-      const pts = el.querySelector('.frise__points');
-      const currentIdx = stats.findIndex(s => !s.complete);
-      phases.forEach((f, i) => {
-        const s = stats[i];
-        const green = s.complete;
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        const active = selectedClassicStep === f.key;
-        const stateCls = green ? 'is-done' : (i === currentIdx ? 'is-current' : 'is-todo');
-        const stateWord = green ? 'Validé' : (i === currentIdx ? 'En cours' : 'À faire');
-        const iconInner = green ? friseCheckPath : (FRISE_ICONS[f.key] || friseFallbackIcon);
-        btn.className = 'frise__point ' + stateCls + (active ? ' is-selected' : '');
-        btn.innerHTML =
-          '<span class="frise__chip"><svg viewBox="0 0 24 24" aria-hidden="true">' + iconInner + '</svg></span>' +
-          '<span class="frise__idea" title="Comprendre cette étape">' + bulbIcon + '</span>' +
-          '<span class="frise__label">' + esc(friseLabel(f)) + '</span>' +
-          '<span class="frise__state">' + stateWord + '</span>';
-        btn.title = friseLabel(f) + ' — ouvrir cette étape';
-        const idea = btn.querySelector('.frise__idea');
-        if (idea) {
-          idea.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            openFmodal(f.id);
-          });
-        }
-        btn.addEventListener('click', () => openClassicStepPage(f.key));
-        pts.appendChild(btn);
-      });
-
-      host.innerHTML = '';
-      host.appendChild(header);
-      host.appendChild(el);
-
-      // « Tout est vert » : animation jouée uniquement lors de la bascule
-      // (was === false), pas au chargement d'un parcours déjà terminé.
-      const was = friseCelebrated[track];
-      if (allComplete && was === false) {
-        el.classList.add('is-celebrate');
-        setTimeout(() => el.classList.remove('is-celebrate'), 1500);
-      }
-      friseCelebrated[track] = allComplete;
-    }
-
-    /* ── Fenêtre d'indice : explication ouverte depuis l'ampoule de la frise ── */
+    /* ── Fenêtre d'indice : explication d'une étape ── */
     const fmodal     = document.getElementById('fmodal');
     const fmodalBody = document.getElementById('fmodal-body');
     let fmodalCtx = null; // id de la phase affichée
@@ -4112,6 +3952,9 @@
       if (track === 'classic') phases = phases.filter(isClassicPhaseVisible);
       const idx    = phases.findIndex(x => x.id === f.id);
       const data   = STEP_EXPLAINERS[f.key] || null;
+      // À défaut d'explication détaillée (sous-étapes), on retombe sur le guide
+      // pédagogique de l'étape (objectif / en clair / à éviter).
+      const guide  = data ? null : (PHASE_GUIDE[f.key] || null);
 
       fmodal.classList.remove('is-step-done');
       fmodal.querySelector('.fmodal__badge-step').textContent = idx >= 0 ? idx : '';
@@ -4119,13 +3962,15 @@
       fmodal.querySelector('.fmodal__title').textContent = friseLabel(f);
       const stEl = fmodal.querySelector('.fmodal__status');
       stEl.classList.remove('is-done');
-      stEl.hidden = !data;
-      stEl.textContent = data ? 'Explication' : '';
+      stEl.hidden = !(data || guide);
+      stEl.textContent = (data || guide) ? 'Explication' : '';
 
       const sc = fmodalBody.scrollTop; // préserve le défilement lors d'un rafraîchissement
       fmodalBody.innerHTML = '';
       if (data) {
         fmodalBody.appendChild(stepInfoEl(data));
+      } else if (guide) {
+        fmodalBody.appendChild(guideInfoEl(guide));
       } else {
         const e = document.createElement('div');
         e.className = 'fmodal__empty';
@@ -4133,6 +3978,43 @@
         fmodalBody.appendChild(e);
       }
       fmodalBody.scrollTop = sc;
+    }
+
+    // Rendu du guide pédagogique dans la fenêtre « Comprendre cette étape ».
+    function guideInfoEl(g) {
+      const sec = document.createElement('section');
+      sec.className = 'step-info';
+      const avoid = (g.eviter || []).map(x => `<li class="step-info__text">${esc(x)}</li>`).join('');
+      sec.innerHTML = `
+        <p class="fmodal__sec-title" style="margin-top:2px">Objectif</p>
+        <p class="step-info__lead">${esc(g.objectif)}</p>
+        <p class="fmodal__sec-title">En clair</p>
+        <p class="step-info__text">${esc(g.explication)}</p>
+        ${avoid ? `<p class="fmodal__sec-title">À ne pas faire</p><ul class="step-info__list">${avoid}</ul>` : ''}`;
+      return sec;
+    }
+
+    // Ampoule « Comprendre cette étape », en haut à droite de la vue d'étape.
+    // Reprend l'ancienne ampoule de la frise : ouvre la même fenêtre d'explication.
+    const stepGuideBtn = document.getElementById('step-guide-btn');
+    if (stepGuideBtn) {
+      stepGuideBtn.innerHTML = bulbIcon;
+      stepGuideBtn.addEventListener('click', () => {
+        const id = stepGuideBtn.dataset.folderId;
+        if (id) openFmodal(Number(id));
+      });
+    }
+    // Affiche l'ampoule quand l'étape courante possède une explication, sinon la masque.
+    function updateStepGuideButton(folder) {
+      if (!stepGuideBtn) return;
+      const has = !!(folder && folder.key && (STEP_EXPLAINERS[folder.key] || PHASE_GUIDE[folder.key]));
+      if (has) {
+        stepGuideBtn.dataset.folderId = String(folder.id);
+        stepGuideBtn.hidden = false;
+      } else {
+        delete stepGuideBtn.dataset.folderId;
+        stepGuideBtn.hidden = true;
+      }
     }
 
     if (fmodal) {
