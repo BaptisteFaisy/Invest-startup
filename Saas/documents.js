@@ -43,6 +43,11 @@
   .docmodal__file-x{border:0;background:none;cursor:pointer;color:var(--text-2,#6b6b78);font-size:18px;padding:4px}
   .docmodal__error{display:none;margin-top:12px;color:#b91c1c;font-size:13px}
   .docmodal__error.is-shown{display:block}
+  .docmodal__dest{display:none;margin-top:16px}
+  .docmodal__dest.is-shown{display:block}
+  .docmodal__dest-label{display:block;font:600 13px/1.3 'Libre Franklin',sans-serif;color:var(--text,#08090c);margin-bottom:7px}
+  .docmodal__dest-select{width:100%;box-sizing:border-box;background:var(--card,#fff);border:1px solid var(--line,rgba(8,9,12,0.18));border-radius:10px;color:var(--text,#08090c);font:500 14px/1.2 'Libre Franklin',sans-serif;padding:11px 12px;cursor:pointer}
+  .docmodal__dest-select:focus{outline:none;border-color:var(--blue,#3b82f6)}
   .docmodal__foot{display:flex;justify-content:flex-end;gap:10px;padding:16px 20px;border-top:1px solid var(--line,rgba(8,9,12,0.08))}
   .docmodal__foot .btn[disabled]{opacity:.5;cursor:not-allowed}
   `;
@@ -76,6 +81,12 @@
           </div>
           <button class="docmodal__file-x" type="button" id="docmodal-file-x" aria-label="Retirer le fichier">×</button>
         </div>
+        <div class="docmodal__dest" id="docmodal-dest">
+          <label class="docmodal__dest-label" for="docmodal-dest-select">Ranger dans une étape</label>
+          <select class="docmodal__dest-select" id="docmodal-dest-select">
+            <option value="">— Non classé —</option>
+          </select>
+        </div>
         <div class="docmodal__error" id="docmodal-error"></div>
       </div>
       <div class="docmodal__foot">
@@ -92,6 +103,8 @@
   const fileX    = modal.querySelector('#docmodal-file-x');
   const errBox   = modal.querySelector('#docmodal-error');
   const submit   = modal.querySelector('#docmodal-submit');
+  const destBox  = modal.querySelector('#docmodal-dest');
+  const destSel  = modal.querySelector('#docmodal-dest-select');
 
   let selected = null;
   let busy = false;
@@ -139,9 +152,29 @@
     submit.disabled = true;
   }
 
+  // Remplit le sélecteur de destination avec les étapes du parcours actif,
+  // fournies par la page (window.liquidImportDestinations). Absente ailleurs
+  // (ex. éditeur) : le champ reste masqué et l'import se fait « non classé ».
+  function populateDest() {
+    destSel.innerHTML = '<option value="">— Non classé —</option>';
+    let ctx = null;
+    try { ctx = typeof window.liquidImportDestinations === 'function' ? window.liquidImportDestinations() : null; } catch { ctx = null; }
+    const folders = (ctx && Array.isArray(ctx.folders)) ? ctx.folders : [];
+    if (!folders.length) { destBox.classList.remove('is-shown'); return; }
+    folders.forEach((f) => {
+      const o = document.createElement('option');
+      o.value = String(f.id);
+      o.textContent = f.name;
+      destSel.appendChild(o);
+    });
+    if (ctx && ctx.defaultFolderId != null) destSel.value = String(ctx.defaultFolderId);
+    destBox.classList.add('is-shown');
+  }
+
   function openModal() {
     clearError();
     resetFile();
+    populateDest();
     modal.classList.add('is-open');
     drop.focus();
   }
@@ -191,6 +224,9 @@
     clearError();
     const fd = new FormData();
     fd.append('file', selected);
+    // Étape de destination choisie (facultative) : le serveur range le document
+    // dans ce dossier s'il appartient à l'utilisateur.
+    if (destBox.classList.contains('is-shown') && destSel.value) fd.append('folder_id', destSel.value);
     try {
       const r = await fetch('/api/saas/documents', { method: 'POST', credentials: 'include', body: fd });
       if (r.status === 401) { window.location.href = 'login.html'; return; }

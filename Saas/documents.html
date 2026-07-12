@@ -263,7 +263,7 @@
     </main>
   </div>
 
-  <script src="documents.js?v=2" defer></script>
+  <script src="documents.js?v=3" defer></script>
   <script>
     document.getElementById('page-back-btn').addEventListener('click', () => {
       if (window.history.length > 1) window.history.back();
@@ -753,6 +753,14 @@
         // Recliquer la puce active revient à tout afficher.
         subFilter = (subFilter === key) ? 'all' : key;
         render();
+      });
+
+      // Destinations proposées par la fenêtre « Ajouter un document »
+      // (documents.js) : les étapes du parcours actif. Si l'on filtre justement
+      // sur une étape, elle est présélectionnée comme destination par défaut.
+      window.liquidImportDestinations = () => ({
+        folders: folders.filter(folderInActiveRaise).map(f => ({ id: f.id, name: f.name })),
+        defaultFolderId: (view === 'etape' && /^f\d+$/.test(subFilter)) ? Number(subFilter.slice(1)) : null,
       });
 
       // Rafraîchissement après un import (émis par documents.js).
