@@ -73,6 +73,16 @@
     .doc-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,0.62); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; padding: 3px 9px; }
     .doc-pill svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .doc-pill--inv { color: rgba(167,139,250,0.9); background: rgba(167,139,250,0.12); border-color: rgba(167,139,250,0.28); }
+    /* Pastilles de risque juridique — volontairement pâles et plates, sans bordure,
+       ombre ni dégradé. */
+    .doc-risk { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; border: 0; border-radius: 999px; padding: 3px 9px; box-shadow: none; }
+    .doc-risk__dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+    .doc-risk--critique { color: #d99a9a; background: rgba(239,68,68,0.10); }
+    .doc-risk--critique .doc-risk__dot { background: #cf7676; }
+    .doc-risk--conseille { color: #cdae74; background: rgba(245,158,11,0.10); }
+    .doc-risk--conseille .doc-risk__dot { background: #c39a4c; }
+    .doc-risk--faible { color: #96a0aa; background: rgba(148,163,184,0.10); }
+    .doc-risk--faible .doc-risk__dot { background: #8a94a0; }
 
     /* Sélecteur de niveau d'avancement (vue « Par avancement ») */
     .doc-setstatus { display: inline-flex; align-items: center; gap: 6px; }
@@ -85,6 +95,7 @@
     .doc-item__actions { display: flex; align-items: center; gap: 6px; flex: none; }
     .doc-act { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04); color: #fff; cursor: pointer; text-decoration: none; transition: border-color .15s, background .15s; }
     .doc-act:hover { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.1); }
+    .doc-act--relire { width: auto; padding: 0 12px; gap: 7px; font: 600 12.5px/1 'Libre Franklin', sans-serif; white-space: nowrap; }
     .doc-act svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
     /* ---- Sélecteur de vue (Par étape / Par investisseur) ---- */
@@ -327,6 +338,15 @@
       ];
       const STATUS_ORDER = STATUSES.map(s => s.key);
       function statusMeta(key) { return STATUSES.find(s => s.key === key) || STATUSES[0]; }
+
+      // ---- Risque juridique (badge + recommandation de relecture avocat) ----
+      // Le niveau vient du serveur (champ `risk`) ; ici on ne fait que le libellé.
+      const RISK_META = {
+        critique:  { label: 'Avocat avant signature', title: 'Responsabilité personnelle ou document structurant : à faire relire par un avocat avant de signer.' },
+        conseille: { label: 'Relecture conseillée',   title: 'Enjeu réel : une relecture par un avocat est conseillée.' },
+        faible:    { label: 'Faible enjeu',           title: 'Faible enjeu juridique : l\'IA suffit à ce stade. Ce n\'est pas une garantie d\'absence de risque.' },
+      };
+      function riskMeta(d) { return RISK_META[d && d.risk] || RISK_META.faible; }
 
       // Niveau d'avancement d'un document : son statut explicite s'il existe, sinon
       // un défaut déduit — « en cours de modification » dès qu'il a été retravaillé
@@ -636,6 +656,9 @@
         const invPill = inv
           ? `<span class="doc-pill doc-pill--inv" title="Rendu disponible à ${esc(investorLabel(inv))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>${esc(investorLabel(inv))}</span>`
           : '';
+        // Badge de risque juridique — pilote aussi l'action « Faire relire ».
+        const rk = riskMeta(d);
+        const riskPill = `<span class="doc-risk doc-risk--${esc(d.risk || 'faible')}" title="${esc(rk.title)}"><span class="doc-risk__dot"></span>${esc(rk.label)}</span>`;
 
         row.innerHTML = `
           <div class="doc-item__icon doc-item__icon--${ic.cls}"><svg viewBox="0 0 24 24" aria-hidden="true">${ic.svg}</svg></div>
@@ -645,6 +668,7 @@
               <span>${esc(typeLabel(d))}</span>
               ${d.size != null ? `<span class="doc-item__meta-sep">·</span><span>${fmtSize(d.size)}</span>` : ''}
               <span class="doc-item__meta-sep">·</span><span>${fmtDate(d.updated_at || d.created_at)}</span>
+              ${riskPill}
               ${folderPill}
               ${invPill}
             </div>
@@ -652,6 +676,19 @@
           <div class="doc-item__actions"></div>`;
 
         const actions = row.querySelector('.doc-item__actions');
+
+        // Action « Faire relire » — proposée sur les documents à enjeu (critique /
+        // conseillé). Ouvre l'outil Avocat, demande pré-remplie avec ce document.
+        if (d.risk === 'critique' || d.risk === 'conseille') {
+          const relire = document.createElement('a');
+          relire.className = 'doc-act doc-act--relire';
+          relire.href = 'avocat.html?doc=' + encodeURIComponent(d.id);
+          relire.target = '_blank';
+          relire.rel = 'noopener';
+          relire.title = 'Faire relire ce document par un avocat';
+          relire.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M6 21h12"/><path d="M3 7h18"/><path d="M7 7l-3 6a3 3 0 0 0 6 0Z"/><path d="M17 7l3 6a3 3 0 0 0-6 0Z"/></svg><span>Faire relire</span>';
+          actions.appendChild(relire);
+        }
 
         // Vue « Par avancement » : sélecteur pour changer le niveau du document.
         if (view === 'avancement') {

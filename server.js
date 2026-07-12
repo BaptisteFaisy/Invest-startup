@@ -3106,6 +3106,80 @@ const AVOCAT_PRESTATIONS = [
 const AVOCAT_PRESTATION_KEYS  = new Set(AVOCAT_PRESTATIONS.map(p => p.key));
 const AVOCAT_REQUEST_STATUSES = ['demande', 'en_cours', 'relu', 'annule'];
 
+// ── Classification de risque juridique par document ───────────────────────────
+// Pilote le badge couleur (Documents) et la recommandation de relecture avocat.
+// Règle : responsabilité personnelle du fondateur OU document difficilement
+// réversible une fois signé → « critique » ; enjeu réel mais réversible /
+// pré-engageant → « conseille » ; sinon « faible ». La clé de référence est le slug
+// du modèle (template_source) ; à défaut (fichiers importés), on retombe sur des
+// mots-clés du nom. « faible » = faible enjeu, pas garantie d'absence de risque.
+const AVOCAT_RISK_CRITIQUE = new Set([
+  'declarations-garanties-r-w-integrees-au-pacte',
+  'convention-de-garantie-d-actif-et-de-passif-gap',
+  'pacte-d-associes-shareholders-agreement',
+  'statuts-a-jour',
+  'statuts-modifies-actions-de-preference',
+]);
+const AVOCAT_RISK_CONSEILLE = new Set([
+  'term-sheet-lettre-d-intention',
+  'term-sheet-bsa-air-montant-decote-plafond-et-ou-plancher-de-valorisation',
+  'contrat-d-emission-de-bsa-air-termes-et-conditions-des-bons',
+  'contrat-bulletin-de-souscription',
+  'bulletin-de-souscription-des-bsa-air',
+  'lettre-d-investissement-side-letter',
+  'clause-d-exclusivite-de-negociation',
+  'convention-entre-investisseurs',
+  'termes-des-valeurs-mobilieres-emises-adp-bsa-oc',
+  'contrats-de-travail-bspce-bsa-management-package',
+  'information-reporting-des-investisseurs-info-rights',
+  'suivi-des-engagements-du-pacte-covenants',
+  'cessions-de-propriete-intellectuelle-depots-marques-brevets',
+]);
+const AVOCAT_RISK_KW_CRITIQUE  = [/d[eé]clarations?.{0,4}garanties?/, /garantie d.?actif/, /\bgap\b/, /pacte.{0,4}associ/, /\bstatuts?\b/];
+const AVOCAT_RISK_KW_CONSEILLE = [/term.?sheet/, /lettre d.?intention/, /bsa.?air/, /souscription/, /side.?letter/, /exclusivit/, /convention/, /cession/, /propri[eé]t[eé] intellectuelle/, /management package/, /bspce/];
+
+function documentRiskLevel(doc) {
+  const slug = shortText(doc && doc.template_source, 120).toLowerCase();
+  if (slug) {
+    if (AVOCAT_RISK_CRITIQUE.has(slug))  return 'critique';
+    if (AVOCAT_RISK_CONSEILLE.has(slug)) return 'conseille';
+    return 'faible';
+  }
+  const name = shortText(doc && doc.name, 200).toLowerCase();
+  if (AVOCAT_RISK_KW_CRITIQUE.some(re => re.test(name)))  return 'critique';
+  if (AVOCAT_RISK_KW_CONSEILLE.some(re => re.test(name))) return 'conseille';
+  return 'faible';
+}
+
+// Prestation avocat la plus adaptée à un document (pré-remplit la demande de relecture).
+const AVOCAT_PRESTA_BY_SLUG = {
+  'declarations-garanties-r-w-integrees-au-pacte': 'garantie',
+  'convention-de-garantie-d-actif-et-de-passif-gap': 'garantie',
+  'pacte-d-associes-shareholders-agreement': 'pacte',
+  'statuts-a-jour': 'pacte',
+  'statuts-modifies-actions-de-preference': 'pacte',
+  'suivi-des-engagements-du-pacte-covenants': 'pacte',
+  'convention-entre-investisseurs': 'pacte',
+  'term-sheet-lettre-d-intention': 'termsheet',
+  'clause-d-exclusivite-de-negociation': 'termsheet',
+  'lettre-d-investissement-side-letter': 'termsheet',
+  'term-sheet-bsa-air-montant-decote-plafond-et-ou-plancher-de-valorisation': 'bsa-air',
+  'contrat-d-emission-de-bsa-air-termes-et-conditions-des-bons': 'bsa-air',
+  'bulletin-de-souscription-des-bsa-air': 'bsa-air',
+  'contrat-bulletin-de-souscription': 'bsa-air',
+  'termes-des-valeurs-mobilieres-emises-adp-bsa-oc': 'bsa-air',
+};
+function documentAvocatPresta(doc) {
+  const slug = shortText(doc && doc.template_source, 120).toLowerCase();
+  if (slug && AVOCAT_PRESTA_BY_SLUG[slug]) return AVOCAT_PRESTA_BY_SLUG[slug];
+  const name = shortText(doc && doc.name, 200).toLowerCase();
+  if (/garantie|d[eé]clarations?/.test(name))       return 'garantie';
+  if (/pacte|statuts/.test(name))                   return 'pacte';
+  if (/term.?sheet|lettre d.?intention/.test(name)) return 'termsheet';
+  if (/bsa.?air|souscription|convertible/.test(name)) return 'bsa-air';
+  return 'question';
+}
+
 function avocatPublicRequest(r) {
   if (!r) return null;
   const { _id, user_id, ...rest } = r;
@@ -3594,6 +3668,9 @@ app.get('/api/saas/documents', requireAuth, async (req, res) => {
     .find({ user_id: req.user.id }, { projection: { _id: 0, filename: 0, user_id: 0, html: 0, data: 0, extracted_text: 0 } })
     .sort({ updated_at: -1, created_at: -1 })
     .toArray();
+  // Niveau de risque juridique + prestation avocat suggérée (badge « Documents »
+  // et pré-remplissage de la demande de relecture).
+  docs.forEach(d => { d.risk = documentRiskLevel(d); d.avocat_presta = documentAvocatPresta(d); });
   res.json({ documents: docs });
 });
 

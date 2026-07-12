@@ -416,7 +416,7 @@
     function openModal(id)  { document.getElementById(id).hidden = false; }
     function closeModal(id) { document.getElementById(id).hidden = true; }
 
-    function openRequestModal(key) {
+    function openRequestModal(key, preselectDocId) {
       modalPrestaKey = key;
       const p = STATE.prestations.find(x => x.key === key) || {};
       document.getElementById('req-title').textContent = 'Relecture — ' + (p.label || '');
@@ -426,7 +426,21 @@
       const sel = document.getElementById('req-doc');
       sel.innerHTML = '<option value="">Aucun document rattaché pour l\'instant</option>' +
         DOCS.map(d => '<option value="' + esc(d.id) + '">' + esc(d.name || ('Document #' + d.id)) + '</option>').join('');
+      // Pré-sélection du document (arrivée depuis « Faire relire » d'un document).
+      if (preselectDocId != null && DOCS.some(d => String(d.id) === String(preselectDocId))) {
+        sel.value = String(preselectDocId);
+      }
       openModal('request-modal');
+    }
+
+    // Ouverture directe de la demande depuis un lien « avocat.html?doc=<id> ».
+    function handleDeepLink() {
+      const params = new URLSearchParams(window.location.search);
+      const docId = params.get('doc');
+      if (!docId) return;
+      const doc = DOCS.find(d => String(d.id) === String(docId));
+      const presta = (doc && doc.avocat_presta) || params.get('presta') || 'question';
+      openRequestModal(presta, docId);
     }
 
     async function submitRequest() {
@@ -563,6 +577,7 @@
       document.querySelector('.app').classList.add('ready');
       wireEvents();
       await Promise.all([loadOverview(), loadDocs()]);
+      handleDeepLink();
     }
 
     init();
