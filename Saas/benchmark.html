@@ -133,8 +133,6 @@
         <span class="topbar__doc">Benchmark</span>
       </div>
       <div class="topbar__actions">
-        <a href="tableau-de-bord.html" class="btn btn--ghost">← Tableau de bord</a>
-        <button class="btn btn--ghost" id="logout-btn">Déconnexion</button>
         <button type="button" class="hamburger" id="actions-menu-btn" aria-label="Ouvrir le menu" aria-controls="actions-drawer" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
@@ -989,7 +987,6 @@
   </div>
 
   <script>
-    document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); logout(); });
     document.getElementById('page-back-btn').addEventListener('click', () => {
       if (window.history.length > 1) window.history.back();
       else window.location.href = 'tableau-de-bord.html';
