@@ -17,13 +17,14 @@
     .logo img { height:40px; }
     .card { width:100%; padding:40px 36px; border-radius:20px; background:#fff; box-shadow:0 24px 60px rgba(0,0,0,.5); }
     h1 { margin:0 0 7px; color:var(--ink); font:800 1.65rem 'Archivo',sans-serif; letter-spacing:-.025em; }
-    .lead { margin:0 0 26px; color:var(--muted); line-height:1.55; font-size:.92rem; }
+    .card form { margin-top:26px; }
     .grid { display:grid; grid-template-columns:1fr 1fr; gap:17px 14px; }
     .field { display:grid; gap:7px; }
     .field--wide { grid-column:1 / -1; }
     label { color:#40404a; font-size:.78rem; font-weight:700; }
-    input { width:100%; border:1px solid var(--line); border-radius:9px; padding:12px; background:#f7f7f5; color:var(--ink); font:500 .92rem inherit; outline:none; }
-    input:focus { background:#fff; border-color:rgba(8,9,12,.55); box-shadow:0 0 0 3px rgba(8,9,12,.08); }
+    input, select { width:100%; border:1px solid var(--line); border-radius:9px; padding:12px; background:#f7f7f5; color:var(--ink); font:500 .92rem inherit; outline:none; }
+    input:focus, select:focus { background:#fff; border-color:rgba(8,9,12,.55); box-shadow:0 0 0 3px rgba(8,9,12,.08); }
+    .custom-value { margin-top:2px; }
     .alert { margin-bottom:18px; padding:11px 14px; border:1px solid rgba(192,57,43,.2); border-radius:8px; background:rgba(224,88,72,.1); color:#b42318; font-size:.86rem; }
     button { width:100%; margin-top:24px; padding:14px 22px; border:0; border-radius:10px; background:var(--ink); color:#fff; cursor:pointer; font:700 .95rem inherit; }
     button:disabled { opacity:.5; cursor:not-allowed; }
@@ -36,15 +37,36 @@
     <a class="logo" href="/index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" />LIQUID+</a>
     <section class="card">
       <h1>Votre profil avocat</h1>
-      <p class="lead">Ces premi&egrave;res informations nous permettent d'&eacute;valuer votre candidature. Nous reviendrons vers vous sous 48h.</p>
       <div class="alert" id="error" role="alert" hidden></div>
       <form id="lawyer-form">
         <div class="grid">
           <div class="field"><label for="first-name">Pr&eacute;nom</label><input id="first-name" name="first_name" autocomplete="given-name" required maxlength="100" /></div>
           <div class="field"><label for="last-name">Nom</label><input id="last-name" name="last_name" autocomplete="family-name" required maxlength="100" /></div>
           <div class="field"><label for="oath-date">Date de serment</label><input id="oath-date" name="oath_date" type="date" required /></div>
-          <div class="field"><label for="city">Ville de r&eacute;sidence / d'exercice</label><input id="city" name="city" autocomplete="address-level2" required maxlength="160" /></div>
-          <div class="field field--wide"><label for="specialty">Sp&eacute;cialit&eacute;</label><input id="specialty" name="specialty" required maxlength="240" placeholder="Ex. droit des affaires, venture capital, fusions-acquisitions" /></div>
+          <div class="field">
+            <label for="city-choice">Ville de r&eacute;sidence / d'exercice</label>
+            <select id="city-choice" name="city_choice" required>
+              <option value="">S&eacute;lectionnez une ville</option>
+              <option>Paris</option><option>Lyon</option><option>Marseille</option><option>Bordeaux</option>
+              <option>Lille</option><option>Toulouse</option><option>Nantes</option><option>Strasbourg</option>
+              <option>Montpellier</option><option>Rennes</option><option>Nice</option><option>Grenoble</option>
+              <option>Rouen</option><option>Dijon</option><option>Aix-en-Provence</option><option value="other">Autre</option>
+            </select>
+            <input class="custom-value" id="city-other" name="city" autocomplete="address-level2" maxlength="160" placeholder="Saisissez votre ville" hidden disabled />
+          </div>
+          <div class="field field--wide">
+            <label for="specialty-choice">Sp&eacute;cialit&eacute;</label>
+            <select id="specialty-choice" name="specialty_choice" required>
+              <option value="">S&eacute;lectionnez une sp&eacute;cialit&eacute;</option>
+              <option>Droit des soci&eacute;t&eacute;s</option><option>Droit des affaires</option>
+              <option>Capital-risque / Venture capital</option><option>Fusions-acquisitions</option>
+              <option>Private equity</option><option>Droit fiscal</option><option>Droit social</option>
+              <option>Propri&eacute;t&eacute; intellectuelle</option><option>Droit des contrats</option>
+              <option>Droit du num&eacute;rique et des donn&eacute;es</option><option>Droit bancaire et financier</option>
+              <option>Contentieux des affaires</option><option value="other">Autre</option>
+            </select>
+            <input class="custom-value" id="specialty-other" name="specialty" maxlength="240" placeholder="Saisissez votre sp&eacute;cialit&eacute;" hidden disabled />
+          </div>
         </div>
         <button id="submit" type="submit">Envoyer ma candidature</button>
       </form>
@@ -55,8 +77,30 @@
     const form = document.getElementById('lawyer-form');
     const errorEl = document.getElementById('error');
     const submitBtn = document.getElementById('submit');
+    const cityChoice = document.getElementById('city-choice');
+    const cityOther = document.getElementById('city-other');
+    const specialtyChoice = document.getElementById('specialty-choice');
+    const specialtyOther = document.getElementById('specialty-other');
 
     function showError(message) { errorEl.textContent = message || ''; errorEl.hidden = !message; }
+
+    function syncCustomField(select, input) {
+      const custom = select.value === 'other';
+      input.hidden = !custom;
+      input.disabled = !custom;
+      input.required = custom;
+      if (custom) input.focus();
+    }
+
+    function setRecognizedValue(select, input, value) {
+      const option = [...select.options].find(item => item.value === value);
+      select.value = option ? value : value ? 'other' : '';
+      syncCustomField(select, input);
+      if (!option && value) input.value = value;
+    }
+
+    cityChoice.addEventListener('change', () => syncCustomField(cityChoice, cityOther));
+    specialtyChoice.addEventListener('change', () => syncCustomField(specialtyChoice, specialtyOther));
 
     async function load() {
       try {
@@ -70,7 +114,11 @@
         const profileRes = await fetch('/api/saas/lawyer-profile', { credentials:'include' });
         if (profileRes.ok) {
           const { profile } = await profileRes.json();
-          if (profile) Object.keys(profile).forEach(key => { if (form.elements[key]) form.elements[key].value = profile[key] || ''; });
+          if (profile) {
+            ['first_name', 'last_name', 'oath_date'].forEach(key => { form.elements[key].value = profile[key] || ''; });
+            setRecognizedValue(cityChoice, cityOther, profile.city || '');
+            setRecognizedValue(specialtyChoice, specialtyOther, profile.specialty || '');
+          }
         }
       } catch { showError('Impossible de joindre le serveur.'); }
     }
@@ -82,6 +130,10 @@
       submitBtn.disabled = true;
       submitBtn.textContent = 'Enregistrement...';
       const payload = Object.fromEntries(new FormData(form).entries());
+      payload.city = cityChoice.value === 'other' ? cityOther.value.trim() : cityChoice.value;
+      payload.specialty = specialtyChoice.value === 'other' ? specialtyOther.value.trim() : specialtyChoice.value;
+      delete payload.city_choice;
+      delete payload.specialty_choice;
       try {
         const res = await fetch('/api/saas/lawyer-profile', { method:'PUT', headers:{ 'Content-Type':'application/json' }, credentials:'include', body:JSON.stringify(payload) });
         const data = await res.json().catch(() => ({}));
