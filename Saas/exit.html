@@ -51,10 +51,15 @@
     .type-hint { margin-top: 8px; font-size: 12.5px; color: rgba(255,255,255,0.55); line-height: 1.5; max-width: 700px; }
 
     /* Disposition 2 colonnes */
-    .ext__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 22px; margin-top: 22px; align-items: start; }
+    .ext__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.04fr); gap: 20px; margin-top: 26px; align-items: start; }
     @media (max-width: 940px) { .ext__grid { grid-template-columns: minmax(0, 1fr); } }
+    .ext__block { border: 1px solid rgba(255,255,255,0.14); border-radius: 20px; background: rgba(255,255,255,0.03); padding: 4px 16px 16px; }
     .ext__results { position: sticky; top: 78px; }
     @media (max-width: 940px) { .ext__results { position: static; } }
+    .ext__col-head { display: flex; align-items: flex-start; gap: 12px; padding: 16px 2px 15px; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .ext__col-num { flex: none; width: 27px; height: 27px; border-radius: 8px; display: grid; place-items: center; font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 800; background: #fff; color: #08090c; }
+    .ext__col-lab { font-family: 'Archivo', sans-serif; font-size: 16px; font-weight: 800; color: #fff; }
+    .ext__col-sub { font-size: 12.5px; color: rgba(255,255,255,0.55); margin-top: 3px; line-height: 1.5; }
 
     .card { background: #fff; border-radius: 16px; padding: 20px 20px 22px; box-shadow: 0 10px 34px rgba(0,0,0,0.35); margin-bottom: 18px; }
     .card__h { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #6b6b78; margin-bottom: 4px; }
@@ -76,7 +81,7 @@
     .field { margin-bottom: 14px; }
     .field__lab { display: block; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #6b6b78; margin-bottom: 6px; }
     .inp, .sel { width: 100%; min-width: 0; font-family: 'Libre Franklin', sans-serif; font-size: 14px; color: #08090c; background: #f7f7f5; border: 1px solid rgba(8,9,12,0.12); border-radius: 9px; padding: 9px 11px; transition: border-color .12s, background .12s; }
-    .inp:focus, .sel:focus { outline: none; border-color: #3b82f6; background: #fff; }
+    .inp:focus, .sel:focus { outline: none; border-color: #08090c; background: #fff; }
     .inp--money { text-align: right; }
     .inp-wrap { position: relative; }
     .inp-wrap .inp { padding-right: 28px; }
@@ -91,8 +96,8 @@
     .xrow__main .inp, .xrow__main .sel { padding: 8px 10px; font-size: 13px; }
     .xrow__del { width: 30px; height: 34px; border: 1px solid rgba(8,9,12,0.1); background: #fff; border-radius: 8px; color: #b0b0bb; cursor: pointer; font-size: 17px; line-height: 1; display: flex; align-items: center; justify-content: center; transition: .12s; }
     .xrow__del:hover { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,0.05); }
-    .addrow { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; color: #2563eb; background: transparent; border: 1px dashed rgba(37,99,235,0.4); border-radius: 9px; padding: 8px 12px; cursor: pointer; width: 100%; margin-top: 2px; transition: .12s; }
-    .addrow:hover { background: rgba(37,99,235,0.06); border-color: #2563eb; }
+    .addrow { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; color: #08090c; background: transparent; border: 1px dashed rgba(8,9,12,0.28); border-radius: 9px; padding: 8px 12px; cursor: pointer; width: 100%; margin-top: 2px; transition: .12s; }
+    .addrow:hover { background: rgba(8,9,12,0.05); border-color: #08090c; }
 
     /* Sous-bloc préférence de liquidation (sortie totale, lignes investisseur) */
     .xrow__pref { margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(8,9,12,0.12); display: grid; grid-template-columns: 1fr 1fr; gap: 8px 10px; }
@@ -119,8 +124,8 @@
     .kpi__lab { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #6b6b78; }
     .kpi__val { font-family: 'Archivo', sans-serif; font-size: 22px; font-weight: 700; color: #08090c; letter-spacing: -0.02em; margin-top: 5px; }
     .kpi__sub { font-size: 11.5px; color: #8a8a95; margin-top: 2px; }
-    .kpi--accent { background: linear-gradient(135deg, #1e293b, #0f172a); }
-    .kpi--accent .kpi__lab { color: #93c5fd; }
+    .kpi--accent { background: linear-gradient(135deg, #26272e, #131417); }
+    .kpi--accent .kpi__lab { color: rgba(255,255,255,0.72); }
     .kpi--accent .kpi__val { color: #fff; }
     .kpi--accent .kpi__sub { color: rgba(255,255,255,0.6); }
 
@@ -325,7 +330,14 @@
 
       <div class="ext__grid">
         <!-- COLONNE SAISIE -->
-        <form id="ext-form" autocomplete="off">
+        <form id="ext-form" class="ext__block" autocomplete="off">
+          <div class="ext__col-head">
+            <div class="ext__col-num">1</div>
+            <div>
+              <div class="ext__col-lab">À remplir — vos données</div>
+              <p class="ext__col-sub">Renseignez la cap table actuelle et les paramètres de la cession à simuler.</p>
+            </div>
+          </div>
           <div class="card">
             <div class="card__toprow">
               <div class="card__h">1 · Cap table actuelle</div>
@@ -396,7 +408,14 @@
         </form>
 
         <!-- COLONNE RÉSULTATS -->
-        <div class="ext__results">
+        <div class="ext__results ext__block">
+          <div class="ext__col-head">
+            <div class="ext__col-num">2</div>
+            <div>
+              <div class="ext__col-lab">Résultats de la sortie</div>
+              <p class="ext__col-sub">Visualisez la répartition du produit de cession et le détail reçu par chaque actionnaire.</p>
+            </div>
+          </div>
           <div class="ext__actions">
             <button type="button" class="btn" id="reset-btn">↺ Réinitialiser l'exemple</button>
             <button type="button" class="btn" id="save-sim-btn">Enregistrer cet exit</button>

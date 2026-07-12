@@ -28,18 +28,18 @@
 
     /* Retour en arrière : le chevron reste visible sans bandeau au défilement. */
     .page-back-row { height: 6px; }
-    .page-back { position: fixed; top: 56px; left: max(12px, calc(50% - 476px)); z-index: 15; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
+    .page-back { position: fixed; top: 56px; left: max(12px, calc(50% - 606px)); z-index: 15; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
     .page-back:hover { opacity: 0.68; transform: translateX(-1px); }
     .page-back:focus-visible { outline: none; opacity: 1; }
     .page-back svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
 
-    .val { max-width: 920px; margin: 0 auto; padding: 24px 24px 90px; }
+    .val { max-width: 1180px; margin: 0 auto; padding: 24px 24px 90px; }
     .val__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
     .val__title { font-size: 30px; letter-spacing: -0.03em; color: #fff; margin-top: 6px; }
     .val__sub { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 8px; line-height: 1.6; max-width: 720px; }
 
     /* Cartes blanches */
-    .card { background: #fff; border-radius: 16px; padding: 22px 22px 24px; box-shadow: 0 10px 34px rgba(0,0,0,0.35); margin-top: 26px; }
+    .card { background: #fff; border-radius: 16px; padding: 20px 20px 22px; box-shadow: 0 10px 34px rgba(0,0,0,0.35); }
     .card__h { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #6b6b78; margin-bottom: 4px; }
     .card__desc { font-size: 12.5px; color: #8a8a95; line-height: 1.5; margin-bottom: 14px; }
     .card__toprow { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 6px; flex-wrap: wrap; }
@@ -57,7 +57,7 @@
     .field { margin-bottom: 14px; }
     .field__lab { display: block; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #6b6b78; margin-bottom: 6px; }
     .inp, .sel { width: 100%; min-width: 0; font-family: 'Libre Franklin', sans-serif; font-size: 14px; color: #08090c; background: #f7f7f5; border: 1px solid rgba(8,9,12,0.12); border-radius: 9px; padding: 9px 11px; transition: border-color .12s, background .12s; }
-    .inp:focus, .sel:focus { outline: none; border-color: #3b82f6; background: #fff; }
+    .inp:focus, .sel:focus { outline: none; border-color: #08090c; background: #fff; }
     .inp--money { text-align: right; }
     .inp-wrap { position: relative; }
     .inp-wrap .inp { padding-right: 28px; }
@@ -67,11 +67,19 @@
     .radio-chip { flex: 1; border: 1px solid rgba(8,9,12,0.14); border-radius: 9px; padding: 9px 10px; cursor: pointer; font-size: 12.5px; color: #6b6b78; text-align: center; transition: .12s; }
     .radio-chip input { display: none; }
     .radio-chip:hover { border-color: rgba(8,9,12,0.3); }
-    .radio-chip.is-on { border-color: #3b82f6; background: rgba(59,130,246,0.07); color: #08090c; font-weight: 600; }
+    .radio-chip.is-on { border-color: #08090c; background: rgba(8,9,12,0.05); color: #08090c; font-weight: 600; }
     .radio-chip small { display: block; font-size: 10.5px; color: #a8a8b3; font-weight: 400; margin-top: 2px; }
 
-    .ve-grid { display: grid; grid-template-columns: minmax(0, 1fr) 246px; gap: 22px; margin-top: 16px; align-items: start; }
-    @media (max-width: 760px) { .ve-grid { grid-template-columns: 1fr; } }
+    .val__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.04fr); gap: 20px; margin-top: 26px; align-items: start; }
+    @media (max-width: 940px) { .val__grid { grid-template-columns: minmax(0, 1fr); } }
+    .val__block { border: 1px solid rgba(255,255,255,0.14); border-radius: 20px; background: rgba(255,255,255,0.03); padding: 4px 16px 16px; }
+    .val__results { position: sticky; top: 78px; }
+    @media (max-width: 940px) { .val__results { position: static; } }
+    .val__history { margin-top: 26px; }
+    .val__col-head { display: flex; align-items: flex-start; gap: 12px; padding: 16px 2px 15px; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .val__col-num { flex: none; width: 27px; height: 27px; border-radius: 8px; display: grid; place-items: center; font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 800; background: #fff; color: #08090c; }
+    .val__col-lab { font-family: 'Archivo', sans-serif; font-size: 16px; font-weight: 800; color: #fff; }
+    .val__col-sub { font-size: 12.5px; color: rgba(255,255,255,0.55); margin-top: 3px; line-height: 1.5; }
 
     .ve-body[hidden] { display: none; }
     .ve-two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
@@ -81,7 +89,7 @@
     .radio-chip__custom-input { display: flex; align-items: center; gap: 6px; margin-top: 8px; opacity: 0.5; transition: opacity .12s; }
     .radio-chip.is-on .radio-chip__custom-input { opacity: 1; }
     .radio-chip__custom-input input { display: inline-block; width: 60px; font-family: 'Libre Franklin', sans-serif; font-size: 13px; color: #08090c; background: #fff; border: 1px solid rgba(8,9,12,0.16); border-radius: 7px; padding: 5px 7px; text-align: right; }
-    .radio-chip__custom-input input:focus { outline: none; border-color: #3b82f6; }
+    .radio-chip__custom-input input:focus { outline: none; border-color: #08090c; }
     .radio-chip__custom-input span { font-size: 11.5px; color: #8a8a95; }
 
     /* Curseurs (Berkus / Scorecard) */
@@ -90,19 +98,18 @@
     .ve-slider-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 7px; }
     .ve-slider-lab { font-size: 13px; color: #08090c; font-weight: 600; }
     .ve-slider-lab small { display: block; font-size: 11px; color: #a8a8b3; font-weight: 400; margin-top: 1px; }
-    .ve-slider-val { font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 700; color: #2563eb; font-variant-numeric: tabular-nums; white-space: nowrap; flex: none; }
+    .ve-slider-val { font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 700; color: #08090c; font-variant-numeric: tabular-nums; white-space: nowrap; flex: none; }
     .ve-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 5px; border-radius: 5px; background: #e6e6ea; outline: none; cursor: pointer; }
-    .ve-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 17px; height: 17px; border-radius: 50%; background: #3b82f6; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25); cursor: pointer; }
-    .ve-slider::-moz-range-thumb { width: 15px; height: 15px; border-radius: 50%; background: #3b82f6; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25); cursor: pointer; }
+    .ve-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 17px; height: 17px; border-radius: 50%; background: #08090c; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25); cursor: pointer; }
+    .ve-slider::-moz-range-thumb { width: 15px; height: 15px; border-radius: 50%; background: #08090c; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25); cursor: pointer; }
 
     /* Résultat de l'estimation */
-    .ve-out { background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 14px; padding: 18px 18px 20px; position: sticky; top: 78px; }
-    @media (max-width: 760px) { .ve-out { position: static; } }
-    .ve-out__lab { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #93c5fd; }
+    .ve-out { background: linear-gradient(135deg, #26272e, #131417); border-radius: 14px; padding: 18px 18px 20px; }
+    .ve-out__lab { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.72); }
     .ve-out__val { font-family: 'Archivo', sans-serif; font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -0.02em; margin-top: 6px; }
     .ve-out__range { font-size: 12px; color: rgba(255,255,255,0.62); margin-top: 5px; line-height: 1.5; }
-    .ve-use { margin-top: 16px; width: 100%; font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 700; color: #0f172a; background: #fff; border: 0; border-radius: 9px; padding: 10px 12px; cursor: pointer; transition: background .12s, opacity .12s; }
-    .ve-use:hover { background: #dbe4ff; }
+    .ve-use { margin-top: 16px; width: 100%; font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 700; color: #08090c; background: #fff; border: 0; border-radius: 9px; padding: 10px 12px; cursor: pointer; transition: background .12s, opacity .12s; }
+    .ve-use:hover { background: #eeeeec; }
     .ve-use:disabled { opacity: 0.45; cursor: not-allowed; }
     .ve-out__note { font-size: 10.5px; color: rgba(255,255,255,0.5); margin-top: 11px; line-height: 1.55; }
 
@@ -157,12 +164,12 @@
     .ask-box { width: 100%; max-width: 420px; background: #fff; border-radius: 14px; padding: 20px 20px 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.4); }
     .ask-box__title { font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; color: #08090c; margin-bottom: 12px; }
     .ask-box__input { width: 100%; box-sizing: border-box; font-family: 'Libre Franklin', sans-serif; font-size: 14px; color: #08090c; background: #f7f7f5; border: 1px solid rgba(8,9,12,0.16); border-radius: 9px; padding: 10px 12px; }
-    .ask-box__input:focus { outline: none; border-color: #2563eb; }
+    .ask-box__input:focus { outline: none; border-color: #08090c; }
     .ask-box__actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
     .ask-box__btn { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; border-radius: 9px; padding: 8px 14px; cursor: pointer; border: 1px solid rgba(8,9,12,0.14); background: #fff; color: #08090c; transition: .12s; }
     .ask-box__btn:hover { border-color: rgba(8,9,12,0.3); }
-    .ask-box__btn--primary { background: #2563eb; border-color: #2563eb; color: #fff; }
-    .ask-box__btn--primary:hover { background: #1d4ed8; border-color: #1d4ed8; }
+    .ask-box__btn--primary { background: #08090c; border-color: #08090c; color: #fff; }
+    .ask-box__btn--primary:hover { background: #26272e; border-color: #26272e; }
 
     @media (max-width: 520px) {
       .val { padding: 24px 14px 80px; }
@@ -240,17 +247,26 @@
       <p class="val__sub">Trois méthodes usuelles pour estimer une valorisation <b>pre-money</b> avant de la négocier : multiple de revenu pour une société qui facture déjà, Berkus pour une startup pré-revenu, Scorecard pour un stade amorçage. Une estimation indicative, pas un prix — un point de départ pour la négociation.</p>
 
       <section id="valo-est">
-        <div class="card">
-          <div class="card__toprow">
-            <div class="card__h" style="margin-bottom:0">Méthode</div>
-            <div class="seg" id="ve-method-seg">
-              <button type="button" class="seg__btn is-on" data-vem="rev">Multiple de revenu</button>
-              <button type="button" class="seg__btn" data-vem="berkus">Berkus</button>
-              <button type="button" class="seg__btn" data-vem="scorecard">Scorecard</button>
+        <div class="val__grid">
+          <div class="val__block">
+            <div class="val__col-head">
+              <div class="val__col-num">1</div>
+              <div>
+                <div class="val__col-lab">À remplir — vos données</div>
+                <p class="val__col-sub">Choisissez une méthode puis renseignez les indicateurs disponibles pour votre startup.</p>
+              </div>
             </div>
-          </div>
 
-          <div class="ve-grid">
+            <div class="card">
+              <div class="card__toprow">
+                <div class="card__h" style="margin-bottom:0">Méthode</div>
+                <div class="seg" id="ve-method-seg">
+                  <button type="button" class="seg__btn is-on" data-vem="rev">Multiple de revenu</button>
+                  <button type="button" class="seg__btn" data-vem="berkus">Berkus</button>
+                  <button type="button" class="seg__btn" data-vem="scorecard">Scorecard</button>
+                </div>
+              </div>
+
             <div class="ve-inputs">
               <!-- Méthode 1 : multiple de revenu -->
               <div class="ve-body" data-vem-body="rev">
@@ -391,7 +407,17 @@
                 </div>
               </div>
             </div>
+            </div>
+          </div>
 
+          <div class="val__results val__block">
+            <div class="val__col-head">
+              <div class="val__col-num">2</div>
+              <div>
+                <div class="val__col-lab">Résultat de l'estimation</div>
+                <p class="val__col-sub">Retrouvez la valorisation indicative et utilisez-la directement dans le simulateur de dilution.</p>
+              </div>
+            </div>
             <div class="ve-out">
               <div class="ve-out__lab">Valorisation estimée</div>
               <div class="ve-out__val" id="ve-result">—</div>
