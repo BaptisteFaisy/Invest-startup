@@ -26,6 +26,34 @@
   const navDrawer = setupDrawer('nav-menu-btn', 'nav-drawer', 'nav-backdrop');
   const actionsDrawer = setupDrawer('actions-menu-btn', 'actions-drawer', 'actions-backdrop');
 
+  (function setupExperienceMode() {
+    const drawer = document.getElementById('nav-drawer');
+    const body = drawer && drawer.querySelector('.drawer__body');
+    if (!drawer || !body || drawer.querySelector('.drawer__mode')) return;
+    const control = document.createElement('div');
+    control.className = 'drawer__mode';
+    control.innerHTML = `<span class="drawer__mode-label" id="drawer-mode-label">Mode</span><div class="drawer__mode-options" role="group" aria-labelledby="drawer-mode-label"><button class="drawer__mode-option" type="button" data-mode="autonome" aria-pressed="false">Autonome</button><button class="drawer__mode-option" type="button" data-mode="guide" aria-pressed="false">Guidé</button></div>`;
+    body.insertAdjacentElement('afterend', control);
+    let currentMode = 'autonome';
+    try { currentMode = localStorage.getItem('liquid_experience_mode') || currentMode; } catch {}
+    if (!['autonome', 'guide'].includes(currentMode)) currentMode = 'autonome';
+    function applyMode(mode, notify) {
+      document.documentElement.dataset.experienceMode = mode;
+      control.querySelectorAll('[data-mode]').forEach(button => {
+        const active = button.dataset.mode === mode;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', String(active));
+      });
+      try { localStorage.setItem('liquid_experience_mode', mode); } catch {}
+      if (notify) window.dispatchEvent(new CustomEvent('liquid:mode-change', { detail: { mode } }));
+    }
+    control.addEventListener('click', event => {
+      const button = event.target.closest('[data-mode]');
+      if (button) applyMode(button.dataset.mode, true);
+    });
+    applyMode(currentMode, false);
+  })();
+
   // Marque le lien correspondant à la page en cours dans les deux tiroirs.
   (function highlightCurrentLink() {
     const here = location.pathname.split('/').pop() || 'tableau-de-bord.html';

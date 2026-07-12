@@ -48,6 +48,13 @@
 .drawer__section-title { font-family:'Archivo',sans-serif; font-size:12px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; color:#fff; padding:6px 12px 6px; }
 .drawer__soon-tag { margin-left:auto; flex:none; font-family:'Archivo',sans-serif; font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#a5b4fc; background:rgba(99,102,241,0.20); padding:2px 7px; border-radius:99px; }
 .drawer__unread-dot { margin-left:auto; flex:none; width:8px; height:8px; border-radius:50%; background:#22c55e; box-shadow:0 0 0 2px rgba(34,197,94,0.25); }
+.drawer__mode { flex:none; padding:12px 14px 14px; border-top:1px solid rgba(255,255,255,0.08); direction:ltr; }
+.drawer__mode-label { display:block; margin:0 0 8px 2px; color:rgba(255,255,255,0.62); font-family:'Archivo',sans-serif; font-size:10px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; }
+.drawer__mode-options { display:grid; grid-template-columns:1fr 1fr; gap:3px; padding:3px; border:1px solid rgba(255,255,255,0.12); border-radius:10px; background:rgba(255,255,255,0.04); }
+.drawer__mode-option { min-width:0; padding:8px 6px; border:0; border-radius:7px; background:transparent; color:rgba(255,255,255,0.58); font-family:'Libre Franklin',sans-serif; font-size:12px; font-weight:600; cursor:pointer; transition:background .15s,color .15s,box-shadow .15s; }
+.drawer__mode-option:hover { color:#fff; }
+.drawer__mode-option.is-active { background:#fff; color:#111318; box-shadow:0 1px 5px rgba(0,0,0,0.24); }
+.drawer__mode-option:focus-visible { outline:2px solid #a5b4fc; outline-offset:1px; }
 
 /* Recherche globale, injectée par drawer-menu.js sur les pages outils. */
 .global-search { position:relative; width:min(320px, 28vw); }
