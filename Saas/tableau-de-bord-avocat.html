@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Liquid+ - Espace avocat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
+  <style>
+    :root { --navy:#001839; --ink:#08090c; --muted:#72727e; --paper:#f5f4f0; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; background:var(--paper); color:var(--ink); font-family:'Libre Franklin',system-ui,sans-serif; }
+    header { height:70px; display:flex; align-items:center; justify-content:space-between; padding:0 max(24px,5vw); background:var(--navy); color:#fff; }
+    .logo { display:flex; align-items:center; gap:8px; color:#fff; text-decoration:none; font:600 1.15rem 'Archivo',sans-serif; letter-spacing:.09em; }
+    .logo img { height:32px; }
+    .logout { border:1px solid rgba(255,255,255,.35); border-radius:8px; padding:9px 13px; background:transparent; color:#fff; cursor:pointer; font:600 .82rem inherit; }
+    main { width:min(1080px,calc(100% - 36px)); margin:0 auto; padding:64px 0; }
+    .eyebrow { margin:0 0 10px; color:#52606f; font:700 .72rem 'Archivo',sans-serif; letter-spacing:.13em; text-transform:uppercase; }
+    h1 { margin:0; font:800 clamp(2rem,4vw,3.2rem) 'Archivo',sans-serif; letter-spacing:-.04em; }
+    .lead { max-width:680px; margin:16px 0 42px; color:var(--muted); line-height:1.65; }
+    .grid { display:grid; grid-template-columns:1.15fr .85fr; gap:20px; }
+    .card { padding:28px; border:1px solid rgba(8,9,12,.1); border-radius:16px; background:#fff; box-shadow:0 10px 30px rgba(0,0,0,.04); }
+    .card h2 { margin:0 0 10px; font:700 1.15rem 'Archivo',sans-serif; }
+    .card p { margin:0; color:var(--muted); line-height:1.55; font-size:.9rem; }
+    .status { display:inline-flex; margin-top:22px; padding:7px 11px; border-radius:999px; background:#fff4d6; color:#815d00; font-size:.76rem; font-weight:700; }
+    .profile { margin-top:18px; display:grid; gap:11px; }
+    .profile div { display:grid; grid-template-columns:115px 1fr; gap:12px; font-size:.86rem; }
+    .profile span:first-child { color:var(--muted); }
+    @media (max-width:720px) { main { padding:42px 0; } .grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header><a class="logo" href="tableau-de-bord-avocat.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" />LIQUID+</a><button class="logout" id="logout">Se d&eacute;connecter</button></header>
+  <main>
+    <p class="eyebrow">Espace avocat</p>
+    <h1 id="welcome">Bienvenue</h1>
+    <p class="lead">Votre espace professionnel est en cours de construction. Il accueillera prochainement vos dossiers, demandes de relecture et &eacute;changes avec les fondateurs.</p>
+    <div class="grid">
+      <section class="card"><h2>Votre candidature</h2><p>Notre &eacute;quipe &eacute;value les informations transmises et revient vers vous sous 48h.</p><span class="status">Candidature en cours d'&eacute;valuation</span></section>
+      <section class="card"><h2>Profil professionnel</h2><div class="profile" id="profile"></div></section>
+    </div>
+  </main>
+  <script>
+    const profileEl = document.getElementById('profile');
+    function row(label, value) { const div=document.createElement('div'); const key=document.createElement('span'); const val=document.createElement('span'); key.textContent=label; val.textContent=value || '-'; div.append(key,val); return div; }
+    async function load() {
+      try {
+        const meRes = await fetch('/api/auth/me', { credentials:'include' });
+        if (!meRes.ok) { location.replace('login.html'); return; }
+        const { user } = await meRes.json();
+        const lawyerOnly = user?.account_types?.includes('avocat') && !user.account_types.includes('fondateur');
+        if (!lawyerOnly) { location.replace(user?.account_types?.length ? 'tableau-de-bord.html' : 'onboarding.html'); return; }
+        if (!user.lawyer_profile_completed) { location.replace('onboarding-avocat.html'); return; }
+        const res = await fetch('/api/saas/lawyer-profile', { credentials:'include' });
+        if (!res.ok) throw new Error();
+        const { profile } = await res.json();
+        document.getElementById('welcome').textContent = 'Bienvenue, ' + profile.first_name;
+        profileEl.append(row('Nom', profile.first_name + ' ' + profile.last_name), row('Serment', new Date(profile.oath_date + 'T12:00:00').toLocaleDateString('fr-FR')), row('Ville', profile.city), row('Spécialité', profile.specialty));
+      } catch { location.replace('login.html'); }
+    }
+    document.getElementById('logout').addEventListener('click', async () => { await fetch('/api/auth/logout', { method:'POST', credentials:'include' }).catch(() => {}); location.href='login.html'; });
+    load();
+  </script>
+</body>
+</html>

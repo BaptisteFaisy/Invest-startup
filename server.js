@@ -204,6 +204,7 @@ async function deleteUserAccountById(id) {
     col('saas_doc_transmissions').deleteMany({ user_id: id }),
     col('saas_folders').deleteMany({ user_id: id }),
     col('saas_dilution_simulations').deleteMany({ user_id: id }),
+    col('saas_lawyer_profiles').deleteMany({ user_id: id }),
     col('saas_valuation_estimations').deleteMany({ user_id: id }),
     col('saas_exit_simulations').deleteMany({ user_id: id }),
     col('saas_fundraising_profiles').deleteMany({ user_id: id }),
@@ -446,13 +447,29 @@ function publicAuthUser(user) {
     name: user.full_name,
     created_at: user.created_at,
     account_types: Array.isArray(user.account_types) ? user.account_types : [],
+<<<<<<< Updated upstream
     theme: user.theme === 'dark' ? 'dark' : 'paper',
+=======
+    lawyer_profile_completed: !!user.lawyer_profile_completed,
+>>>>>>> Stashed changes
     is_admin: ADMIN_EMAILS.includes(user.email),
   };
 }
 
 function hasAccountTypes(user) {
   return Array.isArray(user?.account_types) && user.account_types.length > 0;
+}
+
+function authLandingPath(user) {
+  if (ADMIN_EMAILS.includes(user.email)) return '/admin.html';
+  if (!hasAccountTypes(user)) return '/saas/onboarding.html';
+  const types = user.account_types;
+  if (types.includes('avocat') && !types.includes('fondateur')) {
+    return user.lawyer_profile_completed
+      ? '/saas/tableau-de-bord-avocat.html'
+      : '/saas/onboarding-avocat.html';
+  }
+  return '/saas/tableau-de-bord.html';
 }
 
 function requireAuth(req, res, next) {
@@ -864,7 +881,7 @@ app.get('/auth/google/callback', async (req, res) => {
       const appToken = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
       return res.redirect(`liquidplus://auth?token=${encodeURIComponent(appToken)}`);
     }
-    res.redirect(ADMIN_EMAILS.includes(user.email) ? '/admin.html' : hasAccountTypes(user) ? '/saas/tableau-de-bord.html' : '/saas/onboarding.html');
+    res.redirect(authLandingPath(user));
   } catch (err) {
     console.error('Google OAuth error:', err.message);
     fromApp  ? res.redirect('liquidplus://auth?error=google_failed')
@@ -2873,6 +2890,63 @@ app.put('/api/saas/fundraising-profile', requireAuth, async (req, res) => {
   );
   const saved = await col('saas_fundraising_profiles').findOne({ user_id: req.user.id });
   res.json({ success: true, profile: publicFundraisingProfile(saved) });
+});
+
+// Profil professionnel demandé aux avocats avant l'accès à leur espace.
+function publicLawyerProfile(profile) {
+  if (!profile) return null;
+  const { _id, user_id, ...rest } = profile;
+  return rest;
+}
+
+function sanitizeLawyerProfile(body) {
+  const first_name = shortText(body?.first_name, 100);
+  const last_name = shortText(body?.last_name, 100);
+  const oath_date = shortText(body?.oath_date, 10);
+  const city = shortText(body?.city, 160);
+  const specialty = shortText(body?.specialty, 240);
+  if (!first_name || !last_name || !oath_date || !city || !specialty) {
+    throw new Error('Tous les champs sont requis');
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(oath_date) || Number.isNaN(Date.parse(oath_date))) {
+    throw new Error('Date de serment invalide');
+  }
+  if (oath_date > new Date().toISOString().slice(0, 10)) {
+    throw new Error('La date de serment ne peut pas être dans le futur');
+  }
+  return { first_name, last_name, oath_date, city, specialty };
+}
+
+app.get('/api/saas/lawyer-profile', requireAuth, async (req, res) => {
+  const user = await col('users').findOne({ id: req.user.id }, { projection: { account_types: 1 } });
+  if (!user?.account_types?.includes('avocat')) {
+    return res.status(403).json({ error: 'Accès réservé aux comptes avocat' });
+  }
+  const profile = await col('saas_lawyer_profiles').findOne({ user_id: req.user.id });
+  res.json({ profile: publicLawyerProfile(profile) });
+});
+
+app.put('/api/saas/lawyer-profile', requireAuth, async (req, res) => {
+  const user = await col('users').findOne({ id: req.user.id }, { projection: { account_types: 1 } });
+  if (!user?.account_types?.includes('avocat')) {
+    return res.status(403).json({ error: 'Accès réservé aux comptes avocat' });
+  }
+  let profile;
+  try { profile = sanitizeLawyerProfile(req.body || {}); }
+  catch (e) { return res.status(400).json({ error: e.message || 'Profil avocat invalide' }); }
+
+  const now = new Date().toISOString();
+  await col('saas_lawyer_profiles').updateOne(
+    { user_id: req.user.id },
+    { $set: { ...profile, updated_at: now }, $setOnInsert: { user_id: req.user.id, created_at: now } },
+    { upsert: true },
+  );
+  await updateUserById(req.user.id, {
+    full_name: `${profile.first_name} ${profile.last_name}`,
+    lawyer_profile_completed: true,
+  });
+  const saved = await col('saas_lawyer_profiles').findOne({ user_id: req.user.id });
+  res.json({ success: true, profile: publicLawyerProfile(saved) });
 });
 
 // Synchronise les dossiers juridiques « système » de l'utilisateur avec la liste

@@ -322,6 +322,10 @@
           const meData = await meRes.json();
           currentUser = meData.user || null;
           if (!hasAccountType(currentUser)) { window.location.replace('onboarding.html'); return; }
+          if (currentUser.account_types.includes('avocat') && !currentUser.account_types.includes('fondateur')) {
+            window.location.replace(currentUser.lawyer_profile_completed ? 'tableau-de-bord-avocat.html' : 'onboarding-avocat.html');
+            return;
+          }
         } catch {
           window.location.replace('login.html');
           return;

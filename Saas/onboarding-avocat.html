@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Liquid+ - Votre profil avocat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
+  <style>
+    :root { --ink:#08090c; --muted:#6b6b78; --line:rgba(8,9,12,.14); }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px 16px; background:#08090c; font-family:'Libre Franklin',system-ui,sans-serif; }
+    .wrap { width:100%; max-width:700px; display:grid; gap:28px; justify-items:center; }
+    .logo { display:flex; align-items:center; gap:8px; color:#fff; text-decoration:none; font:600 1.35rem 'Archivo',sans-serif; letter-spacing:.1em; }
+    .logo img { height:40px; }
+    .card { width:100%; padding:40px 36px; border-radius:20px; background:#fff; box-shadow:0 24px 60px rgba(0,0,0,.5); }
+    h1 { margin:0 0 7px; color:var(--ink); font:800 1.65rem 'Archivo',sans-serif; letter-spacing:-.025em; }
+    .lead { margin:0 0 26px; color:var(--muted); line-height:1.55; font-size:.92rem; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:17px 14px; }
+    .field { display:grid; gap:7px; }
+    .field--wide { grid-column:1 / -1; }
+    label { color:#40404a; font-size:.78rem; font-weight:700; }
+    input { width:100%; border:1px solid var(--line); border-radius:9px; padding:12px; background:#f7f7f5; color:var(--ink); font:500 .92rem inherit; outline:none; }
+    input:focus { background:#fff; border-color:rgba(8,9,12,.55); box-shadow:0 0 0 3px rgba(8,9,12,.08); }
+    .alert { margin-bottom:18px; padding:11px 14px; border:1px solid rgba(192,57,43,.2); border-radius:8px; background:rgba(224,88,72,.1); color:#b42318; font-size:.86rem; }
+    button { width:100%; margin-top:24px; padding:14px 22px; border:0; border-radius:10px; background:var(--ink); color:#fff; cursor:pointer; font:700 .95rem inherit; }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    .note { margin:14px 0 0; color:#92929d; font-size:.77rem; line-height:1.45; text-align:center; }
+    @media (max-width:600px) { .card { padding:30px 22px; } .grid { grid-template-columns:1fr; } .field--wide { grid-column:auto; } }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <a class="logo" href="/index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" />LIQUID+</a>
+    <section class="card">
+      <h1>Votre profil avocat</h1>
+      <p class="lead">Ces premi&egrave;res informations nous permettent d'&eacute;valuer votre candidature. Nous reviendrons vers vous sous 48h.</p>
+      <div class="alert" id="error" role="alert" hidden></div>
+      <form id="lawyer-form">
+        <div class="grid">
+          <div class="field"><label for="first-name">Pr&eacute;nom</label><input id="first-name" name="first_name" autocomplete="given-name" required maxlength="100" /></div>
+          <div class="field"><label for="last-name">Nom</label><input id="last-name" name="last_name" autocomplete="family-name" required maxlength="100" /></div>
+          <div class="field"><label for="oath-date">Date de serment</label><input id="oath-date" name="oath_date" type="date" required /></div>
+          <div class="field"><label for="city">Ville de r&eacute;sidence / d'exercice</label><input id="city" name="city" autocomplete="address-level2" required maxlength="160" /></div>
+          <div class="field field--wide"><label for="specialty">Sp&eacute;cialit&eacute;</label><input id="specialty" name="specialty" required maxlength="240" placeholder="Ex. droit des affaires, venture capital, fusions-acquisitions" /></div>
+        </div>
+        <button id="submit" type="submit">Envoyer ma candidature</button>
+      </form>
+      <p class="note">Vous pourrez compl&eacute;ter ces informations ult&eacute;rieurement.</p>
+    </section>
+  </main>
+  <script>
+    const form = document.getElementById('lawyer-form');
+    const errorEl = document.getElementById('error');
+    const submitBtn = document.getElementById('submit');
+
+    function showError(message) { errorEl.textContent = message || ''; errorEl.hidden = !message; }
+
+    async function load() {
+      try {
+        const meRes = await fetch('/api/auth/me', { credentials:'include' });
+        if (!meRes.ok) { location.replace('login.html'); return; }
+        const { user } = await meRes.json();
+        const lawyerOnly = user?.account_types?.includes('avocat') && !user.account_types.includes('fondateur');
+        if (!lawyerOnly) { location.replace(user?.account_types?.length ? 'tableau-de-bord.html' : 'onboarding.html'); return; }
+        if (user.lawyer_profile_completed) { location.replace('tableau-de-bord-avocat.html'); return; }
+        document.getElementById('oath-date').max = new Date().toISOString().slice(0, 10);
+        const profileRes = await fetch('/api/saas/lawyer-profile', { credentials:'include' });
+        if (profileRes.ok) {
+          const { profile } = await profileRes.json();
+          if (profile) Object.keys(profile).forEach(key => { if (form.elements[key]) form.elements[key].value = profile[key] || ''; });
+        }
+      } catch { showError('Impossible de joindre le serveur.'); }
+    }
+
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      showError('');
+      if (!form.reportValidity()) return;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Enregistrement...';
+      const payload = Object.fromEntries(new FormData(form).entries());
+      try {
+        const res = await fetch('/api/saas/lawyer-profile', { method:'PUT', headers:{ 'Content-Type':'application/json' }, credentials:'include', body:JSON.stringify(payload) });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Enregistrement impossible.');
+        location.href = 'tableau-de-bord-avocat.html';
+      } catch (error) {
+        showError(error.message || 'Impossible de joindre le serveur.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Envoyer ma candidature';
+      }
+    });
+    load();
+  </script>
+</body>
+</html>
