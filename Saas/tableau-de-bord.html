@@ -208,8 +208,6 @@
     .dd-editorial .dd-editorial-item::before { display:none; }
     .dd-editorial .bsa-item__head { display:contents; }
     .dd-editorial .bsa-item__label { display:flex; align-items:center; gap:12px; min-width:0; }
-    .dd-editorial__fileicon { width:34px; height:40px; flex:none; display:grid; place-items:center; border:1px solid #cfd3da; border-radius:5px; background:#fff; color:#59616d; font:800 8px 'Archivo',sans-serif; position:relative; }
-    .dd-editorial__fileicon::after { content:''; position:absolute; top:-1px; right:-1px; width:9px; height:9px; border-left:1px solid #cfd3da; border-bottom:1px solid #cfd3da; background:#f4f5f7; }
     .dd-editorial .bsa-item__name { color:#08090c; font-size:13.5px; font-weight:650; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .dd-editorial .bsa-item__note { display:none; }
     .dd-editorial__status { justify-self:start; display:inline-flex; align-items:center; min-height:25px; padding:0 9px; border-radius:7px; font:650 10.5px 'Archivo',sans-serif; white-space:nowrap; }
@@ -217,7 +215,7 @@
     .dd-editorial__status--review { background:#fff2d9; color:#b26a00; }
     .dd-editorial__status--ready { background:#e4f4e7; color:#23723a; }
     .dd-editorial .bsa-item__actions { grid-column:4; grid-row:1; display:flex; justify-content:flex-end; align-items:center; gap:5px; min-width:0; }
-    .dd-editorial .bsa-item__file { grid-column:1; margin:-9px 0 0 46px; color:#7a808b; font-size:10.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .dd-editorial .bsa-item__file { grid-column:1; margin:-9px 0 0 0; color:#7a808b; font-size:10.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .dd-editorial .bsa-item__send { grid-column:3; grid-row:1; margin:0; gap:5px; }
     .dd-editorial .bsa-item__send-label { display:none; }
     .dd-editorial .dd-chip { max-width:108px; overflow:hidden; text-overflow:ellipsis; padding:4px 8px; border:0; background:#f0f2f5; color:#4b5563; font-size:10px; }
@@ -227,8 +225,8 @@
     .dd-editorial__drop { display:flex; align-items:center; justify-content:center; gap:9px; margin:16px 22px 20px; min-height:64px; border:1.5px dashed #9fb0cb; border-radius:9px; background:#fff; color:#1d4ed8; font:650 12px 'Archivo',sans-serif; cursor:pointer; }
     .dd-editorial__drop:hover { background:#f7faff; border-color:#2563eb; }
     .dd-editorial__drop svg { width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
-    @media(max-width:900px){.dd-editorial__columns{display:none}.dd-editorial .dd-editorial-item{grid-template-columns:minmax(0,1fr) auto;gap:10px 14px;padding:16px}.dd-editorial .bsa-item__label{grid-column:1}.dd-editorial__status{grid-column:2;grid-row:1}.dd-editorial .bsa-item__send{grid-column:1;grid-row:2;margin-left:46px}.dd-editorial .bsa-item__actions{grid-column:2;grid-row:2}.dd-editorial .bsa-item__file{display:none}}
-    @media(max-width:560px){.dd-editorial__top{align-items:flex-start;flex-direction:column;padding:18px 16px 14px}.dd-editorial__progress{width:100%}.dd-editorial .dd-editorial-item{grid-template-columns:1fr}.dd-editorial__status,.dd-editorial .bsa-item__send,.dd-editorial .bsa-item__actions{grid-column:1;grid-row:auto;margin-left:46px;justify-self:start}.dd-editorial__drop{margin:14px 16px 16px}}
+    @media(max-width:900px){.dd-editorial__columns{display:none}.dd-editorial .dd-editorial-item{grid-template-columns:minmax(0,1fr) auto;gap:10px 14px;padding:16px}.dd-editorial .bsa-item__label{grid-column:1}.dd-editorial__status{grid-column:2;grid-row:1}.dd-editorial .bsa-item__send{grid-column:1;grid-row:2}.dd-editorial .bsa-item__actions{grid-column:2;grid-row:2}.dd-editorial .bsa-item__file{display:none}}
+    @media(max-width:560px){.dd-editorial__top{align-items:flex-start;flex-direction:column;padding:18px 16px 14px}.dd-editorial__progress{width:100%}.dd-editorial .dd-editorial-item{grid-template-columns:1fr}.dd-editorial__status,.dd-editorial .bsa-item__send,.dd-editorial .bsa-item__actions{grid-column:1;grid-row:auto;justify-self:start}.dd-editorial__drop{margin:14px 16px 16px}}
     .cli { display: flex; align-items: center; gap: 12px; background: var(--card, #fff); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; }
     .cli__status { flex: none; width: 18px; text-align: center; font-size: 14px; line-height: 1; }
     .cli__status--todo { color: #fff; }
@@ -5537,7 +5535,7 @@
       if (doc) li.dataset.searchDocumentId = String(doc.id);
       li.innerHTML = `
         <div class="bsa-item__head">
-          <div class="bsa-item__label">${editorialDD ? '<span class="dd-editorial__fileicon">DOC</span>' : ''}<span class="bsa-item__name">${esc(item)}</span>${badge}</div>
+          <div class="bsa-item__label"><span class="bsa-item__name">${esc(item)}</span>${badge}</div>
           ${editorialDD ? `<span class="dd-editorial__status dd-editorial__status--${editorialStatus[1]}">${editorialStatus[0]}</span>` : ''}
           <div class="bsa-item__actions"></div>
         </div>
