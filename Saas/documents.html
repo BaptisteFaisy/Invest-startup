@@ -519,19 +519,16 @@
 
       // Libellé de la barre secondaire selon la vue.
       const SUBFILTER_LABELS = { etape: 'Étape', investor: 'Investisseur', avancement: 'Stade' };
-      const SUBFILTER_ALL    = { etape: 'Toutes les étapes', investor: 'Tous les investisseurs', avancement: 'Tous les stades' };
 
-      // Construit les puces de la barre secondaire à partir des groupes de la vue
-      // courante (une puce par groupe + une puce « Tout »), avec le compte de
-      // documents. La puce active reflète `subFilter`.
+      // Construit les puces de la barre secondaire : une puce par groupe (étape /
+      // investisseur / stade), avec son compte. Aucune puce « Tout » — tout est
+      // affiché par défaut ; recliquer la puce active réaffiche l'ensemble.
       function renderSubfilter(groups) {
         subfilterEl.hidden = false;
         subfilterLbl.textContent = SUBFILTER_LABELS[view] || 'Afficher';
-        const total = groups.reduce((n, g) => n + g.items.length, 0);
-        const chips = [{ key: 'all', name: SUBFILTER_ALL[view] || 'Tout', count: total }]
-          .concat(groups.map(g => ({ key: g.key, name: g.name, count: g.items.length, dot: g.dot })));
+        const chips = groups.map(g => ({ key: g.key, name: g.name, count: g.items.length, dot: g.dot }));
         subfilterChips.innerHTML = chips.map(c => {
-          const active = (subFilter === c.key) || (subFilter === 'all' && c.key === 'all');
+          const active = (subFilter === c.key);
           const dot = c.dot ? `<span class="doc-chip__dot" style="background:${c.dot}"></span>` : '';
           return `<button type="button" class="doc-view-btn${active ? ' is-active' : ''}" data-key="${esc(c.key)}">${dot}${esc(c.name)} <span class="doc-chip__count">${c.count}</span></button>`;
         }).join('');
@@ -752,7 +749,9 @@
       subfilterChips.addEventListener('click', (e) => {
         const chip = e.target.closest('.doc-view-btn');
         if (!chip) return;
-        subFilter = chip.getAttribute('data-key');
+        const key = chip.getAttribute('data-key');
+        // Recliquer la puce active revient à tout afficher.
+        subFilter = (subFilter === key) ? 'all' : key;
         render();
       });
 
