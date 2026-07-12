@@ -42,15 +42,6 @@
     .resume-toggle:hover { background: rgba(255,255,255,0.12); color: #fff; }
     .resume-toggle[aria-expanded="false"] svg { transform: rotate(-90deg); }
 
-    /* Réglages du bandeau : nombre de priorités générées (0–10) et de tâches
-       personnelles (0–toutes) affichées. Mémorisés par utilisateur. */
-    .next-actions__head { flex-wrap: wrap; gap: 10px 14px; }
-    .na-controls { display: flex; align-items: center; gap: 12px; margin-left: auto; text-transform: none; letter-spacing: 0; }
-    .na-ctrl { display: inline-flex; align-items: center; gap: 6px; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.62); white-space: nowrap; }
-    .na-ctrl__sel { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; color: #fff; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 7px; padding: 4px 7px; cursor: pointer; -webkit-appearance: none; appearance: none; }
-    .na-ctrl__sel:focus { outline: none; border-color: rgba(255,255,255,0.5); }
-    .na-ctrl__sel option { color: #08090c; }
-
     /* Bandeau « prochaines priorités » — un libellé de section (hors bloc) suivi
        d'une liste de cartes claires. Deux natures cohabitent dans le même bloc :
        (a) les priorités générées (déterministes, zéro token) portent une étiquette
@@ -77,9 +68,7 @@
     .next-actions__link:hover .next-actions__go { color: #08090c; }
     .next-actions__due { flex: none; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; color: #945b07; background: #fff2d9; padding: 4px 9px; border-radius: 6px; white-space: nowrap; }
     .next-actions__due--over { color: #991b1b; background: #fee2e2; }
-    /* Ligne « reprendre » : plus discrète, en pointillés, distincte des cartes. */
-    .next-actions__item--resume .next-actions__link { border: 1px dashed rgba(8,9,12,0.18); border-radius: 12px; background: transparent; }
-    .next-actions__resume-ic { flex: none; color: #534ab7; font-size: 17px; width: 22px; text-align: center; }
+    /* Ligne « reprendre » : même carte que les priorités, étiquette « Reprendre ». */
     .next-actions__empty { margin: 0; padding: 2px 2px 6px; font-size: 14px; line-height: 1.5; color: var(--text-2, #6b6b78); }
 
     /* Dossiers (phases de levée) */
@@ -2732,6 +2721,8 @@
 
     // Réglages du bandeau, mémorisés par utilisateur : combien de priorités
     // générées (0–10) et de tâches personnelles (0–toutes) afficher. Défaut 2 / 2.
+    // Le fondateur les CHOISIT depuis l'outil Tâches (taches.html) ; ce bandeau
+    // se contente de LIRE ces clés (mêmes clés, cadrées par utilisateur).
     function naPrioCountKey() { return 'liquid_na_prio_count_' + raiseUser; }
     function naTaskCountKey() { return 'liquid_na_task_count_' + raiseUser; }
     function getNaPrioCount() {
@@ -2751,8 +2742,6 @@
         return isNaN(n) ? 2 : Math.max(0, n);
       } catch { return 2; }
     }
-    function setNaPrioCount(v) { try { localStorage.setItem(naPrioCountKey(), String(v)); } catch {} }
-    function setNaTaskCount(v) { try { localStorage.setItem(naTaskCountKey(), String(v)); } catch {} }
 
     const nextActionsHost = document.getElementById('next-actions');
     let nextActionsCollapsed = false;
@@ -2831,14 +2820,14 @@
       };
 
       // Dernière priorité : reprendre le document travaillé en dernier.
-      // Ligne distincte (repère « ↩ », pointillés) pour ne pas se confondre.
+      // Même carte que les priorités, mais étiquette « Reprendre » (au lieu d'un rang).
       const resumeItemHtml = (doc) => {
         const isTermsheet = doc.kind === 'termsheet';
         const href = isTermsheet ? ('editor.html?doc=' + doc.id) : ('/api/saas/documents/' + doc.id + '/download');
         const tgt = isTermsheet ? ' target="_blank" rel="noopener"' : '';
-        return '<li class="next-actions__item next-actions__item--resume">'
+        return '<li class="next-actions__item next-actions__item--resume" style="--na-accent:#534ab7">'
           + '<a class="next-actions__link" href="' + href + '"' + tgt + '>'
-          + '<span class="next-actions__resume-ic" aria-hidden="true">↩</span>'
+          + '<span class="next-actions__pill" style="color:#3f3a8f;background:#ecebfa">Reprendre</span>'
           + '<span class="next-actions__main">'
           + '<span class="next-actions__text">Reprendre « ' + esc(doc.name) + ' »</span>'
           + '<span class="next-actions__step">Là où vous vous êtes arrêté · modifié le ' + fmtDate(doc.updated_at || doc.created_at) + '</span>'
@@ -2847,21 +2836,9 @@
           + '</a></li>';
       };
 
-      // Réglages (deux sélecteurs) : nombre de priorités générées (0–10) et de
-      // tâches personnelles (0–toutes). Regroupés à droite avec le chevron de repli.
-      const prioOptsHtml = Array.from({ length: 11 }, (_, n) =>
-        '<option value="' + n + '"' + (n === prioCount ? ' selected' : '') + '>' + n + '</option>').join('');
-      const taskSelVal = taskCount === 'all' ? 'all' : String(taskCount);
-      const taskNumOptsHtml = Array.from({ length: 11 }, (_, n) =>
-        '<option value="' + n + '"' + (String(n) === taskSelVal ? ' selected' : '') + '>' + n + '</option>').join('')
-        + '<option value="all"' + (taskSelVal === 'all' ? ' selected' : '') + '>Toutes</option>';
+      // Le nombre de priorités / tâches affiché ici se règle depuis l'outil Tâches
+      // (taches.html) ; ce bandeau se contente de lire ces réglages (getNa*).
       const toggleLabel = nextActionsCollapsed ? 'Afficher les prochaines priorités' : 'Masquer les prochaines priorités';
-      const controlsHtml =
-        '<div class="na-controls">'
-        + '<label class="na-ctrl">Priorités <select class="na-ctrl__sel" data-na-prio-count aria-label="Nombre de priorités générées à afficher">' + prioOptsHtml + '</select></label>'
-        + '<label class="na-ctrl">Mes tâches <select class="na-ctrl__sel" data-na-task-count aria-label="Nombre de mes tâches à afficher">' + taskNumOptsHtml + '</select></label>'
-        + '<button class="resume-toggle" type="button" aria-expanded="' + (nextActionsCollapsed ? 'false' : 'true') + '" aria-label="' + toggleLabel + '" title="' + toggleLabel + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6l6 -6"/></svg></button>'
-        + '</div>';
 
       const section = document.createElement('section');
       const taskRows = shownTasks.map(taskRowHtml).join('');
@@ -2878,10 +2855,10 @@
         const rows = priorityRows + resumeRow + taskRows;
         const cardHtml = rows
           ? '<div class="next-actions-card' + (nextActionsCollapsed ? ' is-collapsed' : '') + '"><ol class="next-actions__list">' + rows + '</ol></div>'
-          : '<p class="next-actions__empty">Réglé sur 0 : augmentez le nombre de priorités ou de tâches ci-dessus pour les afficher.</p>';
+          : '<p class="next-actions__empty">Rien à afficher : le nombre de priorités et de tâches est réglé sur 0 dans l’outil Tâches.</p>';
         section.innerHTML =
-          '<div class="section-label next-actions__head"><span>Prochaines priorités</span>'
-          + controlsHtml
+          '<div class="section-label"><span>Prochaines priorités</span>'
+          + '<button class="resume-toggle" type="button" aria-expanded="' + (nextActionsCollapsed ? 'false' : 'true') + '" aria-label="' + toggleLabel + '" title="' + toggleLabel + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6l6 -6"/></svg></button>'
           + '</div>'
           + cardHtml;
       }
@@ -2894,10 +2871,6 @@
           renderNextActions();
         });
       }
-      const prioSel = section.querySelector('[data-na-prio-count]');
-      if (prioSel) prioSel.addEventListener('change', () => { setNaPrioCount(parseInt(prioSel.value, 10) || 0); renderNextActions(); });
-      const taskSel = section.querySelector('[data-na-task-count]');
-      if (taskSel) taskSel.addEventListener('change', () => { setNaTaskCount(taskSel.value === 'all' ? 'all' : (parseInt(taskSel.value, 10) || 0)); renderNextActions(); });
       section.querySelectorAll('[data-na-step]').forEach(btn => {
         btn.addEventListener('click', () => {
           const key = btn.getAttribute('data-na-step');

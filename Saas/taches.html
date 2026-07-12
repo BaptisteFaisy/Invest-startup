@@ -59,6 +59,15 @@
     .tsk__count { background: rgba(255,255,255,0.1); color: #fff; border-radius: 999px; font-size: 11px; padding: 2px 8px; }
     .tsk__empty { color: rgba(255,255,255,0.5); font-size: 14px; padding: 18px 4px; }
 
+    /* Réglages d'affichage du tableau de bord (combien de priorités générées et
+       de tâches personnelles y apparaissent). Choisis ici, lus par le dashboard. */
+    .dashprefs { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px 20px; margin-top: 22px; }
+    .dashprefs__label { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 12px; }
+    .dashprefs__row { display: flex; gap: 22px; flex-wrap: wrap; }
+    .dashprefs__ctrl { display: flex; align-items: center; gap: 9px; font-size: 14px; color: rgba(255,255,255,0.85); }
+    .dashprefs__ctrl select { background: #fff; border: 1px solid transparent; border-radius: 10px; padding: 8px 12px; font: inherit; font-size: 13.5px; color: #08090c; cursor: pointer; }
+    .dashprefs__ctrl select:focus { outline: none; box-shadow: 0 0 0 2px #3b82f6; }
+
     /* Priorités suggérées : générées d'après l'état du dossier (lecture seule). */
     .tsk__suggested-sub { color: rgba(255,255,255,0.55); font-size: 13px; margin: -4px 0 12px; line-height: 1.5; }
     a.titem { text-decoration: none; }
@@ -188,6 +197,20 @@
       <div class="tsk__eyebrow">Organisation</div>
       <h1 class="tsk__title">Tâches</h1>
       <p class="tsk__sub">Votre check-list personnelle pour piloter la levée : ajoutez ce qu'il reste à faire, priorisez, cochez au fur et à mesure.</p>
+
+      <div class="dashprefs" id="dashprefs">
+        <div class="dashprefs__label">Sur le tableau de bord, afficher</div>
+        <div class="dashprefs__row">
+          <label class="dashprefs__ctrl">
+            <span>Priorités générées</span>
+            <select id="pref-prio-count" aria-label="Nombre de priorités générées à afficher sur le tableau de bord"></select>
+          </label>
+          <label class="dashprefs__ctrl">
+            <span>Mes tâches</span>
+            <select id="pref-task-count" aria-label="Nombre de mes tâches à afficher sur le tableau de bord"></select>
+          </label>
+        </div>
+      </div>
 
       <form class="tskform" id="add-form">
         <div class="tskform__row1">
@@ -487,6 +510,40 @@
       sectionEl.hidden = false;
     }
 
+    // ─── Réglages d'affichage du tableau de bord ───────────────────────────
+    // Deux sélecteurs qui pilotent, sur le tableau de bord, combien de priorités
+    // générées (0–10) et de tâches personnelles (0–toutes) apparaissent. Choisis
+    // ici, mémorisés par utilisateur, relus par le tableau de bord (mêmes clés).
+    function prefCountKey(user, kind) { return 'liquid_na_' + kind + '_count_' + raiseUserId(user); }
+    function getPrefCount(user, kind) {
+      try {
+        const v = localStorage.getItem(prefCountKey(user, kind));
+        if (v === null) return 2;
+        if (kind === 'task' && v === 'all') return 'all';
+        const n = parseInt(v, 10);
+        if (isNaN(n)) return 2;
+        return kind === 'prio' ? Math.max(0, Math.min(10, n)) : Math.max(0, n);
+      } catch { return 2; }
+    }
+    function setPrefCount(user, kind, val) {
+      try { localStorage.setItem(prefCountKey(user, kind), String(val)); } catch {}
+    }
+    function setupDashPrefs(user) {
+      const prioSel = document.getElementById('pref-prio-count');
+      const taskSel = document.getElementById('pref-task-count');
+      if (!prioSel || !taskSel) return;
+      const prio = getPrefCount(user, 'prio');
+      const task = getPrefCount(user, 'task');
+      prioSel.innerHTML = Array.from({ length: 11 }, (_, n) =>
+        '<option value="' + n + '"' + (n === prio ? ' selected' : '') + '>' + n + '</option>').join('');
+      const taskVal = task === 'all' ? 'all' : String(task);
+      taskSel.innerHTML = Array.from({ length: 11 }, (_, n) =>
+        '<option value="' + n + '"' + (String(n) === taskVal ? ' selected' : '') + '>' + n + '</option>').join('')
+        + '<option value="all"' + (taskVal === 'all' ? ' selected' : '') + '>Toutes</option>';
+      prioSel.addEventListener('change', () => setPrefCount(user, 'prio', parseInt(prioSel.value, 10) || 0));
+      taskSel.addEventListener('change', () => setPrefCount(user, 'task', taskSel.value === 'all' ? 'all' : (parseInt(taskSel.value, 10) || 0)));
+    }
+
     // ─── Journal d'activité ────────────────────────────────────────────────
     const ACT_ICONS = {
       document: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/>',
@@ -629,6 +686,7 @@
       const user = await requireAuth();
       if (!user) return;
       document.querySelector('.app').classList.add('ready');
+      setupDashPrefs(user);
       renderSuggested(user);
       document.getElementById('add-form').addEventListener('submit', addTask);
       document.getElementById('activity-more-btn').addEventListener('click', () => {
