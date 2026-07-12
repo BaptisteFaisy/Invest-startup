@@ -4826,7 +4826,7 @@
         return card;
       }
       if (isInvestorChecklistPhase(f)) body.appendChild(investorChecklistEl(f));
-      if (f.key === 'due-diligence-preliminaire') {
+      if (f.key === 'due-diligence-preliminaire' || f.key === 'due-diligence') {
         ddEditorialBodyEl(f, body);
         attachCardDrop(card, f.id, '');
         return card;
@@ -5213,7 +5213,7 @@
       const pendingName = pendingSlots[f.id + ':' + slug] || null;
       const versions    = Array.isArray(st.versions) ? st.versions : [];
       const verNote     = linked && versions.length ? ` <span class="bsa-item__ver">v${versions.length + 1}</span>` : '';
-      const editorialDD = f.key === 'due-diligence-preliminaire';
+      const editorialDD = f.key === 'due-diligence-preliminaire' || f.key === 'due-diligence';
       const editorialStatus = final ? ['Prêt', 'ready'] : linked ? ['En révision', 'review'] : ['À préparer', 'todo'];
       const li = document.createElement('li');
       li.className = 'bsa-item' + (linked ? ' bsa-item--done' : '') + (editorialDD ? ' dd-editorial-item' : '');
