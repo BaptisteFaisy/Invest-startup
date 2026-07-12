@@ -73,10 +73,6 @@
     .doc-pill svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .doc-pill--inv { color: rgba(167,139,250,0.9); background: rgba(167,139,250,0.12); border-color: rgba(167,139,250,0.28); }
 
-    /* Badge de niveau d'avancement (généré, en cours, validé, signé…) */
-    .doc-status { display: inline-flex; align-items: center; gap: 5px; font: 700 10.5px/1 'Archivo', sans-serif; letter-spacing: 0.05em; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; color: var(--sc, #cbd5e1); background: var(--sb, rgba(203,213,225,0.14)); }
-    .doc-status__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sc, #cbd5e1); }
-
     /* Sélecteur de niveau d'avancement (vue « Par avancement ») */
     .doc-setstatus { display: inline-flex; align-items: center; gap: 6px; }
     .doc-setstatus select { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.16); border-radius: 9px; color: #fff; font: 500 12.5px/1 'Libre Franklin', sans-serif; padding: 7px 8px; cursor: pointer; max-width: 190px; }
@@ -625,8 +621,6 @@
         const row = document.createElement('div');
         row.className = 'doc-item';
 
-        const st = statusMeta(docStatus(d));
-        const statusBadge = `<span class="doc-status" style="--sc:${st.accent};--sb:${st.bg}" title="${esc(st.desc)}"><span class="doc-status__dot"></span>${esc(st.short)}</span>`;
         const folderPill = fname
           ? `<span class="doc-pill"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9L9.6 3.9A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>${esc(fname)}</span>`
           : '';
@@ -642,7 +636,6 @@
           <div class="doc-item__main">
             <div class="doc-item__name" title="${esc(d.name)}">${esc(d.name)}</div>
             <div class="doc-item__meta">
-              ${statusBadge}
               <span>${esc(typeLabel(d))}</span>
               ${d.size != null ? `<span class="doc-item__meta-sep">·</span><span>${fmtSize(d.size)}</span>` : ''}
               <span class="doc-item__meta-sep">·</span><span>${fmtDate(d.updated_at || d.created_at)}</span>
