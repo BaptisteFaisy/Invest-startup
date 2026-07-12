@@ -262,10 +262,69 @@
         </div>
       </section>
 
-      <!-- 2. Termes du deal (BSA-AIR / SAFE) -->
-      <section class="bsec" data-cat="termes" data-rounds="bsaair" id="sec-termes">
+      <!-- 2. Multiples de valorisation -->
+      <section class="bsec" data-cat="montants" data-rounds="classique bsaair" id="sec-multiples">
         <div class="bsec__head">
           <span class="bsec__num">02</span>
+          <h2 class="bsec__h">Multiples de valorisation</h2>
+          <p class="bsec__desc">Les multiples de chiffre d'affaires que le marché applique pour valoriser une société qui facture déjà : plus la croissance est forte, plus le multiple est élevé. Ce sont les mêmes repères que ceux calculés par l'outil <a href="valorisation.html" style="color:#a5b4fc;">Valorisation</a>.</p>
+        </div>
+
+        <div class="btable-wrap">
+          <table class="btable">
+            <thead>
+              <tr>
+                <th>Profil de croissance</th>
+                <th>Croissance annuelle du CA</th>
+                <th>Multiple appliqué au CA <span class="sub">médian · fourchette</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Prudente</td>
+                <td>jusqu'à ~15 %/an</td>
+                <td><b>3×</b><span class="sub">2 – 4×</span></td>
+              </tr>
+              <tr>
+                <td>Solide</td>
+                <td>~50 %/an</td>
+                <td><b>6×</b><span class="sub">4 – 8×</span></td>
+              </tr>
+              <tr>
+                <td>Forte</td>
+                <td>≥ 100 %/an (× 2 par an)</td>
+                <td><b>11×</b><span class="sub">8 – 15×</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="bsrc">Le multiple s'applique au CA récurrent annuel (ARR) pour un SaaS, sinon au CA des 12 derniers mois. Repères de marché seed/série A FR 2023–2025.</p>
+
+        <div class="bgrid">
+          <div class="bcard">
+            <div class="bcard__k">Méthode Berkus (pré-revenu)</div>
+            <div class="bcard__v">5 × 500<small> k€</small></div>
+            <div class="bcard__range">plafond 2,5 M€</div>
+            <div class="bcard__note">Sans chiffre d'affaires, on valorise cinq leviers de réduction du risque (équipe, prototype, marché, relations, traction), chacun jusqu'à 500 k€.</div>
+          </div>
+          <div class="bcard">
+            <div class="bcard__k">Méthode Scorecard — pondérations</div>
+            <div class="bcard__v">Équipe 30<small> %</small></div>
+            <div class="bcard__range">marché 25 % · produit 15 %</div>
+            <div class="bcard__note">On part de la valo moyenne des comparables, ajustée par critère : équipe 30 %, marché 25 %, produit 15 %, concurrence 10 %, go-to-market 10 %, reste 10 %.</div>
+          </div>
+          <div class="bcard">
+            <div class="bcard__k">Prime « société qui facture »</div>
+            <div class="bcard__v">Traction</div>
+            <div class="bcard__note">Dès qu'il y a du revenu récurrent, le multiple de CA prime sur Berkus/Scorecard : la traction réelle vaut plus que le potentiel estimé.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Termes du deal (BSA-AIR / SAFE) -->
+      <section class="bsec" data-cat="termes" data-rounds="bsaair" id="sec-termes">
+        <div class="bsec__head">
+          <span class="bsec__num">03</span>
           <h2 class="bsec__h">Termes du deal — BSA-AIR &amp; SAFE</h2>
           <p class="bsec__desc">Les instruments convertibles servent à lever vite sans fixer la valorisation immédiatement. En France, le <em>BSA-AIR</em> est le standard ; le <em>SAFE</em> est son équivalent anglo-saxon.</p>
         </div>
@@ -310,10 +369,10 @@
         <p class="bsrc">Sources : documentation BSA-AIR (The Family / Caption), standards SAFE (Y Combinator), pratiques de marché FR 2023–2025.</p>
       </section>
 
-      <!-- 3. Cap table & dilution -->
+      <!-- 4. Cap table & dilution -->
       <section class="bsec" data-cat="captable" data-rounds="classique bsaair" id="sec-captable">
         <div class="bsec__head">
-          <span class="bsec__num">03</span>
+          <span class="bsec__num">04</span>
           <h2 class="bsec__h">Cap table &amp; dilution</h2>
           <p class="bsec__desc">Comment se répartit le capital au fil des tours, et la place réservée aux salariés clés.</p>
         </div>
@@ -347,10 +406,10 @@
         <p class="bsrc">Sources : Carta Europe, Index Ventures Option Plan, pratiques de marché FR. À croiser avec l'outil <a href="dilution.html" style="color:#a5b4fc;">Dilution</a>.</p>
       </section>
 
-      <!-- 4. Clauses juridiques -->
+      <!-- 5. Clauses juridiques -->
       <section class="bsec" data-cat="clauses" data-rounds="classique" id="sec-clauses">
         <div class="bsec__head">
-          <span class="bsec__num">04</span>
+          <span class="bsec__num">05</span>
           <h2 class="bsec__h">Clauses juridiques standards</h2>
           <p class="bsec__desc">Les clauses du pacte d'actionnaires que l'on retrouve dans une levée seed « propre ». Le repère : rester sur le standard de marché et se méfier des versions agressives.</p>
         </div>
@@ -361,6 +420,13 @@
             <div class="bcard__v">1<small>× non-participating</small></div>
             <div class="bcard__note">L'investisseur récupère sa mise <em>ou</em> son pourcentage, le plus élevé des deux. Le standard sain au seed.</div>
             <span class="bcard__tag bcard__tag--std">Standard de marché</span>
+          </div>
+          <div class="bcard">
+            <div class="bcard__k">Préférence participante</div>
+            <div class="bcard__v">Non<small> au seed</small></div>
+            <div class="bcard__range">si présente : cap 3×</div>
+            <div class="bcard__note">La préférence « participante » fait toucher à l'investisseur sa mise <em>puis</em> son prorata (double compte). Rare et scrutée au seed ; si elle existe, un plafond (cap) à 3× la limite. Chiffrez l'écart dans l'outil <a href="exit.html" style="color:#a5b4fc;">Exit</a>.</div>
+            <span class="bcard__tag bcard__tag--watch">À surveiller</span>
           </div>
           <div class="bcard">
             <div class="bcard__k">Vesting fondateurs</div>
