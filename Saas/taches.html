@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Liquid+ â€” TÃ¢ches</title>
-  <meta name="description" content="Votre check-list personnelle pour piloter la levÃ©e de fonds." />
+  <title>Liquid+ — Tâches</title>
+  <meta name="description" content="Votre check-list personnelle pour piloter la levée de fonds." />
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -20,7 +20,7 @@
     body, .app { background: #08090c !important; }
 
     /* Topbar noir (identique aux autres pages du SaaS). Mise en page en ligne :
-       cette page ne charge pas editor.css, donc sans Ã§a la barre s'empile. */
+       cette page ne charge pas editor.css, donc sans ça la barre s'empile. */
     .topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 56px; padding: 0 20px; background: #08090c !important; border-bottom: 1px solid rgba(255,255,255,0.07) !important; position: sticky; top: 0; z-index: 70; }
     .topbar__left { display: flex; align-items: center; gap: 16px; min-width: 0; }
     .topbar__actions { display: flex; align-items: center; gap: 8px; flex: none; }
@@ -59,8 +59,8 @@
     .tsk__count { background: rgba(255,255,255,0.1); color: #fff; border-radius: 999px; font-size: 11px; padding: 2px 8px; }
     .tsk__empty { color: rgba(255,255,255,0.5); font-size: 14px; padding: 18px 4px; }
 
-    /* RÃ©glages d'affichage du tableau de bord (combien de prioritÃ©s gÃ©nÃ©rÃ©es et
-       de tÃ¢ches personnelles y apparaissent). Choisis ici, lus par le dashboard. */
+    /* Réglages d'affichage du tableau de bord (combien de priorités générées et
+       de tâches personnelles y apparaissent). Choisis ici, lus par le dashboard. */
     .dashprefs { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px 20px; margin-top: 22px; }
     .dashprefs__label { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 12px; }
     .dashprefs__row { display: flex; gap: 22px; flex-wrap: wrap; }
@@ -68,7 +68,7 @@
     .dashprefs__ctrl select { background: #fff; border: 1px solid transparent; border-radius: 10px; padding: 8px 12px; font: inherit; font-size: 13.5px; color: #08090c; cursor: pointer; }
     .dashprefs__ctrl select:focus { outline: none; box-shadow: 0 0 0 2px #3b82f6; }
 
-    /* PrioritÃ©s suggÃ©rÃ©es : gÃ©nÃ©rÃ©es d'aprÃ¨s l'Ã©tat du dossier (lecture seule). */
+    /* Priorités suggérées : générées d'après l'état du dossier (lecture seule). */
     .tsk__suggested-sub { color: rgba(255,255,255,0.55); font-size: 13px; margin: -4px 0 12px; line-height: 1.5; }
     a.titem { text-decoration: none; }
     .titem--suggested { border-left: 3px solid #3b82f6; transition: box-shadow .15s, transform .15s; }
@@ -99,7 +99,7 @@
     .tsk__err { font-size: 14px; color: #f87171; background: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.25); border-radius: 12px; padding: 14px 16px; margin-top: 22px; line-height: 1.55; }
     .tsk__foot { margin-top: 30px; }
 
-    /* Journal d'activitÃ© (timeline de toutes les actions du compte) */
+    /* Journal d'activité (timeline de toutes les actions du compte) */
     .tsk__activity { margin-top: 46px; padding-top: 26px; border-top: 1px solid rgba(255,255,255,0.08); }
     .tsk__activity-sub { color: rgba(255,255,255,0.55); font-size: 13.5px; line-height: 1.5; margin: -4px 0 18px; }
     .act-day { margin-top: 20px; }
@@ -153,13 +153,13 @@
 
     <!-- Menu hamburger gauche : navigation -->
     <div class="drawer-backdrop" id="nav-backdrop" data-drawer-close></div>
-    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Ã‰tapes de la levÃ©e">
+    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Étapes de la levée">
       <div class="drawer__head"></div>
       <nav class="drawer__body">
-        <div class="drawer__section-title">Ã‰tapes de la levÃ©e</div>
-        <div id="nav-steps"><p class="drawer__steps-loading">Chargement des Ã©tapesâ€¦</p></div>
+        <div class="drawer__section-title">Étapes de la levée</div>
+        <div id="nav-steps"><p class="drawer__steps-loading">Chargement des étapes…</p></div>
       </nav>
-      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. FlÃ¨ches : 10 px, Maj + flÃ¨ches : 50 px, double-clic : rÃ©initialiser"></div>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
     </aside>
 
     <!-- Menu hamburger droite : compte & actions -->
@@ -168,7 +168,7 @@
       <div class="drawer__head"></div>
       <nav class="drawer__body">
         <div class="drawer__section-title">Outils</div>
-        <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Ã‰diteur</a>
+        <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Éditeur</a>
         <a class="drawer__link" href="benchmark.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Benchmark</a>
         <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
         <div class="drawer__sep"></div>
@@ -176,46 +176,46 @@
         <a class="drawer__link" href="dilution.html" target="_blank" rel="noopener" title="Simulation de dilution"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
         <a class="drawer__link" href="exit.html" target="_blank" rel="noopener" title="Simulateur d'exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Exit</a>
         <div class="drawer__sep"></div>
-        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>TÃ¢ches</a>
+        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>Tâches</a>
         <a class="drawer__link" href="documents.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>Documents</a>
         <a class="drawer__link" href="data-room.html" target="_blank" rel="noopener" title="Data room"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/></svg>Data room</a>
         <a class="drawer__link" href="avocat.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M6 21h12"/><path d="M3 7h18"/><path d="M7 7l-3 6a3 3 0 0 0 6 0Z"/><path d="M17 7l3 6a3 3 0 0 0-6 0Z"/></svg>Avocat</a>
         <div class="drawer__sep"></div>
         <a class="drawer__link" href="compte.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>Mon compte</a>
-        <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Ã‰crire au fondateur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
+        <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Écrire au fondateur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
         <div class="drawer__sep"></div>
-        <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>DÃ©connexion</button>
+        <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>Déconnexion</button>
       </nav>
-      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. FlÃ¨ches : 10 px, Maj + flÃ¨ches : 50 px, double-clic : rÃ©initialiser"></div>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
     </aside>
 
     <div class="page-back-row">
-      <button type="button" class="page-back" id="page-back-btn" aria-label="Revenir en arriÃ¨re" title="Revenir en arriÃ¨re">
+      <button type="button" class="page-back" id="page-back-btn" aria-label="Revenir en arrière" title="Revenir en arrière">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
       </button>
     </div>
 
     <main class="tsk">
       <div class="tsk__eyebrow">Organisation</div>
-      <h1 class="tsk__title">TÃ¢ches</h1>
-      <p class="tsk__sub">Votre check-list personnelle pour piloter la levÃ©e : ajoutez ce qu'il reste Ã  faire, priorisez, cochez au fur et Ã  mesure.</p>
+      <h1 class="tsk__title">Tâches</h1>
+      <p class="tsk__sub">Votre check-list personnelle pour piloter la levée : ajoutez ce qu'il reste à faire, priorisez, cochez au fur et à mesure.</p>
 
       <div class="dashprefs" id="dashprefs">
         <div class="dashprefs__label">Sur le tableau de bord, afficher</div>
         <div class="dashprefs__row">
           <label class="dashprefs__ctrl">
-            <span>PrioritÃ©s gÃ©nÃ©rÃ©es</span>
-            <select id="pref-prio-count" aria-label="Nombre de prioritÃ©s gÃ©nÃ©rÃ©es Ã  afficher sur le tableau de bord"></select>
+            <span>Priorités générées</span>
+            <select id="pref-prio-count" aria-label="Nombre de priorités générées à afficher sur le tableau de bord"></select>
           </label>
           <label class="dashprefs__ctrl">
-            <span>Mes tÃ¢ches</span>
-            <select id="pref-task-count" aria-label="Nombre de mes tÃ¢ches Ã  afficher sur le tableau de bord"></select>
+            <span>Mes tâches</span>
+            <select id="pref-task-count" aria-label="Nombre de mes tâches à afficher sur le tableau de bord"></select>
           </label>
           <label class="dashprefs__ctrl">
             <span>Trier par</span>
-            <select id="pref-task-sort" aria-label="Ordre d'affichage de mes tÃ¢ches sur le tableau de bord">
-              <option value="priority">Niveau de prioritÃ©</option>
-              <option value="due">Ã‰chÃ©ance</option>
+            <select id="pref-task-sort" aria-label="Ordre d'affichage de mes tâches sur le tableau de bord">
+              <option value="priority">Niveau de priorité</option>
+              <option value="due">Échéance</option>
             </select>
           </label>
         </div>
@@ -223,14 +223,14 @@
 
       <form class="tskform" id="add-form">
         <div class="tskform__row1">
-          <input class="tskform__title" id="new-title" type="text" placeholder="Ajouter une tÃ¢cheâ€¦" maxlength="200" autocomplete="off" required />
+          <input class="tskform__title" id="new-title" type="text" placeholder="Ajouter une tâche…" maxlength="200" autocomplete="off" required />
         </div>
         <div class="tskform__row2">
-          <input class="tskform__date" id="new-date" type="date" aria-label="Ã‰chÃ©ance" />
-          <select class="tskform__prio" id="new-prio" aria-label="PrioritÃ©">
-            <option value="basse">PrioritÃ© basse</option>
-            <option value="moyenne" selected>PrioritÃ© moyenne</option>
-            <option value="haute">PrioritÃ© haute</option>
+          <input class="tskform__date" id="new-date" type="date" aria-label="Échéance" />
+          <select class="tskform__prio" id="new-prio" aria-label="Priorité">
+            <option value="basse">Priorité basse</option>
+            <option value="moyenne" selected>Priorité moyenne</option>
+            <option value="haute">Priorité haute</option>
           </select>
           <button type="submit" class="tskform__add">Ajouter</button>
         </div>
@@ -238,40 +238,40 @@
       </form>
 
       <div class="tsk__section tsk__suggested" id="suggested-section" hidden>
-        <div class="tsk__section-h">PrioritÃ©s suggÃ©rÃ©es <span class="tsk__count" id="suggested-count">0</span></div>
-        <p class="tsk__suggested-sub">GÃ©nÃ©rÃ©es automatiquement d'aprÃ¨s l'Ã©tat de votre dossier. Cliquez pour ouvrir l'Ã©tape concernÃ©e dans le tableau de bord.</p>
+        <div class="tsk__section-h">Priorités suggérées <span class="tsk__count" id="suggested-count">0</span></div>
+        <p class="tsk__suggested-sub">Générées automatiquement d'après l'état de votre dossier. Cliquez pour ouvrir l'étape concernée dans le tableau de bord.</p>
         <div id="suggested-list"></div>
       </div>
 
-      <div class="tsk__loading" id="loading">Chargementâ€¦</div>
+      <div class="tsk__loading" id="loading">Chargement…</div>
       <div class="tsk__err" id="error" hidden></div>
 
       <div id="lists" hidden>
         <div class="tsk__section">
-          <div class="tsk__section-h">Ã€ faire <span class="tsk__count" id="pending-count">0</span></div>
+          <div class="tsk__section-h">À faire <span class="tsk__count" id="pending-count">0</span></div>
           <div id="pending-list"></div>
-          <div class="tsk__empty" id="pending-empty" hidden>Aucune tÃ¢che en attente. Ajoutez la premiÃ¨re ci-dessus.</div>
+          <div class="tsk__empty" id="pending-empty" hidden>Aucune tâche en attente. Ajoutez la première ci-dessus.</div>
         </div>
         <div class="tsk__section">
-          <div class="tsk__section-h">TerminÃ©es <span class="tsk__count" id="done-count">0</span></div>
+          <div class="tsk__section-h">Terminées <span class="tsk__count" id="done-count">0</span></div>
           <div id="done-list"></div>
-          <div class="tsk__empty" id="done-empty" hidden>Aucune tÃ¢che terminÃ©e pour l'instant.</div>
+          <div class="tsk__empty" id="done-empty" hidden>Aucune tâche terminée pour l'instant.</div>
         </div>
       </div>
 
       <div class="tsk__section tsk__activity" id="activity-section" hidden>
-        <div class="tsk__section-h">Historique de votre activitÃ© <span class="tsk__count" id="activity-count">0</span></div>
-        <p class="tsk__activity-sub">Toutes vos actions depuis la crÃ©ation de votre compte : documents, versions, dossiers, investisseurs, simulations, comparaisons et tÃ¢ches.</p>
-        <div class="tsk__loading" id="activity-loading">Chargement de l'historiqueâ€¦</div>
+        <div class="tsk__section-h">Historique de votre activité <span class="tsk__count" id="activity-count">0</span></div>
+        <p class="tsk__activity-sub">Toutes vos actions depuis la création de votre compte : documents, versions, dossiers, investisseurs, simulations, comparaisons et tâches.</p>
+        <div class="tsk__loading" id="activity-loading">Chargement de l'historique…</div>
         <div id="activity-list"></div>
-        <div class="tsk__empty" id="activity-empty" hidden>Aucune activitÃ© pour l'instant. Vos actions dans Liquid+ apparaÃ®tront ici.</div>
+        <div class="tsk__empty" id="activity-empty" hidden>Aucune activité pour l'instant. Vos actions dans Liquid+ apparaîtront ici.</div>
         <div class="act-more" id="activity-more" hidden>
           <button type="button" class="act-more__btn" id="activity-more-btn">Afficher plus</button>
         </div>
       </div>
 
       <div class="tsk__foot">
-        <a href="tableau-de-bord.html" class="btn btn--ghost">â† Retour au tableau de bord</a>
+        <a href="tableau-de-bord.html" class="btn btn--ghost">← Retour au tableau de bord</a>
       </div>
     </main>
   </div>
@@ -354,7 +354,7 @@
           const overdue = t.due_date < todayStr();
           const dueTag = document.createElement('span');
           dueTag.className = 'tag ' + (overdue ? 'tag--overdue' : 'tag--due');
-          dueTag.textContent = (overdue ? 'En retard Â· ' : 'Ã‰ch. ') + fmtDate(t.due_date);
+          dueTag.textContent = (overdue ? 'En retard · ' : 'Éch. ') + fmtDate(t.due_date);
           meta.appendChild(dueTag);
         }
       }
@@ -362,7 +362,7 @@
       const del = document.createElement('button');
       del.type = 'button';
       del.className = 'titem__del';
-      del.setAttribute('aria-label', 'Supprimer la tÃ¢che');
+      del.setAttribute('aria-label', 'Supprimer la tâche');
       del.title = 'Supprimer';
       del.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>';
       del.addEventListener('click', () => deleteTask(t.id));
@@ -401,7 +401,7 @@
       } catch (err) {
         loadingEl.hidden = true;
         errorEl.hidden = false;
-        errorEl.textContent = err.message || 'Impossible de charger les tÃ¢ches.';
+        errorEl.textContent = err.message || 'Impossible de charger les tâches.';
       }
     }
 
@@ -429,7 +429,7 @@
         titleInput.focus();
       } catch (err) {
         errEl.hidden = false;
-        errEl.textContent = err.message || 'Impossible d\'ajouter la tÃ¢che.';
+        errEl.textContent = err.message || 'Impossible d\'ajouter la tâche.';
       }
     }
 
@@ -479,10 +479,10 @@
       }
     }
 
-    // â”€â”€â”€ PrioritÃ©s suggÃ©rÃ©es (gÃ©nÃ©rÃ©es par le tableau de bord) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // Le tableau de bord calcule ces prioritÃ©s d'aprÃ¨s l'Ã©tat du dossier et les
-    // persiste dans localStorage (clÃ© cadrÃ©e par utilisateur, cf. tableau-de-bord.html).
-    // On les affiche ici en lecture seule, au-dessus des tÃ¢ches du fondateur.
+    // ─── Priorités suggérées (générées par le tableau de bord) ─────────────
+    // Le tableau de bord calcule ces priorités d'après l'état du dossier et les
+    // persiste dans localStorage (clé cadrée par utilisateur, cf. tableau-de-bord.html).
+    // On les affiche ici en lecture seule, au-dessus des tâches du fondateur.
     function raiseUserId(user) { return (user && (user.id || user.email)) || 'me'; }
 
     function suggestedRow(payload, a, rank) {
@@ -496,9 +496,9 @@
         '<span class="titem__rank" aria-hidden="true">' + rank + '</span>'
         + '<span class="titem__main">'
         + '<span class="titem__title">' + esc(a.text) + '</span>'
-        + (a.step ? '<span class="titem__notes">Ã‰tape Â· ' + esc(a.step) + '</span>' : '')
+        + (a.step ? '<span class="titem__notes">Étape · ' + esc(a.step) + '</span>' : '')
         + '</span>'
-        + '<span class="titem__meta"><span class="tag tag--suggested">SuggÃ©rÃ©</span></span>';
+        + '<span class="titem__meta"><span class="tag tag--suggested">Suggéré</span></span>';
       return row;
     }
 
@@ -519,10 +519,10 @@
       sectionEl.hidden = false;
     }
 
-    // â”€â”€â”€ RÃ©glages d'affichage du tableau de bord â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // Deux sÃ©lecteurs qui pilotent, sur le tableau de bord, combien de prioritÃ©s
-    // gÃ©nÃ©rÃ©es (0â€“10) et de tÃ¢ches personnelles (0â€“toutes) apparaissent. Choisis
-    // ici, mÃ©morisÃ©s par utilisateur, relus par le tableau de bord (mÃªmes clÃ©s).
+    // ─── Réglages d'affichage du tableau de bord ───────────────────────────
+    // Deux sélecteurs qui pilotent, sur le tableau de bord, combien de priorités
+    // générées (0–10) et de tâches personnelles (0–toutes) apparaissent. Choisis
+    // ici, mémorisés par utilisateur, relus par le tableau de bord (mêmes clés).
     function prefCountKey(user, kind) { return 'liquid_na_' + kind + '_count_' + raiseUserId(user); }
     function getPrefCount(user, kind) {
       try {
@@ -537,9 +537,9 @@
     function setPrefCount(user, kind, val) {
       try { localStorage.setItem(prefCountKey(user, kind), String(val)); } catch {}
     }
-    // Ordre d'affichage des tÃ¢ches personnelles sur le tableau de bord :
-    // 'priority' (niveau de prioritÃ©) ou 'due' (Ã©chÃ©ance). MÃªmes clÃ©s lues cÃ´tÃ©
-    // tableau de bord (cadrÃ©es par utilisateur).
+    // Ordre d'affichage des tâches personnelles sur le tableau de bord :
+    // 'priority' (niveau de priorité) ou 'due' (échéance). Mêmes clés lues côté
+    // tableau de bord (cadrées par utilisateur).
     function prefTaskSortKey(user) { return 'liquid_na_task_sort_' + raiseUserId(user); }
     function getPrefTaskSort(user) {
       try {
@@ -569,7 +569,7 @@
       sortSel.addEventListener('change', () => setPrefTaskSort(user, sortSel.value));
     }
 
-    // â”€â”€â”€ Journal d'activitÃ© â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── Journal d'activité ────────────────────────────────────────────────
     const ACT_ICONS = {
       document: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/>',
       version:  '<path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/>',
@@ -584,22 +584,22 @@
     };
 
     function actText(ev) {
-      const l = ev.label ? ' Â« ' + esc(ev.label) + ' Â»' : '';
+      const l = ev.label ? ' « ' + esc(ev.label) + ' »' : '';
       switch (ev.type + '/' + ev.action) {
-        case 'document/created': return 'Document crÃ©Ã©' + (l ? ' :' + l : '');
-        case 'document/updated': return 'Document modifiÃ©' + (l ? ' :' + l : '');
-        case 'version/created':  return 'Version enregistrÃ©e' + (l ? ' :' + l : '');
-        case 'folder/created':   return 'Dossier crÃ©Ã©' + (l ? ' :' + l : '');
-        case 'task/created':     return 'TÃ¢che ajoutÃ©e' + (l ? ' :' + l : '');
-        case 'task/done':        return 'TÃ¢che terminÃ©e' + (l ? ' :' + l : '');
-        case 'investor/created': return 'Investisseur ajoutÃ©' + (l ? ' :' + l : '');
-        case 'investor/updated': return 'Investisseur mis Ã  jour' + (l ? ' :' + l : '');
-        case 'dilution/saved':   return 'Simulation de dilution enregistrÃ©e' + (l ? ' :' + l : '');
-        case 'valuation/saved':  return 'Estimation de valorisation enregistrÃ©e' + (l ? ' :' + l : '');
-        case 'exit/saved':       return "Simulation d'exit enregistrÃ©e" + (l ? ' :' + l : '');
+        case 'document/created': return 'Document créé' + (l ? ' :' + l : '');
+        case 'document/updated': return 'Document modifié' + (l ? ' :' + l : '');
+        case 'version/created':  return 'Version enregistrée' + (l ? ' :' + l : '');
+        case 'folder/created':   return 'Dossier créé' + (l ? ' :' + l : '');
+        case 'task/created':     return 'Tâche ajoutée' + (l ? ' :' + l : '');
+        case 'task/done':        return 'Tâche terminée' + (l ? ' :' + l : '');
+        case 'investor/created': return 'Investisseur ajouté' + (l ? ' :' + l : '');
+        case 'investor/updated': return 'Investisseur mis à jour' + (l ? ' :' + l : '');
+        case 'dilution/saved':   return 'Simulation de dilution enregistrée' + (l ? ' :' + l : '');
+        case 'valuation/saved':  return 'Estimation de valorisation enregistrée' + (l ? ' :' + l : '');
+        case 'exit/saved':       return "Simulation d'exit enregistrée" + (l ? ' :' + l : '');
         case 'compare/versions': return 'Comparaison de versions' + (l ? ' :' + l : '');
         case 'compare/investors':return "Comparaison d'investisseurs" + (l ? ' :' + l : '');
-        case 'profile/updated':  return 'Profil de levÃ©e mis Ã  jour';
+        case 'profile/updated':  return 'Profil de levée mis à jour';
         default:                 return 'Action' + l;
       }
     }

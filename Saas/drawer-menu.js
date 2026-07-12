@@ -194,6 +194,37 @@
   if (drawerLogout) drawerLogout.addEventListener('click', () => {
     if (typeof logout === 'function') logout(); else location.href = 'login.html';
   });
+
+  // Notification « feedback » : tant qu'une réponse du fondateur n'a pas été
+  // lue, une pastille rouge s'affiche sur le hamburger droit (visible menu
+  // fermé) et sur le lien Feedback (visible menu ouvert). L'état vient de
+  // /api/saas/feedback/unread ; il se vide côté serveur dès que la page
+  // Feedback est ouverte, donc la pastille disparaît au prochain rafraîchissement.
+  (function setupFeedbackNotification() {
+    const dot = document.getElementById('feedback-unread-dot');
+    if (!dot) return; // pages sans lien Feedback (ex. tableau de bord avocat)
+    const btn = document.getElementById('actions-menu-btn');
+
+    function apply(unread) {
+      dot.hidden = !unread;
+      if (btn) btn.classList.toggle('hamburger--notify', unread);
+    }
+    async function refresh() {
+      try {
+        const res = await fetch('/api/saas/feedback/unread', { credentials: 'include' });
+        if (!res.ok) return;
+        const data = await res.json();
+        apply(!!(data && data.unread));
+      } catch {}
+    }
+
+    refresh();
+    setInterval(refresh, 20000);
+    // Retour sur l'onglet (après avoir lu le fil dans un autre onglet) : recheck.
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') refresh();
+    });
+  })();
 })();
 
 // Recherche partagée : elle est ajoutée aux barres supérieures des pages outils.
