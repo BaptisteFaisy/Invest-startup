@@ -554,6 +554,16 @@
         </div>
       </div>
 
+      <div class="card" id="to-exit-card" style="margin-top:20px">
+        <div class="card__toprow" style="align-items:center">
+          <div style="flex:1;min-width:0">
+            <div class="card__h">Étape suivante — la revente</div>
+            <p class="card__desc" style="margin:4px 0 0">Reprenez la cap table <b>après le dernier tour</b> dans le simulateur d'exit — sans rien ressaisir — pour voir qui touche quoi le jour d'une vente (préférences de liquidation, cascade de distribution).</p>
+          </div>
+          <button type="button" class="btn btn--ai" id="to-exit-btn" style="white-space:nowrap">Simuler la revente →</button>
+        </div>
+      </div>
+
       <div class="card dil__history" id="hist-card">
         <div class="card__h">Historique des simulations</div>
         <div class="card__desc">Vos simulations enregistrées. Chargez-en une pour la reprendre ou la comparer.</div>
@@ -1646,6 +1656,40 @@
         e.target.closest('.row').remove();
         recompute();
       }
+    });
+
+    // ---------- Pont vers le simulateur d'exit ----------
+    // Transmet la cap table APRÈS le dernier tour (répartition pleinement diluée) au
+    // simulateur d'exit, via localStorage, pour éviter toute ressaisie.
+    const EXIT_HANDOFF_KEY = 'liquidplus_dilution_to_exit';
+    function buildExitHandoff() {
+      if (!lastDil || !lastDil.valid || !lastDil.valid.length) return null;
+      const { valid } = lastDil;
+      const last = valid[valid.length - 1];
+      // Montant investi cumulé par nom (investisseurs + convertibles) → préremplit les préférences
+      const investedByName = {};
+      valid.forEach(e => {
+        (e.rd.investors || []).forEach(inv => { investedByName[inv.name] = (investedByName[inv.name] || 0) + inv.amount; });
+        (e.st.convertibles || []).forEach(cv => { investedByName[cv.name] = (investedByName[cv.name] || 0) + cv.amount; });
+      });
+      // L'exit ne distingue que fondateurs / investisseurs / pool
+      const mapType = { founder: 'founder', invest0: 'invest0', investN: 'invest0', convertN: 'invest0', pool0: 'pool0', poolN: 'pool0' };
+      const rows = last.r.rows.filter(row => row.after > 1e-9).map(row => {
+        const type = mapType[row.cat] || 'invest0';
+        return {
+          name: row.name,
+          type,
+          value: +(row.pctAfter * 100).toFixed(4),          // % pleinement dilué, final
+          invested: type === 'invest0' ? (investedByName[row.name] || 0) : 0,
+        };
+      });
+      return { savedAt: Date.now(), mode: 'pct', rows, meta: { rounds: valid.length, lastRound: last.rd.name, postV: last.r.postV } };
+    }
+    document.getElementById('to-exit-btn').addEventListener('click', () => {
+      const payload = buildExitHandoff();
+      if (!payload) { alert("Renseignez d'abord une cap table de départ et au moins un tour cohérent avant de passer à la revente."); return; }
+      try { localStorage.setItem(EXIT_HANDOFF_KEY, JSON.stringify(payload)); } catch {}
+      window.location.href = 'exit.html?from=dilution';
     });
 
     document.getElementById('reset-btn').addEventListener('click', () => resetForm());

@@ -1500,10 +1500,53 @@
       });
     }
 
+    // ---------- Import depuis le simulateur de dilution ----------
+    // Reprend la cap table transmise (répartition après le dernier tour) sans ressaisie.
+    function showDilutionImportBanner(meta) {
+      const grid = document.querySelector('.ext__grid');
+      if (!grid || !grid.parentNode) return;
+      const rounds = meta && meta.rounds ? meta.rounds : 1;
+      const post = meta && meta.postV ? nfInt.format(Math.round(meta.postV)) + ' €' : '';
+      const b = document.createElement('div');
+      b.style.cssText = 'display:flex;gap:10px;align-items:flex-start;background:rgba(37,99,235,0.10);border:1px solid rgba(37,99,235,0.30);border-radius:12px;padding:13px 15px;margin:0 0 18px;font-size:13px;line-height:1.5;color:#bfdbfe';
+      b.innerHTML = '<svg viewBox="0 0 24 24" style="width:18px;height:18px;flex:none;stroke:#60a5fa;stroke-width:1.9;fill:none;margin-top:1px"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>'
+        + '<div>Cap table importée depuis la <b style="color:#fff">simulation de dilution</b> — répartition après '
+        + (rounds > 1 ? 'les ' + rounds + ' tours' : 'le tour') + (post ? ' (post-money ' + post + ')' : '')
+        + '. Renseignez le <b style="color:#fff">prix de vente</b> pour lancer le calcul ; les montants investis connus ont été pré-remplis dans les préférences.</div>';
+      grid.parentNode.insertBefore(b, grid);
+    }
+    function importFromDilution() {
+      let data;
+      try { data = JSON.parse(localStorage.getItem('liquidplus_dilution_to_exit') || 'null'); } catch { data = null; }
+      if (!data || !Array.isArray(data.rows) || !data.rows.length) return false;
+      try { localStorage.removeItem('liquidplus_dilution_to_exit'); } catch {}   // import unique
+      mode = 'pct';
+      const rows = data.rows.map(r => {
+        const type = (r.type === 'founder' || r.type === 'pool0') ? r.type : 'invest0';
+        return {
+          name: r.name, type, value: r.value, sellPct: 0,
+          pref: type === 'invest0'
+            ? { invested: r.invested || 0, multiple: 1, participating: false, cap: 0, rank: 1, convert: false }
+            : null,
+        };
+      });
+      shRowsEl.innerHTML = rows.map(shRowHTML).join('');
+      document.getElementById('sale-price').value = '';
+      document.getElementById('sale-fees').value = '3';
+      document.getElementById('sale-debt').value = '0';
+      document.getElementById('part-valo').value = '';
+      document.getElementById('part-buyer').value = 'Investisseur secondaire';
+      syncModeUI();
+      exitType = 'partial'; setExitType('total');   // force le rafraîchissement + recompute
+      showDilutionImportBanner(data.meta);
+      return true;
+    }
+
     // Init
     syncModeUI();
     setExitType('total');
-    loadExample();
+    const fromDilution = new URLSearchParams(location.search).get('from') === 'dilution';
+    if (!(fromDilution && importFromDilution())) loadExample();
     hydrateHistory();
   </script>
 
