@@ -26,6 +26,14 @@
     .dossiers__sub { color: #fff; font-size: 15px; margin-top: 8px; }
     .dossiers__head .btn { cursor: pointer; }
 
+    /* Ampoule « Comprendre cette étape » : en haut à droite de chaque vue d'étape.
+       Contour blanc sur fond noir, reprend l'ampoule qui figurait sur la frise. */
+    .step-guide-btn { margin-left: auto; flex: none; width: 40px; height: 40px; display: grid; place-items: center; padding: 0; border-radius: 50%; background: #08090c; border: 1.5px solid rgba(255,255,255,0.7); color: #fff; cursor: pointer; transition: border-color .15s, background .15s, transform .12s; }
+    .step-guide-btn:hover { border-color: #fff; background: #15161b; }
+    .step-guide-btn:active { transform: scale(.94); }
+    .step-guide-btn svg { width: 20px; height: 20px; display: block; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+    .step-guide-btn[hidden] { display: none; }
+
     .section-label { display: flex; align-items: center; justify-content: space-between; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #fff; margin: 34px 0 14px; }
 
     /* Chevron de repli, partagé par « prochaines priorités ». */
@@ -884,6 +892,7 @@
       <div class="dossiers__head">
         <input type="file" id="file-input" accept=".pdf,.doc,.docx,.xlsx,.xls,.png,.jpg,.jpeg" multiple hidden />
         <input type="file" id="investor-checklist-input" accept=".pdf,.doc,.docx,.xlsx" hidden />
+        <button type="button" id="step-guide-btn" class="step-guide-btn" hidden aria-label="Comprendre cette étape" title="Comprendre cette étape"></button>
       </div>
 
       <div id="error" class="err" hidden></div>
@@ -2739,6 +2748,7 @@
         if (bsaFoldersEl) bsaFoldersEl.innerHTML = '';
         syncClassicActions(-1);
         setTopbarStepLabel('');
+        updateStepGuideButton(null);
         renderNextActions();
         refreshFmodal();
         return;
@@ -2757,6 +2767,7 @@
         const selectedKey = ensureBsaStep(phases);
         if (selectedKey === 'bsa-profile') {
           setTopbarStepLabel('Ma levée');
+          updateStepGuideButton(null);
           const bsaProfileCard = fundraisingProfileEl();
           bsaProfileCard.id = 'phase-bsa-profile';
           container.appendChild(bsaProfileCard);
@@ -2764,6 +2775,7 @@
           const selected = phases.find(f => f.key === selectedKey);
           const idx = phases.findIndex(f => f.key === selectedKey);
           setTopbarStepLabel(selected ? friseLabel(selected) : '');
+          updateStepGuideButton(selected || null);
           if (selected) container.appendChild(phaseCard(selected, idx));
         }
       }
@@ -2777,6 +2789,7 @@
       if (!selected) {
         syncClassicActions(-1);
         setTopbarStepLabel('');
+        updateStepGuideButton(null);
         container.appendChild(importCard());
         return;
       }
@@ -2784,6 +2797,7 @@
       const idx = phases.findIndex(f => f.id === selected.id);
       syncClassicActions(idx);
       setTopbarStepLabel(friseLabel(selected));
+      updateStepGuideButton(selected);
       if (selected.key === 'mise-en-ordre') {
         const profileCard = fundraisingProfileEl();
         profileCard.id = 'phase-' + selected.key;
@@ -3899,6 +3913,9 @@
       if (track === 'classic') phases = phases.filter(isClassicPhaseVisible);
       const idx    = phases.findIndex(x => x.id === f.id);
       const data   = STEP_EXPLAINERS[f.key] || null;
+      // À défaut d'explication détaillée (sous-étapes), on retombe sur le guide
+      // pédagogique de l'étape (objectif / en clair / à éviter).
+      const guide  = data ? null : (PHASE_GUIDE[f.key] || null);
 
       fmodal.classList.remove('is-step-done');
       fmodal.querySelector('.fmodal__badge-step').textContent = idx >= 0 ? idx : '';
@@ -3906,13 +3923,15 @@
       fmodal.querySelector('.fmodal__title').textContent = friseLabel(f);
       const stEl = fmodal.querySelector('.fmodal__status');
       stEl.classList.remove('is-done');
-      stEl.hidden = !data;
-      stEl.textContent = data ? 'Explication' : '';
+      stEl.hidden = !(data || guide);
+      stEl.textContent = (data || guide) ? 'Explication' : '';
 
       const sc = fmodalBody.scrollTop; // préserve le défilement lors d'un rafraîchissement
       fmodalBody.innerHTML = '';
       if (data) {
         fmodalBody.appendChild(stepInfoEl(data));
+      } else if (guide) {
+        fmodalBody.appendChild(guideInfoEl(guide));
       } else {
         const e = document.createElement('div');
         e.className = 'fmodal__empty';
@@ -3920,6 +3939,43 @@
         fmodalBody.appendChild(e);
       }
       fmodalBody.scrollTop = sc;
+    }
+
+    // Rendu du guide pédagogique dans la fenêtre « Comprendre cette étape ».
+    function guideInfoEl(g) {
+      const sec = document.createElement('section');
+      sec.className = 'step-info';
+      const avoid = (g.eviter || []).map(x => `<li class="step-info__text">${esc(x)}</li>`).join('');
+      sec.innerHTML = `
+        <p class="fmodal__sec-title" style="margin-top:2px">Objectif</p>
+        <p class="step-info__lead">${esc(g.objectif)}</p>
+        <p class="fmodal__sec-title">En clair</p>
+        <p class="step-info__text">${esc(g.explication)}</p>
+        ${avoid ? `<p class="fmodal__sec-title">À ne pas faire</p><ul class="step-info__list">${avoid}</ul>` : ''}`;
+      return sec;
+    }
+
+    // Ampoule « Comprendre cette étape », en haut à droite de la vue d'étape.
+    // Reprend l'ancienne ampoule de la frise : ouvre la même fenêtre d'explication.
+    const stepGuideBtn = document.getElementById('step-guide-btn');
+    if (stepGuideBtn) {
+      stepGuideBtn.innerHTML = bulbIcon;
+      stepGuideBtn.addEventListener('click', () => {
+        const id = stepGuideBtn.dataset.folderId;
+        if (id) openFmodal(Number(id));
+      });
+    }
+    // Affiche l'ampoule quand l'étape courante possède une explication, sinon la masque.
+    function updateStepGuideButton(folder) {
+      if (!stepGuideBtn) return;
+      const has = !!(folder && folder.key && (STEP_EXPLAINERS[folder.key] || PHASE_GUIDE[folder.key]));
+      if (has) {
+        stepGuideBtn.dataset.folderId = String(folder.id);
+        stepGuideBtn.hidden = false;
+      } else {
+        delete stepGuideBtn.dataset.folderId;
+        stepGuideBtn.hidden = true;
+      }
     }
 
     if (fmodal) {
