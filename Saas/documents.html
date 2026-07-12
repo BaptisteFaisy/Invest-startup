@@ -99,6 +99,17 @@
     .doc-view-btn:hover { color: #fff; }
     .doc-view-btn.is-active { background: #fff; color: #08090c; }
 
+    /* ---- Barre secondaire : puces filtrant par groupe (étape / investisseur / stade) ---- */
+    .doc-subfilter { display: flex; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+    .doc-subfilter__label { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.45); }
+    .doc-subfilter__chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .doc-chip { display: inline-flex; align-items: center; gap: 7px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.14); border-radius: 999px; color: rgba(255,255,255,0.8); font: 600 13px/1 'Libre Franklin', sans-serif; padding: 9px 14px; cursor: pointer; transition: border-color .15s, background .15s, color .15s; }
+    .doc-chip:hover { border-color: rgba(255,255,255,0.32); color: #fff; }
+    .doc-chip.is-active { background: #fff; border-color: #fff; color: #08090c; }
+    .doc-chip__dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+    .doc-chip__count { font-size: 12px; opacity: 0.6; font-weight: 700; }
+    .doc-chip.is-active .doc-chip__count { opacity: 0.5; }
+
     .doc-hint { display: flex; align-items: flex-start; gap: 10px; background: rgba(96,165,250,0.08); border: 1px solid rgba(96,165,250,0.28); border-radius: 12px; padding: 12px 14px; margin-top: 16px; color: rgba(255,255,255,0.8); font-size: 13.5px; line-height: 1.5; }
     .doc-hint svg { flex: none; width: 17px; height: 17px; margin-top: 1px; fill: none; stroke: #93c5fd; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .doc-hint a { color: #93c5fd; }
@@ -220,6 +231,11 @@
           </button>
         </div>
       </div>
+      <!-- Barre secondaire : filtre par groupe, dépend de la vue choisie -->
+      <div class="doc-subfilter" id="doc-subfilter" hidden>
+        <span class="doc-subfilter__label" id="doc-subfilter-label">Afficher</span>
+        <div class="doc-subfilter__chips" id="doc-subfilter-chips"></div>
+      </div>
       <div class="doc-hint" id="doc-hint" hidden></div>
 
       <div class="doc-loading" id="doc-loading">Chargement de vos documents…</div>
@@ -249,12 +265,16 @@
       const searchEl   = document.getElementById('doc-search-input');
       const viewbarEl  = document.getElementById('doc-viewbar');
       const viewToggle = document.getElementById('doc-viewtoggle');
+      const subfilterEl   = document.getElementById('doc-subfilter');
+      const subfilterLbl  = document.getElementById('doc-subfilter-label');
+      const subfilterChips = document.getElementById('doc-subfilter-chips');
       const hintEl     = document.getElementById('doc-hint');
 
       let folders = [];
       let investors = [];
       let docs = [];
-      let view = 'etape';     // etape | investor
+      let view = 'etape';     // etape | investor | avancement
+      let subFilter = 'all';  // groupe sélectionné dans la barre secondaire (ou « all »)
       let query = '';
 
       /* ---------- Helpers ---------- */
@@ -439,6 +459,26 @@
         }
       }
 
+      // Libellé de la barre secondaire selon la vue.
+      const SUBFILTER_LABELS = { etape: 'Étape', investor: 'Investisseur', avancement: 'Stade' };
+      const SUBFILTER_ALL    = { etape: 'Toutes les étapes', investor: 'Tous les investisseurs', avancement: 'Tous les stades' };
+
+      // Construit les puces de la barre secondaire à partir des groupes de la vue
+      // courante (une puce par groupe + une puce « Tout »), avec le compte de
+      // documents. La puce active reflète `subFilter`.
+      function renderSubfilter(groups) {
+        subfilterEl.hidden = false;
+        subfilterLbl.textContent = SUBFILTER_LABELS[view] || 'Afficher';
+        const total = groups.reduce((n, g) => n + g.items.length, 0);
+        const chips = [{ key: 'all', name: SUBFILTER_ALL[view] || 'Tout', count: total }]
+          .concat(groups.map(g => ({ key: g.key, name: g.name, count: g.items.length, dot: g.dot })));
+        subfilterChips.innerHTML = chips.map(c => {
+          const active = (subFilter === c.key) || (subFilter === 'all' && c.key === 'all');
+          const dot = c.dot ? `<span class="doc-chip__dot" style="background:${c.dot}"></span>` : '';
+          return `<button type="button" class="doc-chip${active ? ' is-active' : ''}" data-key="${esc(c.key)}">${dot}${esc(c.name)} <span class="doc-chip__count">${c.count}</span></button>`;
+        }).join('');
+      }
+
       function render() {
         renderHint();
         const shown = docs.filter(matches);
@@ -454,6 +494,7 @@
         if (query && !shown.length) {
           emptyEl.hidden = false;
           emptyEl.innerHTML = '<b>Aucun document ne correspond.</b><br>Modifiez votre recherche.';
+          subfilterEl.hidden = true;
           return;
         }
         if (docs.length) emptyEl.hidden = true;
@@ -463,24 +504,31 @@
         const groups = [];
         if (view === 'etape') {
           folders.forEach(f => {
-            groups.push({ name: f.name, items: shown.filter(d => d.folder_id === f.id) });
+            groups.push({ key: 'f' + f.id, name: f.name, items: shown.filter(d => d.folder_id === f.id) });
           });
           const unclassified = shown.filter(d => d.folder_id == null || !folders.some(f => f.id === d.folder_id));
-          groups.push({ name: 'Non classés', unclassified: true, items: unclassified });
+          groups.push({ key: 'unclassified', name: 'Non classés', unclassified: true, items: unclassified });
         } else if (view === 'avancement') {
           // Une section par niveau d'avancement, dans l'ordre du cycle de vie.
           STATUSES.forEach(s => {
-            groups.push({ name: s.label, desc: s.desc, items: shown.filter(d => docStatus(d) === s.key) });
+            groups.push({ key: s.key, name: s.label, dot: s.accent, desc: s.desc, items: shown.filter(d => docStatus(d) === s.key) });
           });
         } else {
           investors.forEach(inv => {
-            groups.push({ name: investorLabel(inv), items: shown.filter(d => docInvestorId(d) === inv.id) });
+            groups.push({ key: 'inv' + inv.id, name: investorLabel(inv), items: shown.filter(d => docInvestorId(d) === inv.id) });
           });
           const unclassified = shown.filter(d => { const iid = docInvestorId(d); return iid == null || !investorById(iid); });
-          groups.push({ name: 'Non classés', unclassified: true, items: unclassified });
+          groups.push({ key: 'unclassified', name: 'Non classés', unclassified: true, items: unclassified });
         }
 
-        groups.forEach(g => {
+        // Barre secondaire : une puce par groupe (+ « Tout »). Si le groupe
+        // sélectionné n'existe plus (vue changée, investisseur supprimé…), on
+        // retombe sur « Tout ».
+        if (subFilter !== 'all' && !groups.some(g => g.key === subFilter)) subFilter = 'all';
+        renderSubfilter(groups);
+        const visibleGroups = subFilter === 'all' ? groups : groups.filter(g => g.key === subFilter);
+
+        visibleGroups.forEach(g => {
           const items = g.items.slice().sort((a, b) =>
             new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at));
           const sec = document.createElement('section');
@@ -623,7 +671,15 @@
         const btn = e.target.closest('.doc-view-btn');
         if (!btn) return;
         view = btn.getAttribute('data-view');
+        subFilter = 'all';   // on repart de « Tout » à chaque changement de vue
         viewToggle.querySelectorAll('.doc-view-btn').forEach(b => b.classList.toggle('is-active', b === btn));
+        render();
+      });
+      // Barre secondaire : filtre l'affichage sur le groupe cliqué (ou « Tout »).
+      subfilterChips.addEventListener('click', (e) => {
+        const chip = e.target.closest('.doc-chip');
+        if (!chip) return;
+        subFilter = chip.getAttribute('data-key');
         render();
       });
 
