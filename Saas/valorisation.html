@@ -396,7 +396,7 @@
               <div class="ve-out__val" id="ve-result">—</div>
               <div class="ve-out__range" id="ve-range"></div>
               <button type="button" class="ve-use" id="ve-use">Utiliser dans le simulateur de dilution →</button>
-              <button type="button" class="ve-use ve-save" id="ve-save">💾 Enregistrer cette estimation</button>
+              <button type="button" class="ve-use ve-save" id="ve-save">Enregistrer cette estimation</button>
               <div class="ve-out__note">Une estimation indicative, pas un prix. La valorisation finale se négocie ; utilisez-la comme point de départ.</div>
             </div>
           </div>
@@ -700,7 +700,7 @@
       const list = historyEntries;
       const body = document.getElementById('hist-list');
       if (!list.length) {
-        body.innerHTML = '<div class="hist-empty">Aucune estimation enregistrée pour l\'instant. Réglez vos paramètres puis cliquez sur « 💾 Enregistrer cette estimation » pour la retrouver ici.</div>';
+        body.innerHTML = '<div class="hist-empty">Aucune estimation enregistrée pour l\'instant. Réglez vos paramètres puis cliquez sur « Enregistrer cette estimation » pour la retrouver ici.</div>';
         return;
       }
       body.innerHTML = list.map(entry => {
