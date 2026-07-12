@@ -19,135 +19,152 @@
     .app { visibility: hidden; }
     .app.ready { visibility: visible; }
     .app { height: auto; overflow: visible; display: block; }
-    body, .app { background: #08090c !important; }
+    body, .app { background: #f7f6f3 !important; }
 
-    /* Topbar noir (identique aux autres pages du SaaS) */
-    .topbar { background: #08090c !important; border-bottom: 1px solid rgba(255,255,255,0.07) !important; }
-    .topbar .brand { color: #fff !important; display: flex; align-items: center; gap: 8px; }
-    .topbar .brand__plus { color: #fff !important; }
+    /* Topbar clair (thème « Papier » propre à l'outil Avocat) */
+    .topbar { background: #f7f6f3 !important; border-bottom: 1px solid #ddd9d1 !important; }
+    .topbar .brand { color: #111 !important; display: flex; align-items: center; gap: 8px; }
+    .topbar .brand__plus { color: #111 !important; }
     .topbar .brand__logo { display: block; flex: none; }
-    .topbar__doc { color: #fff !important; border-left-color: rgba(255,255,255,0.2) !important; }
-    .topbar .btn--ghost { color: #fff !important; border-color: rgba(255,255,255,0.35) !important; }
-    .topbar .btn--ghost:hover { color: #fff !important; border-color: rgba(255,255,255,0.65) !important; }
+    .topbar .brand__logo path { stroke: #111 !important; }
+    .topbar__doc { color: #111 !important; border-left-color: rgba(0,0,0,0.18) !important; }
+    .topbar .hamburger { color: #111 !important; }
+    .topbar .btn--ghost { color: #111 !important; border-color: rgba(0,0,0,0.32) !important; }
+    .topbar .btn--ghost:hover { color: #111 !important; border-color: rgba(0,0,0,0.6) !important; }
 
     .mkt { max-width: 940px; margin: 0 auto; padding: 24px 28px 90px; }
     .page-back-row { height: 6px; }
-    .page-back { position: fixed; top: 56px; left: max(12px, calc(50% - 486px)); z-index: 15; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
-    .page-back:hover { opacity: 0.68; transform: translateX(-1px); }
+    .page-back { position: fixed; top: 56px; left: max(12px, calc(50% - 486px)); z-index: 15; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #111; cursor: pointer; opacity: 0.9; transition: opacity .15s, transform .15s; }
+    .page-back:hover { opacity: 0.6; transform: translateX(-1px); }
     .page-back:focus-visible { outline: none; opacity: 1; }
     .page-back svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-    .mkt__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #a5b4fc; }
-    .mkt__title { font-size: 30px; letter-spacing: -0.03em; color: #fff; margin-top: 6px; }
-    .mkt__sub { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 8px; line-height: 1.55; max-width: 640px; }
+    .mkt__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #8a8578; }
+    .mkt__title { font-size: 30px; letter-spacing: -0.03em; color: #111; margin-top: 6px; padding-bottom: 16px; border-bottom: 2px solid #141414; }
+    .mkt__sub { color: #57534a; font-size: 15px; margin-top: 8px; line-height: 1.55; max-width: 640px; }
 
     /* ── Blocs / sections ─────────────────────────────────────────── */
     .av-sec { margin-top: 30px; }
     .av-sec__h { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; }
-    .av-sec__t { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
-    .av-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; }
+    .av-sec__t { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #8a8578; }
+    .av-card { background: #ffffff; border: 1px solid #e4e0d8; border-radius: 16px; }
 
     /* ── Carte « Mon avocat » ─────────────────────────────────────── */
     .av-lawyer { padding: 22px 24px; display: flex; gap: 18px; align-items: flex-start; }
-    .av-avatar { flex: 0 0 auto; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 18px; color: #0b1020; background: linear-gradient(135deg, #c7d2fe, #a5b4fc); letter-spacing: 0.02em; }
+    .av-avatar { flex: 0 0 auto; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 18px; color: #f7f6f3; background: #141414; letter-spacing: 0.02em; }
     .av-lawyer__body { flex: 1 1 auto; min-width: 0; }
-    .av-lawyer__name { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
-    .av-lawyer__firm { font-size: 13.5px; color: rgba(255,255,255,0.62); margin-top: 2px; }
+    .av-lawyer__name { font-size: 18px; font-weight: 700; color: #111; letter-spacing: -0.01em; }
+    .av-lawyer__firm { font-size: 13.5px; color: #6a655c; margin-top: 2px; }
     .av-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 11px; }
-    .av-chip { font-size: 11.5px; font-weight: 600; color: #c7d2fe; background: rgba(99,102,241,0.16); border: 1px solid rgba(99,102,241,0.28); border-radius: 99px; padding: 3px 10px; }
-    .av-lawyer__bio { font-size: 13.5px; line-height: 1.55; color: rgba(255,255,255,0.7); margin-top: 12px; }
-    .av-lawyer__rcp { display: flex; align-items: center; gap: 7px; font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 12px; }
-    .av-lawyer__rcp svg { width: 14px; height: 14px; flex: none; fill: none; stroke: #6ee7b7; stroke-width: 2; }
+    .av-chip { font-size: 11.5px; font-weight: 600; color: #3a3630; background: transparent; border: 1px solid #cfcabd; border-radius: 99px; padding: 3px 10px; }
+    .av-lawyer__bio { font-size: 13.5px; line-height: 1.55; color: #3a3630; margin-top: 12px; }
+    .av-lawyer__rcp { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #57534a; margin-top: 12px; }
+    .av-lawyer__rcp svg { width: 14px; height: 14px; flex: none; fill: none; stroke: #141414; stroke-width: 2; }
     .av-lawyer__side { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-    .av-badge-mode { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #a5b4fc; background: rgba(99,102,241,0.18); padding: 4px 10px; border-radius: 99px; white-space: nowrap; }
+    .av-badge-mode { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #f7f6f3; background: #141414; padding: 4px 10px; border-radius: 99px; white-space: nowrap; }
 
     /* ── Prestations ──────────────────────────────────────────────── */
     .av-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); gap: 12px; }
     .av-presta { padding: 18px 18px 16px; display: flex; flex-direction: column; transition: border-color .15s, transform .15s; }
-    .av-presta:hover { border-color: rgba(255,255,255,0.2); }
+    .av-presta:hover { border-color: #cfcabd; }
     .av-presta__top { display: flex; align-items: flex-start; gap: 8px; justify-content: space-between; }
-    .av-presta__label { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
-    .av-presta__crit { flex: none; font-size: 9.5px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: #fca5a5; background: rgba(239,68,68,0.14); border: 1px solid rgba(239,68,68,0.3); border-radius: 99px; padding: 3px 8px; white-space: nowrap; }
-    .av-presta__desc { font-size: 13px; line-height: 1.5; color: rgba(255,255,255,0.62); margin-top: 8px; flex: 1 1 auto; }
+    .av-presta__label { font-size: 15px; font-weight: 700; color: #111; letter-spacing: -0.01em; }
+    .av-presta__crit { flex: none; font-size: 9.5px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: #111; background: transparent; border: 1px solid #141414; border-radius: 99px; padding: 3px 8px; white-space: nowrap; }
+    .av-presta__desc { font-size: 13px; line-height: 1.5; color: #57534a; margin-top: 8px; flex: 1 1 auto; }
     .av-presta__meta { display: flex; align-items: center; gap: 12px; margin-top: 14px; font-size: 12.5px; }
-    .av-presta__price { font-weight: 700; color: #fff; }
-    .av-presta__delay { color: rgba(255,255,255,0.5); display: inline-flex; align-items: center; gap: 5px; }
+    .av-presta__price { font-weight: 700; color: #111; }
+    .av-presta__delay { color: #8a8578; display: inline-flex; align-items: center; gap: 5px; }
     .av-presta__delay svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; }
     .av-presta__cta { margin-top: 14px; width: 100%; }
 
     /* ── Boutons ──────────────────────────────────────────────────── */
     .av-btn { font-family: inherit; font-weight: 600; font-size: 13.5px; line-height: 1; padding: 10px 16px; border-radius: 10px; border: 1px solid transparent; cursor: pointer; transition: background .15s, border-color .15s, color .15s; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
-    .av-btn--primary { background: #6366f1; color: #fff; }
-    .av-btn--primary:hover { background: #4f46e5; }
-    .av-btn--ghost { background: transparent; color: #fff; border-color: rgba(255,255,255,0.28); }
-    .av-btn--ghost:hover { border-color: rgba(255,255,255,0.55); }
+    .av-btn--primary { background: #141414; color: #f7f6f3; }
+    .av-btn--primary:hover { background: #000; }
+    .av-btn--ghost { background: transparent; color: #141414; border-color: rgba(0,0,0,0.3); }
+    .av-btn--ghost:hover { border-color: rgba(0,0,0,0.6); }
     .av-btn--sm { padding: 7px 13px; font-size: 12.5px; border-radius: 8px; }
-    .av-btn:disabled { opacity: 0.55; cursor: default; }
-    .av-btn--danger { color: #fca5a5; border-color: rgba(239,68,68,0.35); background: transparent; }
-    .av-btn--danger:hover { background: rgba(239,68,68,0.1); }
-    .av-btn--link { background: none; border: 0; padding: 2px 2px; color: rgba(255,255,255,0.55); font: 600 12px/1.3 'Libre Franklin', sans-serif; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; text-align: right; }
-    .av-btn--link:hover { color: rgba(255,255,255,0.85); }
+    .av-btn:disabled { opacity: 0.5; cursor: default; }
+    .av-btn--danger { color: #57534a; border-color: rgba(0,0,0,0.28); background: transparent; }
+    .av-btn--danger:hover { background: rgba(0,0,0,0.05); }
+    .av-btn--link { background: none; border: 0; padding: 2px 2px; color: #8a8578; font: 600 12px/1.3 'Libre Franklin', sans-serif; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; text-align: right; }
+    .av-btn--link:hover { color: #111; }
 
     /* ── Vos documents à sécuriser ────────────────────────────────── */
-    .av-docs { display: flex; flex-direction: column; gap: 8px; }
-    .av-doc { padding: 13px 16px; display: flex; align-items: center; gap: 12px; }
+    .av-docs { display: flex; flex-direction: column; gap: 0; }
+    /* Lignes éditoriales (filet bas) plutôt que cartes pleines. */
+    .av-docs .av-doc { padding: 14px 6px; display: flex; align-items: center; gap: 12px; background: transparent; border: 0; border-bottom: 1px solid #e4e0d8; border-radius: 0; }
+    .av-docs .av-doc:last-child { border-bottom: 0; }
     .av-doc__main { flex: 1 1 auto; min-width: 0; }
-    .av-doc__name { font-size: 14px; font-weight: 600; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    /* Pastilles de risque — pâles et plates, sans bordure ni ombre (identiques à Documents). */
-    .av-docrisk { display: inline-flex; align-items: center; gap: 6px; flex: none; font-size: 11.5px; font-weight: 600; border: 0; border-radius: 999px; padding: 3px 9px; box-shadow: none; }
-    .av-docrisk__dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
-    .av-docrisk--critique { color: #d99a9a; background: rgba(239,68,68,0.10); }
-    .av-docrisk--critique .av-docrisk__dot { background: #cf7676; }
-    .av-docrisk--conseille { color: #cdae74; background: rgba(245,158,11,0.10); }
-    .av-docrisk--conseille .av-docrisk__dot { background: #c39a4c; }
-    .av-docrisk--faible { color: #96a0aa; background: rgba(148,163,184,0.10); }
-    .av-docrisk--faible .av-docrisk__dot { background: #8a94a0; }
+    .av-doc__name { font-size: 14.5px; font-weight: 600; color: #111; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    /* Pastilles de risque — encodées par le REMPLISSAGE (noir & blanc), pas par la couleur. */
+    .av-docrisk { display: inline-flex; align-items: center; gap: 7px; flex: none; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; border: 0; border-radius: 0; padding: 0; background: transparent; box-shadow: none; }
+    .av-docrisk__dot { width: 9px; height: 9px; border-radius: 0; flex: none; box-sizing: border-box; }
+    .av-docrisk--critique { color: #111; }
+    .av-docrisk--critique .av-docrisk__dot { background: #141414; }
+    .av-docrisk--conseille { color: #57534a; }
+    .av-docrisk--conseille .av-docrisk__dot { background: linear-gradient(135deg, #141414 50%, transparent 50%); border: 1px solid #141414; }
+    .av-docrisk--faible { color: #8a8578; }
+    .av-docrisk--faible .av-docrisk__dot { background: transparent; border: 1px solid #8a8578; }
     .av-doc .av-btn--sm { flex: none; }
 
     /* ── Demandes ─────────────────────────────────────────────────── */
     .av-reqs { display: flex; flex-direction: column; gap: 10px; }
     .av-req { padding: 15px 18px; display: flex; align-items: center; gap: 14px; }
     .av-req__main { flex: 1 1 auto; min-width: 0; }
-    .av-req__t { font-size: 14.5px; font-weight: 600; color: #fff; }
-    .av-req__sub { font-size: 12.5px; color: rgba(255,255,255,0.55); margin-top: 3px; display: flex; flex-wrap: wrap; gap: 6px 12px; }
-    .av-req__doc { color: #c7d2fe; }
-    .av-status { flex: none; font-size: 11.5px; font-weight: 700; padding: 4px 11px; border-radius: 99px; white-space: nowrap; }
-    .av-status--demande { color: #fcd34d; background: rgba(245,158,11,0.15); }
-    .av-status--en_cours { color: #93c5fd; background: rgba(59,130,246,0.16); }
-    .av-status--relu { color: #6ee7b7; background: rgba(16,185,129,0.16); }
-    .av-status--annule { color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.07); }
-    .av-empty { padding: 26px 20px; text-align: center; color: rgba(255,255,255,0.5); font-size: 13.5px; }
+    .av-req__t { font-size: 14.5px; font-weight: 600; color: #111; }
+    .av-req__sub { font-size: 12.5px; color: #57534a; margin-top: 3px; display: flex; flex-wrap: wrap; gap: 6px 12px; }
+    .av-req__doc { color: #141414; font-weight: 600; }
+    /* Statut encodé par le remplissage : plein (remis) → gris (en cours) → contour (envoyée/annulée). */
+    .av-status { flex: none; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 4px 11px; border-radius: 99px; white-space: nowrap; }
+    .av-status--demande { color: #57534a; background: #efece6; }
+    .av-status--en_cours { color: #111; background: #e0dcd2; }
+    .av-status--relu { color: #f7f6f3; background: #141414; }
+    .av-status--annule { color: #8a8578; background: transparent; box-shadow: inset 0 0 0 1px #ddd9d1; }
+    .av-empty { padding: 26px 20px; text-align: center; color: #8a8578; font-size: 13.5px; }
+    .av-empty a { color: #141414; }
 
     /* ── Modale ───────────────────────────────────────────────────── */
-    .av-modal { position: fixed; inset: 0; z-index: 100; background: rgba(5,6,9,0.72); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .av-dialog { width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto; background: #101218; border: 1px solid rgba(255,255,255,0.12); border-radius: 18px; padding: 24px; box-shadow: 0 24px 60px rgba(0,0,0,0.5); }
-    .av-dialog__h { font-size: 19px; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
-    .av-dialog__p { font-size: 13.5px; color: rgba(255,255,255,0.6); margin-top: 6px; line-height: 1.5; }
+    .av-modal { position: fixed; inset: 0; z-index: 100; background: rgba(20,18,15,0.45); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .av-dialog { width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto; background: #ffffff; border: 1px solid #ddd9d1; border-radius: 18px; padding: 24px; box-shadow: 0 24px 60px rgba(0,0,0,0.18); }
+    .av-dialog__h { font-size: 19px; font-weight: 700; color: #111; letter-spacing: -0.01em; }
+    .av-dialog__p { font-size: 13.5px; color: #57534a; margin-top: 6px; line-height: 1.5; }
     .av-field { margin-top: 16px; }
-    .av-field__l { display: block; font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,0.7); margin-bottom: 6px; }
-    .av-input, .av-select, .av-textarea { width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.14); border-radius: 10px; color: #fff; font-family: inherit; font-size: 14px; padding: 10px 12px; }
-    .av-input:focus, .av-select:focus, .av-textarea:focus { outline: none; border-color: #6366f1; }
+    .av-field__l { display: block; font-size: 12.5px; font-weight: 600; color: #3a3630; margin-bottom: 6px; }
+    .av-input, .av-select, .av-textarea { width: 100%; box-sizing: border-box; background: #ffffff; border: 1px solid #cfcabd; border-radius: 10px; color: #111; font-family: inherit; font-size: 14px; padding: 10px 12px; }
+    .av-input:focus, .av-select:focus, .av-textarea:focus { outline: none; border-color: #141414; }
     .av-textarea { resize: vertical; min-height: 84px; line-height: 1.5; }
-    .av-select option { background: #101218; }
+    .av-select option { background: #ffffff; color: #111; }
     .av-dialog__act { display: flex; gap: 10px; margin-top: 22px; }
     .av-dialog__act .av-btn { flex: 1; }
-    .av-err { color: #fca5a5; font-size: 12.5px; margin-top: 12px; min-height: 16px; }
+    .av-err { color: #111; font-weight: 600; font-size: 12.5px; margin-top: 12px; min-height: 16px; }
 
     /* ── Choix d'avocat (liste de partenaires) ────────────────────── */
     .av-picks { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
-    .av-pick { display: flex; gap: 12px; align-items: flex-start; padding: 13px 14px; border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; cursor: pointer; transition: border-color .15s, background .15s; }
-    .av-pick:hover { border-color: rgba(255,255,255,0.28); }
-    .av-pick.is-sel { border-color: #6366f1; background: rgba(99,102,241,0.1); }
-    .av-pick input { margin-top: 3px; accent-color: #6366f1; }
-    .av-pick__n { display: block; font-size: 14px; font-weight: 600; color: #fff; }
-    .av-pick__d { display: block; font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 2px; }
-    .av-own-toggle { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); }
-    .av-note { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 18px; line-height: 1.55; }
-    .av-note strong { color: rgba(255,255,255,0.7); font-weight: 600; }
+    .av-pick { display: flex; gap: 12px; align-items: flex-start; padding: 13px 14px; border: 1px solid #ddd9d1; border-radius: 12px; cursor: pointer; transition: border-color .15s, background .15s; }
+    .av-pick:hover { border-color: #b8b3a6; }
+    .av-pick.is-sel { border-color: #141414; background: #efece6; }
+    .av-pick input { margin-top: 3px; accent-color: #141414; }
+    .av-pick__n { display: block; font-size: 14px; font-weight: 600; color: #111; }
+    .av-pick__d { display: block; font-size: 12px; color: #57534a; margin-top: 2px; }
+    .av-own-toggle { margin-top: 16px; padding-top: 16px; border-top: 1px solid #e4e0d8; }
+    .av-note { font-size: 12px; color: #8a8578; margin-top: 18px; line-height: 1.55; }
+    .av-note strong { color: #3a3630; font-weight: 600; }
 
     @media (max-width: 640px) {
       .av-lawyer { flex-direction: column; }
       .av-lawyer__side { flex-direction: row; align-items: center; align-self: stretch; }
     }
+
+    /* ── Surcharges « Papier » des composants partagés (clairs) ────── */
+    .mkt__foot .btn--ghost { color: #141414; border-color: rgba(0,0,0,0.3); }
+    .mkt__foot .btn--ghost:hover { border-color: rgba(0,0,0,0.6); }
+
+    .help-bulb { background: #f7f6f3; border-color: rgba(0,0,0,0.5); color: #141414; }
+    .help-bulb:hover { border-color: #141414; background: #efece6; }
+    .help-bulb.is-open { border-color: #141414; color: #141414; background: #efece6; }
+    .help-pop { background: #ffffff; border-color: #ddd9d1; color: #3a3630; box-shadow: 0 20px 50px rgba(0,0,0,0.12); }
+    .help-pop b, .help-pop strong { color: #111; }
+    .help-pop__label { color: #8a8578; }
   </style>
   <script src="auth.js?v=3"></script>
   <script src="drawer-menu.js?v=3" defer></script>
@@ -191,10 +208,11 @@
         <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Éditeur</a>
         <a class="drawer__link" href="benchmark.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Benchmark</a>
         <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
-        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>Tâches</a>
         <a class="drawer__link" href="valorisation.html" target="_blank" rel="noopener" title="Estimateur de valorisation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Valorisation</a>
         <a class="drawer__link" href="dilution.html" target="_blank" rel="noopener" title="Simulation de dilution"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
         <a class="drawer__link" href="exit.html" target="_blank" rel="noopener" title="Simulateur d'exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Exit</a>
+        <div class="drawer__sep"></div>
+        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>Tâches</a>
         <a class="drawer__link" href="documents.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>Documents</a>
         <a class="drawer__link" href="data-room.html" target="_blank" rel="noopener" title="Data room"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/></svg>Data room</a>
         <a class="drawer__link" href="avocat.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M6 21h12"/><path d="M3 7h18"/><path d="M7 7l-3 6a3 3 0 0 0 6 0Z"/><path d="M17 7l3 6a3 3 0 0 0-6 0Z"/></svg>Avocat</a>
@@ -437,7 +455,7 @@
     function renderSecureDocs() {
       const box = document.getElementById('secure-docs');
       if (!DOCS.length) {
-        box.innerHTML = '<div class="av-card av-empty">Vos documents apparaîtront ici avec leur niveau de risque juridique. Rédigez-les ou importez-les depuis <a href="documents.html" style="color:#c7d2fe">Documents</a>.</div>';
+        box.innerHTML = '<div class="av-card av-empty">Vos documents apparaîtront ici avec leur niveau de risque juridique. Rédigez-les ou importez-les depuis <a href="documents.html" style="color:#141414;text-decoration:underline">Documents</a>.</div>';
         return;
       }
       const sorted = DOCS.slice().sort((a, b) =>

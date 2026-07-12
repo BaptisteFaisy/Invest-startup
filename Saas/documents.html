@@ -101,6 +101,29 @@
     .doc-act:hover { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.1); }
     .doc-act--relire { width: auto; padding: 0 12px; gap: 7px; font: 600 12.5px/1 'Libre Franklin', sans-serif; white-space: nowrap; }
     .doc-act svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    /* Bouton « Versions » — présent seulement quand le document a des versions validées. */
+    .doc-act--versions { width: auto; padding: 0 11px; gap: 6px; font: 600 12.5px/1 'Libre Franklin', sans-serif; white-space: nowrap; color: #c4b5fd; border-color: rgba(167,139,250,0.32); background: rgba(167,139,250,0.12); }
+    .doc-act--versions:hover { border-color: rgba(167,139,250,0.6); background: rgba(167,139,250,0.2); }
+    .doc-act--versions .doc-act__count { display: inline-grid; place-items: center; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px; background: rgba(167,139,250,0.28); font-size: 11px; font-weight: 700; }
+
+    /* ---- Popover : liste des versions d'un document ---- */
+    .verpop { position: fixed; z-index: 1200; width: 340px; max-width: calc(100vw - 24px); background: #14151b; border: 1px solid rgba(255,255,255,0.14); border-radius: 14px; box-shadow: 0 24px 60px rgba(0,0,0,0.5); overflow: hidden; }
+    .verpop__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px 15px; border-bottom: 1px solid rgba(255,255,255,0.09); }
+    .verpop__title { font: 700 13px/1.3 'Archivo', sans-serif; color: #fff; }
+    .verpop__sub { font-size: 11.5px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+    .verpop__close { border: 0; background: none; color: rgba(255,255,255,0.6); font-size: 20px; line-height: 1; cursor: pointer; padding: 2px 6px; border-radius: 8px; }
+    .verpop__close:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .verpop__list { max-height: 320px; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+    .verpop__empty { padding: 16px 12px; text-align: center; color: rgba(255,255,255,0.5); font-size: 12.5px; }
+    .verrow2 { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 10px; background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08); }
+    .verrow2__tag { flex: none; display: inline-grid; place-items: center; min-width: 30px; height: 22px; padding: 0 7px; border-radius: 7px; background: rgba(167,139,250,0.16); color: #c4b5fd; font: 700 11px/1 'Archivo', sans-serif; }
+    .verrow2__tag--last { background: rgba(96,165,250,0.2); color: #93c5fd; }
+    .verrow2__main { flex: 1; min-width: 0; }
+    .verrow2__label { font: 600 12.5px/1.3 'Libre Franklin', sans-serif; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .verrow2__date { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+    .verrow2__open { flex: none; display: inline-flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.05); color: #fff; font: 600 11.5px/1 'Libre Franklin', sans-serif; text-decoration: none; cursor: pointer; }
+    .verrow2__open:hover { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.12); }
+    .verrow2__open svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
     /* ---- Sélecteur de vue (Par étape / Par investisseur) ---- */
     /* Choix du type de levée (tout premier niveau : classique / BSA-AIR) */
@@ -191,10 +214,11 @@
         <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Éditeur</a>
         <a class="drawer__link" href="benchmark.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Benchmark</a>
         <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
-        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>Tâches</a>
         <a class="drawer__link" href="valorisation.html" target="_blank" rel="noopener" title="Estimateur de valorisation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Valorisation</a>
         <a class="drawer__link" href="dilution.html" target="_blank" rel="noopener" title="Simulation de dilution"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
         <a class="drawer__link" href="exit.html" target="_blank" rel="noopener" title="Simulateur d'exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Exit</a>
+        <div class="drawer__sep"></div>
+        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>Tâches</a>
         <a class="drawer__link" href="documents.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>Documents</a>
         <a class="drawer__link" href="data-room.html" target="_blank" rel="noopener" title="Data room"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/></svg>Data room</a>
         <a class="drawer__link" href="avocat.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M6 21h12"/><path d="M3 7h18"/><path d="M7 7l-3 6a3 3 0 0 0 6 0Z"/><path d="M17 7l3 6a3 3 0 0 0-6 0Z"/></svg>Avocat</a>
@@ -306,6 +330,7 @@
       let folders = [];
       let investors = [];
       let docs = [];
+      let versionCounts = {}; // { [document_id]: nombre de versions validées }
       let solicitedDocIds = new Set(); // documents pour lesquels un avocat a été sollicité
       let raiseType = 'classic'; // parcours actif : classic | bsa-air (choix de tout 1er niveau)
       let raiseUser = 'me';      // clé de stockage, alignée sur le tableau de bord
@@ -449,13 +474,14 @@
       async function load() {
         let profileType = null;
         try {
-          const [fr, dr, ir, me, pr, ar] = await Promise.all([
+          const [fr, dr, ir, me, pr, ar, vr] = await Promise.all([
             fetch('/api/saas/folders', { credentials: 'include' }),
             fetch('/api/saas/documents', { credentials: 'include' }),
             fetch('/api/saas/investors', { credentials: 'include' }),
             fetch('/api/auth/me', { credentials: 'include' }),
             fetch('/api/saas/fundraising-profile', { credentials: 'include' }),
             fetch('/api/saas/avocat/requests', { credentials: 'include' }),
+            fetch('/api/saas/doc-versions/counts', { credentials: 'include' }),
           ]);
           if (fr.status === 401 || dr.status === 401) { window.location.href = 'login.html'; return; }
           folders = (await fr.json()).folders || [];
@@ -468,6 +494,8 @@
           // de responsabilité que lorsqu'aucun avocat n'a été sollicité.
           const avReqs = ar && ar.ok ? ((await ar.json()).requests || []) : [];
           solicitedDocIds = new Set(avReqs.filter(r => r.status !== 'annule' && r.document_id != null).map(r => r.document_id));
+          // Nombre de versions validées par document (badge « Versions »).
+          versionCounts = vr && vr.ok ? ((await vr.json()).counts || {}) : {};
         } catch {
           loadingEl.hidden = true;
           errorEl.hidden = false;
@@ -752,6 +780,23 @@
           actions.appendChild(wrap);
         }
 
+        // Bouton « Versions » : seulement pour un document rédigé qui a au moins une
+        // version validée. Ouvre le popover listant chaque version (nom + date) avec
+        // accès à un aperçu en lecture seule.
+        const vCount = written ? (versionCounts[d.id] || 0) : 0;
+        if (vCount > 0) {
+          const vBtn = document.createElement('button');
+          vBtn.type = 'button';
+          vBtn.className = 'doc-act doc-act--versions';
+          vBtn.title = vCount + ' version' + (vCount > 1 ? 's' : '') + ' validée' + (vCount > 1 ? 's' : '') +
+            ' de ce document — cliquez pour les consulter et en ouvrir une.';
+          vBtn.setAttribute('aria-label', 'Voir les versions de « ' + d.name + ' »');
+          vBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>' +
+            '<span>Versions</span><span class="doc-act__count">' + vCount + '</span>';
+          vBtn.addEventListener('click', (e) => { e.stopPropagation(); openVersionsPopover(d, vBtn); });
+          actions.appendChild(vBtn);
+        }
+
         if (written) {
           const open = document.createElement('a');
           open.className = 'doc-act';
@@ -772,6 +817,117 @@
         actions.appendChild(dl);
         return row;
       }
+
+      /* ---------- Popover : versions d'un document ---------- */
+      // Un seul popover réutilisé pour tous les documents. Chaque version renvoie
+      // vers un aperçu en lecture seule (nouvel onglet) — le document de travail
+      // n'est jamais modifié depuis cette liste.
+      let verpop = null;
+      let verpopAnchor = null;
+
+      function ensureVerpop() {
+        if (verpop) return verpop;
+        verpop = document.createElement('div');
+        verpop.className = 'verpop';
+        verpop.hidden = true;
+        verpop.innerHTML = `
+          <div class="verpop__head">
+            <div>
+              <div class="verpop__title">Versions du document</div>
+              <div class="verpop__sub" id="verpop-sub"></div>
+            </div>
+            <button class="verpop__close" type="button" aria-label="Fermer">×</button>
+          </div>
+          <div class="verpop__list" id="verpop-list"></div>`;
+        document.body.appendChild(verpop);
+        verpop.querySelector('.verpop__close').addEventListener('click', closeVersionsPopover);
+        verpop.addEventListener('click', (e) => e.stopPropagation());
+        return verpop;
+      }
+
+      function placeVerpop() {
+        if (!verpop || !verpopAnchor) return;
+        const r = verpopAnchor.getBoundingClientRect();
+        const w = verpop.offsetWidth || 340;
+        let left = Math.min(r.left, window.innerWidth - w - 12);
+        left = Math.max(12, left);
+        verpop.style.left = left + 'px';
+        verpop.style.top = Math.min(r.bottom + 8, window.innerHeight - 40) + 'px';
+      }
+
+      function closeVersionsPopover() {
+        if (verpop) verpop.hidden = true;
+        verpopAnchor = null;
+      }
+
+      function fmtVerDate(s) {
+        if (!s) return '';
+        try { return new Date(s).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
+        catch { return ''; }
+      }
+
+      async function openVersionsPopover(d, anchor) {
+        const pop = ensureVerpop();
+        // Recliquer le même bouton referme le popover.
+        if (!pop.hidden && verpopAnchor === anchor) { closeVersionsPopover(); return; }
+        verpopAnchor = anchor;
+        pop.querySelector('#verpop-sub').textContent = d.name;
+        const listEl = pop.querySelector('#verpop-list');
+        listEl.innerHTML = '<div class="verpop__empty">Chargement…</div>';
+        pop.hidden = false;
+        placeVerpop();
+        try {
+          const r = await fetch('/api/saas/termsheets/' + d.id + '/versions', { credentials: 'include' });
+          if (r.status === 401) { window.location.href = 'login.html'; return; }
+          const data = await r.json().catch(() => ({}));
+          const versions = Array.isArray(data.versions) ? data.versions : [];
+          // Course : un autre bouton a été cliqué entre-temps.
+          if (verpopAnchor !== anchor) return;
+          renderVersions(d, versions, listEl);
+          placeVerpop();
+        } catch {
+          if (verpopAnchor === anchor) listEl.innerHTML = '<div class="verpop__empty">Impossible de charger les versions.</div>';
+        }
+      }
+
+      function renderVersions(d, versions, listEl) {
+        if (!versions.length) {
+          listEl.innerHTML = '<div class="verpop__empty">Aucune version validée pour l\'instant.</div>';
+          return;
+        }
+        listEl.innerHTML = '';
+        // La plus récente en tête (le serveur trie par id décroissant).
+        versions.forEach((v, i) => {
+          const num = versions.length - i;
+          const row = document.createElement('div');
+          row.className = 'verrow2';
+          row.innerHTML = `
+            <span class="verrow2__tag${i === 0 ? ' verrow2__tag--last' : ''}">v${num}</span>
+            <span class="verrow2__main">
+              <span class="verrow2__label" title="${esc(v.label || '')}">${esc(v.label || 'Version ' + num)}</span>
+              <span class="verrow2__date">${esc(fmtVerDate(v.created_at))}</span>
+            </span>`;
+          const open = document.createElement('a');
+          open.className = 'verrow2__open';
+          open.href = '/api/saas/termsheets/' + d.id + '/versions/' + v.id + '/preview';
+          open.target = '_blank';
+          open.rel = 'noopener';
+          open.title = 'Ouvrir cette version en lecture seule (nouvel onglet)';
+          open.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Ouvrir';
+          row.appendChild(open);
+          listEl.appendChild(row);
+        });
+      }
+
+      // Fermeture du popover : clic à l'extérieur, Échap, défilement ou redimensionnement.
+      document.addEventListener('click', () => { if (verpop && !verpop.hidden) closeVersionsPopover(); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && verpop && !verpop.hidden) closeVersionsPopover(); });
+      window.addEventListener('resize', () => { if (verpop && !verpop.hidden) placeVerpop(); });
+      // Fermeture au défilement de la PAGE (le popover suit l'ancre) — mais pas quand
+      // c'est la liste interne du popover qui défile.
+      window.addEventListener('scroll', (e) => {
+        if (verpop && !verpop.hidden && !(e.target instanceof Node && verpop.contains(e.target))) closeVersionsPopover();
+      }, true);
 
       /* ---------- Interactions ---------- */
       searchEl.addEventListener('input', () => {

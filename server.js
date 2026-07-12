@@ -500,11 +500,11 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
 });
 
 // ─── POST /api/auth/account-type ──────────────────────────────────────────────
-// Enregistre le(s) type(s) de compte choisi(s) à l'onboarding : fondateur, VC,
-// business angel. Plusieurs valeurs possibles.
+// Enregistre le(s) type(s) de compte choisi(s) à l'onboarding : fondateur,
+// avocat, VC, business angel. Plusieurs valeurs possibles.
 app.post('/api/auth/account-type', requireAuth, async (req, res) => {
   const { types } = req.body ?? {};
-  const allowed = ['fondateur', 'vc', 'business_angel'];
+  const allowed = ['fondateur', 'avocat', 'vc', 'business_angel'];
   const clean = Array.isArray(types)
     ? [...new Set(types)].filter(t => allowed.includes(t))
     : [];
@@ -3844,6 +3844,34 @@ app.delete('/api/saas/termsheets/:id/versions/:vid', requireAuth, async (req, re
   const r = await col('saas_doc_versions').deleteOne({ id: vid, user_id: req.user.id, document_id: id });
   if (!r.deletedCount) return res.status(404).json({ error: 'Version introuvable' });
   res.json({ success: true });
+});
+
+// Nombre de versions validées par document (un seul appel pour toute la liste).
+// Sert à afficher le badge « Versions » de la page Documents sans interroger
+// chaque document séparément. Chemin distinct (pas /termsheets/…) pour ne pas
+// entrer en collision avec la route /:id/versions/:vid.
+app.get('/api/saas/doc-versions/counts', requireAuth, async (req, res) => {
+  const rows = await col('saas_doc_versions').aggregate([
+    { $match: { user_id: req.user.id } },
+    { $group: { _id: '$document_id', count: { $sum: 1 } } },
+  ]).toArray();
+  const counts = {};
+  rows.forEach(r => { if (r._id != null) counts[r._id] = r.count; });
+  res.json({ counts });
+});
+
+// Aperçu d'une version en LECTURE SEULE : rendu autonome et stylé de l'instantané
+// (même mise en forme que l'export). Ouvert dans un nouvel onglet depuis la page
+// Documents ; ne modifie jamais le document de travail.
+app.get('/api/saas/termsheets/:id/versions/:vid/preview', requireAuth, async (req, res) => {
+  const id  = Number(req.params.id);
+  const vid = Number(req.params.vid);
+  const v = await col('saas_doc_versions').findOne({ id: vid, user_id: req.user.id, document_id: id });
+  if (!v || !v.html) return res.status(404).send('Version introuvable.');
+  const doc = await col('saas_documents').findOne({ id, user_id: req.user.id }, { projection: { name: 1 } });
+  const title = (v.label || (doc && doc.name) || 'Version').replace(/\.[^.]+$/, '');
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.send(buildExportHtml(v.html, title));
 });
 
 app.post('/api/saas/documents', requireAuth, saasUpload.single('file'), async (req, res) => {
