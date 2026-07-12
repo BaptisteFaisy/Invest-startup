@@ -35,16 +35,100 @@
     .page-back:hover { opacity: 0.68; transform: translateX(-1px); }
     .page-back:focus-visible { outline: none; opacity: 1; }
     .page-back svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-    .mkt__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
+    .mkt__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #a5b4fc; }
     .mkt__title { font-size: 30px; letter-spacing: -0.03em; color: #fff; margin-top: 6px; }
-    .mkt__sub { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 8px; }
+    .mkt__sub { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 8px; line-height: 1.55; max-width: 640px; }
 
-    .mkt__soon { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 40px 34px; margin-top: 26px; text-align: center; }
-    .mkt__soon-badge { display: inline-flex; align-items: center; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #a5b4fc; background: rgba(99,102,241,0.20); padding: 4px 11px; border-radius: 99px; margin-bottom: 14px; }
-    .mkt__soon-h { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; color: #fff; margin-bottom: 10px; }
-    .mkt__soon-p { font-size: 14.5px; line-height: 1.6; color: rgba(255,255,255,0.7); max-width: 540px; margin: 0 auto; }
+    /* ── Blocs / sections ─────────────────────────────────────────── */
+    .av-sec { margin-top: 30px; }
+    .av-sec__h { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; }
+    .av-sec__t { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+    .av-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; }
 
-    .mkt__foot { margin-top: 30px; }
+    /* ── Carte « Mon avocat » ─────────────────────────────────────── */
+    .av-lawyer { padding: 22px 24px; display: flex; gap: 18px; align-items: flex-start; }
+    .av-avatar { flex: 0 0 auto; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 18px; color: #0b1020; background: linear-gradient(135deg, #c7d2fe, #a5b4fc); letter-spacing: 0.02em; }
+    .av-lawyer__body { flex: 1 1 auto; min-width: 0; }
+    .av-lawyer__name { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
+    .av-lawyer__firm { font-size: 13.5px; color: rgba(255,255,255,0.62); margin-top: 2px; }
+    .av-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 11px; }
+    .av-chip { font-size: 11.5px; font-weight: 600; color: #c7d2fe; background: rgba(99,102,241,0.16); border: 1px solid rgba(99,102,241,0.28); border-radius: 99px; padding: 3px 10px; }
+    .av-lawyer__bio { font-size: 13.5px; line-height: 1.55; color: rgba(255,255,255,0.7); margin-top: 12px; }
+    .av-lawyer__rcp { display: flex; align-items: center; gap: 7px; font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 12px; }
+    .av-lawyer__rcp svg { width: 14px; height: 14px; flex: none; fill: none; stroke: #6ee7b7; stroke-width: 2; }
+    .av-lawyer__side { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+    .av-badge-mode { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #a5b4fc; background: rgba(99,102,241,0.18); padding: 4px 10px; border-radius: 99px; white-space: nowrap; }
+
+    /* ── Prestations ──────────────────────────────────────────────── */
+    .av-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); gap: 12px; }
+    .av-presta { padding: 18px 18px 16px; display: flex; flex-direction: column; transition: border-color .15s, transform .15s; }
+    .av-presta:hover { border-color: rgba(255,255,255,0.2); }
+    .av-presta__top { display: flex; align-items: flex-start; gap: 8px; justify-content: space-between; }
+    .av-presta__label { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
+    .av-presta__crit { flex: none; font-size: 9.5px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: #fca5a5; background: rgba(239,68,68,0.14); border: 1px solid rgba(239,68,68,0.3); border-radius: 99px; padding: 3px 8px; white-space: nowrap; }
+    .av-presta__desc { font-size: 13px; line-height: 1.5; color: rgba(255,255,255,0.62); margin-top: 8px; flex: 1 1 auto; }
+    .av-presta__meta { display: flex; align-items: center; gap: 12px; margin-top: 14px; font-size: 12.5px; }
+    .av-presta__price { font-weight: 700; color: #fff; }
+    .av-presta__delay { color: rgba(255,255,255,0.5); display: inline-flex; align-items: center; gap: 5px; }
+    .av-presta__delay svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; }
+    .av-presta__cta { margin-top: 14px; width: 100%; }
+
+    /* ── Boutons ──────────────────────────────────────────────────── */
+    .av-btn { font-family: inherit; font-weight: 600; font-size: 13.5px; line-height: 1; padding: 10px 16px; border-radius: 10px; border: 1px solid transparent; cursor: pointer; transition: background .15s, border-color .15s, color .15s; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+    .av-btn--primary { background: #6366f1; color: #fff; }
+    .av-btn--primary:hover { background: #4f46e5; }
+    .av-btn--ghost { background: transparent; color: #fff; border-color: rgba(255,255,255,0.28); }
+    .av-btn--ghost:hover { border-color: rgba(255,255,255,0.55); }
+    .av-btn--sm { padding: 7px 13px; font-size: 12.5px; border-radius: 8px; }
+    .av-btn:disabled { opacity: 0.55; cursor: default; }
+    .av-btn--danger { color: #fca5a5; border-color: rgba(239,68,68,0.35); background: transparent; }
+    .av-btn--danger:hover { background: rgba(239,68,68,0.1); }
+
+    /* ── Demandes ─────────────────────────────────────────────────── */
+    .av-reqs { display: flex; flex-direction: column; gap: 10px; }
+    .av-req { padding: 15px 18px; display: flex; align-items: center; gap: 14px; }
+    .av-req__main { flex: 1 1 auto; min-width: 0; }
+    .av-req__t { font-size: 14.5px; font-weight: 600; color: #fff; }
+    .av-req__sub { font-size: 12.5px; color: rgba(255,255,255,0.55); margin-top: 3px; display: flex; flex-wrap: wrap; gap: 6px 12px; }
+    .av-req__doc { color: #c7d2fe; }
+    .av-status { flex: none; font-size: 11.5px; font-weight: 700; padding: 4px 11px; border-radius: 99px; white-space: nowrap; }
+    .av-status--demande { color: #fcd34d; background: rgba(245,158,11,0.15); }
+    .av-status--en_cours { color: #93c5fd; background: rgba(59,130,246,0.16); }
+    .av-status--relu { color: #6ee7b7; background: rgba(16,185,129,0.16); }
+    .av-status--annule { color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.07); }
+    .av-empty { padding: 26px 20px; text-align: center; color: rgba(255,255,255,0.5); font-size: 13.5px; }
+
+    /* ── Modale ───────────────────────────────────────────────────── */
+    .av-modal { position: fixed; inset: 0; z-index: 100; background: rgba(5,6,9,0.72); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .av-dialog { width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto; background: #101218; border: 1px solid rgba(255,255,255,0.12); border-radius: 18px; padding: 24px; box-shadow: 0 24px 60px rgba(0,0,0,0.5); }
+    .av-dialog__h { font-size: 19px; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
+    .av-dialog__p { font-size: 13.5px; color: rgba(255,255,255,0.6); margin-top: 6px; line-height: 1.5; }
+    .av-field { margin-top: 16px; }
+    .av-field__l { display: block; font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,0.7); margin-bottom: 6px; }
+    .av-input, .av-select, .av-textarea { width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.14); border-radius: 10px; color: #fff; font-family: inherit; font-size: 14px; padding: 10px 12px; }
+    .av-input:focus, .av-select:focus, .av-textarea:focus { outline: none; border-color: #6366f1; }
+    .av-textarea { resize: vertical; min-height: 84px; line-height: 1.5; }
+    .av-select option { background: #101218; }
+    .av-dialog__act { display: flex; gap: 10px; margin-top: 22px; }
+    .av-dialog__act .av-btn { flex: 1; }
+    .av-err { color: #fca5a5; font-size: 12.5px; margin-top: 12px; min-height: 16px; }
+
+    /* ── Choix d'avocat (liste de partenaires) ────────────────────── */
+    .av-picks { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+    .av-pick { display: flex; gap: 12px; align-items: flex-start; padding: 13px 14px; border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; cursor: pointer; transition: border-color .15s, background .15s; }
+    .av-pick:hover { border-color: rgba(255,255,255,0.28); }
+    .av-pick.is-sel { border-color: #6366f1; background: rgba(99,102,241,0.1); }
+    .av-pick input { margin-top: 3px; accent-color: #6366f1; }
+    .av-pick__n { display: block; font-size: 14px; font-weight: 600; color: #fff; }
+    .av-pick__d { display: block; font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 2px; }
+    .av-own-toggle { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+    .av-note { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 18px; line-height: 1.55; }
+    .av-note strong { color: rgba(255,255,255,0.7); font-weight: 600; }
+
+    @media (max-width: 640px) {
+      .av-lawyer { flex-direction: column; }
+      .av-lawyer__side { flex-direction: row; align-items: center; align-self: stretch; }
+    }
   </style>
   <script src="auth.js?v=3"></script>
   <script src="drawer-menu.js?v=3" defer></script>
@@ -93,7 +177,7 @@
         <a class="drawer__link" href="exit.html" target="_blank" rel="noopener" title="Simulateur d'exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Exit</a>
         <a class="drawer__link" href="documents.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>Documents</a>
         <a class="drawer__link" href="data-room.html" target="_blank" rel="noopener" title="Data room"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/></svg>Data room</a>
-        <a class="drawer__link" href="avocat.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M6 21h12"/><path d="M3 7h18"/><path d="M7 7l-3 6a3 3 0 0 0 6 0Z"/><path d="M17 7l3 6a3 3 0 0 0-6 0Z"/></svg>Avocat<span class="drawer__soon-tag">Bientôt</span></a>
+        <a class="drawer__link" href="avocat.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M6 21h12"/><path d="M3 7h18"/><path d="M7 7l-3 6a3 3 0 0 0 6 0Z"/><path d="M17 7l3 6a3 3 0 0 0-6 0Z"/></svg>Avocat</a>
         <div class="drawer__sep"></div>
         <a class="drawer__link" href="compte.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>Mon compte</a>
         <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Écrire au fondateur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
@@ -112,21 +196,356 @@
     <main class="mkt">
       <div class="mkt__eyebrow">Accompagnement juridique</div>
       <h1 class="mkt__title">Avocat</h1>
-      <p class="mkt__sub">Un accompagnement juridique pour sécuriser votre levée de fonds.</p>
+      <p class="mkt__sub">Un avocat partenaire vous est attribué pour sécuriser les documents les plus engageants de votre levée. Notre IA prépare et dégrossit ; l'avocat relit, valide et <strong>engage sa responsabilité</strong>. Vous gardez votre temps pour votre business.</p>
 
-      <div class="mkt__soon">
-        <span class="mkt__soon-badge">Bientôt</span>
-        <div class="mkt__soon-h">Cet outil arrive bientôt</div>
-        <p class="mkt__soon-p">Nous y travaillons. Vous pourrez bientôt être mis en relation avec un avocat pour relire vos documents et sécuriser les étapes clés de votre levée, directement depuis votre espace.</p>
-      </div>
+      <!-- Mon avocat -->
+      <section class="av-sec">
+        <div class="av-sec__h"><span class="av-sec__t">Votre avocat</span></div>
+        <div class="av-card av-lawyer" id="lawyer-card"><div class="av-empty">Chargement…</div></div>
+      </section>
 
-      <div class="mkt__foot">
+      <!-- Prestations -->
+      <section class="av-sec">
+        <div class="av-sec__h"><span class="av-sec__t">Faire relire un document</span></div>
+        <div class="av-grid" id="presta-grid"></div>
+      </section>
+
+      <!-- Mes demandes -->
+      <section class="av-sec">
+        <div class="av-sec__h"><span class="av-sec__t">Mes demandes</span></div>
+        <div class="av-reqs" id="reqs"></div>
+      </section>
+
+      <p class="av-note">
+        <strong>Pourquoi un avocat nommé ?</strong> Chaque relecture engage la responsabilité personnelle de l'avocat, via une lettre de mission nominative et son assurance responsabilité civile professionnelle (RCP). C'est pourquoi vous savez toujours qui relit vos documents — et pouvez en changer.
+      </p>
+
+      <div class="mkt__foot" style="margin-top: 26px;">
         <a href="tableau-de-bord.html" class="btn btn--ghost">← Retour au tableau de bord</a>
       </div>
     </main>
   </div>
 
+  <!-- Modale : demander une relecture -->
+  <div class="av-modal" id="request-modal" hidden>
+    <div class="av-dialog" role="dialog" aria-modal="true" aria-labelledby="req-title">
+      <div class="av-dialog__h" id="req-title">Demander une relecture</div>
+      <p class="av-dialog__p" id="req-desc"></p>
+      <div class="av-field">
+        <label class="av-field__l" for="req-doc">Document à relire (facultatif)</label>
+        <select class="av-select" id="req-doc"><option value="">Aucun document rattaché pour l'instant</option></select>
+      </div>
+      <div class="av-field">
+        <label class="av-field__l" for="req-note">Précisions pour l'avocat (facultatif)</label>
+        <textarea class="av-textarea" id="req-note" maxlength="1000" placeholder="Points d'attention, échéance, contexte de la négociation…"></textarea>
+      </div>
+      <div class="av-err" id="req-err"></div>
+      <div class="av-dialog__act">
+        <button type="button" class="av-btn av-btn--ghost" data-close-modal="request-modal">Annuler</button>
+        <button type="button" class="av-btn av-btn--primary" id="req-submit">Envoyer la demande</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modale : choisir / changer d'avocat -->
+  <div class="av-modal" id="chooser-modal" hidden>
+    <div class="av-dialog" role="dialog" aria-modal="true" aria-labelledby="chooser-title">
+      <div class="av-dialog__h" id="chooser-title">Choisir votre avocat</div>
+      <p class="av-dialog__p">Un avocat vous est attribué par défaut. Vous pouvez en choisir un autre dans notre réseau partenaire, ou déclarer le vôtre.</p>
+      <div class="av-picks" id="chooser-picks"></div>
+      <div class="av-own-toggle">
+        <label class="av-pick" style="cursor:pointer;">
+          <input type="radio" name="av-pick" value="__own__" id="pick-own" />
+          <span><span class="av-pick__n">J'ai déjà mon avocat</span><span class="av-pick__d">Déclarez le cabinet avec lequel vous travaillez.</span></span>
+        </label>
+        <div id="own-fields" hidden>
+          <div class="av-field">
+            <label class="av-field__l" for="own-name">Nom de l'avocat *</label>
+            <input class="av-input" id="own-name" maxlength="120" placeholder="Me Prénom Nom" />
+          </div>
+          <div class="av-field">
+            <label class="av-field__l" for="own-firm">Cabinet</label>
+            <input class="av-input" id="own-firm" maxlength="120" placeholder="Nom du cabinet" />
+          </div>
+          <div class="av-field">
+            <label class="av-field__l" for="own-email">Email</label>
+            <input class="av-input" id="own-email" type="email" maxlength="160" placeholder="contact@cabinet.fr" />
+          </div>
+        </div>
+      </div>
+      <div class="av-err" id="chooser-err"></div>
+      <div class="av-dialog__act">
+        <button type="button" class="av-btn av-btn--ghost" data-close-modal="chooser-modal">Annuler</button>
+        <button type="button" class="av-btn av-btn--primary" id="chooser-save">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    /* ── Utilitaires ─────────────────────────────────────────────── */
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+    function fmtDate(s) { try { return new Date(s).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return ''; } }
+    function initials(name) {
+      const clean = String(name || '').replace(/^\s*Me\s+/i, '').trim();
+      const parts = clean.split(/\s+/).filter(Boolean);
+      return ((parts[0]?.[0] || '') + (parts[parts.length - 1]?.[0] || '')).toUpperCase() || '?';
+    }
+    async function api(path, opts) {
+      const r = await fetch(path, Object.assign({ credentials: 'include' }, opts || {}));
+      let data = {};
+      try { data = await r.json(); } catch {}
+      if (!r.ok) throw new Error(data.error || 'Une erreur est survenue.');
+      return data;
+    }
+    function jsonPut(path, body)  { return api(path, { method: 'PUT',  headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); }
+    function jsonPost(path, body) { return api(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); }
+
+    const STATUS_LABELS = { demande: 'Demande envoyée', en_cours: 'Relecture en cours', relu: 'Relu — remis', annule: 'Annulée' };
+
+    let STATE = { prestations: [], partners: [], requests: [], mode: 'assigned', partner: null, own_lawyer: null };
+    let DOCS = [];
+    let modalPrestaKey = null;
+
+    /* ── Rendu : carte avocat ────────────────────────────────────── */
+    function renderLawyer() {
+      const card = document.getElementById('lawyer-card');
+      if (STATE.mode === 'own' && STATE.own_lawyer) {
+        const l = STATE.own_lawyer;
+        card.innerHTML =
+          '<div class="av-avatar">' + esc(initials(l.name)) + '</div>' +
+          '<div class="av-lawyer__body">' +
+            '<div class="av-lawyer__name">' + esc(l.name) + '</div>' +
+            (l.firm ? '<div class="av-lawyer__firm">' + esc(l.firm) + '</div>' : '') +
+            (l.email ? '<div class="av-lawyer__firm">' + esc(l.email) + '</div>' : '') +
+            '<div class="av-lawyer__bio">Votre avocat. Il relit et engage sa responsabilité sur les documents que vous lui confiez.</div>' +
+          '</div>' +
+          '<div class="av-lawyer__side">' +
+            '<span class="av-badge-mode">Votre avocat</span>' +
+            '<button type="button" class="av-btn av-btn--ghost av-btn--sm" id="change-lawyer">Changer</button>' +
+          '</div>';
+      } else {
+        const p = STATE.partner || {};
+        card.innerHTML =
+          '<div class="av-avatar">' + esc(initials(p.lead)) + '</div>' +
+          '<div class="av-lawyer__body">' +
+            '<div class="av-lawyer__name">' + esc(p.lead || '—') + '</div>' +
+            '<div class="av-lawyer__firm">' + esc(p.name || '') + '</div>' +
+            '<div class="av-chips">' +
+              (p.barreau ? '<span class="av-chip">' + esc(p.barreau) + '</span>' : '') +
+              (p.speciality ? '<span class="av-chip">' + esc(p.speciality) + '</span>' : '') +
+            '</div>' +
+            (p.bio ? '<div class="av-lawyer__bio">' + esc(p.bio) + '</div>' : '') +
+            '<div class="av-lawyer__rcp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 4v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V7z"/><path d="M9 12l2 2 4-4"/></svg>Responsabilité engagée · lettre de mission nominative · RCP</div>' +
+          '</div>' +
+          '<div class="av-lawyer__side">' +
+            '<span class="av-badge-mode">' + (STATE.mode === 'assigned' ? 'Attribué' : 'Choisi') + '</span>' +
+            '<button type="button" class="av-btn av-btn--ghost av-btn--sm" id="change-lawyer">Changer d\'avocat</button>' +
+          '</div>';
+      }
+      document.getElementById('change-lawyer')?.addEventListener('click', openChooser);
+    }
+
+    /* ── Rendu : prestations ─────────────────────────────────────── */
+    function renderPrestations() {
+      document.getElementById('presta-grid').innerHTML = STATE.prestations.map(p =>
+        '<div class="av-card av-presta">' +
+          '<div class="av-presta__top">' +
+            '<span class="av-presta__label">' + esc(p.label) + '</span>' +
+            (p.critical ? '<span class="av-presta__crit">Avocat recommandé</span>' : '') +
+          '</div>' +
+          '<div class="av-presta__desc">' + esc(p.desc) + '</div>' +
+          '<div class="av-presta__meta">' +
+            '<span class="av-presta__price">' + esc(p.price) + '</span>' +
+            '<span class="av-presta__delay"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>' + esc(p.delay) + '</span>' +
+          '</div>' +
+          '<button type="button" class="av-btn av-btn--primary av-presta__cta" data-presta="' + esc(p.key) + '">Demander une relecture</button>' +
+        '</div>'
+      ).join('');
+    }
+
+    /* ── Rendu : demandes ────────────────────────────────────────── */
+    function prestaLabel(key) { return (STATE.prestations.find(p => p.key === key) || {}).label || key; }
+    function reqLawyerName(r) {
+      if (r.own_lawyer && r.own_lawyer.name) return r.own_lawyer.name;
+      const p = STATE.partners.find(x => x.id === r.partner_id);
+      return p ? p.lead : '';
+    }
+    function renderRequests() {
+      const box = document.getElementById('reqs');
+      if (!STATE.requests.length) {
+        box.innerHTML = '<div class="av-card av-empty">Aucune demande pour l\'instant. Choisissez un document ci-dessus pour lancer une relecture.</div>';
+        return;
+      }
+      box.innerHTML = STATE.requests.map(r => {
+        const lawyer = reqLawyerName(r);
+        const canCancel = r.status === 'demande' || r.status === 'en_cours';
+        return '<div class="av-card av-req">' +
+          '<div class="av-req__main">' +
+            '<div class="av-req__t">' + esc(prestaLabel(r.prestation_key)) + '</div>' +
+            '<div class="av-req__sub">' +
+              (r.document_name ? '<span class="av-req__doc">' + esc(r.document_name) + '</span>' : '') +
+              (lawyer ? '<span>' + esc(lawyer) + '</span>' : '') +
+              '<span>' + esc(fmtDate(r.created_at)) + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<span class="av-status av-status--' + esc(r.status) + '">' + esc(STATUS_LABELS[r.status] || r.status) + '</span>' +
+          (canCancel ? '<button type="button" class="av-btn av-btn--danger av-btn--sm" data-cancel="' + esc(r.id) + '">Annuler</button>' : '') +
+        '</div>';
+      }).join('');
+    }
+
+    function renderAll() { renderLawyer(); renderPrestations(); renderRequests(); }
+
+    /* ── Chargement ──────────────────────────────────────────────── */
+    async function loadOverview() {
+      STATE = await api('/api/saas/avocat/overview');
+      renderAll();
+    }
+    async function loadDocs() {
+      try { DOCS = (await api('/api/saas/documents')).documents || []; }
+      catch { DOCS = []; }
+    }
+
+    /* ── Modale : demande de relecture ───────────────────────────── */
+    function openModal(id)  { document.getElementById(id).hidden = false; }
+    function closeModal(id) { document.getElementById(id).hidden = true; }
+
+    function openRequestModal(key) {
+      modalPrestaKey = key;
+      const p = STATE.prestations.find(x => x.key === key) || {};
+      document.getElementById('req-title').textContent = 'Relecture — ' + (p.label || '');
+      document.getElementById('req-desc').textContent = (p.desc || '') + (p.price ? ' · ' + p.price + ' · délai ' + p.delay : '');
+      document.getElementById('req-err').textContent = '';
+      document.getElementById('req-note').value = '';
+      const sel = document.getElementById('req-doc');
+      sel.innerHTML = '<option value="">Aucun document rattaché pour l\'instant</option>' +
+        DOCS.map(d => '<option value="' + esc(d.id) + '">' + esc(d.name || ('Document #' + d.id)) + '</option>').join('');
+      openModal('request-modal');
+    }
+
+    async function submitRequest() {
+      const btn = document.getElementById('req-submit');
+      const err = document.getElementById('req-err');
+      err.textContent = '';
+      btn.disabled = true; btn.textContent = 'Envoi…';
+      try {
+        await jsonPost('/api/saas/avocat/requests', {
+          prestation_key: modalPrestaKey,
+          document_id: document.getElementById('req-doc').value || null,
+          note: document.getElementById('req-note').value,
+        });
+        closeModal('request-modal');
+        await loadOverview();
+      } catch (e) {
+        err.textContent = e.message;
+      } finally {
+        btn.disabled = false; btn.textContent = 'Envoyer la demande';
+      }
+    }
+
+    async function cancelRequest(id) {
+      try { await jsonPut('/api/saas/avocat/requests/' + id, { status: 'annule' }); await loadOverview(); }
+      catch (e) { alert(e.message); }
+    }
+
+    /* ── Modale : choisir / changer d'avocat ─────────────────────── */
+    function openChooser() {
+      const err = document.getElementById('chooser-err');
+      err.textContent = '';
+      const selectedId = STATE.mode !== 'own' && STATE.partner ? STATE.partner.id : null;
+      document.getElementById('chooser-picks').innerHTML = STATE.partners.map(p =>
+        '<label class="av-pick' + (p.id === selectedId ? ' is-sel' : '') + '">' +
+          '<input type="radio" name="av-pick" value="' + esc(p.id) + '"' + (p.id === selectedId ? ' checked' : '') + ' />' +
+          '<span><span class="av-pick__n">' + esc(p.lead) + ' — ' + esc(p.name) + '</span>' +
+          '<span class="av-pick__d">' + esc(p.barreau) + ' · ' + esc(p.speciality) + '</span></span>' +
+        '</label>'
+      ).join('');
+
+      const isOwn = STATE.mode === 'own';
+      document.getElementById('pick-own').checked = isOwn;
+      document.getElementById('own-fields').hidden = !isOwn;
+      if (isOwn && STATE.own_lawyer) {
+        document.getElementById('own-name').value  = STATE.own_lawyer.name  || '';
+        document.getElementById('own-firm').value  = STATE.own_lawyer.firm  || '';
+        document.getElementById('own-email').value = STATE.own_lawyer.email || '';
+      } else {
+        document.getElementById('own-name').value = '';
+        document.getElementById('own-firm').value = '';
+        document.getElementById('own-email').value = '';
+      }
+      wireChooserSelection();
+      openModal('chooser-modal');
+    }
+
+    function wireChooserSelection() {
+      const radios = document.querySelectorAll('input[name="av-pick"]');
+      radios.forEach(r => r.addEventListener('change', () => {
+        document.getElementById('own-fields').hidden = document.getElementById('pick-own').checked ? false : true;
+        document.querySelectorAll('#chooser-picks .av-pick').forEach(el => {
+          el.classList.toggle('is-sel', el.querySelector('input').checked);
+        });
+      }));
+    }
+
+    async function savePreference() {
+      const btn = document.getElementById('chooser-save');
+      const err = document.getElementById('chooser-err');
+      err.textContent = '';
+      const checked = document.querySelector('input[name="av-pick"]:checked');
+      if (!checked) { err.textContent = 'Sélectionnez un avocat.'; return; }
+
+      let body;
+      if (checked.value === '__own__') {
+        const name = document.getElementById('own-name').value.trim();
+        if (!name) { err.textContent = 'Le nom de l\'avocat est requis.'; return; }
+        body = { mode: 'own', own_lawyer: {
+          name,
+          firm:  document.getElementById('own-firm').value.trim(),
+          email: document.getElementById('own-email').value.trim(),
+        } };
+      } else {
+        body = { mode: 'chosen', partner_id: checked.value };
+      }
+
+      btn.disabled = true; btn.textContent = 'Enregistrement…';
+      try {
+        await jsonPut('/api/saas/avocat/preference', body);
+        closeModal('chooser-modal');
+        await loadOverview();
+      } catch (e) {
+        err.textContent = e.message;
+      } finally {
+        btn.disabled = false; btn.textContent = 'Enregistrer';
+      }
+    }
+
+    /* ── Câblage global ──────────────────────────────────────────── */
+    function wireEvents() {
+      // Boutons « Demander une relecture » (délégation)
+      document.getElementById('presta-grid').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-presta]');
+        if (btn) openRequestModal(btn.getAttribute('data-presta'));
+      });
+      // Boutons « Annuler » une demande (délégation)
+      document.getElementById('reqs').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-cancel]');
+        if (btn) cancelRequest(Number(btn.getAttribute('data-cancel')));
+      });
+      // Fermeture des modales
+      document.querySelectorAll('[data-close-modal]').forEach(b =>
+        b.addEventListener('click', () => closeModal(b.getAttribute('data-close-modal'))));
+      document.querySelectorAll('.av-modal').forEach(m =>
+        m.addEventListener('click', (e) => { if (e.target === m) m.hidden = true; }));
+      document.getElementById('pick-own').addEventListener('change', () => {
+        document.getElementById('own-fields').hidden = !document.getElementById('pick-own').checked;
+      });
+      document.getElementById('req-submit').addEventListener('click', submitRequest);
+      document.getElementById('chooser-save').addEventListener('click', savePreference);
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') document.querySelectorAll('.av-modal').forEach(m => m.hidden = true);
+      });
+    }
+
     document.getElementById('page-back-btn').addEventListener('click', () => {
       if (window.history.length > 1) window.history.back();
       else window.location.href = 'tableau-de-bord.html';
@@ -136,6 +555,8 @@
       const user = await requireAuth();
       if (!user) return;
       document.querySelector('.app').classList.add('ready');
+      wireEvents();
+      await Promise.all([loadOverview(), loadDocs()]);
     }
 
     init();

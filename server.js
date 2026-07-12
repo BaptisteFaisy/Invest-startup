@@ -3046,6 +3046,170 @@ app.delete('/api/saas/tasks/:id', requireAuth, async (req, res) => {
   res.json({ success: true });
 });
 
+// ─── SaaS : Avocat ────────────────────────────────────────────────────────────
+// Mise en relation avec un avocat partenaire qui engage sa responsabilité sur les
+// documents les plus sensibles de la levée. Modèle « hybride » retenu :
+//   • par défaut, un avocat partenaire est ATTRIBUÉ au fondateur (zéro friction,
+//     cohérent avec la promesse de gain de temps) ;
+//   • l'avocat est toujours NOMMÉ — la déontologie l'impose (responsabilité
+//     personnelle, vérification des conflits d'intérêts, secret professionnel,
+//     assurance RCP) : pas d'avocat anonyme ;
+//   • le fondateur peut CHANGER pour un autre partenaire, ou déclarer le sien.
+// L'IA prépare et dégrossit ; l'avocat valide et engage sa responsabilité — la
+// consultation juridique personnalisée reste du ressort de l'avocat (loi de 1971).
+
+// Réseau d'avocats partenaires. ⚠️ Données d'EXEMPLE, à remplacer par les cabinets
+// réellement partenaires (avec lettre de mission nominative et RCP). On ne stocke
+// ici aucune donnée d'identification sensible (n° de toque, coordonnées directes) :
+// la mise en relation nominative complète se fait à l'ouverture de la mission.
+const AVOCAT_PARTNERS = [
+  { id: 'novea', name: 'Cabinet Novéa', lead: 'Me Claire Vasseur',  barreau: 'Barreau de Paris', speciality: 'Venture & levées de fonds', bio: 'Accompagne les start-up de l’amorçage à la Série A. Spécialisée déclarations & garanties et pactes d’associés.' },
+  { id: 'linea', name: 'Cabinet Linéa', lead: 'Me Thomas Béranger', barreau: 'Barreau de Lyon',  speciality: 'Private equity / M&A',     bio: 'Structuration d’opérations equity et instruments convertibles (BSA-AIR, obligations convertibles).' },
+  { id: 'aria',  name: 'Cabinet Aria',  lead: 'Me Sarah Nkomo',     barreau: 'Barreau de Paris', speciality: 'Droit des sociétés / tech', bio: 'Négociation côté fondateurs : gouvernance, clauses de liquidité et de leaver.' },
+];
+function avocatPartner(id) { return AVOCAT_PARTNERS.find(p => p.id === id) || null; }
+
+// Prestations forfaitisées. `critical` = documents où le recours à l'avocat est le
+// plus recommandé (engagement le plus fort des fondateurs). Les tarifs sont
+// indicatifs : ils s'appuient sur une grille négociée en amont avec les partenaires.
+const AVOCAT_PRESTATIONS = [
+  { key: 'garantie',  label: 'Déclarations & garanties (W&R)',   desc: 'Relecture avant signature du document le plus engageant pour les fondateurs.', critical: true,  price: 'à partir de 890 €',   delay: '72 h' },
+  { key: 'pacte',     label: 'Pacte d’associés',                 desc: 'Revue des clauses sensibles : gouvernance, liquidité, leaver, préférence.',    critical: true,  price: 'à partir de 1 190 €', delay: '3–4 j' },
+  { key: 'termsheet', label: 'Term sheet / lettre d’intention',  desc: 'Vérification avant de vous engager sur les grands équilibres de la levée.',     critical: false, price: 'à partir de 490 €',   delay: '48 h' },
+  { key: 'bsa-air',   label: 'BSA-AIR / convertible',            desc: 'Contrôle de l’instrument d’investissement convertible.',                       critical: false, price: 'à partir de 590 €',   delay: '48 h' },
+  { key: 'question',  label: 'Question juridique ponctuelle',    desc: 'Un point précis à sécuriser ? Échange court avec votre avocat.',                critical: false, price: 'à partir de 150 €',   delay: '24 h' },
+];
+const AVOCAT_PRESTATION_KEYS  = new Set(AVOCAT_PRESTATIONS.map(p => p.key));
+const AVOCAT_REQUEST_STATUSES = ['demande', 'en_cours', 'relu', 'annule'];
+
+function avocatPublicRequest(r) {
+  if (!r) return null;
+  const { _id, user_id, ...rest } = r;
+  return rest;
+}
+
+// État avocat de l'utilisateur — créé à la volée avec un avocat attribué par défaut.
+async function getOrInitAvocatState(userId) {
+  let state = await col('saas_avocat').findOne({ user_id: userId });
+  if (!state) {
+    // Attribution déterministe (répartit les fondateurs sur le réseau) : stable d'une
+    // visite à l'autre, contrairement à un tirage aléatoire.
+    const n   = Number(userId) || 0;
+    const idx = ((n % AVOCAT_PARTNERS.length) + AVOCAT_PARTNERS.length) % AVOCAT_PARTNERS.length;
+    const now = new Date().toISOString();
+    state = {
+      user_id: userId, mode: 'assigned', partner_id: AVOCAT_PARTNERS[idx].id,
+      own_lawyer: null, created_at: now, updated_at: now,
+    };
+    await col('saas_avocat').insertOne({ ...state });
+  }
+  return state;
+}
+
+function avocatPublicState(state) {
+  return {
+    mode: state.mode,
+    partner: state.mode === 'own' ? null : avocatPartner(state.partner_id),
+    own_lawyer: state.own_lawyer || null,
+  };
+}
+
+app.get('/api/saas/avocat/overview', requireAuth, async (req, res) => {
+  const state = await getOrInitAvocatState(req.user.id);
+  const requests = await col('saas_avocat_requests')
+    .find({ user_id: req.user.id }, { projection: { _id: 0, user_id: 0 } })
+    .sort({ id: -1 }).toArray();
+  res.json({
+    prestations: AVOCAT_PRESTATIONS,
+    partners:    AVOCAT_PARTNERS,
+    statuses:    AVOCAT_REQUEST_STATUSES,
+    ...avocatPublicState(state),
+    requests,
+  });
+});
+
+app.put('/api/saas/avocat/preference', requireAuth, async (req, res) => {
+  const body = req.body || {};
+  const mode = ['assigned', 'chosen', 'own'].includes(body.mode) ? body.mode : null;
+  if (!mode) return res.status(400).json({ error: 'Mode invalide' });
+
+  const state = await getOrInitAvocatState(req.user.id);
+  const set   = { mode, updated_at: new Date().toISOString() };
+
+  if (mode === 'assigned') {
+    // On conserve l'avocat déjà attribué (ou on en attribue un si l'état venait de « own »).
+    if (!avocatPartner(state.partner_id)) set.partner_id = AVOCAT_PARTNERS[0].id;
+    set.own_lawyer = null;
+  } else if (mode === 'chosen') {
+    const partner = avocatPartner(body.partner_id);
+    if (!partner) return res.status(400).json({ error: 'Avocat inconnu' });
+    set.partner_id = partner.id;
+    set.own_lawyer = null;
+  } else { // own : le fondateur déclare son propre avocat
+    const name = shortText(body?.own_lawyer?.name, 120);
+    if (!name) return res.status(400).json({ error: 'Nom de l’avocat requis' });
+    set.own_lawyer = {
+      name,
+      firm:  shortText(body?.own_lawyer?.firm, 120),
+      email: shortText(body?.own_lawyer?.email, 160),
+    };
+  }
+  await col('saas_avocat').updateOne({ user_id: req.user.id }, { $set: set });
+  const updated = await col('saas_avocat').findOne({ user_id: req.user.id });
+  res.json(avocatPublicState(updated));
+});
+
+app.post('/api/saas/avocat/requests', requireAuth, async (req, res) => {
+  const body = req.body || {};
+  const prestationKey = shortText(body.prestation_key, 40);
+  if (!AVOCAT_PRESTATION_KEYS.has(prestationKey))
+    return res.status(400).json({ error: 'Prestation inconnue' });
+
+  const state = await getOrInitAvocatState(req.user.id);
+
+  // Document rattaché (optionnel) : on vérifie qu'il appartient bien au fondateur.
+  let documentId = null, documentName = null;
+  if (body.document_id != null && body.document_id !== '') {
+    const doc = await col('saas_documents').findOne(
+      { id: Number(body.document_id), user_id: req.user.id },
+      { projection: { id: 1, name: 1 } });
+    if (!doc) return res.status(404).json({ error: 'Document introuvable' });
+    documentId = doc.id; documentName = doc.name || null;
+  }
+
+  const now = new Date().toISOString();
+  const id  = await nextId('saas_avocat_requests');
+  const request = {
+    id, user_id: req.user.id,
+    prestation_key: prestationKey,
+    mode:       state.mode,
+    partner_id: state.mode === 'own' ? null : state.partner_id,
+    own_lawyer: state.mode === 'own' ? (state.own_lawyer || null) : null,
+    document_id: documentId, document_name: documentName,
+    note:   shortText(body.note, 1000),
+    status: 'demande',
+    created_at: now, updated_at: now,
+  };
+  await col('saas_avocat_requests').insertOne(request);
+  res.status(201).json({ request: avocatPublicRequest(request) });
+});
+
+app.put('/api/saas/avocat/requests/:id', requireAuth, async (req, res) => {
+  const id      = Number(req.params.id);
+  const request = await col('saas_avocat_requests').findOne({ id, user_id: req.user.id });
+  if (!request) return res.status(404).json({ error: 'Demande introuvable' });
+  // Côté fondateur, seule l'annulation d'une demande encore ouverte est permise
+  // (les transitions en_cours / relu relèvent du poste avocat).
+  if (req.body?.status !== 'annule')
+    return res.status(400).json({ error: 'Seule l’annulation est possible' });
+  if (!['demande', 'en_cours'].includes(request.status))
+    return res.status(409).json({ error: 'Cette demande ne peut plus être annulée' });
+  await col('saas_avocat_requests').updateOne(
+    { id, user_id: req.user.id },
+    { $set: { status: 'annule', updated_at: new Date().toISOString() } });
+  res.json({ success: true });
+});
+
 // ─── Journal d'activité ───────────────────────────────────────────────────────
 // Historique unifié de TOUTES les actions du fondateur (pas seulement les
 // documents) depuis la création de son compte. Il est reconstruit À LA LECTURE à
