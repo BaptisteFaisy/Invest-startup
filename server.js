@@ -446,6 +446,7 @@ function publicAuthUser(user) {
     name: user.full_name,
     created_at: user.created_at,
     account_types: Array.isArray(user.account_types) ? user.account_types : [],
+    theme: user.theme === 'dark' ? 'dark' : 'paper',
     is_admin: ADMIN_EMAILS.includes(user.email),
   };
 }
@@ -644,6 +645,16 @@ app.put('/api/auth/profile', requireAuth, async (req, res) => {
   const updated = await col('users').findOne({ id: req.user.id }, { projection: { _id: 0 } });
   const token = setAuthCookie(res, updated);
   res.json({ success: true, token, user: publicAuthUser(updated) });
+});
+
+// ─── PUT /api/auth/preferences ────────────────────────────────────────────────
+// Préférences d'affichage rattachées au compte (elles suivent l'utilisateur d'un
+// appareil à l'autre). Pour l'instant : thème de l'outil Avocat (« paper » / « dark »).
+app.put('/api/auth/preferences', requireAuth, async (req, res) => {
+  const theme = ['paper', 'dark'].includes(req.body?.theme) ? req.body.theme : null;
+  if (!theme) return res.status(400).json({ error: 'Thème invalide' });
+  await updateUserById(req.user.id, { theme });
+  res.json({ success: true, theme });
 });
 
 // ─── PUT /api/auth/password ───────────────────────────────────────────────────
