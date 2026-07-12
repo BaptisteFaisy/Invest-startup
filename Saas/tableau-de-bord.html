@@ -3810,7 +3810,7 @@
     // Étapes dont les lignes de documents adoptent l'apparence « éditoriale »
     // (icônes DOC, pastilles de statut, grille), quelle que soit leur organisation.
     const EDITORIAL_ROW_KEYS = new Set([
-      'due-diligence-preliminaire', 'due-diligence',
+      'confidentialite', 'due-diligence-preliminaire', 'due-diligence',
       'term-sheet', 'documentation', 'closing', 'post-closing',
     ]);
     function isEditorialRowStep(f) {
@@ -3819,7 +3819,7 @@
     // Étapes où le style éditorial s'applique À L'INTÉRIEUR des dossiers (dossiers
     // investisseurs pour la négociation, dossiers thématiques pour closing /
     // post-closing) plutôt qu'en liste unique à plat.
-    const EDITORIAL_FOLDER_KEYS = new Set(['term-sheet', 'documentation', 'closing', 'post-closing']);
+    const EDITORIAL_FOLDER_KEYS = new Set(['confidentialite', 'term-sheet', 'documentation', 'closing', 'post-closing']);
     function isEditorialFolderStep(f) {
       return !!f && EDITORIAL_FOLDER_KEYS.has(f.key);
     }
