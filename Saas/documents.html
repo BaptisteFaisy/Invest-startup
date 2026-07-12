@@ -91,6 +91,10 @@
     .doc-act svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
     /* ---- Sélecteur de vue (Par étape / Par investisseur) ---- */
+    /* Choix du type de levée (tout premier niveau : classique / BSA-AIR) */
+    .doc-raisebar { display: flex; align-items: center; gap: 12px; margin-top: 26px; flex-wrap: wrap; }
+    .doc-raisebar__label { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.45); }
+
     .doc-viewbar { display: flex; align-items: center; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
     .doc-viewbar__label { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.45); }
     .doc-viewtoggle { display: inline-flex; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.14); border-radius: 12px; padding: 3px; gap: 3px; }
@@ -216,6 +220,19 @@
         <input type="file" id="docs-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" hidden />
       </div>
 
+      <!-- Choix du type de levée : détermine les étapes affichées -->
+      <div class="doc-raisebar" id="doc-raisebar" hidden>
+        <span class="doc-raisebar__label">Type de levée</span>
+        <div class="doc-viewtoggle" id="doc-raisetoggle">
+          <button type="button" class="doc-view-btn is-active" data-raise="classic">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18"/><path d="M6 21V9l6-4 6 4v12"/><path d="M10 21v-6h4v6"/></svg>Levée classique
+          </button>
+          <button type="button" class="doc-view-btn" data-raise="bsa-air">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"/></svg>BSA-AIR
+          </button>
+        </div>
+      </div>
+
       <!-- Sélecteur de structure : par étape / par investisseur -->
       <div class="doc-viewbar" id="doc-viewbar" hidden>
         <span class="doc-viewbar__label">Organiser</span>
@@ -263,6 +280,8 @@
       const emptyEl    = document.getElementById('doc-empty');
       const toolbarEl  = document.getElementById('doc-toolbar');
       const searchEl   = document.getElementById('doc-search-input');
+      const raisebarEl = document.getElementById('doc-raisebar');
+      const raiseToggle = document.getElementById('doc-raisetoggle');
       const viewbarEl  = document.getElementById('doc-viewbar');
       const viewToggle = document.getElementById('doc-viewtoggle');
       const subfilterEl   = document.getElementById('doc-subfilter');
@@ -273,6 +292,8 @@
       let folders = [];
       let investors = [];
       let docs = [];
+      let raiseType = 'classic'; // parcours actif : classic | bsa-air (choix de tout 1er niveau)
+      let raiseUser = 'me';      // clé de stockage, alignée sur le tableau de bord
       let view = 'etape';     // etape | investor | avancement
       let subFilter = 'all';  // groupe sélectionné dans la barre secondaire (ou « all »)
       let query = '';
@@ -350,10 +371,26 @@
         return map[e] || (e ? e.toUpperCase() : 'Fichier');
       }
 
+      function folderById(id) {
+        return folders.find(x => x.id === id) || null;
+      }
       function folderName(id) {
-        const f = folders.find(x => x.id === id);
+        const f = folderById(id);
         return f ? f.name : null;
       }
+      // Étape appartenant au parcours actif ? Les dossiers « système » portent un
+      // track (classic / bsa-air) ; les dossiers créés à la main n'en ont pas et
+      // restent visibles quel que soit le type de levée choisi.
+      function folderInActiveRaise(f) {
+        return !f.track || f.track === raiseType;
+      }
+      // Document rattaché au parcours actif ? Un document dans une étape de l'autre
+      // parcours est masqué ; un document sans dossier ou dans un dossier libre reste.
+      function docInActiveRaise(d) {
+        const f = folderById(d.folder_id);
+        return !f || folderInActiveRaise(f);
+      }
+      function raiseKey() { return 'liquid_raise_type_' + raiseUser; }
       function investorById(id) {
         return investors.find(x => x.id === id) || null;
       }
@@ -370,24 +407,48 @@
       }
 
       /* ---------- Chargement ---------- */
+      const RAISE_TYPES = ['classic', 'bsa-air'];
+
+      // Type de levée initial : choix mémorisé en local (aligné sur le tableau de
+      // bord) sinon le profil de levée côté serveur, « classique » par défaut.
+      function resolveInitialRaiseType(profileType) {
+        let stored = null;
+        try { stored = localStorage.getItem(raiseKey()); } catch {}
+        if (RAISE_TYPES.includes(stored)) return stored;
+        return RAISE_TYPES.includes(profileType) ? profileType : 'classic';
+      }
+      function applyRaiseButtons() {
+        raiseToggle.querySelectorAll('.doc-view-btn').forEach(b =>
+          b.classList.toggle('is-active', b.getAttribute('data-raise') === raiseType));
+      }
+
       async function load() {
+        let profileType = null;
         try {
-          const [fr, dr, ir] = await Promise.all([
+          const [fr, dr, ir, me, pr] = await Promise.all([
             fetch('/api/saas/folders', { credentials: 'include' }),
             fetch('/api/saas/documents', { credentials: 'include' }),
             fetch('/api/saas/investors', { credentials: 'include' }),
+            fetch('/api/auth/me', { credentials: 'include' }),
+            fetch('/api/saas/fundraising-profile', { credentials: 'include' }),
           ]);
           if (fr.status === 401 || dr.status === 401) { window.location.href = 'login.html'; return; }
           folders = (await fr.json()).folders || [];
           docs = ((await dr.json()).documents || []).filter(isVisible);
           investors = ir.ok ? ((await ir.json()).investors || []) : [];
+          const user = me.ok ? ((await me.json()).user || null) : null;
+          raiseUser = (user && (user.id || user.email)) || 'me';
+          profileType = pr.ok ? ((await pr.json()).profile || {}).raise_type : null;
         } catch {
           loadingEl.hidden = true;
           errorEl.hidden = false;
           errorEl.textContent = 'Impossible de charger vos documents. Vérifiez votre connexion et réessayez.';
           return;
         }
+        raiseType = resolveInitialRaiseType(profileType);
+        applyRaiseButtons();
         loadingEl.hidden = true;
+        raisebarEl.hidden = false;
         toolbarEl.hidden = false;
         viewbarEl.hidden = false;
         render();
@@ -481,7 +542,8 @@
 
       function render() {
         renderHint();
-        const shown = docs.filter(matches);
+        // On restreint au parcours actif (levée classique / BSA-AIR) avant tout.
+        const shown = docs.filter(d => docInActiveRaise(d) && matches(d));
         sectionsEl.innerHTML = '';
 
         if (!docs.length) {
@@ -503,7 +565,8 @@
         // présents, même vides, pour donner une structure claire dès le départ.
         const groups = [];
         if (view === 'etape') {
-          folders.forEach(f => {
+          // Seules les étapes du parcours actif (+ les dossiers libres) sont listées.
+          folders.filter(folderInActiveRaise).forEach(f => {
             groups.push({ key: 'f' + f.id, name: f.name, items: shown.filter(d => d.folder_id === f.id) });
           });
           const unclassified = shown.filter(d => d.folder_id == null || !folders.some(f => f.id === d.folder_id));
@@ -665,6 +728,19 @@
       /* ---------- Interactions ---------- */
       searchEl.addEventListener('input', () => {
         query = searchEl.value.trim().toLowerCase();
+        render();
+      });
+      // Choix du type de levée : filtre les étapes/documents du parcours et se
+      // mémorise (même clé que le tableau de bord, pour rester cohérent).
+      raiseToggle.addEventListener('click', (e) => {
+        const btn = e.target.closest('.doc-view-btn');
+        if (!btn) return;
+        const next = btn.getAttribute('data-raise');
+        if (!RAISE_TYPES.includes(next) || next === raiseType) return;
+        raiseType = next;
+        subFilter = 'all';   // les groupes changent : on repart de « Tout »
+        try { localStorage.setItem(raiseKey(), raiseType); } catch {}
+        applyRaiseButtons();
         render();
       });
       viewToggle.addEventListener('click', (e) => {
