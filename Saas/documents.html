@@ -69,12 +69,6 @@
     .doc-item__meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 5px; font-size: 12.5px; color: rgba(255,255,255,0.55); }
     .doc-item__meta-sep { opacity: 0.4; }
 
-    .doc-badge { display: inline-flex; align-items: center; gap: 5px; font: 700 10.5px/1 'Archivo', sans-serif; letter-spacing: 0.05em; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; }
-    .doc-badge--written { background: rgba(96,165,250,0.16); color: #bfdbfe; }
-    .doc-badge--imported { background: rgba(251,191,36,0.16); color: #fde68a; }
-    .doc-badge__dot { width: 6px; height: 6px; border-radius: 50%; }
-    .doc-badge--written .doc-badge__dot { background: #60a5fa; }
-    .doc-badge--imported .doc-badge__dot { background: #fbbf24; }
     .doc-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,0.62); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; padding: 3px 9px; }
     .doc-pill svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .doc-pill--inv { color: rgba(167,139,250,0.9); background: rgba(167,139,250,0.12); border-color: rgba(167,139,250,0.28); }
@@ -526,9 +520,6 @@
         const row = document.createElement('div');
         row.className = 'doc-item';
 
-        const badge = written
-          ? '<span class="doc-badge doc-badge--written"><span class="doc-badge__dot"></span>Rédigé</span>'
-          : '<span class="doc-badge doc-badge--imported"><span class="doc-badge__dot"></span>Importé</span>';
         const st = statusMeta(docStatus(d));
         const statusBadge = `<span class="doc-status" style="--sc:${st.accent};--sb:${st.bg}" title="${esc(st.desc)}"><span class="doc-status__dot"></span>${esc(st.short)}</span>`;
         const folderPill = fname
@@ -546,7 +537,6 @@
           <div class="doc-item__main">
             <div class="doc-item__name" title="${esc(d.name)}">${esc(d.name)}</div>
             <div class="doc-item__meta">
-              ${badge}
               ${statusBadge}
               <span>${esc(typeLabel(d))}</span>
               ${d.size != null ? `<span class="doc-item__meta-sep">·</span><span>${fmtSize(d.size)}</span>` : ''}
