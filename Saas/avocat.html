@@ -84,6 +84,8 @@
     .av-btn:disabled { opacity: 0.55; cursor: default; }
     .av-btn--danger { color: #fca5a5; border-color: rgba(239,68,68,0.35); background: transparent; }
     .av-btn--danger:hover { background: rgba(239,68,68,0.1); }
+    .av-btn--link { background: none; border: 0; padding: 2px 2px; color: rgba(255,255,255,0.55); font: 600 12px/1.3 'Libre Franklin', sans-serif; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; text-align: right; }
+    .av-btn--link:hover { color: rgba(255,255,255,0.85); }
 
     /* ── Demandes ─────────────────────────────────────────────────── */
     .av-reqs { display: flex; flex-direction: column; gap: 10px; }
@@ -346,9 +348,11 @@
           '<div class="av-lawyer__side">' +
             '<span class="av-badge-mode">' + (STATE.mode === 'assigned' ? 'Attribué' : 'Choisi') + '</span>' +
             '<button type="button" class="av-btn av-btn--ghost av-btn--sm" id="change-lawyer">Changer d\'avocat</button>' +
+            '<button type="button" class="av-btn--link" id="declare-own">J\'ai déjà mon avocat</button>' +
           '</div>';
       }
-      document.getElementById('change-lawyer')?.addEventListener('click', openChooser);
+      document.getElementById('change-lawyer')?.addEventListener('click', () => openChooser());
+      document.getElementById('declare-own')?.addEventListener('click', () => openChooser(true));
     }
 
     /* ── Rendu : prestations ─────────────────────────────────────── */
@@ -469,10 +473,11 @@
     }
 
     /* ── Modale : choisir / changer d'avocat ─────────────────────── */
-    function openChooser() {
+    function openChooser(focusOwn) {
       const err = document.getElementById('chooser-err');
       err.textContent = '';
-      const selectedId = STATE.mode !== 'own' && STATE.partner ? STATE.partner.id : null;
+      const isOwn = STATE.mode === 'own' || focusOwn === true;
+      const selectedId = (!isOwn && STATE.partner) ? STATE.partner.id : null;
       document.getElementById('chooser-picks').innerHTML = STATE.partners.map(p =>
         '<label class="av-pick' + (p.id === selectedId ? ' is-sel' : '') + '">' +
           '<input type="radio" name="av-pick" value="' + esc(p.id) + '"' + (p.id === selectedId ? ' checked' : '') + ' />' +
@@ -481,7 +486,6 @@
         '</label>'
       ).join('');
 
-      const isOwn = STATE.mode === 'own';
       document.getElementById('pick-own').checked = isOwn;
       document.getElementById('own-fields').hidden = !isOwn;
       if (isOwn && STATE.own_lawyer) {
