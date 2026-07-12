@@ -85,31 +85,59 @@
     const match = String(f && f.name || '').match(/^\s*(\d+)/);
     return match ? Number(match[1]) : fallback;
   }
-  function phaseStatus(f, docs) {
+  // Étapes de négociation : documents propres à chaque investisseur du pipeline
+  // (statut ≥ seuil), rangés sous une clé composite inv<id>::<slug>. Miroir du
+  // tableau de bord (voir tableau-de-bord.html).
+  const INVESTOR_STAGE_ORDER = [
+    'a_contacter', 'contacte', 'interesse', 'due_diligence_preliminaire',
+    'lettre_intention_negociation', 'lettre_intention_signee', 'due_diligence_poussee',
+    'contrats_negociation', 'contrats_signes', 'gouvernance',
+  ];
+  const NEGOTIATION_PHASE_MIN_STAGE = {
+    'term-sheet': 'lettre_intention_negociation',
+    'documentation': 'contrats_negociation',
+  };
+  function stageIndex(stage) {
+    const i = INVESTOR_STAGE_ORDER.indexOf(stage);
+    return i === -1 ? 0 : i;
+  }
+  function investorsForPhase(f, investors) {
+    const min = NEGOTIATION_PHASE_MIN_STAGE[f && f.key];
+    if (!min) return [];
+    const minIdx = stageIndex(min);
+    return (investors || []).filter(inv => stageIndex(inv.stage) >= minIdx);
+  }
+  function phaseStatus(f, docs, investors) {
     const state = f.items_state || {};
     const items = Array.isArray(f.checklist) ? f.checklist : [];
+    const marks = f.marks || [];
     let total = 0, done = 0, linked = 0;
-    items.forEach((item, idx) => {
-      const slug = slugify(item);
-      const st = state[slug] || {};
-      const isLinked = st.document_id != null && docs.some(d => d.id === st.document_id);
-      const final = isLinked && !!st.final;
-      const mark = (f.marks || [])[idx] || '';
-      const skippable = mark === 'opt' && !isLinked;
-      if (!skippable) total++;
-      if (final) done++;
-      if (isLinked) linked++;
+    // Pour une étape de négociation, chaque investisseur concerné a sa propre copie
+    // de la checklist. Sinon, une seule liste commune (clés simples).
+    const groups = NEGOTIATION_PHASE_MIN_STAGE[f.key]
+      ? investorsForPhase(f, investors).map(inv => 'inv' + inv.id + '::')
+      : [''];
+    groups.forEach(prefix => {
+      items.forEach((item, idx) => {
+        const st = state[prefix + slugify(item)] || {};
+        const isLinked = st.document_id != null && docs.some(d => d.id === st.document_id);
+        const final = isLinked && !!st.final;
+        const skippable = marks[idx] === 'opt' && !isLinked;
+        if (!skippable) total++;
+        if (final) done++;
+        if (isLinked) linked++;
+      });
     });
     return { total, done, linked, complete: total > 0 && done === total };
   }
-  function buildSteps(type, folders, docs) {
+  function buildSteps(type, folders, docs, investors) {
     const isSys = f => !!(f && f.system === true && f.key);
     let phases = folders.filter(f => isSys(f) && (f.track || 'classic') === type);
     if (type === 'classic') {
       phases = phases.filter(f => !String(f && f.name || '').trim().startsWith('9'));
     }
     if (!phases.length) return { raiseType: type, steps: [] };
-    const stats = phases.map(f => phaseStatus(f, docs));
+    const stats = phases.map(f => phaseStatus(f, docs, investors));
     const currentIdx = stats.findIndex(s => !s.complete);
     const globalFrac = stats.length ? stats.filter(s => s.complete).length / stats.length : 0;
     const steps = [];
@@ -138,16 +166,18 @@
       const t = localStorage.getItem('liquid_raise_type_' + raiseUser);
       if (t === 'classic' || t === 'bsa-air') type = t;
     } catch {}
-    let folders = [], docs = [];
+    let folders = [], docs = [], investors = [];
     try {
-      const [fr, dr] = await Promise.all([
+      const [fr, dr, ir] = await Promise.all([
         fetch('/api/saas/folders', { credentials: 'include' }),
         fetch('/api/saas/documents', { credentials: 'include' }),
+        fetch('/api/saas/investors', { credentials: 'include' }).catch(() => null),
       ]);
       if (fr.ok) folders = (await fr.json()).folders || [];
       if (dr.ok) docs = (await dr.json()).documents || [];
+      if (ir && ir.ok) investors = (await ir.json().catch(() => ({}))).investors || [];
     } catch {}
-    renderSteps(buildSteps(type, folders, docs));
+    renderSteps(buildSteps(type, folders, docs, investors));
   }
 
   // ---- Amorçage ----
