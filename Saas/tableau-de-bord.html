@@ -4632,12 +4632,75 @@
       return box;
     }
 
+    // Découpage curé de la préparation Liquid+ en dossiers : pour chaque phase de
+    // DD, la liste des dossiers thématiques et les index (dans la checklist à plat
+    // d'origine) des documents qu'ils contiennent. Sert à ranger la checklist
+    // générée par dossiers plutôt qu'en liste à plat.
+    function fallbackCategoryDefsFor(f) {
+      if (!f) return null;
+      if (f.key === 'due-diligence-preliminaire') {
+        return DD_PRELIMINARY_CATEGORIES.map(c => ({ key: c.key, title: c.title, indexes: c.indexes }));
+      }
+      if (f.key === 'due-diligence') {
+        // Les catégories poussées sont concaténées dans DD_COMPLETE_DOCUMENTS :
+        // on recompose leurs index séquentiellement.
+        let cursor = 0;
+        return DD_PUSHED_CATEGORIES.map(c => {
+          const indexes = c.items.map((_, i) => cursor + i);
+          cursor += c.items.length;
+          return { key: c.key, title: c.title, indexes };
+        });
+      }
+      return null;
+    }
+    // Reproduit le filtre de portée (indispensables / si applicables) appliqué à la
+    // checklist Liquid+ générée et renvoie, dans l'ordre, les index d'origine
+    // conservés. La position dans ce tableau correspond à l'index dans f.checklist.
+    function fallbackKeptOriginalIndexes(f) {
+      const src = f.key === 'due-diligence-preliminaire'
+        ? { docs: DD_PRELIMINARY_DOCUMENTS, marks: DD_PRELIMINARY_MARKS }
+        : { docs: DD_COMPLETE_DOCUMENTS, marks: DD_COMPLETE_MARKS };
+      const scope = f.dd_fallback_scope;
+      if (!scope || scope === 'all') return src.docs.map((_, i) => i);
+      const keep = [];
+      src.docs.forEach((_, idx) => {
+        const isOptional = src.marks[idx] === 'opt';
+        if ((scope === 'optional') === isOptional) keep.push(idx);
+      });
+      return keep;
+    }
+    // Range la checklist Liquid+ générée dans ses dossiers thématiques curés. Chaque
+    // document conservé après filtrage de portée est rattaché à son dossier d'origine
+    // et pointe vers son index dans f.checklist. Un dossier « Autres documents » sert
+    // de repli pour tout document sans dossier connu.
+    function fallbackChecklistCategories(f) {
+      const defs = fallbackCategoryDefsFor(f);
+      const list = Array.isArray(f.checklist) ? f.checklist : [];
+      if (!defs || !list.length) return null;
+      const origToCat = new Map();
+      defs.forEach(def => (def.indexes || []).forEach(origIdx => origToCat.set(origIdx, def)));
+      const kept = fallbackKeptOriginalIndexes(f);
+      const buckets = new Map();
+      kept.forEach((origIdx, newIdx) => {
+        if (newIdx >= list.length) return;
+        const cat = origToCat.get(origIdx) || { key: 'autres', title: 'Autres documents' };
+        if (!buckets.has(cat.key)) buckets.set(cat.key, { key: cat.key, title: cat.title, items: [] });
+        buckets.get(cat.key).items.push({ label: list[newIdx], index: newIdx });
+      });
+      const order = [...defs.map(d => d.key), 'autres'];
+      const cats = order.filter(k => buckets.has(k)).map(k => buckets.get(k));
+      return cats.length ? cats : null;
+    }
+
     function documentCategoriesFor(f) {
       if (!f) return null;
       // Étape de DD pilotée par des checklists investisseurs : roadlist fusionnée,
-      // rangée par dossiers thématiques (le repli Liquid+ garde son affichage à plat).
+      // rangée par dossiers thématiques. La checklist Liquid+ générée (repli, sans
+      // request list importée) est elle aussi rangée dans ses dossiers curés.
       if (isInvestorChecklistPhase(f)) {
-        return hasInvestorChecklists(f) ? investorChecklistCategories(f) : null;
+        if (hasInvestorChecklists(f)) return investorChecklistCategories(f);
+        if (f.dd_fallback_models) return fallbackChecklistCategories(f);
+        return null;
       }
       if (f.key === 'due-diligence') return DD_PUSHED_CATEGORIES;
       if (f.key === 'closing') return CLOSING_CATEGORIES;
@@ -5037,7 +5100,24 @@
       }
       if (isInvestorChecklistPhase(f)) body.appendChild(investorChecklistEl(f));
       if (f.key === 'due-diligence-preliminaire' || f.key === 'due-diligence') {
-        ddEditorialBodyEl(f, body);
+        // Checklist Liquid+ générée : on la présente rangée par dossiers thématiques
+        // curés, avec un dossier « Fichiers importés de manière générale » en repli.
+        // Sans checklist générée (request list importée ou étape vierge), la vue
+        // éditoriale à plat reste inchangée.
+        const generatedCategories = (f.dd_fallback_models && !hasInvestorChecklists(f)) ? categories : null;
+        if (generatedCategories && generatedCategories.length) {
+          body.appendChild(phaseLooseFilesEl(f, linkedIds, '', 'Fichiers importés de manière générale'));
+          const catWrap = document.createElement('div');
+          catWrap.className = 'doc-categories';
+          let startIndex = 0;
+          generatedCategories.forEach(category => {
+            catWrap.appendChild(categoryFolderEl(f, category, startIndex, linkedIds));
+            startIndex += category.items.length;
+          });
+          body.appendChild(catWrap);
+        } else {
+          ddEditorialBodyEl(f, body);
+        }
         attachCardDrop(card, f.id, '');
         return card;
       }
