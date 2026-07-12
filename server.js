@@ -2774,8 +2774,13 @@ const FUNDRAISING_PROFILE_DEFAULT = {
   company_country: 'france',
   raise_type: 'classic',
   target_amount: '',
+  target_valuation: '',
+  max_dilution: '',
   target_date: '',
   raise_reason: '',
+  investor_profile: '',
+  other_financing: '',
+  governance_conditions: '',
   founders: [],
 };
 const FUNDRAISING_COUNTRIES = new Set(['france', 'us', 'uk', 'germany', 'other']);
@@ -2799,6 +2804,20 @@ function sanitizeFundraisingProfile(body) {
   if (target_amount_raw && (!/^\d+([.,]\d{1,2})?$/.test(target_amount_raw) || Number(target_amount_raw.replace(',', '.')) < 0)) {
     throw new Error('Montant visé invalide');
   }
+  // Cible économique associée au montant : une valorisation pre-money visée
+  // et/ou une dilution maximale acceptée (le fondateur exprime l'une, l'autre,
+  // ou les deux — montant + valo impliquent la dilution, et inversement).
+  const target_valuation_raw = shortText(body?.target_valuation, 32);
+  if (target_valuation_raw && (!/^\d+([.,]\d{1,2})?$/.test(target_valuation_raw) || Number(target_valuation_raw.replace(',', '.')) < 0)) {
+    throw new Error('Valorisation visée invalide');
+  }
+  const max_dilution_raw = shortText(body?.max_dilution, 16);
+  if (max_dilution_raw) {
+    const d = Number(max_dilution_raw.replace(',', '.'));
+    if (!/^\d+([.,]\d{1,2})?$/.test(max_dilution_raw) || d < 0 || d > 100) {
+      throw new Error('Dilution maximale invalide (0 à 100 %)');
+    }
+  }
   const target_date = shortText(body?.target_date, 24);
   if (target_date && !/^\d{4}-\d{2}-\d{2}$/.test(target_date)) throw new Error('Date cible invalide');
 
@@ -2813,8 +2832,13 @@ function sanitizeFundraisingProfile(body) {
     company_country,
     raise_type,
     target_amount: target_amount_raw,
+    target_valuation: target_valuation_raw,
+    max_dilution: max_dilution_raw,
     target_date,
     raise_reason: shortText(body?.raise_reason, 1200),
+    investor_profile: shortText(body?.investor_profile, 1200),
+    other_financing: shortText(body?.other_financing, 1200),
+    governance_conditions: shortText(body?.governance_conditions, 1200),
     founders,
   };
 }

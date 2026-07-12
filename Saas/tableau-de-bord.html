@@ -2522,8 +2522,13 @@
         company_country: String(p.company_country || 'france'),
         raise_type: RAISE_HINTS[p.raise_type] ? p.raise_type : 'classic',
         target_amount: p.target_amount == null ? '' : String(p.target_amount),
+        target_valuation: p.target_valuation == null ? '' : String(p.target_valuation),
+        max_dilution: p.max_dilution == null ? '' : String(p.max_dilution),
         target_date: String(p.target_date || ''),
         raise_reason: String(p.raise_reason || ''),
+        investor_profile: String(p.investor_profile || ''),
+        other_financing: String(p.other_financing || ''),
+        governance_conditions: String(p.governance_conditions || ''),
         founders: founders.map(f => ({
           name: String((f && f.name) || ''),
           status: ['cofounder', 'late-cofounder', 'investor'].includes(f && f.status) ? f.status : 'cofounder',
@@ -3428,8 +3433,13 @@
         company_country: form.querySelector('[name="company_country"]').value,
         raise_type: form.querySelector('[name="raise_type"]').value,
         target_amount: form.querySelector('[name="target_amount"]').value.trim(),
+        target_valuation: form.querySelector('[name="target_valuation"]').value.trim(),
+        max_dilution: form.querySelector('[name="max_dilution"]').value.trim(),
         target_date: form.querySelector('[name="target_date"]').value,
         raise_reason: form.querySelector('[name="raise_reason"]').value.trim(),
+        investor_profile: form.querySelector('[name="investor_profile"]').value.trim(),
+        other_financing: form.querySelector('[name="other_financing"]').value.trim(),
+        governance_conditions: form.querySelector('[name="governance_conditions"]').value.trim(),
         founders,
       });
     }
@@ -3468,12 +3478,32 @@
               <input class="raise-input" name="target_amount" type="number" min="0" step="1000" inputmode="numeric" placeholder="Ex. 500000" value="${esc(profile.target_amount)}" />
             </label>
             <label class="raise-field">
+              <span class="raise-field__label">Valorisation pre-money visée</span>
+              <input class="raise-input" name="target_valuation" type="number" min="0" step="1000" inputmode="numeric" placeholder="Ex. 2000000" value="${esc(profile.target_valuation)}" />
+            </label>
+            <label class="raise-field">
+              <span class="raise-field__label">Dilution max acceptée (%)</span>
+              <input class="raise-input" name="max_dilution" type="number" min="0" max="100" step="0.5" inputmode="decimal" placeholder="Ex. 20" value="${esc(profile.max_dilution)}" />
+            </label>
+            <label class="raise-field">
               <span class="raise-field__label">Date cible</span>
               <input class="raise-input" name="target_date" type="date" value="${esc(profile.target_date)}" />
             </label>
             <label class="raise-field raise-field--wide">
               <span class="raise-field__label">Pourquoi lever ?</span>
               <textarea class="raise-textarea" name="raise_reason" placeholder="Ex. recruter, accélérer le produit, financer le go-to-market...">${esc(profile.raise_reason)}</textarea>
+            </label>
+            <label class="raise-field raise-field--wide">
+              <span class="raise-field__label">Profil d'investisseurs recherché</span>
+              <textarea class="raise-textarea" name="investor_profile" placeholder="Ex. fonds d'amorçage tech, business angels du secteur, investisseur capable de reparticiper au prochain tour...">${esc(profile.investor_profile)}</textarea>
+            </label>
+            <label class="raise-field raise-field--wide">
+              <span class="raise-field__label">Autres financements envisagés</span>
+              <textarea class="raise-textarea" name="other_financing" placeholder="Ex. prêt bancaire, obligations convertibles, subventions et aides publiques, love money...">${esc(profile.other_financing)}</textarea>
+            </label>
+            <label class="raise-field raise-field--wide">
+              <span class="raise-field__label">Conditions de gouvernance / contrôle souhaitées</span>
+              <textarea class="raise-textarea" name="governance_conditions" placeholder="Ex. garder la majorité au board, pas de préférence de liquidation supérieure à 1x, droits de veto limités...">${esc(profile.governance_conditions)}</textarea>
             </label>
           </div>
           <div class="raise-founders">
