@@ -56,11 +56,10 @@
     .doc-view-btn:hover { color: #fff; }
     .doc-view-btn.is-on { background: #fff; color: #08090c; }
 
-    /* Barre de filtres */
-    .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; position: sticky; top: 50px; z-index: 12; padding: 12px 0; background: #08090c; }
-    .filter { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 999px; padding: 7px 15px; cursor: pointer; transition: .14s ease; white-space: nowrap; }
-    .filter:hover { color: #fff; border-color: rgba(255,255,255,0.3); }
-    .filter.is-on { color: #08090c; background: #fff; border-color: #fff; }
+    /* Familles de benchmarks : même barre segmentée que les sélecteurs ci-dessus. */
+    .filters { margin-top: 12px; position: sticky; top: 50px; z-index: 12; padding: 12px 0; background: #08090c; }
+    .filters .doc-viewtoggle { flex: 1 1 640px; }
+    .filter { white-space: nowrap; }
 
     /* Sections */
     .bsec { margin-top: 40px; scroll-margin-top: 110px; }
@@ -218,15 +217,18 @@
         </div>
       </div>
 
-      <div class="filters" role="tablist" aria-label="Filtrer les repères">
-        <button type="button" class="filter is-on" data-filter="montants">Montants &amp; valorisation</button>
-        <button type="button" class="filter" data-filter="termes">Termes du deal</button>
-        <button type="button" class="filter" data-filter="negociation">Négociation</button>
-        <button type="button" class="filter" data-filter="captable">Cap table &amp; dilution</button>
-        <button type="button" class="filter" data-filter="clauses">Clauses juridiques</button>
-        <button type="button" class="filter" data-filter="traction">Traction &amp; metrics</button>
-        <button type="button" class="filter" data-filter="process">Process &amp; délais</button>
-        <button type="button" class="filter" data-filter="secteur">Par secteur</button>
+      <div class="doc-viewbar filters">
+        <span class="doc-viewbar__label">Benchmarks</span>
+        <div class="doc-viewtoggle" role="tablist" aria-label="Filtrer les repères">
+          <button type="button" class="doc-view-btn filter is-on" data-filter="montants" role="tab" aria-selected="true">Montants &amp; valorisation</button>
+          <button type="button" class="doc-view-btn filter" data-filter="termes" role="tab" aria-selected="false">Termes du deal</button>
+          <button type="button" class="doc-view-btn filter" data-filter="negociation" role="tab" aria-selected="false">Négociation</button>
+          <button type="button" class="doc-view-btn filter" data-filter="captable" role="tab" aria-selected="false">Cap table &amp; dilution</button>
+          <button type="button" class="doc-view-btn filter" data-filter="clauses" role="tab" aria-selected="false">Clauses juridiques</button>
+          <button type="button" class="doc-view-btn filter" data-filter="traction" role="tab" aria-selected="false">Traction &amp; metrics</button>
+          <button type="button" class="doc-view-btn filter" data-filter="process" role="tab" aria-selected="false">Process &amp; délais</button>
+          <button type="button" class="doc-view-btn filter" data-filter="secteur" role="tab" aria-selected="false">Par secteur</button>
+        </div>
       </div>
 
       <!-- 1. Montants & valorisation par stade -->
@@ -997,9 +999,78 @@
     let sector = localStorage.getItem('benchmark_sector') || 'saas';
     let cat = 'montants';
 
+    if (!['classique', 'bsaair'].includes(round)) round = 'classique';
+    if (!['preseed', 'seed', 'seriea'].includes(stage)) stage = 'seed';
+    if (!['saas', 'marketplace', 'd2c', 'fintech', 'autre'].includes(sector)) sector = 'saas';
+
+    const STAGE_LABELS = { preseed: 'pre-seed', seed: 'seed', seriea: 'série A' };
+    const ROUND_TABLES = {
+      classique: {
+        preseed: ['<b>0,5 M€</b><span class="sub">0,3 – 0,8 M€</span>', '<b>3 M€</b><span class="sub">2 – 4 M€</span>', '15 – 20 %'],
+        seed: ['<b>2 M€</b><span class="sub">1 – 3 M€</span>', '<b>7 M€</b><span class="sub">5 – 9 M€</span>', '18 – 25 %'],
+        seriea: ['<b>8 M€</b><span class="sub">5 – 12 M€</span>', '<b>25 M€</b><span class="sub">20 – 35 M€</span>', '18 – 25 %'],
+      },
+      bsaair: {
+        preseed: ['<b>0,4 M€</b><span class="sub">0,2 – 0,8 M€</span>', '<b>Cap 4 M€</b><span class="sub">3 – 5 M€</span>', 'à la conversion'],
+        seed: ['<b>1 M€</b><span class="sub">0,5 – 2 M€</span>', '<b>Cap 7 M€</b><span class="sub">5 – 9 M€</span>', 'à la conversion'],
+        seriea: ['<b>Bridge 2 M€</b><span class="sub">1 – 3 M€</span>', '<b>Cap négocié</b><span class="sub">proche du tour attendu</span>', 'à la conversion'],
+      }
+    };
+    const BENCHMARKS = {
+      classique: {
+        preseed: { ratio:'≈ 5,0', ratioRange:'au pre-seed', ratioNote:'Lever 0,5 M€ sur une valorisation pre-money proche de 2–4 M€ conduit généralement à 15–20 % de dilution.', runway:'15', runwayRange:'12 – 18 mois', founders:'≈ 82', foundersRange:'78 – 85 %', esop:'8 – 10', duration:'3 – 5', contacts:'40 – 80', funnel:'80 → 1', dd:'3 – 6', board:'Observateur', traction:'Prototype / pilotes' },
+        seed:    { ratio:'≈ 3,5', ratioRange:'au seed', ratioNote:'Lever 2 M€ suppose généralement une valorisation pre-money proche de 7–8 M€ pour une dilution d’environ 20 %.', runway:'18', runwayRange:'15 – 24 mois', founders:'≈ 65', foundersRange:'60 – 70 %', esop:'10 – 15', duration:'4 – 6', contacts:'50 – 100', funnel:'100 → 1', dd:'4 – 8', board:'1 siège', traction:'PMF / revenus' },
+        seriea:  { ratio:'≈ 3,1', ratioRange:'en série A', ratioNote:'Lever 8 M€ sur une valorisation pre-money proche de 20–35 M€ conduit généralement à 18–25 % de dilution.', runway:'20', runwayRange:'18 – 24 mois', founders:'≈ 52', foundersRange:'45 – 58 %', esop:'12 – 15', duration:'5 – 8', contacts:'30 – 60', funnel:'60 → 1', dd:'6 – 10', board:'1–2 sièges', traction:'Croissance répétable' },
+      },
+      bsaair: {
+        preseed: { ratio:'Cap 3–5', ratioRange:'M€ au pre-seed', ratioNote:'Le BSA-AIR ne fixe pas une valorisation immédiate : le cap encadre le prix futur. Les tickets agrégés se situent souvent entre 0,2 et 0,8 M€.', runway:'12', runwayRange:'9 – 18 mois', founders:'À simuler', foundersRange:'à la conversion', esop:'5 – 10', duration:'1 – 2', contacts:'15 – 40', funnel:'40 → 1', dd:'1 – 3', board:'Aucun siège', traction:'Prototype / premiers signaux' },
+        seed:    { ratio:'Cap 6–9', ratioRange:'M€ au seed', ratioNote:'Au seed, le cap est souvent rapproché de la prochaine valorisation anticipée, avec une décote de 15–25 %. La dilution ne sera connue qu’à la conversion.', runway:'15', runwayRange:'12 – 18 mois', founders:'À simuler', foundersRange:'cap + décote', esop:'8 – 12', duration:'1 – 3', contacts:'20 – 50', funnel:'50 → 1', dd:'2 – 4', board:'Information', traction:'Revenus / PMF naissant' },
+        seriea:  { ratio:'Rare', ratioRange:'en série A', ratioNote:'À ce stade, un tour classique pricé est généralement préféré. Un BSA-AIR sert surtout de bridge court avant un tour déjà identifié.', runway:'9', runwayRange:'6 – 12 mois (bridge)', founders:'À simuler', foundersRange:'conversion imminente', esop:'10 – 15', duration:'1 – 2', contacts:'10 – 25', funnel:'25 → 1', dd:'2 – 4', board:'Droits limités', traction:'Metrics de série A' },
+      }
+    };
+
+    function setCard(sectionId, index, values) {
+      const card = document.querySelectorAll(`#${sectionId} .bcard`)[index];
+      if (!card) return;
+      Object.entries(values).forEach(([selector, value]) => {
+        const el = card.querySelector(selector);
+        if (el) el.innerHTML = value;
+      });
+    }
+
+    function applyBenchmarkContent() {
+      const data = BENCHMARKS[round][stage];
+      const label = STAGE_LABELS[stage];
+      document.querySelectorAll('#sec-montants tbody tr[data-stage]').forEach(row => {
+        const values = ROUND_TABLES[round][row.dataset.stage];
+        [...row.cells].slice(1).forEach((cell, index) => { cell.innerHTML = values[index]; });
+      });
+      const amountHeaders = document.querySelectorAll('#sec-montants thead th');
+      if (amountHeaders[2]) amountHeaders[2].innerHTML = round === 'bsaair' ? 'Plafond de valorisation <span class="sub">médian · fourchette indicative</span>' : 'Valorisation pre-money <span class="sub">médian · fourchette</span>';
+      if (amountHeaders[3]) amountHeaders[3].textContent = round === 'bsaair' ? 'Dilution' : 'Dilution du tour';
+      setCard('sec-montants', 0, { '.bcard__v': `${data.ratio}<small>${data.ratio.startsWith('≈') ? '×' : ''}</small>`, '.bcard__range': data.ratioRange, '.bcard__note': data.ratioNote });
+      setCard('sec-montants', 1, { '.bcard__v': `${data.runway}<small> mois</small>`, '.bcard__range': data.runwayRange });
+      setCard('sec-montants', 2, { '.bcard__v': round === 'bsaair' ? 'Convertible' : 'Equity', '.bcard__note': round === 'bsaair' ? `Au ${label}, le BSA-AIR apporte des fonds immédiatement et reporte la fixation du prix à la conversion.` : `Au ${label}, le tour est réalisé en fonds propres et fixe immédiatement la valorisation et la dilution.` });
+      setCard('sec-captable', 0, { '.bcard__v': `${data.esop}<small> %</small>` });
+      setCard('sec-captable', 2, { '.bcard__k': `Part fondateurs ${round === 'bsaair' ? 'à la conversion' : `après ${label}`}`, '.bcard__v': `${data.founders}<small>${data.founders.startsWith('≈') ? ' %' : ''}</small>`, '.bcard__range': data.foundersRange, '.bcard__note': round === 'bsaair' ? 'La dilution dépend du cap, de la décote, du montant du prochain tour et des autres instruments convertibles.' : `Ordre de grandeur cumulé au stade ${label}, après les tours précédents et le pool.` });
+      setCard('sec-clauses', 5, { '.bcard__v': data.board, '.bcard__range': round === 'classique' ? `gouvernance au ${label}` : 'avant conversion' });
+      setCard('sec-process', 0, { '.bcard__k': `Durée d’une levée ${round === 'bsaair' ? 'BSA-AIR' : label}`, '.bcard__v': `${data.duration}<small> mois</small>` });
+      setCard('sec-process', 1, { '.bcard__v': data.contacts });
+      setCard('sec-process', 2, { '.bcard__v': data.funnel });
+      setCard('sec-process', 5, { '.bcard__v': `${data.dd}<small> sem.</small>` });
+
+      const tractionDesc = document.querySelector('#sec-traction .bsec__desc');
+      if (tractionDesc) tractionDesc.innerHTML = `Repères attendus au <strong style="color:#fff;">${label}</strong> pour une ${round === 'bsaair' ? 'levée en BSA-AIR' : 'levée classique'} : priorité actuelle — <strong style="color:#fff;">${data.traction}</strong>. Les valeurs restent sensibles au secteur.`;
+      const clausesDesc = document.querySelector('#sec-clauses .bsec__desc');
+      if (clausesDesc) clausesDesc.innerHTML = `Clauses généralement observées lors d’une levée classique au stade <strong style="color:#fff;">${label}</strong>. La gouvernance et le niveau de protection se renforcent avec la maturité du tour.`;
+      const termsDesc = document.querySelector('#sec-termes .bsec__desc');
+      if (termsDesc) termsDesc.innerHTML = `Repères BSA-AIR au stade <strong style="color:#fff;">${label}</strong>. Le prix est reporté à la conversion ; cap, décote et instruments déjà émis doivent être simulés ensemble.`;
+    }
+
     // Surbrillance de la ligne du stade choisi dans les tableaux « par stade »
     function applyStage() {
       stageRows.forEach(tr => tr.classList.toggle('is-stage', tr.dataset.stage === stage));
+      applyBenchmarkContent();
     }
 
     // Affiche le panneau du secteur choisi dans la section « Par secteur »
@@ -1019,13 +1090,18 @@
         const first = [...filters].find(f => FILTER_ROUNDS[f.dataset.filter].includes(round));
         cat = first ? first.dataset.filter : 'montants';
       }
-      filters.forEach(f => f.classList.toggle('is-on', f.dataset.filter === cat));
+      filters.forEach(f => {
+        const on = f.dataset.filter === cat;
+        f.classList.toggle('is-on', on);
+        f.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
       // Sections : visibles si compatibles avec le type de levée ET la famille
       sections.forEach(sec => {
         const inRound = sec.dataset.rounds.split(' ').includes(round);
         const inCat = sec.dataset.cat === cat;
         sec.hidden = !(inRound && inCat);
       });
+      applyBenchmarkContent();
     }
 
     roundOpts.forEach(btn => btn.addEventListener('click', () => {
