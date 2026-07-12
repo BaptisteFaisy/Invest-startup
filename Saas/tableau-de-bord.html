@@ -2848,6 +2848,10 @@
       if (selected.key === 'confidentialite') {
         // Étape « Investisseurs » : onglets Trouver / Pipeline.
         container.appendChild(investorSectionEl());
+        // Sous l'entonnoir, les documents de confidentialité de l'étape : NDA
+        // (accord de confidentialité), engagement d'accès à la data room et deck.
+        // noAnchor : la section investisseurs porte déjà #phase-confidentialite.
+        container.appendChild(phaseCard(selected, idx, { title: 'Documents', icon: 'DOC', hideStep: true, documentActions: true, noAnchor: true }));
       } else if (CLASSIC_SOON_STEPS.has(selected.key)) {
         container.appendChild(stepSoonEl(selected));
       } else if (idx >= 2 && idx <= 7) {
