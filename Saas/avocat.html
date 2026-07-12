@@ -87,6 +87,22 @@
     .av-btn--link { background: none; border: 0; padding: 2px 2px; color: rgba(255,255,255,0.55); font: 600 12px/1.3 'Libre Franklin', sans-serif; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; text-align: right; }
     .av-btn--link:hover { color: rgba(255,255,255,0.85); }
 
+    /* ── Vos documents à sécuriser ────────────────────────────────── */
+    .av-docs { display: flex; flex-direction: column; gap: 8px; }
+    .av-doc { padding: 13px 16px; display: flex; align-items: center; gap: 12px; }
+    .av-doc__main { flex: 1 1 auto; min-width: 0; }
+    .av-doc__name { font-size: 14px; font-weight: 600; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    /* Pastilles de risque — pâles et plates, sans bordure ni ombre (identiques à Documents). */
+    .av-docrisk { display: inline-flex; align-items: center; gap: 6px; flex: none; font-size: 11.5px; font-weight: 600; border: 0; border-radius: 999px; padding: 3px 9px; box-shadow: none; }
+    .av-docrisk__dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+    .av-docrisk--critique { color: #d99a9a; background: rgba(239,68,68,0.10); }
+    .av-docrisk--critique .av-docrisk__dot { background: #cf7676; }
+    .av-docrisk--conseille { color: #cdae74; background: rgba(245,158,11,0.10); }
+    .av-docrisk--conseille .av-docrisk__dot { background: #c39a4c; }
+    .av-docrisk--faible { color: #96a0aa; background: rgba(148,163,184,0.10); }
+    .av-docrisk--faible .av-docrisk__dot { background: #8a94a0; }
+    .av-doc .av-btn--sm { flex: none; }
+
     /* ── Demandes ─────────────────────────────────────────────────── */
     .av-reqs { display: flex; flex-direction: column; gap: 10px; }
     .av-req { padding: 15px 18px; display: flex; align-items: center; gap: 14px; }
@@ -212,9 +228,15 @@
         <div class="av-card av-lawyer" id="lawyer-card"><div class="av-empty">Chargement…</div></div>
       </section>
 
+      <!-- Vos documents à sécuriser -->
+      <section class="av-sec">
+        <div class="av-sec__h"><span class="av-sec__t">Vos documents à sécuriser</span></div>
+        <div class="av-docs" id="secure-docs"></div>
+      </section>
+
       <!-- Prestations -->
       <section class="av-sec">
-        <div class="av-sec__h"><span class="av-sec__t">Faire relire un document</span></div>
+        <div class="av-sec__h"><span class="av-sec__t">Prestations &amp; tarifs</span></div>
         <div class="av-grid" id="presta-grid"></div>
       </section>
 
@@ -404,6 +426,34 @@
       }).join('');
     }
 
+    /* ── Rendu : vos documents à sécuriser ───────────────────────── */
+    const RISK_META  = {
+      critique:  { label: 'Avocat avant signature', cls: 'critique' },
+      conseille: { label: 'Relecture conseillée',   cls: 'conseille' },
+      faible:    { label: 'Faible enjeu',           cls: 'faible' },
+    };
+    const RISK_ORDER = { critique: 0, conseille: 1, faible: 2 };
+
+    function renderSecureDocs() {
+      const box = document.getElementById('secure-docs');
+      if (!DOCS.length) {
+        box.innerHTML = '<div class="av-card av-empty">Vos documents apparaîtront ici avec leur niveau de risque juridique. Rédigez-les ou importez-les depuis <a href="documents.html" style="color:#c7d2fe">Documents</a>.</div>';
+        return;
+      }
+      const sorted = DOCS.slice().sort((a, b) =>
+        ((RISK_ORDER[a.risk] ?? 3) - (RISK_ORDER[b.risk] ?? 3)) ||
+        (new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at)));
+      box.innerHTML = sorted.map(d => {
+        const rk = RISK_META[d.risk] || RISK_META.faible;
+        const canReview = d.risk === 'critique' || d.risk === 'conseille';
+        return '<div class="av-card av-doc">' +
+          '<div class="av-doc__main"><div class="av-doc__name" title="' + esc(d.name) + '">' + esc(d.name) + '</div></div>' +
+          '<span class="av-docrisk av-docrisk--' + esc(rk.cls) + '"><span class="av-docrisk__dot"></span>' + esc(rk.label) + '</span>' +
+          (canReview ? '<button type="button" class="av-btn av-btn--ghost av-btn--sm" data-review-doc="' + esc(d.id) + '" data-review-presta="' + esc(d.avocat_presta || 'question') + '">Faire relire</button>' : '') +
+        '</div>';
+      }).join('');
+    }
+
     function renderAll() { renderLawyer(); renderPrestations(); renderRequests(); }
 
     /* ── Chargement ──────────────────────────────────────────────── */
@@ -550,6 +600,11 @@
         const btn = e.target.closest('button[data-presta]');
         if (btn) openRequestModal(btn.getAttribute('data-presta'));
       });
+      // « Faire relire » depuis « Vos documents à sécuriser »
+      document.getElementById('secure-docs').addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-review-doc]');
+        if (btn) openRequestModal(btn.getAttribute('data-review-presta'), btn.getAttribute('data-review-doc'));
+      });
       // Boutons « Annuler » une demande (délégation)
       document.getElementById('reqs').addEventListener('click', (e) => {
         const btn = e.target.closest('button[data-cancel]');
@@ -581,6 +636,7 @@
       document.querySelector('.app').classList.add('ready');
       wireEvents();
       await Promise.all([loadOverview(), loadDocs()]);
+      renderSecureDocs();
       handleDeepLink();
     }
 
