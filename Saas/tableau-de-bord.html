@@ -178,6 +178,43 @@
     .dd-chip--sent { background:#dcfce7; color:#166534; border-color:rgba(22,101,52,.22); }
     .dd-chip--sent:hover { background:#bbf7d0; }
     .dd-chip--missing { background:#f1f5f9; color:#94a3b8; cursor:default; border-color:rgba(148,163,184,.25); }
+    /* Vue éditoriale des documents — Due diligence préliminaire */
+    .dd-editorial { margin-top:14px; border:1px solid rgba(8,9,12,.09); border-radius:14px; background:#fff; overflow:hidden; }
+    .dd-editorial__top { display:flex; align-items:flex-end; justify-content:space-between; gap:20px; padding:22px 22px 18px; }
+    .dd-editorial__title { margin:0; font-family:'Archivo',sans-serif; font-size:20px; line-height:1.2; letter-spacing:-.025em; color:#08090c; }
+    .dd-editorial__progress-text { margin-top:5px; color:#6b6b78; font-size:12.5px; }
+    .dd-editorial__progress { width:min(360px,42vw); height:4px; border-radius:99px; background:#e5e7eb; overflow:hidden; }
+    .dd-editorial__progress>span { display:block; height:100%; border-radius:inherit; background:#2563eb; }
+    .dd-editorial__columns,.dd-editorial .dd-editorial-item { display:grid; grid-template-columns:minmax(250px,1.7fr) 120px minmax(180px,.8fr) minmax(210px,auto); gap:18px; align-items:center; }
+    .dd-editorial__columns { padding:10px 22px; border-top:1px solid #eceef2; border-bottom:1px solid #eceef2; color:#64748b; font:700 9.5px 'Archivo',sans-serif; letter-spacing:.09em; text-transform:uppercase; }
+    .dd-editorial__columns span:last-child { text-align:right; }
+    .dd-editorial .bsa-list { margin:0; padding:0; list-style:none; }
+    .dd-editorial .dd-editorial-item { margin:0; padding:15px 22px; border:0; border-bottom:1px solid #eceef2; border-radius:0; background:#fff; }
+    .dd-editorial .dd-editorial-item:hover { background:#fafbfc; }
+    .dd-editorial .dd-editorial-item::before { display:none; }
+    .dd-editorial .bsa-item__head { display:contents; }
+    .dd-editorial .bsa-item__label { display:flex; align-items:center; gap:12px; min-width:0; }
+    .dd-editorial__fileicon { width:34px; height:40px; flex:none; display:grid; place-items:center; border:1px solid #cfd3da; border-radius:5px; background:#fff; color:#59616d; font:800 8px 'Archivo',sans-serif; position:relative; }
+    .dd-editorial__fileicon::after { content:''; position:absolute; top:-1px; right:-1px; width:9px; height:9px; border-left:1px solid #cfd3da; border-bottom:1px solid #cfd3da; background:#f4f5f7; }
+    .dd-editorial .bsa-item__name { color:#08090c; font-size:13.5px; font-weight:650; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .dd-editorial .bsa-item__note { display:none; }
+    .dd-editorial__status { justify-self:start; display:inline-flex; align-items:center; min-height:25px; padding:0 9px; border-radius:7px; font:650 10.5px 'Archivo',sans-serif; white-space:nowrap; }
+    .dd-editorial__status--todo { background:#eaf1ff; color:#1d4ed8; }
+    .dd-editorial__status--review { background:#fff2d9; color:#b26a00; }
+    .dd-editorial__status--ready { background:#e4f4e7; color:#23723a; }
+    .dd-editorial .bsa-item__actions { grid-column:4; grid-row:1; display:flex; justify-content:flex-end; align-items:center; gap:5px; min-width:0; }
+    .dd-editorial .bsa-item__file { grid-column:1; margin:-9px 0 0 46px; color:#7a808b; font-size:10.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .dd-editorial .bsa-item__send { grid-column:3; grid-row:1; margin:0; gap:5px; }
+    .dd-editorial .bsa-item__send-label { display:none; }
+    .dd-editorial .dd-chip { max-width:108px; overflow:hidden; text-overflow:ellipsis; padding:4px 8px; border:0; background:#f0f2f5; color:#4b5563; font-size:10px; }
+    .dd-editorial .dd-chip--sent { background:#e4f4e7; color:#23723a; }
+    .dd-editorial .dd-chip--todo { background:#fff2d9; color:#945b07; }
+    .dd-editorial .docbar { flex-wrap:nowrap; }
+    .dd-editorial__drop { display:flex; align-items:center; justify-content:center; gap:9px; margin:16px 22px 20px; min-height:64px; border:1.5px dashed #9fb0cb; border-radius:9px; background:#fff; color:#1d4ed8; font:650 12px 'Archivo',sans-serif; cursor:pointer; }
+    .dd-editorial__drop:hover { background:#f7faff; border-color:#2563eb; }
+    .dd-editorial__drop svg { width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+    @media(max-width:900px){.dd-editorial__columns{display:none}.dd-editorial .dd-editorial-item{grid-template-columns:minmax(0,1fr) auto;gap:10px 14px;padding:16px}.dd-editorial .bsa-item__label{grid-column:1}.dd-editorial__status{grid-column:2;grid-row:1}.dd-editorial .bsa-item__send{grid-column:1;grid-row:2;margin-left:46px}.dd-editorial .bsa-item__actions{grid-column:2;grid-row:2}.dd-editorial .bsa-item__file{display:none}}
+    @media(max-width:560px){.dd-editorial__top{align-items:flex-start;flex-direction:column;padding:18px 16px 14px}.dd-editorial__progress{width:100%}.dd-editorial .dd-editorial-item{grid-template-columns:1fr}.dd-editorial__status,.dd-editorial .bsa-item__send,.dd-editorial .bsa-item__actions{grid-column:1;grid-row:auto;margin-left:46px;justify-self:start}.dd-editorial__drop{margin:14px 16px 16px}}
     .cli { display: flex; align-items: center; gap: 12px; background: var(--card, #fff); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; }
     .cli__status { flex: none; width: 18px; text-align: center; font-size: 14px; line-height: 1; }
     .cli__status--todo { color: #fff; }
@@ -3835,8 +3872,8 @@
         const pct = Math.max(0, Math.min(100, Math.round(globalFrac * 100)));
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'drawer__link drawer__link--step'
-          + (selectedBsaStep === 'bsa-profile' ? ' is-active' : '');
+        // « Ma levée » conserve le même fond neutre que les autres étapes.
+        btn.className = 'drawer__link drawer__link--step';
         btn.innerHTML =
           '<span class="drawer__step-row"><span class="drawer__step-num">0</span>Ma levée</span>'
           + '<span class="drawer__step-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><span style="width:' + pct + '%"></span></span>';
@@ -3853,8 +3890,10 @@
         const done = s.complete;
         // « Ma levée » ne reçoit pas le fond indigo réservé à l'étape courante.
         const isCurrent = i === currentIdx && f.key !== 'mise-en-ordre';
-        const isActive = (type === 'classic' && selectedClassicStep === f.key)
-          || (type === 'bsa-air' && selectedBsaStep === f.key);
+        const isActive = f.key !== 'mise-en-ordre' && (
+          (type === 'classic' && selectedClassicStep === f.key)
+          || (type === 'bsa-air' && selectedBsaStep === f.key)
+        );
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'drawer__link drawer__link--step'
@@ -4818,6 +4857,31 @@
     }
 
     // Carte d'une phase : checklist numérotée + fichiers libres de la phase + dépôt.
+    function ddEditorialBodyEl(f, body) {
+      const list = Array.isArray(f.checklist) ? f.checklist : [];
+      const states = f.items_state || {};
+      const ready = list.reduce((sum, item) => {
+        const st = states[slugify(item)] || {};
+        return sum + (st.document_id != null && st.final ? 1 : 0);
+      }, 0);
+      const percent = list.length ? Math.round((ready / list.length) * 100) : 0;
+      const shell = document.createElement('section');
+      shell.className = 'dd-editorial';
+      shell.innerHTML = `
+        <div class="dd-editorial__top">
+          <div><h3 class="dd-editorial__title">Documents demandés</h3><div class="dd-editorial__progress-text">${ready} sur ${list.length} prêt${ready > 1 ? 's' : ''}</div></div>
+          <div class="dd-editorial__progress" role="progressbar" aria-label="Avancement des documents" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><span style="width:${percent}%"></span></div>
+        </div>
+        <div class="dd-editorial__columns" aria-hidden="true"><span>Document</span><span>Statut</span><span>Investisseurs</span><span>Actions</span></div>
+        <ol class="bsa-list"></ol>
+        <button type="button" class="dd-editorial__drop" data-dd-editorial-import><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7 9m5-5 5 5M5 14v5h14v-5"/></svg>Importer un document</button>`;
+      const ol = shell.querySelector('.bsa-list');
+      list.forEach((item, idx) => ol.appendChild(roadItem(f, item, idx)));
+      shell.querySelector('[data-dd-editorial-import]').addEventListener('click', () => openImport(f.id, ''));
+      attachCardDrop(shell, f.id, '');
+      body.appendChild(shell);
+    }
+
     function phaseCard(f, pi, opts = {}) {
       const list = Array.isArray(f.checklist) ? f.checklist : [];
       const visibleSlugs = new Set(list.map(slugify));
@@ -4880,6 +4944,11 @@
         return card;
       }
       if (isInvestorChecklistPhase(f)) body.appendChild(investorChecklistEl(f));
+      if (f.key === 'due-diligence-preliminaire') {
+        ddEditorialBodyEl(f, body);
+        attachCardDrop(card, f.id, '');
+        return card;
+      }
       // Le guide « 🎓 Comprendre cette étape » n'apparaît plus dans la carte du
       // dossier : il est réservé à la fenêtre d'étape ouverte via la frise.
       if (categories && categories.length) {
@@ -5262,14 +5331,17 @@
       const pendingName = pendingSlots[f.id + ':' + slug] || null;
       const versions    = Array.isArray(st.versions) ? st.versions : [];
       const verNote     = linked && versions.length ? ` <span class="bsa-item__ver">v${versions.length + 1}</span>` : '';
+      const editorialDD = f.key === 'due-diligence-preliminaire';
+      const editorialStatus = final ? ['Prêt', 'ready'] : linked ? ['En révision', 'review'] : ['À préparer', 'todo'];
       const li = document.createElement('li');
-      li.className = 'bsa-item' + (linked ? ' bsa-item--done' : '');
+      li.className = 'bsa-item' + (linked ? ' bsa-item--done' : '') + (editorialDD ? ' dd-editorial-item' : '');
       li.dataset.searchFolderId = String(f.id);
       li.dataset.searchItemSlug = slug;
       if (doc) li.dataset.searchDocumentId = String(doc.id);
       li.innerHTML = `
         <div class="bsa-item__head">
-          <div class="bsa-item__label"><span class="bsa-item__name">${esc(item)}</span>${badge}</div>
+          <div class="bsa-item__label">${editorialDD ? '<span class="dd-editorial__fileicon">DOC</span>' : ''}<span class="bsa-item__name">${esc(item)}</span>${badge}</div>
+          ${editorialDD ? `<span class="dd-editorial__status dd-editorial__status--${editorialStatus[1]}">${editorialStatus[0]}</span>` : ''}
           <div class="bsa-item__actions"></div>
         </div>
         ${linked ? `<div class="bsa-item__file" title="${esc(doc.name)}">📎 ${esc(doc.name)}${verNote}</div>` : ''}
