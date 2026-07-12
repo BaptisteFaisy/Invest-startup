@@ -54,6 +54,17 @@
     .card__title { font-size: 1.05rem; font-weight: 800; color: #08090c; letter-spacing: -0.01em; margin: 0 0 4px; }
     .card__desc { font-size: 0.9rem; color: #6b6b78; margin: 0 0 18px; line-height: 1.55; }
 
+    /* Statut du compte */
+    .account-status { display: grid; gap: 14px; }
+    .account-status__row { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding-top: 14px; border-top: 1px solid rgba(8,9,12,0.08); }
+    .account-status__row:first-child { padding-top: 0; border-top: 0; }
+    .account-status__label { font-size: 0.84rem; font-weight: 700; color: #6b6b78; }
+    .account-status__values { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+    .account-status__badge { display: inline-flex; align-items: center; min-height: 28px; padding: 5px 10px; border-radius: 999px; background: #eef2f7; color: #001839; font-family: 'Archivo', sans-serif; font-size: 0.75rem; font-weight: 700; line-height: 1.2; }
+    .account-status__badge--pending { background: #fef3c7; color: #92400e; }
+    .account-status__badge--active { background: #dcfce7; color: #166534; }
+    .account-status__badge--rejected { background: #fee2e2; color: #991b1b; }
+
     /* Consommation IA */
     .usage-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
     .usage-tile { background: #f4f2ee; border: 1px solid rgba(8,9,12,0.06); border-radius: 12px; padding: 16px; text-align: center; }
@@ -213,6 +224,18 @@
 
       <!-- ── Onglet Profil ── -->
       <div id="tab-profile" class="tab-panel active">
+
+        <!-- Statut du compte -->
+        <div class="card">
+          <h3 class="card__title">Statut du compte</h3>
+          <p class="card__desc">Retrouvez votre profil et, selon votre compte, votre parcours en cours.</p>
+          <div class="account-status" id="account-status" aria-live="polite">
+            <div class="account-status__row">
+              <span class="account-status__label">Type de compte</span>
+              <span class="account-status__values"><span class="account-status__badge">Chargement…</span></span>
+            </div>
+          </div>
+        </div>
 
         <!-- Consommation IA -->
         <div class="card">
@@ -413,15 +436,59 @@
     ];
     let dataroomConnections = [];
 
+    const ACCOUNT_TYPE_LABELS = {
+      fondateur: 'Fondateur',
+      vc: 'VC',
+      business_angel: 'Business Angel',
+      avocat: 'Avocat',
+    };
+    const LAWYER_STATUS_LABELS = {
+      pending: ['Candidature en cours d’évaluation', 'pending'],
+      active: ['Avocat partenaire de Liquid+', 'active'],
+      rejected: ['Candidature déclinée', 'rejected'],
+      suspended: ['Partenariat suspendu', 'rejected'],
+    };
+    const RAISE_TYPE_LABELS = {
+      classic: 'Levée classique',
+      'bsa-air': 'BSA AIR',
+      unknown: 'Type de levée à définir',
+    };
+
     requireAuth().then((user) => {
       if (!user) return;
       document.getElementById('profile-name').value  = user.name || '';
       document.getElementById('profile-email').value = user.email || '';
+      loadAccountStatus(user);
       document.querySelector('.app').classList.add('ready');
       load2FAStatus();
       loadUsage();
       loadDataroomSettings();
     });
+
+    async function loadAccountStatus(user) {
+      const root = document.getElementById('account-status');
+      const types = Array.isArray(user.account_types) ? user.account_types : [];
+      const typeBadges = types.length
+        ? types.map(type => `<span class="account-status__badge">${esc(ACCOUNT_TYPE_LABELS[type] || type)}</span>`).join('')
+        : '<span class="account-status__badge">Non renseigné</span>';
+      const rows = [`<div class="account-status__row"><span class="account-status__label">Type de compte</span><span class="account-status__values">${typeBadges}</span></div>`];
+
+      if (types.includes('avocat')) {
+        const lawyerStatus = LAWYER_STATUS_LABELS[user.lawyer_status] || LAWYER_STATUS_LABELS.pending;
+        rows.push(`<div class="account-status__row"><span class="account-status__label">Statut avocat</span><span class="account-status__values"><span class="account-status__badge account-status__badge--${lawyerStatus[1]}">${esc(lawyerStatus[0])}</span></span></div>`);
+      }
+
+      if (types.includes('fondateur')) {
+        let raiseType = 'unknown';
+        try {
+          const response = await fetch('/api/saas/fundraising-profile', { credentials: 'include' });
+          if (response.ok) raiseType = ((await response.json()).profile || {}).raise_type || 'unknown';
+        } catch (_) {}
+        rows.push(`<div class="account-status__row"><span class="account-status__label">Type de levée</span><span class="account-status__values"><span class="account-status__badge">${esc(RAISE_TYPE_LABELS[raiseType] || raiseType)}</span></span></div>`);
+      }
+
+      root.innerHTML = rows.join('');
+    }
 
     function showAlert(id, type, msg) {
       const el = document.getElementById(id);
