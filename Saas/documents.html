@@ -83,6 +83,10 @@
     .doc-risk--conseille .doc-risk__dot { background: #c39a4c; }
     .doc-risk--faible { color: #96a0aa; background: rgba(148,163,184,0.10); }
     .doc-risk--faible .doc-risk__dot { background: #8a94a0; }
+    /* Mention de responsabilité (document signé sans relecture avocat) — informative,
+       non bloquante, ton mesuré. */
+    .doc-warn { display: flex; align-items: flex-start; gap: 6px; margin-top: 7px; font-size: 12px; line-height: 1.45; color: #cdae74; }
+    .doc-warn svg { width: 13px; height: 13px; flex: none; margin-top: 1px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
     /* Sélecteur de niveau d'avancement (vue « Par avancement ») */
     .doc-setstatus { display: inline-flex; align-items: center; gap: 6px; }
@@ -302,6 +306,7 @@
       let folders = [];
       let investors = [];
       let docs = [];
+      let solicitedDocIds = new Set(); // documents pour lesquels un avocat a été sollicité
       let raiseType = 'classic'; // parcours actif : classic | bsa-air (choix de tout 1er niveau)
       let raiseUser = 'me';      // clé de stockage, alignée sur le tableau de bord
       let view = 'etape';     // etape | investor | avancement
@@ -444,12 +449,13 @@
       async function load() {
         let profileType = null;
         try {
-          const [fr, dr, ir, me, pr] = await Promise.all([
+          const [fr, dr, ir, me, pr, ar] = await Promise.all([
             fetch('/api/saas/folders', { credentials: 'include' }),
             fetch('/api/saas/documents', { credentials: 'include' }),
             fetch('/api/saas/investors', { credentials: 'include' }),
             fetch('/api/auth/me', { credentials: 'include' }),
             fetch('/api/saas/fundraising-profile', { credentials: 'include' }),
+            fetch('/api/saas/avocat/requests', { credentials: 'include' }),
           ]);
           if (fr.status === 401 || dr.status === 401) { window.location.href = 'login.html'; return; }
           folders = (await fr.json()).folders || [];
@@ -458,6 +464,10 @@
           const user = me.ok ? ((await me.json()).user || null) : null;
           raiseUser = (user && (user.id || user.email)) || 'me';
           profileType = pr.ok ? ((await pr.json()).profile || {}).raise_type : null;
+          // Documents soumis à un avocat (demande active) : sert à n'afficher la mention
+          // de responsabilité que lorsqu'aucun avocat n'a été sollicité.
+          const avReqs = ar && ar.ok ? ((await ar.json()).requests || []) : [];
+          solicitedDocIds = new Set(avReqs.filter(r => r.status !== 'annule' && r.document_id != null).map(r => r.document_id));
         } catch {
           loadingEl.hidden = true;
           errorEl.hidden = false;
@@ -659,6 +669,13 @@
         // Badge de risque juridique — pilote aussi l'action « Faire relire ».
         const rk = riskMeta(d);
         const riskPill = `<span class="doc-risk doc-risk--${esc(d.risk || 'faible')}" title="${esc(rk.title)}"><span class="doc-risk__dot"></span>${esc(rk.label)}</span>`;
+        // Mention de responsabilité : document signé, à enjeu (critique/conseillé), et
+        // sans avocat sollicité. Purement informative — n'empêche aucune action.
+        const isSigned = STATUS_ORDER.indexOf(docStatus(d)) >= STATUS_ORDER.indexOf('signe');
+        const riskyDoc = d.risk === 'critique' || d.risk === 'conseille';
+        const warnHtml = (isSigned && riskyDoc && !solicitedDocIds.has(d.id))
+          ? `<div class="doc-warn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg><span>Signé sans relecture avocat : vous en êtes seul responsable — ni Liquid+, ni un avocat non sollicité ne peuvent en être tenus responsables.</span></div>`
+          : '';
 
         row.innerHTML = `
           <div class="doc-item__icon doc-item__icon--${ic.cls}"><svg viewBox="0 0 24 24" aria-hidden="true">${ic.svg}</svg></div>
@@ -672,6 +689,7 @@
               ${folderPill}
               ${invPill}
             </div>
+            ${warnHtml}
           </div>
           <div class="doc-item__actions"></div>`;
 

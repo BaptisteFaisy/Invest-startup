@@ -3226,6 +3226,15 @@ app.get('/api/saas/avocat/overview', requireAuth, async (req, res) => {
   });
 });
 
+// Liste seule des demandes de relecture (sans initialiser d'état avocat : utilisé
+// par la page Documents pour savoir quels documents ont été soumis à un avocat).
+app.get('/api/saas/avocat/requests', requireAuth, async (req, res) => {
+  const requests = await col('saas_avocat_requests')
+    .find({ user_id: req.user.id }, { projection: { _id: 0, user_id: 0 } })
+    .sort({ id: -1 }).toArray();
+  res.json({ requests });
+});
+
 app.put('/api/saas/avocat/preference', requireAuth, async (req, res) => {
   const body = req.body || {};
   const mode = ['assigned', 'chosen', 'own'].includes(body.mode) ? body.mode : null;
