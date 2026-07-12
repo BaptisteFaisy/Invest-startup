@@ -3,48 +3,194 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Liquid+ - Espace avocat</title>
+  <title>Liquid+ — Tableau de bord avocat</title>
+  <meta name="description" content="Pilotez vos dossiers et demandes de relecture depuis votre espace avocat Liquid+." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
   <style>
-    :root { --navy:#001839; --ink:#08090c; --muted:#72727e; --paper:#f5f4f0; }
+    :root { --ink:#08090c; --panel:#101116; --card:#fff; --paper:#f5f4f0; --line:rgba(8,9,12,.11); --muted:#6b6b78; --purple:#6366f1; --green:#10b981; }
     * { box-sizing:border-box; }
-    body { margin:0; min-height:100vh; background:var(--paper); color:var(--ink); font-family:'Libre Franklin',system-ui,sans-serif; }
-    header { height:70px; display:flex; align-items:center; justify-content:space-between; padding:0 max(24px,5vw); background:var(--navy); color:#fff; }
-    .logo { display:flex; align-items:center; gap:8px; color:#fff; text-decoration:none; font:600 1.15rem 'Archivo',sans-serif; letter-spacing:.09em; }
-    .logo img { height:32px; }
-    .logout { border:1px solid rgba(255,255,255,.35); border-radius:8px; padding:9px 13px; background:transparent; color:#fff; cursor:pointer; font:600 .82rem inherit; }
-    main { width:min(1080px,calc(100% - 36px)); margin:0 auto; padding:64px 0; }
-    .eyebrow { margin:0 0 10px; color:#52606f; font:700 .72rem 'Archivo',sans-serif; letter-spacing:.13em; text-transform:uppercase; }
-    h1 { margin:0; font:800 clamp(2rem,4vw,3.2rem) 'Archivo',sans-serif; letter-spacing:-.04em; }
-    .lead { max-width:680px; margin:16px 0 42px; color:var(--muted); line-height:1.65; }
-    .grid { display:grid; grid-template-columns:1.15fr .85fr; gap:20px; }
-    .card { padding:28px; border:1px solid rgba(8,9,12,.1); border-radius:16px; background:#fff; box-shadow:0 10px 30px rgba(0,0,0,.04); }
-    .card h2 { margin:0 0 10px; font:700 1.15rem 'Archivo',sans-serif; }
-    .card p { margin:0; color:var(--muted); line-height:1.55; font-size:.9rem; }
-    .status { display:inline-flex; margin-top:22px; padding:7px 11px; border-radius:999px; background:#fff4d6; color:#815d00; font-size:.76rem; font-weight:700; }
-    .profile { margin-top:18px; display:grid; gap:11px; }
-    .profile div { display:grid; grid-template-columns:115px 1fr; gap:12px; font-size:.86rem; }
-    .profile span:first-child { color:var(--muted); }
-    @media (max-width:720px) { main { padding:42px 0; } .grid { grid-template-columns:1fr; } }
+    html { scroll-behavior:smooth; }
+    body { margin:0; min-height:100vh; background:var(--ink); color:#fff; font-family:'Libre Franklin',system-ui,sans-serif; }
+    button, input { font:inherit; }
+    .app { visibility:hidden; }
+    .app.ready { visibility:visible; }
+    .topbar { position:sticky; top:0; z-index:70; height:70px; display:flex; align-items:center; gap:18px; padding:0 max(18px,4vw); background:var(--ink); border-bottom:1px solid rgba(255,255,255,.07); }
+    .topbar__side { flex:1; display:flex; align-items:center; gap:14px; }
+    .topbar__side--right { justify-content:flex-end; }
+    .brand { display:flex; align-items:center; gap:8px; color:#fff; text-decoration:none; font:600 1.05rem 'Archivo',sans-serif; letter-spacing:.09em; }
+    .brand img { width:24px; height:32px; object-fit:contain; }
+    .topbar__context { padding-left:15px; border-left:1px solid rgba(255,255,255,.2); color:rgba(255,255,255,.72); font:600 12px 'Archivo',sans-serif; }
+    .avatar { width:34px; height:34px; display:grid; place-items:center; border-radius:50%; background:#fff; color:var(--ink); font:800 11px 'Archivo',sans-serif; }
+    .hamburger { flex:none; position:relative; z-index:62; width:38px; height:38px; display:grid; place-items:center; padding:0; border:1px solid rgba(255,255,255,.22); border-radius:10px; background:transparent; color:#fff; cursor:pointer; }
+    .hamburger:hover { border-color:rgba(255,255,255,.55); background:rgba(255,255,255,.06); }
+    .hamburger svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; }
+    .drawer-backdrop { position:fixed; inset:0; z-index:60; visibility:hidden; background:transparent; }
+    .drawer-backdrop.is-open { visibility:visible; }
+    .drawer { position:fixed; inset-block:0; z-index:61; width:var(--drawer-w,280px); min-width:220px; max-width:92vw; display:flex; flex-direction:column; background:#0c0d11; box-shadow:0 0 40px rgba(0,0,0,.5); transition:transform .22s ease; }
+    .drawer--left { left:0; border-right:1px solid rgba(255,255,255,.08); }
+    .drawer--right { right:0; border-left:1px solid rgba(255,255,255,.08); }
+    .drawer--left:not(.is-open) { transform:translateX(-100%); }
+    .drawer--right:not(.is-open) { transform:translateX(100%); }
+    .drawer__head { display:flex; align-items:center; min-height:70px; padding:16px 18px; border-bottom:1px solid rgba(255,255,255,.08); }
+    .drawer--left .drawer__head { padding-left:66px; }
+    .drawer__title { color:#fff; font:800 14px 'Archivo',sans-serif; letter-spacing:.08em; text-transform:uppercase; }
+    .drawer__body { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:2px; padding:10px; scrollbar-width:thin; scrollbar-color:#fff transparent; }
+    .drawer--left .drawer__body { direction:rtl; }
+    .drawer--left .drawer__body > * { direction:ltr; }
+    .drawer__section-title { padding:8px 12px 6px; color:#fff; font:800 11px 'Archivo',sans-serif; letter-spacing:.11em; text-transform:uppercase; }
+    .drawer__link { width:100%; display:flex; align-items:center; gap:12px; padding:11px 12px; border:0; border-radius:10px; background:transparent; color:rgba(255,255,255,.84); text-align:left; text-decoration:none; cursor:pointer; font-size:14px; }
+    .drawer__link:hover, .drawer__link.is-current { background:rgba(255,255,255,.09); color:#fff; }
+    .drawer__link svg { width:18px; height:18px; flex:none; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+    .drawer__sep { height:1px; margin:8px 4px; background:rgba(255,255,255,.08); }
+    .drawer__soon { margin-left:auto; padding:2px 7px; border-radius:99px; background:rgba(99,102,241,.2); color:#a5b4fc; font:800 9px 'Archivo',sans-serif; letter-spacing:.06em; text-transform:uppercase; }
+    .drawer__resize { position:absolute; inset-block:0; z-index:2; width:10px; cursor:col-resize; touch-action:none; }
+    .drawer--left .drawer__resize { right:-5px; }
+    .drawer--right .drawer__resize { left:-5px; }
+    .dashboard { width:min(1080px,calc(100% - 44px)); margin:0 auto; padding:48px 0 80px; }
+    .hero { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:36px; }
+    .eyebrow { margin:0 0 12px; color:#fff; font:800 12px 'Archivo',sans-serif; letter-spacing:.12em; text-transform:uppercase; }
+    h1 { margin:0; color:#fff; font:800 clamp(2rem,4vw,3.15rem)/1.03 'Archivo',sans-serif; letter-spacing:-.045em; }
+    .lead { max-width:650px; margin:13px 0 0; color:rgba(255,255,255,.72); font-size:15px; line-height:1.6; }
+    .status { flex:none; display:inline-flex; align-items:center; gap:8px; padding:9px 12px; border:1px solid rgba(255,255,255,.14); border-radius:9px; background:rgba(255,255,255,.05); color:#fff; font:700 11px 'Archivo',sans-serif; }
+    .status::before { content:''; width:8px; height:8px; border-radius:50%; background:#f59e0b; box-shadow:0 0 0 3px rgba(245,158,11,.16); }
+    .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:34px; }
+    .stat { padding:20px 22px; border:1px solid var(--line); border-radius:13px; background:var(--card); color:var(--ink); }
+    .stat__label { color:var(--muted); font:700 11px 'Archivo',sans-serif; letter-spacing:.07em; text-transform:uppercase; }
+    .stat__value { margin-top:10px; font:800 28px 'Archivo',sans-serif; letter-spacing:-.04em; }
+    .section-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:30px 0 13px; }
+    .section-title { margin:0; color:#fff; font:800 12px 'Archivo',sans-serif; letter-spacing:.1em; text-transform:uppercase; }
+    .section-link { color:rgba(255,255,255,.66); font-size:12px; text-decoration:none; }
+    .section-link:hover { color:#fff; }
+    .main-grid { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr); gap:14px; align-items:start; }
+    .card { border:1px solid var(--line); border-radius:14px; background:var(--card); color:var(--ink); overflow:hidden; }
+    .card__head { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:19px 21px; border-bottom:1px solid var(--line); }
+    .card__title { margin:0; font:800 15px 'Archivo',sans-serif; }
+    .badge { padding:5px 8px; border-radius:6px; background:#fff4d6; color:#815d00; font:700 10px 'Archivo',sans-serif; }
+    .empty { min-height:210px; display:grid; place-items:center; padding:30px; text-align:center; }
+    .empty__icon { width:46px; height:46px; display:grid; place-items:center; margin:0 auto 14px; border-radius:12px; background:#f0f0ed; color:#60606b; }
+    .empty__icon svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+    .empty h3 { margin:0 0 7px; font:700 14px 'Archivo',sans-serif; }
+    .empty p { max-width:420px; margin:0; color:var(--muted); font-size:13px; line-height:1.55; }
+    .quick-list { display:grid; }
+    .quick { display:flex; align-items:center; gap:13px; padding:16px 18px; color:var(--ink); text-decoration:none; border-bottom:1px solid var(--line); }
+    .quick:last-child { border-bottom:0; }
+    .quick:hover { background:#f8f8f5; }
+    .quick__icon { width:36px; height:36px; display:grid; place-items:center; flex:none; border-radius:9px; background:#eef0ff; color:#4f46e5; }
+    .quick__icon svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+    .quick__copy { flex:1; min-width:0; }
+    .quick__name { display:block; font:700 13px 'Archivo',sans-serif; }
+    .quick__desc { display:block; margin-top:3px; color:var(--muted); font-size:11px; }
+    .quick__arrow { color:#9a9aa4; }
+    .profile-card { margin-top:14px; }
+    .profile { display:grid; gap:12px; padding:18px 20px; }
+    .profile__row { display:grid; grid-template-columns:105px 1fr; gap:12px; font-size:12px; line-height:1.45; }
+    .profile__row span:first-child { color:var(--muted); }
+    @media (max-width:760px) {
+      .topbar__context, .avatar { display:none; }
+      .topbar { padding-inline:14px; }
+      .dashboard { width:min(100% - 28px,1080px); padding-top:34px; }
+      .hero { display:block; }
+      .status { margin-top:20px; }
+      .stats { grid-template-columns:1fr; }
+      .main-grid { grid-template-columns:1fr; }
+    }
   </style>
 </head>
 <body>
-  <header><a class="logo" href="tableau-de-bord-avocat.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" />LIQUID+</a><button class="logout" id="logout">Se d&eacute;connecter</button></header>
-  <main>
-    <p class="eyebrow">Espace avocat</p>
-    <h1 id="welcome">Bienvenue</h1>
-    <p class="lead">Votre espace professionnel est en cours de construction. Il accueillera prochainement vos dossiers, demandes de relecture et &eacute;changes avec les fondateurs.</p>
-    <div class="grid">
-      <section class="card"><h2>Votre candidature</h2><p>Notre &eacute;quipe &eacute;value les informations transmises et revient vers vous sous 48h.</p><span class="status">Candidature en cours d'&eacute;valuation</span></section>
-      <section class="card"><h2>Profil professionnel</h2><div class="profile" id="profile"></div></section>
-    </div>
-  </main>
+  <div class="app" id="app">
+    <header class="topbar">
+      <div class="topbar__side">
+        <button type="button" class="hamburger" id="nav-menu-btn" aria-label="Ouvrir la navigation" aria-controls="nav-drawer" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+        <a class="brand" href="tableau-de-bord-avocat.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" />LIQUID+</a>
+        <span class="topbar__context">Espace avocat</span>
+      </div>
+      <div class="topbar__side topbar__side--right">
+        <span class="avatar" id="avatar" aria-hidden="true">AV</span>
+        <button type="button" class="hamburger" id="actions-menu-btn" aria-label="Ouvrir le menu" aria-controls="actions-drawer" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button>
+      </div>
+    </header>
+
+    <div class="drawer-backdrop" id="nav-backdrop" data-drawer-close></div>
+    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Navigation avocat">
+      <div class="drawer__head"><span class="drawer__title">Mon activité</span></div>
+      <nav class="drawer__body">
+        <a class="drawer__link is-current" href="tableau-de-bord-avocat.html"><svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3Z"/><path d="M9 20v-6h6v6"/></svg>Tableau de bord</a>
+        <a class="drawer__link" href="#dossiers"><svg viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v11H3Z"/></svg>Dossiers</a>
+        <a class="drawer__link" href="#demandes"><svg viewBox="0 0 24 24"><path d="M6 3h12v18H6Z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Demandes de relecture</a>
+        <a class="drawer__link" href="#clients"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-4 2-6 6-6s6 2 6 6M16 5a3 3 0 0 1 0 6M17 14c3 .3 4 2.3 4 6"/></svg>Clients <span class="drawer__soon">Bientôt</span></a>
+        <a class="drawer__link" href="#messages"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 3Z"/><path d="M8 9h8M8 13h5"/></svg>Messages <span class="drawer__soon">Bientôt</span></a>
+        <div class="drawer__sep"></div>
+        <a class="drawer__link" href="#profil"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-5 3-8 8-8s8 3 8 8"/></svg>Profil professionnel</a>
+      </nav>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0"></div>
+    </aside>
+
+    <div class="drawer-backdrop" id="actions-backdrop" data-drawer-close></div>
+    <aside class="drawer drawer--right" id="actions-drawer" role="dialog" aria-modal="true" aria-label="Outils avocat">
+      <div class="drawer__head"><span class="drawer__title">Outils</span></div>
+      <nav class="drawer__body">
+        <div class="drawer__section-title">Outils juridiques</div>
+        <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Éditeur</a>
+        <a class="drawer__link" href="compare.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M12 3v18M7 8l-4 4 4 4M17 8l4 4-4 4"/></svg>Comparer</a>
+        <a class="drawer__link" href="documents.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16h16V8Z"/><path d="M14 2v6h6"/></svg>Documents</a>
+        <div class="drawer__sep"></div>
+        <div class="drawer__section-title">Compte</div>
+        <a class="drawer__link" href="#profil"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-5 3-8 8-8s8 3 8 8"/></svg>Mon profil</a>
+        <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24"><path d="M10 4H4v16h6M14 8l4 4-4 4M18 12H8"/></svg>Se déconnecter</button>
+      </nav>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0"></div>
+    </aside>
+
+    <main class="dashboard">
+      <section class="hero">
+        <div><p class="eyebrow">Tableau de bord avocat</p><h1 id="welcome">Bienvenue</h1><p class="lead">Retrouvez ici vos dossiers, les demandes de relecture reçues et vos échanges avec les fondateurs.</p></div>
+        <span class="status">Candidature en cours d’évaluation</span>
+      </section>
+
+      <section class="stats" aria-label="Vue d’ensemble">
+        <article class="stat"><div class="stat__label">Dossiers actifs</div><div class="stat__value">0</div></article>
+        <article class="stat"><div class="stat__label">À relire</div><div class="stat__value">0</div></article>
+        <article class="stat"><div class="stat__label">Messages non lus</div><div class="stat__value">0</div></article>
+      </section>
+
+      <div class="section-head" id="dossiers"><h2 class="section-title">Dossiers récents</h2><a class="section-link" href="#demandes">Voir les demandes</a></div>
+      <div class="main-grid">
+        <section class="card" id="demandes">
+          <div class="card__head"><h3 class="card__title">Demandes de relecture</h3><span class="badge">En attente d’activation</span></div>
+          <div class="empty"><div><div class="empty__icon"><svg viewBox="0 0 24 24"><path d="M6 3h12v18H6Z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg></div><h3>Aucune demande pour le moment</h3><p>Les nouvelles demandes des fondateurs apparaîtront ici dès que votre candidature aura été validée.</p></div></div>
+        </section>
+        <div>
+          <section class="card">
+            <div class="card__head"><h3 class="card__title">Accès rapides</h3></div>
+            <div class="quick-list">
+              <a class="quick" href="editor.html" target="_blank" rel="noopener"><span class="quick__icon"><svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span><span class="quick__copy"><span class="quick__name">Ouvrir l’éditeur</span><span class="quick__desc">Rédiger et annoter un document</span></span><span class="quick__arrow">›</span></a>
+              <a class="quick" href="compare.html" target="_blank" rel="noopener"><span class="quick__icon"><svg viewBox="0 0 24 24"><path d="M12 3v18M7 8l-4 4 4 4M17 8l4 4-4 4"/></svg></span><span class="quick__copy"><span class="quick__name">Comparer deux versions</span><span class="quick__desc">Identifier rapidement les modifications</span></span><span class="quick__arrow">›</span></a>
+            </div>
+          </section>
+          <section class="card profile-card" id="profil">
+            <div class="card__head"><h3 class="card__title">Profil professionnel</h3></div>
+            <div class="profile" id="profile"></div>
+          </section>
+        </div>
+      </div>
+      <span id="clients"></span><span id="messages"></span>
+    </main>
+  </div>
+
+  <script src="drawer-menu.js?v=6"></script>
   <script>
+    const app = document.getElementById('app');
     const profileEl = document.getElementById('profile');
-    function row(label, value) { const div=document.createElement('div'); const key=document.createElement('span'); const val=document.createElement('span'); key.textContent=label; val.textContent=value || '-'; div.append(key,val); return div; }
+    function profileRow(label, value) {
+      const row = document.createElement('div'); row.className = 'profile__row';
+      const key = document.createElement('span'); const val = document.createElement('span');
+      key.textContent = label; val.textContent = value || '—'; row.append(key, val); return row;
+    }
+    function initials(profile) { return ((profile.first_name || '').charAt(0) + (profile.last_name || '').charAt(0)).toUpperCase() || 'AV'; }
+    async function logout() { await fetch('/api/auth/logout', { method:'POST', credentials:'include' }).catch(() => {}); location.href = 'login.html'; }
     async function load() {
       try {
         const meRes = await fetch('/api/auth/me', { credentials:'include' });
@@ -53,14 +199,20 @@
         const lawyerOnly = user?.account_types?.includes('avocat') && !user.account_types.includes('fondateur');
         if (!lawyerOnly) { location.replace(user?.account_types?.length ? 'tableau-de-bord.html' : 'onboarding.html'); return; }
         if (!user.lawyer_profile_completed) { location.replace('onboarding-avocat.html'); return; }
-        const res = await fetch('/api/saas/lawyer-profile', { credentials:'include' });
-        if (!res.ok) throw new Error();
-        const { profile } = await res.json();
+        const profileRes = await fetch('/api/saas/lawyer-profile', { credentials:'include' });
+        if (!profileRes.ok) throw new Error('Profil indisponible');
+        const { profile } = await profileRes.json();
         document.getElementById('welcome').textContent = 'Bienvenue, ' + profile.first_name;
-        profileEl.append(row('Nom', profile.first_name + ' ' + profile.last_name), row('Serment', new Date(profile.oath_date + 'T12:00:00').toLocaleDateString('fr-FR')), row('Ville', profile.city), row('Spécialité', profile.specialty));
+        document.getElementById('avatar').textContent = initials(profile);
+        profileEl.replaceChildren(
+          profileRow('Nom', profile.first_name + ' ' + profile.last_name),
+          profileRow('Serment', new Date(profile.oath_date + 'T12:00:00').toLocaleDateString('fr-FR')),
+          profileRow('Ville', profile.city),
+          profileRow('Spécialité', profile.specialty)
+        );
+        app.classList.add('ready');
       } catch { location.replace('login.html'); }
     }
-    document.getElementById('logout').addEventListener('click', async () => { await fetch('/api/auth/logout', { method:'POST', credentials:'include' }).catch(() => {}); location.href='login.html'; });
     load();
   </script>
 </body>
