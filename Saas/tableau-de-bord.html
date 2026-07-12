@@ -4712,9 +4712,61 @@
       return section;
     }
 
+    // Dossier « non attribué » d'une étape de négociation : toujours présent à côté
+    // des dossiers investisseurs. Il rassemble les documents qui ne sont propres à
+    // aucun investisseur — modèles communs, versions de travail, pièces importées de
+    // manière générale — ainsi que d'éventuels documents « historiques » liés à la
+    // checklist AVANT le classement par investisseur (clés non composites), pour ne
+    // rien perdre. Import et dépôt utilisent la clé générale (categoryKey vide).
+    function unassignedFolderEl(f, linkedIds) {
+      const catKey = '';
+      const stateKey = f.id + ':unassigned';
+      const open = docCategoryOpen[stateKey] !== false;
+      const section = document.createElement('section');
+      section.className = 'doc-category' + (open ? '' : ' is-collapsed');
+      const title = 'Documents non attribués à un investisseur';
+      section.innerHTML = `
+        <div class="doc-category__head">
+          <div class="doc-category__main">
+            <div class="doc-category__title">${esc(title)}</div>
+            <div class="doc-category__count">documents communs ou non rattachés à un investisseur</div>
+          </div>
+          <div class="doc-category__actions">
+            <button class="documents-action-btn" type="button" data-category-import>Importer des fichiers</button>
+            <button class="doc-category__toggle" type="button" data-category-toggle aria-expanded="${open ? 'true' : 'false'}" aria-label="${open ? 'Réduire' : 'Agrandir'} ${esc(title)}" title="${open ? 'Réduire' : 'Agrandir'} ce dossier">v</button>
+          </div>
+        </div>
+        <div class="doc-category__body">
+          <ol class="bsa-list"></ol>
+        </div>`;
+      section.querySelector('[data-category-import]').addEventListener('click', () => openImport(f.id, catKey));
+      const toggle = section.querySelector('[data-category-toggle]');
+      toggle.addEventListener('click', () => {
+        const nextOpen = section.classList.contains('is-collapsed');
+        section.classList.toggle('is-collapsed', !nextOpen);
+        docCategoryOpen[stateKey] = nextOpen;
+        toggle.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
+      });
+      // Documents « historiques » liés à la checklist avant le classement par
+      // investisseur (clés non composites). Repli pour ne rien perdre.
+      const ol = section.querySelector('.bsa-list');
+      (f.checklist || [])
+        .map((item, idx) => ({ item, idx, slug: slugify(item) }))
+        .filter(({ slug }) => {
+          const st = (f.items_state || {})[slug];
+          return st && st.document_id != null && docs.some(d => d.id === st.document_id);
+        })
+        .forEach(({ item, idx }) => ol.appendChild(roadItem(f, item, idx)));
+      // Fichiers importés de manière générale (clé vide), non liés à un investisseur.
+      section.querySelector('.doc-category__body')
+        .appendChild(phaseLooseFilesEl(f, linkedIds, catKey, 'Fichiers importés dans ce dossier'));
+      attachCardDrop(section, f.id, catKey);
+      return section;
+    }
+
     // Corps complet d'une étape de négociation : un dossier par investisseur du
-    // pipeline au bon statut, + un repli pour d'éventuels documents « historiques »
-    // rangés avant le classement par investisseur, + les fichiers généraux.
+    // pipeline au bon statut, + un dossier « non attribué » toujours présent pour les
+    // documents communs / non rattachés à un investisseur.
     function negotiationBodyEl(f, body) {
       const investors = investorsForPhase(f);
       const linkedIds = negotiationLinkedIds(f);
@@ -4722,7 +4774,7 @@
       const intro = document.createElement('div');
       intro.className = 'neg-intro';
       const minLabel = INVESTOR_STAGE_LABELS[NEGOTIATION_PHASE_MIN_STAGE[f.key]] || '';
-      intro.innerHTML = `<p class="neg-intro__text">Ces documents se négocient séparément avec chaque investisseur : ils sont donc classés par investisseur. La liste reprend les investisseurs de votre <a href="#" data-open-pipeline>pipeline</a> au statut « ${esc(minLabel)} » ou plus avancé.</p>`;
+      intro.innerHTML = `<p class="neg-intro__text">Ces documents se négocient séparément avec chaque investisseur : ils sont donc classés par investisseur. La liste reprend les investisseurs de votre <a href="#" data-open-pipeline>pipeline</a> au statut « ${esc(minLabel)} » ou plus avancé. Les pièces qui ne concernent aucun investisseur en particulier vont dans le dossier « Documents non attribués ».</p>`;
       const pipeLink = intro.querySelector('[data-open-pipeline]');
       if (pipeLink) pipeLink.addEventListener('click', (e) => { e.preventDefault(); openClassicStepPage('confidentialite'); });
       body.appendChild(intro);
@@ -4730,41 +4782,16 @@
       if (!investors.length) {
         const empty = document.createElement('div');
         empty.className = 'neg-empty';
-        empty.innerHTML = `Aucun investisseur à cette étape pour l'instant. Faites avancer un investisseur jusqu'au statut « ${esc(minLabel)} » dans votre pipeline pour préparer ses documents ici.`;
+        empty.innerHTML = `Aucun investisseur à cette étape pour l'instant. Faites avancer un investisseur jusqu'au statut « ${esc(minLabel)} » dans votre pipeline pour préparer ses documents ici. Les documents communs peuvent d'ores et déjà être déposés dans le dossier « Documents non attribués » ci-dessous.`;
         body.appendChild(empty);
-      } else {
-        const wrap = document.createElement('div');
-        wrap.className = 'doc-categories';
-        investors.forEach(inv => wrap.appendChild(investorFolderEl(f, inv, linkedIds)));
-        body.appendChild(wrap);
       }
 
-      // Repli : documents éventuellement liés à la checklist AVANT le classement par
-      // investisseur (clés non composites). Affiché seulement s'il en existe.
-      const legacy = (f.checklist || [])
-        .map((item, idx) => ({ item, idx, slug: slugify(item) }))
-        .filter(({ slug }) => {
-          const st = (f.items_state || {})[slug];
-          return st && st.document_id != null && docs.some(d => d.id === st.document_id);
-        });
-      if (legacy.length) {
-        const sec = document.createElement('section');
-        sec.className = 'doc-category';
-        sec.innerHTML = `
-          <div class="doc-category__head">
-            <div class="doc-category__main">
-              <div class="doc-category__title">Documents non attribués à un investisseur</div>
-              <div class="doc-category__count">à reclasser dans un dossier investisseur</div>
-            </div>
-          </div>
-          <div class="doc-category__body"><ol class="bsa-list"></ol></div>`;
-        const ol = sec.querySelector('.bsa-list');
-        legacy.forEach(({ item, idx }) => ol.appendChild(roadItem(f, item, idx)));
-        body.appendChild(sec);
-      }
-
-      // Fichiers généraux (non rattachés à un investisseur).
-      body.appendChild(phaseLooseFilesEl(f, linkedIds, '', 'Fichiers importés de manière générale'));
+      const wrap = document.createElement('div');
+      wrap.className = 'doc-categories';
+      investors.forEach(inv => wrap.appendChild(investorFolderEl(f, inv, linkedIds)));
+      // Dossier toujours présent, à côté des dossiers investisseurs.
+      wrap.appendChild(unassignedFolderEl(f, linkedIds));
+      body.appendChild(wrap);
     }
 
     // Carte d'une phase : checklist numérotée + fichiers libres de la phase + dépôt.
@@ -4815,6 +4842,7 @@
         collapseCategoriesBtn.addEventListener('click', () => {
           if (isNegotiationPhase(f)) {
             investorsForPhase(f).forEach(inv => { docCategoryOpen[f.id + ':inv' + inv.id] = false; });
+            docCategoryOpen[f.id + ':unassigned'] = false;
           } else {
             categories.forEach(category => { docCategoryOpen[f.id + ':' + category.key] = false; });
           }
