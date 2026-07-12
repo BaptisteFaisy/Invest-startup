@@ -442,6 +442,10 @@
       function folderInActiveRaise(f) {
         return !f.track || f.track === raiseType;
       }
+      function defaultStageFilter() {
+        const folder = folders.find(f => f.key === 'mise-en-ordre' && folderInActiveRaise(f));
+        return folder ? 'f' + folder.id : 'all';
+      }
       // Document rattaché au parcours actif ? Un document dans une étape de l'autre
       // parcours est masqué ; un document sans dossier ou dans un dossier libre reste.
       function docInActiveRaise(d) {
@@ -514,6 +518,7 @@
           return;
         }
         raiseType = resolveInitialRaiseType(profileType);
+        subFilter = defaultStageFilter();
         applyRaiseButtons();
         loadingEl.hidden = true;
         raisebarEl.hidden = false;
