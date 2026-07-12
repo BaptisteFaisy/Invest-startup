@@ -2910,6 +2910,19 @@
     let invPipeline = [];
     let invPipelineLoaded = false;
 
+    // Avancement de l'étape « Investisseurs » pour la barre du menu : montant
+    // engagé (investisseurs dont les contrats sont signés) rapporté à l'objectif
+    // de levée. Renvoie null si aucun objectif n'est renseigné.
+    function investorsEngagedFrac() {
+      const target = Number(fundraisingProfile && fundraisingProfile.target_amount) || 0;
+      if (!(target > 0)) return null;
+      let engaged = 0;
+      (invPipeline || []).forEach(inv => {
+        if (inv.stage === 'contrats_signes' || inv.stage === 'gouvernance') engaged += inv.amount || 0;
+      });
+      return Math.max(0, Math.min(1, engaged / target));
+    }
+
     async function invApi(path, opts) {
       const r = await fetch(path, Object.assign({ credentials: 'include' }, opts || {}));
       let data = {};
@@ -3853,7 +3866,14 @@
         // « Ma levée » (mise-en-ordre) : la barre suit l'avancement global.
         // Sinon : proportion de documents validés dans l'étape.
         const stepFrac = s.total > 0 ? s.done / s.total : (done ? 1 : 0);
-        const barFrac = f.key === 'mise-en-ordre' ? globalFrac : stepFrac;
+        let barFrac = f.key === 'mise-en-ordre' ? globalFrac : stepFrac;
+        // Étape « Investisseurs » : la barre suit l'avancement de la levée
+        // (montant engagé par les investisseurs signés / objectif de levée),
+        // et non un décompte de documents.
+        if (type === 'classic' && f.key === 'confidentialite') {
+          const invFrac = investorsEngagedFrac();
+          barFrac = invFrac == null ? 0 : invFrac;
+        }
         const pct = Math.max(0, Math.min(100, Math.round(barFrac * 100)));
         const isSoon = type === 'classic' && CLASSIC_SOON_STEPS.has(f.key);
         const bar = isSoon ? '' :
