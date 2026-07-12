@@ -10,7 +10,7 @@
     // Applique le thème mémorisé au plus tôt, avant tout rendu (évite le flash).
     (function () {
       var t = 'paper';
-      try { if (localStorage.getItem('liquidAvocatTheme') === 'dark') t = 'dark'; } catch (e) {}
+      try { if (localStorage.getItem('liquidTheme') === 'dark') t = 'dark'; } catch (e) {}
       document.documentElement.setAttribute('data-theme', t);
     })();
   </script>
@@ -440,7 +440,7 @@
        Défaut = clair. Le choix est appliqué au plus tôt par le script du
        <head> (localStorage), réconcilié avec le compte au chargement, et
        basculé par le bouton de la topbar. */
-    const THEME_KEY = 'liquidAvocatTheme';
+    const THEME_KEY = 'liquidTheme';
     function currentTheme() {
       return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'paper';
     }
