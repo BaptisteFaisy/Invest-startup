@@ -223,6 +223,16 @@
     .dd-editorial__drop svg { width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
     @media(max-width:900px){.dd-editorial__columns{display:none}.dd-editorial .dd-editorial-item{grid-template-columns:minmax(0,1fr) auto;gap:10px 14px;padding:16px}.dd-editorial .bsa-item__label{grid-column:1}.dd-editorial__status{grid-column:2;grid-row:1}.dd-editorial .bsa-item__send{grid-column:1;grid-row:2;margin-left:46px}.dd-editorial .bsa-item__actions{grid-column:2;grid-row:2}.dd-editorial .bsa-item__file{display:none}}
     @media(max-width:560px){.dd-editorial__top{align-items:flex-start;flex-direction:column;padding:18px 16px 14px}.dd-editorial__progress{width:100%}.dd-editorial .dd-editorial-item{grid-template-columns:1fr}.dd-editorial__status,.dd-editorial .bsa-item__send,.dd-editorial .bsa-item__actions{grid-column:1;grid-row:auto;margin-left:46px;justify-self:start}.dd-editorial__drop{margin:14px 16px 16px}}
+    /* Variante « éditoriale » intégrée dans un dossier — Lettre d'intention (un dossier par investisseur) : réutilise le style des lignes sans la carte englobante. */
+    .dd-editorial--embedded { margin:0; border:0; border-radius:0; background:transparent; overflow:visible; }
+    .dd-editorial--embedded .dd-editorial__columns { padding:6px 4px; border-top:0; }
+    .dd-editorial--embedded .dd-editorial-item { padding:13px 4px; }
+    .dd-editorial--embedded .dd-editorial-item:last-child { border-bottom:0; }
+    .dd-editorial__progress--sm { width:100%; max-width:240px; margin-top:8px; }
+    @media(min-width:901px){
+      .dd-editorial--embedded .dd-editorial__columns,
+      .dd-editorial--embedded .dd-editorial-item { grid-template-columns:minmax(160px,1.7fr) 108px minmax(96px,.6fr) minmax(150px,auto); gap:14px; }
+    }
     .cli { display: flex; align-items: center; gap: 12px; background: var(--card, #fff); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; }
     .cli__status { flex: none; width: 18px; text-align: center; font-size: 14px; line-height: 1; }
     .cli__status--todo { color: #fff; }
@@ -3588,6 +3598,14 @@
     function isNegotiationPhase(f) {
       return !!(f && NEGOTIATION_PHASE_MIN_STAGE[f.key]);
     }
+    // Étapes présentées avec l'apparence « éditoriale » (liste de documents épurée,
+    // icônes DOC, pastilles de statut, barre d'avancement). La due diligence
+    // préliminaire est la référence ; la due diligence poussée l'adopte à plat et
+    // la lettre d'intention l'adopte à l'intérieur de chaque dossier investisseur.
+    const EDITORIAL_STEP_KEYS = new Set(['due-diligence-preliminaire', 'due-diligence', 'term-sheet']);
+    function isEditorialStep(f) {
+      return !!f && EDITORIAL_STEP_KEYS.has(f.key);
+    }
     function stageIndex(stage) {
       const i = INVESTOR_STAGE_ORDER.indexOf(stage);
       return i === -1 ? 0 : i;
@@ -4616,11 +4634,24 @@
       const stateKey = f.id + ':' + catKey;
       const open = docCategoryOpen[stateKey] !== false;
       const s = investorFolderStatus(f, inv);
+      // Lettre d'intention : chaque dossier investisseur (contenu inchangé) adopte
+      // l'apparence éditoriale de la due diligence préliminaire pour ses lignes.
+      const editorial = isEditorialStep(f);
       const section = document.createElement('section');
       section.className = 'doc-category doc-category--investor' + (open ? '' : ' is-collapsed');
       const countTxt = s.total
         ? (s.complete ? 'tous les documents validés ✓' : s.done + ' / ' + s.total + ' validé' + (s.done > 1 ? 's' : ''))
         : 'documents à préparer';
+      const percent = s.total ? Math.round((s.done / s.total) * 100) : 0;
+      const progressBar = editorial
+        ? `<div class="dd-editorial__progress dd-editorial__progress--sm" role="progressbar" aria-label="Avancement des documents" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><span style="width:${percent}%"></span></div>`
+        : '';
+      const bodyInner = editorial
+        ? `<div class="dd-editorial dd-editorial--embedded">
+             <div class="dd-editorial__columns" aria-hidden="true"><span>Document</span><span>Statut</span><span></span><span>Actions</span></div>
+             <ol class="bsa-list"></ol>
+           </div>`
+        : '<ol class="bsa-list"></ol>';
       const stageTag = INVESTOR_STAGE_LABELS[inv.stage]
         ? '<span class="inv-folder__stage">' + esc(INVESTOR_STAGE_LABELS[inv.stage]) + '</span>' : '';
       section.innerHTML = `
@@ -4628,6 +4659,7 @@
           <div class="doc-category__main">
             <div class="doc-category__title">${esc(investorDocLabel(inv))}${stageTag}</div>
             <div class="doc-category__count">${countTxt}</div>
+            ${progressBar}
           </div>
           <div class="doc-category__actions">
             <button class="documents-action-btn" type="button" data-category-import>Importer des fichiers</button>
@@ -4635,7 +4667,7 @@
           </div>
         </div>
         <div class="doc-category__body">
-          <ol class="bsa-list"></ol>
+          ${bodyInner}
         </div>`;
       section.querySelector('[data-category-import]').addEventListener('click', () => openImport(f.id, catKey));
       const toggle = section.querySelector('[data-category-toggle]');
@@ -4669,6 +4701,20 @@
       const section = document.createElement('section');
       section.className = 'doc-category' + (open ? '' : ' is-collapsed');
       const title = 'Documents non attribués à un investisseur';
+      // Lettre d'intention : mêmes lignes éditoriales que les dossiers investisseurs.
+      const editorial = isEditorialStep(f);
+      const histItems = (f.checklist || [])
+        .map((item, idx) => ({ item, idx, slug: slugify(item) }))
+        .filter(({ slug }) => {
+          const st = (f.items_state || {})[slug];
+          return st && st.document_id != null && docs.some(d => d.id === st.document_id);
+        });
+      const bodyInner = editorial
+        ? `<div class="dd-editorial dd-editorial--embedded">
+             ${histItems.length ? '<div class="dd-editorial__columns" aria-hidden="true"><span>Document</span><span>Statut</span><span></span><span>Actions</span></div>' : ''}
+             <ol class="bsa-list"></ol>
+           </div>`
+        : '<ol class="bsa-list"></ol>';
       section.innerHTML = `
         <div class="doc-category__head">
           <div class="doc-category__main">
@@ -4681,7 +4727,7 @@
           </div>
         </div>
         <div class="doc-category__body">
-          <ol class="bsa-list"></ol>
+          ${bodyInner}
         </div>`;
       section.querySelector('[data-category-import]').addEventListener('click', () => openImport(f.id, catKey));
       const toggle = section.querySelector('[data-category-toggle]');
@@ -4694,13 +4740,7 @@
       // Documents « historiques » liés à la checklist avant le classement par
       // investisseur (clés non composites). Repli pour ne rien perdre.
       const ol = section.querySelector('.bsa-list');
-      (f.checklist || [])
-        .map((item, idx) => ({ item, idx, slug: slugify(item) }))
-        .filter(({ slug }) => {
-          const st = (f.items_state || {})[slug];
-          return st && st.document_id != null && docs.some(d => d.id === st.document_id);
-        })
-        .forEach(({ item, idx }) => ol.appendChild(roadItem(f, item, idx)));
+      histItems.forEach(({ item, idx }) => ol.appendChild(roadItem(f, item, idx)));
       // Fichiers importés de manière générale (clé vide), non liés à un investisseur.
       section.querySelector('.doc-category__body')
         .appendChild(phaseLooseFilesEl(f, linkedIds, catKey, 'Fichiers importés dans ce dossier'));
@@ -4762,6 +4802,20 @@
       shell.querySelector('[data-dd-editorial-import]').addEventListener('click', () => openImport(f.id, ''));
       attachCardDrop(shell, f.id, '');
       body.appendChild(shell);
+      // Due diligence poussée : même liste éditoriale à plat que la préliminaire, mais
+      // on garde visibles les fichiers importés « en vrac » de l'étape pour ne rien
+      // perdre du contenu qui était affiché dans l'ancien classement par dossiers.
+      // (La préliminaire, référence visuelle, reste strictement inchangée.)
+      if (f.key !== 'due-diligence-preliminaire') {
+        const visibleSlugs = new Set(list.map(slugify));
+        const linkedIds = new Set(
+          Object.entries(f.items_state || {})
+            .filter(([slug]) => visibleSlugs.has(slug))
+            .map(([, st]) => st && st.document_id)
+            .filter(id => id != null)
+        );
+        body.appendChild(phaseLooseFilesEl(f, linkedIds, '', 'Fichiers importés de manière générale'));
+      }
     }
 
     function phaseCard(f, pi, opts = {}) {
@@ -4826,7 +4880,9 @@
         return card;
       }
       if (isInvestorChecklistPhase(f)) body.appendChild(investorChecklistEl(f));
-      if (f.key === 'due-diligence-preliminaire') {
+      // Due diligence préliminaire (référence) et due diligence poussée partagent la
+      // même apparence « éditoriale » : une liste de documents unique à plat.
+      if (f.key === 'due-diligence-preliminaire' || f.key === 'due-diligence') {
         ddEditorialBodyEl(f, body);
         attachCardDrop(card, f.id, '');
         return card;
@@ -5213,7 +5269,7 @@
       const pendingName = pendingSlots[f.id + ':' + slug] || null;
       const versions    = Array.isArray(st.versions) ? st.versions : [];
       const verNote     = linked && versions.length ? ` <span class="bsa-item__ver">v${versions.length + 1}</span>` : '';
-      const editorialDD = f.key === 'due-diligence-preliminaire';
+      const editorialDD = isEditorialStep(f);
       const editorialStatus = final ? ['Prêt', 'ready'] : linked ? ['En révision', 'review'] : ['À préparer', 'todo'];
       const li = document.createElement('li');
       li.className = 'bsa-item' + (linked ? ' bsa-item--done' : '') + (editorialDD ? ' dd-editorial-item' : '');
