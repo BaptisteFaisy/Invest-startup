@@ -100,6 +100,27 @@
     .doc-act:hover { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.1); }
     .doc-act svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
+    /* ---- Sélecteur de vue (Par étape / Par investisseur) ---- */
+    .doc-viewbar { display: flex; align-items: center; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
+    .doc-viewbar__label { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.45); }
+    .doc-viewtoggle { display: inline-flex; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.14); border-radius: 12px; padding: 3px; gap: 3px; }
+    .doc-view-btn { display: inline-flex; align-items: center; gap: 7px; border: 0; background: transparent; color: rgba(255,255,255,0.72); font: 600 13px/1 'Libre Franklin', sans-serif; padding: 8px 14px; border-radius: 9px; cursor: pointer; transition: background .15s, color .15s; }
+    .doc-view-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .doc-view-btn:hover { color: #fff; }
+    .doc-view-btn.is-active { background: #fff; color: #08090c; }
+
+    .doc-hint { display: flex; align-items: flex-start; gap: 10px; background: rgba(96,165,250,0.08); border: 1px solid rgba(96,165,250,0.28); border-radius: 12px; padding: 12px 14px; margin-top: 16px; color: rgba(255,255,255,0.8); font-size: 13.5px; line-height: 1.5; }
+    .doc-hint svg { flex: none; width: 17px; height: 17px; margin-top: 1px; fill: none; stroke: #93c5fd; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .doc-hint a { color: #93c5fd; }
+
+    .doc-section__empty { color: rgba(255,255,255,0.4); font-size: 13.5px; font-style: italic; padding: 14px 4px 2px; }
+
+    /* Rattachement à un investisseur */
+    .doc-assign { display: inline-flex; align-items: center; gap: 6px; }
+    .doc-assign select { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.16); border-radius: 9px; color: #fff; font: 500 12.5px/1 'Libre Franklin', sans-serif; padding: 7px 8px; cursor: pointer; max-width: 160px; }
+    .doc-assign select:focus { outline: none; border-color: rgba(96,165,250,0.7); }
+    .doc-assign select option { color: #08090c; }
+
     .doc-empty { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 40px 26px; margin-top: 24px; text-align: center; color: rgba(255,255,255,0.7); font-size: 15px; line-height: 1.6; }
     .doc-empty b { color: #fff; }
     .doc-empty a { color: #93c5fd; }
@@ -218,10 +239,24 @@
         <input type="file" id="docs-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" hidden />
       </div>
 
+      <!-- Sélecteur de structure : par étape / par investisseur -->
+      <div class="doc-viewbar" id="doc-viewbar" hidden>
+        <span class="doc-viewbar__label">Organiser</span>
+        <div class="doc-viewtoggle" id="doc-viewtoggle">
+          <button type="button" class="doc-view-btn is-active" data-view="etape">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9L9.6 3.9A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>Par étape
+          </button>
+          <button type="button" class="doc-view-btn" data-view="investor">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Par investisseur
+          </button>
+        </div>
+      </div>
+      <div class="doc-hint" id="doc-hint" hidden></div>
+
       <div class="doc-loading" id="doc-loading">Chargement de vos documents…</div>
       <div class="doc-error" id="doc-error" hidden></div>
-      <div class="doc-sections" id="doc-sections"></div>
       <div class="doc-empty" id="doc-empty" hidden></div>
+      <div class="doc-sections" id="doc-sections"></div>
 
       <div class="dil__foot">
         <a href="tableau-de-bord.html" class="btn btn--ghost">← Retour au tableau de bord</a>
@@ -245,10 +280,15 @@
       const toolbarEl  = document.getElementById('doc-toolbar');
       const searchEl   = document.getElementById('doc-search-input');
       const filtersEl  = document.getElementById('doc-filters');
+      const viewbarEl  = document.getElementById('doc-viewbar');
+      const viewToggle = document.getElementById('doc-viewtoggle');
+      const hintEl     = document.getElementById('doc-hint');
 
       let folders = [];
+      let investors = [];
       let docs = [];
       let filter = 'all';     // all | written | imported
+      let view = 'etape';     // etape | investor
       let query = '';
 
       /* ---------- Helpers ---------- */
@@ -304,17 +344,33 @@
         const f = folders.find(x => x.id === id);
         return f ? f.name : null;
       }
+      function investorById(id) {
+        return investors.find(x => x.id === id) || null;
+      }
+      function investorLabel(inv) {
+        return inv.firm ? inv.name + ' — ' + inv.firm : inv.name;
+      }
+      // Investisseur rattaché à un document : notre champ `investor_id` prime, sinon
+      // on lit l'association déjà posée par le tableau de bord dans les étapes de
+      // négociation (category_key = « inv<id> »), pour une vue cohérente partout.
+      function docInvestorId(d) {
+        if (d.investor_id != null) return d.investor_id;
+        const m = /^inv(\d+)$/.exec(String(d.category_key || ''));
+        return m ? Number(m[1]) : null;
+      }
 
       /* ---------- Chargement ---------- */
       async function load() {
         try {
-          const [fr, dr] = await Promise.all([
+          const [fr, dr, ir] = await Promise.all([
             fetch('/api/saas/folders', { credentials: 'include' }),
             fetch('/api/saas/documents', { credentials: 'include' }),
+            fetch('/api/saas/investors', { credentials: 'include' }),
           ]);
           if (fr.status === 401 || dr.status === 401) { window.location.href = 'login.html'; return; }
           folders = (await fr.json()).folders || [];
           docs = ((await dr.json()).documents || []).filter(isVisible);
+          investors = ir.ok ? ((await ir.json()).investors || []) : [];
         } catch {
           loadingEl.hidden = true;
           errorEl.hidden = false;
@@ -324,6 +380,7 @@
         loadingEl.hidden = true;
         statsEl.hidden = false;
         toolbarEl.hidden = false;
+        viewbarEl.hidden = false;
         renderStats();
         render();
       }
@@ -346,36 +403,80 @@
         if (filter === 'written' && !isWritten(d)) return false;
         if (filter === 'imported' && isWritten(d)) return false;
         if (query) {
-          const hay = ((d.name || '') + ' ' + (d.originalname || '') + ' ' + (folderName(d.folder_id) || '')).toLowerCase();
+          const inv = investorById(docInvestorId(d));
+          const hay = ((d.name || '') + ' ' + (d.originalname || '') + ' ' +
+            (folderName(d.folder_id) || '') + ' ' + (inv ? investorLabel(inv) : '')).toLowerCase();
           if (!hay.includes(query)) return false;
         }
         return true;
       }
 
+      // Rattache/retire un document à un investisseur, puis rafraîchit l'affichage.
+      async function assignInvestor(d, sel) {
+        const val = sel.value ? Number(sel.value) : null;
+        const prev = docInvestorId(d);
+        sel.disabled = true;
+        try {
+          const r = await fetch('/api/saas/documents/' + d.id + '/investor', {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            credentials: 'include', body: JSON.stringify({ investor_id: val }),
+          });
+          if (r.status === 401) { window.location.href = 'login.html'; return; }
+          if (!r.ok) throw new Error();
+          if (val == null) delete d.investor_id; else d.investor_id = val;
+          render();
+        } catch {
+          sel.value = prev == null ? '' : String(prev);
+          sel.disabled = false;
+        }
+      }
+
+      // Message d'astuce contextuel (au-dessus des sections).
+      function renderHint() {
+        if (view === 'investor' && !investors.length) {
+          hintEl.hidden = false;
+          hintEl.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span>Vous n\'avez pas encore d\'investisseur. Ajoutez vos investisseurs depuis le <a href="tableau-de-bord.html">pipeline du tableau de bord</a> pour pouvoir classer vos documents par investisseur.</span>';
+        } else {
+          hintEl.hidden = true;
+        }
+      }
+
       function render() {
+        renderHint();
         const shown = docs.filter(matches);
         sectionsEl.innerHTML = '';
 
         if (!docs.length) {
           emptyEl.hidden = false;
-          emptyEl.innerHTML = '<b>Aucun document pour l\'instant.</b><br>Importez un fichier avec le bouton ci-dessus, ou rédigez votre premier document depuis <a href="editor.html" target="_blank" rel="noopener">l\'éditeur</a> ou votre <a href="tableau-de-bord.html">tableau de bord</a>.';
-          return;
+          emptyEl.innerHTML = '<b>Aucun document pour l\'instant.</b><br>Importez un fichier avec le bouton ci-dessus, ou rédigez votre premier document depuis <a href="editor.html" target="_blank" rel="noopener">l\'éditeur</a> ou votre <a href="tableau-de-bord.html">tableau de bord</a>. La structure de vos dossiers ci-dessous vous attend.';
+          // Même sans document, on affiche la structure (dossiers vides).
         }
-        if (!shown.length) {
+        // Un filtre ou une recherche actifs sans résultat : on masque la structure
+        // pour ne pas afficher un empilement de dossiers vides trompeur.
+        const isFiltering = query || filter !== 'all';
+        if (isFiltering && !shown.length) {
           emptyEl.hidden = false;
           emptyEl.innerHTML = '<b>Aucun document ne correspond.</b><br>Modifiez votre recherche ou votre filtre.';
           return;
         }
-        emptyEl.hidden = true;
+        if (docs.length) emptyEl.hidden = true;
 
-        // Groupement par étape (dossier), dans l'ordre des étapes, puis « Non classés ».
+        // Construit la liste des groupes selon la vue. Les dossiers sont TOUJOURS
+        // présents, même vides, pour donner une structure claire dès le départ.
         const groups = [];
-        folders.forEach(f => {
-          const items = shown.filter(d => d.folder_id === f.id);
-          if (items.length) groups.push({ name: f.name, items });
-        });
-        const unclassified = shown.filter(d => d.folder_id == null || !folders.some(f => f.id === d.folder_id));
-        if (unclassified.length) groups.push({ name: 'Non classés', items: unclassified });
+        if (view === 'etape') {
+          folders.forEach(f => {
+            groups.push({ name: f.name, items: shown.filter(d => d.folder_id === f.id) });
+          });
+          const unclassified = shown.filter(d => d.folder_id == null || !folders.some(f => f.id === d.folder_id));
+          groups.push({ name: 'Non classés', unclassified: true, items: unclassified });
+        } else {
+          investors.forEach(inv => {
+            groups.push({ name: investorLabel(inv), items: shown.filter(d => docInvestorId(d) === inv.id) });
+          });
+          const unclassified = shown.filter(d => { const iid = docInvestorId(d); return iid == null || !investorById(iid); });
+          groups.push({ name: 'Non classés', unclassified: true, items: unclassified });
+        }
 
         groups.forEach(g => {
           const items = g.items.slice().sort((a, b) =>
@@ -386,10 +487,19 @@
           head.className = 'doc-section__head';
           head.innerHTML = `<span class="doc-section__name">${esc(g.name)}</span><span class="doc-section__count">${items.length} document${items.length > 1 ? 's' : ''}</span>`;
           sec.appendChild(head);
-          const list = document.createElement('div');
-          list.className = 'doc-list';
-          items.forEach(d => list.appendChild(docRow(d)));
-          sec.appendChild(list);
+          if (!items.length) {
+            const empty = document.createElement('div');
+            empty.className = 'doc-section__empty';
+            empty.textContent = g.unclassified
+              ? (view === 'etape' ? 'Tous vos documents sont classés dans une étape.' : 'Tous vos documents sont rattachés à un investisseur.')
+              : (view === 'etape' ? 'Aucun document dans cette étape pour l\'instant.' : 'Aucun document rattaché à cet investisseur pour l\'instant.');
+            sec.appendChild(empty);
+          } else {
+            const list = document.createElement('div');
+            list.className = 'doc-list';
+            items.forEach(d => list.appendChild(docRow(d)));
+            sec.appendChild(list);
+          }
           sectionsEl.appendChild(sec);
         });
       }
@@ -423,6 +533,31 @@
           <div class="doc-item__actions"></div>`;
 
         const actions = row.querySelector('.doc-item__actions');
+
+        // Vue « Par investisseur » : sélecteur pour rattacher le document.
+        if (view === 'investor') {
+          const wrap = document.createElement('label');
+          wrap.className = 'doc-assign';
+          wrap.title = 'Rattacher à un investisseur';
+          const sel = document.createElement('select');
+          sel.setAttribute('aria-label', 'Rattacher « ' + d.name + ' » à un investisseur');
+          const optNone = document.createElement('option');
+          optNone.value = '';
+          optNone.textContent = '— Non classé —';
+          sel.appendChild(optNone);
+          const curInv = docInvestorId(d);
+          investors.forEach(inv => {
+            const o = document.createElement('option');
+            o.value = String(inv.id);
+            o.textContent = investorLabel(inv);
+            if (curInv === inv.id) o.selected = true;
+            sel.appendChild(o);
+          });
+          sel.addEventListener('change', () => assignInvestor(d, sel));
+          wrap.appendChild(sel);
+          actions.appendChild(wrap);
+        }
+
         if (written) {
           const open = document.createElement('a');
           open.className = 'doc-act';
@@ -454,6 +589,13 @@
       });
       searchEl.addEventListener('input', () => {
         query = searchEl.value.trim().toLowerCase();
+        render();
+      });
+      viewToggle.addEventListener('click', (e) => {
+        const btn = e.target.closest('.doc-view-btn');
+        if (!btn) return;
+        view = btn.getAttribute('data-view');
+        viewToggle.querySelectorAll('.doc-view-btn').forEach(b => b.classList.toggle('is-active', b === btn));
         render();
       });
 

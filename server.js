@@ -3210,6 +3210,8 @@ app.delete('/api/saas/investors/:id', requireAuth, async (req, res) => {
   const investor = await col('saas_investors').findOne({ id, user_id: req.user.id });
   if (!investor) return res.status(404).json({ error: 'Investisseur introuvable' });
   await col('saas_investors').deleteOne({ id, user_id: req.user.id });
+  // Les documents rattachés à cet investisseur redeviennent « non classés ».
+  await col('saas_documents').updateMany({ user_id: req.user.id, investor_id: id }, { $unset: { investor_id: '' } });
   res.json({ success: true });
 });
 
@@ -3231,6 +3233,26 @@ app.put('/api/saas/documents/:id/folder', requireAuth, async (req, res) => {
       ? { $set: { folder_id: folderId, category_key: categoryKey } }
       : { $set: { folder_id: folderId }, $unset: { category_key: '' } };
     await col('saas_documents').updateOne({ id, user_id: req.user.id }, update);
+  }
+  res.json({ success: true });
+});
+
+// Rattache (ou retire) un document à un investisseur du pipeline. Sert à la vue
+// « Par investisseur » de l'outil Documents : un document sans investor_id
+// apparaît dans le dossier « Non classés » de cette vue.
+app.put('/api/saas/documents/:id/investor', requireAuth, async (req, res) => {
+  const id  = Number(req.params.id);
+  const raw = req.body?.investor_id;
+  const doc = await col('saas_documents').findOne({ id, user_id: req.user.id });
+  if (!doc) return res.status(404).json({ error: 'Document introuvable' });
+
+  if (raw === null || raw === '' || raw === undefined) {
+    await col('saas_documents').updateOne({ id, user_id: req.user.id }, { $unset: { investor_id: '' } });
+  } else {
+    const investorId = Number(raw);
+    if (!(await col('saas_investors').findOne({ id: investorId, user_id: req.user.id })))
+      return res.status(404).json({ error: 'Investisseur introuvable' });
+    await col('saas_documents').updateOne({ id, user_id: req.user.id }, { $set: { investor_id: investorId } });
   }
   res.json({ success: true });
 });
