@@ -228,8 +228,8 @@
         const meRes = await fetch('/api/auth/me', { credentials:'include' });
         if (!meRes.ok) { location.replace('login.html'); return; }
         const { user } = await meRes.json();
-        const lawyerOnly = user?.account_types?.includes('avocat') && !user.account_types.includes('fondateur');
-        if (!lawyerOnly) { location.replace(user?.account_types?.length ? 'tableau-de-bord.html' : 'onboarding.html'); return; }
+        const isLawyer = user?.account_types?.includes('avocat');
+        if (!isLawyer) { location.replace(user?.account_types?.length ? 'tableau-de-bord.html' : 'onboarding.html'); return; }
         if (!user.lawyer_profile_completed) { location.replace('onboarding-avocat.html'); return; }
         const profileRes = await fetch('/api/saas/lawyer-profile', { credentials:'include' });
         if (!profileRes.ok) throw new Error('Profil indisponible');

@@ -46,6 +46,8 @@ async function refreshNav() {
   }
   if (ctaBtn) {
     ctaBtn.textContent = 'Mon espace';
-    ctaBtn.href = 'tableau-de-bord.html';
+    ctaBtn.href = user.account_types?.includes('avocat')
+      ? (user.lawyer_profile_completed ? 'tableau-de-bord-avocat.html' : 'onboarding-avocat.html')
+      : 'tableau-de-bord.html';
   }
 }

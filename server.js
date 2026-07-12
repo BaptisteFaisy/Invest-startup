@@ -464,7 +464,9 @@ function authLandingPath(user) {
   if (ADMIN_EMAILS.includes(user.email)) return '/admin.html';
   if (!hasAccountTypes(user)) return '/saas/onboarding.html';
   const types = user.account_types;
-  if (types.includes('avocat') && !types.includes('fondateur')) {
+  // Le rôle avocat est prioritaire pour les anciens comptes qui auraient gardé
+  // simultanément les valeurs « avocat » et « fondateur ».
+  if (types.includes('avocat')) {
     return user.lawyer_profile_completed
       ? '/saas/tableau-de-bord-avocat.html'
       : '/saas/onboarding-avocat.html';

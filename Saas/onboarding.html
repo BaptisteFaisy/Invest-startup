@@ -122,8 +122,8 @@
           if (!res.ok) { window.location.replace('login.html'); return; }
           const data = await res.json();
           if (data.user && Array.isArray(data.user.account_types) && data.user.account_types.length) {
-            const lawyerOnly = data.user.account_types.includes('avocat') && !data.user.account_types.includes('fondateur');
-            window.location.replace(lawyerOnly
+            const isLawyer = data.user.account_types.includes('avocat');
+            window.location.replace(isLawyer
               ? (data.user.lawyer_profile_completed ? 'tableau-de-bord-avocat.html' : 'onboarding-avocat.html')
               : 'tableau-de-bord.html');
           }
@@ -172,8 +172,8 @@
             submitBtn.textContent = 'Continuer';
             return;
           }
-          const lawyerOnly = types.includes('avocat') && !types.includes('fondateur');
-          window.location.href = lawyerOnly ? 'onboarding-avocat.html' : 'onboarding-raise.html';
+          const isLawyer = types.includes('avocat');
+          window.location.href = isLawyer ? 'onboarding-avocat.html' : 'onboarding-raise.html';
         } catch {
           errEl.textContent = 'Impossible de joindre le serveur';
           errEl.hidden = false;

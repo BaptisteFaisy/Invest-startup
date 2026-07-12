@@ -1062,6 +1062,10 @@
   <script>
     requireAuth('login.html', { requireAccountType: true }).then((user) => {
       if (!user) return;
+      if (user.account_types?.includes('avocat')) {
+        window.location.replace(user.lawyer_profile_completed ? 'tableau-de-bord-avocat.html' : 'onboarding-avocat.html');
+        return;
+      }
       raiseUser = (user && (user.id || user.email)) || 'me';
       setDashboardControlsCollapsed(storedDashboardControlsCollapsed(), false);
       document.querySelector('.app').classList.add('ready');
