@@ -231,7 +231,7 @@
     { type: 'Outil', label: 'Data room', href: 'data-room.html', keywords: ['dataroom', 'audit', 'due diligence'] },
     { type: 'Page', label: 'Mon compte', href: 'compte.html', keywords: ['profil', 'abonnement', 'securite', 'sécurité'] },
     { type: 'Page', label: 'Feedback', href: 'feedback.html', keywords: ['support', 'aide', 'message', 'bug'] },
-    { type: 'Page', label: 'Marché', href: 'marche.html', keywords: ['marche', 'marché', 'analyse'] },
+    { type: 'Outil', label: 'Benchmark', href: 'benchmark.html', keywords: ['benchmark', 'marche', 'marché', 'repères', 'reperes', 'valorisation', 'dilution', 'termes', 'clauses', 'bsa-air', 'safe', 'levée', 'levee'] },
   ];
   let documents = [];
   let folders = [];
