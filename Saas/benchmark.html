@@ -45,6 +45,18 @@
     .mkt__disclaimer p { font-size: 12.5px; line-height: 1.55; color: rgba(255,255,255,0.62); }
     .mkt__disclaimer strong { color: rgba(255,255,255,0.85); font-weight: 600; }
 
+    /* Choix du type de levée (première étape) */
+    .round { margin-top: 30px; }
+    .round__q { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.55); margin-bottom: 12px; }
+    .round__opts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .round-opt { text-align: left; background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 18px 18px 16px; cursor: pointer; transition: .15s ease; color: #fff; display: flex; flex-direction: column; gap: 7px; position: relative; }
+    .round-opt:hover { border-color: rgba(255,255,255,0.32); background: rgba(255,255,255,0.055); }
+    .round-opt.is-on { border-color: #6366f1; background: rgba(99,102,241,0.12); box-shadow: 0 0 0 1px #6366f1 inset; }
+    .round-opt__t { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 9px; }
+    .round-opt__dot { flex: none; width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.35); transition: .15s; }
+    .round-opt.is-on .round-opt__dot { border-color: #a5b4fc; background: radial-gradient(circle, #a5b4fc 0 42%, transparent 46%); }
+    .round-opt__d { font-size: 12.5px; line-height: 1.5; color: rgba(255,255,255,0.62); }
+
     /* Barre de filtres */
     .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; position: sticky; top: 50px; z-index: 12; padding: 12px 0; background: #08090c; }
     .filter { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 999px; padding: 7px 15px; cursor: pointer; transition: .14s ease; white-space: nowrap; }
@@ -165,6 +177,20 @@
         <p><strong>Repères indicatifs</strong> du marché seed français (2023–2025), agrégés à partir de sources publiques. Chaque levée est un cas particulier : ces valeurs servent à vous situer, elles ne constituent pas un conseil juridique ou financier.</p>
       </div>
 
+      <div class="round">
+        <div class="round__q">Quel type de levée préparez-vous ?</div>
+        <div class="round__opts" role="radiogroup" aria-label="Type de levée">
+          <button type="button" class="round-opt is-on" data-round="classique" role="radio" aria-checked="true">
+            <span class="round-opt__t"><span class="round-opt__dot" aria-hidden="true"></span>Levée classique</span>
+            <span class="round-opt__d">Augmentation de capital : la valorisation est fixée dès maintenant, les investisseurs entrent directement au capital avec un pacte d'actionnaires.</span>
+          </button>
+          <button type="button" class="round-opt" data-round="bsaair" role="radio" aria-checked="false">
+            <span class="round-opt__t"><span class="round-opt__dot" aria-hidden="true"></span>Levée en BSA-AIR</span>
+            <span class="round-opt__d">Instrument convertible (équivalent du SAFE) : on lève vite sans fixer la valorisation, avec décote et plafond. La conversion se fait au tour suivant.</span>
+          </button>
+        </div>
+      </div>
+
       <div class="filters" role="tablist" aria-label="Filtrer les repères">
         <button type="button" class="filter is-on" data-filter="all">Tout</button>
         <button type="button" class="filter" data-filter="montants">Montants &amp; valorisation</button>
@@ -174,7 +200,7 @@
       </div>
 
       <!-- 1. Montants & valorisation par stade -->
-      <section class="bsec" data-cat="montants" id="sec-montants">
+      <section class="bsec" data-cat="montants" data-rounds="classique bsaair" id="sec-montants">
         <div class="bsec__head">
           <span class="bsec__num">01</span>
           <h2 class="bsec__h">Montants &amp; valorisation par stade</h2>
@@ -237,7 +263,7 @@
       </section>
 
       <!-- 2. Termes du deal (BSA-AIR / SAFE) -->
-      <section class="bsec" data-cat="termes" id="sec-termes">
+      <section class="bsec" data-cat="termes" data-rounds="bsaair" id="sec-termes">
         <div class="bsec__head">
           <span class="bsec__num">02</span>
           <h2 class="bsec__h">Termes du deal — BSA-AIR &amp; SAFE</h2>
@@ -285,7 +311,7 @@
       </section>
 
       <!-- 3. Cap table & dilution -->
-      <section class="bsec" data-cat="captable" id="sec-captable">
+      <section class="bsec" data-cat="captable" data-rounds="classique bsaair" id="sec-captable">
         <div class="bsec__head">
           <span class="bsec__num">03</span>
           <h2 class="bsec__h">Cap table &amp; dilution</h2>
@@ -322,7 +348,7 @@
       </section>
 
       <!-- 4. Clauses juridiques -->
-      <section class="bsec" data-cat="clauses" id="sec-clauses">
+      <section class="bsec" data-cat="clauses" data-rounds="classique" id="sec-clauses">
         <div class="bsec__head">
           <span class="bsec__num">04</span>
           <h2 class="bsec__h">Clauses juridiques standards</h2>
@@ -386,16 +412,63 @@
       else window.location.href = 'tableau-de-bord.html';
     });
 
-    // Filtres par famille de repères
+    // Type de levée (1re étape) + filtres par famille de repères
+    const roundOpts = document.querySelectorAll('.round-opt');
     const filters = document.querySelectorAll('.filter');
     const sections = document.querySelectorAll('.bsec');
-    filters.forEach(btn => btn.addEventListener('click', () => {
-      const cat = btn.dataset.filter;
-      filters.forEach(b => b.classList.toggle('is-on', b === btn));
-      sections.forEach(sec => {
-        sec.hidden = !(cat === 'all' || sec.dataset.cat === cat);
+
+    // Familles pertinentes selon le type de levée
+    const FILTER_ROUNDS = {
+      all: ['classique', 'bsaair'],
+      montants: ['classique', 'bsaair'],
+      termes: ['bsaair'],
+      captable: ['classique', 'bsaair'],
+      clauses: ['classique'],
+    };
+
+    let round = localStorage.getItem('benchmark_round') || 'classique';
+    let cat = 'all';
+
+    function applyView() {
+      // Onglets famille : masquer ceux hors du type de levée choisi
+      filters.forEach(f => {
+        const relevant = FILTER_ROUNDS[f.dataset.filter].includes(round);
+        f.hidden = !relevant;
       });
+      // Si l'onglet actif n'est plus pertinent, revenir sur « Tout »
+      if (!FILTER_ROUNDS[cat].includes(round)) cat = 'all';
+      filters.forEach(f => f.classList.toggle('is-on', f.dataset.filter === cat));
+      // Sections : visibles si compatibles avec le type de levée ET la famille
+      sections.forEach(sec => {
+        const inRound = sec.dataset.rounds.split(' ').includes(round);
+        const inCat = cat === 'all' || sec.dataset.cat === cat;
+        sec.hidden = !(inRound && inCat);
+      });
+    }
+
+    roundOpts.forEach(btn => btn.addEventListener('click', () => {
+      round = btn.dataset.round;
+      localStorage.setItem('benchmark_round', round);
+      roundOpts.forEach(b => {
+        const on = b === btn;
+        b.classList.toggle('is-on', on);
+        b.setAttribute('aria-checked', on ? 'true' : 'false');
+      });
+      applyView();
     }));
+
+    filters.forEach(btn => btn.addEventListener('click', () => {
+      cat = btn.dataset.filter;
+      applyView();
+    }));
+
+    // Restaure le choix mémorisé au chargement
+    roundOpts.forEach(b => {
+      const on = b.dataset.round === round;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-checked', on ? 'true' : 'false');
+    });
+    applyView();
 
     async function init() {
       const user = await requireAuth();
