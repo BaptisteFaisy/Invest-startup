@@ -49,7 +49,7 @@
     .round { margin-top: 30px; }
     .round__q { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.55); margin-bottom: 12px; }
     .round__opts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .round-opt { text-align: left; background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 18px 18px 16px; cursor: pointer; transition: .15s ease; color: #fff; display: flex; flex-direction: column; gap: 7px; position: relative; }
+    .round-opt { text-align: left; background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 15px 18px; cursor: pointer; transition: .15s ease; color: #fff; display: flex; align-items: center; position: relative; }
     .round-opt:hover { border-color: rgba(255,255,255,0.32); background: rgba(255,255,255,0.055); }
     .round-opt.is-on { border-color: #6366f1; background: rgba(99,102,241,0.12); box-shadow: 0 0 0 1px #6366f1 inset; }
     .round-opt__t { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 9px; }
@@ -191,11 +191,9 @@
         <div class="round__opts" role="radiogroup" aria-label="Type de levée">
           <button type="button" class="round-opt is-on" data-round="classique" role="radio" aria-checked="true">
             <span class="round-opt__t"><span class="round-opt__dot" aria-hidden="true"></span>Levée classique</span>
-            <span class="round-opt__d">Augmentation de capital : la valorisation est fixée dès maintenant, les investisseurs entrent directement au capital avec un pacte d'actionnaires.</span>
           </button>
           <button type="button" class="round-opt" data-round="bsaair" role="radio" aria-checked="false">
             <span class="round-opt__t"><span class="round-opt__dot" aria-hidden="true"></span>Levée en BSA-AIR</span>
-            <span class="round-opt__d">Instrument convertible (équivalent du SAFE) : on lève vite sans fixer la valorisation, avec décote et plafond. La conversion se fait au tour suivant.</span>
           </button>
         </div>
       </div>
