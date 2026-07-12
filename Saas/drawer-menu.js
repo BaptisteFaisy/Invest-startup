@@ -32,7 +32,7 @@
     if (!drawer || !body || drawer.querySelector('.drawer__mode')) return;
     const control = document.createElement('div');
     control.className = 'drawer__mode';
-    control.innerHTML = `<span class="drawer__mode-label" id="drawer-mode-label">Mode</span><div class="drawer__mode-options" role="group" aria-labelledby="drawer-mode-label"><button class="drawer__mode-option" type="button" data-mode="autonome" aria-pressed="false">Autonome</button><button class="drawer__mode-option" type="button" data-mode="guide" aria-pressed="false">Guidé</button></div>`;
+    control.innerHTML = `<span class="drawer__mode-label" id="drawer-mode-label">Mode</span><div class="drawer__mode-options" role="group" aria-labelledby="drawer-mode-label"><button class="drawer__mode-option" type="button" data-mode="autonome" aria-pressed="false">Autonome</button><button class="drawer__mode-option" type="button" data-mode="guide" aria-pressed="false">Guidé<span class="drawer__mode-soon">Bientôt</span></button></div>`;
     body.insertAdjacentElement('afterend', control);
     let currentMode = 'autonome';
     try { currentMode = localStorage.getItem('liquid_experience_mode') || currentMode; } catch {}
