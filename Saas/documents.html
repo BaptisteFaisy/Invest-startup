@@ -37,16 +37,6 @@
     .dil__title { font-size: 30px; letter-spacing: -0.03em; color: #fff; margin-top: 6px; }
     .dil__sub { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 8px; line-height: 1.6; max-width: 620px; }
 
-    /* ---- Bandeau de statistiques ---- */
-    .doc-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 24px; }
-    .doc-stat { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 14px 16px; }
-    .doc-stat__num { font-family: 'Archivo', sans-serif; font-size: 26px; font-weight: 800; color: #fff; line-height: 1; letter-spacing: -0.02em; }
-    .doc-stat__label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 8px; }
-    .doc-stat__dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
-    .doc-stat__dot--written { background: #60a5fa; }
-    .doc-stat__dot--imported { background: #fbbf24; }
-    @media (max-width: 640px) { .doc-stats { grid-template-columns: repeat(2, 1fr); } }
-
     /* ---- Barre d'outils : recherche + filtres + import ---- */
     .doc-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 26px; }
     .doc-search { position: relative; flex: 1; min-width: 200px; }
@@ -203,26 +193,6 @@
       <h1 class="dil__title">Documents</h1>
       <p class="dil__sub">Tous les documents de votre levée réunis au même endroit — ceux que vous avez <b style="color:#fde68a">importés</b> et ceux que vous avez <b style="color:#bfdbfe">rédigés sur Liquid+</b> — avec leur étape, leur date et un accès direct.</p>
 
-      <!-- Statistiques -->
-      <div class="doc-stats" id="doc-stats" hidden>
-        <div class="doc-stat">
-          <div class="doc-stat__num" id="stat-total">0</div>
-          <div class="doc-stat__label">Documents au total</div>
-        </div>
-        <div class="doc-stat">
-          <div class="doc-stat__num" id="stat-written">0</div>
-          <div class="doc-stat__label"><span class="doc-stat__dot doc-stat__dot--written"></span>Rédigés sur Liquid+</div>
-        </div>
-        <div class="doc-stat">
-          <div class="doc-stat__num" id="stat-imported">0</div>
-          <div class="doc-stat__label"><span class="doc-stat__dot doc-stat__dot--imported"></span>Importés / téléchargés</div>
-        </div>
-        <div class="doc-stat">
-          <div class="doc-stat__num" id="stat-classified">0</div>
-          <div class="doc-stat__label">Classés dans une étape</div>
-        </div>
-      </div>
-
       <!-- Barre d'outils -->
       <div class="doc-toolbar" id="doc-toolbar" hidden>
         <div class="doc-search">
@@ -277,7 +247,6 @@
       const loadingEl  = document.getElementById('doc-loading');
       const errorEl    = document.getElementById('doc-error');
       const emptyEl    = document.getElementById('doc-empty');
-      const statsEl    = document.getElementById('doc-stats');
       const toolbarEl  = document.getElementById('doc-toolbar');
       const searchEl   = document.getElementById('doc-search-input');
       const filtersEl  = document.getElementById('doc-filters');
@@ -379,21 +348,16 @@
           return;
         }
         loadingEl.hidden = true;
-        statsEl.hidden = false;
         toolbarEl.hidden = false;
         viewbarEl.hidden = false;
-        renderStats();
+        renderCounts();
         render();
       }
 
-      function renderStats() {
+      // Compteurs des filtres (Tous / Rédigés / Importés).
+      function renderCounts() {
         const written = docs.filter(isWritten).length;
         const imported = docs.length - written;
-        const classified = docs.filter(d => d.folder_id != null).length;
-        document.getElementById('stat-total').textContent = docs.length;
-        document.getElementById('stat-written').textContent = written;
-        document.getElementById('stat-imported').textContent = imported;
-        document.getElementById('stat-classified').textContent = classified;
         filtersEl.querySelector('[data-count="all"]').textContent = docs.length;
         filtersEl.querySelector('[data-count="written"]').textContent = written;
         filtersEl.querySelector('[data-count="imported"]').textContent = imported;
