@@ -6,25 +6,30 @@
   <title>Liquid+ — Mon compte</title>
   <meta name="description" content="Gérez votre profil, votre mot de passe et la sécurité de votre compte liquid +." />
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
+  <script>
+    // Applique le thème mémorisé au plus tôt (anti-flash). Défaut : sombre (:root).
+    try { var t = localStorage.getItem('liquidTheme'); if (t === 'paper' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=6" />
   <link rel="stylesheet" href="editor.css?v=7" />
   <link rel="stylesheet" href="drawer-menu.css?v=5" />
+  <link rel="stylesheet" href="theme.css?v=1" />
   <style>
-    body { background: #08090c; min-height: 100vh; }
+    body { background: var(--t-bg); min-height: 100vh; }
 
     /* Topbar noir (identique aux autres pages outils) : marque, goutte et menus.
        La mise en page est déclarée en ligne pour ne pas dépendre d'editor.css :
        sinon la barre s'empile verticalement si la feuille externe n'est pas chargée. */
-    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 56px; padding: 0 20px; background: #08090c !important; border-bottom: 1px solid rgba(255,255,255,0.07) !important; position: sticky; top: 0; z-index: 70; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 56px; padding: 0 20px; background: var(--t-topbar-bg) !important; border-bottom: 1px solid var(--t-topbar-border) !important; position: sticky; top: 0; z-index: 70; }
     .topbar__left { display: flex; align-items: center; gap: 16px; min-width: 0; }
     .topbar__actions { display: flex; align-items: center; gap: 8px; flex: none; }
-    .topbar .brand { color: #fff !important; display: flex; align-items: center; gap: 8px; }
-    .topbar .brand__plus { color: #fff !important; }
+    .topbar .brand { color: var(--t-on-bg) !important; display: flex; align-items: center; gap: 8px; }
+    .topbar .brand__plus { color: var(--t-on-bg) !important; }
     .topbar .brand__logo { display: block; flex: none; }
-    .topbar__doc { color: #fff !important; border-left-color: rgba(255,255,255,0.2) !important; }
+    .topbar__doc { color: var(--t-on-bg) !important; border-left-color: var(--t-divider) !important; }
     .app { visibility: hidden; }
     .app.ready { visibility: visible; }
     /* editor.css verrouille .app à 100vh/overflow:hidden (éditeur plein écran).
@@ -32,20 +37,20 @@
     .app { height: auto; overflow: visible; display: block; }
 
     .account { max-width: 720px; margin: 0 auto; padding: 24px 28px 80px; }
-    .account__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
-    .account__title { font-size: 32px; letter-spacing: -0.03em; margin-top: 6px; color: #fff; }
-    .account__sub { color: rgba(255,255,255,0.55); font-size: 15px; margin-top: 8px; }
+    .account__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--t-on-bg); }
+    .account__title { font-size: 32px; letter-spacing: -0.03em; margin-top: 6px; color: var(--t-on-bg); }
+    .account__sub { color: var(--t-on-bg-muted); font-size: 15px; margin-top: 8px; }
 
     /* Onglets */
-    .tabs { display: flex; gap: 0; border-bottom: 1px solid rgba(255,255,255,0.12); margin: 32px 0 28px; }
-    .tab { padding: 11px 20px; font-family: 'Archivo', sans-serif; font-size: 13.5px; font-weight: 700; color: rgba(255,255,255,0.5); cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; }
-    .tab:hover { color: #fff; }
-    .tab.active { color: #fff; border-bottom-color: #3b82f6; }
+    .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--t-divider); margin: 32px 0 28px; }
+    .tab { padding: 11px 20px; font-family: 'Archivo', sans-serif; font-size: 13.5px; font-weight: 700; color: var(--t-on-bg-faint); cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; }
+    .tab:hover { color: var(--t-on-bg); }
+    .tab.active { color: var(--t-on-bg); border-bottom-color: var(--t-accent); }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
     /* Cartes blanches (bulles) sur fond noir — cohérent avec le tableau de bord */
-    .card { background: #fff; border-radius: 18px; padding: 26px 28px; margin-bottom: 18px; box-shadow: 0 12px 40px rgba(0,0,0,0.35); }
+    .card { background: var(--t-card); border: 1px solid var(--t-card-border); border-radius: 18px; padding: 26px 28px; margin-bottom: 18px; box-shadow: var(--t-card-shadow); }
     .card__title { font-size: 1.05rem; font-weight: 800; color: #08090c; letter-spacing: -0.01em; margin: 0 0 4px; }
     .card__desc { font-size: 0.9rem; color: #6b6b78; margin: 0 0 18px; line-height: 1.55; }
 
@@ -78,8 +83,8 @@
     .badge-off { display: inline-flex; align-items: center; font-family: 'Archivo', sans-serif; font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: rgba(8,9,12,0.06); color: #6b6b78; margin-top: 10px; }
     .btn--danger { background: #fff; color: #c0392b; border: 1.5px solid rgba(220,38,38,0.3); }
     .btn--danger:hover { background: rgba(220,38,38,0.06); border-color: rgba(220,38,38,0.5); }
-    .account-logout-line { width: 100%; margin-top: 4px; padding: 16px 0 0; border: 0; border-top: 1px solid rgba(255,255,255,0.12); background: none; color: #fff; cursor: pointer; font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; text-align: left; }
-    .account-logout-line:hover { color: rgba(255,255,255,0.72); }
+    .account-logout-line { width: 100%; margin-top: 4px; padding: 16px 0 0; border: 0; border-top: 1px solid var(--t-divider); background: none; color: var(--t-on-bg); cursor: pointer; font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; text-align: left; }
+    .account-logout-line:hover { color: var(--t-on-bg-muted); }
     .account-delete-button { width: 100%; margin-top: 12px; padding: 0; border: 0; background: none; color: #ef4444; cursor: pointer; font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; text-align: left; }
     .account-delete-button:hover { color: #f87171; }
     .account-delete-button:disabled { opacity: 0.58; cursor: not-allowed; }
@@ -111,7 +116,7 @@
     .code-input { flex: 1; padding: 11px 14px; border-radius: 10px; border: 1.5px solid rgba(8,9,12,0.14); background: #f9f9f9; font-size: 1.1rem; color: #08090c; outline: none; text-align: center; letter-spacing: 0.2em; transition: border-color .18s; }
     .code-input:focus { border-color: #08090c; background: #fff; }
     .account-back-row { width: 100%; box-sizing: border-box; padding: 16px 20px 0; }
-    .account-back { width: 32px; height: 32px; flex: none; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
+    .account-back { width: 32px; height: 32px; flex: none; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: var(--t-on-bg); cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
     .account-back:hover { opacity: 0.68; transform: translateX(-1px); }
     .account-back:focus-visible { outline: none; opacity: 1; }
     .account-back svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
@@ -128,6 +133,7 @@
     }
   </style>
   <script src="auth.js?v=3"></script>
+  <script src="theme.js?v=1" defer></script>
   <script src="tasks.js?v=2" defer></script>
   <script src="drawer-menu.js?v=3" defer></script>
   <script src="drawer-steps.js?v=1" defer></script>

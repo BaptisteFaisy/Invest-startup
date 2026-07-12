@@ -1,0 +1,62 @@
+/* ════════════════════════════════════════════════════════════════════════
+   Thème clair/sombre partagé des outils SaaS.
+
+   Modèle : les pages sont des « cartes blanches » (bulles) posées sur une
+   coquille. L'INTÉRIEUR des cartes est déjà clair et ne change pas selon le
+   thème ; seule la COQUILLE (fond de page, topbar, textes/onglets directement
+   sur le fond, filets) bascule. D'où un petit jeu de variables sémantiques.
+
+   Défaut (sans attribut) = SOMBRE, identique à l'apparence actuelle de l'app,
+   pour ne rien changer aux utilisateurs qui ne basculent pas. « paper » est
+   l'alternative claire (le look « Papier » de l'outil Avocat).
+
+   Le choix est piloté par l'attribut data-theme sur <html>, appliqué au plus
+   tôt par un court script en ligne, basculé et mémorisé par theme.js
+   (localStorage « liquidTheme » + PUT /api/auth/preferences).
+   ════════════════════════════════════════════════════════════════════════ */
+
+:root,
+:root[data-theme="dark"] {
+  --t-bg:                    #08090c;
+  --t-topbar-bg:             #08090c;
+  --t-topbar-border:         rgba(255,255,255,0.07);
+  --t-on-bg:                 #ffffff;   /* texte/icônes directement sur le fond */
+  --t-on-bg-muted:           rgba(255,255,255,0.55);
+  --t-on-bg-faint:           rgba(255,255,255,0.5);
+  --t-divider:               rgba(255,255,255,0.12);
+  --t-card:                  #ffffff;
+  --t-card-border:           transparent;                 /* contraste suffit sur fond noir */
+  --t-card-shadow:           0 12px 40px rgba(0,0,0,0.35);
+  --t-accent:                #3b82f6;
+  --t-hamburger-border:      rgba(255,255,255,0.22);
+  --t-hamburger-border-hov:  rgba(255,255,255,0.55);
+  --t-hamburger-hover-bg:    rgba(255,255,255,0.06);
+}
+
+:root[data-theme="paper"] {
+  --t-bg:                    #f7f6f3;
+  --t-topbar-bg:             #f7f6f3;
+  --t-topbar-border:         #ddd9d1;
+  --t-on-bg:                 #111111;
+  --t-on-bg-muted:           #57534a;
+  --t-on-bg-faint:           #8a8578;
+  --t-divider:               #ddd9d1;
+  --t-card:                  #ffffff;
+  --t-card-border:           #e4e0d8;                      /* bordure nécessaire sur fond clair */
+  --t-card-shadow:           0 8px 24px rgba(8,9,12,0.08);
+  --t-accent:                #3b82f6;
+  --t-hamburger-border:      rgba(0,0,0,0.18);
+  --t-hamburger-border-hov:  rgba(0,0,0,0.45);
+  --t-hamburger-hover-bg:    rgba(0,0,0,0.05);
+}
+
+/* ── Composants de coquille partagés (topbar) ─────────────────────────── */
+.topbar .hamburger { color: var(--t-on-bg) !important; border-color: var(--t-hamburger-border) !important; }
+.topbar .hamburger:hover { border-color: var(--t-hamburger-border-hov) !important; background: var(--t-hamburger-hover-bg) !important; }
+.topbar .brand__logo path { stroke: var(--t-on-bg) !important; }
+
+/* ── Bouton bascule (injecté par theme.js) — icône de l'action à venir ── */
+.theme-toggle__moon { display: none; }
+.theme-toggle__sun  { display: block; }              /* sombre (défaut) → propose le clair */
+:root[data-theme="paper"] .theme-toggle__moon { display: block; }
+:root[data-theme="paper"] .theme-toggle__sun  { display: none; }

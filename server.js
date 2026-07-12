@@ -446,7 +446,7 @@ function publicAuthUser(user) {
     name: user.full_name,
     created_at: user.created_at,
     account_types: Array.isArray(user.account_types) ? user.account_types : [],
-    theme: user.theme === 'dark' ? 'dark' : 'paper',
+    theme: (user.theme === 'dark' || user.theme === 'paper') ? user.theme : null,
     is_admin: ADMIN_EMAILS.includes(user.email),
   };
 }
