@@ -49,6 +49,8 @@
     .round { margin-top: 30px; }
     .round__q { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.55); margin-bottom: 12px; }
     .round__opts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .round__opts--3 { grid-template-columns: repeat(3, 1fr); }
+    .round-opt__t small { font-weight: 500; font-size: 12px; color: rgba(255,255,255,0.5); letter-spacing: 0; }
     .round-opt { text-align: left; background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; padding: 15px 18px; cursor: pointer; transition: .15s ease; color: #fff; display: flex; align-items: center; position: relative; }
     .round-opt:hover { border-color: rgba(255,255,255,0.32); background: rgba(255,255,255,0.055); }
     .round-opt.is-on { border-color: #6366f1; background: rgba(99,102,241,0.12); box-shadow: 0 0 0 1px #6366f1 inset; }
@@ -92,6 +94,10 @@
     .btable td { color: rgba(255,255,255,0.82); }
     .btable td b { color: #fff; font-weight: 700; }
     .btable .sub { display: block; font-size: 11.5px; color: rgba(255,255,255,0.45); font-weight: 400; margin-top: 2px; }
+    /* Ligne du stade sélectionné mise en avant */
+    .btable tbody tr.is-stage > td { background: rgba(99,102,241,0.13); }
+    .btable tbody tr.is-stage > td:first-child { box-shadow: inset 3px 0 0 #6366f1; }
+    .btable tbody tr.is-stage > td b { color: #c7d2fe; }
 
     .bsrc { font-size: 11.5px; color: rgba(255,255,255,0.4); margin-top: 12px; font-style: italic; }
 
@@ -198,6 +204,21 @@
         </div>
       </div>
 
+      <div class="round">
+        <div class="round__q">À quel stade levez-vous ?</div>
+        <div class="round__opts round__opts--3" role="radiogroup" aria-label="Stade de la levée">
+          <button type="button" class="round-opt" data-stage="preseed" role="radio" aria-checked="false">
+            <span class="round-opt__t"><span class="round-opt__dot" aria-hidden="true"></span>Pre-seed</span>
+          </button>
+          <button type="button" class="round-opt is-on" data-stage="seed" role="radio" aria-checked="true">
+            <span class="round-opt__t"><span class="round-opt__dot" aria-hidden="true"></span>Seed</span>
+          </button>
+          <button type="button" class="round-opt" data-stage="seriea" role="radio" aria-checked="false">
+            <span class="round-opt__t"><span class="round-opt__dot" aria-hidden="true"></span>Série A</span>
+          </button>
+        </div>
+      </div>
+
       <div class="filters" role="tablist" aria-label="Filtrer les repères">
         <button type="button" class="filter is-on" data-filter="montants">Montants &amp; valorisation</button>
         <button type="button" class="filter" data-filter="termes">Termes du deal</button>
@@ -227,19 +248,19 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
+              <tr data-stage="preseed">
                 <td>Pre-seed</td>
                 <td><b>0,5 M€</b><span class="sub">0,3 – 0,8 M€</span></td>
                 <td><b>3 M€</b><span class="sub">2 – 4 M€</span></td>
                 <td>15 – 20 %</td>
               </tr>
-              <tr>
+              <tr data-stage="seed">
                 <td>Seed</td>
                 <td><b>2 M€</b><span class="sub">1 – 3 M€</span></td>
                 <td><b>7 M€</b><span class="sub">5 – 9 M€</span></td>
                 <td>18 – 25 %</td>
               </tr>
-              <tr>
+              <tr data-stage="seriea">
                 <td>Série A</td>
                 <td><b>8 M€</b><span class="sub">5 – 12 M€</span></td>
                 <td><b>25 M€</b><span class="sub">20 – 35 M€</span></td>
@@ -430,17 +451,17 @@
                 <td>—</td>
                 <td><b>100 %</b></td>
               </tr>
-              <tr>
+              <tr data-stage="preseed">
                 <td>Après pre-seed</td>
                 <td>15 – 20 %</td>
                 <td><b>≈ 82 %</b><span class="sub">78 – 85 %</span></td>
               </tr>
-              <tr>
+              <tr data-stage="seed">
                 <td>Après seed</td>
                 <td>18 – 25 %</td>
                 <td><b>≈ 65 %</b><span class="sub">60 – 70 %</span></td>
               </tr>
-              <tr>
+              <tr data-stage="seriea">
                 <td>Après série A</td>
                 <td>18 – 25 %</td>
                 <td><b>≈ 52 %</b><span class="sub">45 – 58 %</span></td>
@@ -632,19 +653,19 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
+              <tr data-stage="preseed">
                 <td>Pre-seed</td>
                 <td><b>0 – 100 k€</b><span class="sub">MVP, premiers usages</span></td>
                 <td>Premiers signaux</td>
                 <td>Équipe &amp; taille de marché priment sur les chiffres</td>
               </tr>
-              <tr>
+              <tr data-stage="seed">
                 <td>Seed</td>
                 <td><b>0,2 – 1 M€</b><span class="sub">product-market fit naissant</span></td>
                 <td>× 2,5 – 3 / an</td>
                 <td>Marge brute SaaS &gt; 70 % · rétention nette ≥ 100 %</td>
               </tr>
-              <tr>
+              <tr data-stage="seriea">
                 <td>Série A</td>
                 <td><b>1 – 3 M€</b><span class="sub">modèle qui scale</span></td>
                 <td>× 2,5 – 3 / an</td>
@@ -763,8 +784,10 @@
       else window.location.href = 'tableau-de-bord.html';
     });
 
-    // Type de levée (1re étape) + filtres par famille de repères
-    const roundOpts = document.querySelectorAll('.round-opt');
+    // Type de levée (1re étape) + stade (2e étape) + filtres par famille de repères
+    const roundOpts = document.querySelectorAll('.round-opt[data-round]');
+    const stageOpts = document.querySelectorAll('.round-opt[data-stage]');
+    const stageRows = document.querySelectorAll('.btable tr[data-stage]');
     const filters = document.querySelectorAll('.filter');
     const sections = document.querySelectorAll('.bsec');
 
@@ -780,7 +803,13 @@
     };
 
     let round = localStorage.getItem('benchmark_round') || 'classique';
+    let stage = localStorage.getItem('benchmark_stage') || 'seed';
     let cat = 'montants';
+
+    // Surbrillance de la ligne du stade choisi dans les tableaux « par stade »
+    function applyStage() {
+      stageRows.forEach(tr => tr.classList.toggle('is-stage', tr.dataset.stage === stage));
+    }
 
     function applyView() {
       // Onglets famille : masquer ceux hors du type de levée choisi
@@ -814,18 +843,35 @@
       applyView();
     }));
 
+    stageOpts.forEach(btn => btn.addEventListener('click', () => {
+      stage = btn.dataset.stage;
+      localStorage.setItem('benchmark_stage', stage);
+      stageOpts.forEach(b => {
+        const on = b === btn;
+        b.classList.toggle('is-on', on);
+        b.setAttribute('aria-checked', on ? 'true' : 'false');
+      });
+      applyStage();
+    }));
+
     filters.forEach(btn => btn.addEventListener('click', () => {
       cat = btn.dataset.filter;
       applyView();
     }));
 
-    // Restaure le choix mémorisé au chargement
+    // Restaure les choix mémorisés au chargement
     roundOpts.forEach(b => {
       const on = b.dataset.round === round;
       b.classList.toggle('is-on', on);
       b.setAttribute('aria-checked', on ? 'true' : 'false');
     });
+    stageOpts.forEach(b => {
+      const on = b.dataset.stage === stage;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-checked', on ? 'true' : 'false');
+    });
     applyView();
+    applyStage();
 
     async function init() {
       const user = await requireAuth();
