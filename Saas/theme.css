@@ -31,6 +31,20 @@
   --t-hamburger-border:      rgba(255,255,255,0.22);
   --t-hamburger-border-hov:  rgba(255,255,255,0.55);
   --t-hamburger-hover-bg:    rgba(255,255,255,0.06);
+  /* Échelons de texte/icône sur le fond (pages « dark-native » : Avocat, Tâches…) */
+  --t-on-bg-90:              rgba(255,255,255,0.90);
+  --t-on-bg-80:              rgba(255,255,255,0.80);
+  --t-on-bg-70:              rgba(255,255,255,0.70);
+  --t-on-bg-60:              rgba(255,255,255,0.60);
+  --t-on-bg-40:              rgba(255,255,255,0.40);
+  /* Surfaces translucides posées sur le fond */
+  --t-surface:               rgba(255,255,255,0.04);
+  --t-surface-brd:           rgba(255,255,255,0.10);
+  --t-chip:                  rgba(255,255,255,0.10);
+  --t-chip-2:                rgba(255,255,255,0.06);
+  --t-border:                rgba(255,255,255,0.14);
+  --t-outline:               rgba(255,255,255,0.35);
+  --t-outline-hov:           rgba(255,255,255,0.65);
 }
 
 :root[data-theme="paper"] {
@@ -48,6 +62,18 @@
   --t-hamburger-border:      rgba(0,0,0,0.18);
   --t-hamburger-border-hov:  rgba(0,0,0,0.45);
   --t-hamburger-hover-bg:    rgba(0,0,0,0.05);
+  --t-on-bg-90:              rgba(17,17,17,0.90);
+  --t-on-bg-80:              rgba(17,17,17,0.78);
+  --t-on-bg-70:              rgba(17,17,17,0.68);
+  --t-on-bg-60:              rgba(17,17,17,0.58);
+  --t-on-bg-40:              rgba(17,17,17,0.42);
+  --t-surface:               rgba(17,17,17,0.035);
+  --t-surface-brd:           rgba(17,17,17,0.12);
+  --t-chip:                  rgba(17,17,17,0.06);
+  --t-chip-2:                rgba(17,17,17,0.05);
+  --t-border:                rgba(17,17,17,0.14);
+  --t-outline:               rgba(17,17,17,0.32);
+  --t-outline-hov:           rgba(17,17,17,0.55);
 }
 
 /* ── Composants de coquille partagés (topbar) ─────────────────────────── */

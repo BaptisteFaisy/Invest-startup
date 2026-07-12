@@ -6,43 +6,48 @@
   <title>Liquid+ — Tâches</title>
   <meta name="description" content="Votre check-list personnelle pour piloter la levée de fonds." />
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
+  <script>
+    // Applique le thème mémorisé au plus tôt (anti-flash). Défaut : sombre (:root).
+    try { var t = localStorage.getItem('liquidTheme'); if (t === 'paper' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=6" />
   <link rel="stylesheet" href="drawer-menu.css?v=5" />
+  <link rel="stylesheet" href="theme.css?v=1" />
   <style>
     [hidden] { display: none !important; }
 
     .app { visibility: hidden; }
     .app.ready { visibility: visible; }
     .app { height: auto; overflow: visible; display: block; }
-    body, .app { background: #08090c !important; }
+    body, .app { background: var(--t-bg) !important; }
 
     /* Topbar noir (identique aux autres pages du SaaS). Mise en page en ligne :
        cette page ne charge pas editor.css, donc sans ça la barre s'empile. */
-    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 56px; padding: 0 20px; background: #08090c !important; border-bottom: 1px solid rgba(255,255,255,0.07) !important; position: sticky; top: 0; z-index: 70; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 56px; padding: 0 20px; background: var(--t-topbar-bg) !important; border-bottom: 1px solid var(--t-topbar-border) !important; position: sticky; top: 0; z-index: 70; }
     .topbar__left { display: flex; align-items: center; gap: 16px; min-width: 0; }
     .topbar__actions { display: flex; align-items: center; gap: 8px; flex: none; }
-    .topbar .brand { color: #fff !important; display: flex; align-items: center; gap: 8px; }
-    .topbar .brand__plus { color: #fff !important; }
+    .topbar .brand { color: var(--t-on-bg) !important; display: flex; align-items: center; gap: 8px; }
+    .topbar .brand__plus { color: var(--t-on-bg) !important; }
     .topbar .brand__logo { display: block; flex: none; }
-    .topbar__doc { color: #fff !important; border-left-color: rgba(255,255,255,0.2) !important; }
-    .topbar .btn--ghost { color: #fff !important; border-color: rgba(255,255,255,0.35) !important; }
-    .topbar .btn--ghost:hover { color: #fff !important; border-color: rgba(255,255,255,0.65) !important; }
+    .topbar__doc { color: var(--t-on-bg) !important; border-left-color: var(--t-divider) !important; }
+    .topbar .btn--ghost { color: var(--t-on-bg) !important; border-color: var(--t-outline) !important; }
+    .topbar .btn--ghost:hover { color: var(--t-on-bg) !important; border-color: var(--t-outline-hov) !important; }
 
     .tsk { max-width: 760px; margin: 0 auto; padding: 24px 28px 90px; }
     .page-back-row { height: 6px; }
-    .page-back { position: fixed; top: 56px; left: max(12px, calc(50% - 396px)); z-index: 15; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
+    .page-back { position: fixed; top: 56px; left: max(12px, calc(50% - 396px)); z-index: 15; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: var(--t-on-bg); cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
     .page-back:hover { opacity: 0.68; transform: translateX(-1px); }
     .page-back:focus-visible { outline: none; opacity: 1; }
     .page-back svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-    .tsk__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
-    .tsk__title { font-size: 30px; letter-spacing: -0.03em; color: #fff; margin-top: 6px; }
-    .tsk__sub { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 8px; line-height: 1.55; }
+    .tsk__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--t-on-bg); }
+    .tsk__title { font-size: 30px; letter-spacing: -0.03em; color: var(--t-on-bg); margin-top: 6px; }
+    .tsk__sub { color: var(--t-on-bg-70); font-size: 15px; margin-top: 8px; line-height: 1.55; }
 
     /* Formulaire d'ajout */
-    .tskform { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 18px 20px; margin-top: 26px; }
+    .tskform { background: var(--t-surface); border: 1px solid var(--t-surface-brd); border-radius: 16px; padding: 18px 20px; margin-top: 26px; }
     .tskform__row1 { display: flex; gap: 10px; }
     .tskform__title { flex: 1; min-width: 0; background: #fff; border: 1px solid transparent; border-radius: 10px; padding: 11px 14px; font: inherit; font-size: 14.5px; color: #08090c; }
     .tskform__title:focus { outline: none; box-shadow: 0 0 0 2px #3b82f6; }
@@ -55,28 +60,28 @@
 
     /* Listes */
     .tsk__section { margin-top: 30px; }
-    .tsk__section-h { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-    .tsk__count { background: rgba(255,255,255,0.1); color: #fff; border-radius: 999px; font-size: 11px; padding: 2px 8px; }
-    .tsk__empty { color: rgba(255,255,255,0.5); font-size: 14px; padding: 18px 4px; }
+    .tsk__section-h { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t-on-bg-60); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .tsk__count { background: var(--t-chip); color: var(--t-on-bg); border-radius: 999px; font-size: 11px; padding: 2px 8px; }
+    .tsk__empty { color: var(--t-on-bg-faint); font-size: 14px; padding: 18px 4px; }
 
     /* Réglages d'affichage du tableau de bord (combien de priorités générées et
        de tâches personnelles y apparaissent). Choisis ici, lus par le dashboard. */
-    .dashprefs { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px 20px; margin-top: 22px; }
-    .dashprefs__label { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.6); margin-bottom: 12px; }
+    .dashprefs { background: var(--t-surface); border: 1px solid var(--t-surface-brd); border-radius: 16px; padding: 16px 20px; margin-top: 22px; }
+    .dashprefs__label { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t-on-bg-60); margin-bottom: 12px; }
     .dashprefs__row { display: flex; gap: 22px; flex-wrap: wrap; }
-    .dashprefs__ctrl { display: flex; align-items: center; gap: 9px; font-size: 14px; color: rgba(255,255,255,0.85); }
+    .dashprefs__ctrl { display: flex; align-items: center; gap: 9px; font-size: 14px; color: var(--t-on-bg-80); }
     .dashprefs__ctrl select { background: #fff; border: 1px solid transparent; border-radius: 10px; padding: 8px 12px; font: inherit; font-size: 13.5px; color: #08090c; cursor: pointer; }
     .dashprefs__ctrl select:focus { outline: none; box-shadow: 0 0 0 2px #3b82f6; }
 
     /* Priorités suggérées : générées d'après l'état du dossier (lecture seule). */
-    .tsk__suggested-sub { color: rgba(255,255,255,0.55); font-size: 13px; margin: -4px 0 12px; line-height: 1.5; }
+    .tsk__suggested-sub { color: var(--t-on-bg-muted); font-size: 13px; margin: -4px 0 12px; line-height: 1.5; }
     a.titem { text-decoration: none; }
     .titem--suggested { border-left: 3px solid #3b82f6; transition: box-shadow .15s, transform .15s; }
     .titem--suggested:hover { box-shadow: 0 8px 26px rgba(0,0,0,0.32); transform: translateY(-1px); }
     .titem__rank { flex: none; width: 24px; height: 24px; border-radius: 8px; background: #3b82f6; color: #fff; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 12.5px; display: grid; place-items: center; }
     .tag--suggested { background: rgba(59,130,246,0.12); color: #2563eb; }
 
-    .titem { background: #fff; border-radius: 13px; padding: 13px 16px; margin-bottom: 9px; display: flex; align-items: center; gap: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
+    .titem { background: var(--t-card); border: 1px solid var(--t-card-border); border-radius: 13px; padding: 13px 16px; margin-bottom: 9px; display: flex; align-items: center; gap: 12px; box-shadow: var(--t-card-shadow); }
     .titem--done { opacity: 0.62; }
     .titem__cb { width: 19px; height: 19px; flex: none; cursor: pointer; accent-color: #3b82f6; }
     .titem__main { flex: 1; min-width: 0; }
@@ -95,19 +100,19 @@
     .titem__del:hover { background: #fdeeee; color: #dc2626; }
     .titem__del svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-    .tsk__loading { color: rgba(255,255,255,0.6); font-size: 14px; padding: 18px 4px; }
+    .tsk__loading { color: var(--t-on-bg-60); font-size: 14px; padding: 18px 4px; }
     .tsk__err { font-size: 14px; color: #f87171; background: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.25); border-radius: 12px; padding: 14px 16px; margin-top: 22px; line-height: 1.55; }
     .tsk__foot { margin-top: 30px; }
 
     /* Journal d'activité (timeline de toutes les actions du compte) */
-    .tsk__activity { margin-top: 46px; padding-top: 26px; border-top: 1px solid rgba(255,255,255,0.08); }
-    .tsk__activity-sub { color: rgba(255,255,255,0.55); font-size: 13.5px; line-height: 1.5; margin: -4px 0 18px; }
+    .tsk__activity { margin-top: 46px; padding-top: 26px; border-top: 1px solid var(--t-divider); }
+    .tsk__activity-sub { color: var(--t-on-bg-muted); font-size: 13.5px; line-height: 1.5; margin: -4px 0 18px; }
     .act-day { margin-top: 20px; }
     .act-day:first-child { margin-top: 0; }
-    .act-day__toggle { width: 100%; display: flex; align-items: center; gap: 8px; margin: 0 0 10px; padding: 5px 0; border: 0; background: transparent; color: rgba(255,255,255,0.4); cursor: pointer; text-align: left; }
-    .act-day__toggle:hover { color: rgba(255,255,255,0.7); }
+    .act-day__toggle { width: 100%; display: flex; align-items: center; gap: 8px; margin: 0 0 10px; padding: 5px 0; border: 0; background: transparent; color: var(--t-on-bg-40); cursor: pointer; text-align: left; }
+    .act-day__toggle:hover { color: var(--t-on-bg-70); }
     .act-day__label { flex: 1; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
-    .act-day__count { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0; color: rgba(255,255,255,0.35); }
+    .act-day__count { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0; color: var(--t-on-bg-40); }
     .act-day__chevron { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform .16s ease; }
     .act-day.is-collapsed .act-day__chevron { transform: rotate(-90deg); }
     .act-day.is-collapsed .act-day__rows { display: none; }
@@ -115,9 +120,9 @@
     .act-row__dot { flex: none; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; margin-top: 1px; }
     .act-row__dot svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .act-row__body { flex: 1; min-width: 0; }
-    .act-row__action { font-size: 13.5px; color: rgba(255,255,255,0.9); line-height: 1.4; }
-    .act-row__label { color: #fff; font-weight: 600; }
-    .act-row__time { font-size: 12px; color: rgba(255,255,255,0.42); margin-top: 1px; }
+    .act-row__action { font-size: 13.5px; color: var(--t-on-bg-90); line-height: 1.4; }
+    .act-row__label { color: var(--t-on-bg); font-weight: 600; }
+    .act-row__time { font-size: 12px; color: var(--t-on-bg-40); margin-top: 1px; }
     .act--document { background: rgba(59,130,246,0.14); color: #60a5fa; }
     .act--version  { background: rgba(139,92,246,0.14); color: #a78bfa; }
     .act--folder   { background: rgba(245,158,11,0.14); color: #fbbf24; }
@@ -125,12 +130,23 @@
     .act--investor { background: rgba(236,72,153,0.14); color: #f472b6; }
     .act--dilution, .act--valuation, .act--exit { background: rgba(20,184,166,0.14); color: #2dd4bf; }
     .act--compare  { background: rgba(99,102,241,0.16); color: #818cf8; }
-    .act--profile  { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); }
+    .act--profile  { background: var(--t-chip); color: var(--t-on-bg-80); }
     .act-more { margin-top: 16px; }
-    .act-more__btn { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 9px; padding: 8px 16px; cursor: pointer; }
-    .act-more__btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .act-more__btn { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; color: var(--t-on-bg-80); background: var(--t-chip-2); border: 1px solid var(--t-border); border-radius: 9px; padding: 8px 16px; cursor: pointer; }
+    .act-more__btn:hover { background: var(--t-chip); color: var(--t-on-bg); }
+    /* Badges d'activité : icônes plus foncées en thème clair (fonds translucides conservés). */
+    :root[data-theme="paper"] .act--document { color: #2563eb; }
+    :root[data-theme="paper"] .act--version  { color: #7c3aed; }
+    :root[data-theme="paper"] .act--folder   { color: #b45309; }
+    :root[data-theme="paper"] .act--task     { color: #15803d; }
+    :root[data-theme="paper"] .act--investor { color: #db2777; }
+    :root[data-theme="paper"] .act--dilution,
+    :root[data-theme="paper"] .act--valuation,
+    :root[data-theme="paper"] .act--exit     { color: #0d9488; }
+    :root[data-theme="paper"] .act--compare  { color: #4f46e5; }
   </style>
   <script src="auth.js?v=3"></script>
+  <script src="theme.js?v=1" defer></script>
   <script src="tasks.js?v=2" defer></script>
   <script src="drawer-menu.js?v=3" defer></script>
   <script src="drawer-steps.js?v=1" defer></script>
