@@ -199,8 +199,7 @@
       </div>
 
       <div class="filters" role="tablist" aria-label="Filtrer les repères">
-        <button type="button" class="filter is-on" data-filter="all">Tout</button>
-        <button type="button" class="filter" data-filter="montants">Montants &amp; valorisation</button>
+        <button type="button" class="filter is-on" data-filter="montants">Montants &amp; valorisation</button>
         <button type="button" class="filter" data-filter="termes">Termes du deal</button>
         <button type="button" class="filter" data-filter="negociation">Négociation</button>
         <button type="button" class="filter" data-filter="captable">Cap table &amp; dilution</button>
@@ -771,7 +770,6 @@
 
     // Familles pertinentes selon le type de levée
     const FILTER_ROUNDS = {
-      all: ['classique', 'bsaair'],
       montants: ['classique', 'bsaair'],
       termes: ['bsaair'],
       negociation: ['classique'],
@@ -782,7 +780,7 @@
     };
 
     let round = localStorage.getItem('benchmark_round') || 'classique';
-    let cat = 'all';
+    let cat = 'montants';
 
     function applyView() {
       // Onglets famille : masquer ceux hors du type de levée choisi
@@ -790,13 +788,17 @@
         const relevant = FILTER_ROUNDS[f.dataset.filter].includes(round);
         f.hidden = !relevant;
       });
-      // Si l'onglet actif n'est plus pertinent, revenir sur « Tout »
-      if (!FILTER_ROUNDS[cat].includes(round)) cat = 'all';
+      // Si la famille active n'est plus pertinente pour ce type de levée,
+      // basculer sur la première famille pertinente.
+      if (!FILTER_ROUNDS[cat].includes(round)) {
+        const first = [...filters].find(f => FILTER_ROUNDS[f.dataset.filter].includes(round));
+        cat = first ? first.dataset.filter : 'montants';
+      }
       filters.forEach(f => f.classList.toggle('is-on', f.dataset.filter === cat));
       // Sections : visibles si compatibles avec le type de levée ET la famille
       sections.forEach(sec => {
         const inRound = sec.dataset.rounds.split(' ').includes(round);
-        const inCat = cat === 'all' || sec.dataset.cat === cat;
+        const inCat = sec.dataset.cat === cat;
         sec.hidden = !(inRound && inCat);
       });
     }
