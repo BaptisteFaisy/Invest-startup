@@ -2046,6 +2046,112 @@ Renvoie un objet par identifiant fourni, avec les 5 champs (omets "conditions" o
   }
 });
 
+// ─── SaaS : explication des résultats d'un simulateur (cap table / waterfall) ──
+// POINT NON NÉGOCIABLE : le calcul de la cap table, de la dilution et du waterfall
+// est fait par le moteur DÉTERMINISTE en JavaScript (pages dilution.html / exit.html).
+// Cet endpoint ne fait que COMMENTER des chiffres DÉJÀ CALCULÉS et transmis par le
+// client. GLM ne produit, ne recalcule et n'invente JAMAIS un chiffre : c'est le seul
+// endroit du flux où une hallucination serait à la fois probable et catastrophique.
+const EXPLAIN_SIM_KINDS = {
+  dilution: 'une simulation de DILUTION (répartition du capital / cap table avant et après un tour de financement)',
+  exit:     'une simulation de SORTIE (exit) — répartition du produit d\'une cession via la cascade des préférences de liquidation (waterfall) ou une cession secondaire',
+};
+
+// Nettoie une valeur en chaîne courte (les nombres arrivent déjà FORMATÉS par le
+// front : « 500 000 € », « 12,3 % », « 1,8× »… — on ne reformate ni ne recalcule rien).
+function clampCell(v) {
+  return String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, 60);
+}
+
+app.post('/api/saas/explain-simulation', requireAuth, enforceDailyCap, async (req, res) => {
+  if (!zaiClient)
+    return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
+
+  const { kind, scenario, figures, table, notes } = req.body ?? {};
+  if (!kind || !EXPLAIN_SIM_KINDS[kind])
+    return res.status(400).json({ error: 'kind invalide (attendu : dilution ou exit)' });
+
+  // On borne et on aplatit strictement tout ce qui vient du client : seuls des
+  // libellés + valeurs déjà formatées atteignent le prompt, jamais de calcul à refaire.
+  const figs = (Array.isArray(figures) ? figures : [])
+    .slice(0, 12)
+    .map(f => ({ label: clampCell(f && f.label), value: clampCell(f && f.value) }))
+    .filter(f => f.label && f.value);
+
+  const cols = (table && Array.isArray(table.columns) ? table.columns : []).slice(0, 8).map(clampCell);
+  const rows = (table && Array.isArray(table.rows) ? table.rows : [])
+    .slice(0, 40)
+    .map(r => (Array.isArray(r) ? r : []).slice(0, 8).map(clampCell));
+  const noteList = (Array.isArray(notes) ? notes : [])
+    .slice(0, 6)
+    .map(n => clampCell(n).slice(0, 240))
+    .filter(Boolean);
+
+  if (!figs.length && !rows.length)
+    return res.status(400).json({ error: 'Aucun chiffre à expliquer.' });
+
+  const scenarioLabel = kind === 'exit'
+    ? (scenario === 'partial' ? 'Cession partielle (secondaire)' : 'Sortie totale (waterfall)')
+    : '';
+
+  const figuresBlock = figs.length
+    ? 'CHIFFRES CLÉS (déjà calculés) :\n' + figs.map(f => `- ${f.label} : ${f.value}`).join('\n')
+    : '';
+  const tableBlock = rows.length
+    ? 'DÉTAIL PAR LIGNE (déjà calculé) :\n'
+      + (cols.length ? cols.join(' | ') + '\n' : '')
+      + rows.map(r => r.join(' | ')).join('\n')
+    : '';
+  const notesBlock = noteList.length
+    ? 'ALERTES DÉJÀ DÉTECTÉES PAR L\'OUTIL :\n' + noteList.map(n => `- ${n}`).join('\n')
+    : '';
+
+  const system =
+`Tu es l'assistant pédagogique de « liquid + », un outil pour fondateurs de startup en levée de fonds.
+On te transmet les RÉSULTATS de ${EXPLAIN_SIM_KINDS[kind]}${scenarioLabel ? ` — scénario : ${scenarioLabel}` : ''}.
+
+RÈGLE ABSOLUE, LA PLUS IMPORTANTE : ces chiffres ont été calculés par le moteur déterministe de l'application. Tu ne dois JAMAIS recalculer, corriger, arrondir, additionner, extrapoler ni inventer le moindre chiffre. Tu utilises EXCLUSIVEMENT les valeurs fournies ci-dessous, telles quelles. Si un montant, un pourcentage ou un multiple n'est pas dans les données, tu ne le mentionnes pas et tu ne le devines pas. Tu commentes, tu ne produis pas.
+
+${figuresBlock}
+
+${tableBlock}
+
+${notesBlock}
+
+Ta mission : expliquer ces résultats à un fondateur non financier, en français.
+- 3 à 5 phrases par idée, en 2 ou 3 courts paragraphes de texte continu (pas de tableau, pas de liste à puces, pas de titre, pas de balise).
+- Explique ce que ces chiffres signifient CONCRÈTEMENT pour le fondateur (ce qu'il garde, ce qu'il touche, qui est prioritaire, l'effet des préférences ou du pool).
+- Quand tu cites un chiffre, reprends-le à l'identique depuis les données ci-dessus, sans le modifier.
+- Termine par un point de vigilance ou un levier de négociation, si les données en révèlent un.
+- Ton clair, direct, du point de vue du fondateur. N'invente aucune donnée absente.`;
+
+  // Cache par contenu : mêmes chiffres → même explication, sans rappeler GLM.
+  const cacheHash = aiHash('explain-simulation-v1', [
+    kind, scenarioLabel,
+    ...figs.map(f => f.label + '=' + f.value),
+    cols.join('|'), ...rows.map(r => r.join('|')),
+    ...noteList,
+  ]);
+  const cached = await aiCacheGet(cacheHash);
+  if (cached) return res.json({ explanation: cached, cached: true });
+
+  try {
+    const response = await glmChat({
+      system,
+      messages: [{ role: 'user', content: 'Explique ces résultats au fondateur, sans recalculer ni inventer de chiffre.' }],
+      maxTokens: 1200,
+      thinking: false,
+    });
+    await recordClaudeUsage(req.user.id, response);
+    const explanation = glmText(response);
+    if (explanation) await aiCacheSet(cacheHash, explanation);
+    res.json({ explanation });
+  } catch (err) {
+    console.error('Claude explain-simulation error:', err.message);
+    res.status(502).json({ error: 'L\'assistant IA est momentanément indisponible.' });
+  }
+});
+
 // ─── SaaS : consommation IA Claude de l'utilisateur (tokens + nb requêtes) ─────
 app.get('/api/saas/usage', requireAuth, async (req, res) => {
   const u = await col('saas_claude_usage').findOne(

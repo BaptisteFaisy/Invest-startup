@@ -184,6 +184,21 @@
     .dil__actions { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; align-items: center; }
     .dil__actions .btn { background: rgba(255,255,255,0.06); color: #fff; border-color: rgba(255,255,255,0.2); }
     .dil__actions .btn:hover { border-color: rgba(255,255,255,0.5); }
+
+    /* Explication IA des résultats (le calcul reste en JS, l'IA ne fait que commenter) */
+    .explain-card .card__toprow { margin-bottom: 8px; }
+    .btn--ai { background: #08090c; color: #fff; border-color: #08090c; padding: 8px 15px; min-height: 38px; font-size: 13px; }
+    .btn--ai:hover { background: #26262c; }
+    .btn--ai:disabled { opacity: 0.5; cursor: default; }
+    .explain-desc { font-size: 12px; color: #6b6b78; line-height: 1.55; margin: 0; }
+    .explain-desc b { color: #08090c; }
+    .explain-out { margin-top: 13px; font-size: 13.5px; line-height: 1.68; color: #26262c; }
+    .explain-out p { margin: 0 0 10px; }
+    .explain-out p:last-child { margin-bottom: 0; }
+    .explain-out.is-loading, .explain-out.is-error { font-size: 13px; }
+    .explain-out.is-loading { color: #6b6b78; font-style: italic; }
+    .explain-out.is-error { color: #b91c1c; }
+    .explain-out.is-stale { opacity: 0.45; }
     .example-picker { display: flex; align-items: center; gap: 8px; }
     .example-picker__lab { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
     .example-picker__sel { font-family: 'Libre Franklin', sans-serif; font-size: 12.5px; color: #fff; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.2); border-radius: 9px; padding: 8px 10px; cursor: pointer; max-width: 260px; }
@@ -534,6 +549,15 @@
             <b><span class="term" data-term="non-dilue" tabindex="0">Non dilué</span></b> : la même opération sur les seules actions <b>déjà émises</b>. Votre part y paraît plus haute — l'écart avec le fully diluted mesure exactement le poids du pool à venir (l'« <i>overhang</i> »).<br />
             <b><span class="term" data-term="shuffle" tabindex="0">Option pool shuffle</span></b> : un pool créé « avant le tour » gonfle le pre-money en actions et ne dilue que les actionnaires existants — l'investisseur obtient son pourcentage « net de pool ». Créé « après », il dilue aussi l'investisseur. C'est un point de négociation à part entière.
           </p>
+
+          <div class="card explain-card" id="explain-card" hidden>
+            <div class="card__toprow">
+              <div class="card__h">Comprendre ces chiffres</div>
+              <button type="button" class="btn btn--ai" id="explain-btn">✨ Expliquer ces chiffres</button>
+            </div>
+            <p class="explain-desc">L'assistant commente les résultats <b>déjà calculés</b> ci-dessus (moteur déterministe) — il ne recalcule ni n'invente aucun chiffre.</p>
+            <div class="explain-out" id="explain-out" hidden></div>
+          </div>
         </div>
       </div>
 
@@ -581,6 +605,7 @@
     let basis = 'pre';
     // Base de lecture des résultats : 'fd' (pleinement dilué) ou 'issued' (non dilué / actions émises)
     let resultsBasis = 'fd';
+    let lastDil = null;   // dernier résultat calculé (JS) exposé à « Expliquer ces chiffres »
     // Formate la valeur d'une ligne d'actionnaire selon le mode
     const fmtRowVal = (v) => (mode === 'pct' ? fmtPctInput(v) : (v ? nfInt.format(Math.round(v)) : ''));
     // Base notionnelle d'actions utilisée quand on passe de % vers nombre d'actions
@@ -911,6 +936,8 @@
         document.getElementById('k-fdil-sub').textContent = '';
         document.getElementById('rtable-body').innerHTML = '';
         renderBars(null);
+        lastDil = null;
+        refreshExplainUI();
         return;
       }
 
@@ -926,6 +953,8 @@
         document.getElementById('k-fdil-sub').textContent = '';
         document.getElementById('rtable-body').innerHTML = '<tr><td class="l" colspan="6" style="color:#a8a8b3;text-align:center;padding:20px 0">Renseignez au moins une valorisation pre-money et un actionnaire.</td></tr>';
         renderBars(null);
+        lastDil = null;
+        refreshExplainUI();
         return;
       }
       if (r.error === 'poolTooBig') {
@@ -933,6 +962,8 @@
         kPps.textContent = '—'; kInv.textContent = '—'; kFdil.textContent = '—';
         document.getElementById('rtable-body').innerHTML = '';
         renderBars(null);
+        lastDil = null;
+        refreshExplainUI();
         return;
       }
       warnBox.innerHTML = '';
@@ -957,6 +988,8 @@
 
       renderBars(r);
       renderTable(r);
+      lastDil = { st, r };
+      refreshExplainUI();
     }
 
     function warnHTML(msg) {
@@ -1149,6 +1182,114 @@
       syncResultsBasisUI();
       recompute();
     });
+
+    // ---------- Expliquer ces chiffres (le calcul reste 100 % JS ; l'IA ne fait que commenter) ----------
+    const explainCard = document.getElementById('explain-card');
+    const explainBtn = document.getElementById('explain-btn');
+    const explainOut = document.getElementById('explain-out');
+    let explainShownKey = null;
+    const escHtml = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    // Construit, à partir du dernier résultat DÉJÀ calculé en JS, la charge utile
+    // envoyée à l'IA : uniquement des libellés et des valeurs formatées, dans la
+    // base de lecture actuellement affichée. Aucun chiffre n'est à recalculer.
+    function buildExplainPayload() {
+      if (!lastDil) return null;
+      const { st, r } = lastDil;
+      const iss = resultsBasis === 'issued';
+      const basisLabel = iss ? 'non dilué (actions émises)' : 'pleinement dilué';
+      const fBefore = iss ? r.founderPctBeforeIss : r.founderPctBefore;
+      const fAfter = iss ? r.founderPctAfterIss : r.founderPctAfter;
+      const figures = [
+        { label: 'Valorisation post-money', value: eur0(r.postV) + ' (pre ' + eur0(r.premoney) + ' + levée ' + eur0(r.I) + ')' },
+        { label: 'Part des investisseurs après le tour', value: pct1(iss ? r.invPctIss : r.invPct) + ' du capital ' + basisLabel },
+        { label: 'Dilution des fondateurs', value: pct1(fBefore) + ' → ' + pct1(fAfter) + (fBefore > 0 ? ' (−' + pct1((fBefore - fAfter) / fBefore).replace(' %', '') + ' % relatif)' : '') },
+      ];
+      if (mode === 'shares' && r.pps) {
+        figures.push({ label: 'Prix par action', value: r.pps >= 100 ? eur0(r.pps) : r.pps.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 4 }) + ' €' });
+      }
+      const columns = ['Actionnaire', '% avant', '% après', 'Évolution'];
+      const rows = r.rows.map(row => {
+        const before = iss ? row.pctBeforeIss : row.pctBefore;
+        const after = iss ? row.pctAfterIss : row.pctAfter;
+        const catLabel = CATS[row.cat] ? CATS[row.cat].label : row.cat;
+        let evo = '—';
+        if (before != null && after != null) {
+          const d = after - before;
+          evo = (d >= 0 ? '+' : '−') + pct1(Math.abs(d));
+        }
+        return [
+          row.name + ' [' + catLabel + ']',
+          before != null ? pct1(before) : '—',
+          after != null ? pct1(after) : '—',
+          evo,
+        ];
+      });
+      const notes = [];
+      if (st.pool && st.pool.on) {
+        notes.push('Un pool d\'options de ' + pct1(st.pool.pct) + ' est créé '
+          + (st.pool.timing === 'pre'
+            ? 'AVANT le tour (option pool shuffle : il gonfle le pre-money en actions et dilue surtout les actionnaires existants ; l\'investisseur obtient son % net de pool)'
+            : 'APRÈS le tour (il dilue tout le monde, y compris l\'investisseur)') + '.');
+      }
+      return { kind: 'dilution', figures, table: { columns, rows }, notes };
+    }
+
+    const payloadKey = (p) => (p ? JSON.stringify([p.kind, p.figures, p.table.rows, p.notes]) : '');
+
+    // Affiche/masque le bloc et marque l'explication « périmée » quand les chiffres changent.
+    function refreshExplainUI() {
+      const p = buildExplainPayload();
+      explainCard.hidden = !p;
+      if (!p) {
+        explainShownKey = null;
+        explainOut.hidden = true;
+        explainOut.className = 'explain-out';
+        explainOut.innerHTML = '';
+        return;
+      }
+      const hasText = !explainOut.hidden
+        && !explainOut.classList.contains('is-loading')
+        && !explainOut.classList.contains('is-error')
+        && explainOut.innerHTML.trim() !== '';
+      if (hasText && explainShownKey) {
+        const stale = payloadKey(p) !== explainShownKey;
+        explainOut.classList.toggle('is-stale', stale);
+        explainBtn.textContent = stale ? '✨ Mettre à jour l\'explication' : '✨ Expliquer ces chiffres';
+      }
+    }
+
+    async function requestExplain() {
+      const p = buildExplainPayload();
+      if (!p) return;
+      const key = payloadKey(p);
+      explainBtn.disabled = true;
+      explainOut.hidden = false;
+      explainOut.className = 'explain-out is-loading';
+      explainOut.textContent = 'L\'assistant lit les chiffres calculés…';
+      try {
+        const resp = await fetch('/api/saas/explain-simulation', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(p),
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok) throw new Error(data.error || 'Explication momentanément indisponible.');
+        const text = String(data.explanation || '').trim();
+        if (!text) throw new Error('L\'assistant n\'a rien renvoyé.');
+        explainOut.className = 'explain-out';
+        explainOut.innerHTML = text.split(/\n{2,}/).map(par => '<p>' + escHtml(par).replace(/\n/g, '<br>') + '</p>').join('');
+        explainShownKey = key;
+        explainBtn.textContent = '✨ Expliquer ces chiffres';
+      } catch (err) {
+        explainOut.className = 'explain-out is-error';
+        explainOut.textContent = err.message || 'Explication momentanément indisponible.';
+      } finally {
+        explainBtn.disabled = false;
+      }
+    }
+    explainBtn.addEventListener('click', requestExplain);
 
     const form = document.getElementById('dil-form');
     // Recalcule à chaque frappe / changement
