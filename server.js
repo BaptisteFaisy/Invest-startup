@@ -460,6 +460,22 @@ function hasAccountTypes(user) {
   return Array.isArray(user?.account_types) && user.account_types.length > 0;
 }
 
+// Un avocat qui a déjà enregistré sa candidature (profil présent en base) doit
+// accéder à son tableau de bord, pas au formulaire. On resynchronise le drapeau
+// `lawyer_profile_completed` s'il a divergé du profil réellement sauvegardé
+// (anciens comptes créés avant l'ajout du drapeau, désynchronisation, etc.).
+// Mutation en base uniquement lorsqu'un profil existe : strictement correctif.
+async function ensureLawyerCompletion(user) {
+  if (!user || user.lawyer_profile_completed) return user;
+  if (!Array.isArray(user.account_types) || !user.account_types.includes('avocat')) return user;
+  const profile = await col('saas_lawyer_profiles').findOne({ user_id: user.id }, { projection: { _id: 1 } });
+  if (profile) {
+    await updateUserById(user.id, { lawyer_profile_completed: true });
+    user.lawyer_profile_completed = true;
+  }
+  return user;
+}
+
 function authLandingPath(user) {
   if (ADMIN_EMAILS.includes(user.email)) return '/admin.html';
   if (!hasAccountTypes(user)) return '/saas/onboarding.html';
@@ -557,6 +573,7 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
   if (!valid) return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
 
   if (!user.twofa_method) {
+    await ensureLawyerCompletion(user);
     const token = setAuthCookie(res, user);
     return res.json({ success: true, token, user: publicAuthUser(user) });
   }
@@ -592,6 +609,7 @@ app.delete('/api/auth/account', requireAuth, async (req, res) => {
 app.get('/api/auth/me', requireAuth, async (req, res) => {
   const user = await col('users').findOne({ id: req.user.id }, { projection: { _id: 0, password: 0, totp_secret: 0 } });
   if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
+  await ensureLawyerCompletion(user);
   res.json({ user: publicAuthUser(user) });
 });
 
@@ -650,6 +668,7 @@ app.post('/api/auth/2fa/verify', authLimiter, async (req, res) => {
   if (!speakeasy.totp.verify({ secret: decryptSecret(user.totp_secret), encoding: 'base32', token: (code || '').replace(/\s/g, ''), window: 1 }))
     return res.status(400).json({ error: 'Code incorrect' });
 
+  await ensureLawyerCompletion(user);
   const token = setAuthCookie(res, user);
   res.json({ success: true, token, user: publicAuthUser(user) });
 });
@@ -891,6 +910,7 @@ app.get('/auth/google/callback', async (req, res) => {
       const appToken = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
       return res.redirect(`liquidplus://auth?token=${encodeURIComponent(appToken)}`);
     }
+    await ensureLawyerCompletion(user);
     res.redirect(authLandingPath(user));
   } catch (err) {
     console.error('Google OAuth error:', err.message);
