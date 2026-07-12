@@ -4667,8 +4667,18 @@
       const catKey = '';
       const stateKey = f.id + ':unassigned';
       const open = docCategoryOpen[stateKey] !== false;
+      // Lettre d'intention : ce dossier adopte le même style éditorial que les
+      // dossiers investisseurs (cohérence). En-tête de colonnes seulement s'il y a
+      // des documents « historiques » à afficher.
+      const editorialTS = f.key === 'term-sheet';
+      const histItems = (f.checklist || [])
+        .map((item, idx) => ({ item, idx, slug: slugify(item) }))
+        .filter(({ slug }) => {
+          const st = (f.items_state || {})[slug];
+          return st && st.document_id != null && docs.some(d => d.id === st.document_id);
+        });
       const section = document.createElement('section');
-      section.className = 'doc-category' + (open ? '' : ' is-collapsed');
+      section.className = 'doc-category' + (editorialTS ? ' dd-editorial' : '') + (open ? '' : ' is-collapsed');
       const title = 'Documents non attribués à un investisseur';
       section.innerHTML = `
         <div class="doc-category__head">
@@ -4682,6 +4692,7 @@
           </div>
         </div>
         <div class="doc-category__body">
+          ${editorialTS && histItems.length ? '<div class="dd-editorial__columns" aria-hidden="true"><span>Document</span><span>Statut</span><span>Investisseur</span><span>Actions</span></div>' : ''}
           <ol class="bsa-list"></ol>
         </div>`;
       section.querySelector('[data-category-import]').addEventListener('click', () => openImport(f.id, catKey));
@@ -4695,13 +4706,7 @@
       // Documents « historiques » liés à la checklist avant le classement par
       // investisseur (clés non composites). Repli pour ne rien perdre.
       const ol = section.querySelector('.bsa-list');
-      (f.checklist || [])
-        .map((item, idx) => ({ item, idx, slug: slugify(item) }))
-        .filter(({ slug }) => {
-          const st = (f.items_state || {})[slug];
-          return st && st.document_id != null && docs.some(d => d.id === st.document_id);
-        })
-        .forEach(({ item, idx }) => ol.appendChild(roadItem(f, item, idx)));
+      histItems.forEach(({ item, idx }) => ol.appendChild(roadItem(f, item, idx)));
       // Fichiers importés de manière générale (clé vide), non liés à un investisseur.
       section.querySelector('.doc-category__body')
         .appendChild(phaseLooseFilesEl(f, linkedIds, catKey, 'Fichiers importés dans ce dossier'));
@@ -4763,6 +4768,20 @@
       shell.querySelector('[data-dd-editorial-import]').addEventListener('click', () => openImport(f.id, ''));
       attachCardDrop(shell, f.id, '');
       body.appendChild(shell);
+      // Due diligence poussée : même liste éditoriale à plat que la préliminaire, mais
+      // on garde visibles les fichiers importés « en vrac » de l'étape pour ne rien
+      // perdre du contenu qui était affiché dans l'ancien classement par dossiers.
+      // (La préliminaire, référence visuelle, reste strictement inchangée.)
+      if (f.key !== 'due-diligence-preliminaire') {
+        const visibleSlugs = new Set(list.map(slugify));
+        const linkedIds = new Set(
+          Object.entries(f.items_state || {})
+            .filter(([slug]) => visibleSlugs.has(slug))
+            .map(([, st]) => st && st.document_id)
+            .filter(id => id != null)
+        );
+        body.appendChild(phaseLooseFilesEl(f, linkedIds, '', 'Fichiers importés de manière générale'));
+      }
     }
 
     function phaseCard(f, pi, opts = {}) {
