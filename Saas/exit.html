@@ -1,17 +1,17 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Liquid+ — Simulateur d'exit</title>
-  <meta name="description" content="Simulateur de sortie (exit) : cession totale avec préférences de liquidation (waterfall) ou cession partielle/secondaire — anticipez qui touche quoi." />
+  <title>Liquid+ â€” Simulateur d'exit</title>
+  <meta name="description" content="Simulateur de sortie (exit) : cession totale avec prÃ©fÃ©rences de liquidation (waterfall) ou cession partielle/secondaire â€” anticipez qui touche quoi." />
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=6" />
   <link rel="stylesheet" href="editor.css?v=7" />
-  <link rel="stylesheet" href="drawer-menu.css?v=6" />
+  <link rel="stylesheet" href="drawer-menu.css?v=7" />
   <link rel="stylesheet" href="help-bulb.css?v=1" />
   <style>
     [hidden] { display: none !important; }
@@ -27,7 +27,7 @@
     .topbar .btn--ghost { color: #fff !important; border-color: rgba(255,255,255,0.35) !important; }
     .topbar .btn--ghost:hover { color: #fff !important; border-color: rgba(255,255,255,0.65) !important; }
 
-    /* Retour en arrière : le chevron reste visible sans bandeau au défilement. */
+    /* Retour en arriÃ¨re : le chevron reste visible sans bandeau au dÃ©filement. */
     .page-back-row { height: 6px; }
     .page-back { position: fixed; top: 56px; left: max(12px, calc(50% - 606px)); z-index: 15; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
     .page-back:hover { opacity: 0.68; transform: translateX(-1px); }
@@ -100,7 +100,7 @@
     .addrow { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; color: #08090c; background: transparent; border: 1px dashed rgba(8,9,12,0.28); border-radius: 9px; padding: 8px 12px; cursor: pointer; width: 100%; margin-top: 2px; transition: .12s; }
     .addrow:hover { background: rgba(8,9,12,0.05); border-color: #08090c; }
 
-    /* Sous-bloc préférence de liquidation (sortie totale, lignes investisseur) */
+    /* Sous-bloc prÃ©fÃ©rence de liquidation (sortie totale, lignes investisseur) */
     .xrow__pref { margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(8,9,12,0.12); display: grid; grid-template-columns: 1fr 1fr; gap: 8px 10px; }
     .xrow__pref .pf { display: flex; flex-direction: column; gap: 4px; }
     .xrow__pref .pf__lab { font-size: 10px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: #a8a8b3; font-family: 'Archivo', sans-serif; }
@@ -113,7 +113,7 @@
     .pf-note { grid-column: 1 / -1; font-size: 11px; color: #8a8a95; line-height: 1.5; }
     .pf-note b { color: #08090c; }
 
-    /* Sous-bloc « % cédé » (sortie partielle) */
+    /* Sous-bloc Â« % cÃ©dÃ© Â» (sortie partielle) */
     .xrow__sell { margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(8,9,12,0.12); display: flex; align-items: center; gap: 10px; }
     .xrow__sell .pf__lab { font-size: 10px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: #a8a8b3; font-family: 'Archivo', sans-serif; white-space: nowrap; }
     .xrow__sell .inp { max-width: 92px; padding: 7px 9px; font-size: 12.5px; }
@@ -130,7 +130,7 @@
     .kpi--accent .kpi__val { color: #fff; }
     .kpi--accent .kpi__sub { color: rgba(255,255,255,0.6); }
 
-    /* Barres de répartition */
+    /* Barres de rÃ©partition */
     .ownbar-wrap { margin-top: 6px; }
     .ownbar-row { margin-bottom: 14px; }
     .ownbar-lab { display: flex; justify-content: space-between; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #6b6b78; margin-bottom: 6px; }
@@ -145,7 +145,7 @@
     .c-invest0 { background: #99f6e4; }
     .c-buyer { background: #94a3b8; }
 
-    /* Table résultat */
+    /* Table rÃ©sultat */
     .rtable-wrap { overflow-x: auto; margin-top: 4px; }
     table.rtable { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 560px; }
     .rtable th { font-family: 'Archivo', sans-serif; font-size: 9.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #a8a8b3; text-align: right; padding: 0 8px 9px; border-bottom: 1px solid rgba(8,9,12,0.09); }
@@ -170,7 +170,7 @@
     .ext__actions .btn { background: rgba(255,255,255,0.06); color: #fff; border-color: rgba(255,255,255,0.2); }
     .ext__actions .btn:hover { border-color: rgba(255,255,255,0.5); }
 
-    /* Explication IA des résultats (le calcul reste en JS, l'IA ne fait que commenter) */
+    /* Explication IA des rÃ©sultats (le calcul reste en JS, l'IA ne fait que commenter) */
     .explain-card .card__toprow { margin-bottom: 8px; }
     .btn--ai { background: #08090c; color: #fff; border-color: #08090c; padding: 8px 15px; min-height: 38px; font-size: 13px; }
     .btn--ai:hover { background: #26262c; }
@@ -230,7 +230,7 @@
       .hist-item__actions { flex-direction: row; }
     }
 
-    /* Boîte de dialogue de saisie (remplace prompt(), non supporté par Electron) */
+    /* BoÃ®te de dialogue de saisie (remplace prompt(), non supportÃ© par Electron) */
     .ask-backdrop { position: fixed; inset: 0; z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(8,9,12,0.55); }
     .ask-backdrop.is-on { display: flex; }
     .ask-box { width: 100%; max-width: 420px; background: #fff; border-radius: 14px; padding: 20px 20px 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.4); }
@@ -254,7 +254,7 @@
   </style>
   <script src="auth.js?v=3"></script>
   <script src="tasks.js?v=2" defer></script>
-  <script src="drawer-menu.js?v=3" defer></script>
+  <script src="drawer-menu.js?v=7" defer></script>
   <script src="drawer-steps.js?v=1" defer></script>
   <script src="help-bulb.js?v=1" defer></script>
 </head>
@@ -265,7 +265,7 @@
         <button type="button" class="hamburger" id="nav-menu-btn" aria-label="Ouvrir la navigation" aria-controls="nav-drawer" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
-        <a href="/index.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
+        <a href="tableau-de-bord.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
         <span class="topbar__doc">Simulateur d'exit</span>
       </div>
       <div class="topbar__actions">
@@ -277,13 +277,13 @@
 
     <!-- Menu hamburger gauche : navigation -->
     <div class="drawer-backdrop" id="nav-backdrop" data-drawer-close></div>
-    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Étapes de la levée">
+    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Ã‰tapes de la levÃ©e">
       <div class="drawer__head"></div>
       <nav class="drawer__body">
-        <div class="drawer__section-title">Étapes de la levée</div>
-        <div id="nav-steps"><p class="drawer__steps-loading">Chargement des étapes…</p></div>
+        <div class="drawer__section-title">Ã‰tapes de la levÃ©e</div>
+        <div id="nav-steps"><p class="drawer__steps-loading">Chargement des Ã©tapesâ€¦</p></div>
       </nav>
-      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. FlÃ¨ches : 10 px, Maj + flÃ¨ches : 50 px, double-clic : rÃ©initialiser"></div>
     </aside>
 
     <!-- Menu hamburger droite : compte & actions -->
@@ -292,7 +292,7 @@
       <div class="drawer__head"></div>
       <nav class="drawer__body">
         <div class="drawer__section-title">Outils</div>
-        <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Éditeur</a>
+        <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Ã‰diteur</a>
         <a class="drawer__link" href="benchmark.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Benchmark</a>
         <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
         <div class="drawer__sep"></div>
@@ -300,21 +300,21 @@
         <a class="drawer__link" href="dilution.html" target="_blank" rel="noopener" title="Simulation de dilution"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
         <a class="drawer__link" href="exit.html" target="_blank" rel="noopener" title="Simulateur d'exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Exit</a>
         <div class="drawer__sep"></div>
-        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>Tâches</a>
+        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>TÃ¢ches</a>
         <a class="drawer__link" href="documents.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>Documents</a>
         <a class="drawer__link" href="data-room.html" target="_blank" rel="noopener" title="Data room"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/></svg>Data room</a>
         <a class="drawer__link" href="avocat.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M6 21h12"/><path d="M3 7h18"/><path d="M7 7l-3 6a3 3 0 0 0 6 0Z"/><path d="M17 7l3 6a3 3 0 0 0-6 0Z"/></svg>Avocat</a>
         <div class="drawer__sep"></div>
         <a class="drawer__link" href="compte.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>Mon compte</a>
-        <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Écrire au fondateur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
+        <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Ã‰crire au fondateur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
         <div class="drawer__sep"></div>
-        <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>Déconnexion</button>
+        <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>DÃ©connexion</button>
       </nav>
-      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. FlÃ¨ches : 10 px, Maj + flÃ¨ches : 50 px, double-clic : rÃ©initialiser"></div>
     </aside>
 
     <div class="page-back-row">
-      <button type="button" class="page-back" id="page-back-btn" aria-label="Revenir en arrière" title="Revenir en arrière">
+      <button type="button" class="page-back" id="page-back-btn" aria-label="Revenir en arriÃ¨re" title="Revenir en arriÃ¨re">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
       </button>
     </div>
@@ -325,7 +325,7 @@
       <h1 class="ext__title">Simulateur de sortie (exit)</h1>
       <div class="help-pop" hidden>
         <div class="help-pop__label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg> Comprendre cet outil</div>
-        <p>Simulez qui touche quoi le jour où la société est vendue — en <b>sortie totale</b>, avec la <span class="term" data-term="waterfall" tabindex="0">cascade de distribution</span> et les <span class="term" data-term="pref-liq" tabindex="0">préférences de liquidation</span>, ou en <b>sortie partielle</b>, une cession secondaire d'une partie des titres sans opération de liquidation.</p>
+        <p>Simulez qui touche quoi le jour oÃ¹ la sociÃ©tÃ© est vendue â€” en <b>sortie totale</b>, avec la <span class="term" data-term="waterfall" tabindex="0">cascade de distribution</span> et les <span class="term" data-term="pref-liq" tabindex="0">prÃ©fÃ©rences de liquidation</span>, ou en <b>sortie partielle</b>, une cession secondaire d'une partie des titres sans opÃ©ration de liquidation.</p>
       </div>
 
       <div class="type-seg-row">
@@ -342,13 +342,13 @@
           <div class="ext__col-head">
             <div class="ext__col-num">1</div>
             <div>
-              <div class="ext__col-lab">À remplir — vos données</div>
-              <p class="ext__col-sub">Renseignez la cap table actuelle et les paramètres de la cession à simuler.</p>
+              <div class="ext__col-lab">Ã€ remplir â€” vos donnÃ©es</div>
+              <p class="ext__col-sub">Renseignez la cap table actuelle et les paramÃ¨tres de la cession Ã  simuler.</p>
             </div>
           </div>
           <div class="card">
             <div class="card__toprow">
-              <div class="card__h">1 · Cap table actuelle</div>
+              <div class="card__h">1 Â· Cap table actuelle</div>
               <div class="seg" id="mode-seg">
                 <button type="button" class="seg__btn is-on" data-mode="pct">En %</button>
                 <button type="button" class="seg__btn" data-mode="shares">Nb d'actions</button>
@@ -358,19 +358,19 @@
             <div class="rows__head">
               <span>Actionnaire</span>
               <span class="r" id="sh-col-lab">%</span>
-              <span>Catégorie</span>
+              <span>CatÃ©gorie</span>
               <span></span>
             </div>
             <div id="sh-rows"></div>
             <button type="button" class="addrow" id="add-sh">+ Ajouter un actionnaire</button>
             <div class="rowsum">
               <span id="sh-total-lab">Total</span>
-              <b id="sh-total">—</b>
+              <b id="sh-total">â€”</b>
             </div>
           </div>
 
           <div class="card" id="deal-card">
-            <div class="card__h" id="deal-h">2 · Paramètres de la cession</div>
+            <div class="card__h" id="deal-h">2 Â· ParamÃ¨tres de la cession</div>
             <div class="card__desc" id="deal-desc"></div>
 
             <!-- Sortie totale -->
@@ -379,21 +379,21 @@
                 <label class="field__lab" for="sale-price">Prix de vente (valeur des capitaux propres)</label>
                 <div class="inp-wrap">
                   <input class="inp inp--money" type="text" inputmode="numeric" id="sale-price" value="15 000 000" />
-                  <span class="inp-wrap__suf">€</span>
+                  <span class="inp-wrap__suf">â‚¬</span>
                 </div>
               </div>
               <div class="field">
-                <label class="field__lab" for="sale-fees">Frais de cession <small style="text-transform:none;font-weight:400;color:#a8a8b3">(banque d'affaires, avocats…)</small></label>
+                <label class="field__lab" for="sale-fees">Frais de cession <small style="text-transform:none;font-weight:400;color:#a8a8b3">(banque d'affaires, avocatsâ€¦)</small></label>
                 <div class="inp-wrap">
                   <input class="inp inp--money" type="text" inputmode="decimal" id="sale-fees" value="3" />
                   <span class="inp-wrap__suf">%</span>
                 </div>
               </div>
               <div class="field" style="margin-bottom:0">
-                <label class="field__lab" for="sale-debt">Dette nette à rembourser <small style="text-transform:none;font-weight:400;color:#a8a8b3">(optionnel)</small></label>
+                <label class="field__lab" for="sale-debt">Dette nette Ã  rembourser <small style="text-transform:none;font-weight:400;color:#a8a8b3">(optionnel)</small></label>
                 <div class="inp-wrap">
                   <input class="inp inp--money" type="text" inputmode="numeric" id="sale-debt" value="0" />
-                  <span class="inp-wrap__suf">€</span>
+                  <span class="inp-wrap__suf">â‚¬</span>
                 </div>
               </div>
             </div>
@@ -404,7 +404,7 @@
                 <label class="field__lab" for="part-valo">Valorisation retenue <small style="text-transform:none;font-weight:400;color:#a8a8b3">(base du prix par titre)</small></label>
                 <div class="inp-wrap">
                   <input class="inp inp--money" type="text" inputmode="numeric" id="part-valo" value="8 000 000" />
-                  <span class="inp-wrap__suf">€</span>
+                  <span class="inp-wrap__suf">â‚¬</span>
                 </div>
               </div>
               <div class="field" style="margin-bottom:0">
@@ -415,17 +415,17 @@
           </div>
         </form>
 
-        <!-- COLONNE RÉSULTATS -->
+        <!-- COLONNE RÃ‰SULTATS -->
         <div class="ext__results ext__block">
           <div class="ext__col-head">
             <div class="ext__col-num">2</div>
             <div>
-              <div class="ext__col-lab">Résultats de la sortie</div>
-              <p class="ext__col-sub">Visualisez la répartition du produit de cession et le détail reçu par chaque actionnaire.</p>
+              <div class="ext__col-lab">RÃ©sultats de la sortie</div>
+              <p class="ext__col-sub">Visualisez la rÃ©partition du produit de cession et le dÃ©tail reÃ§u par chaque actionnaire.</p>
             </div>
           </div>
           <div class="ext__actions">
-            <button type="button" class="btn" id="reset-btn">↺ Réinitialiser l'exemple</button>
+            <button type="button" class="btn" id="reset-btn">â†º RÃ©initialiser l'exemple</button>
             <button type="button" class="btn" id="save-sim-btn">Enregistrer cet exit</button>
           </div>
 
@@ -434,14 +434,14 @@
           <div class="kpis" id="kpis"></div>
 
           <div class="card" style="margin-top:18px">
-            <div class="card__h" id="bar1-h">Répartition du capital (avant)</div>
+            <div class="card__h" id="bar1-h">RÃ©partition du capital (avant)</div>
             <div class="ownbar-wrap">
               <div class="ownbar-row">
                 <div class="ownbar-lab"><span id="bar1-lab">Avant</span><span id="own-before-tot"></span></div>
                 <div class="ownbar" id="own-before"></div>
               </div>
               <div class="ownbar-row">
-                <div class="ownbar-lab"><span id="bar2-lab">Répartition du produit net</span><span id="own-after-tot"></span></div>
+                <div class="ownbar-lab"><span id="bar2-lab">RÃ©partition du produit net</span><span id="own-after-tot"></span></div>
                 <div class="ownbar" id="own-after"></div>
               </div>
               <div class="legend" id="legend"></div>
@@ -449,7 +449,7 @@
           </div>
 
           <div class="card">
-            <div class="card__h" id="rtable-h">Détail par actionnaire</div>
+            <div class="card__h" id="rtable-h">DÃ©tail par actionnaire</div>
             <div class="rtable-wrap">
               <table class="rtable" id="rtable">
                 <thead><tr id="rtable-head"></tr></thead>
@@ -463,9 +463,9 @@
           <div class="card explain-card" id="explain-card" hidden>
             <div class="card__toprow">
               <div class="card__h">Comprendre ces chiffres</div>
-              <button type="button" class="btn btn--ai" id="explain-btn">✨ Expliquer ces chiffres</button>
+              <button type="button" class="btn btn--ai" id="explain-btn">âœ¨ Expliquer ces chiffres</button>
             </div>
-            <p class="explain-desc">L'assistant commente les résultats <b>déjà calculés</b> ci-dessus (moteur déterministe) — il ne recalcule ni n'invente aucun chiffre.</p>
+            <p class="explain-desc">L'assistant commente les rÃ©sultats <b>dÃ©jÃ  calculÃ©s</b> ci-dessus (moteur dÃ©terministe) â€” il ne recalcule ni n'invente aucun chiffre.</p>
             <div class="explain-out" id="explain-out" hidden></div>
           </div>
         </div>
@@ -473,29 +473,29 @@
 
       <div class="card ext__history" id="hist-card">
         <div class="card__h">Historique des simulations d'exit</div>
-        <div class="card__desc">Vos scénarios de sortie enregistrés. Chargez-en un pour le reprendre ou comparer plusieurs prix de cession.</div>
+        <div class="card__desc">Vos scÃ©narios de sortie enregistrÃ©s. Chargez-en un pour le reprendre ou comparer plusieurs prix de cession.</div>
         <div class="hist-status" id="hist-status" role="status" aria-live="polite"></div>
         <div class="hist-list" id="hist-list"></div>
       </div>
 
       <div class="ext__next">
-        <a class="btn" href="valorisation.html">Simulateur de valorisation →</a>
-        <a class="btn" href="dilution.html">Simulateur de dilution →</a>
+        <a class="btn" href="valorisation.html">Simulateur de valorisation â†’</a>
+        <a class="btn" href="dilution.html">Simulateur de dilution â†’</a>
       </div>
 
       <!-- LEXIQUE -->
       <section class="lexique" id="lexique">
         <div class="ext__eyebrow">Lexique</div>
-        <h2 class="lexique__title">Les termes d'un exit, définis</h2>
-        <p class="lexique__sub">Ce qui se négocie à l'entrée (au terme sheet) détermine ce que chacun touche à la sortie. Voici le vocabulaire employé par cet outil, expliqué simplement mais précisément.</p>
+        <h2 class="lexique__title">Les termes d'un exit, dÃ©finis</h2>
+        <p class="lexique__sub">Ce qui se nÃ©gocie Ã  l'entrÃ©e (au terme sheet) dÃ©termine ce que chacun touche Ã  la sortie. Voici le vocabulaire employÃ© par cet outil, expliquÃ© simplement mais prÃ©cisÃ©ment.</p>
 
-        <div class="lexique__cat">Le point piège</div>
+        <div class="lexique__cat">Le point piÃ¨ge</div>
         <div class="lexique__grid">
           <div class="glo" style="grid-column: 1 / -1">
-            <div class="glo__term">Préférence <span class="term" data-term="participante" tabindex="0" style="border:0;cursor:default">participante</span> <span class="glo__en">participating preferred — le double comptage</span></div>
-            <p class="glo__def">Une <span class="term" data-term="pref-liq" tabindex="0">préférence de liquidation</span> « simple » (non participante) donne à l'investisseur le <b>plus élevé</b> entre sa préférence (ex. 1x sa mise) et sa part au <span class="term" data-term="as-converted" tabindex="0">prorata</span> s'il convertissait en actions ordinaires — jamais les deux.</p>
-            <p class="glo__def">Une préférence <b>participante</b> change la règle : l'investisseur touche d'abord sa préférence, <b>puis</b> participe en plus, au prorata, à ce qu'il reste — sans avoir à convertir. À valorisation de sortie modeste, cela peut réduire drastiquement ce qui revient aux fondateurs et au pool, même quand l'investisseur ne détient qu'une minorité du capital.</p>
-            <p class="glo__def">Le <b>plafond de participation (cap)</b> limite ce risque : au-delà d'un multiple donné (ex. 3x la mise), l'investisseur doit choisir entre garder sa préférence plafonnée ou convertir en ordinaire. Basculez « Participative » et le cap dans l'outil pour voir l'écart chiffré sur la part des fondateurs.</p>
+            <div class="glo__term">PrÃ©fÃ©rence <span class="term" data-term="participante" tabindex="0" style="border:0;cursor:default">participante</span> <span class="glo__en">participating preferred â€” le double comptage</span></div>
+            <p class="glo__def">Une <span class="term" data-term="pref-liq" tabindex="0">prÃ©fÃ©rence de liquidation</span> Â« simple Â» (non participante) donne Ã  l'investisseur le <b>plus Ã©levÃ©</b> entre sa prÃ©fÃ©rence (ex. 1x sa mise) et sa part au <span class="term" data-term="as-converted" tabindex="0">prorata</span> s'il convertissait en actions ordinaires â€” jamais les deux.</p>
+            <p class="glo__def">Une prÃ©fÃ©rence <b>participante</b> change la rÃ¨gle : l'investisseur touche d'abord sa prÃ©fÃ©rence, <b>puis</b> participe en plus, au prorata, Ã  ce qu'il reste â€” sans avoir Ã  convertir. Ã€ valorisation de sortie modeste, cela peut rÃ©duire drastiquement ce qui revient aux fondateurs et au pool, mÃªme quand l'investisseur ne dÃ©tient qu'une minoritÃ© du capital.</p>
+            <p class="glo__def">Le <b>plafond de participation (cap)</b> limite ce risque : au-delÃ  d'un multiple donnÃ© (ex. 3x la mise), l'investisseur doit choisir entre garder sa prÃ©fÃ©rence plafonnÃ©e ou convertir en ordinaire. Basculez Â« Participative Â» et le cap dans l'outil pour voir l'Ã©cart chiffrÃ© sur la part des fondateurs.</p>
           </div>
         </div>
       </section>
@@ -505,7 +505,7 @@
   <script>
     // ---------- Formatage ----------
     const nfInt = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
-    const eur0 = (n) => nfInt.format(Math.round(n)) + ' €';
+    const eur0 = (n) => nfInt.format(Math.round(n)) + ' â‚¬';
     const num0 = (n) => nfInt.format(Math.round(n));
     const pct1 = (n) => (n * 100).toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %';
     const parseNum = (s) => {
@@ -519,12 +519,12 @@
     const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
     const escAttr = (s) => String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/</g, '&lt;');
 
-    let mode = 'pct';        // 'pct' | 'shares' — saisie de la cap table
+    let mode = 'pct';        // 'pct' | 'shares' â€” saisie de la cap table
     let exitType = 'total';  // 'total' | 'partial'
     const fmtRowVal = (v) => (mode === 'pct' ? fmtPctInput(v) : (v ? nfInt.format(Math.round(v)) : ''));
     const NOTIONAL_BASE = 1000000;
     let nextRid = 1;
-    let lastExit = null;     // dernier résultat calculé (JS) exposé à « Expliquer ces chiffres »
+    let lastExit = null;     // dernier rÃ©sultat calculÃ© (JS) exposÃ© Ã  Â« Expliquer ces chiffres Â»
 
     const CATS = {
       founder: { label: 'Fondateurs', cls: 'c-founder', color: '#4f46e5' },
@@ -540,7 +540,7 @@
         { name: 'Pool BSPCE', shares: 100000, type: 'pool0' },
         { name: 'Seed Capital', shares: 130000, type: 'invest0',
           pref: { invested: 800000, multiple: 1, participating: false, cap: 0, rank: 2, convert: false } },
-        { name: 'Série A Ventures', shares: 70000, type: 'invest0',
+        { name: 'SÃ©rie A Ventures', shares: 70000, type: 'invest0',
           pref: { invested: 3000000, multiple: 1, participating: true, cap: 3, rank: 1, convert: false } },
       ],
       salePrice: 15000000, fees: 3, debt: 0,
@@ -554,34 +554,34 @@
       return `<div class="xrow__pref" data-role="pref">
         <div class="pf">
           <span class="pf__lab">Montant investi</span>
-          <div class="inp-wrap"><input class="inp inp--money in-invested" type="text" inputmode="numeric" value="${pref.invested ? nfInt.format(pref.invested) : ''}" placeholder="0" /><span class="inp-wrap__suf">€</span></div>
+          <div class="inp-wrap"><input class="inp inp--money in-invested" type="text" inputmode="numeric" value="${pref.invested ? nfInt.format(pref.invested) : ''}" placeholder="0" /><span class="inp-wrap__suf">â‚¬</span></div>
         </div>
         <div class="pf">
-          <span class="pf__lab">Multiple de préférence</span>
+          <span class="pf__lab">Multiple de prÃ©fÃ©rence</span>
           <div class="inp-wrap"><input class="inp inp--money in-multiple" type="text" inputmode="decimal" value="${pref.multiple || 1}" /><span class="inp-wrap__suf">x</span></div>
         </div>
         <label class="pf pf--check">
           <input type="checkbox" class="in-participating" ${pref.participating ? 'checked' : ''} />
-          <span class="pf__lab">Participative <small style="display:inline;text-transform:none">(touche la préférence + une part du reliquat)</small></span>
+          <span class="pf__lab">Participative <small style="display:inline;text-transform:none">(touche la prÃ©fÃ©rence + une part du reliquat)</small></span>
         </label>
         <div class="pf in-cap-wrap" ${pref.participating ? '' : 'hidden'}>
           <span class="pf__lab">Plafond (cap) <small>0 = pas de plafond</small></span>
           <div class="inp-wrap"><input class="inp inp--money in-cap" type="text" inputmode="decimal" value="${pref.cap || 0}" /><span class="inp-wrap__suf">x</span></div>
         </div>
         <div class="pf">
-          <span class="pf__lab">Rang de séniorité <small>1 = prioritaire ; égalité = pari passu</small></span>
+          <span class="pf__lab">Rang de sÃ©nioritÃ© <small>1 = prioritaire ; Ã©galitÃ© = pari passu</small></span>
           <input class="inp in-rank" type="text" inputmode="numeric" value="${pref.rank || 1}" />
         </div>
         <label class="pf pf--check pf--convert">
           <input type="checkbox" class="in-convert" ${pref.convert ? 'checked' : ''} />
-          <span class="pf__lab">Convertir en actions ordinaires <small style="display:inline;text-transform:none">(renonce à la préférence, prend sa part au prorata)</small></span>
+          <span class="pf__lab">Convertir en actions ordinaires <small style="display:inline;text-transform:none">(renonce Ã  la prÃ©fÃ©rence, prend sa part au prorata)</small></span>
         </label>
       </div>`;
     }
 
     function sellFieldsHTML(sellPct) {
       return `<div class="xrow__sell" data-role="sell">
-        <span class="pf__lab">% de sa participation cédée</span>
+        <span class="pf__lab">% de sa participation cÃ©dÃ©e</span>
         <div class="inp-wrap"><input class="inp inp--money in-sellpct" type="text" inputmode="decimal" value="${sellPct || 0}" /><span class="inp-wrap__suf">%</span></div>
         <span class="sell-out"></span>
       </div>`;
@@ -599,7 +599,7 @@
             ${opt('invest0', 'Investisseur')}
             ${opt('pool0', 'Pool / BSPCE')}
           </select>
-          <button type="button" class="xrow__del" title="Supprimer">×</button>
+          <button type="button" class="xrow__del" title="Supprimer">Ã—</button>
         </div>
         ${prefFieldsHTML(rid, sh.pref)}
         ${sellFieldsHTML(sh.sellPct)}
@@ -625,7 +625,7 @@
       recompute();
     }
 
-    // ---------- Visibilité conditionnelle des sous-blocs de ligne ----------
+    // ---------- VisibilitÃ© conditionnelle des sous-blocs de ligne ----------
     function syncRowVisibility() {
       shRowsEl.querySelectorAll('.xrow').forEach(row => {
         const type = row.querySelector('.in-type').value;
@@ -639,7 +639,7 @@
       });
     }
 
-    // ---------- Lecture de l'état ----------
+    // ---------- Lecture de l'Ã©tat ----------
     function readState() {
       const rows = [...shRowsEl.querySelectorAll('.xrow')].map(row => {
         const type = row.querySelector('.in-type').value;
@@ -682,7 +682,7 @@
       const nonConv = st.rows.filter(r => r.type === 'invest0' && !r.pref.convert);
       const common = st.rows.filter(r => r.type !== 'invest0' || r.pref.convert);
 
-      // 1) Cascade des préférences, par rang croissant (pari passu au sein d'un même rang)
+      // 1) Cascade des prÃ©fÃ©rences, par rang croissant (pari passu au sein d'un mÃªme rang)
       const paid = new Map();
       let remaining = net;
       const ranks = [...new Set(nonConv.map(r => r.pref.rank))].sort((a, b) => a - b);
@@ -790,7 +790,7 @@
       const seg = (list, total) => list.filter(s => s.val > 0.0001).map(s => {
         const pct = total > 0 ? s.val / total : 0;
         const c = CATS[s.cat];
-        return `<div class="ownseg ${c.cls}" style="width:${(pct * 100).toFixed(3)}%" title="${c.label} — ${pct1(pct)}">${pct >= 0.06 ? pct1(pct) : ''}</div>`;
+        return `<div class="ownseg ${c.cls}" style="width:${(pct * 100).toFixed(3)}%" title="${c.label} â€” ${pct1(pct)}">${pct >= 0.06 ? pct1(pct) : ''}</div>`;
       }).join('');
       before.innerHTML = seg(segBefore, totalBefore);
       after.innerHTML = seg(segAfter, totalAfter);
@@ -814,42 +814,42 @@
         return;
       }
       if (r.error === 'noProceeds') {
-        warnBox.innerHTML = warnHTML('Le produit net (prix de vente − frais − dette) est nul ou négatif : personne ne perçoit rien à ce prix de cession.');
+        warnBox.innerHTML = warnHTML('Le produit net (prix de vente âˆ’ frais âˆ’ dette) est nul ou nÃ©gatif : personne ne perÃ§oit rien Ã  ce prix de cession.');
       } else if (r.shortfall) {
-        warnBox.innerHTML = warnHTML('Le produit net ne couvre pas la totalité des préférences de liquidation dues : certains investisseurs ne récupèrent pas leur mise, et les actionnaires ordinaires (fondateurs, pool) ne perçoivent probablement rien.');
+        warnBox.innerHTML = warnHTML('Le produit net ne couvre pas la totalitÃ© des prÃ©fÃ©rences de liquidation dues : certains investisseurs ne rÃ©cupÃ¨rent pas leur mise, et les actionnaires ordinaires (fondateurs, pool) ne perÃ§oivent probablement rien.');
       }
       if (r.founderTotal <= 0.5 && r.net > 0 && !r.shortfall) {
-        warnBox.innerHTML += warnHTML('À ce prix de cession, les préférences de liquidation (et la participation éventuelle) absorbent tout le reliquat : les fondateurs ne perçoivent rien.');
+        warnBox.innerHTML += warnHTML('Ã€ ce prix de cession, les prÃ©fÃ©rences de liquidation (et la participation Ã©ventuelle) absorbent tout le reliquat : les fondateurs ne perÃ§oivent rien.');
       }
 
       kpis.innerHTML = `
         <div class="kpi kpi--accent">
           <div class="kpi__lab">Produit net distribuable</div>
           <div class="kpi__val">${eur0(Math.max(0, r.net))}</div>
-          <div class="kpi__sub">${eur0(st.salePrice)} − frais − dette</div>
+          <div class="kpi__sub">${eur0(st.salePrice)} âˆ’ frais âˆ’ dette</div>
         </div>
         <div class="kpi">
           <div class="kpi__lab">Part des fondateurs</div>
           <div class="kpi__val">${eur0(r.founderTotal)}</div>
-          <div class="kpi__sub">${r.net > 0 ? pct1(r.founderTotal / r.net) : '—'} du produit net</div>
+          <div class="kpi__sub">${r.net > 0 ? pct1(r.founderTotal / r.net) : 'â€”'} du produit net</div>
         </div>
         <div class="kpi">
           <div class="kpi__lab">Part des investisseurs</div>
           <div class="kpi__val">${eur0(r.investTotal)}</div>
-          <div class="kpi__sub">${r.net > 0 ? pct1(r.investTotal / r.net) : '—'} du produit net</div>
+          <div class="kpi__sub">${r.net > 0 ? pct1(r.investTotal / r.net) : 'â€”'} du produit net</div>
         </div>
         <div class="kpi">
           <div class="kpi__lab">MOIC moyen investisseurs</div>
-          <div class="kpi__val">${r.moicGlobal != null ? r.moicGlobal.toFixed(2) + '×' : '—'}</div>
-          <div class="kpi__sub">produit perçu ÷ montant investi</div>
+          <div class="kpi__val">${r.moicGlobal != null ? r.moicGlobal.toFixed(2) + 'Ã—' : 'â€”'}</div>
+          <div class="kpi__sub">produit perÃ§u Ã· montant investi</div>
         </div>`;
 
       const segBefore = ['founder', 'pool0', 'invest0'].map(cat => ({ cat, val: r.rows.filter(x => x.type === cat).reduce((a, x) => a + x.value, 0) }));
       const segAfter = ['founder', 'pool0', 'invest0'].map(cat => ({ cat, val: r.rows.filter(x => x.type === cat).reduce((a, x) => a + x.proceeds, 0) }));
-      renderBars(segBefore, segAfter, r.E, Math.max(r.net, 0.0001), 'Répartition du capital', 'Répartition du produit net');
+      renderBars(segBefore, segAfter, r.E, Math.max(r.net, 0.0001), 'RÃ©partition du capital', 'RÃ©partition du produit net');
 
-      document.getElementById('rtable-h').textContent = 'Détail par actionnaire — cascade de distribution';
-      document.getElementById('rtable-head').innerHTML = `<th class="l">Actionnaire</th><th>% capital</th><th>Investi</th><th>Produit perçu</th><th>Multiple</th><th>% du produit</th>`;
+      document.getElementById('rtable-h').textContent = 'DÃ©tail par actionnaire â€” cascade de distribution';
+      document.getElementById('rtable-head').innerHTML = `<th class="l">Actionnaire</th><th>% capital</th><th>Investi</th><th>Produit perÃ§u</th><th>Multiple</th><th>% du produit</th>`;
       const rowsSorted = r.rows.slice().sort((a, b) => b.proceeds - a.proceeds);
       document.getElementById('rtable-body').innerHTML = rowsSorted.map(row => {
         const c = CATS[row.type];
@@ -857,16 +857,16 @@
         return `<tr class="${row.proceeds <= 0.5 ? 'rt-zero' : ''}">
           <td class="l"><span class="rt-name"><span class="rt-dot ${c.cls}"></span>${escAttr(row.name)}${tag}</span></td>
           <td class="rt-num">${pct1(row.pctBefore)}</td>
-          <td class="rt-num">${row.pref && row.pref.invested > 0 ? eur0(row.pref.invested) : '—'}</td>
+          <td class="rt-num">${row.pref && row.pref.invested > 0 ? eur0(row.pref.invested) : 'â€”'}</td>
           <td class="rt-num">${eur0(row.proceeds)}</td>
-          <td class="rt-num">${row.moic != null ? row.moic.toFixed(2) + '×' : '—'}</td>
-          <td class="rt-num">${r.net > 0 ? pct1(row.pctOfNet) : '—'}</td>
+          <td class="rt-num">${row.moic != null ? row.moic.toFixed(2) + 'Ã—' : 'â€”'}</td>
+          <td class="rt-num">${r.net > 0 ? pct1(row.pctOfNet) : 'â€”'}</td>
         </tr>`;
-      }).join('') + `<tr class="rt-total"><td class="l">Total</td><td class="rt-num">100 %</td><td class="rt-num">${eur0(r.investedTotal)}</td><td class="rt-num">${eur0(r.rows.reduce((a, x) => a + x.proceeds, 0))}</td><td></td><td class="rt-num">${r.net > 0 ? '100 %' : '—'}</td></tr>`;
+      }).join('') + `<tr class="rt-total"><td class="l">Total</td><td class="rt-num">100 %</td><td class="rt-num">${eur0(r.investedTotal)}</td><td class="rt-num">${eur0(r.rows.reduce((a, x) => a + x.proceeds, 0))}</td><td></td><td class="rt-num">${r.net > 0 ? '100 %' : 'â€”'}</td></tr>`;
 
       document.getElementById('result-note').innerHTML = `
-        <b>Cascade (waterfall)</b> : le produit net paie d'abord les <span class="term" data-term="pref-liq" tabindex="0">préférences de liquidation</span> par <span class="term" data-term="rang" tabindex="0">rang de séniorité</span>, puis le reliquat se répartit au prorata entre actionnaires ordinaires, investisseurs convertis et investisseurs <span class="term" data-term="participante" tabindex="0">participatifs</span>.<br />
-        Cochez « Convertir en actions ordinaires » sur une ligne investisseur pour comparer sa préférence à sa valeur <span class="term" data-term="as-converted" tabindex="0">au prorata</span> — chaque investisseur choisit rationnellement le montant le plus élevé.${r.leftover > 0.5 ? `<br /><i>Reliquat non redistribué (plafonds de participation atteints) : ${eur0(r.leftover)}.</i>` : ''}`;
+        <b>Cascade (waterfall)</b> : le produit net paie d'abord les <span class="term" data-term="pref-liq" tabindex="0">prÃ©fÃ©rences de liquidation</span> par <span class="term" data-term="rang" tabindex="0">rang de sÃ©nioritÃ©</span>, puis le reliquat se rÃ©partit au prorata entre actionnaires ordinaires, investisseurs convertis et investisseurs <span class="term" data-term="participante" tabindex="0">participatifs</span>.<br />
+        Cochez Â« Convertir en actions ordinaires Â» sur une ligne investisseur pour comparer sa prÃ©fÃ©rence Ã  sa valeur <span class="term" data-term="as-converted" tabindex="0">au prorata</span> â€” chaque investisseur choisit rationnellement le montant le plus Ã©levÃ©.${r.leftover > 0.5 ? `<br /><i>Reliquat non redistribuÃ© (plafonds de participation atteints) : ${eur0(r.leftover)}.</i>` : ''}`;
     }
 
     function renderPartial(st, r) {
@@ -883,61 +883,61 @@
         return;
       }
       if (r.buyerPct <= 0.0001) {
-        warnBox.innerHTML = warnHTML('Personne ne cède de titres pour l\'instant : indiquez, ligne par ligne, le % de sa participation que chaque actionnaire vend en secondaire.');
+        warnBox.innerHTML = warnHTML('Personne ne cÃ¨de de titres pour l\'instant : indiquez, ligne par ligne, le % de sa participation que chaque actionnaire vend en secondaire.');
       } else if (r.buyerPct >= 0.999) {
-        warnBox.innerHTML = warnHTML('100 % du capital est cédé : il s\'agit d\'une sortie totale déguisée en secondaire — vérifiez que ce n\'est pas plutôt un exit total avec préférences de liquidation.');
+        warnBox.innerHTML = warnHTML('100 % du capital est cÃ©dÃ© : il s\'agit d\'une sortie totale dÃ©guisÃ©e en secondaire â€” vÃ©rifiez que ce n\'est pas plutÃ´t un exit total avec prÃ©fÃ©rences de liquidation.');
       }
 
       kpis.innerHTML = `
         <div class="kpi kpi--accent">
           <div class="kpi__lab">Montant total de la cession</div>
           <div class="kpi__val">${eur0(r.totalProceeds)}</div>
-          <div class="kpi__sub">payé par ${escAttr(r.buyer)}</div>
+          <div class="kpi__sub">payÃ© par ${escAttr(r.buyer)}</div>
         </div>
         <div class="kpi">
           <div class="kpi__lab">${mode === 'shares' ? 'Prix par action' : 'Prix pour 1 % du capital'}</div>
-          <div class="kpi__val">${mode === 'shares' ? (r.pps != null ? (r.pps >= 100 ? eur0(r.pps) : r.pps.toLocaleString('fr-FR', { maximumFractionDigits: 4 }) + ' €') : '—') : eur0(r.ppsPctPoint)}</div>
-          <div class="kpi__sub">basé sur la valorisation retenue</div>
+          <div class="kpi__val">${mode === 'shares' ? (r.pps != null ? (r.pps >= 100 ? eur0(r.pps) : r.pps.toLocaleString('fr-FR', { maximumFractionDigits: 4 }) + ' â‚¬') : 'â€”') : eur0(r.ppsPctPoint)}</div>
+          <div class="kpi__sub">basÃ© sur la valorisation retenue</div>
         </div>
         <div class="kpi">
-          <div class="kpi__lab">Capital transféré</div>
+          <div class="kpi__lab">Capital transfÃ©rÃ©</div>
           <div class="kpi__val">${pct1(r.buyerPct)}</div>
-          <div class="kpi__sub">part de la société qui change de mains</div>
+          <div class="kpi__sub">part de la sociÃ©tÃ© qui change de mains</div>
         </div>
         <div class="kpi">
           <div class="kpi__lab">Vendeurs</div>
           <div class="kpi__val">${r.rows.filter(x => x.sellPct > 0).length}</div>
-          <div class="kpi__sub">ligne(s) avec un % cédé &gt; 0</div>
+          <div class="kpi__sub">ligne(s) avec un % cÃ©dÃ© &gt; 0</div>
         </div>`;
 
       const segBefore = ['founder', 'pool0', 'invest0'].map(cat => ({ cat, val: r.rows.filter(x => x.type === cat).reduce((a, x) => a + x.pctBefore, 0) }));
       const segAfter = ['founder', 'pool0', 'invest0'].map(cat => ({ cat, val: r.rows.filter(x => x.type === cat).reduce((a, x) => a + x.pctAfter, 0) }));
       segAfter.push({ cat: 'buyer', val: r.buyerPct });
-      renderBars(segBefore, segAfter, 1, 1, 'Capital avant', 'Capital après (secondaire)');
+      renderBars(segBefore, segAfter, 1, 1, 'Capital avant', 'Capital aprÃ¨s (secondaire)');
 
-      document.getElementById('rtable-h').textContent = 'Détail par actionnaire — cession secondaire';
-      document.getElementById('rtable-head').innerHTML = `<th class="l">Actionnaire</th><th>% avant</th><th>% cédé</th><th>Produit perçu</th><th>% après</th>`;
+      document.getElementById('rtable-h').textContent = 'DÃ©tail par actionnaire â€” cession secondaire';
+      document.getElementById('rtable-head').innerHTML = `<th class="l">Actionnaire</th><th>% avant</th><th>% cÃ©dÃ©</th><th>Produit perÃ§u</th><th>% aprÃ¨s</th>`;
       const body = r.rows.map(row => {
         const c = CATS[row.type];
         return `<tr class="${row.proceeds <= 0.5 ? 'rt-zero' : ''}">
           <td class="l"><span class="rt-name"><span class="rt-dot ${c.cls}"></span>${escAttr(row.name)}</span></td>
           <td class="rt-num">${pct1(row.pctBefore)}</td>
-          <td class="rt-num">${row.sellPct > 0 ? pct1(row.sellPct) : '—'}</td>
-          <td class="rt-num">${row.proceeds > 0.5 ? eur0(row.proceeds) : '—'}</td>
+          <td class="rt-num">${row.sellPct > 0 ? pct1(row.sellPct) : 'â€”'}</td>
+          <td class="rt-num">${row.proceeds > 0.5 ? eur0(row.proceeds) : 'â€”'}</td>
           <td class="rt-num">${pct1(row.pctAfter)}</td>
         </tr>`;
       }).join('');
       const buyerRow = `<tr>
         <td class="l"><span class="rt-name"><span class="rt-dot c-buyer"></span>${escAttr(r.buyer)}</span></td>
-        <td class="rt-num">—</td><td class="rt-num">—</td>
-        <td class="rt-num">−${eur0(r.totalProceeds)}</td>
+        <td class="rt-num">â€”</td><td class="rt-num">â€”</td>
+        <td class="rt-num">âˆ’${eur0(r.totalProceeds)}</td>
         <td class="rt-num">${pct1(r.buyerPct)}</td>
       </tr>`;
       document.getElementById('rtable-body').innerHTML = body + buyerRow + `<tr class="rt-total"><td class="l">Total</td><td class="rt-num">100 %</td><td></td><td class="rt-num">${eur0(r.totalProceeds)}</td><td class="rt-num">100 %</td></tr>`;
 
       document.getElementById('result-note').innerHTML = `
-        <b>Sortie partielle</b> : c'est une cession <span class="term" data-term="secondaire" tabindex="0">secondaire</span> — les titres changent de mains entre actionnaires existants et l'acheteur, sans que la société n'émette de nouvelles actions ni ne déclenche une <span class="term" data-term="waterfall" tabindex="0">cascade de liquidation</span>. Le nombre total de titres reste inchangé.<br />
-        À la différence d'une sortie totale, les <span class="term" data-term="pref-liq" tabindex="0">préférences de liquidation</span> ne s'appliquent en principe pas ici (sauf clause contraire de <span class="term" data-term="drag" tabindex="0">transfert</span> dans le pacte) : chacun vend au même prix, au prorata du prix par titre retenu.`;
+        <b>Sortie partielle</b> : c'est une cession <span class="term" data-term="secondaire" tabindex="0">secondaire</span> â€” les titres changent de mains entre actionnaires existants et l'acheteur, sans que la sociÃ©tÃ© n'Ã©mette de nouvelles actions ni ne dÃ©clenche une <span class="term" data-term="waterfall" tabindex="0">cascade de liquidation</span>. Le nombre total de titres reste inchangÃ©.<br />
+        Ã€ la diffÃ©rence d'une sortie totale, les <span class="term" data-term="pref-liq" tabindex="0">prÃ©fÃ©rences de liquidation</span> ne s'appliquent en principe pas ici (sauf clause contraire de <span class="term" data-term="drag" tabindex="0">transfert</span> dans le pacte) : chacun vend au mÃªme prix, au prorata du prix par titre retenu.`;
     }
 
     function recompute() {
@@ -946,10 +946,10 @@
       if (mode === 'pct') {
         const off = Math.abs(st.E - 100) > 0.1;
         shTotalEl.classList.toggle('is-warn', off && st.E > 0);
-        shTotalEl.innerHTML = st.E > 0 ? `${fmtPctInput(st.E)} %${off ? ' <span class="warn-hint">(doit faire 100 %)</span>' : ''}` : '—';
+        shTotalEl.innerHTML = st.E > 0 ? `${fmtPctInput(st.E)} %${off ? ' <span class="warn-hint">(doit faire 100 %)</span>' : ''}` : 'â€”';
       } else {
         shTotalEl.classList.remove('is-warn');
-        shTotalEl.textContent = st.E > 0 ? num0(st.E) + ' actions' : '—';
+        shTotalEl.textContent = st.E > 0 ? num0(st.E) + ' actions' : 'â€”';
       }
 
       if (exitType === 'total') {
@@ -998,13 +998,13 @@
       document.querySelectorAll('#exit-type-seg .type-seg__btn').forEach(b => b.classList.toggle('is-on', b.dataset.etype === exitType));
       document.getElementById('deal-total').hidden = exitType !== 'total';
       document.getElementById('deal-partial').hidden = exitType !== 'partial';
-      document.getElementById('deal-h').textContent = exitType === 'total' ? '2 · Paramètres de la cession' : '2 · Paramètres de la cession partielle';
+      document.getElementById('deal-h').textContent = exitType === 'total' ? '2 Â· ParamÃ¨tres de la cession' : '2 Â· ParamÃ¨tres de la cession partielle';
       document.getElementById('deal-desc').textContent = exitType === 'total'
-        ? "Le prix de vente se répartit d'abord selon les préférences de liquidation, puis au prorata pour le reliquat."
-        : "Une cession secondaire : chaque actionnaire choisit le % de sa participation qu'il vend, au même prix par titre.";
+        ? "Le prix de vente se rÃ©partit d'abord selon les prÃ©fÃ©rences de liquidation, puis au prorata pour le reliquat."
+        : "Une cession secondaire : chaque actionnaire choisit le % de sa participation qu'il vend, au mÃªme prix par titre.";
       document.getElementById('type-hint').textContent = exitType === 'total'
-        ? "Cession de 100 % du capital (M&A, fusion, IPO valant liquidation) : le produit passe par la cascade de préférences avant d'être partagé."
-        : "Cession partielle des titres d'un ou plusieurs actionnaires à un acheteur (secondaire), sans opération de liquidation ni nouvelle émission.";
+        ? "Cession de 100 % du capital (M&A, fusion, IPO valant liquidation) : le produit passe par la cascade de prÃ©fÃ©rences avant d'Ãªtre partagÃ©."
+        : "Cession partielle des titres d'un ou plusieurs actionnaires Ã  un acheteur (secondaire), sans opÃ©ration de liquidation ni nouvelle Ã©mission.";
       syncRowVisibility();
       recompute();
     }
@@ -1016,9 +1016,9 @@
     let explainShownKey = null;
     const escHtml = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-    // Construit, à partir du dernier résultat DÉJÀ calculé en JS, la charge utile
-    // envoyée à l'IA : uniquement des libellés et des valeurs formatées, jamais
-    // de données brutes à recalculer.
+    // Construit, Ã  partir du dernier rÃ©sultat DÃ‰JÃ€ calculÃ© en JS, la charge utile
+    // envoyÃ©e Ã  l'IA : uniquement des libellÃ©s et des valeurs formatÃ©es, jamais
+    // de donnÃ©es brutes Ã  recalculer.
     function buildExplainPayload() {
       if (!lastExit) return null;
       const { r, scenario } = lastExit;
@@ -1027,54 +1027,54 @@
           { label: 'Produit net distribuable', value: eur0(Math.max(0, r.net)) },
           { label: 'Part des fondateurs', value: eur0(r.founderTotal) + (r.net > 0 ? ' (' + pct1(r.founderTotal / r.net) + ' du net)' : '') },
           { label: 'Part des investisseurs', value: eur0(r.investTotal) + (r.net > 0 ? ' (' + pct1(r.investTotal / r.net) + ' du net)' : '') },
-          { label: 'MOIC moyen investisseurs', value: r.moicGlobal != null ? r.moicGlobal.toFixed(2) + '×' : '—' },
+          { label: 'MOIC moyen investisseurs', value: r.moicGlobal != null ? r.moicGlobal.toFixed(2) + 'Ã—' : 'â€”' },
         ];
-        const columns = ['Actionnaire', '% capital', 'Investi', 'Produit perçu', 'Multiple', '% du produit'];
+        const columns = ['Actionnaire', '% capital', 'Investi', 'Produit perÃ§u', 'Multiple', '% du produit'];
         const rows = r.rows.slice().sort((a, b) => b.proceeds - a.proceeds).map(row => {
           const tag = row.type === 'invest0'
-            ? (row.converted ? ' [converti]' : (row.pref && row.pref.participating ? ' [participative]' : ' [préf. simple]'))
+            ? (row.converted ? ' [converti]' : (row.pref && row.pref.participating ? ' [participative]' : ' [prÃ©f. simple]'))
             : (row.type === 'founder' ? ' [fondateur]' : ' [pool]');
           return [
             row.name + tag,
             pct1(row.pctBefore),
-            row.pref && row.pref.invested > 0 ? eur0(row.pref.invested) : '—',
+            row.pref && row.pref.invested > 0 ? eur0(row.pref.invested) : 'â€”',
             eur0(row.proceeds),
-            row.moic != null ? row.moic.toFixed(2) + '×' : '—',
-            r.net > 0 ? pct1(row.pctOfNet) : '—',
+            row.moic != null ? row.moic.toFixed(2) + 'Ã—' : 'â€”',
+            r.net > 0 ? pct1(row.pctOfNet) : 'â€”',
           ];
         });
         const notes = [];
-        if (r.shortfall) notes.push('Le produit net ne couvre pas toutes les préférences de liquidation dues : certains investisseurs ne récupèrent pas leur mise et les actionnaires ordinaires ne touchent rien.');
-        if (r.founderTotal <= 0.5 && r.net > 0 && !r.shortfall) notes.push('À ce prix de cession, les préférences (et la participation) absorbent tout le reliquat : les fondateurs ne perçoivent rien.');
-        if (r.leftover > 0.5) notes.push('Reliquat non redistribué (plafonds de participation atteints) : ' + eur0(r.leftover) + '.');
+        if (r.shortfall) notes.push('Le produit net ne couvre pas toutes les prÃ©fÃ©rences de liquidation dues : certains investisseurs ne rÃ©cupÃ¨rent pas leur mise et les actionnaires ordinaires ne touchent rien.');
+        if (r.founderTotal <= 0.5 && r.net > 0 && !r.shortfall) notes.push('Ã€ ce prix de cession, les prÃ©fÃ©rences (et la participation) absorbent tout le reliquat : les fondateurs ne perÃ§oivent rien.');
+        if (r.leftover > 0.5) notes.push('Reliquat non redistribuÃ© (plafonds de participation atteints) : ' + eur0(r.leftover) + '.');
         return { kind: 'exit', scenario: 'total', figures, table: { columns, rows }, notes };
       }
       // Cession partielle (secondaire)
       const figures = [
-        { label: 'Montant total de la cession', value: eur0(r.totalProceeds) + ' (payé par ' + r.buyer + ')' },
-        { label: 'Capital transféré', value: pct1(r.buyerPct) },
+        { label: 'Montant total de la cession', value: eur0(r.totalProceeds) + ' (payÃ© par ' + r.buyer + ')' },
+        { label: 'Capital transfÃ©rÃ©', value: pct1(r.buyerPct) },
         { label: mode === 'shares' ? 'Prix par action' : 'Prix pour 1 % du capital',
           value: mode === 'shares'
-            ? (r.pps != null ? (r.pps >= 100 ? eur0(r.pps) : r.pps.toLocaleString('fr-FR', { maximumFractionDigits: 4 }) + ' €') : '—')
+            ? (r.pps != null ? (r.pps >= 100 ? eur0(r.pps) : r.pps.toLocaleString('fr-FR', { maximumFractionDigits: 4 }) + ' â‚¬') : 'â€”')
             : eur0(r.ppsPctPoint) },
         { label: 'Lignes vendeuses', value: String(r.rows.filter(x => x.sellPct > 0).length) },
       ];
-      const columns = ['Actionnaire', '% avant', '% cédé', 'Produit perçu', '% après'];
+      const columns = ['Actionnaire', '% avant', '% cÃ©dÃ©', 'Produit perÃ§u', '% aprÃ¨s'];
       const rows = r.rows.map(row => [
         row.name,
         pct1(row.pctBefore),
-        row.sellPct > 0 ? pct1(row.sellPct) : '—',
-        row.proceeds > 0.5 ? eur0(row.proceeds) : '—',
+        row.sellPct > 0 ? pct1(row.sellPct) : 'â€”',
+        row.proceeds > 0.5 ? eur0(row.proceeds) : 'â€”',
         pct1(row.pctAfter),
       ]);
       const notes = [];
-      if (r.buyerPct >= 0.999) notes.push('100 % du capital est cédé : vérifier que ce n\'est pas plutôt un exit total avec préférences de liquidation.');
+      if (r.buyerPct >= 0.999) notes.push('100 % du capital est cÃ©dÃ© : vÃ©rifier que ce n\'est pas plutÃ´t un exit total avec prÃ©fÃ©rences de liquidation.');
       return { kind: 'exit', scenario: 'partial', figures, table: { columns, rows }, notes };
     }
 
     const payloadKey = (p) => (p ? JSON.stringify([p.scenario, p.figures, p.table.rows, p.notes]) : '');
 
-    // Affiche/masque le bloc et marque l'explication « périmée » quand les chiffres changent.
+    // Affiche/masque le bloc et marque l'explication Â« pÃ©rimÃ©e Â» quand les chiffres changent.
     function refreshExplainUI() {
       const p = buildExplainPayload();
       explainCard.hidden = !p;
@@ -1092,7 +1092,7 @@
       if (hasText && explainShownKey) {
         const stale = payloadKey(p) !== explainShownKey;
         explainOut.classList.toggle('is-stale', stale);
-        explainBtn.textContent = stale ? '✨ Mettre à jour l\'explication' : '✨ Expliquer ces chiffres';
+        explainBtn.textContent = stale ? 'âœ¨ Mettre Ã  jour l\'explication' : 'âœ¨ Expliquer ces chiffres';
       }
     }
 
@@ -1103,7 +1103,7 @@
       explainBtn.disabled = true;
       explainOut.hidden = false;
       explainOut.className = 'explain-out is-loading';
-      explainOut.textContent = 'L\'assistant lit les chiffres calculés…';
+      explainOut.textContent = 'L\'assistant lit les chiffres calculÃ©sâ€¦';
       try {
         const resp = await fetch('/api/saas/explain-simulation', {
           method: 'POST',
@@ -1112,16 +1112,16 @@
           body: JSON.stringify(p),
         });
         const data = await resp.json().catch(() => ({}));
-        if (!resp.ok) throw new Error(data.error || 'Explication momentanément indisponible.');
+        if (!resp.ok) throw new Error(data.error || 'Explication momentanÃ©ment indisponible.');
         const text = String(data.explanation || '').trim();
-        if (!text) throw new Error('L\'assistant n\'a rien renvoyé.');
+        if (!text) throw new Error('L\'assistant n\'a rien renvoyÃ©.');
         explainOut.className = 'explain-out';
         explainOut.innerHTML = text.split(/\n{2,}/).map(par => '<p>' + escHtml(par).replace(/\n/g, '<br>') + '</p>').join('');
         explainShownKey = key;
-        explainBtn.textContent = '✨ Expliquer ces chiffres';
+        explainBtn.textContent = 'âœ¨ Expliquer ces chiffres';
       } catch (err) {
         explainOut.className = 'explain-out is-error';
-        explainOut.textContent = err.message || 'Explication momentanément indisponible.';
+        explainOut.textContent = err.message || 'Explication momentanÃ©ment indisponible.';
       } finally {
         explainBtn.disabled = false;
       }
@@ -1177,16 +1177,16 @@
       else window.location.href = 'tableau-de-bord.html';
     });
 
-    // ---------- Info-bulles de définition ----------
+    // ---------- Info-bulles de dÃ©finition ----------
     const GLOSSARY = {
-      'pref-liq':     "<b>Préférence de liquidation</b> — droit d'un investisseur d'être payé en priorité sur le produit d'une cession, avant les actionnaires ordinaires, à hauteur d'un multiple de sa mise (souvent 1x).",
-      'participante': "<b>Préférence participative</b> — l'investisseur touche sa préférence <b>puis</b> participe en plus, au prorata, au reliquat. Peut être plafonnée par un <b>cap</b>.",
-      'rang':         "<b>Rang de séniorité</b> — l'ordre dans lequel les préférences sont payées. Le rang 1 est payé en premier ; à rang égal, le paiement se fait <b>pari passu</b> (au prorata entre eux si le produit ne suffit pas).",
-      'as-converted': "<b>Valeur au prorata (as-converted)</b> — ce que toucherait un investisseur s'il renonçait à sa préférence pour être traité comme un actionnaire ordinaire, au prorata de son % du capital.",
-      'waterfall':    "<b>Cascade de distribution (waterfall)</b> — l'ordre dans lequel le produit d'une cession est réparti : dette, préférences de liquidation par rang, puis reliquat au prorata.",
-      'fully-diluted':"<b>Fully diluted</b> — capital compté en incluant tous les titres convertibles en actions (pool, BSPCE, BSA), comme s'ils étaient déjà exercés.",
-      'secondaire':   "<b>Cession secondaire</b> — vente de titres existants entre actionnaires et un acheteur, sans que la société n'émette de nouvelles actions (à l'inverse d'un tour primaire qui lève de l'argent pour la société).",
-      'drag':         "<b>Drag-along / tag-along</b> — clauses du pacte d'actionnaires qui organisent une sortie conjointe : le drag-along force les minoritaires à suivre une cession majoritaire ; le tag-along leur donne le droit de s'y associer aux mêmes conditions.",
+      'pref-liq':     "<b>PrÃ©fÃ©rence de liquidation</b> â€” droit d'un investisseur d'Ãªtre payÃ© en prioritÃ© sur le produit d'une cession, avant les actionnaires ordinaires, Ã  hauteur d'un multiple de sa mise (souvent 1x).",
+      'participante': "<b>PrÃ©fÃ©rence participative</b> â€” l'investisseur touche sa prÃ©fÃ©rence <b>puis</b> participe en plus, au prorata, au reliquat. Peut Ãªtre plafonnÃ©e par un <b>cap</b>.",
+      'rang':         "<b>Rang de sÃ©nioritÃ©</b> â€” l'ordre dans lequel les prÃ©fÃ©rences sont payÃ©es. Le rang 1 est payÃ© en premier ; Ã  rang Ã©gal, le paiement se fait <b>pari passu</b> (au prorata entre eux si le produit ne suffit pas).",
+      'as-converted': "<b>Valeur au prorata (as-converted)</b> â€” ce que toucherait un investisseur s'il renonÃ§ait Ã  sa prÃ©fÃ©rence pour Ãªtre traitÃ© comme un actionnaire ordinaire, au prorata de son % du capital.",
+      'waterfall':    "<b>Cascade de distribution (waterfall)</b> â€” l'ordre dans lequel le produit d'une cession est rÃ©parti : dette, prÃ©fÃ©rences de liquidation par rang, puis reliquat au prorata.",
+      'fully-diluted':"<b>Fully diluted</b> â€” capital comptÃ© en incluant tous les titres convertibles en actions (pool, BSPCE, BSA), comme s'ils Ã©taient dÃ©jÃ  exercÃ©s.",
+      'secondaire':   "<b>Cession secondaire</b> â€” vente de titres existants entre actionnaires et un acheteur, sans que la sociÃ©tÃ© n'Ã©mette de nouvelles actions (Ã  l'inverse d'un tour primaire qui lÃ¨ve de l'argent pour la sociÃ©tÃ©).",
+      'drag':         "<b>Drag-along / tag-along</b> â€” clauses du pacte d'actionnaires qui organisent une sortie conjointe : le drag-along force les minoritaires Ã  suivre une cession majoritaire ; le tag-along leur donne le droit de s'y associer aux mÃªmes conditions.",
     };
     (function initTips() {
       const tip = document.createElement('div');
@@ -1224,7 +1224,7 @@
       window.addEventListener('resize', hide);
     })();
 
-    // ---------- Historique des simulations d'exit (synchronisé avec le compte) ----------
+    // ---------- Historique des simulations d'exit (synchronisÃ© avec le compte) ----------
     const HISTORY_KEY = 'liquidplus_exit_history_v1';
     const HISTORY_MAX = 30;
     let historyEntries = [];
@@ -1258,7 +1258,7 @@
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || 'Impossible d’enregistrer l’historique.');
+        throw new Error(data.error || 'Impossible dâ€™enregistrer lâ€™historique.');
       }
       return response.json();
     }
@@ -1277,7 +1277,7 @@
       return stored;
     }
 
-    // Capture l'état complet du formulaire (indépendant du mode / type courants)
+    // Capture l'Ã©tat complet du formulaire (indÃ©pendant du mode / type courants)
     function captureSnapshot() {
       const rows = [...shRowsEl.querySelectorAll('.xrow')].map(row => {
         const type = row.querySelector('.in-type').value;
@@ -1309,7 +1309,7 @@
       };
     }
 
-    // Restaure un état sauvegardé dans le formulaire
+    // Restaure un Ã©tat sauvegardÃ© dans le formulaire
     function restoreSnapshot(s) {
       mode = s.mode === 'shares' ? 'shares' : 'pct';
       shRowsEl.innerHTML = (Array.isArray(s.rows) ? s.rows : []).map(shRowHTML).join('');
@@ -1319,10 +1319,10 @@
       document.getElementById('part-valo').value = s.partValo ? nfInt.format(Math.round(s.partValo)) : '';
       document.getElementById('part-buyer').value = s.buyer || '';
       syncModeUI();
-      // Force le rafraîchissement de l'UI du type d'exit (setExitType est un no-op si égal)
+      // Force le rafraÃ®chissement de l'UI du type d'exit (setExitType est un no-op si Ã©gal)
       const target = s.exitType === 'partial' ? 'partial' : 'total';
       exitType = target === 'total' ? 'partial' : 'total';
-      setExitType(target); // enchaîne syncRowVisibility() + recompute()
+      setExitType(target); // enchaÃ®ne syncRowVisibility() + recompute()
     }
 
     function currentResult(st) {
@@ -1358,21 +1358,21 @@
       const list = historyEntries;
       const body = document.getElementById('hist-list');
       if (!list.length) {
-        body.innerHTML = '<div class="hist-empty">Aucune simulation enregistrée pour l\'instant. Renseignez vos données puis cliquez sur « Enregistrer cet exit » pour la retrouver ici.</div>';
+        body.innerHTML = '<div class="hist-empty">Aucune simulation enregistrÃ©e pour l\'instant. Renseignez vos donnÃ©es puis cliquez sur Â« Enregistrer cet exit Â» pour la retrouver ici.</div>';
         return;
       }
       body.innerHTML = list.map(entry => {
         const d = new Date(entry.savedAt);
-        const dateStr = `${d.toLocaleDateString('fr-FR')} · ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+        const dateStr = `${d.toLocaleDateString('fr-FR')} Â· ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
         const s = entry.summary || {};
         const chips = s.exitType === 'partial'
           ? `<span class="hist-chip hist-chip--type">Sortie partielle</span>
              <span class="hist-chip">Cession ${eur0(s.amount)}</span>
-             <span class="hist-chip">Capital transféré ${pct1(s.buyerPct || 0)}</span>`
+             <span class="hist-chip">Capital transfÃ©rÃ© ${pct1(s.buyerPct || 0)}</span>`
           : `<span class="hist-chip hist-chip--type">Sortie totale</span>
              <span class="hist-chip">Produit net ${eur0(s.amount)}</span>
              <span class="hist-chip">Fondateurs ${eur0(s.founderAmount || 0)}</span>
-             <span class="hist-chip">MOIC ${s.moic != null ? s.moic.toFixed(2) + '×' : '—'}</span>`;
+             <span class="hist-chip">MOIC ${s.moic != null ? s.moic.toFixed(2) + 'Ã—' : 'â€”'}</span>`;
         return `<div class="hist-item" data-id="${entry.id}">
           <div class="hist-item__main">
             <div class="hist-item__name">${escAttr(entry.name)}</div>
@@ -1381,7 +1381,7 @@
           </div>
           <div class="hist-item__actions">
             <button type="button" class="hist-btn hist-load">Charger</button>
-            <button type="button" class="hist-btn hist-del" title="Supprimer">×</button>
+            <button type="button" class="hist-btn hist-del" title="Supprimer">Ã—</button>
           </div>
         </div>`;
       }).join('');
@@ -1392,11 +1392,11 @@
       const { summary } = currentResult(st);
       if ((exitType === 'total' && (st.E <= 0 || st.salePrice <= 0)) ||
           (exitType === 'partial' && (st.E <= 0 || st.partValo <= 0))) {
-        alert("Impossible d'enregistrer : complétez d'abord la cap table et les paramètres de la cession.");
+        alert("Impossible d'enregistrer : complÃ©tez d'abord la cap table et les paramÃ¨tres de la cession.");
         return;
       }
       const now = new Date();
-      const defaultName = `Exit ${exitType === 'partial' ? 'partiel' : 'total'} du ${now.toLocaleDateString('fr-FR')} à ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+      const defaultName = `Exit ${exitType === 'partial' ? 'partiel' : 'total'} du ${now.toLocaleDateString('fr-FR')} Ã  ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
       const name = ((await askText('Nom de cette simulation :', defaultName, 'Enregistrer')) || '').trim();
       if (!name) return;
       const entry = {
@@ -1406,7 +1406,7 @@
         summary,
         state: captureSnapshot(),
       };
-      const localSaved = updateHistory([entry, ...historyEntries], 'Enregistrement de la simulation…');
+      const localSaved = updateHistory([entry, ...historyEntries], 'Enregistrement de la simulationâ€¦');
 
       try {
         const data = await requestHistory('', {
@@ -1414,11 +1414,11 @@
           body: JSON.stringify({ simulation: entry }),
         });
         const saved = data.simulation;
-        updateHistory(historyEntries.map(item => item.id === entry.id ? saved : item), 'Simulation enregistrée.', 'ok');
+        updateHistory(historyEntries.map(item => item.id === entry.id ? saved : item), 'Simulation enregistrÃ©e.', 'ok');
       } catch (error) {
         const message = localSaved
-          ? 'Simulation enregistrée sur cet appareil. La synchronisation du compte sera réessayée à la prochaine ouverture.'
-          : 'Impossible d’enregistrer la simulation : le stockage est indisponible.';
+          ? 'Simulation enregistrÃ©e sur cet appareil. La synchronisation du compte sera rÃ©essayÃ©e Ã  la prochaine ouverture.'
+          : 'Impossible dâ€™enregistrer la simulation : le stockage est indisponible.';
         setHistoryStatus(message, 'warn');
       }
     }
@@ -1434,10 +1434,10 @@
       } else if (e.target.closest('.hist-del')) {
         if (!confirm('Supprimer cette simulation de l\'historique ?')) return;
         const previous = historyEntries;
-        updateHistory(previous.filter(x => x.id !== id), 'Simulation supprimée.', 'ok');
+        updateHistory(previous.filter(x => x.id !== id), 'Simulation supprimÃ©e.', 'ok');
         if (!id.startsWith('exit_')) {
           requestHistory('/' + encodeURIComponent(id), { method: 'DELETE' }).catch(() => {
-            updateHistory(previous, 'La suppression n’a pas pu être synchronisée. Réessayez plus tard.', 'warn');
+            updateHistory(previous, 'La suppression nâ€™a pas pu Ãªtre synchronisÃ©e. RÃ©essayez plus tard.', 'warn');
           });
         }
       }
@@ -1451,8 +1451,8 @@
       try {
         const data = await requestHistory();
         const remoteEntries = Array.isArray(data.simulations) ? data.simulations : [];
-        // Les simulations créées avant la synchronisation par compte restent accessibles
-        // et sont importées une seule fois (leurs identifiants locaux commencent par exit_).
+        // Les simulations crÃ©Ã©es avant la synchronisation par compte restent accessibles
+        // et sont importÃ©es une seule fois (leurs identifiants locaux commencent par exit_).
         const legacyEntries = localEntries.filter(entry => String(entry.id || '').startsWith('exit_'));
         const migrated = await Promise.all(legacyEntries.map(async (entry) => {
           const result = await requestHistory('', {
@@ -1461,17 +1461,17 @@
           });
           return result.simulation;
         }));
-        // Conserve un enregistrement déclenché pendant le chargement de l'historique.
+        // Conserve un enregistrement dÃ©clenchÃ© pendant le chargement de l'historique.
         const pendingEntries = historyEntries.filter(entry =>
           String(entry.id || '').startsWith('exit_') && !initialLocalIds.has(entry.id)
         );
-        updateHistory([...remoteEntries, ...migrated, ...pendingEntries], migrated.length ? 'Historique synchronisé avec votre compte.' : '', migrated.length ? 'ok' : '');
+        updateHistory([...remoteEntries, ...migrated, ...pendingEntries], migrated.length ? 'Historique synchronisÃ© avec votre compte.' : '', migrated.length ? 'ok' : '');
       } catch {
-        if (historyEntries.length) setHistoryStatus('Historique enregistré sur cet appareil.', 'warn');
+        if (historyEntries.length) setHistoryStatus('Historique enregistrÃ© sur cet appareil.', 'warn');
       }
     }
 
-    // Boîte de dialogue de saisie promise-based (window.prompt est indisponible sous Electron)
+    // BoÃ®te de dialogue de saisie promise-based (window.prompt est indisponible sous Electron)
     function askText(message, defaultValue = '', okLabel = 'Valider') {
       return new Promise((resolve) => {
         const backdrop = document.getElementById('ask-backdrop');
@@ -1509,18 +1509,18 @@
     }
 
     // ---------- Import depuis le simulateur de dilution ----------
-    // Reprend la cap table transmise (répartition après le dernier tour) sans ressaisie.
+    // Reprend la cap table transmise (rÃ©partition aprÃ¨s le dernier tour) sans ressaisie.
     function showDilutionImportBanner(meta) {
       const grid = document.querySelector('.ext__grid');
       if (!grid || !grid.parentNode) return;
       const rounds = meta && meta.rounds ? meta.rounds : 1;
-      const post = meta && meta.postV ? nfInt.format(Math.round(meta.postV)) + ' €' : '';
+      const post = meta && meta.postV ? nfInt.format(Math.round(meta.postV)) + ' â‚¬' : '';
       const b = document.createElement('div');
       b.style.cssText = 'display:flex;gap:10px;align-items:flex-start;background:rgba(37,99,235,0.10);border:1px solid rgba(37,99,235,0.30);border-radius:12px;padding:13px 15px;margin:0 0 18px;font-size:13px;line-height:1.5;color:#bfdbfe';
       b.innerHTML = '<svg viewBox="0 0 24 24" style="width:18px;height:18px;flex:none;stroke:#60a5fa;stroke-width:1.9;fill:none;margin-top:1px"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>'
-        + '<div>Cap table importée depuis la <b style="color:#fff">simulation de dilution</b> — répartition après '
+        + '<div>Cap table importÃ©e depuis la <b style="color:#fff">simulation de dilution</b> â€” rÃ©partition aprÃ¨s '
         + (rounds > 1 ? 'les ' + rounds + ' tours' : 'le tour') + (post ? ' (post-money ' + post + ')' : '')
-        + '. Renseignez le <b style="color:#fff">prix de vente</b> pour lancer le calcul ; les montants investis connus ont été pré-remplis dans les préférences.</div>';
+        + '. Renseignez le <b style="color:#fff">prix de vente</b> pour lancer le calcul ; les montants investis connus ont Ã©tÃ© prÃ©-remplis dans les prÃ©fÃ©rences.</div>';
       grid.parentNode.insertBefore(b, grid);
     }
     function importFromDilution() {
@@ -1545,7 +1545,7 @@
       document.getElementById('part-valo').value = '';
       document.getElementById('part-buyer').value = 'Investisseur secondaire';
       syncModeUI();
-      exitType = 'partial'; setExitType('total');   // force le rafraîchissement + recompute
+      exitType = 'partial'; setExitType('total');   // force le rafraÃ®chissement + recompute
       showDilutionImportBanner(data.meta);
       return true;
     }
@@ -1558,7 +1558,7 @@
     hydrateHistory();
   </script>
 
-  <!-- Boîte de dialogue de saisie (remplace window.prompt, indisponible sous Electron) -->
+  <!-- BoÃ®te de dialogue de saisie (remplace window.prompt, indisponible sous Electron) -->
   <div class="ask-backdrop" id="ask-backdrop">
     <div class="ask-box" role="dialog" aria-modal="true" aria-labelledby="ask-title">
       <div class="ask-box__title" id="ask-title"></div>

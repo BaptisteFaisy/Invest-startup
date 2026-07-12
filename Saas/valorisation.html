@@ -1,17 +1,17 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Liquid+ — Estimateur de valorisation</title>
-  <meta name="description" content="Estimateur de valorisation pre-money : multiple de revenu, méthode Berkus ou Scorecard — un point de départ indicatif pour négocier." />
+  <title>Liquid+ â€” Estimateur de valorisation</title>
+  <meta name="description" content="Estimateur de valorisation pre-money : multiple de revenu, mÃ©thode Berkus ou Scorecard â€” un point de dÃ©part indicatif pour nÃ©gocier." />
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=6" />
   <link rel="stylesheet" href="editor.css?v=7" />
-  <link rel="stylesheet" href="drawer-menu.css?v=6" />
+  <link rel="stylesheet" href="drawer-menu.css?v=7" />
   <link rel="stylesheet" href="help-bulb.css?v=1" />
   <style>
     [hidden] { display: none !important; }
@@ -27,7 +27,7 @@
     .topbar .btn--ghost { color: #fff !important; border-color: rgba(255,255,255,0.35) !important; }
     .topbar .btn--ghost:hover { color: #fff !important; border-color: rgba(255,255,255,0.65) !important; }
 
-    /* Retour en arrière : le chevron reste visible sans bandeau au défilement. */
+    /* Retour en arriÃ¨re : le chevron reste visible sans bandeau au dÃ©filement. */
     .page-back-row { height: 6px; }
     .page-back { position: fixed; top: 56px; left: max(12px, calc(50% - 606px)); z-index: 15; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
     .page-back:hover { opacity: 0.68; transform: translateX(-1px); }
@@ -50,7 +50,7 @@
     .seg__btn:hover { color: #08090c; }
     .seg__btn.is-on { background: #fff; color: #08090c; box-shadow: 0 1px 3px rgba(0,0,0,0.12); text-decoration-color: rgba(8,9,12,0.35); }
 
-    /* Info-bulle d'explication des méthodes (survol du nom dans l'estimateur) */
+    /* Info-bulle d'explication des mÃ©thodes (survol du nom dans l'estimateur) */
     .tip { position: fixed; z-index: 200; max-width: 280px; background: #0f1115; color: #e8e8ec; font-family: 'Libre Franklin', sans-serif; font-size: 12.5px; font-weight: 400; line-height: 1.5; text-align: left; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 12px 34px rgba(0,0,0,0.5); pointer-events: none; opacity: 0; transform: translateY(3px); transition: opacity .12s ease, transform .12s ease; }
     .tip.is-on { opacity: 1; transform: translateY(0); }
     .tip b { color: #fff; font-weight: 700; }
@@ -104,7 +104,7 @@
     .ve-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 17px; height: 17px; border-radius: 50%; background: #08090c; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25); cursor: pointer; }
     .ve-slider::-moz-range-thumb { width: 15px; height: 15px; border-radius: 50%; background: #08090c; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.25); cursor: pointer; }
 
-    /* Résultat de l'estimation */
+    /* RÃ©sultat de l'estimation */
     .ve-out { background: linear-gradient(135deg, #26272e, #131417); border-radius: 14px; padding: 18px 18px 20px; }
     .ve-out__lab { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.72); }
     .ve-out__val { font-family: 'Archivo', sans-serif; font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -0.02em; margin-top: 6px; }
@@ -132,7 +132,7 @@
     .val__next .btn { background: rgba(255,255,255,0.06); color: #fff; border-color: rgba(255,255,255,0.2); }
     .val__next .btn:hover { border-color: rgba(255,255,255,0.5); }
 
-    /* Bouton d'enregistrement dans le panneau de résultat */
+    /* Bouton d'enregistrement dans le panneau de rÃ©sultat */
     .ve-save { margin-top: 8px; background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.35); }
     .ve-save:hover { background: rgba(255,255,255,0.08); }
     .ve-save:disabled { opacity: 0.45; cursor: not-allowed; }
@@ -159,7 +159,7 @@
       .hist-item__actions { flex-direction: row; }
     }
 
-    /* Boîte de dialogue de saisie (remplace window.prompt, indisponible sous Electron) */
+    /* BoÃ®te de dialogue de saisie (remplace window.prompt, indisponible sous Electron) */
     .ask-backdrop { position: fixed; inset: 0; z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(8,9,12,0.55); }
     .ask-backdrop.is-on { display: flex; }
     .ask-box { width: 100%; max-width: 420px; background: #fff; border-radius: 14px; padding: 20px 20px 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.4); }
@@ -180,7 +180,7 @@
   </style>
   <script src="auth.js?v=3"></script>
   <script src="tasks.js?v=2" defer></script>
-  <script src="drawer-menu.js?v=3" defer></script>
+  <script src="drawer-menu.js?v=7" defer></script>
   <script src="drawer-steps.js?v=1" defer></script>
   <script src="help-bulb.js?v=1" defer></script>
 </head>
@@ -191,7 +191,7 @@
         <button type="button" class="hamburger" id="nav-menu-btn" aria-label="Ouvrir la navigation" aria-controls="nav-drawer" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
-        <a href="/index.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
+        <a href="tableau-de-bord.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
         <span class="topbar__doc">Estimateur de valorisation</span>
       </div>
       <div class="topbar__actions">
@@ -203,13 +203,13 @@
 
     <!-- Menu hamburger gauche : navigation -->
     <div class="drawer-backdrop" id="nav-backdrop" data-drawer-close></div>
-    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Étapes de la levée">
+    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Ã‰tapes de la levÃ©e">
       <div class="drawer__head"></div>
       <nav class="drawer__body">
-        <div class="drawer__section-title">Étapes de la levée</div>
-        <div id="nav-steps"><p class="drawer__steps-loading">Chargement des étapes…</p></div>
+        <div class="drawer__section-title">Ã‰tapes de la levÃ©e</div>
+        <div id="nav-steps"><p class="drawer__steps-loading">Chargement des Ã©tapesâ€¦</p></div>
       </nav>
-      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. FlÃ¨ches : 10 px, Maj + flÃ¨ches : 50 px, double-clic : rÃ©initialiser"></div>
     </aside>
 
     <!-- Menu hamburger droite : compte & actions -->
@@ -218,7 +218,7 @@
       <div class="drawer__head"></div>
       <nav class="drawer__body">
         <div class="drawer__section-title">Outils</div>
-        <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Éditeur</a>
+        <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Ã‰diteur</a>
         <a class="drawer__link" href="benchmark.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Benchmark</a>
         <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
         <div class="drawer__sep"></div>
@@ -226,21 +226,21 @@
         <a class="drawer__link" href="dilution.html" target="_blank" rel="noopener" title="Simulation de dilution"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
         <a class="drawer__link" href="exit.html" target="_blank" rel="noopener" title="Simulateur d'exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Exit</a>
         <div class="drawer__sep"></div>
-        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>Tâches</a>
+        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>TÃ¢ches</a>
         <a class="drawer__link" href="documents.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>Documents</a>
         <a class="drawer__link" href="data-room.html" target="_blank" rel="noopener" title="Data room"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/></svg>Data room</a>
         <a class="drawer__link" href="avocat.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M6 21h12"/><path d="M3 7h18"/><path d="M7 7l-3 6a3 3 0 0 0 6 0Z"/><path d="M17 7l3 6a3 3 0 0 0-6 0Z"/></svg>Avocat</a>
         <div class="drawer__sep"></div>
         <a class="drawer__link" href="compte.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>Mon compte</a>
-        <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Écrire au fondateur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
+        <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Ã‰crire au fondateur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
         <div class="drawer__sep"></div>
-        <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>Déconnexion</button>
+        <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>DÃ©connexion</button>
       </nav>
-      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. FlÃ¨ches : 10 px, Maj + flÃ¨ches : 50 px, double-clic : rÃ©initialiser"></div>
     </aside>
 
     <div class="page-back-row">
-      <button type="button" class="page-back" id="page-back-btn" aria-label="Revenir en arrière" title="Revenir en arrière">
+      <button type="button" class="page-back" id="page-back-btn" aria-label="Revenir en arriÃ¨re" title="Revenir en arriÃ¨re">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
       </button>
     </div>
@@ -251,7 +251,7 @@
       <h1 class="val__title">Estimateur de valorisation</h1>
       <div class="help-pop" hidden>
         <div class="help-pop__label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg> Comprendre cet outil</div>
-        <p>Trois méthodes usuelles pour estimer une valorisation <b>pre-money</b> avant de la négocier : multiple de revenu pour une société qui facture déjà, Berkus pour une startup pré-revenu, Scorecard pour un stade amorçage. Une estimation indicative, pas un prix — un point de départ pour la négociation.</p>
+        <p>Trois mÃ©thodes usuelles pour estimer une valorisation <b>pre-money</b> avant de la nÃ©gocier : multiple de revenu pour une sociÃ©tÃ© qui facture dÃ©jÃ , Berkus pour une startup prÃ©-revenu, Scorecard pour un stade amorÃ§age. Une estimation indicative, pas un prix â€” un point de dÃ©part pour la nÃ©gociation.</p>
       </div>
 
       <section id="valo-est">
@@ -260,14 +260,14 @@
             <div class="val__col-head">
               <div class="val__col-num">1</div>
               <div>
-                <div class="val__col-lab">À remplir — vos données</div>
-                <p class="val__col-sub">Choisissez une méthode puis renseignez les indicateurs disponibles pour votre startup.</p>
+                <div class="val__col-lab">Ã€ remplir â€” vos donnÃ©es</div>
+                <p class="val__col-sub">Choisissez une mÃ©thode puis renseignez les indicateurs disponibles pour votre startup.</p>
               </div>
             </div>
 
             <div class="card">
               <div class="card__toprow">
-                <div class="card__h" style="margin-bottom:0">Méthode</div>
+                <div class="card__h" style="margin-bottom:0">MÃ©thode</div>
                 <div class="seg" id="ve-method-seg">
                   <button type="button" class="seg__btn is-on" data-vem="rev">Multiple de revenu</button>
                   <button type="button" class="seg__btn" data-vem="berkus">Berkus</button>
@@ -276,35 +276,35 @@
               </div>
 
             <div class="ve-inputs">
-              <!-- Méthode 1 : multiple de revenu -->
+              <!-- MÃ©thode 1 : multiple de revenu -->
               <div class="ve-body" data-vem-body="rev">
                 <div class="ve-two">
                   <div class="field" style="margin-bottom:0">
                     <label class="field__lab" for="ve-arr">Chiffre d'affaires annuel</label>
                     <div class="inp-wrap">
                       <input class="inp inp--money" type="text" inputmode="numeric" id="ve-arr" value="500 000" />
-                      <span class="inp-wrap__suf">€</span>
+                      <span class="inp-wrap__suf">â‚¬</span>
                     </div>
-                    <div class="card__desc" style="margin:6px 0 0">Récurrent (ARR) pour un SaaS, sinon le CA des 12 derniers mois.</div>
+                    <div class="card__desc" style="margin:6px 0 0">RÃ©current (ARR) pour un SaaS, sinon le CA des 12 derniers mois.</div>
                   </div>
                   <div class="field" style="margin-bottom:0">
                     <label class="field__lab">Profil de croissance</label>
                     <div class="ve-growth" id="ve-growth">
                       <label class="radio-chip is-on" data-g="low">
                         <input type="radio" name="ve-g" value="low" checked />
-                        Prudente <small>&lt; 30 %/an · ×2 à ×4</small>
+                        Prudente <small>&lt; 30 %/an Â· Ã—2 Ã  Ã—4</small>
                       </label>
                       <label class="radio-chip" data-g="mid">
                         <input type="radio" name="ve-g" value="mid" />
-                        Solide <small>30 à 80 %/an · ×4 à ×8</small>
+                        Solide <small>30 Ã  80 %/an Â· Ã—4 Ã  Ã—8</small>
                       </label>
                       <label class="radio-chip" data-g="high">
                         <input type="radio" name="ve-g" value="high" />
-                        Forte <small>&gt; 80 %/an · ×8 à ×15</small>
+                        Forte <small>&gt; 80 %/an Â· Ã—8 Ã  Ã—15</small>
                       </label>
                       <label class="radio-chip radio-chip--custom" data-g="custom">
                         <input type="radio" name="ve-g" value="custom" />
-                        Précis <small>indiquer mon taux de croissance</small>
+                        PrÃ©cis <small>indiquer mon taux de croissance</small>
                         <span class="radio-chip__custom-input">
                           <input class="inp" type="text" inputmode="decimal" id="ve-growth-rate" value="50" aria-label="Taux de croissance annuel" />
                           <span>% /an</span>
@@ -315,65 +315,65 @@
                 </div>
               </div>
 
-              <!-- Méthode 2 : Berkus -->
+              <!-- MÃ©thode 2 : Berkus -->
               <div class="ve-body" id="ve-berkus" data-vem-body="berkus" hidden>
                 <div class="ve-slider-row">
                   <div class="ve-slider-top">
-                    <span class="ve-slider-lab">Idée &amp; proposition de valeur <small>valeur de base du projet</small></span>
-                    <span class="ve-slider-val" data-for="b1">250 k€</span>
+                    <span class="ve-slider-lab">IdÃ©e &amp; proposition de valeur <small>valeur de base du projet</small></span>
+                    <span class="ve-slider-val" data-for="b1">250 kâ‚¬</span>
                   </div>
                   <input class="ve-slider" id="b1" type="range" min="0" max="500000" step="25000" value="250000" data-fmt="keur" />
                 </div>
                 <div class="ve-slider-row">
                   <div class="ve-slider-top">
-                    <span class="ve-slider-lab">Prototype / technologie <small>réduit le risque technologique</small></span>
-                    <span class="ve-slider-val" data-for="b2">250 k€</span>
+                    <span class="ve-slider-lab">Prototype / technologie <small>rÃ©duit le risque technologique</small></span>
+                    <span class="ve-slider-val" data-for="b2">250 kâ‚¬</span>
                   </div>
                   <input class="ve-slider" id="b2" type="range" min="0" max="500000" step="25000" value="250000" data-fmt="keur" />
                 </div>
                 <div class="ve-slider-row">
                   <div class="ve-slider-top">
-                    <span class="ve-slider-lab">Équipe dirigeante <small>réduit le risque d'exécution</small></span>
-                    <span class="ve-slider-val" data-for="b3">250 k€</span>
+                    <span class="ve-slider-lab">Ã‰quipe dirigeante <small>rÃ©duit le risque d'exÃ©cution</small></span>
+                    <span class="ve-slider-val" data-for="b3">250 kâ‚¬</span>
                   </div>
                   <input class="ve-slider" id="b3" type="range" min="0" max="500000" step="25000" value="250000" data-fmt="keur" />
                 </div>
                 <div class="ve-slider-row">
                   <div class="ve-slider-top">
-                    <span class="ve-slider-lab">Traction &amp; relations marché <small>réduit le risque de marché</small></span>
-                    <span class="ve-slider-val" data-for="b4">250 k€</span>
+                    <span class="ve-slider-lab">Traction &amp; relations marchÃ© <small>rÃ©duit le risque de marchÃ©</small></span>
+                    <span class="ve-slider-val" data-for="b4">250 kâ‚¬</span>
                   </div>
                   <input class="ve-slider" id="b4" type="range" min="0" max="500000" step="25000" value="250000" data-fmt="keur" />
                 </div>
                 <div class="ve-slider-row">
                   <div class="ve-slider-top">
-                    <span class="ve-slider-lab">Produit lancé / premières ventes <small>réduit le risque de production</small></span>
-                    <span class="ve-slider-val" data-for="b5">250 k€</span>
+                    <span class="ve-slider-lab">Produit lancÃ© / premiÃ¨res ventes <small>rÃ©duit le risque de production</small></span>
+                    <span class="ve-slider-val" data-for="b5">250 kâ‚¬</span>
                   </div>
                   <input class="ve-slider" id="b5" type="range" min="0" max="500000" step="25000" value="250000" data-fmt="keur" />
                 </div>
               </div>
 
-              <!-- Méthode 3 : Scorecard -->
+              <!-- MÃ©thode 3 : Scorecard -->
               <div class="ve-body" id="ve-scorecard" data-vem-body="scorecard" hidden>
                 <div class="field">
-                  <label class="field__lab" for="ve-base">Valorisation moyenne des sociétés comparables</label>
+                  <label class="field__lab" for="ve-base">Valorisation moyenne des sociÃ©tÃ©s comparables</label>
                   <div class="inp-wrap">
                     <input class="inp inp--money" type="text" inputmode="numeric" id="ve-base" value="2 000 000" />
-                    <span class="inp-wrap__suf">€</span>
+                    <span class="inp-wrap__suf">â‚¬</span>
                   </div>
-                  <div class="card__desc" style="margin:6px 0 0">La valorisation pre-money moyenne, à un stade équivalent, dans votre secteur et votre région.</div>
+                  <div class="card__desc" style="margin:6px 0 0">La valorisation pre-money moyenne, Ã  un stade Ã©quivalent, dans votre secteur et votre rÃ©gion.</div>
                 </div>
                 <div class="ve-slider-row">
                   <div class="ve-slider-top">
-                    <span class="ve-slider-lab">Solidité de l'équipe <small>poids 30 %</small></span>
+                    <span class="ve-slider-lab">SoliditÃ© de l'Ã©quipe <small>poids 30 %</small></span>
                     <span class="ve-slider-val" data-for="s1">100 %</span>
                   </div>
                   <input class="ve-slider" id="s1" type="range" min="50" max="150" step="5" value="100" data-fmt="pct" data-w="0.30" />
                 </div>
                 <div class="ve-slider-row">
                   <div class="ve-slider-top">
-                    <span class="ve-slider-lab">Taille de l'opportunité de marché <small>poids 25 %</small></span>
+                    <span class="ve-slider-lab">Taille de l'opportunitÃ© de marchÃ© <small>poids 25 %</small></span>
                     <span class="ve-slider-val" data-for="s2">100 %</span>
                   </div>
                   <input class="ve-slider" id="s2" type="range" min="50" max="150" step="5" value="100" data-fmt="pct" data-w="0.25" />
@@ -401,7 +401,7 @@
                 </div>
                 <div class="ve-slider-row">
                   <div class="ve-slider-top">
-                    <span class="ve-slider-lab">Besoin de financement à venir <small>poids 5 %</small></span>
+                    <span class="ve-slider-lab">Besoin de financement Ã  venir <small>poids 5 %</small></span>
                     <span class="ve-slider-val" data-for="s6">100 %</span>
                   </div>
                   <input class="ve-slider" id="s6" type="range" min="50" max="150" step="5" value="100" data-fmt="pct" data-w="0.05" />
@@ -422,17 +422,17 @@
             <div class="val__col-head">
               <div class="val__col-num">2</div>
               <div>
-                <div class="val__col-lab">Résultat de l'estimation</div>
+                <div class="val__col-lab">RÃ©sultat de l'estimation</div>
                 <p class="val__col-sub">Retrouvez la valorisation indicative et utilisez-la directement dans le simulateur de dilution.</p>
               </div>
             </div>
             <div class="ve-out">
-              <div class="ve-out__lab">Valorisation estimée</div>
-              <div class="ve-out__val" id="ve-result">—</div>
+              <div class="ve-out__lab">Valorisation estimÃ©e</div>
+              <div class="ve-out__val" id="ve-result">â€”</div>
               <div class="ve-out__range" id="ve-range"></div>
-              <button type="button" class="ve-use" id="ve-use">Utiliser dans le simulateur de dilution →</button>
+              <button type="button" class="ve-use" id="ve-use">Utiliser dans le simulateur de dilution â†’</button>
               <button type="button" class="ve-use ve-save" id="ve-save">Enregistrer cette estimation</button>
-              <div class="ve-out__note">Une estimation indicative, pas un prix. La valorisation finale se négocie ; utilisez-la comme point de départ.</div>
+              <div class="ve-out__note">Une estimation indicative, pas un prix. La valorisation finale se nÃ©gocie ; utilisez-la comme point de dÃ©part.</div>
             </div>
           </div>
         </div>
@@ -440,24 +440,24 @@
 
       <section class="card val__history" id="hist-card">
         <div class="card__h">Historique des estimations</div>
-        <div class="card__desc">Vos estimations enregistrées. Chargez-en une pour la reprendre ou la comparer.</div>
+        <div class="card__desc">Vos estimations enregistrÃ©es. Chargez-en une pour la reprendre ou la comparer.</div>
         <div class="hist-status" id="hist-status" role="status" aria-live="polite"></div>
         <div class="hist-list" id="hist-list"></div>
       </section>
 
       <div class="val__next">
-        <a class="btn" href="dilution.html">Simulateur de dilution →</a>
-        <a class="btn" href="exit.html">Simulateur d'exit →</a>
+        <a class="btn" href="dilution.html">Simulateur de dilution â†’</a>
+        <a class="btn" href="exit.html">Simulateur d'exit â†’</a>
       </div>
 
       <!-- LEXIQUE -->
       <section class="lexique" id="lexique">
-        <div class="lexique__cat">Le point piège</div>
+        <div class="lexique__cat">Le point piÃ¨ge</div>
         <div class="lexique__grid">
           <div class="glo" style="grid-column: 1 / -1">
             <div class="glo__term">Une valorisation n'est pas un prix</div>
-            <p class="glo__def">Ces trois méthodes donnent une <b>fourchette de départ</b>, pas un prix : la valorisation finale d'un tour se négocie, entre l'offre et la demande du moment, et dépend autant du rapport de force que des fondamentaux. Ne présentez jamais un résultat de cet outil comme définitif face à un investisseur.</p>
-            <p class="glo__def">Une fois une hypothèse de <b>valorisation pre-money</b> retenue, utilisez le <a href="dilution.html" style="color:#2563eb;font-weight:600">simulateur de dilution</a> pour voir son effet sur votre cap table, puis le <a href="exit.html" style="color:#2563eb;font-weight:600">simulateur d'exit</a> pour voir ce qu'elle implique le jour d'une sortie, une fois les préférences de liquidation négociées.</p>
+            <p class="glo__def">Ces trois mÃ©thodes donnent une <b>fourchette de dÃ©part</b>, pas un prix : la valorisation finale d'un tour se nÃ©gocie, entre l'offre et la demande du moment, et dÃ©pend autant du rapport de force que des fondamentaux. Ne prÃ©sentez jamais un rÃ©sultat de cet outil comme dÃ©finitif face Ã  un investisseur.</p>
+            <p class="glo__def">Une fois une hypothÃ¨se de <b>valorisation pre-money</b> retenue, utilisez le <a href="dilution.html" style="color:#2563eb;font-weight:600">simulateur de dilution</a> pour voir son effet sur votre cap table, puis le <a href="exit.html" style="color:#2563eb;font-weight:600">simulateur d'exit</a> pour voir ce qu'elle implique le jour d'une sortie, une fois les prÃ©fÃ©rences de liquidation nÃ©gociÃ©es.</p>
           </div>
         </div>
       </section>
@@ -466,7 +466,7 @@
 
   <script>
     const nfInt = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
-    const eur0 = (n) => nfInt.format(Math.round(n)) + ' €';
+    const eur0 = (n) => nfInt.format(Math.round(n)) + ' â‚¬';
     const parseNum = (s) => {
       if (s == null) return 0;
       const cleaned = String(s).replace(/[^0-9.,-]/g, '').replace(/\s/g, '').replace(',', '.');
@@ -477,10 +477,10 @@
 
     let veMethod = 'rev';
     let veValo = 0;
-    // Multiples appliqués au CA selon le profil de croissance : [bas, médian, haut]
+    // Multiples appliquÃ©s au CA selon le profil de croissance : [bas, mÃ©dian, haut]
     const VE_GROWTH = { low: [2, 3, 4], mid: [4, 6, 8], high: [8, 11, 15] };
-    // Points d'ancrage (taux de croissance annuel % -> multiples) pour interpoler un taux précis,
-    // calés sur les mêmes bornes que les fourchettes prudente/solide/forte ci-dessus.
+    // Points d'ancrage (taux de croissance annuel % -> multiples) pour interpoler un taux prÃ©cis,
+    // calÃ©s sur les mÃªmes bornes que les fourchettes prudente/solide/forte ci-dessus.
     const VE_GROWTH_ANCHORS = [
       { rate: 0, lo: 1, mid: 1.5, hi: 2 },
       { rate: 15, lo: 2, mid: 3, hi: 4 },
@@ -507,9 +507,9 @@
     }
     const veFmtMult = (v) => (Number.isInteger(v) ? String(v) : v.toFixed(1));
     const VE_DESC = {
-      rev: "Adapté aux sociétés qui génèrent déjà du chiffre d'affaires. On applique au CA un multiple d'autant plus élevé que la croissance est forte.",
-      berkus: "Pour une startup pré-revenu. On valorise cinq leviers de réduction du risque, chacun jusqu'à 500 k€ (plafond 2,5 M€).",
-      scorecard: "Pour un stade amorçage. On part de la valorisation moyenne des sociétés comparables, ajustée selon vos forces et faiblesses.",
+      rev: "AdaptÃ© aux sociÃ©tÃ©s qui gÃ©nÃ¨rent dÃ©jÃ  du chiffre d'affaires. On applique au CA un multiple d'autant plus Ã©levÃ© que la croissance est forte.",
+      berkus: "Pour une startup prÃ©-revenu. On valorise cinq leviers de rÃ©duction du risque, chacun jusqu'Ã  500 kâ‚¬ (plafond 2,5 Mâ‚¬).",
+      scorecard: "Pour un stade amorÃ§age. On part de la valorisation moyenne des sociÃ©tÃ©s comparables, ajustÃ©e selon vos forces et faiblesses.",
     };
 
     const veEst = document.getElementById('valo-est');
@@ -519,7 +519,7 @@
         const lab = veEst.querySelector(`.ve-slider-val[data-for="${s.id}"]`);
         if (!lab) return;
         const v = Number(s.value);
-        lab.textContent = s.dataset.fmt === 'pct' ? `${v} %` : `${Math.round(v / 1000)} k€`;
+        lab.textContent = s.dataset.fmt === 'pct' ? `${v} %` : `${Math.round(v / 1000)} kâ‚¬`;
       });
     }
 
@@ -530,12 +530,12 @@
         const [lo, mid, hi] = veGrowthTriple(g);
         return {
           valo: arr * mid, low: arr * lo, high: arr * hi, ok: arr > 0,
-          range: arr > 0 ? `Fourchette ${eur0(arr * lo)} – ${eur0(arr * hi)} · CA × ${veFmtMult(mid)}` : '',
+          range: arr > 0 ? `Fourchette ${eur0(arr * lo)} â€“ ${eur0(arr * hi)} Â· CA Ã— ${veFmtMult(mid)}` : '',
         };
       }
       if (veMethod === 'berkus') {
         const sum = [...veEst.querySelectorAll('#ve-berkus .ve-slider')].reduce((a, s) => a + Number(s.value), 0);
-        return { valo: sum, ok: sum > 0, range: 'Somme des 5 leviers · plafond 2,5 M€' };
+        return { valo: sum, ok: sum > 0, range: 'Somme des 5 leviers Â· plafond 2,5 Mâ‚¬' };
       }
       // scorecard
       const base = parseNum(document.getElementById('ve-base').value);
@@ -543,14 +543,14 @@
       veEst.querySelectorAll('#ve-scorecard .ve-slider').forEach(s => {
         mult += Number(s.dataset.w) * (Number(s.value) / 100);
       });
-      return { valo: base * mult, ok: base > 0, range: base > 0 ? `× ${mult.toFixed(2)} de la moyenne (${eur0(base)})` : '' };
+      return { valo: base * mult, ok: base > 0, range: base > 0 ? `Ã— ${mult.toFixed(2)} de la moyenne (${eur0(base)})` : '' };
     }
 
     function veRender() {
       veSyncSliders();
       const r = veCompute();
       veValo = r.ok && r.valo > 0 ? r.valo : 0;
-      document.getElementById('ve-result').textContent = veValo > 0 ? eur0(veValo) : '—';
+      document.getElementById('ve-result').textContent = veValo > 0 ? eur0(veValo) : 'â€”';
       document.getElementById('ve-range').textContent = veValo > 0 ? r.range : '';
       document.getElementById('ve-use').disabled = !(veValo > 0);
       const saveBtn = document.getElementById('ve-save');
@@ -600,7 +600,7 @@
       else window.location.href = 'tableau-de-bord.html';
     });
 
-    // Info-bulle : survol du nom d'une méthode dans l'estimateur
+    // Info-bulle : survol du nom d'une mÃ©thode dans l'estimateur
     (function initMethodTips() {
       const tip = document.createElement('div');
       tip.className = 'tip';
@@ -645,7 +645,7 @@
       window.addEventListener('resize', hide);
     })();
 
-    // ---------- Historique des estimations (synchronisé avec le compte) ----------
+    // ---------- Historique des estimations (synchronisÃ© avec le compte) ----------
     const VE_METHOD_LABELS = { rev: 'Multiple de revenu', berkus: 'Berkus', scorecard: 'Scorecard' };
     const HISTORY_KEY = 'liquidplus_valuation_history_v1';
     const HISTORY_MAX = 30;
@@ -682,7 +682,7 @@
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || 'Impossible d’enregistrer l’historique.');
+        throw new Error(data.error || 'Impossible dâ€™enregistrer lâ€™historique.');
       }
       return response.json();
     }
@@ -701,7 +701,7 @@
       return stored;
     }
 
-    // Capture l'état complet de l'estimateur (les trois méthodes), indépendant de la méthode courante
+    // Capture l'Ã©tat complet de l'estimateur (les trois mÃ©thodes), indÃ©pendant de la mÃ©thode courante
     function captureSnapshot() {
       const growthEl = document.querySelector('input[name="ve-g"]:checked');
       return {
@@ -715,7 +715,7 @@
       };
     }
 
-    // Restaure un état sauvegardé dans le formulaire
+    // Restaure un Ã©tat sauvegardÃ© dans le formulaire
     function restoreSnapshot(s) {
       veMethod = s.method || 'rev';
       document.getElementById('ve-arr').value = s.arr ? nfInt.format(Math.round(s.arr)) : '';
@@ -735,29 +735,29 @@
       const list = historyEntries;
       const body = document.getElementById('hist-list');
       if (!list.length) {
-        body.innerHTML = '<div class="hist-empty">Aucune estimation enregistrée pour l\'instant. Réglez vos paramètres puis cliquez sur « Enregistrer cette estimation » pour la retrouver ici.</div>';
+        body.innerHTML = '<div class="hist-empty">Aucune estimation enregistrÃ©e pour l\'instant. RÃ©glez vos paramÃ¨tres puis cliquez sur Â« Enregistrer cette estimation Â» pour la retrouver ici.</div>';
         return;
       }
       body.innerHTML = list.map(entry => {
         const d = new Date(entry.savedAt);
-        const dateStr = `${d.toLocaleDateString('fr-FR')} · ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+        const dateStr = `${d.toLocaleDateString('fr-FR')} Â· ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
         const s = entry.summary || {};
         const rangeChip = (s.low != null && s.high != null)
-          ? `<span class="hist-chip">Fourchette ${eur0(s.low)} – ${eur0(s.high)}</span>`
+          ? `<span class="hist-chip">Fourchette ${eur0(s.low)} â€“ ${eur0(s.high)}</span>`
           : '';
         return `<div class="hist-item" data-id="${entry.id}">
           <div class="hist-item__main">
             <div class="hist-item__name">${escAttr(entry.name)}</div>
             <div class="hist-item__meta">${dateStr}</div>
             <div class="hist-item__chips">
-              <span class="hist-chip">${escAttr(s.methodLabel || VE_METHOD_LABELS[s.method] || 'Méthode')}</span>
+              <span class="hist-chip">${escAttr(s.methodLabel || VE_METHOD_LABELS[s.method] || 'MÃ©thode')}</span>
               <span class="hist-chip">Valorisation ${eur0(s.valo)}</span>
               ${rangeChip}
             </div>
           </div>
           <div class="hist-item__actions">
             <button type="button" class="hist-btn hist-load">Charger</button>
-            <button type="button" class="hist-btn hist-del" title="Supprimer">×</button>
+            <button type="button" class="hist-btn hist-del" title="Supprimer">Ã—</button>
           </div>
         </div>`;
       }).join('');
@@ -766,11 +766,11 @@
     async function saveCurrentEstimation() {
       const r = veCompute();
       if (!(r.ok && r.valo > 0)) {
-        alert("Impossible d'enregistrer : renseignez d'abord des données donnant une valorisation positive.");
+        alert("Impossible d'enregistrer : renseignez d'abord des donnÃ©es donnant une valorisation positive.");
         return;
       }
       const now = new Date();
-      const defaultName = `Estimation ${VE_METHOD_LABELS[veMethod]} du ${now.toLocaleDateString('fr-FR')} à ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+      const defaultName = `Estimation ${VE_METHOD_LABELS[veMethod]} du ${now.toLocaleDateString('fr-FR')} Ã  ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
       const name = ((await askText('Nom de cette estimation :', defaultName, 'Enregistrer')) || '').trim();
       if (!name) return;
       const entry = {
@@ -786,7 +786,7 @@
         },
         state: captureSnapshot(),
       };
-      const localSaved = updateHistory([entry, ...historyEntries], 'Enregistrement de l’estimation…');
+      const localSaved = updateHistory([entry, ...historyEntries], 'Enregistrement de lâ€™estimationâ€¦');
 
       try {
         const data = await requestHistory('', {
@@ -794,11 +794,11 @@
           body: JSON.stringify({ estimation: entry }),
         });
         const saved = data.estimation;
-        updateHistory(historyEntries.map(item => item.id === entry.id ? saved : item), 'Estimation enregistrée.', 'ok');
+        updateHistory(historyEntries.map(item => item.id === entry.id ? saved : item), 'Estimation enregistrÃ©e.', 'ok');
       } catch (error) {
         const message = localSaved
-          ? 'Estimation enregistrée sur cet appareil. La synchronisation du compte sera réessayée à la prochaine ouverture.'
-          : 'Impossible d’enregistrer l’estimation : le stockage est indisponible.';
+          ? 'Estimation enregistrÃ©e sur cet appareil. La synchronisation du compte sera rÃ©essayÃ©e Ã  la prochaine ouverture.'
+          : 'Impossible dâ€™enregistrer lâ€™estimation : le stockage est indisponible.';
         setHistoryStatus(message, 'warn');
       }
     }
@@ -814,10 +814,10 @@
       } else if (e.target.closest('.hist-del')) {
         if (!confirm('Supprimer cette estimation de l\'historique ?')) return;
         const previous = historyEntries;
-        updateHistory(previous.filter(x => x.id !== id), 'Estimation supprimée.', 'ok');
+        updateHistory(previous.filter(x => x.id !== id), 'Estimation supprimÃ©e.', 'ok');
         if (!id.startsWith('val_')) {
           requestHistory('/' + encodeURIComponent(id), { method: 'DELETE' }).catch(() => {
-            updateHistory(previous, 'La suppression n’a pas pu être synchronisée. Réessayez plus tard.', 'warn');
+            updateHistory(previous, 'La suppression nâ€™a pas pu Ãªtre synchronisÃ©e. RÃ©essayez plus tard.', 'warn');
           });
         }
       }
@@ -831,8 +831,8 @@
       try {
         const data = await requestHistory();
         const remoteEntries = Array.isArray(data.estimations) ? data.estimations : [];
-        // Les estimations créées avant la synchronisation par compte restent accessibles
-        // et sont importées une seule fois (leurs identifiants locaux commencent par val_).
+        // Les estimations crÃ©Ã©es avant la synchronisation par compte restent accessibles
+        // et sont importÃ©es une seule fois (leurs identifiants locaux commencent par val_).
         const legacyEntries = localEntries.filter(entry => String(entry.id || '').startsWith('val_'));
         const migrated = await Promise.all(legacyEntries.map(async (entry) => {
           const result = await requestHistory('', {
@@ -841,13 +841,13 @@
           });
           return result.estimation;
         }));
-        // Conserve un enregistrement déclenché pendant le chargement de l'historique.
+        // Conserve un enregistrement dÃ©clenchÃ© pendant le chargement de l'historique.
         const pendingEntries = historyEntries.filter(entry =>
           String(entry.id || '').startsWith('val_') && !initialLocalIds.has(entry.id)
         );
-        updateHistory([...remoteEntries, ...migrated, ...pendingEntries], migrated.length ? 'Historique synchronisé avec votre compte.' : '', migrated.length ? 'ok' : '');
+        updateHistory([...remoteEntries, ...migrated, ...pendingEntries], migrated.length ? 'Historique synchronisÃ© avec votre compte.' : '', migrated.length ? 'ok' : '');
       } catch {
-        if (historyEntries.length) setHistoryStatus('Historique enregistré sur cet appareil.', 'warn');
+        if (historyEntries.length) setHistoryStatus('Historique enregistrÃ© sur cet appareil.', 'warn');
       }
     }
 
@@ -892,7 +892,7 @@
     hydrateHistory();
   </script>
 
-  <!-- Boîte de dialogue de saisie (remplace window.prompt, indisponible sous Electron) -->
+  <!-- BoÃ®te de dialogue de saisie (remplace window.prompt, indisponible sous Electron) -->
   <div class="ask-backdrop" id="ask-backdrop">
     <div class="ask-box" role="dialog" aria-modal="true" aria-labelledby="ask-title">
       <div class="ask-box__title" id="ask-title"></div>

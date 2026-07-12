@@ -1,13 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Liquid+ — Mon compte</title>
-  <meta name="description" content="Gérez votre profil, votre mot de passe et la sécurité de votre compte liquid +." />
+  <title>Liquid+ â€” Mon compte</title>
+  <meta name="description" content="GÃ©rez votre profil, votre mot de passe et la sÃ©curitÃ© de votre compte liquid +." />
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
   <script>
-    // Applique le thème mémorisé au plus tôt (anti-flash). Défaut : sombre (:root).
+    // Applique le thÃ¨me mÃ©morisÃ© au plus tÃ´t (anti-flash). DÃ©faut : sombre (:root).
     try { var t = localStorage.getItem('liquidTheme'); if (t === 'paper' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -15,14 +15,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=6" />
   <link rel="stylesheet" href="editor.css?v=7" />
-  <link rel="stylesheet" href="drawer-menu.css?v=6" />
+  <link rel="stylesheet" href="drawer-menu.css?v=7" />
   <link rel="stylesheet" href="theme.css?v=1" />
   <style>
     body { background: var(--t-bg); min-height: 100vh; }
 
     /* Topbar noir (identique aux autres pages outils) : marque, goutte et menus.
-       La mise en page est déclarée en ligne pour ne pas dépendre d'editor.css :
-       sinon la barre s'empile verticalement si la feuille externe n'est pas chargée. */
+       La mise en page est dÃ©clarÃ©e en ligne pour ne pas dÃ©pendre d'editor.css :
+       sinon la barre s'empile verticalement si la feuille externe n'est pas chargÃ©e. */
     .topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 56px; padding: 0 20px; background: var(--t-topbar-bg) !important; border-bottom: 1px solid var(--t-topbar-border) !important; position: sticky; top: 0; z-index: 70; }
     .topbar__left { display: flex; align-items: center; gap: 16px; min-width: 0; }
     .topbar__actions { display: flex; align-items: center; gap: 8px; flex: none; }
@@ -32,8 +32,8 @@
     .topbar__doc { color: var(--t-on-bg) !important; border-left-color: var(--t-divider) !important; }
     .app { visibility: hidden; }
     .app.ready { visibility: visible; }
-    /* editor.css verrouille .app à 100vh/overflow:hidden (éditeur plein écran).
-       Sur cette page on veut un défilement normal de la fenêtre. */
+    /* editor.css verrouille .app Ã  100vh/overflow:hidden (Ã©diteur plein Ã©cran).
+       Sur cette page on veut un dÃ©filement normal de la fenÃªtre. */
     .app { height: auto; overflow: visible; display: block; }
 
     .account { max-width: 720px; margin: 0 auto; padding: 24px 28px 80px; }
@@ -49,7 +49,7 @@
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
-    /* Cartes blanches (bulles) sur fond noir — cohérent avec le tableau de bord */
+    /* Cartes blanches (bulles) sur fond noir â€” cohÃ©rent avec le tableau de bord */
     .card { background: var(--t-card); border: 1px solid var(--t-card-border); border-radius: 18px; padding: 26px 28px; margin-bottom: 18px; box-shadow: var(--t-card-shadow); }
     .card__title { font-size: 1.05rem; font-weight: 800; color: #08090c; letter-spacing: -0.01em; margin: 0 0 4px; }
     .card__desc { font-size: 0.9rem; color: #6b6b78; margin: 0 0 18px; line-height: 1.55; }
@@ -87,7 +87,7 @@
     .alert--error { background: rgba(220,38,38,0.09); color: #b91c1c; border: 1px solid rgba(220,38,38,0.2); }
     .alert--success { background: rgba(22,163,74,0.1); color: #15803d; border: 1px solid rgba(22,163,74,0.22); }
 
-    /* Sécurité / 2FA */
+    /* SÃ©curitÃ© / 2FA */
     .sec-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 22px; }
     .sec-row__actions { display: flex; flex-direction: column; gap: 8px; flex: none; }
     .badge-on { display: inline-flex; align-items: center; gap: 6px; font-family: 'Archivo', sans-serif; font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 99px; background: #dcfce7; color: #16a34a; margin-top: 10px; }
@@ -146,7 +146,7 @@
   <script src="auth.js?v=3"></script>
   <script src="theme.js?v=1" defer></script>
   <script src="tasks.js?v=2" defer></script>
-  <script src="drawer-menu.js?v=3" defer></script>
+  <script src="drawer-menu.js?v=7" defer></script>
   <script src="drawer-steps.js?v=1" defer></script>
 </head>
 <body>
@@ -157,7 +157,7 @@
         <button type="button" class="hamburger" id="nav-menu-btn" aria-label="Ouvrir la navigation" aria-controls="nav-drawer" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
-        <a href="/index.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
+        <a href="tableau-de-bord.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
         <span class="topbar__doc">Mon compte</span>
       </div>
       <div class="topbar__actions">
@@ -169,13 +169,13 @@
 
     <!-- Menu hamburger gauche : navigation -->
     <div class="drawer-backdrop" id="nav-backdrop" data-drawer-close></div>
-    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Étapes de la levée">
+    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Ã‰tapes de la levÃ©e">
       <div class="drawer__head"></div>
       <nav class="drawer__body">
-        <div class="drawer__section-title">Étapes de la levée</div>
-        <div id="nav-steps"><p class="drawer__steps-loading">Chargement des étapes…</p></div>
+        <div class="drawer__section-title">Ã‰tapes de la levÃ©e</div>
+        <div id="nav-steps"><p class="drawer__steps-loading">Chargement des Ã©tapesâ€¦</p></div>
       </nav>
-      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. FlÃ¨ches : 10 px, Maj + flÃ¨ches : 50 px, double-clic : rÃ©initialiser"></div>
     </aside>
 
     <!-- Menu hamburger droite : compte et outils -->
@@ -184,7 +184,7 @@
       <div class="drawer__head"></div>
       <nav class="drawer__body">
         <div class="drawer__section-title">Outils</div>
-        <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Éditeur</a>
+        <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Ã‰diteur</a>
         <a class="drawer__link" href="benchmark.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Benchmark</a>
         <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
         <div class="drawer__sep"></div>
@@ -192,7 +192,7 @@
         <a class="drawer__link" href="dilution.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
         <a class="drawer__link" href="exit.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Exit</a>
         <div class="drawer__sep"></div>
-        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>Tâches</a>
+        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>TÃ¢ches</a>
         <a class="drawer__link" href="documents.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>Documents</a>
         <a class="drawer__link" href="data-room.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/></svg>Data room</a>
         <a class="drawer__link" href="avocat.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M6 21h12"/><path d="M3 7h18"/><path d="M7 7l-3 6a3 3 0 0 0 6 0Z"/><path d="M17 7l3 6a3 3 0 0 0-6 0Z"/></svg>Avocat</a>
@@ -200,9 +200,9 @@
         <a class="drawer__link" href="compte.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>Mon compte</a>
         <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
         <div class="drawer__sep"></div>
-        <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>Déconnexion</button>
+        <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>DÃ©connexion</button>
       </nav>
-      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. FlÃ¨ches : 10 px, Maj + flÃ¨ches : 50 px, double-clic : rÃ©initialiser"></div>
     </aside>
 
     <div class="account-back-row">
@@ -214,15 +214,15 @@
     <main class="account">
       <div class="account__eyebrow">Compte</div>
       <h1 class="account__title">Mon compte</h1>
-      <p class="account__sub">Gérez votre profil, votre mot de passe et la sécurité de votre compte.</p>
+      <p class="account__sub">GÃ©rez votre profil, votre mot de passe et la sÃ©curitÃ© de votre compte.</p>
 
       <div class="tabs">
         <button class="tab active" data-tab="profile">Profil</button>
-        <button class="tab" data-tab="security">Sécurité</button>
+        <button class="tab" data-tab="security">SÃ©curitÃ©</button>
         <button class="tab" data-tab="dataroom">Data room</button>
       </div>
 
-      <!-- ── Onglet Profil ── -->
+      <!-- â”€â”€ Onglet Profil â”€â”€ -->
       <div id="tab-profile" class="tab-panel active">
 
         <!-- Statut du compte -->
@@ -232,7 +232,7 @@
           <div class="account-status" id="account-status" aria-live="polite">
             <div class="account-status__row">
               <span class="account-status__label">Type de compte</span>
-              <span class="account-status__values"><span class="account-status__badge">Chargement…</span></span>
+              <span class="account-status__values"><span class="account-status__badge">Chargementâ€¦</span></span>
             </div>
           </div>
         </div>
@@ -243,16 +243,16 @@
           <p class="card__desc">Suivi de votre utilisation de l'assistant IA de liquid +.</p>
           <div class="usage-grid">
             <div class="usage-tile">
-              <div class="usage-tile__val" id="usage-requests">—</div>
-              <div class="usage-tile__lbl">Requêtes IA</div>
+              <div class="usage-tile__val" id="usage-requests">â€”</div>
+              <div class="usage-tile__lbl">RequÃªtes IA</div>
             </div>
             <div class="usage-tile">
-              <div class="usage-tile__val" id="usage-total">—</div>
-              <div class="usage-tile__lbl">Tokens utilisés</div>
+              <div class="usage-tile__val" id="usage-total">â€”</div>
+              <div class="usage-tile__lbl">Tokens utilisÃ©s</div>
             </div>
             <div class="usage-tile">
-              <div class="usage-tile__val usage-tile__val--sm" id="usage-io">—</div>
-              <div class="usage-tile__lbl">Entrée / Sortie</div>
+              <div class="usage-tile__val usage-tile__val--sm" id="usage-io">â€”</div>
+              <div class="usage-tile__lbl">EntrÃ©e / Sortie</div>
             </div>
           </div>
           <div class="usage-updated" id="usage-updated" hidden></div>
@@ -279,12 +279,12 @@
         <!-- Mot de passe -->
         <div class="card">
           <h3 class="card__title">Mot de passe</h3>
-          <p class="card__desc">Choisissez un mot de passe fort d'au moins 6 caractères.</p>
+          <p class="card__desc">Choisissez un mot de passe fort d'au moins 6 caractÃ¨res.</p>
           <form class="form" id="password-form" novalidate>
             <label class="field">
               Mot de passe actuel
               <div class="input-wrap">
-                <input class="input" type="password" id="current-password" autocomplete="current-password" placeholder="••••••••" style="padding-right:40px;" />
+                <input class="input" type="password" id="current-password" autocomplete="current-password" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" style="padding-right:40px;" />
                 <button type="button" class="input-eye" data-target="current-password" aria-label="Afficher">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
@@ -293,7 +293,7 @@
             <label class="field">
               Nouveau mot de passe
               <div class="input-wrap">
-                <input class="input" type="password" id="new-password" autocomplete="new-password" placeholder="••••••••" style="padding-right:40px;" />
+                <input class="input" type="password" id="new-password" autocomplete="new-password" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" style="padding-right:40px;" />
                 <button type="button" class="input-eye" data-target="new-password" aria-label="Afficher">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
@@ -302,7 +302,7 @@
             <label class="field">
               Confirmer le nouveau mot de passe
               <div class="input-wrap">
-                <input class="input" type="password" id="confirm-password" autocomplete="new-password" placeholder="••••••••" style="padding-right:40px;" />
+                <input class="input" type="password" id="confirm-password" autocomplete="new-password" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" style="padding-right:40px;" />
                 <button type="button" class="input-eye" data-target="confirm-password" aria-label="Afficher">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
@@ -314,13 +314,13 @@
         </div>
       </div>
 
-      <!-- ── Onglet Sécurité ── -->
+      <!-- â”€â”€ Onglet SÃ©curitÃ© â”€â”€ -->
       <div id="tab-security" class="tab-panel">
         <div class="card">
           <div class="sec-row">
             <div style="flex:1;min-width:0">
-              <h3 class="card__title">Authentification à deux facteurs (2FA)</h3>
-              <p class="card__desc" style="margin-bottom:0">Protégez votre compte avec Google Authenticator. À chaque connexion, un code à 6 chiffres vous sera demandé en plus de votre mot de passe.</p>
+              <h3 class="card__title">Authentification Ã  deux facteurs (2FA)</h3>
+              <p class="card__desc" style="margin-bottom:0">ProtÃ©gez votre compte avec Google Authenticator. Ã€ chaque connexion, un code Ã  6 chiffres vous sera demandÃ© en plus de votre mot de passe.</p>
               <div id="status-badge"></div>
 
               <!-- Flow de configuration -->
@@ -340,30 +340,30 @@
             </div>
             <div class="sec-row__actions">
               <button class="btn btn--primary" id="toggle-btn" style="display:none">Activer le 2FA</button>
-              <button class="btn btn--danger" id="disable-btn" style="display:none">Désactiver</button>
+              <button class="btn btn--danger" id="disable-btn" style="display:none">DÃ©sactiver</button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ── Onglet Data room ── -->
+      <!-- â”€â”€ Onglet Data room â”€â”€ -->
       <div id="tab-dataroom" class="tab-panel">
         <div class="card">
-          <h3 class="card__title">Comptes cloud connectés</h3>
+          <h3 class="card__title">Comptes cloud connectÃ©s</h3>
           <p class="card__desc">Connectez un compte Google Drive ou Dropbox pour envoyer vos documents de due diligence directement dans votre espace.</p>
           <div class="dataroom-providers" id="dataroom-cloud-providers"></div>
           <div id="dataroom-alert" class="alert" hidden style="margin-top:16px"></div>
         </div>
 
         <div class="card">
-          <h3 class="card__title">Data rooms spécialisées</h3>
-          <p class="card__desc">Créez votre compte sur la plateforme de votre choix — Ansarada est gratuit pour démarrer. Le ZIP structuré de votre dossier de due diligence se prépare depuis l’outil Data room, prêt à être importé dans la plateforme. Aucune autorisation d’accès à votre compte liquid + n’est nécessaire.</p>
+          <h3 class="card__title">Data rooms spÃ©cialisÃ©es</h3>
+          <p class="card__desc">CrÃ©ez votre compte sur la plateforme de votre choix â€” Ansarada est gratuit pour dÃ©marrer. Le ZIP structurÃ© de votre dossier de due diligence se prÃ©pare depuis lâ€™outil Data room, prÃªt Ã  Ãªtre importÃ© dans la plateforme. Aucune autorisation dâ€™accÃ¨s Ã  votre compte liquid + nâ€™est nÃ©cessaire.</p>
           <div class="dataroom-providers" id="dataroom-specialized-providers"></div>
-          <a class="dataroom-tool-link" href="data-room.html">Préparer le ZIP depuis l’outil Data room →</a>
+          <a class="dataroom-tool-link" href="data-room.html">PrÃ©parer le ZIP depuis lâ€™outil Data room â†’</a>
         </div>
       </div>
 
-      <button type="button" class="account-logout-line" id="logout-btn">Déconnexion</button>
+      <button type="button" class="account-logout-line" id="logout-btn">DÃ©connexion</button>
       <button type="button" class="account-delete-button" id="delete-account-btn">Supprimer mon compte</button>
     </main>
   </div>
@@ -374,7 +374,7 @@
       else window.location.href = 'tableau-de-bord.html';
     });
 
-    // ── Onglets ───────────────────────────────────────────────────────────────
+    // â”€â”€ Onglets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     document.querySelectorAll('.tab').forEach(tab => {
       tab.addEventListener('click', () => {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -385,7 +385,7 @@
       });
     });
 
-    // ── Boutons œil (afficher / masquer le mot de passe) ──────────────────────
+    // â”€â”€ Boutons Å“il (afficher / masquer le mot de passe) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     document.querySelectorAll('.input-eye').forEach(btn => {
       btn.addEventListener('click', () => {
         const inp = document.getElementById(btn.dataset.target);
@@ -396,10 +396,10 @@
     document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); logout(); });
     document.getElementById('delete-account-btn').addEventListener('click', async (e) => {
       e.preventDefault();
-      if (!confirm('Supprimer définitivement votre compte liquid + et toutes vos données SaaS ? Cette action est irréversible.')) return;
+      if (!confirm('Supprimer dÃ©finitivement votre compte liquid + et toutes vos donnÃ©es SaaS ? Cette action est irrÃ©versible.')) return;
       const btn = document.getElementById('delete-account-btn');
       btn.disabled = true;
-      btn.textContent = 'Suppression…';
+      btn.textContent = 'Suppressionâ€¦';
       try {
         const res = await fetch('/api/auth/account', {
           method: 'DELETE',
@@ -422,17 +422,17 @@
       }
     });
 
-    // ── Garde d'authentification + pré-remplissage du profil ──────────────────
+    // â”€â”€ Garde d'authentification + prÃ©-remplissage du profil â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const DATAROOM_PROVIDER_LABELS = { google_drive: 'Google Drive', dropbox: 'Dropbox' };
-    // Data rooms spécialisées : produits « enterprise » sans API d'inscription.
-    // On ne peut pas créer le compte à la place de l'utilisateur — on l'amène en un
-    // clic sur le tunnel officiel du fournisseur. Le libellé est uniformisé à
-    // « Créer un compte » pour toutes les data rooms.
+    // Data rooms spÃ©cialisÃ©es : produits Â« enterprise Â» sans API d'inscription.
+    // On ne peut pas crÃ©er le compte Ã  la place de l'utilisateur â€” on l'amÃ¨ne en un
+    // clic sur le tunnel officiel du fournisseur. Le libellÃ© est uniformisÃ© Ã 
+    // Â« CrÃ©er un compte Â» pour toutes les data rooms.
     const DATAROOM_PRO_PROVIDERS = [
-      { name: 'Ansarada',   url: 'https://www.ansarada.com/data-room',                            action: 'Créer un compte',    note: 'Compte gratuit pour démarrer, sans carte bancaire' },
-      { name: 'Datasite',   url: 'https://www.datasite.com/',                                      action: 'Créer un compte',    note: 'Accès sur demande auprès de Datasite (essai possible)' },
-      { name: 'Intralinks', url: 'https://www.intralinks.com/products/virtual-data-room',          action: 'Créer un compte',    note: 'Démo et accès sur demande auprès d’Intralinks' },
-      { name: 'Firmex',     url: 'https://www.firmex.com/signup/data-room-request-a-quote/',       action: 'Créer un compte',    note: 'Devis et démo sur demande auprès de Firmex' },
+      { name: 'Ansarada',   url: 'https://www.ansarada.com/data-room',                            action: 'CrÃ©er un compte',    note: 'Compte gratuit pour dÃ©marrer, sans carte bancaire' },
+      { name: 'Datasite',   url: 'https://www.datasite.com/',                                      action: 'CrÃ©er un compte',    note: 'AccÃ¨s sur demande auprÃ¨s de Datasite (essai possible)' },
+      { name: 'Intralinks', url: 'https://www.intralinks.com/products/virtual-data-room',          action: 'CrÃ©er un compte',    note: 'DÃ©mo et accÃ¨s sur demande auprÃ¨s dâ€™Intralinks' },
+      { name: 'Firmex',     url: 'https://www.firmex.com/signup/data-room-request-a-quote/',       action: 'CrÃ©er un compte',    note: 'Devis et dÃ©mo sur demande auprÃ¨s de Firmex' },
     ];
     let dataroomConnections = [];
 
@@ -443,15 +443,15 @@
       avocat: 'Avocat',
     };
     const LAWYER_STATUS_LABELS = {
-      pending: ['Candidature en cours d’évaluation', 'pending'],
+      pending: ['Candidature en cours dâ€™Ã©valuation', 'pending'],
       active: ['Avocat partenaire de Liquid+', 'active'],
-      rejected: ['Candidature déclinée', 'rejected'],
+      rejected: ['Candidature dÃ©clinÃ©e', 'rejected'],
       suspended: ['Partenariat suspendu', 'rejected'],
     };
     const RAISE_TYPE_LABELS = {
-      classic: 'Levée classique',
+      classic: 'LevÃ©e classique',
       'bsa-air': 'BSA AIR',
-      unknown: 'Type de levée à définir',
+      unknown: 'Type de levÃ©e Ã  dÃ©finir',
     };
 
     requireAuth().then((user) => {
@@ -470,7 +470,7 @@
       const types = Array.isArray(user.account_types) ? user.account_types : [];
       const typeBadges = types.length
         ? types.map(type => `<span class="account-status__badge">${esc(ACCOUNT_TYPE_LABELS[type] || type)}</span>`).join('')
-        : '<span class="account-status__badge">Non renseigné</span>';
+        : '<span class="account-status__badge">Non renseignÃ©</span>';
       const rows = [`<div class="account-status__row"><span class="account-status__label">Type de compte</span><span class="account-status__values">${typeBadges}</span></div>`];
 
       if (types.includes('avocat')) {
@@ -484,7 +484,7 @@
           const response = await fetch('/api/saas/fundraising-profile', { credentials: 'include' });
           if (response.ok) raiseType = ((await response.json()).profile || {}).raise_type || 'unknown';
         } catch (_) {}
-        rows.push(`<div class="account-status__row"><span class="account-status__label">Type de levée</span><span class="account-status__values"><span class="account-status__badge">${esc(RAISE_TYPE_LABELS[raiseType] || raiseType)}</span></span></div>`);
+        rows.push(`<div class="account-status__row"><span class="account-status__label">Type de levÃ©e</span><span class="account-status__values"><span class="account-status__badge">${esc(RAISE_TYPE_LABELS[raiseType] || raiseType)}</span></span></div>`);
       }
 
       root.innerHTML = rows.join('');
@@ -515,8 +515,8 @@
       showDataroomAlert(
         connected ? 'success' : 'error',
         connected
-          ? (DATAROOM_PROVIDER_LABELS[connected] || connected) + ' est maintenant connecté.'
-          : 'La connexion à la data room a échoué. Réessayez.'
+          ? (DATAROOM_PROVIDER_LABELS[connected] || connected) + ' est maintenant connectÃ©.'
+          : 'La connexion Ã  la data room a Ã©chouÃ©. RÃ©essayez.'
       );
       params.delete('dataroom_connected');
       params.delete('dataroom_error');
@@ -540,7 +540,7 @@
       } catch {
         document.getElementById('dataroom-cloud-providers').innerHTML =
           '<div class="dataroom-export-empty">Impossible de charger vos connexions de data room.</div>';
-        // Les liens d'inscription sont statiques : on les affiche même hors ligne.
+        // Les liens d'inscription sont statiques : on les affiche mÃªme hors ligne.
         renderDataroomSignupProviders();
       }
     }
@@ -554,8 +554,8 @@
         const expired = !!connection && connection.status === 'revoked';
         const statusClass = connected ? 'dataroom-provider__status--on' : expired ? 'dataroom-provider__status--warn' : '';
         const status = connected
-          ? 'Connecté — ' + esc(connection.account_label || '')
-          : expired ? 'Connexion expirée — reconnectez votre compte' : 'Non connecté';
+          ? 'ConnectÃ© â€” ' + esc(connection.account_label || '')
+          : expired ? 'Connexion expirÃ©e â€” reconnectez votre compte' : 'Non connectÃ©';
         const row = document.createElement('div');
         row.className = 'dataroom-provider';
         row.innerHTML =
@@ -566,7 +566,7 @@
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'btn ' + (connected ? 'btn--ghost' : 'btn--primary');
-        button.textContent = connected ? 'Déconnecter' : 'Connecter';
+        button.textContent = connected ? 'DÃ©connecter' : 'Connecter';
         button.addEventListener('click', () => {
           if (connected) disconnectDataroomProvider(provider, button);
           else {
@@ -581,10 +581,10 @@
 
     async function disconnectDataroomProvider(provider, button) {
       const label = DATAROOM_PROVIDER_LABELS[provider];
-      if (!confirm('Déconnecter ' + label + ' ? Vous ne pourrez plus y envoyer de fichiers tant que vous ne l’aurez pas reconnecté.')) return;
+      if (!confirm('DÃ©connecter ' + label + ' ? Vous ne pourrez plus y envoyer de fichiers tant que vous ne lâ€™aurez pas reconnectÃ©.')) return;
       const previousText = button.textContent;
       button.disabled = true;
-      button.textContent = 'Déconnexion…';
+      button.textContent = 'DÃ©connexionâ€¦';
       try {
         const response = await fetch('/api/saas/dataroom/connections/' + provider, {
           method: 'DELETE',
@@ -592,7 +592,7 @@
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) {
-          showDataroomAlert('error', data.error || 'Impossible de déconnecter ' + label + '.');
+          showDataroomAlert('error', data.error || 'Impossible de dÃ©connecter ' + label + '.');
           button.disabled = false;
           button.textContent = previousText;
           return;
@@ -606,9 +606,9 @@
       }
     }
 
-    // Liens d'inscription : indépendants des dossiers, toujours affichés. Le ZIP
-    // livré étant identique quelle que soit la plateforme, on ne duplique plus le
-    // bouton de téléchargement par fournisseur — un seul export est proposé en bas.
+    // Liens d'inscription : indÃ©pendants des dossiers, toujours affichÃ©s. Le ZIP
+    // livrÃ© Ã©tant identique quelle que soit la plateforme, on ne duplique plus le
+    // bouton de tÃ©lÃ©chargement par fournisseur â€” un seul export est proposÃ© en bas.
     function renderDataroomSignupProviders() {
       const host = document.getElementById('dataroom-specialized-providers');
       host.innerHTML =
@@ -639,12 +639,12 @@
       syncSelectedProvider();
     }
 
-    // ── Enregistrer le profil ─────────────────────────────────────────────────
+    // â”€â”€ Enregistrer le profil â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     document.getElementById('profile-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       document.getElementById('profile-alert').hidden = true;
       const btn = document.getElementById('profile-save-btn');
-      btn.disabled = true; btn.textContent = 'Enregistrement…';
+      btn.disabled = true; btn.textContent = 'Enregistrementâ€¦';
       try {
         const res = await fetch('/api/auth/profile', {
           method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
@@ -652,12 +652,12 @@
         });
         const data = await res.json();
         if (!res.ok) { showAlert('profile-alert', 'error', data.error || 'Erreur'); return; }
-        showAlert('profile-alert', 'success', 'Profil mis à jour avec succès.');
+        showAlert('profile-alert', 'success', 'Profil mis Ã  jour avec succÃ¨s.');
       } catch { showAlert('profile-alert', 'error', 'Impossible de joindre le serveur.'); }
       finally { btn.disabled = false; btn.textContent = 'Enregistrer'; }
     });
 
-    // ── Changer le mot de passe ───────────────────────────────────────────────
+    // â”€â”€ Changer le mot de passe â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     document.getElementById('password-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       document.getElementById('password-alert').hidden = true;
@@ -665,7 +665,7 @@
       const confPwd = document.getElementById('confirm-password').value;
       if (newPwd !== confPwd) { showAlert('password-alert', 'error', 'Les mots de passe ne correspondent pas.'); return; }
       const btn = document.getElementById('password-save-btn');
-      btn.disabled = true; btn.textContent = 'Modification…';
+      btn.disabled = true; btn.textContent = 'Modificationâ€¦';
       try {
         const res = await fetch('/api/auth/password', {
           method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
@@ -673,13 +673,13 @@
         });
         const data = await res.json();
         if (!res.ok) { showAlert('password-alert', 'error', data.error || 'Erreur'); return; }
-        showAlert('password-alert', 'success', 'Mot de passe modifié avec succès.');
+        showAlert('password-alert', 'success', 'Mot de passe modifiÃ© avec succÃ¨s.');
         document.getElementById('password-form').reset();
       } catch { showAlert('password-alert', 'error', 'Impossible de joindre le serveur.'); }
       finally { btn.disabled = false; btn.textContent = 'Changer le mot de passe'; }
     });
 
-    // ── Statut 2FA ────────────────────────────────────────────────────────────
+    // â”€â”€ Statut 2FA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     async function load2FAStatus() {
       try {
         const res  = await fetch('/api/auth/2fa/status', { credentials: 'include' });
@@ -689,22 +689,22 @@
         const disableBtn = document.getElementById('disable-btn');
         const flow       = document.getElementById('setup-flow');
         if (data.enabled) {
-          badge.innerHTML = '<span class="badge-on"><svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="#16a34a"/></svg>Activé</span>';
+          badge.innerHTML = '<span class="badge-on"><svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="#16a34a"/></svg>ActivÃ©</span>';
           toggleBtn.style.display  = 'none';
           disableBtn.style.display = 'inline-flex';
           flow.classList.remove('open');
         } else {
-          badge.innerHTML = '<span class="badge-off">Non activé</span>';
+          badge.innerHTML = '<span class="badge-off">Non activÃ©</span>';
           toggleBtn.style.display  = 'inline-flex';
           disableBtn.style.display = 'none';
         }
       } catch { /* silencieux */ }
     }
 
-    // ── Activer le 2FA — démarrer le flow ─────────────────────────────────────
+    // â”€â”€ Activer le 2FA â€” dÃ©marrer le flow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     document.getElementById('toggle-btn').addEventListener('click', async () => {
       const btn = document.getElementById('toggle-btn');
-      btn.disabled = true; btn.textContent = 'Chargement…';
+      btn.disabled = true; btn.textContent = 'Chargementâ€¦';
       try {
         const res  = await fetch('/api/auth/2fa/setup', { method: 'POST', credentials: 'include' });
         const data = await res.json();
@@ -718,13 +718,13 @@
       finally { btn.disabled = false; btn.textContent = 'Activer le 2FA'; }
     });
 
-    // ── Confirmer le code TOTP ────────────────────────────────────────────────
+    // â”€â”€ Confirmer le code TOTP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     document.getElementById('confirm-btn').addEventListener('click', async () => {
       const code = document.getElementById('totp-confirm-input').value.replace(/\s/g, '');
       document.getElementById('setup-alert').hidden = true;
-      if (code.length < 6) { showAlert('setup-alert', 'error', 'Entrez le code à 6 chiffres.'); return; }
+      if (code.length < 6) { showAlert('setup-alert', 'error', 'Entrez le code Ã  6 chiffres.'); return; }
       const btn = document.getElementById('confirm-btn');
-      btn.disabled = true; btn.textContent = 'Vérification…';
+      btn.disabled = true; btn.textContent = 'VÃ©rificationâ€¦';
       try {
         const res  = await fetch('/api/auth/2fa/confirm', {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
@@ -732,24 +732,24 @@
         });
         const data = await res.json();
         if (!res.ok) { showAlert('setup-alert', 'error', data.error || 'Code incorrect'); return; }
-        showAlert('setup-alert', 'success', '2FA activé avec succès !');
+        showAlert('setup-alert', 'success', '2FA activÃ© avec succÃ¨s !');
         document.getElementById('totp-confirm-input').value = '';
         setTimeout(() => { document.getElementById('setup-flow').classList.remove('open'); load2FAStatus(); }, 1200);
       } catch { showAlert('setup-alert', 'error', 'Impossible de joindre le serveur'); }
       finally { btn.disabled = false; btn.textContent = 'Activer'; }
     });
 
-    // ── Désactiver le 2FA ─────────────────────────────────────────────────────
+    // â”€â”€ DÃ©sactiver le 2FA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     document.getElementById('disable-btn').addEventListener('click', async () => {
-      if (!confirm('Désactiver l\'authentification à deux facteurs ? Votre compte sera moins sécurisé.')) return;
+      if (!confirm('DÃ©sactiver l\'authentification Ã  deux facteurs ? Votre compte sera moins sÃ©curisÃ©.')) return;
       try {
         const res = await fetch('/api/auth/2fa', { method: 'DELETE', credentials: 'include' });
         if (res.ok) load2FAStatus();
-        else alert('Erreur lors de la désactivation');
+        else alert('Erreur lors de la dÃ©sactivation');
       } catch { alert('Impossible de joindre le serveur'); }
     });
 
-    // ── Formatage du code (groupes de 3 chiffres) ─────────────────────────────
+    // â”€â”€ Formatage du code (groupes de 3 chiffres) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     const totpInput = document.getElementById('totp-confirm-input');
     totpInput.addEventListener('input', function () {
       const v = this.value.replace(/\D/g, '').slice(0, 6);
@@ -757,7 +757,7 @@
     });
     totpInput.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('confirm-btn').click(); });
 
-    // ── Consommation IA (tokens + nombre de requêtes) ─────────────────────────
+    // â”€â”€ Consommation IA (tokens + nombre de requÃªtes) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function loadUsage() {
       const fmt = n => (n || 0).toLocaleString('fr-FR');
       fetch('/api/saas/usage', { credentials: 'include' })
@@ -770,7 +770,7 @@
           if (u.updated_at) {
             const el = document.getElementById('usage-updated');
             try {
-              el.textContent = 'Dernière mise à jour : ' + new Date(u.updated_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+              el.textContent = 'DerniÃ¨re mise Ã  jour : ' + new Date(u.updated_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
               el.hidden = false;
             } catch { /* date invalide */ }
           }

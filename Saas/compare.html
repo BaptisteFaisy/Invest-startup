@@ -1,22 +1,22 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Liquid+ — Comparer les versions</title>
-  <meta name="description" content="Comparaison de plusieurs versions d'un document de levée : modifications, auteurs et intentions, expliqués par l'IA." />
+  <title>Liquid+ â€” Comparer les versions</title>
+  <meta name="description" content="Comparaison de plusieurs versions d'un document de levÃ©e : modifications, auteurs et intentions, expliquÃ©s par l'IA." />
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=6" />
   <link rel="stylesheet" href="editor.css?v=7" />
-  <link rel="stylesheet" href="drawer-menu.css?v=6" />
+  <link rel="stylesheet" href="drawer-menu.css?v=7" />
   <link rel="stylesheet" href="help-bulb.css?v=1" />
   <style>
-    /* L'attribut `hidden` doit toujours l'emporter : sans ça, les règles de type
-       `.cmp__loading { display:flex }` / `.timeline { … }` écrasent le
-       `display:none` du navigateur et l'élément reste visible malgré `hidden`. */
+    /* L'attribut `hidden` doit toujours l'emporter : sans Ã§a, les rÃ¨gles de type
+       `.cmp__loading { display:flex }` / `.timeline { â€¦ }` Ã©crasent le
+       `display:none` du navigateur et l'Ã©lÃ©ment reste visible malgrÃ© `hidden`. */
     [hidden] { display: none !important; }
 
     .app { visibility: hidden; }
@@ -43,13 +43,13 @@
     .cmp__title { font-size: 30px; letter-spacing: -0.03em; color: #fff; margin-top: 6px; }
     .cmp__sub { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 8px; }
 
-    /* États chargement / erreur */
+    /* Ã‰tats chargement / erreur */
     .cmp__loading { display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 26px 24px; color: rgba(255,255,255,0.85); font-size: 15px; margin-top: 22px; }
     .spin { width: 22px; height: 22px; flex: none; border: 3px solid rgba(255,255,255,0.18); border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .cmp__err { font-size: 14px; color: #f87171; background: rgba(220,38,38,0.1); border: 1px solid rgba(220,38,38,0.25); border-radius: 12px; padding: 14px 16px; margin-top: 22px; line-height: 1.55; }
 
-    /* Étape de confirmation avant de lancer l'analyse IA */
+    /* Ã‰tape de confirmation avant de lancer l'analyse IA */
     .cmp__intro { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 24px; margin-top: 22px; }
     .cmp__introtext { color: rgba(255,255,255,0.75); font-size: 15px; line-height: 1.6; }
     .cmp__actions { display: flex; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
@@ -60,7 +60,7 @@
     .cmp-btn--cancel:hover { border-color: rgba(255,255,255,0.65); color: #fff; }
     .cmp-btn:disabled { opacity: 0.4; cursor: default; pointer-events: none; }
 
-    /* Synthèse */
+    /* SynthÃ¨se */
     .verdict { display: inline-flex; align-items: center; gap: 8px; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 7px 14px; border-radius: 99px; }
     .verdict--good { background: rgba(22,163,74,0.15); color: #4ade80; }
     .verdict--warn { background: rgba(217,119,6,0.16); color: #fbbf24; }
@@ -100,7 +100,7 @@
 
     .cmp__foot { margin-top: 30px; }
 
-    /* Sélecteur de document (ouverture directe de l'outil, sans paramètre) */
+    /* SÃ©lecteur de document (ouverture directe de l'outil, sans paramÃ¨tre) */
     .docpick, .vpick { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px 22px; margin-top: 22px; }
     .docpick__h, .vpick__h { display: flex; align-items: baseline; gap: 10px; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; margin-bottom: 14px; }
     .vpick__hint { margin-left: auto; font-weight: 600; letter-spacing: 0.03em; color: rgba(255,255,255,0.42); }
@@ -117,7 +117,7 @@
     .cmp__tab:hover { border-color: rgba(255,255,255,0.4); color: #fff; }
     .cmp__tab.is-active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
 
-    /* Arbre déterministe des versions et échanges (aucune analyse IA). */
+    /* Arbre dÃ©terministe des versions et Ã©changes (aucune analyse IA). */
     .linhead { display:flex; align-items:center; gap:12px; margin-top:22px; padding:14px 16px; border:1px solid rgba(255,255,255,.1); border-radius:14px; background:rgba(255,255,255,.04); }
     .linhead__title { color:#fff; font:700 15px/1.3 'Archivo',sans-serif; }
     .linhead__meta { margin-left:auto; color:rgba(255,255,255,.5); font-size:12px; }
@@ -137,7 +137,7 @@
     .linnode__meta { display:block; margin-top:3px; color:#6b6b78; font-size:11.5px; line-height:1.4; }
     .linnode__open { flex:none; color:#2563eb; font:700 11.5px/1 'Archivo',sans-serif; text-decoration:none; padding:7px 9px; border-radius:8px; background:#eff6ff; }
 
-    /* Sélecteur multi-documents (comparaison entre investisseurs) : case + nom + input investisseur */
+    /* SÃ©lecteur multi-documents (comparaison entre investisseurs) : case + nom + input investisseur */
     .docpick__row { display: flex; align-items: center; gap: 12px; width: 100%; background: #fff; border-radius: 12px; padding: 11px 14px; cursor: pointer; }
     .docpick__row input[type=checkbox] { width: 17px; height: 17px; accent-color: #3b82f6; flex: none; cursor: pointer; }
     .docpick__row__name { font-weight: 700; color: #08090c; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px; }
@@ -146,7 +146,7 @@
     .docpick__row__inv:disabled { background: #f3f3f5; color: #9a9aa3; cursor: not-allowed; }
     .docpick__row__inv::placeholder { color: #9a9aa3; }
 
-    /* Tableau de comparaison critère par critère (term sheets de plusieurs investisseurs) */
+    /* Tableau de comparaison critÃ¨re par critÃ¨re (term sheets de plusieurs investisseurs) */
     .cmptable-wrap { margin-top: 26px; }
     .cmptable-scroll { overflow-x: auto; border-radius: 14px; box-shadow: 0 8px 26px rgba(0,0,0,0.3); }
     .cmptable { border-collapse: collapse; width: 100%; min-width: 480px; background: #fff; }
@@ -157,7 +157,7 @@
     .cmptable td.is-best { background: rgba(22,163,74,0.08); color: #14532d; font-weight: 600; }
     .cmptable tbody tr:last-child th, .cmptable tbody tr:last-child td { border-bottom: none; }
 
-    /* Cartes de synthèse par investisseur */
+    /* Cartes de synthÃ¨se par investisseur */
     .invcards { margin-top: 26px; display: grid; gap: 14px; }
     .invcard { background: #fff; border-radius: 14px; padding: 16px 18px; box-shadow: 0 8px 26px rgba(0,0,0,0.3); }
     .invcard__top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -169,7 +169,7 @@
     .invcard__lab--concern { color: #b45309; }
     .invcard ul { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.55; color: #374151; }
 
-    /* Sélecteur des versions à comparer (cochables) */
+    /* SÃ©lecteur des versions Ã  comparer (cochables) */
     .vpick__row { display: flex; align-items: center; gap: 12px; background: #fff; border-radius: 12px; padding: 11px 14px; cursor: pointer; }
     .vpick__row input { width: 17px; height: 17px; accent-color: #3b82f6; flex: none; cursor: pointer; }
     .vpick__row input:disabled { cursor: default; }
@@ -187,7 +187,7 @@
     .tl-ver .tl-mark { left: 1px; top: 14px; width: 16px; height: 16px; border-radius: 50%; background: #0b0d12; border: 3px solid #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.12); }
     .tl-trans .tl-mark { left: 2px; top: 9px; width: 14px; height: 14px; display: grid; place-items: center; border-radius: 50%; background: #0b0d12; border: 2px solid rgba(255,255,255,0.28); color: rgba(255,255,255,0.72); font-size: 9px; line-height: 1; }
 
-    /* Carte d'une version (nœud de la frise) : nom, date, auteur inféré */
+    /* Carte d'une version (nÅ“ud de la frise) : nom, date, auteur infÃ©rÃ© */
     .verc { background: #fff; border-radius: 14px; padding: 14px 16px; box-shadow: 0 8px 26px rgba(0,0,0,0.3); }
     .verc__top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .verc__tag { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; padding: 3px 9px; border-radius: 99px; background: rgba(8,9,12,0.06); color: #6b6b78; flex: none; }
@@ -213,7 +213,7 @@
     .trans__intent b { color: #fff; }
     .trans__empty { color: rgba(255,255,255,0.5); font-size: 13px; font-style: italic; }
 
-    /* Historique des comparaisons déjà lancées (une frise par mode) */
+    /* Historique des comparaisons dÃ©jÃ  lancÃ©es (une frise par mode) */
     .cmp-hist { margin-top: 30px; }
     .cmp-hist__h { display: flex; align-items: baseline; gap: 10px; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; margin-bottom: 14px; }
     .cmp-hist__hint { font-weight: 600; letter-spacing: 0.03em; color: rgba(255,255,255,0.42); }
@@ -231,7 +231,7 @@
   </style>
   <script src="auth.js?v=3"></script>
   <script src="tasks.js?v=2" defer></script>
-  <script src="drawer-menu.js?v=3" defer></script>
+  <script src="drawer-menu.js?v=7" defer></script>
   <script src="drawer-steps.js?v=1" defer></script>
   <script src="help-bulb.js?v=1" defer></script>
 </head>
@@ -242,7 +242,7 @@
         <button type="button" class="hamburger" id="nav-menu-btn" aria-label="Ouvrir la navigation" aria-controls="nav-drawer" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
-        <a href="/index.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
+        <a href="tableau-de-bord.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
         <span class="topbar__doc">Comparaison de versions</span>
       </div>
       <div class="topbar__actions">
@@ -254,13 +254,13 @@
 
     <!-- Menu hamburger gauche : navigation -->
     <div class="drawer-backdrop" id="nav-backdrop" data-drawer-close></div>
-    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Étapes de la levée">
+    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Ã‰tapes de la levÃ©e">
       <div class="drawer__head"></div>
       <nav class="drawer__body">
-        <div class="drawer__section-title">Étapes de la levée</div>
-        <div id="nav-steps"><p class="drawer__steps-loading">Chargement des étapes…</p></div>
+        <div class="drawer__section-title">Ã‰tapes de la levÃ©e</div>
+        <div id="nav-steps"><p class="drawer__steps-loading">Chargement des Ã©tapesâ€¦</p></div>
       </nav>
-      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. FlÃ¨ches : 10 px, Maj + flÃ¨ches : 50 px, double-clic : rÃ©initialiser"></div>
     </aside>
 
     <!-- Menu hamburger droite : compte & actions -->
@@ -269,7 +269,7 @@
       <div class="drawer__head"></div>
       <nav class="drawer__body">
         <div class="drawer__section-title">Outils</div>
-        <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Éditeur</a>
+        <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Ã‰diteur</a>
         <a class="drawer__link" href="benchmark.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Benchmark</a>
         <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
         <div class="drawer__sep"></div>
@@ -277,21 +277,21 @@
         <a class="drawer__link" href="dilution.html" target="_blank" rel="noopener" title="Simulation de dilution"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
         <a class="drawer__link" href="exit.html" target="_blank" rel="noopener" title="Simulateur d'exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Exit</a>
         <div class="drawer__sep"></div>
-        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>Tâches</a>
+        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>TÃ¢ches</a>
         <a class="drawer__link" href="documents.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>Documents</a>
         <a class="drawer__link" href="data-room.html" target="_blank" rel="noopener" title="Data room"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/></svg>Data room</a>
         <a class="drawer__link" href="avocat.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M6 21h12"/><path d="M3 7h18"/><path d="M7 7l-3 6a3 3 0 0 0 6 0Z"/><path d="M17 7l3 6a3 3 0 0 0-6 0Z"/></svg>Avocat</a>
         <div class="drawer__sep"></div>
         <a class="drawer__link" href="compte.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>Mon compte</a>
-        <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Écrire au fondateur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
+        <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Ã‰crire au fondateur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
         <div class="drawer__sep"></div>
-        <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>Déconnexion</button>
+        <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>DÃ©connexion</button>
       </nav>
-      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. FlÃ¨ches : 10 px, Maj + flÃ¨ches : 50 px, double-clic : rÃ©initialiser"></div>
     </aside>
 
     <div class="page-back-row">
-      <button type="button" class="page-back" id="page-back-btn" aria-label="Revenir en arrière" title="Revenir en arrière">
+      <button type="button" class="page-back" id="page-back-btn" aria-label="Revenir en arriÃ¨re" title="Revenir en arriÃ¨re">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
       </button>
     </div>
@@ -302,42 +302,42 @@
       <h1 class="cmp__title">Comparer les versions</h1>
       <div class="help-pop" hidden>
         <div class="help-pop__label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg> Comprendre cet outil</div>
-        <p id="cmp-sub">Toutes les modifications d'un document au fil de la négociation, dans l'ordre chronologique — qui a probablement rédigé chaque version, et les intentions derrière chaque changement.</p>
+        <p id="cmp-sub">Toutes les modifications d'un document au fil de la nÃ©gociation, dans l'ordre chronologique â€” qui a probablement rÃ©digÃ© chaque version, et les intentions derriÃ¨re chaque changement.</p>
       </div>
 
-      <!-- Ne s'affiche qu'à l'ouverture générale de l'outil (pas sur un lien direct
-           « comparer ces 2 versions » venant de l'éditeur ou du tableau de bord). -->
+      <!-- Ne s'affiche qu'Ã  l'ouverture gÃ©nÃ©rale de l'outil (pas sur un lien direct
+           Â« comparer ces 2 versions Â» venant de l'Ã©diteur ou du tableau de bord). -->
       <div class="cmp__tabs" id="cmp-tabs" hidden>
-        <button type="button" class="cmp__tab is-active" data-tab="versions">Versions d'un même document</button>
+        <button type="button" class="cmp__tab is-active" data-tab="versions">Versions d'un mÃªme document</button>
         <button type="button" class="cmp__tab" data-tab="investors">Term sheets de plusieurs investisseurs</button>
         <button type="button" class="cmp__tab" data-tab="lineage">Arbre des versions</button>
       </div>
 
       <div id="panel-versions">
-        <!-- Choix du document (ouverture directe de l'outil, sans version pré-sélectionnée) -->
+        <!-- Choix du document (ouverture directe de l'outil, sans version prÃ©-sÃ©lectionnÃ©e) -->
         <div class="docpick" id="docpick" hidden>
-          <div class="docpick__h">Choisissez un document à analyser</div>
+          <div class="docpick__h">Choisissez un document Ã  analyser</div>
           <div class="docpick__list" id="docpick-list"></div>
         </div>
 
-        <!-- Sélecteur des versions à comparer (par défaut : toutes, ordre chronologique) -->
+        <!-- SÃ©lecteur des versions Ã  comparer (par dÃ©faut : toutes, ordre chronologique) -->
         <div class="vpick" id="vpick" hidden>
-          <div class="vpick__h"><span id="vpick-title">Versions à comparer</span><span class="vpick__hint">ordre chronologique</span></div>
+          <div class="vpick__h"><span id="vpick-title">Versions Ã  comparer</span><span class="vpick__hint">ordre chronologique</span></div>
           <div class="vpick__list" id="vpick-list"></div>
         </div>
 
         <div class="cmp__intro" id="intro" hidden>
-          <p class="cmp__introtext" id="introtext">Lancez l'analyse pour comparer les versions sélectionnées avec l'IA. Cela peut prendre quelques secondes.</p>
+          <p class="cmp__introtext" id="introtext">Lancez l'analyse pour comparer les versions sÃ©lectionnÃ©es avec l'IA. Cela peut prendre quelques secondes.</p>
           <div class="cmp__actions">
             <button class="cmp-btn cmp-btn--go" id="analyze-btn">Analyser</button>
             <button class="cmp-btn cmp-btn--cancel" id="cancel-btn" disabled>Annuler</button>
-            <button type="button" class="aimax" data-aimax-toggle aria-pressed="false" title="Mode rapide. Cliquez pour une comparaison approfondie « Max »."><span class="aimax__i" aria-hidden="true">✦</span><span>Max</span></button>
+            <button type="button" class="aimax" data-aimax-toggle aria-pressed="false" title="Mode rapide. Cliquez pour une comparaison approfondie Â« Max Â»."><span class="aimax__i" aria-hidden="true">âœ¦</span><span>Max</span></button>
           </div>
         </div>
 
         <div class="cmp__loading" id="loading" hidden>
           <div class="spin"></div>
-          <div>Analyse des versions par l'IA… cela peut prendre quelques secondes.</div>
+          <div>Analyse des versions par l'IAâ€¦ cela peut prendre quelques secondes.</div>
         </div>
 
         <div class="cmp__err" id="error" hidden></div>
@@ -345,7 +345,7 @@
         <div id="result" hidden>
           <div id="verdict-wrap" style="margin-top:22px" hidden><span class="verdict" id="verdict"></span></div>
           <div class="summary" id="summary-card" hidden>
-            <div class="summary__h">Synthèse de la négociation</div>
+            <div class="summary__h">SynthÃ¨se de la nÃ©gociation</div>
             <div class="summary__text" id="summary-text"></div>
           </div>
 
@@ -357,34 +357,34 @@
           </div>
         </div>
 
-        <!-- Historique : comparaisons de versions déjà lancées -->
+        <!-- Historique : comparaisons de versions dÃ©jÃ  lancÃ©es -->
         <div class="cmp-hist" id="hist" hidden>
-          <div class="cmp-hist__h"><span>Comparaisons précédentes</span><span class="cmp-hist__hint">cliquez pour rouvrir</span></div>
+          <div class="cmp-hist__h"><span>Comparaisons prÃ©cÃ©dentes</span><span class="cmp-hist__hint">cliquez pour rouvrir</span></div>
           <div class="cmp-hist__list" id="hist-list"></div>
         </div>
       </div>
 
-      <!-- Comparaison de plusieurs documents INDÉPENDANTS du même type (ex. term
-           sheets envoyées par des investisseurs différents) : pas de chronologie
-           ni d'auteur, une comparaison critère par critère. -->
+      <!-- Comparaison de plusieurs documents INDÃ‰PENDANTS du mÃªme type (ex. term
+           sheets envoyÃ©es par des investisseurs diffÃ©rents) : pas de chronologie
+           ni d'auteur, une comparaison critÃ¨re par critÃ¨re. -->
       <div id="panel-investors" hidden>
         <div class="docpick" id="docpick-inv">
-          <div class="docpick__h">Sélectionnez au moins deux documents à comparer, et indiquez l'investisseur de chacun</div>
+          <div class="docpick__h">SÃ©lectionnez au moins deux documents Ã  comparer, et indiquez l'investisseur de chacun</div>
           <div class="docpick__list" id="docpick-inv-list"></div>
         </div>
 
         <div class="cmp__intro" id="intro-inv" hidden>
-          <p class="cmp__introtext" id="introtext-inv">Sélectionnez au moins deux documents à comparer.</p>
+          <p class="cmp__introtext" id="introtext-inv">SÃ©lectionnez au moins deux documents Ã  comparer.</p>
           <div class="cmp__actions">
             <button class="cmp-btn cmp-btn--go" id="analyze-inv-btn">Analyser</button>
             <button class="cmp-btn cmp-btn--cancel" id="cancel-inv-btn" disabled>Annuler</button>
-            <button type="button" class="aimax" data-aimax-toggle aria-pressed="false" title="Mode rapide. Cliquez pour une comparaison approfondie « Max »."><span class="aimax__i" aria-hidden="true">✦</span><span>Max</span></button>
+            <button type="button" class="aimax" data-aimax-toggle aria-pressed="false" title="Mode rapide. Cliquez pour une comparaison approfondie Â« Max Â»."><span class="aimax__i" aria-hidden="true">âœ¦</span><span>Max</span></button>
           </div>
         </div>
 
         <div class="cmp__loading" id="loading-inv" hidden>
           <div class="spin"></div>
-          <div>Analyse des propositions par l'IA… cela peut prendre quelques secondes.</div>
+          <div>Analyse des propositions par l'IAâ€¦ cela peut prendre quelques secondes.</div>
         </div>
 
         <div class="cmp__err" id="error-inv" hidden></div>
@@ -392,12 +392,12 @@
         <div id="result-inv" hidden>
           <div id="verdict-inv-wrap" style="margin-top:22px" hidden><span class="verdict" id="verdict-inv"></span></div>
           <div class="summary" id="summary-inv-card" hidden>
-            <div class="summary__h">Synthèse comparative</div>
+            <div class="summary__h">SynthÃ¨se comparative</div>
             <div class="summary__text" id="summary-inv-text"></div>
           </div>
 
           <div class="cmptable-wrap" id="cmptable-wrap" hidden>
-            <div class="changes__h">Comparaison critère par critère</div>
+            <div class="changes__h">Comparaison critÃ¨re par critÃ¨re</div>
             <div class="cmptable-scroll"><table class="cmptable" id="cmptable"></table></div>
           </div>
 
@@ -409,16 +409,16 @@
           </div>
         </div>
 
-        <!-- Historique : comparaisons entre investisseurs déjà lancées -->
+        <!-- Historique : comparaisons entre investisseurs dÃ©jÃ  lancÃ©es -->
         <div class="cmp-hist" id="hist-inv" hidden>
-          <div class="cmp-hist__h"><span>Comparaisons précédentes</span><span class="cmp-hist__hint">cliquez pour rouvrir</span></div>
+          <div class="cmp-hist__h"><span>Comparaisons prÃ©cÃ©dentes</span><span class="cmp-hist__hint">cliquez pour rouvrir</span></div>
           <div class="cmp-hist__list" id="hist-inv-list"></div>
         </div>
       </div>
 
       <div id="panel-lineage" hidden>
         <div class="docpick" id="docpick-lineage">
-          <div class="docpick__h">Choisissez une lignée de documents</div>
+          <div class="docpick__h">Choisissez une lignÃ©e de documents</div>
           <div class="docpick__list" id="docpick-lineage-list"></div>
         </div>
         <div class="cmp__err" id="error-lineage" hidden></div>
@@ -429,7 +429,7 @@
       </div>
 
       <div class="cmp__foot">
-        <a href="tableau-de-bord.html" class="btn btn--ghost">← Retour au tableau de bord</a>
+        <a href="tableau-de-bord.html" class="btn btn--ghost">â† Retour au tableau de bord</a>
       </div>
     </main>
   </div>
@@ -446,10 +446,10 @@
 
     const JOB_TYPE = 'doc-compare-multi';
 
-    // Modes d'entrée dans l'outil :
-    //   ?doc=<id>                              → historique complet d'un term sheet éditable
-    //   ?old=&new=  /  ?new=&oldv=  (legacy)   → 2 versions ciblées (liens existants)
-    //   (aucun paramètre)                      → on propose de choisir un document
+    // Modes d'entrÃ©e dans l'outil :
+    //   ?doc=<id>                              â†’ historique complet d'un term sheet Ã©ditable
+    //   ?old=&new=  /  ?new=&oldv=  (legacy)   â†’ 2 versions ciblÃ©es (liens existants)
+    //   (aucun paramÃ¨tre)                      â†’ on propose de choisir un document
     const docId  = Number(qp('doc'));
     const oldId  = Number(qp('old'));
     const newId  = Number(qp('new'));
@@ -472,7 +472,7 @@
       errorEl.textContent = msg;
     }
 
-    // ── Bascule Versions / Investisseurs (uniquement à l'ouverture générale) ──
+    // â”€â”€ Bascule Versions / Investisseurs (uniquement Ã  l'ouverture gÃ©nÃ©rale) â”€â”€
     const JOB_TYPE_INV = 'doc-compare-investors';
     const tabsEl           = document.getElementById('cmp-tabs');
     const panelVersionsEl  = document.getElementById('panel-versions');
@@ -490,9 +490,9 @@
     const cancelInvBtn     = document.getElementById('cancel-inv-btn');
 
     const SUB_TEXT = {
-      versions: "Toutes les modifications d'un document au fil de la négociation, dans l'ordre chronologique — qui a probablement rédigé chaque version, et les intentions derrière chaque changement.",
-      investors: "Comparez des term sheets (ou tout autre document comparable) proposées par différents investisseurs, critère par critère, pour choisir avec qui avancer.",
-      lineage: "Visualisez l'arbre factuel des versions, branches et échanges déclarés. Cette vue n'utilise aucune IA.",
+      versions: "Toutes les modifications d'un document au fil de la nÃ©gociation, dans l'ordre chronologique â€” qui a probablement rÃ©digÃ© chaque version, et les intentions derriÃ¨re chaque changement.",
+      investors: "Comparez des term sheets (ou tout autre document comparable) proposÃ©es par diffÃ©rents investisseurs, critÃ¨re par critÃ¨re, pour choisir avec qui avancer.",
+      lineage: "Visualisez l'arbre factuel des versions, branches et Ã©changes dÃ©clarÃ©s. Cette vue n'utilise aucune IA.",
     };
     let invInited = false;
     let lineageInited = false;
@@ -504,20 +504,20 @@
       panelLineageEl.hidden = !toLineage;
       [...tabsEl.querySelectorAll('.cmp__tab')].forEach(b => b.classList.toggle('is-active', b.dataset.tab === tab));
       cmpSubEl.textContent = SUB_TEXT[tab] || SUB_TEXT.versions;
-      cmpEyebrowEl.textContent = toLineage ? 'Historique factuel · sans IA' : 'Analyse IA';
+      cmpEyebrowEl.textContent = toLineage ? 'Historique factuel Â· sans IA' : 'Analyse IA';
       if (toInv && !invInited) { invInited = true; initInvestorsPanel(); }
       if (toLineage && !lineageInited) { lineageInited = true; initLineagePanel(); }
     }
 
-    // ── Arbre complet des filiations (sans IA) ───────────────────────────────
+    // â”€â”€ Arbre complet des filiations (sans IA) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function lineageParty(node, investors) {
-      if (node.node_type === 'snapshot') return 'Instantané validé dans l’éditeur';
-      if (node.origin === 'lawyer') return 'Reçu de l’avocat';
+      if (node.node_type === 'snapshot') return 'InstantanÃ© validÃ© dans lâ€™Ã©diteur';
+      if (node.origin === 'lawyer') return 'ReÃ§u de lâ€™avocat';
       if (node.origin === 'investor') {
         const inv = investors.find(i => Number(i.id) === Number(node.origin_party_id));
-        return 'Reçu de ' + (inv ? (inv.firm ? inv.name + ' — ' + inv.firm : inv.name) : 'un investisseur');
+        return 'ReÃ§u de ' + (inv ? (inv.firm ? inv.name + ' â€” ' + inv.firm : inv.name) : 'un investisseur');
       }
-      return 'Créé par vous';
+      return 'CrÃ©Ã© par vous';
     }
     function lineageDate(value) {
       if (!value) return '';
@@ -530,11 +530,11 @@
       const card = document.createElement('div');
       card.className = 'linnode' + (snap ? ' linnode--snap' : '') + (isRoot ? ' linnode--root' : '');
       const tx = transmissions.filter(t => Number(t.document_id) === Number(node.doc_id));
-      const txLabel = tx.length ? ' · ' + tx.map(t => t.direction === 'sent' ? 'envoyé' : 'reçu').join(', ') : '';
+      const txLabel = tx.length ? ' Â· ' + tx.map(t => t.direction === 'sent' ? 'envoyÃ©' : 'reÃ§u').join(', ') : '';
       const date = lineageDate(node.date || node.created_at);
-      card.innerHTML = '<span class="linnode__ico">' + (snap ? '✎' : node.origin === 'investor' || node.origin === 'lawyer' ? '📥' : '📄') + '</span>' +
-        '<span class="linnode__main"><span class="linnode__name">' + esc(node.name || (snap ? 'Instantané éditeur' : 'Document')) + '</span>' +
-        '<span class="linnode__meta">' + esc(lineageParty(node, investors) + txLabel + (date ? ' · ' + date : '')) + '</span></span>';
+      card.innerHTML = '<span class="linnode__ico">' + (snap ? 'âœŽ' : node.origin === 'investor' || node.origin === 'lawyer' ? 'ðŸ“¥' : 'ðŸ“„') + '</span>' +
+        '<span class="linnode__main"><span class="linnode__name">' + esc(node.name || (snap ? 'InstantanÃ© Ã©diteur' : 'Document')) + '</span>' +
+        '<span class="linnode__meta">' + esc(lineageParty(node, investors) + txLabel + (date ? ' Â· ' + date : '')) + '</span></span>';
       const open = document.createElement('a');
       open.className = 'linnode__open'; open.target = '_blank'; open.rel = 'noopener'; open.textContent = 'Ouvrir';
       open.href = snap ? '/api/saas/termsheets/' + node.doc_id + '/versions/' + node.version_id + '/preview'
@@ -564,8 +564,8 @@
       const tree = document.getElementById('lineage-tree'); tree.innerHTML = '';
       const ul = document.createElement('ul'); roots.forEach(r => ul.appendChild(build(r, true))); tree.appendChild(ul);
       const root = roots[0] || docs[0];
-      document.getElementById('lineage-title').textContent = root ? root.name : 'Lignée';
-      document.getElementById('lineage-meta').textContent = docs.length + ' document' + (docs.length > 1 ? 's' : '') + ' · ' + snaps.length + ' instantané' + (snaps.length > 1 ? 's' : '');
+      document.getElementById('lineage-title').textContent = root ? root.name : 'LignÃ©e';
+      document.getElementById('lineage-meta').textContent = docs.length + ' document' + (docs.length > 1 ? 's' : '') + ' Â· ' + snaps.length + ' instantanÃ©' + (snaps.length > 1 ? 's' : '');
       document.getElementById('lineage-result').hidden = false;
     }
     async function openLineage(id) {
@@ -592,8 +592,8 @@
           b.innerHTML = '<span class="docpick__item__name">' + esc(d.name) + '</span><span class="docpick__item__meta">' + count + ' document' + (count > 1 ? 's' : '') + '</span>';
           b.addEventListener('click', () => openLineage(d.id)); list.appendChild(b);
         });
-        if (!list.children.length) list.innerHTML = '<div class="docpick__empty">Aucun document pour l’instant.</div>';
-      } catch { list.innerHTML = '<div class="docpick__empty">Impossible de charger les lignées.</div>'; }
+        if (!list.children.length) list.innerHTML = '<div class="docpick__empty">Aucun document pour lâ€™instant.</div>';
+      } catch { list.innerHTML = '<div class="docpick__empty">Impossible de charger les lignÃ©es.</div>'; }
     }
 
     function showInvError(msg) {
@@ -604,7 +604,7 @@
 
     const VERDICT_CLASS = [
       { re: /favorable au fondateur/i,  cls: 'verdict--good' },
-      { re: /d[ée]favorable/i,          cls: 'verdict--bad' },
+      { re: /d[Ã©e]favorable/i,          cls: 'verdict--bad' },
       { re: /vigilance/i,               cls: 'verdict--warn' },
     ];
     function verdictClass(v) {
@@ -612,8 +612,8 @@
       return 'verdict--neutral';
     }
 
-    // Classe l'auteur inféré par CAMP (le côté prime : « Avocat du fondateur » → fondateur,
-    // « Avocat de l'investisseur » → investisseur ; un conseil sans camp → neutre).
+    // Classe l'auteur infÃ©rÃ© par CAMP (le cÃ´tÃ© prime : Â« Avocat du fondateur Â» â†’ fondateur,
+    // Â« Avocat de l'investisseur Â» â†’ investisseur ; un conseil sans camp â†’ neutre).
     function authorClass(a) {
       const s = String(a || '').toLowerCase();
       if (/fondateur|founder/.test(s))                return 'founder';
@@ -622,29 +622,29 @@
       return 'unknown';
     }
 
-    // ── Candidats (versions comparables) ──────────────────────────────────────
+    // â”€â”€ Candidats (versions comparables) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // Chaque candidat : { kind:'version'|'doc', id, name, date, current? }.
     let candidates = [];
     let compareTitle = '';
 
     async function loadCandidates() {
       if (docId) {
-        // Historique d'un term sheet éditable : versions validées (chronologique) + version actuelle.
+        // Historique d'un term sheet Ã©ditable : versions validÃ©es (chronologique) + version actuelle.
         const [meta, vers] = await Promise.all([
           fetch('/api/saas/termsheets/' + docId, { credentials: 'include' }).then(r => r.ok ? r.json() : null).catch(() => null),
           fetch('/api/saas/termsheets/' + docId + '/versions', { credentials: 'include' }).then(r => r.ok ? r.json() : null).catch(() => null),
         ]);
         compareTitle = (meta && meta.name) || 'Document';
-        // L'API renvoie la plus récente en tête : on inverse pour l'ordre chronologique.
+        // L'API renvoie la plus rÃ©cente en tÃªte : on inverse pour l'ordre chronologique.
         const list = (vers && Array.isArray(vers.versions)) ? vers.versions.slice().reverse() : [];
         list.forEach((v, i) => candidates.push({ kind: 'version', id: v.id, name: v.label || ('Version ' + (i + 1)), date: v.created_at }));
         candidates.push({ kind: 'doc', id: docId, name: compareTitle, date: (meta && meta.updated_at) || null, current: true });
         return;
       }
       if ((oldId || oldVid) && (newId || newVid)) {
-        // Liens existants à 2 versions : le serveur ré-ordonne par date réelle.
-        if (oldVid) candidates.push({ kind: 'version', id: oldVid, name: 'Version précédente', date: null });
-        else        candidates.push({ kind: 'doc',     id: oldId,  name: 'Version précédente', date: null });
+        // Liens existants Ã  2 versions : le serveur rÃ©-ordonne par date rÃ©elle.
+        if (oldVid) candidates.push({ kind: 'version', id: oldVid, name: 'Version prÃ©cÃ©dente', date: null });
+        else        candidates.push({ kind: 'doc',     id: oldId,  name: 'Version prÃ©cÃ©dente', date: null });
         if (newVid) candidates.push({ kind: 'version', id: newVid, name: 'Nouvelle version', date: null, current: true });
         else        candidates.push({ kind: 'doc',     id: newId,  name: 'Nouvelle version', date: null, current: true });
         compareTitle = 'Document';
@@ -661,10 +661,10 @@
 
     function renderVPicker() {
       vpickEl.hidden = false;
-      document.getElementById('vpick-title').textContent = 'Versions de « ' + (compareTitle || 'ce document') + ' »';
+      document.getElementById('vpick-title').textContent = 'Versions de Â« ' + (compareTitle || 'ce document') + ' Â»';
       const list = document.getElementById('vpick-list');
       list.innerHTML = '';
-      const many = candidates.length > 2;   // cases décochables seulement s'il reste ≥ 2 versions
+      const many = candidates.length > 2;   // cases dÃ©cochables seulement s'il reste â‰¥ 2 versions
       candidates.forEach((c, i) => {
         const last = i === candidates.length - 1;
         const row = document.createElement('label');
@@ -692,11 +692,11 @@
       introEl.hidden = false;
       analyzeBtn.disabled = n < 2 || !!currentJobId;
       introtextEl.textContent = n < 2
-        ? 'Sélectionnez au moins deux versions à comparer.'
-        : 'Comparer les ' + n + ' versions sélectionnées avec l\'IA : modifications, auteurs et intentions, dans l\'ordre chronologique. Cela peut prendre quelques secondes.';
+        ? 'SÃ©lectionnez au moins deux versions Ã  comparer.'
+        : 'Comparer les ' + n + ' versions sÃ©lectionnÃ©es avec l\'IA : modifications, auteurs et intentions, dans l\'ordre chronologique. Cela peut prendre quelques secondes.';
     }
 
-    // Choix du document quand l'outil est ouvert sans version pré-sélectionnée.
+    // Choix du document quand l'outil est ouvert sans version prÃ©-sÃ©lectionnÃ©e.
     async function renderDocPicker() {
       docpickEl.hidden = false;
       const list = document.getElementById('docpick-list');
@@ -707,7 +707,7 @@
         docs = (d.documents || []).filter(x => x.kind === 'termsheet');
       } catch { /* liste vide */ }
       if (!docs.length) {
-        list.innerHTML = '<div class="docpick__empty">Aucun document éditable à comparer pour l\'instant. Créez un document dans l\'éditeur et validez-en plusieurs versions (bouton « Valider la version »), puis revenez ici.</div>';
+        list.innerHTML = '<div class="docpick__empty">Aucun document Ã©ditable Ã  comparer pour l\'instant. CrÃ©ez un document dans l\'Ã©diteur et validez-en plusieurs versions (bouton Â« Valider la version Â»), puis revenez ici.</div>';
         return;
       }
       list.innerHTML = '';
@@ -721,18 +721,18 @@
       });
     }
 
-    // ── Rendu du résultat : synthèse + verdict + frise + conseil ───────────────
+    // â”€â”€ Rendu du rÃ©sultat : synthÃ¨se + verdict + frise + conseil â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     function changeCardEl(c) {
       const sev = ['haute', 'moyenne', 'basse'].includes(c.severity) ? c.severity : 'moyenne';
       const nat = ['ajout', 'suppression', 'modification'].includes(c.nature) ? c.nature : 'modification';
       const card = document.createElement('div');
       card.className = 'chg chg--' + sev;
-      const sevLabel = sev === 'haute' ? 'Priorité haute' : sev === 'basse' ? 'Priorité basse' : 'Priorité moyenne';
+      const sevLabel = sev === 'haute' ? 'PrioritÃ© haute' : sev === 'basse' ? 'PrioritÃ© basse' : 'PrioritÃ© moyenne';
       let ba = '';
       if (c.before || c.after) {
         ba = '<div class="chg__ba">'
           + (c.before ? `<div class="chg__col chg__col--before"><div class="chg__col__lab">Avant</div>${esc(c.before)}</div>` : '')
-          + (c.after  ? `<div class="chg__col chg__col--after"><div class="chg__col__lab">Après</div>${esc(c.after)}</div>` : '')
+          + (c.after  ? `<div class="chg__col chg__col--after"><div class="chg__col__lab">AprÃ¨s</div>${esc(c.after)}</div>` : '')
           + '</div>';
       }
       card.innerHTML =
@@ -742,7 +742,7 @@
            <span class="chg__sev">${sevLabel}</span>
          </div>
          ${ba}
-         ${c.impact ? `<div class="chg__impact"><b>Impact —</b> ${esc(c.impact)}</div>` : ''}`;
+         ${c.impact ? `<div class="chg__impact"><b>Impact â€”</b> ${esc(c.impact)}</div>` : ''}`;
       return card;
     }
 
@@ -753,7 +753,7 @@
       const card = document.createElement('div'); card.className = 'verc';
       const name = (meta && (meta.label || meta.name)) || ('Version ' + (i + 1));
       const date = meta && meta.date ? fmtDate(meta.date) : '';
-      const author = (ver && ver.author) || 'Indéterminé';
+      const author = (ver && ver.author) || 'IndÃ©terminÃ©';
       const conf   = (ver && ver.authorConfidence) || '';
       const rat    = (ver && ver.authorRationale) || '';
       const acls   = authorClass(author);
@@ -764,7 +764,7 @@
            ${date ? `<span class="verc__date">${esc(date)}</span>` : ''}
          </div>
          <div class="verc__author">
-           <span class="abadge abadge--${acls}"><span class="abadge__ico"></span>Rédigée par : ${esc(author)}</span>
+           <span class="abadge abadge--${acls}"><span class="abadge__ico"></span>RÃ©digÃ©e par : ${esc(author)}</span>
            ${conf ? `<span class="aconf">confiance ${esc(conf)}</span>` : ''}
          </div>
          ${rat ? `<div class="verc__rat">${esc(rat)}</div>` : ''}`;
@@ -775,15 +775,15 @@
     function transitionEl(tr, i) {
       const block = document.createElement('div');
       block.className = 'tl-block tl-trans';
-      const mark = document.createElement('span'); mark.className = 'tl-mark'; mark.textContent = '↓'; block.appendChild(mark);
+      const mark = document.createElement('span'); mark.className = 'tl-mark'; mark.textContent = 'â†“'; block.appendChild(mark);
       const wrap = document.createElement('div');
       const changes = (tr && Array.isArray(tr.changes)) ? tr.changes : [];
       const cnt = changes.length ? changes.length + ' changement' + (changes.length > 1 ? 's' : '') : 'aucun changement notable';
-      wrap.innerHTML = `<div class="trans__h">v${i + 1} → v${i + 2}<span class="trans__count">${cnt}</span></div>`;
+      wrap.innerHTML = `<div class="trans__h">v${i + 1} â†’ v${i + 2}<span class="trans__count">${cnt}</span></div>`;
       if (tr && tr.intent) {
         const box = document.createElement('div');
         box.className = 'trans__intent';
-        box.innerHTML = '<span class="trans__intent__lab">Intention derrière ces modifications</span>' + esc(tr.intent);
+        box.innerHTML = '<span class="trans__intent__lab">Intention derriÃ¨re ces modifications</span>' + esc(tr.intent);
         wrap.appendChild(box);
       }
       if (changes.length) changes.forEach(c => wrap.appendChild(changeCardEl(c)));
@@ -805,13 +805,13 @@
       const tl = document.getElementById('timeline');
       tl.innerHTML = '';
       // Anti-troncature silencieuse : si plus de versions existaient que celles
-      // effectivement analysées, on le signale (échantillonnage chronologique).
+      // effectivement analysÃ©es, on le signale (Ã©chantillonnage chronologique).
       const total = data.meta && data.meta.total;
       if (total && total > n) {
         const note = document.createElement('div');
         note.className = 'trans__empty';
         note.style.marginBottom = '14px';
-        note.textContent = `Analyse d'un échantillon de ${n} versions sur ${total} (la première et la dernière sont toujours incluses).`;
+        note.textContent = `Analyse d'un Ã©chantillon de ${n} versions sur ${total} (la premiÃ¨re et la derniÃ¨re sont toujours incluses).`;
         tl.appendChild(note);
       }
       for (let i = 0; i < n; i++) {
@@ -851,19 +851,19 @@
       }
       // Rien d'exploitable (toutes les versions identiques).
       if (!data.overallSummary && !anyChanges(data) && !data.recommendation) {
-        showError('Aucune différence notable n\'a été détectée entre les versions sélectionnées.');
+        showError('Aucune diffÃ©rence notable n\'a Ã©tÃ© dÃ©tectÃ©e entre les versions sÃ©lectionnÃ©es.');
         resultEl.hidden = true;
       }
     }
 
-    // ── Tâche de fond (analyse IA) ─────────────────────────────────────────────
+    // â”€â”€ TÃ¢che de fond (analyse IA) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     let currentJobId = null;
     const jobLocation = 'compare.html' + location.search;
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
     function setAnalyzing(on) {
       analyzeBtn.disabled = on || selectedEntries().length < 2;
-      analyzeBtn.textContent = on ? 'Analyse…' : 'Analyser';
+      analyzeBtn.textContent = on ? 'Analyseâ€¦' : 'Analyser';
       cancelBtn.disabled = !on;
       loadingEl.hidden = !on;
     }
@@ -876,7 +876,7 @@
         docpickEl.hidden = true;
         introEl.hidden = true;
         renderResult(job.result);
-        // La comparaison vient d'être archivée côté serveur : on rafraîchit la frise.
+        // La comparaison vient d'Ãªtre archivÃ©e cÃ´tÃ© serveur : on rafraÃ®chit la frise.
         refreshHistory('versions');
       }
     }
@@ -889,7 +889,7 @@
         try { job = await LiquidTasks.fetchResult(id); } catch { await sleep(1600); continue; }
         if (!job) { setAnalyzing(false); currentJobId = null; return; }
         if (job.status === 'done')      { finishCompare(job); LiquidTasks.dismiss(id); return; }
-        if (job.status === 'error')     { showError(job.error || 'La comparaison a échoué. Réessayez dans un instant.'); setAnalyzing(false); currentJobId = null; return; }
+        if (job.status === 'error')     { showError(job.error || 'La comparaison a Ã©chouÃ©. RÃ©essayez dans un instant.'); setAnalyzing(false); currentJobId = null; return; }
         if (job.status === 'cancelled') { setAnalyzing(false); introEl.hidden = false; currentJobId = null; return; }
         await sleep(1600);
       }
@@ -898,7 +898,7 @@
     async function analyze() {
       if (currentJobId) return;
       const entries = selectedEntries();
-      if (entries.length < 2) { showError('Sélectionnez au moins deux versions à comparer.'); return; }
+      if (entries.length < 2) { showError('SÃ©lectionnez au moins deux versions Ã  comparer.'); return; }
       errorEl.hidden = true;
       resultEl.hidden = true;
       setAnalyzing(true);
@@ -933,15 +933,15 @@
       else { const full = await LiquidTasks.fetchResult(job.id); if (full) { finishCompare(full); LiquidTasks.dismiss(job.id); } }
     }
 
-    // ── Comparaison de term sheets de plusieurs investisseurs ─────────────────
-    // Documents INDÉPENDANTS (pas des versions successives) : on liste tous les
+    // â”€â”€ Comparaison de term sheets de plusieurs investisseurs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // Documents INDÃ‰PENDANTS (pas des versions successives) : on liste tous les
     // documents du fondateur, il en coche au moins deux et nomme l'investisseur
-    // associé à chacun.
+    // associÃ© Ã  chacun.
     let invCandidates = [];
 
     async function initInvestorsPanel() {
       const list = document.getElementById('docpick-inv-list');
-      list.innerHTML = '<div class="docpick__empty">Chargement…</div>';
+      list.innerHTML = '<div class="docpick__empty">Chargementâ€¦</div>';
       let docs = [];
       try {
         const r = await fetch('/api/saas/documents', { credentials: 'include' });
@@ -950,7 +950,7 @@
       } catch { /* liste vide */ }
       invCandidates = docs;
       if (!docs.length) {
-        list.innerHTML = '<div class="docpick__empty">Aucun document à comparer pour l\'instant. Importez plusieurs term sheets (une par investisseur) depuis « Documents », puis revenez ici.</div>';
+        list.innerHTML = '<div class="docpick__empty">Aucun document Ã  comparer pour l\'instant. Importez plusieurs term sheets (une par investisseur) depuis Â« Documents Â», puis revenez ici.</div>';
         return;
       }
       list.innerHTML = '';
@@ -985,7 +985,7 @@
       });
       introInvEl.hidden = false;
       updateInvIntro();
-      // Historique des comparaisons entre investisseurs (masqué s'il est vide).
+      // Historique des comparaisons entre investisseurs (masquÃ© s'il est vide).
       refreshHistory('investors');
     }
 
@@ -1006,8 +1006,8 @@
       const n = selectedInvEntries().length;
       analyzeInvBtn.disabled = n < 2 || !!currentInvJobId;
       introtextInvEl.textContent = n < 2
-        ? 'Sélectionnez au moins deux documents à comparer, et indiquez (facultatif) le nom de l\'investisseur pour chacun.'
-        : 'Comparer les ' + n + ' propositions sélectionnées critère par critère avec l\'IA : ce qui diffère et laquelle est la plus favorable. Cela peut prendre quelques secondes.';
+        ? 'SÃ©lectionnez au moins deux documents Ã  comparer, et indiquez (facultatif) le nom de l\'investisseur pour chacun.'
+        : 'Comparer les ' + n + ' propositions sÃ©lectionnÃ©es critÃ¨re par critÃ¨re avec l\'IA : ce qui diffÃ¨re et laquelle est la plus favorable. Cela peut prendre quelques secondes.';
     }
 
     function changesTableRow(c, n) {
@@ -1031,7 +1031,7 @@
       const criteria = Array.isArray(data.criteria) ? data.criteria : [];
       if (criteria.length && names.length) {
         const table = document.getElementById('cmptable');
-        table.innerHTML = '<thead><tr><th>Critère</th>' + names.map(nm => `<th>${esc(nm)}</th>`).join('') + '</tr></thead>';
+        table.innerHTML = '<thead><tr><th>CritÃ¨re</th>' + names.map(nm => `<th>${esc(nm)}</th>`).join('') + '</tr></thead>';
         const tbody = document.createElement('tbody');
         criteria.forEach(c => {
           const tr = document.createElement('tr');
@@ -1070,7 +1070,7 @@
       }
 
       if (!data.overallSummary && !criteria.length && !perInvestor.length && !data.recommendation) {
-        showInvError('Aucune comparaison exploitable n\'a pu être établie entre les documents sélectionnés.');
+        showInvError('Aucune comparaison exploitable n\'a pu Ãªtre Ã©tablie entre les documents sÃ©lectionnÃ©s.');
         resultInvEl.hidden = true;
       }
     }
@@ -1079,7 +1079,7 @@
 
     function setInvAnalyzing(on) {
       analyzeInvBtn.disabled = on || selectedInvEntries().length < 2;
-      analyzeInvBtn.textContent = on ? 'Analyse…' : 'Analyser';
+      analyzeInvBtn.textContent = on ? 'Analyseâ€¦' : 'Analyser';
       cancelInvBtn.disabled = !on;
       loadingInvEl.hidden = !on;
     }
@@ -1091,7 +1091,7 @@
         docpickInvEl.hidden = true;
         introInvEl.hidden = true;
         renderInvResult(job.result);
-        // La comparaison vient d'être archivée côté serveur : on rafraîchit la frise.
+        // La comparaison vient d'Ãªtre archivÃ©e cÃ´tÃ© serveur : on rafraÃ®chit la frise.
         refreshHistory('investors');
       }
     }
@@ -1104,7 +1104,7 @@
         try { job = await LiquidTasks.fetchResult(id); } catch { await sleep(1600); continue; }
         if (!job) { setInvAnalyzing(false); currentInvJobId = null; return; }
         if (job.status === 'done')      { finishInvCompare(job); LiquidTasks.dismiss(id); return; }
-        if (job.status === 'error')     { showInvError(job.error || 'La comparaison a échoué. Réessayez dans un instant.'); setInvAnalyzing(false); currentInvJobId = null; return; }
+        if (job.status === 'error')     { showInvError(job.error || 'La comparaison a Ã©chouÃ©. RÃ©essayez dans un instant.'); setInvAnalyzing(false); currentInvJobId = null; return; }
         if (job.status === 'cancelled') { setInvAnalyzing(false); introInvEl.hidden = false; currentInvJobId = null; return; }
         await sleep(1600);
       }
@@ -1113,7 +1113,7 @@
     async function analyzeInvestors() {
       if (currentInvJobId) return;
       const entries = selectedInvEntries();
-      if (entries.length < 2) { showInvError('Sélectionnez au moins deux documents à comparer.'); return; }
+      if (entries.length < 2) { showInvError('SÃ©lectionnez au moins deux documents Ã  comparer.'); return; }
       errorInvEl.hidden = true;
       resultInvEl.hidden = true;
       setInvAnalyzing(true);
@@ -1148,9 +1148,9 @@
       else { const full = await LiquidTasks.fetchResult(job.id); if (full) { finishInvCompare(full); LiquidTasks.dismiss(job.id); } }
     }
 
-    // ── Historique des comparaisons (deux frises distinctes selon le mode) ─────
-    // 'versions'  → évolution d'un document (fondateur ↔ investisseur) ;
-    // 'investors' → propositions de plusieurs investisseurs comparées entre elles.
+    // â”€â”€ Historique des comparaisons (deux frises distinctes selon le mode) â”€â”€â”€â”€â”€
+    // 'versions'  â†’ Ã©volution d'un document (fondateur â†” investisseur) ;
+    // 'investors' â†’ propositions de plusieurs investisseurs comparÃ©es entre elles.
     const HIST = {
       versions:  { wrap: 'hist',     list: 'hist-list',     verdict: true },
       investors: { wrap: 'hist-inv', list: 'hist-inv-list', verdict: false },
@@ -1198,8 +1198,8 @@
         ? `<span class="histrow__verdict ${verdictClass(h.verdict)}">${esc(h.verdict)}</span>` : '';
       main.innerHTML =
         `<span class="histrow__name">${esc(h.title || 'Comparaison')}</span>`
-        + (items.length ? `<span class="histrow__items">${esc(items.join(' · '))}</span>` : '')
-        + `<span class="histrow__meta">${verdict}${[count, when].filter(Boolean).map(esc).join(' · ')}</span>`;
+        + (items.length ? `<span class="histrow__items">${esc(items.join(' Â· '))}</span>` : '')
+        + `<span class="histrow__meta">${verdict}${[count, when].filter(Boolean).map(esc).join(' Â· ')}</span>`;
       main.addEventListener('click', () => openHistoryEntry(h.id, mode));
       const del = document.createElement('button');
       del.type = 'button'; del.className = 'histrow__del'; del.title = 'Supprimer de l\'historique';
@@ -1232,8 +1232,8 @@
       if (!user) return;
       document.querySelector('.app').classList.add('ready');
 
-      // Les tabs ne s'affichent qu'à l'ouverture générale de l'outil : un lien
-      // direct « comparer ces 2 versions » (éditeur, tableau de bord) reste sur
+      // Les tabs ne s'affichent qu'Ã  l'ouverture gÃ©nÃ©rale de l'outil : un lien
+      // direct Â« comparer ces 2 versions Â» (Ã©diteur, tableau de bord) reste sur
       // le flux versions, sans distraire avec le second mode.
       const genericEntry = !docId && !(oldId || oldVid) && !(newId || newVid);
       if (genericEntry) {
@@ -1245,14 +1245,14 @@
 
       await loadCandidates();
 
-      // Aucune version ciblée : on propose de choisir un document éditable.
+      // Aucune version ciblÃ©e : on propose de choisir un document Ã©ditable.
       if (!candidates.length) {
         if (genericEntry) await renderDocPicker();
-        else showError('Comparaison impossible : versions non spécifiées. Revenez aux dossiers ou à l\'éditeur et relancez la comparaison.');
+        else showError('Comparaison impossible : versions non spÃ©cifiÃ©es. Revenez aux dossiers ou Ã  l\'Ã©diteur et relancez la comparaison.');
       } else if (candidates.length < 2) {
         showError(docId
-          ? 'Ce document n\'a qu\'une seule version. Validez d\'autres versions dans l\'éditeur (bouton « Valider la version ») pour retracer leur évolution, puis revenez ici.'
-          : 'Il faut au moins deux versions à comparer.');
+          ? 'Ce document n\'a qu\'une seule version. Validez d\'autres versions dans l\'Ã©diteur (bouton Â« Valider la version Â») pour retracer leur Ã©volution, puis revenez ici.'
+          : 'Il faut au moins deux versions Ã  comparer.');
       } else {
         renderVPicker();
         analyzeBtn.addEventListener('click', analyze);
@@ -1260,7 +1260,7 @@
         updateIntro();
       }
 
-      // Historique des comparaisons de versions déjà lancées (masqué s'il est vide).
+      // Historique des comparaisons de versions dÃ©jÃ  lancÃ©es (masquÃ© s'il est vide).
       refreshHistory('versions');
 
       if (window.LiquidTasks) {

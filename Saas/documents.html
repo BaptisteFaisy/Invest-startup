@@ -1,17 +1,17 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Liquid+ — Documents</title>
-  <meta name="description" content="Tous vos documents de levée de fonds — importés, téléchargés et rédigés sur Liquid+ — réunis au même endroit." />
+  <title>Liquid+ â€” Documents</title>
+  <meta name="description" content="Tous vos documents de levÃ©e de fonds â€” importÃ©s, tÃ©lÃ©chargÃ©s et rÃ©digÃ©s sur Liquid+ â€” rÃ©unis au mÃªme endroit." />
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=6" />
   <link rel="stylesheet" href="editor.css?v=7" />
-  <link rel="stylesheet" href="drawer-menu.css?v=6" />
+  <link rel="stylesheet" href="drawer-menu.css?v=7" />
   <link rel="stylesheet" href="help-bulb.css?v=1" />
   <style>
     [hidden] { display: none !important; }
@@ -49,7 +49,7 @@
     .doc-import-btn { display: inline-flex; align-items: center; gap: 8px; }
     .doc-import-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-    /* ---- Sections par étape ---- */
+    /* ---- Sections par Ã©tape ---- */
     .doc-sections { margin-top: 22px; display: flex; flex-direction: column; gap: 26px; }
     .doc-section__head { display: flex; align-items: baseline; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.09); }
     .doc-section__name { font-family: 'Archivo', sans-serif; font-size: 15px; font-weight: 700; color: #fff; }
@@ -73,8 +73,8 @@
     .doc-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,0.62); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; padding: 3px 9px; }
     .doc-pill svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .doc-pill--inv { color: rgba(167,139,250,0.9); background: rgba(167,139,250,0.12); border-color: rgba(167,139,250,0.28); }
-    /* Pastilles de risque juridique — volontairement pâles et plates, sans bordure,
-       ombre ni dégradé. */
+    /* Pastilles de risque juridique â€” volontairement pÃ¢les et plates, sans bordure,
+       ombre ni dÃ©gradÃ©. */
     .doc-risk { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; border: 0; border-radius: 999px; padding: 3px 9px; box-shadow: none; }
     .doc-risk__dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
     .doc-risk--critique { color: #d99a9a; background: rgba(239,68,68,0.10); }
@@ -83,12 +83,12 @@
     .doc-risk--conseille .doc-risk__dot { background: #c39a4c; }
     .doc-risk--faible { color: #96a0aa; background: rgba(148,163,184,0.10); }
     .doc-risk--faible .doc-risk__dot { background: #8a94a0; }
-    /* Mention de responsabilité (document signé sans relecture avocat) — informative,
-       non bloquante, ton mesuré. */
+    /* Mention de responsabilitÃ© (document signÃ© sans relecture avocat) â€” informative,
+       non bloquante, ton mesurÃ©. */
     .doc-warn { display: flex; align-items: flex-start; gap: 6px; margin-top: 7px; font-size: 12px; line-height: 1.45; color: #cdae74; }
     .doc-warn svg { width: 13px; height: 13px; flex: none; margin-top: 1px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-    /* Sélecteur de niveau d'avancement (vue « Par avancement ») */
+    /* SÃ©lecteur de niveau d'avancement (vue Â« Par avancement Â») */
     .doc-setstatus { display: inline-flex; align-items: center; gap: 6px; }
     .doc-setstatus select { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.16); border-radius: 9px; color: #fff; font: 500 12.5px/1 'Libre Franklin', sans-serif; padding: 7px 8px; cursor: pointer; max-width: 190px; }
     .doc-setstatus select:focus { outline: none; border-color: rgba(96,165,250,0.7); }
@@ -101,7 +101,7 @@
     .doc-act:hover { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.1); }
     .doc-act--relire { width: auto; padding: 0 12px; gap: 7px; font: 600 12.5px/1 'Libre Franklin', sans-serif; white-space: nowrap; }
     .doc-act svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    /* Bouton « Versions » — présent seulement quand le document a des versions validées. */
+    /* Bouton Â« Versions Â» â€” prÃ©sent seulement quand le document a des versions validÃ©es. */
     .doc-act--versions { width: auto; padding: 0 11px; gap: 6px; font: 600 12.5px/1 'Libre Franklin', sans-serif; white-space: nowrap; color: #c4b5fd; border-color: rgba(167,139,250,0.32); background: rgba(167,139,250,0.12); }
     .doc-act--versions:hover { border-color: rgba(167,139,250,0.6); background: rgba(167,139,250,0.2); }
     .doc-act--versions .doc-act__count { display: inline-grid; place-items: center; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px; background: rgba(167,139,250,0.28); font-size: 11px; font-weight: 700; }
@@ -124,7 +124,7 @@
     .verrow2__open { flex: none; display: inline-flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.05); color: #fff; font: 600 11.5px/1 'Libre Franklin', sans-serif; text-decoration: none; cursor: pointer; }
     .verrow2__open:hover { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.12); }
     .verrow2__open svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    /* Fil de lignée : provenance, type d'entrée, mise en avant du document courant. */
+    /* Fil de lignÃ©e : provenance, type d'entrÃ©e, mise en avant du document courant. */
     .verrow2__tag { font-size: 13px; background: rgba(255,255,255,0.08); }
     .verrow2__tag--snap { background: rgba(96,165,250,0.18); }
     .verrow2__tag--recv { background: rgba(52,211,153,0.18); }
@@ -132,8 +132,8 @@
     .verrow2--focus { border-color: rgba(167,139,250,0.5); background: rgba(167,139,250,0.1); }
     .verrow2__here { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 999px; background: rgba(167,139,250,0.28); color: #ddd6fe; font-size: 10px; font-weight: 700; vertical-align: middle; }
 
-    /* ---- Sélecteur de vue (Par étape / Par investisseur) ---- */
-    /* Choix du type de levée (tout premier niveau : classique / BSA-AIR) */
+    /* ---- SÃ©lecteur de vue (Par Ã©tape / Par investisseur) ---- */
+    /* Choix du type de levÃ©e (tout premier niveau : classique / BSA-AIR) */
     .doc-raisebar { display: flex; align-items: center; gap: 12px; margin-top: 26px; flex-wrap: wrap; }
     .doc-raisebar__label { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.45); }
 
@@ -145,7 +145,7 @@
     .doc-view-btn:hover { color: #fff; }
     .doc-view-btn.is-active { background: #fff; color: #08090c; }
 
-    /* ---- Barre secondaire : filtre par groupe, même style segmenté que « Organiser » ---- */
+    /* ---- Barre secondaire : filtre par groupe, mÃªme style segmentÃ© que Â« Organiser Â» ---- */
     .doc-subfilter { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
     .doc-subfilter__label { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.45); }
     .doc-subfilter__chips { display: inline-flex; flex-wrap: wrap; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.14); border-radius: 12px; padding: 3px; gap: 3px; }
@@ -159,7 +159,7 @@
 
     .doc-section__empty { color: rgba(255,255,255,0.4); font-size: 13.5px; font-style: italic; padding: 14px 4px 2px; }
 
-    /* Rattachement à un investisseur */
+    /* Rattachement Ã  un investisseur */
     .doc-assign { display: inline-flex; align-items: center; gap: 6px; }
     .doc-assign select { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.16); border-radius: 9px; color: #fff; font: 500 12.5px/1 'Libre Franklin', sans-serif; padding: 7px 8px; cursor: pointer; max-width: 160px; }
     .doc-assign select:focus { outline: none; border-color: rgba(96,165,250,0.7); }
@@ -180,7 +180,7 @@
   </style>
   <script src="auth.js?v=3"></script>
   <script src="tasks.js?v=2" defer></script>
-  <script src="drawer-menu.js?v=3" defer></script>
+  <script src="drawer-menu.js?v=7" defer></script>
   <script src="drawer-steps.js?v=1" defer></script>
   <script src="help-bulb.js?v=1" defer></script>
 </head>
@@ -191,7 +191,7 @@
         <button type="button" class="hamburger" id="nav-menu-btn" aria-label="Ouvrir la navigation" aria-controls="nav-drawer" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
-        <a href="/index.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
+        <a href="tableau-de-bord.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
         <span class="topbar__doc">Documents</span>
       </div>
       <div class="topbar__actions">
@@ -203,13 +203,13 @@
 
     <!-- Menu hamburger gauche : navigation -->
     <div class="drawer-backdrop" id="nav-backdrop" data-drawer-close></div>
-    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Étapes de la levée">
+    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Ã‰tapes de la levÃ©e">
       <div class="drawer__head"></div>
       <nav class="drawer__body">
-        <div class="drawer__section-title">Étapes de la levée</div>
-        <div id="nav-steps"><p class="drawer__steps-loading">Chargement des étapes…</p></div>
+        <div class="drawer__section-title">Ã‰tapes de la levÃ©e</div>
+        <div id="nav-steps"><p class="drawer__steps-loading">Chargement des Ã©tapesâ€¦</p></div>
       </nav>
-      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. FlÃ¨ches : 10 px, Maj + flÃ¨ches : 50 px, double-clic : rÃ©initialiser"></div>
     </aside>
 
     <!-- Menu hamburger droite : compte & actions -->
@@ -218,7 +218,7 @@
       <div class="drawer__head"></div>
       <nav class="drawer__body">
         <div class="drawer__section-title">Outils</div>
-        <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Éditeur</a>
+        <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Ã‰diteur</a>
         <a class="drawer__link" href="benchmark.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Benchmark</a>
         <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
         <div class="drawer__sep"></div>
@@ -226,21 +226,21 @@
         <a class="drawer__link" href="dilution.html" target="_blank" rel="noopener" title="Simulation de dilution"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
         <a class="drawer__link" href="exit.html" target="_blank" rel="noopener" title="Simulateur d'exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Exit</a>
         <div class="drawer__sep"></div>
-        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>Tâches</a>
+        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>TÃ¢ches</a>
         <a class="drawer__link" href="documents.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>Documents</a>
         <a class="drawer__link" href="data-room.html" target="_blank" rel="noopener" title="Data room"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/></svg>Data room</a>
         <a class="drawer__link" href="avocat.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M6 21h12"/><path d="M3 7h18"/><path d="M7 7l-3 6a3 3 0 0 0 6 0Z"/><path d="M17 7l3 6a3 3 0 0 0-6 0Z"/></svg>Avocat</a>
         <div class="drawer__sep"></div>
         <a class="drawer__link" href="compte.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>Mon compte</a>
-        <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Écrire au fondateur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
+        <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Ã‰crire au fondateur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
         <div class="drawer__sep"></div>
-        <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>Déconnexion</button>
+        <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>DÃ©connexion</button>
       </nav>
-      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. FlÃ¨ches : 10 px, Maj + flÃ¨ches : 50 px, double-clic : rÃ©initialiser"></div>
     </aside>
 
     <div class="page-back-row">
-      <button type="button" class="page-back" id="page-back-btn" aria-label="Revenir en arrière" title="Revenir en arrière">
+      <button type="button" class="page-back" id="page-back-btn" aria-label="Revenir en arriÃ¨re" title="Revenir en arriÃ¨re">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
       </button>
     </div>
@@ -251,14 +251,14 @@
       <h1 class="dil__title">Documents</h1>
       <div class="help-pop" hidden>
         <div class="help-pop__label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg> Comprendre cet outil</div>
-        <p>Tous les documents de votre levée réunis au même endroit — ceux que vous avez <b style="color:#fde68a">importés</b> et ceux que vous avez <b style="color:#bfdbfe">rédigés sur Liquid+</b> — avec leur étape, leur date et un accès direct.</p>
+        <p>Tous les documents de votre levÃ©e rÃ©unis au mÃªme endroit â€” ceux que vous avez <b style="color:#fde68a">importÃ©s</b> et ceux que vous avez <b style="color:#bfdbfe">rÃ©digÃ©s sur Liquid+</b> â€” avec leur Ã©tape, leur date et un accÃ¨s direct.</p>
       </div>
 
       <!-- Barre d'outils -->
       <div class="doc-toolbar" id="doc-toolbar" hidden>
         <div class="doc-search">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-          <input type="search" id="doc-search-input" placeholder="Rechercher un document…" autocomplete="off" aria-label="Rechercher un document" />
+          <input type="search" id="doc-search-input" placeholder="Rechercher un documentâ€¦" autocomplete="off" aria-label="Rechercher un document" />
         </div>
         <button type="button" class="btn btn--primary doc-import-btn" id="docs-btn">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Importer un document
@@ -266,12 +266,12 @@
         <input type="file" id="docs-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" hidden />
       </div>
 
-      <!-- Choix du type de levée : détermine les étapes affichées -->
+      <!-- Choix du type de levÃ©e : dÃ©termine les Ã©tapes affichÃ©es -->
       <div class="doc-raisebar" id="doc-raisebar" hidden>
-        <span class="doc-raisebar__label">Type de levée</span>
+        <span class="doc-raisebar__label">Type de levÃ©e</span>
         <div class="doc-viewtoggle" id="doc-raisetoggle">
           <button type="button" class="doc-view-btn is-active" data-raise="classic">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18"/><path d="M6 21V9l6-4 6 4v12"/><path d="M10 21v-6h4v6"/></svg>Levée classique
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18"/><path d="M6 21V9l6-4 6 4v12"/><path d="M10 21v-6h4v6"/></svg>LevÃ©e classique
           </button>
           <button type="button" class="doc-view-btn" data-raise="bsa-air">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z"/></svg>BSA-AIR
@@ -279,12 +279,12 @@
         </div>
       </div>
 
-      <!-- Sélecteur de structure : par étape / par investisseur -->
+      <!-- SÃ©lecteur de structure : par Ã©tape / par investisseur -->
       <div class="doc-viewbar" id="doc-viewbar" hidden>
         <span class="doc-viewbar__label">Organiser</span>
         <div class="doc-viewtoggle" id="doc-viewtoggle">
           <button type="button" class="doc-view-btn is-active" data-view="etape">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9L9.6 3.9A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>Par étape
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9L9.6 3.9A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>Par Ã©tape
           </button>
           <button type="button" class="doc-view-btn" data-view="investor">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Par investisseur
@@ -294,20 +294,20 @@
           </button>
         </div>
       </div>
-      <!-- Barre secondaire : filtre par groupe, dépend de la vue choisie -->
+      <!-- Barre secondaire : filtre par groupe, dÃ©pend de la vue choisie -->
       <div class="doc-subfilter" id="doc-subfilter" hidden>
         <span class="doc-subfilter__label" id="doc-subfilter-label">Afficher</span>
         <div class="doc-subfilter__chips" id="doc-subfilter-chips"></div>
       </div>
       <div class="doc-hint" id="doc-hint" hidden></div>
 
-      <div class="doc-loading" id="doc-loading">Chargement de vos documents…</div>
+      <div class="doc-loading" id="doc-loading">Chargement de vos documentsâ€¦</div>
       <div class="doc-error" id="doc-error" hidden></div>
       <div class="doc-empty" id="doc-empty" hidden></div>
       <div class="doc-sections" id="doc-sections"></div>
 
       <div class="dil__foot">
-        <a href="tableau-de-bord.html" class="btn btn--ghost">← Retour au tableau de bord</a>
+        <a href="tableau-de-bord.html" class="btn btn--ghost">â† Retour au tableau de bord</a>
       </div>
     </main>
   </div>
@@ -338,13 +338,13 @@
       let folders = [];
       let investors = [];
       let docs = [];
-      let versionCounts = {}; // { [document_id]: nombre d'instantanés éditeur validés }
-      let lineageSizes = {};  // { [document_id]: nombre de documents dans sa lignée }
-      let solicitedDocIds = new Set(); // documents pour lesquels un avocat a été sollicité
+      let versionCounts = {}; // { [document_id]: nombre d'instantanÃ©s Ã©diteur validÃ©s }
+      let lineageSizes = {};  // { [document_id]: nombre de documents dans sa lignÃ©e }
+      let solicitedDocIds = new Set(); // documents pour lesquels un avocat a Ã©tÃ© sollicitÃ©
       let raiseType = 'classic'; // parcours actif : classic | bsa-air (choix de tout 1er niveau)
-      let raiseUser = 'me';      // clé de stockage, alignée sur le tableau de bord
+      let raiseUser = 'me';      // clÃ© de stockage, alignÃ©e sur le tableau de bord
       let view = 'etape';     // etape | investor | avancement
-      let subFilter = 'all';  // groupe sélectionné dans la barre secondaire (ou « all »)
+      let subFilter = 'all';  // groupe sÃ©lectionnÃ© dans la barre secondaire (ou Â« all Â»)
       let query = '';
 
       /* ---------- Helpers ---------- */
@@ -365,31 +365,31 @@
       function isWritten(d) { return d.kind === 'termsheet'; }
 
       // ---- Niveaux d'avancement d'un document ----
-      // Du plus tôt au plus avancé. `accent` sert au texte et à la pastille,
+      // Du plus tÃ´t au plus avancÃ©. `accent` sert au texte et Ã  la pastille,
       // `bg` au fond translucide du badge.
       const STATUSES = [
-        { key: 'genere',    label: 'Généré',                   short: 'Généré',   accent: '#cbd5e1', bg: 'rgba(203,213,225,0.14)', desc: 'Le document vient d\'être créé ou importé — pas encore retravaillé.' },
-        { key: 'en_cours',  label: 'En cours de modification', short: 'En cours', accent: '#fbbf24', bg: 'rgba(251,191,36,0.16)',  desc: 'Le document est en cours de rédaction ou de modification.' },
-        { key: 'modifie',   label: 'Modifié, non signé',       short: 'Non signé',accent: '#f472b6', bg: 'rgba(244,114,182,0.16)', desc: 'Le document a été modifié mais n\'a pas encore été signé.' },
-        { key: 'valide',    label: 'Validé',                   short: 'Validé',   accent: '#60a5fa', bg: 'rgba(96,165,250,0.16)',  desc: 'Le document a été validé.' },
-        { key: 'signe',     label: 'Signé',                    short: 'Signé',    accent: '#34d399', bg: 'rgba(52,211,153,0.16)',  desc: 'Le document est signé.' },
-        { key: 'data_room', label: 'Disponible en data room',  short: 'Data room',accent: '#a78bfa', bg: 'rgba(167,139,250,0.16)', desc: 'Le document a été rendu disponible à un ou plusieurs investisseurs (data room).' },
+        { key: 'genere',    label: 'GÃ©nÃ©rÃ©',                   short: 'GÃ©nÃ©rÃ©',   accent: '#cbd5e1', bg: 'rgba(203,213,225,0.14)', desc: 'Le document vient d\'Ãªtre crÃ©Ã© ou importÃ© â€” pas encore retravaillÃ©.' },
+        { key: 'en_cours',  label: 'En cours de modification', short: 'En cours', accent: '#fbbf24', bg: 'rgba(251,191,36,0.16)',  desc: 'Le document est en cours de rÃ©daction ou de modification.' },
+        { key: 'modifie',   label: 'ModifiÃ©, non signÃ©',       short: 'Non signÃ©',accent: '#f472b6', bg: 'rgba(244,114,182,0.16)', desc: 'Le document a Ã©tÃ© modifiÃ© mais n\'a pas encore Ã©tÃ© signÃ©.' },
+        { key: 'valide',    label: 'ValidÃ©',                   short: 'ValidÃ©',   accent: '#60a5fa', bg: 'rgba(96,165,250,0.16)',  desc: 'Le document a Ã©tÃ© validÃ©.' },
+        { key: 'signe',     label: 'SignÃ©',                    short: 'SignÃ©',    accent: '#34d399', bg: 'rgba(52,211,153,0.16)',  desc: 'Le document est signÃ©.' },
+        { key: 'data_room', label: 'Disponible en data room',  short: 'Data room',accent: '#a78bfa', bg: 'rgba(167,139,250,0.16)', desc: 'Le document a Ã©tÃ© rendu disponible Ã  un ou plusieurs investisseurs (data room).' },
       ];
       const STATUS_ORDER = STATUSES.map(s => s.key);
       function statusMeta(key) { return STATUSES.find(s => s.key === key) || STATUSES[0]; }
 
       // ---- Risque juridique (badge + recommandation de relecture avocat) ----
-      // Le niveau vient du serveur (champ `risk`) ; ici on ne fait que le libellé.
+      // Le niveau vient du serveur (champ `risk`) ; ici on ne fait que le libellÃ©.
       const RISK_META = {
-        critique:  { label: 'Avocat avant signature', title: 'Responsabilité personnelle ou document structurant : à faire relire par un avocat avant de signer.' },
-        conseille: { label: 'Relecture conseillée',   title: 'Enjeu réel : une relecture par un avocat est conseillée.' },
-        faible:    { label: 'Faible enjeu',           title: 'Faible enjeu juridique : l\'IA suffit à ce stade. Ce n\'est pas une garantie d\'absence de risque.' },
+        critique:  { label: 'Avocat avant signature', title: 'ResponsabilitÃ© personnelle ou document structurant : Ã  faire relire par un avocat avant de signer.' },
+        conseille: { label: 'Relecture conseillÃ©e',   title: 'Enjeu rÃ©el : une relecture par un avocat est conseillÃ©e.' },
+        faible:    { label: 'Faible enjeu',           title: 'Faible enjeu juridique : l\'IA suffit Ã  ce stade. Ce n\'est pas une garantie d\'absence de risque.' },
       };
       function riskMeta(d) { return RISK_META[d && d.risk] || RISK_META.faible; }
 
       // Niveau d'avancement d'un document : son statut explicite s'il existe, sinon
-      // un défaut déduit — « en cours de modification » dès qu'il a été retravaillé
-      // plus d'une minute après sa création, « généré » sinon.
+      // un dÃ©faut dÃ©duit â€” Â« en cours de modification Â» dÃ¨s qu'il a Ã©tÃ© retravaillÃ©
+      // plus d'une minute aprÃ¨s sa crÃ©ation, Â« gÃ©nÃ©rÃ© Â» sinon.
       function docStatus(d) {
         if (d.status && STATUS_ORDER.includes(d.status)) return d.status;
         const created = +new Date(d.created_at || 0);
@@ -398,14 +398,14 @@
       }
 
       // Ne garde que les vrais documents de l'utilisateur : on masque les anciennes
-      // versions conservées pour la comparaison, les checklists investisseurs et les
-      // modèles ouverts mais jamais personnalisés.
+      // versions conservÃ©es pour la comparaison, les checklists investisseurs et les
+      // modÃ¨les ouverts mais jamais personnalisÃ©s.
       function isVisible(d) {
         return !d.is_version && !d.is_investor_checklist &&
           !(d.kind === 'termsheet' && d.template_source && d.is_personalized === false);
       }
 
-      // Icône selon le type de fichier / d'origine.
+      // IcÃ´ne selon le type de fichier / d'origine.
       function iconFor(d) {
         if (isWritten(d)) {
           return { cls: 'written', svg: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>' };
@@ -417,13 +417,13 @@
         if (['xls', 'xlsx', 'csv'].includes(e)) {
           return { cls: 'imported', svg: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="m9 13 6 6M15 13l-6 6"/>' };
         }
-        // PDF, Word et autres : icône document générique.
+        // PDF, Word et autres : icÃ´ne document gÃ©nÃ©rique.
         return { cls: 'imported', svg: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h4"/>' };
       }
 
-      // Libellé du type lisible.
+      // LibellÃ© du type lisible.
       function typeLabel(d) {
-        if (isWritten(d)) return d.template_source ? 'Rédigé (modèle Liquid+)' : 'Rédigé sur Liquid+';
+        if (isWritten(d)) return d.template_source ? 'RÃ©digÃ© (modÃ¨le Liquid+)' : 'RÃ©digÃ© sur Liquid+';
         const e = ext(d.originalname || d.name);
         const map = { pdf: 'PDF', doc: 'Word', docx: 'Word', xls: 'Excel', xlsx: 'Excel', csv: 'CSV', png: 'Image', jpg: 'Image', jpeg: 'Image', webp: 'Image', gif: 'Image' };
         return map[e] || (e ? e.toUpperCase() : 'Fichier');
@@ -436,14 +436,14 @@
         const f = folderById(id);
         return f ? f.name : null;
       }
-      // Étape appartenant au parcours actif ? Les dossiers « système » portent un
-      // track (classic / bsa-air) ; les dossiers créés à la main n'en ont pas et
-      // restent visibles quel que soit le type de levée choisi.
+      // Ã‰tape appartenant au parcours actif ? Les dossiers Â« systÃ¨me Â» portent un
+      // track (classic / bsa-air) ; les dossiers crÃ©Ã©s Ã  la main n'en ont pas et
+      // restent visibles quel que soit le type de levÃ©e choisi.
       function folderInActiveRaise(f) {
         return !f.track || f.track === raiseType;
       }
-      // Document rattaché au parcours actif ? Un document dans une étape de l'autre
-      // parcours est masqué ; un document sans dossier ou dans un dossier libre reste.
+      // Document rattachÃ© au parcours actif ? Un document dans une Ã©tape de l'autre
+      // parcours est masquÃ© ; un document sans dossier ou dans un dossier libre reste.
       function docInActiveRaise(d) {
         const f = folderById(d.folder_id);
         return !f || folderInActiveRaise(f);
@@ -453,11 +453,11 @@
         return investors.find(x => x.id === id) || null;
       }
       function investorLabel(inv) {
-        return inv.firm ? inv.name + ' — ' + inv.firm : inv.name;
+        return inv.firm ? inv.name + ' â€” ' + inv.firm : inv.name;
       }
-      // Investisseur rattaché à un document : notre champ `investor_id` prime, sinon
-      // on lit l'association déjà posée par le tableau de bord dans les étapes de
-      // négociation (category_key = « inv<id> »), pour une vue cohérente partout.
+      // Investisseur rattachÃ© Ã  un document : notre champ `investor_id` prime, sinon
+      // on lit l'association dÃ©jÃ  posÃ©e par le tableau de bord dans les Ã©tapes de
+      // nÃ©gociation (category_key = Â« inv<id> Â»), pour une vue cohÃ©rente partout.
       function docInvestorId(d) {
         if (d.investor_id != null) return d.investor_id;
         const m = /^inv(\d+)$/.exec(String(d.category_key || ''));
@@ -467,8 +467,8 @@
       /* ---------- Chargement ---------- */
       const RAISE_TYPES = ['classic', 'bsa-air'];
 
-      // Type de levée initial : choix mémorisé en local (aligné sur le tableau de
-      // bord) sinon le profil de levée côté serveur, « classique » par défaut.
+      // Type de levÃ©e initial : choix mÃ©morisÃ© en local (alignÃ© sur le tableau de
+      // bord) sinon le profil de levÃ©e cÃ´tÃ© serveur, Â« classique Â» par dÃ©faut.
       function resolveInitialRaiseType(profileType) {
         let stored = null;
         try { stored = localStorage.getItem(raiseKey()); } catch {}
@@ -499,18 +499,18 @@
           const user = me.ok ? ((await me.json()).user || null) : null;
           raiseUser = (user && (user.id || user.email)) || 'me';
           profileType = pr.ok ? ((await pr.json()).profile || {}).raise_type : null;
-          // Documents soumis à un avocat (demande active) : sert à n'afficher la mention
-          // de responsabilité que lorsqu'aucun avocat n'a été sollicité.
+          // Documents soumis Ã  un avocat (demande active) : sert Ã  n'afficher la mention
+          // de responsabilitÃ© que lorsqu'aucun avocat n'a Ã©tÃ© sollicitÃ©.
           const avReqs = ar && ar.ok ? ((await ar.json()).requests || []) : [];
           solicitedDocIds = new Set(avReqs.filter(r => r.status !== 'annule' && r.document_id != null).map(r => r.document_id));
-          // Instantanés éditeur + taille de lignée par document (badge « Versions »).
+          // InstantanÃ©s Ã©diteur + taille de lignÃ©e par document (badge Â« Versions Â»).
           const vData = vr && vr.ok ? await vr.json() : {};
           versionCounts = vData.counts || {};
           lineageSizes = vData.lineageSizes || {};
         } catch {
           loadingEl.hidden = true;
           errorEl.hidden = false;
-          errorEl.textContent = 'Impossible de charger vos documents. Vérifiez votre connexion et réessayez.';
+          errorEl.textContent = 'Impossible de charger vos documents. VÃ©rifiez votre connexion et rÃ©essayez.';
           return;
         }
         raiseType = resolveInitialRaiseType(profileType);
@@ -534,7 +534,7 @@
         return true;
       }
 
-      // Rattache/retire un document à un investisseur, puis rafraîchit l'affichage.
+      // Rattache/retire un document Ã  un investisseur, puis rafraÃ®chit l'affichage.
       async function assignInvestor(d, sel) {
         const val = sel.value ? Number(sel.value) : null;
         const prev = docInvestorId(d);
@@ -554,7 +554,7 @@
         }
       }
 
-      // Change le niveau d'avancement d'un document, puis rafraîchit l'affichage.
+      // Change le niveau d'avancement d'un document, puis rafraÃ®chit l'affichage.
       async function assignStatus(d, sel) {
         const val  = sel.value || 'genere';
         const prev = docStatus(d);
@@ -582,18 +582,18 @@
           hintEl.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span>Vous n\'avez pas encore d\'investisseur. Ajoutez vos investisseurs depuis le <a href="tableau-de-bord.html">pipeline du tableau de bord</a> pour pouvoir classer vos documents par investisseur.</span>';
         } else if (view === 'avancement') {
           hintEl.hidden = false;
-          hintEl.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span>Suivez où en est chaque document : <b style="color:#fff">Généré</b> → <b style="color:#fff">En cours</b> → <b style="color:#fff">Modifié (non signé)</b> → <b style="color:#fff">Validé</b> → <b style="color:#fff">Signé</b> → <b style="color:#fff">Disponible en data room</b>. Ajustez le niveau avec le menu à droite de chaque document. La pastille investisseur indique à qui le document a été rendu disponible.</span>';
+          hintEl.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg><span>Suivez oÃ¹ en est chaque document : <b style="color:#fff">GÃ©nÃ©rÃ©</b> â†’ <b style="color:#fff">En cours</b> â†’ <b style="color:#fff">ModifiÃ© (non signÃ©)</b> â†’ <b style="color:#fff">ValidÃ©</b> â†’ <b style="color:#fff">SignÃ©</b> â†’ <b style="color:#fff">Disponible en data room</b>. Ajustez le niveau avec le menu Ã  droite de chaque document. La pastille investisseur indique Ã  qui le document a Ã©tÃ© rendu disponible.</span>';
         } else {
           hintEl.hidden = true;
         }
       }
 
-      // Libellé de la barre secondaire selon la vue.
-      const SUBFILTER_LABELS = { etape: 'Étape', investor: 'Investisseur', avancement: 'Stade' };
+      // LibellÃ© de la barre secondaire selon la vue.
+      const SUBFILTER_LABELS = { etape: 'Ã‰tape', investor: 'Investisseur', avancement: 'Stade' };
 
-      // Construit les puces de la barre secondaire : une puce par groupe (étape /
-      // investisseur / stade), avec son compte. Aucune puce « Tout » — tout est
-      // affiché par défaut ; recliquer la puce active réaffiche l'ensemble.
+      // Construit les puces de la barre secondaire : une puce par groupe (Ã©tape /
+      // investisseur / stade), avec son compte. Aucune puce Â« Tout Â» â€” tout est
+      // affichÃ© par dÃ©faut ; recliquer la puce active rÃ©affiche l'ensemble.
       function renderSubfilter(groups) {
         subfilterEl.hidden = false;
         subfilterLbl.textContent = SUBFILTER_LABELS[view] || 'Afficher';
@@ -607,16 +607,16 @@
 
       function render() {
         renderHint();
-        // On restreint au parcours actif (levée classique / BSA-AIR) avant tout.
+        // On restreint au parcours actif (levÃ©e classique / BSA-AIR) avant tout.
         const shown = docs.filter(d => docInActiveRaise(d) && matches(d));
         sectionsEl.innerHTML = '';
 
         if (!docs.length) {
           emptyEl.hidden = false;
-          emptyEl.innerHTML = '<b>Aucun document pour l\'instant.</b><br>Importez un fichier avec le bouton ci-dessus, ou rédigez votre premier document depuis <a href="editor.html" target="_blank" rel="noopener">l\'éditeur</a> ou votre <a href="tableau-de-bord.html">tableau de bord</a>. La structure de vos dossiers ci-dessous vous attend.';
-          // Même sans document, on affiche la structure (dossiers vides).
+          emptyEl.innerHTML = '<b>Aucun document pour l\'instant.</b><br>Importez un fichier avec le bouton ci-dessus, ou rÃ©digez votre premier document depuis <a href="editor.html" target="_blank" rel="noopener">l\'Ã©diteur</a> ou votre <a href="tableau-de-bord.html">tableau de bord</a>. La structure de vos dossiers ci-dessous vous attend.';
+          // MÃªme sans document, on affiche la structure (dossiers vides).
         }
-        // Une recherche active sans résultat : on masque la structure pour ne pas
+        // Une recherche active sans rÃ©sultat : on masque la structure pour ne pas
         // afficher un empilement de dossiers vides trompeur.
         if (query && !shown.length) {
           emptyEl.hidden = false;
@@ -627,15 +627,15 @@
         if (docs.length) emptyEl.hidden = true;
 
         // Construit la liste des groupes selon la vue. Les dossiers sont TOUJOURS
-        // présents, même vides, pour donner une structure claire dès le départ.
+        // prÃ©sents, mÃªme vides, pour donner une structure claire dÃ¨s le dÃ©part.
         const groups = [];
         if (view === 'etape') {
-          // Seules les étapes du parcours actif (+ les dossiers libres) sont listées.
+          // Seules les Ã©tapes du parcours actif (+ les dossiers libres) sont listÃ©es.
           folders.filter(folderInActiveRaise).forEach(f => {
             groups.push({ key: 'f' + f.id, name: f.name, items: shown.filter(d => d.folder_id === f.id) });
           });
           const unclassified = shown.filter(d => d.folder_id == null || !folders.some(f => f.id === d.folder_id));
-          groups.push({ key: 'unclassified', name: 'Non classés', unclassified: true, items: unclassified });
+          groups.push({ key: 'unclassified', name: 'Non classÃ©s', unclassified: true, items: unclassified });
         } else if (view === 'avancement') {
           // Une section par niveau d'avancement, dans l'ordre du cycle de vie.
           STATUSES.forEach(s => {
@@ -646,12 +646,12 @@
             groups.push({ key: 'inv' + inv.id, name: investorLabel(inv), items: shown.filter(d => docInvestorId(d) === inv.id) });
           });
           const unclassified = shown.filter(d => { const iid = docInvestorId(d); return iid == null || !investorById(iid); });
-          groups.push({ key: 'unclassified', name: 'Non classés', unclassified: true, items: unclassified });
+          groups.push({ key: 'unclassified', name: 'Non classÃ©s', unclassified: true, items: unclassified });
         }
 
-        // Barre secondaire : une puce par groupe (+ « Tout »). Si le groupe
-        // sélectionné n'existe plus (vue changée, investisseur supprimé…), on
-        // retombe sur « Tout ».
+        // Barre secondaire : une puce par groupe (+ Â« Tout Â»). Si le groupe
+        // sÃ©lectionnÃ© n'existe plus (vue changÃ©e, investisseur supprimÃ©â€¦), on
+        // retombe sur Â« Tout Â».
         if (subFilter !== 'all' && !groups.some(g => g.key === subFilter)) subFilter = 'all';
         renderSubfilter(groups);
         const visibleGroups = subFilter === 'all' ? groups : groups.filter(g => g.key === subFilter);
@@ -675,9 +675,9 @@
             const empty = document.createElement('div');
             empty.className = 'doc-section__empty';
             empty.textContent = g.unclassified
-              ? (view === 'etape' ? 'Tous vos documents sont classés dans une étape.' : 'Tous vos documents sont rattachés à un investisseur.')
-              : (view === 'avancement' ? 'Aucun document à ce niveau d\'avancement pour l\'instant.'
-                : view === 'etape' ? 'Aucun document dans cette étape pour l\'instant.' : 'Aucun document rattaché à cet investisseur pour l\'instant.');
+              ? (view === 'etape' ? 'Tous vos documents sont classÃ©s dans une Ã©tape.' : 'Tous vos documents sont rattachÃ©s Ã  un investisseur.')
+              : (view === 'avancement' ? 'Aucun document Ã  ce niveau d\'avancement pour l\'instant.'
+                : view === 'etape' ? 'Aucun document dans cette Ã©tape pour l\'instant.' : 'Aucun document rattachÃ© Ã  cet investisseur pour l\'instant.');
             sec.appendChild(empty);
           } else {
             const list = document.createElement('div');
@@ -699,21 +699,21 @@
         const folderPill = fname
           ? `<span class="doc-pill"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9L9.6 3.9A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>${esc(fname)}</span>`
           : '';
-        // « Rendu disponible à quel investisseur » : pastille visible dès qu'un
-        // investisseur est rattaché — utile surtout au niveau « Data room ».
+        // Â« Rendu disponible Ã  quel investisseur Â» : pastille visible dÃ¨s qu'un
+        // investisseur est rattachÃ© â€” utile surtout au niveau Â« Data room Â».
         const inv = investorById(docInvestorId(d));
         const invPill = inv
-          ? `<span class="doc-pill doc-pill--inv" title="Rendu disponible à ${esc(investorLabel(inv))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>${esc(investorLabel(inv))}</span>`
+          ? `<span class="doc-pill doc-pill--inv" title="Rendu disponible Ã  ${esc(investorLabel(inv))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>${esc(investorLabel(inv))}</span>`
           : '';
-        // Badge de risque juridique — pilote aussi l'action « Faire relire ».
+        // Badge de risque juridique â€” pilote aussi l'action Â« Faire relire Â».
         const rk = riskMeta(d);
         const riskPill = `<span class="doc-risk doc-risk--${esc(d.risk || 'faible')}" title="${esc(rk.title)}"><span class="doc-risk__dot"></span>${esc(rk.label)}</span>`;
-        // Mention de responsabilité : document signé, à enjeu (critique/conseillé), et
-        // sans avocat sollicité. Purement informative — n'empêche aucune action.
+        // Mention de responsabilitÃ© : document signÃ©, Ã  enjeu (critique/conseillÃ©), et
+        // sans avocat sollicitÃ©. Purement informative â€” n'empÃªche aucune action.
         const isSigned = STATUS_ORDER.indexOf(docStatus(d)) >= STATUS_ORDER.indexOf('signe');
         const riskyDoc = d.risk === 'critique' || d.risk === 'conseille';
         const warnHtml = (isSigned && riskyDoc && !solicitedDocIds.has(d.id))
-          ? `<div class="doc-warn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg><span>Signé sans relecture avocat : vous en êtes seul responsable — ni Liquid+, ni un avocat non sollicité ne peuvent en être tenus responsables.</span></div>`
+          ? `<div class="doc-warn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg><span>SignÃ© sans relecture avocat : vous en Ãªtes seul responsable â€” ni Liquid+, ni un avocat non sollicitÃ© ne peuvent en Ãªtre tenus responsables.</span></div>`
           : '';
 
         row.innerHTML = `
@@ -722,8 +722,8 @@
             <div class="doc-item__name" title="${esc(d.name)}">${esc(d.name)}</div>
             <div class="doc-item__meta">
               <span>${esc(typeLabel(d))}</span>
-              ${d.size != null ? `<span class="doc-item__meta-sep">·</span><span>${fmtSize(d.size)}</span>` : ''}
-              <span class="doc-item__meta-sep">·</span><span>${fmtDate(d.updated_at || d.created_at)}</span>
+              ${d.size != null ? `<span class="doc-item__meta-sep">Â·</span><span>${fmtSize(d.size)}</span>` : ''}
+              <span class="doc-item__meta-sep">Â·</span><span>${fmtDate(d.updated_at || d.created_at)}</span>
               ${riskPill}
               ${folderPill}
               ${invPill}
@@ -734,8 +734,8 @@
 
         const actions = row.querySelector('.doc-item__actions');
 
-        // Action « Faire relire » — proposée sur les documents à enjeu (critique /
-        // conseillé). Ouvre l'outil Avocat, demande pré-remplie avec ce document.
+        // Action Â« Faire relire Â» â€” proposÃ©e sur les documents Ã  enjeu (critique /
+        // conseillÃ©). Ouvre l'outil Avocat, demande prÃ©-remplie avec ce document.
         if (d.risk === 'critique' || d.risk === 'conseille') {
           const relire = document.createElement('a');
           relire.className = 'doc-act doc-act--relire';
@@ -747,13 +747,13 @@
           actions.appendChild(relire);
         }
 
-        // Vue « Par avancement » : sélecteur pour changer le niveau du document.
+        // Vue Â« Par avancement Â» : sÃ©lecteur pour changer le niveau du document.
         if (view === 'avancement') {
           const wrap = document.createElement('label');
           wrap.className = 'doc-setstatus';
           wrap.title = 'Changer le niveau d\'avancement';
           const sel = document.createElement('select');
-          sel.setAttribute('aria-label', 'Niveau d\'avancement de « ' + d.name + ' »');
+          sel.setAttribute('aria-label', 'Niveau d\'avancement de Â« ' + d.name + ' Â»');
           const cur = docStatus(d);
           STATUSES.forEach(s => {
             const o = document.createElement('option');
@@ -767,16 +767,16 @@
           actions.appendChild(wrap);
         }
 
-        // Vue « Par investisseur » : sélecteur pour rattacher le document.
+        // Vue Â« Par investisseur Â» : sÃ©lecteur pour rattacher le document.
         if (view === 'investor') {
           const wrap = document.createElement('label');
           wrap.className = 'doc-assign';
-          wrap.title = 'Rattacher à un investisseur';
+          wrap.title = 'Rattacher Ã  un investisseur';
           const sel = document.createElement('select');
-          sel.setAttribute('aria-label', 'Rattacher « ' + d.name + ' » à un investisseur');
+          sel.setAttribute('aria-label', 'Rattacher Â« ' + d.name + ' Â» Ã  un investisseur');
           const optNone = document.createElement('option');
           optNone.value = '';
-          optNone.textContent = '— Non classé —';
+          optNone.textContent = 'â€” Non classÃ© â€”';
           sel.appendChild(optNone);
           const curInv = docInvestorId(d);
           investors.forEach(inv => {
@@ -791,10 +791,10 @@
           actions.appendChild(wrap);
         }
 
-        // Bouton « Versions » : présent dès que le document a des instantanés éditeur
-        // validés OU appartient à une lignée de plusieurs documents (une version
-        // reçue/envoyée y est rattachée). Ouvre le popover retraçant le fil : versions
-        // et échanges, avec accès à chaque pièce. Le compteur = nombre d'autres pièces.
+        // Bouton Â« Versions Â» : prÃ©sent dÃ¨s que le document a des instantanÃ©s Ã©diteur
+        // validÃ©s OU appartient Ã  une lignÃ©e de plusieurs documents (une version
+        // reÃ§ue/envoyÃ©e y est rattachÃ©e). Ouvre le popover retraÃ§ant le fil : versions
+        // et Ã©changes, avec accÃ¨s Ã  chaque piÃ¨ce. Le compteur = nombre d'autres piÃ¨ces.
         const snapCount = versionCounts[d.id] || 0;
         const lineageExtra = Math.max(0, (lineageSizes[d.id] || 1) - 1);
         const relatedCount = snapCount + lineageExtra;
@@ -802,8 +802,8 @@
           const vBtn = document.createElement('button');
           vBtn.type = 'button';
           vBtn.className = 'doc-act doc-act--versions';
-          vBtn.title = 'Historique de ce document : ses versions et les échanges (envois/réceptions) rattachés. Cliquez pour les consulter et en ouvrir une.';
-          vBtn.setAttribute('aria-label', 'Voir l\'historique des versions de « ' + d.name + ' »');
+          vBtn.title = 'Historique de ce document : ses versions et les Ã©changes (envois/rÃ©ceptions) rattachÃ©s. Cliquez pour les consulter et en ouvrir une.';
+          vBtn.setAttribute('aria-label', 'Voir l\'historique des versions de Â« ' + d.name + ' Â»');
           vBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>' +
             '<span>Versions</span><span class="doc-act__count">' + relatedCount + '</span>';
           vBtn.addEventListener('click', (e) => { e.stopPropagation(); openVersionsPopover(d, vBtn); });
@@ -816,25 +816,25 @@
           open.href = 'editor.html?doc=' + d.id;
           open.target = '_blank';
           open.rel = 'noopener';
-          open.title = 'Ouvrir dans l\'éditeur';
-          open.setAttribute('aria-label', 'Ouvrir dans l\'éditeur');
+          open.title = 'Ouvrir dans l\'Ã©diteur';
+          open.setAttribute('aria-label', 'Ouvrir dans l\'Ã©diteur');
           open.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
           actions.appendChild(open);
         }
         const dl = document.createElement('a');
         dl.className = 'doc-act';
         dl.href = '/api/saas/documents/' + d.id + '/download';
-        dl.title = 'Télécharger';
-        dl.setAttribute('aria-label', 'Télécharger');
+        dl.title = 'TÃ©lÃ©charger';
+        dl.setAttribute('aria-label', 'TÃ©lÃ©charger');
         dl.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="m8 11 4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>';
         actions.appendChild(dl);
         return row;
       }
 
       /* ---------- Popover : versions d'un document ---------- */
-      // Un seul popover réutilisé pour tous les documents. Chaque version renvoie
-      // vers un aperçu en lecture seule (nouvel onglet) — le document de travail
-      // n'est jamais modifié depuis cette liste.
+      // Un seul popover rÃ©utilisÃ© pour tous les documents. Chaque version renvoie
+      // vers un aperÃ§u en lecture seule (nouvel onglet) â€” le document de travail
+      // n'est jamais modifiÃ© depuis cette liste.
       let verpop = null;
       let verpopAnchor = null;
 
@@ -849,7 +849,7 @@
               <div class="verpop__title">Historique du document</div>
               <div class="verpop__sub" id="verpop-sub"></div>
             </div>
-            <button class="verpop__close" type="button" aria-label="Fermer">×</button>
+            <button class="verpop__close" type="button" aria-label="Fermer">Ã—</button>
           </div>
           <div class="verpop__list" id="verpop-list"></div>`;
         document.body.appendChild(verpop);
@@ -879,31 +879,31 @@
         catch { return ''; }
       }
 
-      // Libellé lisible d'un acteur (fondateur / investisseur / avocat).
+      // LibellÃ© lisible d'un acteur (fondateur / investisseur / avocat).
       function partyLabel(origin, partyId, investors) {
         if (origin === 'lawyer') return 'l\'avocat';
         if (origin === 'investor') {
           const inv = (investors || []).find(i => i.id === partyId);
-          return inv ? (inv.firm ? inv.name + ' — ' + inv.firm : inv.name) : 'un investisseur';
+          return inv ? (inv.firm ? inv.name + ' â€” ' + inv.firm : inv.name) : 'un investisseur';
         }
         return 'vous';
       }
 
       async function openVersionsPopover(d, anchor) {
         const pop = ensureVerpop();
-        // Recliquer le même bouton referme le popover.
+        // Recliquer le mÃªme bouton referme le popover.
         if (!pop.hidden && verpopAnchor === anchor) { closeVersionsPopover(); return; }
         verpopAnchor = anchor;
         pop.querySelector('#verpop-sub').textContent = d.name;
         const listEl = pop.querySelector('#verpop-list');
-        listEl.innerHTML = '<div class="verpop__empty">Chargement…</div>';
+        listEl.innerHTML = '<div class="verpop__empty">Chargementâ€¦</div>';
         pop.hidden = false;
         placeVerpop();
         try {
           const r = await fetch('/api/saas/documents/' + d.id + '/lineage', { credentials: 'include' });
           if (r.status === 401) { window.location.href = 'login.html'; return; }
           const data = await r.json().catch(() => ({}));
-          // Course : un autre bouton a été cliqué entre-temps.
+          // Course : un autre bouton a Ã©tÃ© cliquÃ© entre-temps.
           if (verpopAnchor !== anchor) return;
           renderLineage(d, data, listEl);
           placeVerpop();
@@ -912,32 +912,32 @@
         }
       }
 
-      // Retrace le fil : chaque version/instantané avec sa provenance, du plus ancien
-      // au plus récent, et un accès à chaque pièce. Le document courant est mis en avant.
+      // Retrace le fil : chaque version/instantanÃ© avec sa provenance, du plus ancien
+      // au plus rÃ©cent, et un accÃ¨s Ã  chaque piÃ¨ce. Le document courant est mis en avant.
       function renderLineage(d, data, listEl) {
         const nodes = Array.isArray(data.nodes) ? data.nodes : [];
         const investors = Array.isArray(data.investors) ? data.investors : [];
         if (!nodes.length) {
-          listEl.innerHTML = '<div class="verpop__empty">Aucune version pour l\'instant. Validez une version dans l\'éditeur, ou importez une nouvelle version reçue.</div>';
+          listEl.innerHTML = '<div class="verpop__empty">Aucune version pour l\'instant. Validez une version dans l\'Ã©diteur, ou importez une nouvelle version reÃ§ue.</div>';
           return;
         }
         listEl.innerHTML = '';
         nodes.forEach(n => {
           const isSnap = n.node_type === 'snapshot';
           const isFocus = !isSnap && n.doc_id === data.focus_id;
-          // Étiquette + intitulé de provenance.
+          // Ã‰tiquette + intitulÃ© de provenance.
           let tag, tagCls, prov;
           if (isSnap) {
-            tag = '✎'; tagCls = ' verrow2__tag--snap';
-            prov = 'Instantané validé dans l\'éditeur';
+            tag = 'âœŽ'; tagCls = ' verrow2__tag--snap';
+            prov = 'InstantanÃ© validÃ© dans l\'Ã©diteur';
           } else if (n.origin === 'investor' || n.origin === 'lawyer') {
-            tag = '📥'; tagCls = ' verrow2__tag--recv';
-            prov = 'Reçu de ' + partyLabel(n.origin, n.origin_party_id, investors);
+            tag = 'ðŸ“¥'; tagCls = ' verrow2__tag--recv';
+            prov = 'ReÃ§u de ' + partyLabel(n.origin, n.origin_party_id, investors);
           } else {
-            tag = '✍️'; tagCls = '';
-            prov = 'Créé par vous';
+            tag = 'âœï¸'; tagCls = '';
+            prov = 'CrÃ©Ã© par vous';
           }
-          const label = n.name || (isSnap ? 'Instantané éditeur' : 'Document');
+          const label = n.name || (isSnap ? 'InstantanÃ© Ã©diteur' : 'Document');
           const row = document.createElement('div');
           row.className = 'verrow2' + (isFocus ? ' verrow2--focus' : '');
           row.innerHTML = `
@@ -947,20 +947,20 @@
               <span class="verrow2__prov">${esc(prov)}</span>
               <span class="verrow2__date">${esc(fmtVerDate(n.date || n.created_at))}</span>
             </span>`;
-          // Accès à la pièce : aperçu de l'instantané, éditeur (term sheet) ou téléchargement (fichier).
+          // AccÃ¨s Ã  la piÃ¨ce : aperÃ§u de l'instantanÃ©, Ã©diteur (term sheet) ou tÃ©lÃ©chargement (fichier).
           const open = document.createElement('a');
           open.className = 'verrow2__open';
           open.target = '_blank';
           open.rel = 'noopener';
           if (isSnap) {
             open.href = '/api/saas/termsheets/' + n.doc_id + '/versions/' + n.version_id + '/preview';
-            open.title = 'Ouvrir cet instantané en lecture seule (nouvel onglet)';
+            open.title = 'Ouvrir cet instantanÃ© en lecture seule (nouvel onglet)';
           } else if (n.kind === 'termsheet') {
             open.href = 'editor.html?doc=' + n.doc_id;
-            open.title = 'Ouvrir dans l\'éditeur';
+            open.title = 'Ouvrir dans l\'Ã©diteur';
           } else {
             open.href = '/api/saas/documents/' + n.doc_id + '/download';
-            open.title = 'Télécharger ce fichier';
+            open.title = 'TÃ©lÃ©charger ce fichier';
           }
           open.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Ouvrir';
           row.appendChild(open);
@@ -968,12 +968,12 @@
         });
       }
 
-      // Fermeture du popover : clic à l'extérieur, Échap, défilement ou redimensionnement.
+      // Fermeture du popover : clic Ã  l'extÃ©rieur, Ã‰chap, dÃ©filement ou redimensionnement.
       document.addEventListener('click', () => { if (verpop && !verpop.hidden) closeVersionsPopover(); });
       document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && verpop && !verpop.hidden) closeVersionsPopover(); });
       window.addEventListener('resize', () => { if (verpop && !verpop.hidden) placeVerpop(); });
-      // Fermeture au défilement de la PAGE (le popover suit l'ancre) — mais pas quand
-      // c'est la liste interne du popover qui défile.
+      // Fermeture au dÃ©filement de la PAGE (le popover suit l'ancre) â€” mais pas quand
+      // c'est la liste interne du popover qui dÃ©file.
       window.addEventListener('scroll', (e) => {
         if (verpop && !verpop.hidden && !(e.target instanceof Node && verpop.contains(e.target))) closeVersionsPopover();
       }, true);
@@ -983,15 +983,15 @@
         query = searchEl.value.trim().toLowerCase();
         render();
       });
-      // Choix du type de levée : filtre les étapes/documents du parcours et se
-      // mémorise (même clé que le tableau de bord, pour rester cohérent).
+      // Choix du type de levÃ©e : filtre les Ã©tapes/documents du parcours et se
+      // mÃ©morise (mÃªme clÃ© que le tableau de bord, pour rester cohÃ©rent).
       raiseToggle.addEventListener('click', (e) => {
         const btn = e.target.closest('.doc-view-btn');
         if (!btn) return;
         const next = btn.getAttribute('data-raise');
         if (!RAISE_TYPES.includes(next) || next === raiseType) return;
         raiseType = next;
-        subFilter = 'all';   // les groupes changent : on repart de « Tout »
+        subFilter = 'all';   // les groupes changent : on repart de Â« Tout Â»
         try { localStorage.setItem(raiseKey(), raiseType); } catch {}
         applyRaiseButtons();
         render();
@@ -1000,29 +1000,29 @@
         const btn = e.target.closest('.doc-view-btn');
         if (!btn) return;
         view = btn.getAttribute('data-view');
-        subFilter = 'all';   // on repart de « Tout » à chaque changement de vue
+        subFilter = 'all';   // on repart de Â« Tout Â» Ã  chaque changement de vue
         viewToggle.querySelectorAll('.doc-view-btn').forEach(b => b.classList.toggle('is-active', b === btn));
         render();
       });
-      // Barre secondaire : filtre l'affichage sur le groupe cliqué (ou « Tout »).
+      // Barre secondaire : filtre l'affichage sur le groupe cliquÃ© (ou Â« Tout Â»).
       subfilterChips.addEventListener('click', (e) => {
         const chip = e.target.closest('.doc-view-btn');
         if (!chip) return;
         const key = chip.getAttribute('data-key');
-        // Recliquer la puce active revient à tout afficher.
+        // Recliquer la puce active revient Ã  tout afficher.
         subFilter = (subFilter === key) ? 'all' : key;
         render();
       });
 
-      // Destinations proposées par la fenêtre « Ajouter un document »
-      // (documents.js) : les étapes du parcours actif. Si l'on filtre justement
-      // sur une étape, elle est présélectionnée comme destination par défaut.
+      // Destinations proposÃ©es par la fenÃªtre Â« Ajouter un document Â»
+      // (documents.js) : les Ã©tapes du parcours actif. Si l'on filtre justement
+      // sur une Ã©tape, elle est prÃ©sÃ©lectionnÃ©e comme destination par dÃ©faut.
       window.liquidImportDestinations = () => ({
         folders: folders.filter(folderInActiveRaise).map(f => ({ id: f.id, name: f.name })),
         defaultFolderId: (view === 'etape' && /^f\d+$/.test(subFilter)) ? Number(subFilter.slice(1)) : null,
       });
 
-      // Contexte pour le rattachement « nouvelle version de… » : documents existants
+      // Contexte pour le rattachement Â« nouvelle version deâ€¦ Â» : documents existants
       // proposables comme parent (du parcours actif) + investisseurs pour la provenance.
       window.liquidImportContext = () => ({
         documents: docs.filter(d => docInActiveRaise(d))
@@ -1031,7 +1031,7 @@
         investors: investors.map(inv => ({ id: inv.id, name: inv.name, firm: inv.firm || '' })),
       });
 
-      // Rafraîchissement après un import (émis par documents.js).
+      // RafraÃ®chissement aprÃ¨s un import (Ã©mis par documents.js).
       window.addEventListener('liquid:document-added', () => { load(); });
 
       load();

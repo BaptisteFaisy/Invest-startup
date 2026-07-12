@@ -1,17 +1,17 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Liquid+ — Simulation de dilution</title>
-  <meta name="description" content="Simulateur de dilution : anticipez l'impact d'un tour de financement (pre-money, post-money, fully diluted) sur la répartition du capital." />
+  <title>Liquid+ â€” Simulation de dilution</title>
+  <meta name="description" content="Simulateur de dilution : anticipez l'impact d'un tour de financement (pre-money, post-money, fully diluted) sur la rÃ©partition du capital." />
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=6" />
   <link rel="stylesheet" href="editor.css?v=7" />
-  <link rel="stylesheet" href="drawer-menu.css?v=6" />
+  <link rel="stylesheet" href="drawer-menu.css?v=7" />
   <link rel="stylesheet" href="help-bulb.css?v=1" />
   <style>
     [hidden] { display: none !important; }
@@ -27,7 +27,7 @@
     .topbar .btn--ghost { color: #fff !important; border-color: rgba(255,255,255,0.35) !important; }
     .topbar .btn--ghost:hover { color: #fff !important; border-color: rgba(255,255,255,0.65) !important; }
 
-    /* Retour en arrière : le chevron reste visible sans bandeau au défilement. */
+    /* Retour en arriÃ¨re : le chevron reste visible sans bandeau au dÃ©filement. */
     .page-back-row { height: 6px; }
     .page-back { position: fixed; top: 56px; left: max(12px, calc(50% - 606px)); z-index: 15; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
     .page-back:hover { opacity: 0.68; transform: translateX(-1px); }
@@ -43,16 +43,16 @@
     .dil__next .btn { background: rgba(255,255,255,0.06); color: #fff; border-color: rgba(255,255,255,0.2); }
     .dil__next .btn:hover { border-color: rgba(255,255,255,0.5); }
 
-    /* Disposition 2 colonnes : saisie à gauche, résultats à droite */
+    /* Disposition 2 colonnes : saisie Ã  gauche, rÃ©sultats Ã  droite */
     .dil__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.04fr); gap: 20px; margin-top: 26px; align-items: start; }
     @media (max-width: 940px) { .dil__grid { grid-template-columns: minmax(0, 1fr); } }
 
-    /* Deux blocs clairement délimités : « saisie » à gauche, « résultats » à droite */
+    /* Deux blocs clairement dÃ©limitÃ©s : Â« saisie Â» Ã  gauche, Â« rÃ©sultats Â» Ã  droite */
     .dil__block { border: 1px solid rgba(255,255,255,0.14); border-radius: 20px; background: rgba(255,255,255,0.03); padding: 4px 16px 16px; }
     .dil__results { position: sticky; top: 78px; }
     @media (max-width: 940px) { .dil__results { position: static; } }
 
-    /* En-tête de bloc : numéro + intitulé, séparé du contenu par un filet */
+    /* En-tÃªte de bloc : numÃ©ro + intitulÃ©, sÃ©parÃ© du contenu par un filet */
     .dil__col-head { display: flex; align-items: flex-start; gap: 12px; padding: 16px 2px 15px; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
     .dil__col-num { flex: none; width: 27px; height: 27px; border-radius: 8px; display: grid; place-items: center; font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 800; background: #fff; color: #08090c; }
     .dil__col-lab { font-family: 'Archivo', sans-serif; font-size: 16px; font-weight: 800; color: #fff; }
@@ -128,7 +128,7 @@
     .kpi--accent .kpi__val { color: #fff; }
     .kpi--accent .kpi__sub { color: rgba(255,255,255,0.6); }
 
-    /* Sélecteur de base de calcul (pleinement dilué / non dilué) */
+    /* SÃ©lecteur de base de calcul (pleinement diluÃ© / non diluÃ©) */
     .dil__basis-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 2px 0 10px; }
     .dil__basis-lab { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
     .seg--dark { background: rgba(255,255,255,0.06); }
@@ -139,7 +139,7 @@
     .dil__basis-hint b { color: rgba(255,255,255,0.8); }
     .rt-muted { color: #b6b6c1; font-weight: 400; font-style: normal; }
 
-    /* Barre de répartition */
+    /* Barre de rÃ©partition */
     .ownbar-wrap { margin-top: 6px; }
     .ownbar-row { margin-bottom: 14px; }
     .ownbar-lab { display: flex; justify-content: space-between; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #6b6b78; margin-bottom: 6px; }
@@ -149,7 +149,7 @@
     .legend__it { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #4b4b56; }
     .legend__sw { width: 11px; height: 11px; border-radius: 3px; flex: none; }
 
-    /* Couleurs des catégories */
+    /* Couleurs des catÃ©gories */
     .c-founder { background: #a5b4fc; }
     .c-invest0 { background: #99f6e4; }
     .c-pool0 { background: #bbf7d0; }
@@ -157,7 +157,7 @@
     .c-poolN { background: #fdba74; }
     .c-convertN { background: #bbf7d0; }
 
-    /* Table résultat */
+    /* Table rÃ©sultat */
     .rtable-wrap { overflow-x: auto; margin-top: 4px; }
     table.rtable { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 460px; }
     .rtable th { font-family: 'Archivo', sans-serif; font-size: 9.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #a8a8b3; text-align: right; padding: 0 8px 9px; border-bottom: 1px solid rgba(8,9,12,0.09); }
@@ -189,7 +189,7 @@
     .dil__actions .btn { background: rgba(255,255,255,0.06); color: #fff; border-color: rgba(255,255,255,0.2); }
     .dil__actions .btn:hover { border-color: rgba(255,255,255,0.5); }
 
-    /* Explication IA des résultats (le calcul reste en JS, l'IA ne fait que commenter) */
+    /* Explication IA des rÃ©sultats (le calcul reste en JS, l'IA ne fait que commenter) */
     .explain-card .card__toprow { margin-bottom: 8px; }
     .btn--ai { background: #08090c; color: #fff; border-color: #08090c; padding: 8px 15px; min-height: 38px; font-size: 13px; }
     .btn--ai:hover { background: #26262c; }
@@ -233,7 +233,7 @@
       .hist-item__actions { flex-direction: row; }
     }
 
-    /* Boîte de dialogue de saisie (remplace prompt(), non supporté par Electron) */
+    /* BoÃ®te de dialogue de saisie (remplace prompt(), non supportÃ© par Electron) */
     .ask-backdrop { position: fixed; inset: 0; z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(8,9,12,0.55); }
     .ask-backdrop.is-on { display: flex; }
     .ask-box { width: 100%; max-width: 420px; background: #fff; border-radius: 14px; padding: 20px 20px 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.4); }
@@ -246,14 +246,14 @@
     .ask-box__btn--primary { background: #08090c; border-color: #08090c; color: #fff; }
     .ask-box__btn--primary:hover { background: #26272e; border-color: #26272e; }
 
-    /* Termes survolables (info-bulle de définition) */
+    /* Termes survolables (info-bulle de dÃ©finition) */
     .term { border-bottom: 1px dashed currentColor; cursor: help; }
     .term:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: 2px; }
     .tip { position: fixed; z-index: 200; max-width: 280px; background: #0f1115; color: #e8e8ec; font-family: 'Libre Franklin', sans-serif; font-size: 12.5px; font-weight: 400; font-style: normal; line-height: 1.5; letter-spacing: 0; text-transform: none; text-align: left; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 12px 34px rgba(0,0,0,0.5); pointer-events: none; opacity: 0; transform: translateY(3px); transition: opacity .12s ease, transform .12s ease; }
     .tip.is-on { opacity: 1; transform: translateY(0); }
     .tip b { color: #fff; font-weight: 700; }
 
-    /* Renvoi vers l'estimateur de valorisation (outil à part) */
+    /* Renvoi vers l'estimateur de valorisation (outil Ã  part) */
     .dil__link { margin-top: 10px; }
     .dil__link-a { font-size: 13.5px; color: rgba(255,255,255,0.85); text-decoration: none; border-bottom: 1px dashed rgba(255,255,255,0.4); transition: color .12s, border-color .12s; }
     .dil__link-a:hover { color: #fff; border-color: rgba(255,255,255,0.6); }
@@ -287,7 +287,7 @@
     .cascade .c-dil { color: #dc2626; font-weight: 600; }
     .cascade .c-flat { color: #a8a8b3; }
 
-    /* Sélecteur de tour à visualiser */
+    /* SÃ©lecteur de tour Ã  visualiser */
     .round-view-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 2px 0 12px; }
     .round-view-lab { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
     .round-view-sel { font-family: 'Libre Franklin', sans-serif; font-size: 12.5px; color: #fff; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.2); border-radius: 9px; padding: 7px 10px; cursor: pointer; max-width: 260px; }
@@ -307,7 +307,7 @@
   </style>
   <script src="auth.js?v=3"></script>
   <script src="tasks.js?v=2" defer></script>
-  <script src="drawer-menu.js?v=3" defer></script>
+  <script src="drawer-menu.js?v=7" defer></script>
   <script src="drawer-steps.js?v=1" defer></script>
   <script src="help-bulb.js?v=1" defer></script>
 </head>
@@ -318,7 +318,7 @@
         <button type="button" class="hamburger" id="nav-menu-btn" aria-label="Ouvrir la navigation" aria-controls="nav-drawer" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
-        <a href="/index.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
+        <a href="tableau-de-bord.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
         <span class="topbar__doc">Simulation de dilution</span>
       </div>
       <div class="topbar__actions">
@@ -330,13 +330,13 @@
 
     <!-- Menu hamburger gauche : navigation -->
     <div class="drawer-backdrop" id="nav-backdrop" data-drawer-close></div>
-    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Étapes de la levée">
+    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Ã‰tapes de la levÃ©e">
       <div class="drawer__head"></div>
       <nav class="drawer__body">
-        <div class="drawer__section-title">Étapes de la levée</div>
-        <div id="nav-steps"><p class="drawer__steps-loading">Chargement des étapes…</p></div>
+        <div class="drawer__section-title">Ã‰tapes de la levÃ©e</div>
+        <div id="nav-steps"><p class="drawer__steps-loading">Chargement des Ã©tapesâ€¦</p></div>
       </nav>
-      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. FlÃ¨ches : 10 px, Maj + flÃ¨ches : 50 px, double-clic : rÃ©initialiser"></div>
     </aside>
 
     <!-- Menu hamburger droite : compte & actions -->
@@ -345,7 +345,7 @@
       <div class="drawer__head"></div>
       <nav class="drawer__body">
         <div class="drawer__section-title">Outils</div>
-        <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Éditeur</a>
+        <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Ã‰diteur</a>
         <a class="drawer__link" href="benchmark.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Benchmark</a>
         <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
         <div class="drawer__sep"></div>
@@ -353,21 +353,21 @@
         <a class="drawer__link" href="dilution.html" target="_blank" rel="noopener" title="Simulation de dilution"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
         <a class="drawer__link" href="exit.html" target="_blank" rel="noopener" title="Simulateur d'exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Exit</a>
         <div class="drawer__sep"></div>
-        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>Tâches</a>
+        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>TÃ¢ches</a>
         <a class="drawer__link" href="documents.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>Documents</a>
         <a class="drawer__link" href="data-room.html" target="_blank" rel="noopener" title="Data room"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/></svg>Data room</a>
         <a class="drawer__link" href="avocat.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M6 21h12"/><path d="M3 7h18"/><path d="M7 7l-3 6a3 3 0 0 0 6 0Z"/><path d="M17 7l3 6a3 3 0 0 0-6 0Z"/></svg>Avocat</a>
         <div class="drawer__sep"></div>
         <a class="drawer__link" href="compte.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>Mon compte</a>
-        <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Écrire au fondateur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
+        <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Ã‰crire au fondateur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
         <div class="drawer__sep"></div>
-        <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>Déconnexion</button>
+        <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>DÃ©connexion</button>
       </nav>
-      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. FlÃ¨ches : 10 px, Maj + flÃ¨ches : 50 px, double-clic : rÃ©initialiser"></div>
     </aside>
 
     <div class="page-back-row">
-      <button type="button" class="page-back" id="page-back-btn" aria-label="Revenir en arrière" title="Revenir en arrière">
+      <button type="button" class="page-back" id="page-back-btn" aria-label="Revenir en arriÃ¨re" title="Revenir en arriÃ¨re">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
       </button>
     </div>
@@ -378,9 +378,9 @@
       <h1 class="dil__title">Simulation de dilution</h1>
       <div class="help-pop" hidden>
         <div class="help-pop__label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg> Comprendre cet outil</div>
-        <p>Renseignez votre <span class="term" data-term="cap-table" tabindex="0">cap table</span> actuelle — <b>en % suffit</b>, pas besoin du nombre exact d'actions — et les paramètres du tour. Le simulateur calcule le <span class="term" data-term="post-money" tabindex="0">post-money</span>, votre <span class="term" data-term="dilution" tabindex="0">dilution</span> et la répartition du capital, à lire au choix en <b><span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span></b> (pool et <span class="term" data-term="convertibles" tabindex="0">convertibles</span> inclus) ou en <b><span class="term" data-term="non-dilue" tabindex="0">non dilué</span></b> (actions émises seulement).</p>
+        <p>Renseignez votre <span class="term" data-term="cap-table" tabindex="0">cap table</span> actuelle â€” <b>en % suffit</b>, pas besoin du nombre exact d'actions â€” et les paramÃ¨tres du tour. Le simulateur calcule le <span class="term" data-term="post-money" tabindex="0">post-money</span>, votre <span class="term" data-term="dilution" tabindex="0">dilution</span> et la rÃ©partition du capital, Ã  lire au choix en <b><span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span></b> (pool et <span class="term" data-term="convertibles" tabindex="0">convertibles</span> inclus) ou en <b><span class="term" data-term="non-dilue" tabindex="0">non diluÃ©</span></b> (actions Ã©mises seulement).</p>
       </div>
-      <p class="dil__link"><a class="dil__link-a" href="valorisation.html">Vous ne connaissez pas votre valorisation ? Utilisez l'estimateur de valorisation →</a></p>
+      <p class="dil__link"><a class="dil__link-a" href="valorisation.html">Vous ne connaissez pas votre valorisation ? Utilisez l'estimateur de valorisation â†’</a></p>
 
       <div class="dil__grid">
         <!-- COLONNE SAISIE -->
@@ -388,8 +388,8 @@
           <div class="dil__col-head">
             <div class="dil__col-num">1</div>
             <div>
-              <div class="dil__col-lab">À remplir — vos données</div>
-              <p class="dil__col-sub">Les champs sont vides par défaut : entrez les infos de votre startup, ou chargez un exemple ci-dessous pour voir le simulateur en action.</p>
+              <div class="dil__col-lab">Ã€ remplir â€” vos donnÃ©es</div>
+              <p class="dil__col-sub">Les champs sont vides par dÃ©faut : entrez les infos de votre startup, ou chargez un exemple ci-dessous pour voir le simulateur en action.</p>
             </div>
           </div>
 
@@ -397,33 +397,33 @@
             <div class="example-picker">
               <label class="example-picker__lab" for="example-select">Exemple</label>
               <select class="example-picker__sel" id="example-select">
-                <option value="" selected>— Partir d'un formulaire vide —</option>
-                <option value="0">Amorçage — le cas simple (pre-money)</option>
-                <option value="1">Amorçage — pool créé avant le tour</option>
-                <option value="2">Série A — post-money, pool après le tour</option>
-                <option value="3">Amorçage — BSA AIR qui se convertit</option>
-                <option value="4">Négociation — en % cédé</option>
-                <option value="5">Parcours Seed → Série A → Série B</option>
+                <option value="" selected>â€” Partir d'un formulaire vide â€”</option>
+                <option value="0">AmorÃ§age â€” le cas simple (pre-money)</option>
+                <option value="1">AmorÃ§age â€” pool crÃ©Ã© avant le tour</option>
+                <option value="2">SÃ©rie A â€” post-money, pool aprÃ¨s le tour</option>
+                <option value="3">AmorÃ§age â€” BSA AIR qui se convertit</option>
+                <option value="4">NÃ©gociation â€” en % cÃ©dÃ©</option>
+                <option value="5">Parcours Seed â†’ SÃ©rie A â†’ SÃ©rie B</option>
               </select>
             </div>
-            <button type="button" class="btn" id="reset-btn">↺ Vider le formulaire</button>
+            <button type="button" class="btn" id="reset-btn">â†º Vider le formulaire</button>
             <button type="button" class="btn" id="save-sim-btn">Enregistrer cette simulation</button>
           </div>
 
           <div class="card">
             <div class="card__toprow">
-              <div class="card__h">Cap table de départ</div>
+              <div class="card__h">Cap table de dÃ©part</div>
               <div class="seg" id="mode-seg">
                 <button type="button" class="seg__btn is-on" data-mode="pct">En %</button>
                 <button type="button" class="seg__btn" data-mode="shares">Nb d'actions</button>
               </div>
             </div>
-            <div class="card__desc" id="sh-desc">Le capital <b>avant</b> le tour, en % du capital (<span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span> : intégrez le <span class="term" data-term="pool" tabindex="0">pool d'options</span> existant et les <span class="term" data-term="bsa" tabindex="0">BSA</span>/<span class="term" data-term="bspce" tabindex="0">BSPCE</span> déjà attribués). Le total doit faire 100 %.</div>
+            <div class="card__desc" id="sh-desc">Le capital <b>avant</b> le tour, en % du capital (<span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span> : intÃ©grez le <span class="term" data-term="pool" tabindex="0">pool d'options</span> existant et les <span class="term" data-term="bsa" tabindex="0">BSA</span>/<span class="term" data-term="bspce" tabindex="0">BSPCE</span> dÃ©jÃ  attribuÃ©s). Le total doit faire 100 %.</div>
             <div class="rows rows--sh">
               <div class="rows__head">
                 <span>Actionnaire</span>
                 <span class="r" id="sh-col-lab">%</span>
-                <span>Catégorie</span>
+                <span>CatÃ©gorie</span>
                 <span></span>
               </div>
               <div id="sh-rows"></div>
@@ -431,38 +431,38 @@
             <button type="button" class="addrow" id="add-sh">+ Ajouter un actionnaire</button>
             <div class="rowsum">
               <span id="sh-total-lab">Total</span>
-              <b id="sh-total">—</b>
+              <b id="sh-total">â€”</b>
             </div>
           </div>
 
           <div style="margin:2px 0 12px">
             <div class="card__h" style="color:rgba(255,255,255,0.6);margin-bottom:6px">Les tours de financement</div>
-            <p class="dil__basis-hint" style="margin:0">Ajoutez un ou plusieurs tours. <b>Chaque tour part de la cap table issue du précédent</b> : la dilution se cumule, comme dans la vraie vie (Seed → Série A → Série B…).</p>
+            <p class="dil__basis-hint" style="margin:0">Ajoutez un ou plusieurs tours. <b>Chaque tour part de la cap table issue du prÃ©cÃ©dent</b> : la dilution se cumule, comme dans la vraie vie (Seed â†’ SÃ©rie A â†’ SÃ©rie Bâ€¦).</p>
           </div>
           <div class="rounds-container" id="rounds-container"></div>
           <button type="button" class="add-round" id="add-round">+ Ajouter un tour suivant</button>
         </form>
 
-        <!-- COLONNE RÉSULTATS -->
+        <!-- COLONNE RÃ‰SULTATS -->
         <div class="dil__results dil__block">
           <div class="dil__col-head">
             <div class="dil__col-num">2</div>
             <div>
-              <div class="dil__col-lab">Résultats</div>
-              <p class="dil__col-sub">Se met à jour automatiquement au fur et à mesure de votre saisie à gauche.</p>
+              <div class="dil__col-lab">RÃ©sultats</div>
+              <p class="dil__col-sub">Se met Ã  jour automatiquement au fur et Ã  mesure de votre saisie Ã  gauche.</p>
             </div>
           </div>
 
           <div class="round-view-row">
-            <span class="round-view-lab">Tour affiché</span>
+            <span class="round-view-lab">Tour affichÃ©</span>
             <select class="round-view-sel" id="round-view-sel"></select>
           </div>
 
           <div class="dil__basis-row">
             <span class="dil__basis-lab">Base de calcul</span>
             <div class="seg seg--dark" id="view-basis-seg">
-              <button type="button" class="seg__btn is-on" data-view="fd">Pleinement dilué</button>
-              <button type="button" class="seg__btn" data-view="issued">Non dilué</button>
+              <button type="button" class="seg__btn is-on" data-view="fd">Pleinement diluÃ©</button>
+              <button type="button" class="seg__btn" data-view="issued">Non diluÃ©</button>
             </div>
           </div>
           <p class="dil__basis-hint" id="basis-hint"></p>
@@ -472,36 +472,36 @@
           <div class="kpis">
             <div class="kpi kpi--accent">
               <div class="kpi__lab">Valorisation <span class="term" data-term="post-money" tabindex="0">post-money</span></div>
-              <div class="kpi__val" id="k-post">—</div>
+              <div class="kpi__val" id="k-post">â€”</div>
               <div class="kpi__sub" id="k-post-sub">dernier tour</div>
             </div>
             <div class="kpi">
-              <div class="kpi__lab" id="k-raised-lab">Total levé (cumul)</div>
-              <div class="kpi__val" id="k-raised">—</div>
+              <div class="kpi__lab" id="k-raised-lab">Total levÃ© (cumul)</div>
+              <div class="kpi__val" id="k-raised">â€”</div>
               <div class="kpi__sub" id="k-raised-sub">tous tours confondus</div>
             </div>
             <div class="kpi">
-              <div class="kpi__lab">Part des fondateurs — fin</div>
-              <div class="kpi__val" id="k-fend">—</div>
-              <div class="kpi__sub" id="k-fend-sub">après le dernier tour</div>
+              <div class="kpi__lab">Part des fondateurs â€” fin</div>
+              <div class="kpi__val" id="k-fend">â€”</div>
+              <div class="kpi__sub" id="k-fend-sub">aprÃ¨s le dernier tour</div>
             </div>
             <div class="kpi">
-              <div class="kpi__lab"><span class="term" data-term="dilution" tabindex="0">Dilution</span> cumulée des fondateurs</div>
-              <div class="kpi__val" id="k-fdil">—</div>
+              <div class="kpi__lab"><span class="term" data-term="dilution" tabindex="0">Dilution</span> cumulÃ©e des fondateurs</div>
+              <div class="kpi__val" id="k-fdil">â€”</div>
               <div class="kpi__sub" id="k-fdil-sub"></div>
             </div>
           </div>
 
           <div class="card" id="cascade-card" style="margin-top:18px" hidden>
             <div class="card__h">Cascade de <span class="term" data-term="dilution" tabindex="0">dilution</span> des fondateurs</div>
-            <div class="card__desc">La part des fondateurs, tour après tour. La dilution de chaque tour s'applique à ce qu'il reste après le précédent.</div>
+            <div class="card__desc">La part des fondateurs, tour aprÃ¨s tour. La dilution de chaque tour s'applique Ã  ce qu'il reste aprÃ¨s le prÃ©cÃ©dent.</div>
             <div class="cascade-wrap">
               <table class="cascade" id="cascade">
                 <thead>
                   <tr>
                     <th class="l">Tour</th>
                     <th>Post-money</th>
-                    <th>Levé</th>
+                    <th>LevÃ©</th>
                     <th>% fondateurs</th>
                     <th>Dilution du tour</th>
                   </tr>
@@ -512,14 +512,14 @@
           </div>
 
           <div class="card" style="margin-top:18px">
-            <div class="card__h" id="own-card-h">Répartition du capital (<span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span>)</div>
+            <div class="card__h" id="own-card-h">RÃ©partition du capital (<span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span>)</div>
             <div class="ownbar-wrap">
               <div class="ownbar-row">
                 <div class="ownbar-lab"><span id="own-before-lab">Avant ce tour</span><span id="own-before-tot"></span></div>
                 <div class="ownbar" id="own-before"></div>
               </div>
               <div class="ownbar-row">
-                <div class="ownbar-lab"><span id="own-after-lab">Après ce tour</span><span id="own-after-tot"></span></div>
+                <div class="ownbar-lab"><span id="own-after-lab">AprÃ¨s ce tour</span><span id="own-after-tot"></span></div>
                 <div class="ownbar" id="own-after"></div>
               </div>
               <div class="legend" id="legend"></div>
@@ -527,7 +527,7 @@
           </div>
 
           <div class="card">
-            <div class="card__h" id="rtable-card-h"><span class="term" data-term="cap-table" tabindex="0">Cap table</span> détaillée — avant / après ce tour</div>
+            <div class="card__h" id="rtable-card-h"><span class="term" data-term="cap-table" tabindex="0">Cap table</span> dÃ©taillÃ©e â€” avant / aprÃ¨s ce tour</div>
             <div class="rtable-wrap">
               <table class="rtable" id="rtable">
                 <thead>
@@ -535,9 +535,9 @@
                     <th class="l">Actionnaire</th>
                     <th class="col-abs">Actions avant</th>
                     <th>% avant</th>
-                    <th class="col-abs">Actions après</th>
-                    <th>% après</th>
-                    <th>Évolution</th>
+                    <th class="col-abs">Actions aprÃ¨s</th>
+                    <th>% aprÃ¨s</th>
+                    <th>Ã‰volution</th>
                   </tr>
                 </thead>
                 <tbody id="rtable-body"></tbody>
@@ -546,17 +546,17 @@
           </div>
 
           <p class="note">
-            <b><span class="term" data-term="fully-diluted" tabindex="0">Fully diluted</span></b> : la répartition intègre le <span class="term" data-term="pool" tabindex="0">pool d'options</span> et les <span class="term" data-term="convertibles" tabindex="0">instruments convertibles</span> comme s'ils étaient déjà des actions — c'est la base retenue par les investisseurs et la mesure la plus prudente de votre <span class="term" data-term="dilution" tabindex="0">dilution</span>.<br />
-            <b><span class="term" data-term="non-dilue" tabindex="0">Non dilué</span></b> : la même opération sur les seules actions <b>déjà émises</b>. Votre part y paraît plus haute — l'écart avec le fully diluted mesure exactement le poids du pool à venir (l'« <i>overhang</i> »).<br />
-            <b><span class="term" data-term="shuffle" tabindex="0">Option pool shuffle</span></b> : un pool créé « avant le tour » gonfle le pre-money en actions et ne dilue que les actionnaires existants — l'investisseur obtient son pourcentage « net de pool ». Créé « après », il dilue aussi l'investisseur. C'est un point de négociation à part entière.
+            <b><span class="term" data-term="fully-diluted" tabindex="0">Fully diluted</span></b> : la rÃ©partition intÃ¨gre le <span class="term" data-term="pool" tabindex="0">pool d'options</span> et les <span class="term" data-term="convertibles" tabindex="0">instruments convertibles</span> comme s'ils Ã©taient dÃ©jÃ  des actions â€” c'est la base retenue par les investisseurs et la mesure la plus prudente de votre <span class="term" data-term="dilution" tabindex="0">dilution</span>.<br />
+            <b><span class="term" data-term="non-dilue" tabindex="0">Non diluÃ©</span></b> : la mÃªme opÃ©ration sur les seules actions <b>dÃ©jÃ  Ã©mises</b>. Votre part y paraÃ®t plus haute â€” l'Ã©cart avec le fully diluted mesure exactement le poids du pool Ã  venir (l'Â« <i>overhang</i> Â»).<br />
+            <b><span class="term" data-term="shuffle" tabindex="0">Option pool shuffle</span></b> : un pool crÃ©Ã© Â« avant le tour Â» gonfle le pre-money en actions et ne dilue que les actionnaires existants â€” l'investisseur obtient son pourcentage Â« net de pool Â». CrÃ©Ã© Â« aprÃ¨s Â», il dilue aussi l'investisseur. C'est un point de nÃ©gociation Ã  part entiÃ¨re.
           </p>
 
           <div class="card explain-card" id="explain-card" hidden>
             <div class="card__toprow">
               <div class="card__h">Comprendre ces chiffres</div>
-              <button type="button" class="btn btn--ai" id="explain-btn">✨ Expliquer ces chiffres</button>
+              <button type="button" class="btn btn--ai" id="explain-btn">âœ¨ Expliquer ces chiffres</button>
             </div>
-            <p class="explain-desc">L'assistant commente les résultats <b>déjà calculés</b> ci-dessus (moteur déterministe) — il ne recalcule ni n'invente aucun chiffre.</p>
+            <p class="explain-desc">L'assistant commente les rÃ©sultats <b>dÃ©jÃ  calculÃ©s</b> ci-dessus (moteur dÃ©terministe) â€” il ne recalcule ni n'invente aucun chiffre.</p>
             <div class="explain-out" id="explain-out" hidden></div>
           </div>
         </div>
@@ -565,23 +565,23 @@
       <div class="card" id="to-exit-card" style="margin-top:20px">
         <div class="card__toprow" style="align-items:center">
           <div style="flex:1;min-width:0">
-            <div class="card__h">Étape suivante — la revente</div>
-            <p class="card__desc" style="margin:4px 0 0">Reprenez la cap table <b>après le dernier tour</b> dans le simulateur d'exit — sans rien ressaisir — pour voir qui touche quoi le jour d'une vente (préférences de liquidation, cascade de distribution).</p>
+            <div class="card__h">Ã‰tape suivante â€” la revente</div>
+            <p class="card__desc" style="margin:4px 0 0">Reprenez la cap table <b>aprÃ¨s le dernier tour</b> dans le simulateur d'exit â€” sans rien ressaisir â€” pour voir qui touche quoi le jour d'une vente (prÃ©fÃ©rences de liquidation, cascade de distribution).</p>
           </div>
-          <button type="button" class="btn btn--ai" id="to-exit-btn" style="white-space:nowrap">Simuler la revente →</button>
+          <button type="button" class="btn btn--ai" id="to-exit-btn" style="white-space:nowrap">Simuler la revente â†’</button>
         </div>
       </div>
 
       <div class="card dil__history" id="hist-card">
         <div class="card__h">Historique des simulations</div>
-        <div class="card__desc">Vos simulations enregistrées. Chargez-en une pour la reprendre ou la comparer.</div>
+        <div class="card__desc">Vos simulations enregistrÃ©es. Chargez-en une pour la reprendre ou la comparer.</div>
         <div class="hist-status" id="hist-status" role="status" aria-live="polite"></div>
         <div class="hist-list" id="hist-list"></div>
       </div>
 
       <div class="dil__next">
-        <a class="btn" href="valorisation.html">Simulateur de valorisation →</a>
-        <a class="btn" href="exit.html">Simulateur d'exit →</a>
+        <a class="btn" href="valorisation.html">Simulateur de valorisation â†’</a>
+        <a class="btn" href="exit.html">Simulateur d'exit â†’</a>
       </div>
 
     </main>
@@ -590,7 +590,7 @@
   <script>
     // ---------- Formatage ----------
     const nfInt = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
-    const eur0 = (n) => nfInt.format(Math.round(n)) + ' €';
+    const eur0 = (n) => nfInt.format(Math.round(n)) + ' â‚¬';
     const num0 = (n) => nfInt.format(Math.round(n));
     const pct1 = (n) => (n * 100).toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %';
     const pct2 = (n) => (n * 100).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' %';
@@ -601,25 +601,25 @@
       const v = parseFloat(cleaned);
       return isFinite(v) ? v : 0;
     };
-    // Formate un champ montant avec séparateurs d'espace pendant la saisie
+    // Formate un champ montant avec sÃ©parateurs d'espace pendant la saisie
     const fmtLiveInt = (s) => {
       const v = parseNum(s);
       if (!v) return '';
       return nfInt.format(Math.round(v));
     };
-    // Formate une valeur de pourcentage (jusqu'à 2 décimales, style FR)
+    // Formate une valeur de pourcentage (jusqu'Ã  2 dÃ©cimales, style FR)
     const fmtPctInput = (v) => (!v ? '' : v.toLocaleString('fr-FR', { maximumFractionDigits: 2 }));
 
-    // Mode de saisie de la cap table de départ : 'pct' (défaut) ou 'shares'
+    // Mode de saisie de la cap table de dÃ©part : 'pct' (dÃ©faut) ou 'shares'
     let mode = 'pct';
-    // Base de lecture des résultats : 'fd' (pleinement dilué) ou 'issued' (non dilué / actions émises)
+    // Base de lecture des rÃ©sultats : 'fd' (pleinement diluÃ©) ou 'issued' (non diluÃ© / actions Ã©mises)
     let resultsBasis = 'fd';
-    // Index du tour affiché (dans la liste des tours calculés). -1 = dernier.
+    // Index du tour affichÃ© (dans la liste des tours calculÃ©s). -1 = dernier.
     let viewRound = -1;
-    let lastDil = null;   // dernier parcours calculé (JS) exposé à « Expliquer ces chiffres »
+    let lastDil = null;   // dernier parcours calculÃ© (JS) exposÃ© Ã  Â« Expliquer ces chiffres Â»
     // Formate la valeur d'une ligne d'actionnaire selon le mode
     const fmtRowVal = (v) => (mode === 'pct' ? fmtPctInput(v) : (v ? nfInt.format(Math.round(v)) : ''));
-    // Base notionnelle d'actions utilisée quand on passe de % vers nombre d'actions
+    // Base notionnelle d'actions utilisÃ©e quand on passe de % vers nombre d'actions
     const NOTIONAL_BASE = 1000000;
 
     const CATS = {
@@ -631,44 +631,44 @@
       poolN:   { label: 'Nouveau pool', cls: 'c-poolN', color: '#db2777' },
     };
 
-    // ---------- Données d'exemple ----------
-    // Les cinq premiers exemples forment une progression pédagogique : chacun
-    // n'introduit qu'une seule mécanique nouvelle par rapport au précédent
-    // (base pre/post/% cédé, pool avant/après, convertibles). Le dernier
-    // illustre un parcours multi-tours où la dilution se compose.
-    // Format : { label, start: [cap table de départ], rounds: [suite de tours] }.
+    // ---------- DonnÃ©es d'exemple ----------
+    // Les cinq premiers exemples forment une progression pÃ©dagogique : chacun
+    // n'introduit qu'une seule mÃ©canique nouvelle par rapport au prÃ©cÃ©dent
+    // (base pre/post/% cÃ©dÃ©, pool avant/aprÃ¨s, convertibles). Le dernier
+    // illustre un parcours multi-tours oÃ¹ la dilution se compose.
+    // Format : { label, start: [cap table de dÃ©part], rounds: [suite de tours] }.
     const EXAMPLES = [
       {
-        // #0 — Le mécanisme de base, sans aucune option : post = pre + montant levé.
-        label: 'Amorçage — le cas simple (pre-money)',
+        // #0 â€” Le mÃ©canisme de base, sans aucune option : post = pre + montant levÃ©.
+        label: 'AmorÃ§age â€” le cas simple (pre-money)',
         start: [
           { name: 'Fondateur A', shares: 500000, type: 'founder' },
           { name: 'Fondateur B', shares: 500000, type: 'founder' },
         ],
         rounds: [
-          { name: 'Amorçage', basis: 'pre', valoRaw: 2000000, interp: 'net',
+          { name: 'AmorÃ§age', basis: 'pre', valoRaw: 2000000, interp: 'net',
             investors: [{ name: 'Investisseur lead', amount: 500000 }],
             pool: { on: false, pct: 10, timing: 'pre' }, conv: { on: false, rows: [{}] } },
         ],
       },
       {
-        // #1 — Identique à #0 + le seul ajout d'un pool créé avant le tour :
-        // il dilue les fondateurs et préserve la part de l'investisseur.
-        label: 'Amorçage — pool créé avant le tour',
+        // #1 â€” Identique Ã  #0 + le seul ajout d'un pool crÃ©Ã© avant le tour :
+        // il dilue les fondateurs et prÃ©serve la part de l'investisseur.
+        label: 'AmorÃ§age â€” pool crÃ©Ã© avant le tour',
         start: [
           { name: 'Fondateur A', shares: 500000, type: 'founder' },
           { name: 'Fondateur B', shares: 500000, type: 'founder' },
         ],
         rounds: [
-          { name: 'Amorçage', basis: 'pre', valoRaw: 2000000, interp: 'net',
+          { name: 'AmorÃ§age', basis: 'pre', valoRaw: 2000000, interp: 'net',
             investors: [{ name: 'Investisseur lead', amount: 500000 }],
             pool: { on: true, pct: 10, timing: 'pre' }, conv: { on: false, rows: [{}] } },
         ],
       },
       {
-        // #2 — Base post-money, cap table déjà constituée (seed + pool historiques)
-        // et un pool créé APRÈS le tour : il dilue tout le monde, investisseur compris.
-        label: 'Série A — post-money, pool après le tour',
+        // #2 â€” Base post-money, cap table dÃ©jÃ  constituÃ©e (seed + pool historiques)
+        // et un pool crÃ©Ã© APRÃˆS le tour : il dilue tout le monde, investisseur compris.
+        label: 'SÃ©rie A â€” post-money, pool aprÃ¨s le tour',
         start: [
           { name: 'Fondateur A', shares: 4000000, type: 'founder' },
           { name: 'Fondateur B', shares: 2500000, type: 'founder' },
@@ -676,30 +676,30 @@
           { name: 'Pool existant', shares: 1000000, type: 'pool0' },
         ],
         rounds: [
-          { name: 'Série A', basis: 'post', valoRaw: 25000000, interp: 'net',
-            investors: [{ name: 'Lead Série A', amount: 4000000 }, { name: 'Investisseur suiveur', amount: 1000000 }],
+          { name: 'SÃ©rie A', basis: 'post', valoRaw: 25000000, interp: 'net',
+            investors: [{ name: 'Lead SÃ©rie A', amount: 4000000 }, { name: 'Investisseur suiveur', amount: 1000000 }],
             pool: { on: true, pct: 12, timing: 'post' }, conv: { on: false, rows: [{}] } },
         ],
       },
       {
-        // #3 — Un BSA AIR levé plus tôt se convertit à ce tour : seul exemple
-        // exerçant la section « instruments convertibles » (décote + plafond).
-        label: 'Amorçage — BSA AIR qui se convertit',
+        // #3 â€” Un BSA AIR levÃ© plus tÃ´t se convertit Ã  ce tour : seul exemple
+        // exerÃ§ant la section Â« instruments convertibles Â» (dÃ©cote + plafond).
+        label: 'AmorÃ§age â€” BSA AIR qui se convertit',
         start: [
           { name: 'Fondateur A', shares: 600000, type: 'founder' },
           { name: 'Fondateur B', shares: 400000, type: 'founder' },
         ],
         rounds: [
-          { name: 'Amorçage', basis: 'pre', valoRaw: 4000000, interp: 'net',
+          { name: 'AmorÃ§age', basis: 'pre', valoRaw: 4000000, interp: 'net',
             investors: [{ name: 'Investisseur lead', amount: 1000000 }],
             pool: { on: false, pct: 10, timing: 'pre' },
-            conv: { on: true, rows: [{ name: 'BSA AIR (pré-amorçage)', amount: 300000, discount: 20, cap: 3500000, floor: 0 }] } },
+            conv: { on: true, rows: [{ name: 'BSA AIR (prÃ©-amorÃ§age)', amount: 300000, discount: 20, cap: 3500000, floor: 0 }] } },
         ],
       },
       {
-        // #4 — On raisonne directement en % cédé (l'outil déduit la valo),
+        // #4 â€” On raisonne directement en % cÃ©dÃ© (l'outil dÃ©duit la valo),
         // avec un pool avant le tour (part investisseur nette de pool).
-        label: 'Négociation — en % cédé',
+        label: 'NÃ©gociation â€” en % cÃ©dÃ©',
         start: [
           { name: 'Fondateur A', shares: 600000, type: 'founder' },
           { name: 'Fondateur B', shares: 400000, type: 'founder' },
@@ -711,8 +711,8 @@
         ],
       },
       {
-        // #5 — Parcours complet : la dilution se compose tour après tour.
-        label: 'Parcours Seed → Série A → Série B',
+        // #5 â€” Parcours complet : la dilution se compose tour aprÃ¨s tour.
+        label: 'Parcours Seed â†’ SÃ©rie A â†’ SÃ©rie B',
         start: [
           { name: 'Fondateur A', shares: 600000, type: 'founder' },
           { name: 'Fondateur B', shares: 400000, type: 'founder' },
@@ -721,10 +721,10 @@
           { name: 'Seed', basis: 'pre', valoRaw: 3000000, interp: 'net',
             investors: [{ name: 'Business angels', amount: 600000 }],
             pool: { on: true, pct: 10, timing: 'pre' }, conv: { on: false, rows: [{}] } },
-          { name: 'Série A', basis: 'pre', valoRaw: 12000000, interp: 'net',
+          { name: 'SÃ©rie A', basis: 'pre', valoRaw: 12000000, interp: 'net',
             investors: [{ name: 'Fonds VC', amount: 3000000 }],
             pool: { on: true, pct: 10, timing: 'pre' }, conv: { on: false, rows: [{}] } },
-          { name: 'Série B', basis: 'pre', valoRaw: 35000000, interp: 'net',
+          { name: 'SÃ©rie B', basis: 'pre', valoRaw: 35000000, interp: 'net',
             investors: [{ name: 'Fonds late-stage', amount: 10000000 }],
             pool: { on: true, pct: 5, timing: 'pre' }, conv: { on: false, rows: [{}] } },
         ],
@@ -745,14 +745,14 @@
           ${opt('invest0', 'Investisseur')}
           ${opt('pool0', 'Pool / BSPCE')}
         </select>
-        <button type="button" class="row__del" title="Supprimer">×</button>
+        <button type="button" class="row__del" title="Supprimer">Ã—</button>
       </div>`;
     }
     function invRowHTML(inv) {
       return `<div class="row" data-role="inv">
         <input class="inp in-iname" type="text" value="${escAttr(inv.name)}" placeholder="Nom" />
         <input class="inp inp--money in-amount" type="text" inputmode="numeric" value="${inv.amount ? nfInt.format(inv.amount) : ''}" placeholder="0" />
-        <button type="button" class="row__del" title="Supprimer">×</button>
+        <button type="button" class="row__del" title="Supprimer">Ã—</button>
       </div>`;
     }
     function convRowHTML(cv) {
@@ -760,9 +760,9 @@
         <input class="inp in-cname" type="text" value="${escAttr(cv.name || '')}" placeholder="BSA AIR" />
         <input class="inp inp--money in-camount" type="text" inputmode="numeric" value="${cv.amount ? nfInt.format(cv.amount) : ''}" placeholder="0" />
         <input class="inp inp--money in-cdisc" type="text" inputmode="decimal" value="${cv.discount ? fmtPctInput(cv.discount) : ''}" placeholder="20" />
-        <input class="inp inp--money in-ccap" type="text" inputmode="numeric" value="${cv.cap ? nfInt.format(cv.cap) : ''}" placeholder="—" />
-        <input class="inp inp--money in-cfloor" type="text" inputmode="numeric" value="${cv.floor ? nfInt.format(cv.floor) : ''}" placeholder="—" />
-        <button type="button" class="row__del" title="Supprimer">×</button>
+        <input class="inp inp--money in-ccap" type="text" inputmode="numeric" value="${cv.cap ? nfInt.format(cv.cap) : ''}" placeholder="â€”" />
+        <input class="inp inp--money in-cfloor" type="text" inputmode="numeric" value="${cv.floor ? nfInt.format(cv.floor) : ''}" placeholder="â€”" />
+        <button type="button" class="row__del" title="Supprimer">Ã—</button>
       </div>`;
     }
     function escAttr(s) { return String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
@@ -784,14 +784,14 @@
       };
     }
 
-    // Carte d'un tour (générée dynamiquement, autant de fois qu'il y a de tours)
+    // Carte d'un tour (gÃ©nÃ©rÃ©e dynamiquement, autant de fois qu'il y a de tours)
     function roundCardHTML(rd, idx) {
       const uid = 'r' + Math.random().toString(36).slice(2, 8);
       const basis = rd.basis || 'pre';
       const valoLab = basis === 'pre' ? 'Valorisation <span class="term" data-term="pre-money" tabindex="0">pre-money</span>'
         : basis === 'post' ? 'Valorisation <span class="term" data-term="post-money" tabindex="0">post-money</span>'
-        : '<span class="term" data-term="pct-cede" tabindex="0">Capital cédé au tour</span>';
-      const suf = basis === 'pct' ? '%' : '€';
+        : '<span class="term" data-term="pct-cede" tabindex="0">Capital cÃ©dÃ© au tour</span>';
+      const suf = basis === 'pct' ? '%' : 'â‚¬';
       const im = basis === 'pct' ? 'decimal' : 'numeric';
       const valoVal = rd.valoRaw ? (basis === 'pct' ? fmtPctInput(rd.valoRaw) : nfInt.format(Math.round(rd.valoRaw))) : '';
       const invRows = (rd.investors && rd.investors.length ? rd.investors : [{ name: '', amount: 0 }]).map(invRowHTML).join('');
@@ -806,13 +806,13 @@
       return `<div class="round-card" data-role="round" data-basis="${basis}">
         <div class="round-card__head">
           <span class="round-card__num">Tour ${idx + 1}</span>
-          <input class="round-name" type="text" value="${escAttr(rd.name || '')}" placeholder="${idx === 0 ? 'Amorçage / Seed' : 'Série ' + String.fromCharCode(64 + idx)}" />
-          <button type="button" class="round-del" title="Supprimer ce tour"${idx === 0 ? ' hidden' : ''}>×</button>
+          <input class="round-name" type="text" value="${escAttr(rd.name || '')}" placeholder="${idx === 0 ? 'AmorÃ§age / Seed' : 'SÃ©rie ' + String.fromCharCode(64 + idx)}" />
+          <button type="button" class="round-del" title="Supprimer ce tour"${idx === 0 ? ' hidden' : ''}>Ã—</button>
         </div>
         <div class="round-card__body">
           <div class="card__toprow">
-            <div class="card__h">La levée</div>
-            <div class="seg round-basis-seg">${seg('pre', 'Pre-money')}${seg('post', 'Post-money')}${seg('pct', '% cédé')}</div>
+            <div class="card__h">La levÃ©e</div>
+            <div class="seg round-basis-seg">${seg('pre', 'Pre-money')}${seg('post', 'Post-money')}${seg('pct', '% cÃ©dÃ©')}</div>
           </div>
           <div class="field" style="margin-top:10px">
             <label class="field__lab round-valo-lab">${valoLab}</label>
@@ -823,7 +823,7 @@
             <div class="card__desc round-valo-help" style="margin:6px 0 0"></div>
           </div>
           <div class="field round-pct-interp"${basis === 'pct' && pool.on ? '' : ' hidden'}>
-            <label class="field__lab">Ce % correspond à</label>
+            <label class="field__lab">Ce % correspond Ã </label>
             <div class="radio-row">
               ${interpChip('net', 'Part investisseur', 'net de pool')}
               ${interpChip('total', 'Investisseur + pool', 'total du tour')}
@@ -832,38 +832,38 @@
           <div class="field" style="margin-bottom:0">
             <label class="field__lab">Investisseurs (montant investi)</label>
             <div class="rows rows--inv">
-              <div class="rows__head"><span>Investisseur</span><span class="r">Montant (€)</span><span></span></div>
+              <div class="rows__head"><span>Investisseur</span><span class="r">Montant (â‚¬)</span><span></span></div>
               <div class="r-inv-rows">${invRows}</div>
             </div>
             <button type="button" class="addrow r-add-inv">+ Ajouter un investisseur</button>
-            <div class="rowsum"><span>Total levé</span><b class="r-inv-total">—</b></div>
+            <div class="rowsum"><span>Total levÃ©</span><b class="r-inv-total">â€”</b></div>
           </div>
 
           <div class="round-block">
             <div class="round-block__h">Pool d'options (optionnel)</div>
-            <label class="pool-toggle"><input type="checkbox" class="r-pool-on"${pool.on ? ' checked' : ''} /><span>Créer ou agrandir un <span class="term" data-term="pool" tabindex="0">pool d'options</span> (<span class="term" data-term="bspce" tabindex="0">BSPCE</span>)</span></label>
+            <label class="pool-toggle"><input type="checkbox" class="r-pool-on"${pool.on ? ' checked' : ''} /><span>CrÃ©er ou agrandir un <span class="term" data-term="pool" tabindex="0">pool d'options</span> (<span class="term" data-term="bspce" tabindex="0">BSPCE</span>)</span></label>
             <div class="pool-body r-pool-body"${pool.on ? '' : ' hidden'}>
               <div class="field" style="margin-top:12px">
                 <label class="field__lab">Taille cible du pool</label>
                 <div class="inp-wrap"><input class="inp inp--money r-pool-pct" type="text" inputmode="decimal" value="${pool.pct != null ? fmtPctInput(pool.pct) : '10'}" /><span class="inp-wrap__suf">%</span></div>
                 <div class="card__desc" style="margin:6px 0 0">En % du capital post-money.</div>
               </div>
-              <label class="field__lab">Quand le pool est-il créé ?</label>
+              <label class="field__lab">Quand le pool est-il crÃ©Ã© ?</label>
               <div class="radio-row">
                 ${timingChip('pre', 'Avant le tour', 'Dilue les fondateurs')}
-                ${timingChip('post', 'Après le tour', 'Dilue tout le monde')}
+                ${timingChip('post', 'AprÃ¨s le tour', 'Dilue tout le monde')}
               </div>
             </div>
           </div>
 
           <div class="round-block">
-            <div class="round-block__h">Convertibles — <span class="term" data-term="bsa-air" tabindex="0">BSA AIR</span> / <span class="term" data-term="convertibles" tabindex="0">OC</span> (optionnel)</div>
-            <label class="pool-toggle"><input type="checkbox" class="r-conv-on"${conv.on ? ' checked' : ''} /><span>Des <span class="term" data-term="convertibles" tabindex="0">instruments convertibles</span> se convertissent à ce tour</span></label>
+            <div class="round-block__h">Convertibles â€” <span class="term" data-term="bsa-air" tabindex="0">BSA AIR</span> / <span class="term" data-term="convertibles" tabindex="0">OC</span> (optionnel)</div>
+            <label class="pool-toggle"><input type="checkbox" class="r-conv-on"${conv.on ? ' checked' : ''} /><span>Des <span class="term" data-term="convertibles" tabindex="0">instruments convertibles</span> se convertissent Ã  ce tour</span></label>
             <div class="pool-body r-conv-body"${conv.on ? '' : ' hidden'}>
-              <div class="card__desc" style="margin:12px 0 0">Chaque instrument convertit au prix du tour, minoré de sa <span class="term" data-term="decote" tabindex="0">décote</span> et/ou plafonné par son <span class="term" data-term="plafond" tabindex="0">plafond</span> (le <span class="term" data-term="plancher" tabindex="0">plancher</span> est optionnel). L'argent est déjà entré : la conversion <b>crée des actions qui diluent tout le monde</b>.</div>
+              <div class="card__desc" style="margin:12px 0 0">Chaque instrument convertit au prix du tour, minorÃ© de sa <span class="term" data-term="decote" tabindex="0">dÃ©cote</span> et/ou plafonnÃ© par son <span class="term" data-term="plafond" tabindex="0">plafond</span> (le <span class="term" data-term="plancher" tabindex="0">plancher</span> est optionnel). L'argent est dÃ©jÃ  entrÃ© : la conversion <b>crÃ©e des actions qui diluent tout le monde</b>.</div>
               <div class="field" style="margin-top:12px">
                 <div class="rows rows--conv">
-                  <div class="rows__head"><span>Instrument</span><span class="r">Montant €</span><span class="r">Décote %</span><span class="r">Plafond €</span><span class="r">Plancher €</span><span></span></div>
+                  <div class="rows__head"><span>Instrument</span><span class="r">Montant â‚¬</span><span class="r">DÃ©cote %</span><span class="r">Plafond â‚¬</span><span class="r">Plancher â‚¬</span><span></span></div>
                   <div class="r-conv-rows">${convRows}</div>
                 </div>
                 <button type="button" class="addrow r-add-conv">+ Ajouter un instrument convertible</button>
@@ -874,7 +874,7 @@
       </div>`;
     }
 
-    // Met à jour l'état visuel (is-on) des chips radio d'une carte
+    // Met Ã  jour l'Ã©tat visuel (is-on) des chips radio d'une carte
     function syncRoundChips(card) {
       card.querySelectorAll('.radio-chip').forEach(chip => {
         const input = chip.querySelector('input');
@@ -885,12 +885,12 @@
       card.querySelector('.round-pct-interp').hidden = !(basis === 'pct' && poolOn);
     }
 
-    // Réaffiche toutes les cartes de tours à partir d'un tableau de configs
+    // RÃ©affiche toutes les cartes de tours Ã  partir d'un tableau de configs
     function renderRounds(rounds) {
       roundsContainer.innerHTML = rounds.map((rd, i) => roundCardHTML(rd, i)).join('');
       renumberRounds();
     }
-    // Renumérote les cartes après ajout/suppression
+    // RenumÃ©rote les cartes aprÃ¨s ajout/suppression
     function renumberRounds() {
       const cards = [...roundsContainer.querySelectorAll('[data-role="round"]')];
       cards.forEach((c, i) => {
@@ -900,7 +900,7 @@
       });
     }
 
-    // Convertit la cap table de départ (stockée en actions) vers le mode courant
+    // Convertit la cap table de dÃ©part (stockÃ©e en actions) vers le mode courant
     function startShRows(startArr) {
       const tot = startArr.reduce((a, s) => a + s.shares, 0) || 1;
       return startArr.map(s => ({ name: s.name, type: s.type, value: mode === 'pct' ? (s.shares / tot * 100) : s.shares }));
@@ -916,7 +916,7 @@
       recompute();
     }
 
-    // Formulaire vide, prêt à recevoir les données de l'utilisateur.
+    // Formulaire vide, prÃªt Ã  recevoir les donnÃ©es de l'utilisateur.
     function resetForm() {
       document.getElementById('example-select').value = '';
       shRowsEl.innerHTML = shRowHTML({ name: '', value: 0, type: 'founder' });
@@ -925,17 +925,17 @@
       recompute();
     }
 
-    // ---------- Dérivation de la pre-money selon la base de saisie ----------
-    // Renvoie { premoney, error }. « error » vaut 'pctInvalid' si le % est incohérent.
+    // ---------- DÃ©rivation de la pre-money selon la base de saisie ----------
+    // Renvoie { premoney, error }. Â« error Â» vaut 'pctInvalid' si le % est incohÃ©rent.
     function resolvePremoney(base, raw, I, pool, interp) {
       if (base === 'pre') return { premoney: raw, error: null };
       if (base === 'post') return { premoney: raw - I, error: null };
-      // base === 'pct' : raw est un pourcentage cédé au tour
+      // base === 'pct' : raw est un pourcentage cÃ©dÃ© au tour
       const g = raw / 100;
       if (!(g > 0 && g < 1)) return { premoney: 0, error: raw >= 100 ? 'pctInvalid' : null };
       const p = pool.on ? pool.pct : 0;
       if (!pool.on) {
-        // Sans pool : part investisseur = montant / post-money → post = I/g
+        // Sans pool : part investisseur = montant / post-money â†’ post = I/g
         return { premoney: I / g - I, error: null };
       }
       if (pool.timing === 'pre') {
@@ -946,7 +946,7 @@
         }
         return { premoney: I / g - I, error: null };           // g = investisseur net
       }
-      // Pool après le tour : le pool dilue aussi l'investisseur → part nette = (1−p)·I/post.
+      // Pool aprÃ¨s le tour : le pool dilue aussi l'investisseur â†’ part nette = (1âˆ’p)Â·I/post.
       if (interp === 'total') {
         if (g <= p) return { premoney: 0, error: 'pctInvalid' };
         return { premoney: (1 - p) * I / (g - p) - I, error: null }; // g = investisseur + pool
@@ -954,8 +954,8 @@
       return { premoney: (1 - p) * I / g - I, error: null };         // g = investisseur net
     }
 
-    // ---------- Lecture de l'état ----------
-    // Cap table de départ (actionnaires en actions/%, avant tout tour)
+    // ---------- Lecture de l'Ã©tat ----------
+    // Cap table de dÃ©part (actionnaires en actions/%, avant tout tour)
     function readStartCap() {
       return [...shRowsEl.querySelectorAll('[data-role="sh"]')].map(r => ({
         name: r.querySelector('.in-name').value.trim() || 'Sans nom',
@@ -963,7 +963,7 @@
         type: r.querySelector('.in-type').value,
       }));
     }
-    // Paramètres d'un tour (indépendants de la cap table d'entrée, qui vient de la séquence)
+    // ParamÃ¨tres d'un tour (indÃ©pendants de la cap table d'entrÃ©e, qui vient de la sÃ©quence)
     function readRound(card, idx) {
       const basis = card.dataset.basis || 'pre';
       const name = card.querySelector('.round-name').value.trim() || ('Tour ' + (idx + 1));
@@ -1000,7 +1000,7 @@
     // ---------- Calcul ----------
     function compute(st) {
       const E = st.shareholders.reduce((a, s) => a + s.shares, 0); // actions existantes (fully diluted)
-      const I = st.investors.reduce((a, s) => a + s.amount, 0);    // total levé
+      const I = st.investors.reduce((a, s) => a + s.amount, 0);    // total levÃ©
       const postV = st.premoney + I;
       const res = { E, I, postV, premoney: st.premoney, error: null };
 
@@ -1013,15 +1013,15 @@
       let poolShares = 0, pps, T;
 
       if (st.pool.on && st.pool.timing === 'pre') {
-        // Pool créé avant : dilue uniquement l'existant.
-        // T tel que : E = T·(1 − I/postV − p)
+        // Pool crÃ©Ã© avant : dilue uniquement l'existant.
+        // T tel que : E = TÂ·(1 âˆ’ I/postV âˆ’ p)
         const denom = 1 - (I / postV) - p;
         if (denom <= 0) { res.error = 'poolTooBig'; return res; }
         T = E / denom;
         poolShares = p * T;
         pps = st.premoney / (E + poolShares);
       } else if (st.pool.on && st.pool.timing === 'post') {
-        // Pool créé après : dilue tout le monde.
+        // Pool crÃ©Ã© aprÃ¨s : dilue tout le monde.
         pps = st.premoney / E;
         const invShares = I / pps;
         const M = E + invShares;         // avant pool
@@ -1037,9 +1037,9 @@
       const invSharesTotal = I / pps;
 
       // ---- Instruments convertibles (BSA AIR / OC / SAFE) qui convertissent au tour ----
-      // Prix de conversion = min(prix du tour − décote ; plafond ÷ capital FD pré-tour),
-      // borné par le plancher éventuel (plafond/plancher exprimés en valorisation pré-money).
-      // L'argent est déjà entré : il ne s'ajoute pas à la levée, mais crée des actions
+      // Prix de conversion = min(prix du tour âˆ’ dÃ©cote ; plafond Ã· capital FD prÃ©-tour),
+      // bornÃ© par le plancher Ã©ventuel (plafond/plancher exprimÃ©s en valorisation prÃ©-money).
+      // L'argent est dÃ©jÃ  entrÃ© : il ne s'ajoute pas Ã  la levÃ©e, mais crÃ©e des actions
       // qui diluent tout le monde (fondateurs ET nouveaux investisseurs).
       let convShares = 0;
       const convDetail = [];
@@ -1049,7 +1049,7 @@
         const candidates = [];
         const discPrice = pps * (1 - disc);
         if (discPrice > 0) candidates.push(discPrice);
-        if (cv.cap > 0) candidates.push(cv.cap / E);           // prix « au plafond »
+        if (cv.cap > 0) candidates.push(cv.cap / E);           // prix Â« au plafond Â»
         let convPrice = candidates.length ? Math.min(...candidates) : pps;
         if (cv.floor > 0) convPrice = Math.max(convPrice, cv.floor / E); // plancher de valo
         if (!(convPrice > 0)) return;
@@ -1068,7 +1068,7 @@
       res.invPct = invSharesTotal / T;
       res.poolPct = poolShares / T;
 
-      // Lignes détaillées
+      // Lignes dÃ©taillÃ©es
       const rows = [];
       st.shareholders.forEach(s => {
         rows.push({ name: s.name, cat: s.type, before: s.shares, after: s.shares });
@@ -1089,25 +1089,25 @@
         pctAfter: r.after / T,
       }));
 
-      // Agrégat fondateurs
+      // AgrÃ©gat fondateurs
       const fBefore = st.shareholders.filter(s => s.type === 'founder').reduce((a, s) => a + s.shares, 0);
       res.founderPctBefore = fBefore / E;
       res.founderPctAfter = fBefore / T;
 
-      // Segments pour la barre (groupés par catégorie)
+      // Segments pour la barre (groupÃ©s par catÃ©gorie)
       const groups = ['founder', 'invest0', 'pool0', 'investN', 'convertN', 'poolN'];
       res.segBefore = groups.map(g => ({ cat: g, val: res.rows.filter(r => r.cat === g).reduce((a, r) => a + r.before, 0) })).filter(s => s.val > 0);
       res.segAfter = groups.map(g => ({ cat: g, val: res.rows.filter(r => r.cat === g).reduce((a, r) => a + r.after, 0) })).filter(s => s.val > 0);
       res.usedCats = groups.filter(g => res.rows.some(r => r.cat === g && (r.before > 0 || r.after > 0)));
 
-      // ---- Base « non diluée » (actions émises) : les pools sortent du dénominateur ----
-      // Le pool d'options (existant ou nouveau) est une réserve, pas des actions émises :
-      // on mesure alors chaque part sur les seules actions réellement en circulation.
+      // ---- Base Â« non diluÃ©e Â» (actions Ã©mises) : les pools sortent du dÃ©nominateur ----
+      // Le pool d'options (existant ou nouveau) est une rÃ©serve, pas des actions Ã©mises :
+      // on mesure alors chaque part sur les seules actions rÃ©ellement en circulation.
       const isPoolCat = (c) => c === 'pool0' || c === 'poolN';
       const poolBefore = res.rows.filter(x => isPoolCat(x.cat)).reduce((a, x) => a + x.before, 0);
       const poolAfter = res.rows.filter(x => isPoolCat(x.cat)).reduce((a, x) => a + x.after, 0);
-      res.Eiss = E - poolBefore;   // actions émises avant le tour
-      res.Tiss = T - poolAfter;    // actions émises après le tour
+      res.Eiss = E - poolBefore;   // actions Ã©mises avant le tour
+      res.Tiss = T - poolAfter;    // actions Ã©mises aprÃ¨s le tour
       res.rows.forEach(x => {
         x.pctBeforeIss = isPoolCat(x.cat) ? null : (res.Eiss > 0 ? x.before / res.Eiss : 0);
         x.pctAfterIss = isPoolCat(x.cat) ? null : (res.Tiss > 0 ? x.after / res.Tiss : 0);
@@ -1122,15 +1122,15 @@
       return res;
     }
 
-    // ---------- Calcul en séquence (multi-tours) ----------
-    // À partir du résultat d'un tour, reconstitue la cap table d'entrée du tour suivant :
-    // les nouveaux entrants (investisseurs, convertis) deviennent des « existants »,
+    // ---------- Calcul en sÃ©quence (multi-tours) ----------
+    // Ã€ partir du rÃ©sultat d'un tour, reconstitue la cap table d'entrÃ©e du tour suivant :
+    // les nouveaux entrants (investisseurs, convertis) deviennent des Â« existants Â»,
     // le nouveau pool devient un pool existant.
     function deriveNext(r) {
       const mapCat = { founder: 'founder', invest0: 'invest0', pool0: 'pool0', investN: 'invest0', convertN: 'invest0', poolN: 'pool0' };
       return r.rows.filter(x => x.after > 1e-9).map(x => ({ name: x.name, shares: x.after, type: mapCat[x.cat] || 'invest0' }));
     }
-    // Calcule la suite des tours : chaque tour part de la cap table issue du précédent.
+    // Calcule la suite des tours : chaque tour part de la cap table issue du prÃ©cÃ©dent.
     function computeSequence(startSh, rounds) {
       const seq = [];
       let inputSh = startSh;
@@ -1139,7 +1139,7 @@
         const st = { shareholders: inputSh, investors: rd.investors, premoney: rd.premoney, pool: rd.pool, convertibles: rd.convertibles, roundError: rd.roundError };
         const r = compute(st);
         seq.push({ rd, st, r });
-        if (r.error || rd.roundError) break;   // impossible d'enchaîner au-delà d'un tour non calculable
+        if (r.error || rd.roundError) break;   // impossible d'enchaÃ®ner au-delÃ  d'un tour non calculable
         inputSh = deriveNext(r);
       }
       return seq;
@@ -1147,24 +1147,24 @@
 
     // ---------- Rendu ----------
     function setKpisEmpty() {
-      ['k-post', 'k-raised', 'k-fend', 'k-fdil'].forEach(id => { document.getElementById(id).textContent = '—'; });
+      ['k-post', 'k-raised', 'k-fend', 'k-fdil'].forEach(id => { document.getElementById(id).textContent = 'â€”'; });
       document.getElementById('k-post-sub').textContent = 'dernier tour';
       document.getElementById('k-raised-sub').textContent = 'tous tours confondus';
-      document.getElementById('k-fend-sub').textContent = 'après le dernier tour';
+      document.getElementById('k-fend-sub').textContent = 'aprÃ¨s le dernier tour';
       document.getElementById('k-fdil-sub').textContent = '';
     }
 
-    // Met à jour l'aide (pre/post dérivés) et le total levé affichés dans une carte de tour
+    // Met Ã  jour l'aide (pre/post dÃ©rivÃ©s) et le total levÃ© affichÃ©s dans une carte de tour
     function refreshRoundCardInfo(card, rd) {
       const help = card.querySelector('.round-valo-help');
       const total = card.querySelector('.r-inv-total');
       const I = rd.investors.reduce((a, s) => a + s.amount, 0);
-      total.textContent = I > 0 ? eur0(I) : '—';
+      total.textContent = I > 0 ? eur0(I) : 'â€”';
       if (rd.premoney > 0 && !rd.roundError) {
         const postV = rd.premoney + I;
-        if (rd.basis === 'pre') help.textContent = `≈ post-money ${eur0(postV)}`;
-        else if (rd.basis === 'post') help.textContent = `≈ pre-money ${eur0(rd.premoney)}`;
-        else help.textContent = `≈ pre-money ${eur0(rd.premoney)} · post-money ${eur0(postV)}`;
+        if (rd.basis === 'pre') help.textContent = `â‰ˆ post-money ${eur0(postV)}`;
+        else if (rd.basis === 'post') help.textContent = `â‰ˆ pre-money ${eur0(rd.premoney)}`;
+        else help.textContent = `â‰ˆ pre-money ${eur0(rd.premoney)} Â· post-money ${eur0(postV)}`;
       } else {
         help.textContent = '';
       }
@@ -1173,13 +1173,13 @@
     function renderCascade(valid, iss) {
       document.getElementById('cascade-card').hidden = false;
       const fStart = iss ? valid[0].r.founderPctBeforeIss : valid[0].r.founderPctBefore;
-      let rows = `<tr class="cascade-start"><td class="l">Départ</td><td>—</td><td>—</td><td>${pct1(fStart)}</td><td class="c-flat">—</td></tr>`;
+      let rows = `<tr class="cascade-start"><td class="l">DÃ©part</td><td>â€”</td><td>â€”</td><td>${pct1(fStart)}</td><td class="c-flat">â€”</td></tr>`;
       let prevF = fStart;
       valid.forEach(e => {
         const fAfter = iss ? e.r.founderPctAfterIss : e.r.founderPctAfter;
         const d = prevF - fAfter;
         const dCls = d > 0.0005 ? 'c-dil' : 'c-flat';
-        rows += `<tr><td class="l">${escAttr(e.rd.name)}</td><td>${eur0(e.r.postV)}</td><td>${e.r.I > 0 ? eur0(e.r.I) : '—'}</td><td>${pct1(fAfter)}</td><td class="${dCls}">${d > 0.0005 ? '−' + pct1(d) : '—'}</td></tr>`;
+        rows += `<tr><td class="l">${escAttr(e.rd.name)}</td><td>${eur0(e.r.postV)}</td><td>${e.r.I > 0 ? eur0(e.r.I) : 'â€”'}</td><td>${pct1(fAfter)}</td><td class="${dCls}">${d > 0.0005 ? 'âˆ’' + pct1(d) : 'â€”'}</td></tr>`;
         prevF = fAfter;
       });
       document.getElementById('cascade-body').innerHTML = rows;
@@ -1198,7 +1198,7 @@
       const rounds = readRounds();
       const seq = computeSequence(startSh, rounds);
 
-      // Total de la cap table de départ
+      // Total de la cap table de dÃ©part
       const sumVal = startSh.reduce((a, s) => a + s.shares, 0);
       const shTotalEl = document.getElementById('sh-total');
       if (mode === 'pct') {
@@ -1206,26 +1206,26 @@
         shTotalEl.classList.toggle('is-warn', off && sumVal > 0);
         shTotalEl.innerHTML = sumVal > 0
           ? `${fmtPctInput(sumVal)} %${off ? ' <span class="warn-hint">(doit faire 100 %)</span>' : ''}`
-          : '—';
+          : 'â€”';
       } else {
         shTotalEl.classList.remove('is-warn');
-        shTotalEl.textContent = sumVal > 0 ? num0(sumVal) + ' actions' : '—';
+        shTotalEl.textContent = sumVal > 0 ? num0(sumVal) + ' actions' : 'â€”';
       }
       document.getElementById('rtable').classList.toggle('is-pct', mode === 'pct');
 
-      // Infos de chaque carte de tour (total levé + aide pre/post)
+      // Infos de chaque carte de tour (total levÃ© + aide pre/post)
       const cards = [...roundsContainer.querySelectorAll('[data-role="round"]')];
       cards.forEach((card, i) => refreshRoundCardInfo(card, rounds[i]));
 
-      // Tours valides (calculés sans erreur), dans l'ordre. On s'arrête au premier tour bloquant.
+      // Tours valides (calculÃ©s sans erreur), dans l'ordre. On s'arrÃªte au premier tour bloquant.
       const warnBox = document.getElementById('warn-box');
       const valid = [];
       let stopMsg = '';
       for (let i = 0; i < seq.length; i++) {
         const e = seq[i];
-        if (e.st.roundError === 'pctInvalid') { stopMsg = `Tour « ${e.rd.name} » : le pourcentage cédé est incohérent (entre 0 et 100 %, et supérieur à la taille du pool si celui-ci est inclus).`; break; }
-        if (e.r.error === 'poolTooBig') { stopMsg = `Tour « ${e.rd.name} » : le pool demandé est trop grand par rapport au tour. Réduisez-le ou augmentez la valorisation.`; break; }
-        if (e.r.error === 'incomplete') { break; }   // tour pas encore renseigné : on s'arrête, sans erreur
+        if (e.st.roundError === 'pctInvalid') { stopMsg = `Tour Â« ${e.rd.name} Â» : le pourcentage cÃ©dÃ© est incohÃ©rent (entre 0 et 100 %, et supÃ©rieur Ã  la taille du pool si celui-ci est inclus).`; break; }
+        if (e.r.error === 'poolTooBig') { stopMsg = `Tour Â« ${e.rd.name} Â» : le pool demandÃ© est trop grand par rapport au tour. RÃ©duisez-le ou augmentez la valorisation.`; break; }
+        if (e.r.error === 'incomplete') { break; }   // tour pas encore renseignÃ© : on s'arrÃªte, sans erreur
         valid.push(e);
       }
       warnBox.innerHTML = stopMsg ? warnHTML(stopMsg) : '';
@@ -1233,7 +1233,7 @@
       if (!valid.length) {
         setKpisEmpty();
         document.getElementById('cascade-card').hidden = true;
-        document.getElementById('rtable-body').innerHTML = '<tr><td class="l" colspan="6" style="color:#a8a8b3;text-align:center;padding:20px 0">Renseignez la cap table de départ et au moins un tour (valorisation + investisseur).</td></tr>';
+        document.getElementById('rtable-body').innerHTML = '<tr><td class="l" colspan="6" style="color:#a8a8b3;text-align:center;padding:20px 0">Renseignez la cap table de dÃ©part et au moins un tour (valorisation + investisseur).</td></tr>';
         renderBars(null);
         populateRoundViewSelect(valid);
         lastDil = null;
@@ -1255,22 +1255,22 @@
       const fEnd = iss ? last.r.founderPctAfterIss : last.r.founderPctAfter;
       document.getElementById('k-fend').textContent = pct1(fEnd);
       const fdil = fStart - fEnd;
-      document.getElementById('k-fdil').textContent = '−' + pct1(fdil);
+      document.getElementById('k-fdil').textContent = 'âˆ’' + pct1(fdil);
       const rel = fStart > 0 ? fdil / fStart : 0;
-      document.getElementById('k-fdil-sub').textContent = `${pct1(fStart)} → ${pct1(fEnd)} (soit −${pct1(rel).replace(' %', '')} % relatif)`;
+      document.getElementById('k-fdil-sub').textContent = `${pct1(fStart)} â†’ ${pct1(fEnd)} (soit âˆ’${pct1(rel).replace(' %', '')} % relatif)`;
 
       // ---- Cascade (parcours) ----
       renderCascade(valid, iss);
 
-      // ---- Vue détaillée d'un tour choisi (par défaut le dernier) ----
+      // ---- Vue dÃ©taillÃ©e d'un tour choisi (par dÃ©faut le dernier) ----
       populateRoundViewSelect(valid);
       let vi = viewRound;
       if (vi < 0 || vi >= valid.length) vi = valid.length - 1;
       document.getElementById('round-view-sel').value = String(vi);
       const view = valid[vi];
       document.getElementById('own-before-lab').textContent = 'Avant ' + view.rd.name;
-      document.getElementById('own-after-lab').textContent = 'Après ' + view.rd.name;
-      document.getElementById('rtable-card-h').innerHTML = `<span class="term" data-term="cap-table" tabindex="0">Cap table</span> — ${escAttr(view.rd.name)} (avant / après)`;
+      document.getElementById('own-after-lab').textContent = 'AprÃ¨s ' + view.rd.name;
+      document.getElementById('rtable-card-h').innerHTML = `<span class="term" data-term="cap-table" tabindex="0">Cap table</span> â€” ${escAttr(view.rd.name)} (avant / aprÃ¨s)`;
       renderBars(view.r);
       renderTable(view.r);
 
@@ -1300,7 +1300,7 @@
       const seg = (list, total) => list.map(s => {
         const pct = total > 0 ? s.val / total : 0;
         const c = CATS[s.cat];
-        return `<div class="ownseg ${c.cls}" style="width:${(pct * 100).toFixed(3)}%" title="${c.label} — ${pct1(pct)}">${pct >= 0.06 ? pct1(pct) : ''}</div>`;
+        return `<div class="ownseg ${c.cls}" style="width:${(pct * 100).toFixed(3)}%" title="${c.label} â€” ${pct1(pct)}">${pct >= 0.06 ? pct1(pct) : ''}</div>`;
       }).join('');
 
       before.innerHTML = seg(segBefore, totB);
@@ -1328,23 +1328,23 @@
         const isNew = (row.cat === 'investN' || row.cat === 'poolN' || row.cat === 'convertN');
         const pctB = iss ? row.pctBeforeIss : row.pctBefore;
         const pctA = iss ? row.pctAfterIss : row.pctAfter;
-        // En base non diluée, les lignes de pool ne sont pas des actions émises.
+        // En base non diluÃ©e, les lignes de pool ne sont pas des actions Ã©mises.
         const excluded = iss && (pctA == null);
         let delta = '';
         if (excluded) {
-          delta = `<span class="rt-delta rt-muted">non émis</span>`;
+          delta = `<span class="rt-delta rt-muted">non Ã©mis</span>`;
         } else if (row.before === 0 && row.after > 0) {
           delta = `<span class="rt-delta rt-delta--up">nouveau</span>`;
         } else {
           const d = pctA - pctB;
           const cls = Math.abs(d) < 0.0005 ? 'rt-delta--flat' : (d < 0 ? 'rt-delta--down' : 'rt-delta--up');
-          const sign = d > 0.0005 ? '+' : (d < -0.0005 ? '−' : '');
+          const sign = d > 0.0005 ? '+' : (d < -0.0005 ? 'âˆ’' : '');
           delta = `<span class="rt-delta ${cls}">${sign}${pct1(Math.abs(d)).replace(' %','')} pt</span>`;
         }
-        const absBefore = excluded ? '<span class="rt-muted">—</span>' : (row.before > 0 ? num0(row.before) : '—');
-        const absAfter = excluded ? '<span class="rt-muted">—</span>' : num0(row.after);
-        const pctBefore = excluded ? '<span class="rt-muted">—</span>' : (row.before > 0 ? pct1(pctB) : '—');
-        const pctAfter = excluded ? '<span class="rt-muted">—</span>' : pct2(pctA);
+        const absBefore = excluded ? '<span class="rt-muted">â€”</span>' : (row.before > 0 ? num0(row.before) : 'â€”');
+        const absAfter = excluded ? '<span class="rt-muted">â€”</span>' : num0(row.after);
+        const pctBefore = excluded ? '<span class="rt-muted">â€”</span>' : (row.before > 0 ? pct1(pctB) : 'â€”');
+        const pctAfter = excluded ? '<span class="rt-muted">â€”</span>' : pct2(pctA);
         return `<tr class="${isNew ? 'rt-new' : ''}">
           <td class="l"><span class="rt-name"><span class="rt-dot ${c.cls}"></span>${escAttr(row.name)}</span></td>
           <td class="rt-num col-abs">${absBefore}</td>
@@ -1355,7 +1355,7 @@
         </tr>`;
       };
       const totalRow = `<tr class="rt-total">
-        <td class="l">${iss ? 'Total (actions émises)' : 'Total (fully diluted)'}</td>
+        <td class="l">${iss ? 'Total (actions Ã©mises)' : 'Total (fully diluted)'}</td>
         <td class="rt-num col-abs">${num0(Eabs)}</td>
         <td class="rt-num">100 %</td>
         <td class="rt-num col-abs">${num0(Tabs)}</td>
@@ -1366,25 +1366,25 @@
     }
 
     // ---------- Interactions ----------
-    // Affiche/masque les corps « pool » et « convertibles » + met à jour les chips d'une carte
+    // Affiche/masque les corps Â« pool Â» et Â« convertibles Â» + met Ã  jour les chips d'une carte
     function syncRoundCardBodies(card) {
       card.querySelector('.r-pool-body').hidden = !card.querySelector('.r-pool-on').checked;
       card.querySelector('.r-conv-body').hidden = !card.querySelector('.r-conv-on').checked;
       syncRoundChips(card);
     }
 
-    // Met à jour libellé/suffixe/segment de la base d'un tour
+    // Met Ã  jour libellÃ©/suffixe/segment de la base d'un tour
     function updateRoundValoLabel(card, basis) {
       const lab = card.querySelector('.round-valo-lab');
       const suf = card.querySelector('.round-valo-suf');
       const inp = card.querySelector('.round-valo');
-      if (basis === 'pre') { lab.innerHTML = 'Valorisation <span class="term" data-term="pre-money" tabindex="0">pre-money</span>'; suf.textContent = '€'; inp.setAttribute('inputmode', 'numeric'); }
-      else if (basis === 'post') { lab.innerHTML = 'Valorisation <span class="term" data-term="post-money" tabindex="0">post-money</span>'; suf.textContent = '€'; inp.setAttribute('inputmode', 'numeric'); }
-      else { lab.innerHTML = '<span class="term" data-term="pct-cede" tabindex="0">Capital cédé au tour</span>'; suf.textContent = '%'; inp.setAttribute('inputmode', 'decimal'); }
+      if (basis === 'pre') { lab.innerHTML = 'Valorisation <span class="term" data-term="pre-money" tabindex="0">pre-money</span>'; suf.textContent = 'â‚¬'; inp.setAttribute('inputmode', 'numeric'); }
+      else if (basis === 'post') { lab.innerHTML = 'Valorisation <span class="term" data-term="post-money" tabindex="0">post-money</span>'; suf.textContent = 'â‚¬'; inp.setAttribute('inputmode', 'numeric'); }
+      else { lab.innerHTML = '<span class="term" data-term="pct-cede" tabindex="0">Capital cÃ©dÃ© au tour</span>'; suf.textContent = '%'; inp.setAttribute('inputmode', 'decimal'); }
       card.querySelectorAll('.round-basis-seg .seg__btn').forEach(b => b.classList.toggle('is-on', b.dataset.basis === basis));
     }
 
-    // Bascule de base d'un tour : convertit la valeur pour conserver le même tour
+    // Bascule de base d'un tour : convertit la valeur pour conserver le mÃªme tour
     function setRoundBasis(card, nb) {
       const cur = card.dataset.basis || 'pre';
       if (nb === cur || (nb !== 'pre' && nb !== 'post' && nb !== 'pct')) return;
@@ -1406,18 +1406,18 @@
       recompute();
     }
 
-    // Met à jour les libellés qui dépendent du mode (% / nombre d'actions) de la cap table de départ
+    // Met Ã  jour les libellÃ©s qui dÃ©pendent du mode (% / nombre d'actions) de la cap table de dÃ©part
     function updateModeUI() {
       document.querySelectorAll('#mode-seg .seg__btn').forEach(b => b.classList.toggle('is-on', b.dataset.mode === mode));
       document.getElementById('sh-col-lab').textContent = mode === 'pct' ? '%' : 'Actions';
-      document.getElementById('sh-total-lab').textContent = mode === 'pct' ? 'Total' : 'Total actions de départ';
-      const fdTerms = '<span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span> : <span class="term" data-term="pool" tabindex="0">pool d\'options</span> existant et <span class="term" data-term="bsa" tabindex="0">BSA</span>/<span class="term" data-term="bspce" tabindex="0">BSPCE</span> déjà attribués inclus';
+      document.getElementById('sh-total-lab').textContent = mode === 'pct' ? 'Total' : 'Total actions de dÃ©part';
+      const fdTerms = '<span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span> : <span class="term" data-term="pool" tabindex="0">pool d\'options</span> existant et <span class="term" data-term="bsa" tabindex="0">BSA</span>/<span class="term" data-term="bspce" tabindex="0">BSPCE</span> dÃ©jÃ  attribuÃ©s inclus';
       document.getElementById('sh-desc').innerHTML = mode === 'pct'
         ? `Le capital <b>avant le premier tour</b>, en % du capital (${fdTerms}). Le total doit faire 100 %.`
         : `Le capital <b>avant le premier tour</b>, en nombre d'actions (${fdTerms}).`;
     }
 
-    // Bascule de mode : convertit les valeurs de la cap table de départ pour ne rien perdre
+    // Bascule de mode : convertit les valeurs de la cap table de dÃ©part pour ne rien perdre
     function setMode(newMode) {
       if (newMode === mode || (newMode !== 'pct' && newMode !== 'shares')) return;
       const rows = [...shRowsEl.querySelectorAll('[data-role="sh"]')];
@@ -1427,9 +1427,9 @@
         const inp = r.querySelector('.in-shares');
         let v = vals[i];
         if (mode === 'shares' && newMode === 'pct') {
-          v = sum > 0 ? (v / sum * 100) : 0;             // actions → % du capital
+          v = sum > 0 ? (v / sum * 100) : 0;             // actions â†’ % du capital
         } else if (mode === 'pct' && newMode === 'shares') {
-          v = Math.round(v / 100 * NOTIONAL_BASE);        // % → base notionnelle d'actions
+          v = Math.round(v / 100 * NOTIONAL_BASE);        // % â†’ base notionnelle d'actions
         }
         inp.setAttribute('inputmode', newMode === 'pct' ? 'decimal' : 'numeric');
         inp.value = newMode === 'pct' ? fmtPctInput(v) : (v ? nfInt.format(v) : '');
@@ -1439,19 +1439,19 @@
       recompute();
     }
 
-    // Met à jour les libellés qui dépendent de la base de lecture des résultats
+    // Met Ã  jour les libellÃ©s qui dÃ©pendent de la base de lecture des rÃ©sultats
     function syncResultsBasisUI() {
       document.querySelectorAll('#view-basis-seg .seg__btn').forEach(b => b.classList.toggle('is-on', b.dataset.view === resultsBasis));
       const iss = resultsBasis === 'issued';
       document.getElementById('own-card-h').innerHTML = iss
-        ? 'Répartition du capital (<span class="term" data-term="non-dilue" tabindex="0">non dilué</span>)'
-        : 'Répartition du capital (<span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span>)';
+        ? 'RÃ©partition du capital (<span class="term" data-term="non-dilue" tabindex="0">non diluÃ©</span>)'
+        : 'RÃ©partition du capital (<span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span>)';
       document.getElementById('basis-hint').innerHTML = iss
-        ? "Ne compte que les <b>actions déjà émises</b> : pool d'options et titres non exercés exclus. Votre part y paraît plus haute — l'écart avec le pleinement dilué correspond au poids du pool."
+        ? "Ne compte que les <b>actions dÃ©jÃ  Ã©mises</b> : pool d'options et titres non exercÃ©s exclus. Votre part y paraÃ®t plus haute â€” l'Ã©cart avec le pleinement diluÃ© correspond au poids du pool."
         : "Compte le <b>pool d'options</b> et les convertibles comme des actions : la base retenue par les investisseurs et la mesure la plus prudente de votre dilution.";
     }
 
-    // Bascule pleinement dilué / non dilué
+    // Bascule pleinement diluÃ© / non diluÃ©
     document.getElementById('view-basis-seg').addEventListener('click', (e) => {
       const btn = e.target.closest('.seg__btn');
       if (!btn || btn.dataset.view === resultsBasis) return;
@@ -1460,7 +1460,7 @@
       recompute();
     });
 
-    // Sélecteur de tour à visualiser (barres + cap table détaillée)
+    // SÃ©lecteur de tour Ã  visualiser (barres + cap table dÃ©taillÃ©e)
     document.getElementById('round-view-sel').addEventListener('change', (e) => {
       viewRound = Number(e.target.value);
       recompute();
@@ -1473,46 +1473,46 @@
     let explainShownKey = null;
     const escHtml = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-    // Construit, à partir du dernier résultat DÉJÀ calculé en JS, la charge utile
-    // envoyée à l'IA : uniquement des libellés et des valeurs formatées, dans la
-    // base de lecture actuellement affichée. Aucun chiffre n'est à recalculer.
+    // Construit, Ã  partir du dernier rÃ©sultat DÃ‰JÃ€ calculÃ© en JS, la charge utile
+    // envoyÃ©e Ã  l'IA : uniquement des libellÃ©s et des valeurs formatÃ©es, dans la
+    // base de lecture actuellement affichÃ©e. Aucun chiffre n'est Ã  recalculer.
     function buildExplainPayload() {
       if (!lastDil || !lastDil.valid || !lastDil.valid.length) return null;
       const { valid } = lastDil;
       const iss = resultsBasis === 'issued';
-      const basisLabel = iss ? 'non dilué (actions émises)' : 'pleinement dilué';
+      const basisLabel = iss ? 'non diluÃ© (actions Ã©mises)' : 'pleinement diluÃ©';
       const first = valid[0], last = valid[valid.length - 1];
       const fStart = iss ? first.r.founderPctBeforeIss : first.r.founderPctBefore;
       const fEnd = iss ? last.r.founderPctAfterIss : last.r.founderPctAfter;
       const totalRaised = valid.reduce((a, e) => a + e.r.I, 0);
       const figures = [
-        { label: 'Nombre de tours simulés', value: String(valid.length) },
+        { label: 'Nombre de tours simulÃ©s', value: String(valid.length) },
         { label: 'Valorisation post-money (dernier tour : ' + last.rd.name + ')', value: eur0(last.r.postV) },
-        { label: 'Total levé (cumul)', value: eur0(totalRaised) },
-        { label: 'Part des fondateurs', value: pct1(fStart) + ' au départ → ' + pct1(fEnd) + ' à la fin' + (fStart > 0 ? ' (−' + pct1((fStart - fEnd) / fStart).replace(' %', '') + ' % relatif)' : '') + ', base ' + basisLabel },
+        { label: 'Total levÃ© (cumul)', value: eur0(totalRaised) },
+        { label: 'Part des fondateurs', value: pct1(fStart) + ' au dÃ©part â†’ ' + pct1(fEnd) + ' Ã  la fin' + (fStart > 0 ? ' (âˆ’' + pct1((fStart - fEnd) / fStart).replace(' %', '') + ' % relatif)' : '') + ', base ' + basisLabel },
       ];
       // La table transmise est la cascade tour par tour (la plus parlante pour un parcours).
-      const columns = ['Tour', 'Post-money', 'Levé', '% fondateurs', 'Dilution du tour'];
-      const rows = [['Départ', '—', '—', pct1(fStart), '—']];
+      const columns = ['Tour', 'Post-money', 'LevÃ©', '% fondateurs', 'Dilution du tour'];
+      const rows = [['DÃ©part', 'â€”', 'â€”', pct1(fStart), 'â€”']];
       let prevF = fStart;
       valid.forEach(e => {
         const fA = iss ? e.r.founderPctAfterIss : e.r.founderPctAfter;
         const d = prevF - fA;
-        rows.push([e.rd.name, eur0(e.r.postV), e.r.I > 0 ? eur0(e.r.I) : '—', pct1(fA), d > 0.0005 ? '−' + pct1(d) : '—']);
+        rows.push([e.rd.name, eur0(e.r.postV), e.r.I > 0 ? eur0(e.r.I) : 'â€”', pct1(fA), d > 0.0005 ? 'âˆ’' + pct1(d) : 'â€”']);
         prevF = fA;
       });
       const notes = [];
-      if (valid.length > 1) notes.push('Parcours de ' + valid.length + ' tours : chaque tour part de la cap table issue du précédent, donc les dilutions se composent (elles ne s\'additionnent pas simplement).');
+      if (valid.length > 1) notes.push('Parcours de ' + valid.length + ' tours : chaque tour part de la cap table issue du prÃ©cÃ©dent, donc les dilutions se composent (elles ne s\'additionnent pas simplement).');
       valid.forEach(e => {
         if (e.rd.pool && e.rd.pool.on) {
-          notes.push('Tour ' + e.rd.name + ' : un pool de ' + pct1(e.rd.pool.pct) + ' est créé '
+          notes.push('Tour ' + e.rd.name + ' : un pool de ' + pct1(e.rd.pool.pct) + ' est crÃ©Ã© '
             + (e.rd.pool.timing === 'pre'
               ? 'AVANT le tour (option pool shuffle : dilue surtout les actionnaires existants ; l\'investisseur obtient son % net de pool)'
-              : 'APRÈS le tour (dilue tout le monde, investisseur inclus)') + '.');
+              : 'APRÃˆS le tour (dilue tout le monde, investisseur inclus)') + '.');
         }
         if (e.r.convShares > 0.5) {
           const denom = iss ? e.r.Tiss : e.r.T;
-          if (denom > 0) notes.push('Tour ' + e.rd.name + ' : des convertibles (BSA AIR / OC) se convertissent et pèsent ' + pct1(e.r.convShares / denom) + ' du capital ' + basisLabel + ' après conversion.');
+          if (denom > 0) notes.push('Tour ' + e.rd.name + ' : des convertibles (BSA AIR / OC) se convertissent et pÃ¨sent ' + pct1(e.r.convShares / denom) + ' du capital ' + basisLabel + ' aprÃ¨s conversion.');
         }
       });
       return { kind: 'dilution', figures, table: { columns, rows }, notes };
@@ -1520,7 +1520,7 @@
 
     const payloadKey = (p) => (p ? JSON.stringify([p.kind, p.figures, p.table.rows, p.notes]) : '');
 
-    // Affiche/masque le bloc et marque l'explication « périmée » quand les chiffres changent.
+    // Affiche/masque le bloc et marque l'explication Â« pÃ©rimÃ©e Â» quand les chiffres changent.
     function refreshExplainUI() {
       const p = buildExplainPayload();
       explainCard.hidden = !p;
@@ -1538,7 +1538,7 @@
       if (hasText && explainShownKey) {
         const stale = payloadKey(p) !== explainShownKey;
         explainOut.classList.toggle('is-stale', stale);
-        explainBtn.textContent = stale ? '✨ Mettre à jour l\'explication' : '✨ Expliquer ces chiffres';
+        explainBtn.textContent = stale ? 'âœ¨ Mettre Ã  jour l\'explication' : 'âœ¨ Expliquer ces chiffres';
       }
     }
 
@@ -1549,7 +1549,7 @@
       explainBtn.disabled = true;
       explainOut.hidden = false;
       explainOut.className = 'explain-out is-loading';
-      explainOut.textContent = 'L\'assistant lit les chiffres calculés…';
+      explainOut.textContent = 'L\'assistant lit les chiffres calculÃ©sâ€¦';
       try {
         const resp = await fetch('/api/saas/explain-simulation', {
           method: 'POST',
@@ -1558,16 +1558,16 @@
           body: JSON.stringify(p),
         });
         const data = await resp.json().catch(() => ({}));
-        if (!resp.ok) throw new Error(data.error || 'Explication momentanément indisponible.');
+        if (!resp.ok) throw new Error(data.error || 'Explication momentanÃ©ment indisponible.');
         const text = String(data.explanation || '').trim();
-        if (!text) throw new Error('L\'assistant n\'a rien renvoyé.');
+        if (!text) throw new Error('L\'assistant n\'a rien renvoyÃ©.');
         explainOut.className = 'explain-out';
         explainOut.innerHTML = text.split(/\n{2,}/).map(par => '<p>' + escHtml(par).replace(/\n/g, '<br>') + '</p>').join('');
         explainShownKey = key;
-        explainBtn.textContent = '✨ Expliquer ces chiffres';
+        explainBtn.textContent = 'âœ¨ Expliquer ces chiffres';
       } catch (err) {
         explainOut.className = 'explain-out is-error';
-        explainOut.textContent = err.message || 'Explication momentanément indisponible.';
+        explainOut.textContent = err.message || 'Explication momentanÃ©ment indisponible.';
       } finally {
         explainBtn.disabled = false;
       }
@@ -1575,7 +1575,7 @@
     explainBtn.addEventListener('click', requestExplain);
 
     const form = document.getElementById('dil-form');
-    // Recalcule à chaque frappe / changement
+    // Recalcule Ã  chaque frappe / changement
     form.addEventListener('input', (e) => {
       const card = e.target.closest && e.target.closest('[data-role="round"]');
       if (card && (e.target.classList.contains('r-pool-on') || e.target.classList.contains('r-conv-on'))) syncRoundCardBodies(card);
@@ -1586,7 +1586,7 @@
       if (card && e.target.type === 'radio') syncRoundChips(card);
       recompute();
     });
-    // Reformatage des champs à la sortie du champ (dépend du mode / de la base du tour)
+    // Reformatage des champs Ã  la sortie du champ (dÃ©pend du mode / de la base du tour)
     form.addEventListener('blur', (e) => {
       const t = e.target;
       if (!t.classList) return;
@@ -1613,13 +1613,13 @@
       }
     }, true);
 
-    // Bascule % / nombre d'actions (cap table de départ)
+    // Bascule % / nombre d'actions (cap table de dÃ©part)
     document.getElementById('mode-seg').addEventListener('click', (e) => {
       const btn = e.target.closest('.seg__btn');
       if (btn) setMode(btn.dataset.mode);
     });
 
-    // Actions déléguées à l'intérieur de la colonne de saisie (cartes de tours)
+    // Actions dÃ©lÃ©guÃ©es Ã  l'intÃ©rieur de la colonne de saisie (cartes de tours)
     form.addEventListener('click', (e) => {
       const basisBtn = e.target.closest('.round-basis-seg .seg__btn');
       if (basisBtn) { setRoundBasis(basisBtn.closest('[data-role="round"]'), basisBtn.dataset.basis); return; }
@@ -1643,7 +1643,7 @@
       }
     });
 
-    // Ajout d'un actionnaire à la cap table de départ
+    // Ajout d'un actionnaire Ã  la cap table de dÃ©part
     document.getElementById('add-sh').addEventListener('click', () => {
       shRowsEl.insertAdjacentHTML('beforeend', shRowHTML({ name: '', value: 0, type: 'invest0' }));
       recompute();
@@ -1667,14 +1667,14 @@
     });
 
     // ---------- Pont vers le simulateur d'exit ----------
-    // Transmet la cap table APRÈS le dernier tour (répartition pleinement diluée) au
-    // simulateur d'exit, via localStorage, pour éviter toute ressaisie.
+    // Transmet la cap table APRÃˆS le dernier tour (rÃ©partition pleinement diluÃ©e) au
+    // simulateur d'exit, via localStorage, pour Ã©viter toute ressaisie.
     const EXIT_HANDOFF_KEY = 'liquidplus_dilution_to_exit';
     function buildExitHandoff() {
       if (!lastDil || !lastDil.valid || !lastDil.valid.length) return null;
       const { valid } = lastDil;
       const last = valid[valid.length - 1];
-      // Montant investi cumulé par nom (investisseurs + convertibles) → préremplit les préférences
+      // Montant investi cumulÃ© par nom (investisseurs + convertibles) â†’ prÃ©remplit les prÃ©fÃ©rences
       const investedByName = {};
       valid.forEach(e => {
         (e.rd.investors || []).forEach(inv => { investedByName[inv.name] = (investedByName[inv.name] || 0) + inv.amount; });
@@ -1687,7 +1687,7 @@
         return {
           name: row.name,
           type,
-          value: +(row.pctAfter * 100).toFixed(4),          // % pleinement dilué, final
+          value: +(row.pctAfter * 100).toFixed(4),          // % pleinement diluÃ©, final
           invested: type === 'invest0' ? (investedByName[row.name] || 0) : 0,
         };
       });
@@ -1695,7 +1695,7 @@
     }
     document.getElementById('to-exit-btn').addEventListener('click', () => {
       const payload = buildExitHandoff();
-      if (!payload) { alert("Renseignez d'abord une cap table de départ et au moins un tour cohérent avant de passer à la revente."); return; }
+      if (!payload) { alert("Renseignez d'abord une cap table de dÃ©part et au moins un tour cohÃ©rent avant de passer Ã  la revente."); return; }
       try { localStorage.setItem(EXIT_HANDOFF_KEY, JSON.stringify(payload)); } catch {}
       window.location.href = 'exit.html?from=dilution';
     });
@@ -1707,7 +1707,7 @@
       else loadExample(Number(v));
     });
 
-    // ---------- Historique des simulations (synchronisé avec le compte) ----------
+    // ---------- Historique des simulations (synchronisÃ© avec le compte) ----------
     const HISTORY_KEY = 'liquidplus_dilution_history_v1';
     const HISTORY_MAX = 30;
     let historyEntries = [];
@@ -1741,7 +1741,7 @@
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw new Error(data.error || 'Impossible d’enregistrer l’historique.');
+        throw new Error(data.error || 'Impossible dâ€™enregistrer lâ€™historique.');
       }
       return response.json();
     }
@@ -1760,7 +1760,7 @@
       return stored;
     }
 
-    // Capture l'état complet du formulaire (cap table de départ + tous les tours)
+    // Capture l'Ã©tat complet du formulaire (cap table de dÃ©part + tous les tours)
     function captureSnapshot() {
       const start = [...shRowsEl.querySelectorAll('[data-role="sh"]')].map(r => ({
         name: r.querySelector('.in-name').value.trim() || 'Sans nom',
@@ -1798,7 +1798,7 @@
       return { mode, start, rounds };
     }
 
-    // Restaure un état sauvegardé dans le formulaire (compatible avec l'ancien format mono-tour)
+    // Restaure un Ã©tat sauvegardÃ© dans le formulaire (compatible avec l'ancien format mono-tour)
     function restoreSnapshot(s) {
       mode = s.mode || 'pct';
       let start, rounds;
@@ -1806,7 +1806,7 @@
         start = s.start || [];
         rounds = s.rounds;
       } else {
-        // Ancien format : une simulation = un seul tour → on le convertit en parcours à un tour
+        // Ancien format : une simulation = un seul tour â†’ on le convertit en parcours Ã  un tour
         start = s.shareholders || [];
         rounds = [{
           name: '', basis: s.basis || 'pre', valoRaw: s.valoRaw || 0, interp: s.pctInterp || 'net',
@@ -1831,12 +1831,12 @@
       const list = historyEntries;
       const body = document.getElementById('hist-list');
       if (!list.length) {
-        body.innerHTML = '<div class="hist-empty">Aucune simulation enregistrée pour l\'instant. Renseignez vos données puis cliquez sur « Enregistrer cette simulation » pour la retrouver ici.</div>';
+        body.innerHTML = '<div class="hist-empty">Aucune simulation enregistrÃ©e pour l\'instant. Renseignez vos donnÃ©es puis cliquez sur Â« Enregistrer cette simulation Â» pour la retrouver ici.</div>';
         return;
       }
       body.innerHTML = list.map(entry => {
         const d = new Date(entry.savedAt);
-        const dateStr = `${d.toLocaleDateString('fr-FR')} · ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+        const dateStr = `${d.toLocaleDateString('fr-FR')} Â· ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
         const s = entry.summary;
         return `<div class="hist-item" data-id="${entry.id}">
           <div class="hist-item__main">
@@ -1846,13 +1846,13 @@
               ${s.rounds && s.rounds > 1 ? `<span class="hist-chip">${s.rounds} tours</span>` : ''}
               <span class="hist-chip">Pre-money ${eur0(s.premoney)}</span>
               <span class="hist-chip">Post-money ${eur0(s.postV)}</span>
-              <span class="hist-chip">Levé ${eur0(s.raised)}</span>
-              <span class="hist-chip">Dilution fondateurs −${pct1(s.founderDilution)}</span>
+              <span class="hist-chip">LevÃ© ${eur0(s.raised)}</span>
+              <span class="hist-chip">Dilution fondateurs âˆ’${pct1(s.founderDilution)}</span>
             </div>
           </div>
           <div class="hist-item__actions">
             <button type="button" class="hist-btn hist-load">Charger</button>
-            <button type="button" class="hist-btn hist-del" title="Supprimer">×</button>
+            <button type="button" class="hist-btn hist-del" title="Supprimer">Ã—</button>
           </div>
         </div>`;
       }).join('');
@@ -1863,12 +1863,12 @@
       const valid = [];
       for (const e of seq) { if (e.st.roundError || e.r.error) break; valid.push(e); }
       if (!valid.length) {
-        alert("Impossible d'enregistrer : complétez d'abord une cap table de départ et au moins un tour cohérent.");
+        alert("Impossible d'enregistrer : complÃ©tez d'abord une cap table de dÃ©part et au moins un tour cohÃ©rent.");
         return;
       }
       const first = valid[0], last = valid[valid.length - 1];
       const now = new Date();
-      const defaultName = `Simulation du ${now.toLocaleDateString('fr-FR')} à ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+      const defaultName = `Simulation du ${now.toLocaleDateString('fr-FR')} Ã  ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
       const name = ((await askText('Nom de cette simulation :', defaultName, 'Enregistrer')) || '').trim();
       if (!name) return;
       const entry = {
@@ -1884,7 +1884,7 @@
         },
         state: captureSnapshot(),
       };
-      const localSaved = updateHistory([entry, ...historyEntries], 'Enregistrement de la simulation…');
+      const localSaved = updateHistory([entry, ...historyEntries], 'Enregistrement de la simulationâ€¦');
 
       try {
         const data = await requestHistory('', {
@@ -1892,11 +1892,11 @@
           body: JSON.stringify({ simulation: entry }),
         });
         const saved = data.simulation;
-        updateHistory(historyEntries.map(item => item.id === entry.id ? saved : item), 'Simulation enregistrée.', 'ok');
+        updateHistory(historyEntries.map(item => item.id === entry.id ? saved : item), 'Simulation enregistrÃ©e.', 'ok');
       } catch (error) {
         const message = localSaved
-          ? 'Simulation enregistrée sur cet appareil. La synchronisation du compte sera réessayée à la prochaine ouverture.'
-          : 'Impossible d’enregistrer la simulation : le stockage est indisponible.';
+          ? 'Simulation enregistrÃ©e sur cet appareil. La synchronisation du compte sera rÃ©essayÃ©e Ã  la prochaine ouverture.'
+          : 'Impossible dâ€™enregistrer la simulation : le stockage est indisponible.';
         setHistoryStatus(message, 'warn');
       }
     }
@@ -1912,10 +1912,10 @@
       } else if (e.target.closest('.hist-del')) {
         if (!confirm('Supprimer cette simulation de l\'historique ?')) return;
         const previous = historyEntries;
-        updateHistory(previous.filter(x => x.id !== id), 'Simulation supprimée.', 'ok');
+        updateHistory(previous.filter(x => x.id !== id), 'Simulation supprimÃ©e.', 'ok');
         if (!id.startsWith('sim_')) {
           requestHistory('/' + encodeURIComponent(id), { method: 'DELETE' }).catch(() => {
-            updateHistory(previous, 'La suppression n’a pas pu être synchronisée. Réessayez plus tard.', 'warn');
+            updateHistory(previous, 'La suppression nâ€™a pas pu Ãªtre synchronisÃ©e. RÃ©essayez plus tard.', 'warn');
           });
         }
       }
@@ -1929,8 +1929,8 @@
       try {
         const data = await requestHistory();
         const remoteEntries = Array.isArray(data.simulations) ? data.simulations : [];
-        // Les simulations créées avant la synchronisation par compte restent accessibles
-        // et sont importées une seule fois (leurs identifiants locaux commencent par sim_).
+        // Les simulations crÃ©Ã©es avant la synchronisation par compte restent accessibles
+        // et sont importÃ©es une seule fois (leurs identifiants locaux commencent par sim_).
         const legacyEntries = localEntries.filter(entry => String(entry.id || '').startsWith('sim_'));
         const migrated = await Promise.all(legacyEntries.map(async (entry) => {
           const result = await requestHistory('', {
@@ -1939,17 +1939,17 @@
           });
           return result.simulation;
         }));
-        // Conserve un enregistrement déclenché pendant le chargement de l'historique.
+        // Conserve un enregistrement dÃ©clenchÃ© pendant le chargement de l'historique.
         const pendingEntries = historyEntries.filter(entry =>
           String(entry.id || '').startsWith('sim_') && !initialLocalIds.has(entry.id)
         );
-        updateHistory([...remoteEntries, ...migrated, ...pendingEntries], migrated.length ? 'Historique synchronisé avec votre compte.' : '', migrated.length ? 'ok' : '');
+        updateHistory([...remoteEntries, ...migrated, ...pendingEntries], migrated.length ? 'Historique synchronisÃ© avec votre compte.' : '', migrated.length ? 'ok' : '');
       } catch {
-        if (historyEntries.length) setHistoryStatus('Historique enregistré sur cet appareil.', 'warn');
+        if (historyEntries.length) setHistoryStatus('Historique enregistrÃ© sur cet appareil.', 'warn');
       }
     }
 
-    // Retour en arrière
+    // Retour en arriÃ¨re
     document.getElementById('page-back-btn').addEventListener('click', () => {
       const ref = document.referrer;
       if (ref && new URL(ref).origin === location.origin) window.location.href = ref;
@@ -1957,26 +1957,26 @@
       else window.location.href = 'tableau-de-bord.html';
     });
 
-    // ---------- Info-bulles de définition (survol des termes) ----------
+    // ---------- Info-bulles de dÃ©finition (survol des termes) ----------
     const GLOSSARY = {
-      'pre-money':     "<b>Pre-money</b> — valeur de la société négociée <b>avant</b> l'entrée de l'argent du tour. Rapportée au capital, elle fixe le prix par action.",
-      'post-money':    "<b>Post-money</b> = pre-money + montant levé. La part d'un investisseur = montant investi ÷ post-money.",
-      'pps':           "<b>Prix par action</b> = pre-money ÷ actions existantes (fully diluted). Prix payé par les nouveaux investisseurs pour chaque action.",
-      'fully-diluted': "<b>Fully diluted</b> — capital compté en incluant tous les titres convertibles en actions (pool, BSPCE, BSA, convertibles), comme s'ils étaient déjà exercés. La base la plus prudente pour mesurer une dilution, et celle que retiennent les investisseurs.",
-      'non-dilue':     "<b>Non dilué (actions émises)</b> — capital compté sur les seules actions réellement émises : pool d'options, BSPCE/BSA non exercés et convertibles non convertis sont exclus. Votre part y paraît plus haute qu'en fully diluted ; l'écart correspond au poids du pool.",
-      'cap-table':     "<b>Cap table</b> (table de capitalisation) — le tableau de qui détient quoi : chaque actionnaire, son nombre d'actions et son pourcentage.",
-      'dilution':      "<b>Dilution</b> — baisse de votre pourcentage de détention quand la société émet de nouvelles actions. Votre nombre d'actions ne change pas, mais pèse une part plus petite d'un capital plus grand.",
-      'pool':          "<b>Pool d'options (ESOP)</b> — réserve d'actions mise de côté pour motiver et recruter salariés et dirigeants, exprimée en % du capital post-money.",
-      'bspce':         "<b>BSPCE</b> — Bons de Souscription de Parts de Créateur d'Entreprise. Droit français réservé aux salariés/dirigeants d'acheter plus tard des actions à un prix fixé aujourd'hui, avec fiscalité avantageuse.",
-      'bsa':           "<b>BSA</b> — Bons de Souscription d'Actions. Droit d'acheter des actions futures à un prix convenu, attribuable aussi à des non-salariés (advisors, investisseurs).",
-      'stock-options': "<b>Stock-options</b> — droit d'acheter des actions à un prix fixé, en récompense de l'implication dans la société. En France, ce rôle est le plus souvent joué par les BSPCE.",
-      'shuffle':       "<b>Option pool shuffle</b> — selon que le pool est créé <b>avant</b> le tour (dilue les seuls fondateurs) ou <b>après</b> (dilue tout le monde, investisseur inclus). Un point de négociation qui peut coûter plusieurs points aux fondateurs.",
-      'convertibles':  "<b>Instruments convertibles</b> — titres qui deviendront des actions plus tard (obligations convertibles, SAFE, BSA AIR). Pas encore des actions, mais comptés dans le fully diluted car ils diluent à terme.",
-      'bsa-air':       "<b>BSA AIR</b> (Accord d'Investissement Rapide) — instrument français d'investissement early-stage : l'argent entre tout de suite, les bons se convertissent en actions au tour suivant, avec une <b>décote</b> et/ou un <b>plafond</b> de valorisation qui récompensent l'entrée précoce.",
-      'decote':        "<b>Décote</b> — réduction (souvent 15–25 %) appliquée au prix du tour lors de la conversion : le porteur convertit moins cher que les nouveaux investisseurs et obtient donc plus d'actions pour le même montant.",
-      'plafond':       "<b>Plafond de valorisation</b> (<i>valuation cap</i>) — valorisation maximale retenue pour la conversion. Si le tour se fait au-dessus, le porteur convertit comme si la valo était le plafond : c'est souvent le vrai moteur de sa dilution.",
-      'plancher':      "<b>Plancher de valorisation</b> — valorisation minimale de conversion. Il protège les fondateurs en limitant le nombre d'actions créées si le tour se fait à très bas prix.",
-      'pct-cede':      "<b>% cédé au tour</b> — part du capital post-money remise aux nouveaux entrants lors du tour. « Net de pool » = investisseurs seuls ; « investisseur + pool » = investisseurs plus le nouveau pool.",
+      'pre-money':     "<b>Pre-money</b> â€” valeur de la sociÃ©tÃ© nÃ©gociÃ©e <b>avant</b> l'entrÃ©e de l'argent du tour. RapportÃ©e au capital, elle fixe le prix par action.",
+      'post-money':    "<b>Post-money</b> = pre-money + montant levÃ©. La part d'un investisseur = montant investi Ã· post-money.",
+      'pps':           "<b>Prix par action</b> = pre-money Ã· actions existantes (fully diluted). Prix payÃ© par les nouveaux investisseurs pour chaque action.",
+      'fully-diluted': "<b>Fully diluted</b> â€” capital comptÃ© en incluant tous les titres convertibles en actions (pool, BSPCE, BSA, convertibles), comme s'ils Ã©taient dÃ©jÃ  exercÃ©s. La base la plus prudente pour mesurer une dilution, et celle que retiennent les investisseurs.",
+      'non-dilue':     "<b>Non diluÃ© (actions Ã©mises)</b> â€” capital comptÃ© sur les seules actions rÃ©ellement Ã©mises : pool d'options, BSPCE/BSA non exercÃ©s et convertibles non convertis sont exclus. Votre part y paraÃ®t plus haute qu'en fully diluted ; l'Ã©cart correspond au poids du pool.",
+      'cap-table':     "<b>Cap table</b> (table de capitalisation) â€” le tableau de qui dÃ©tient quoi : chaque actionnaire, son nombre d'actions et son pourcentage.",
+      'dilution':      "<b>Dilution</b> â€” baisse de votre pourcentage de dÃ©tention quand la sociÃ©tÃ© Ã©met de nouvelles actions. Votre nombre d'actions ne change pas, mais pÃ¨se une part plus petite d'un capital plus grand.",
+      'pool':          "<b>Pool d'options (ESOP)</b> â€” rÃ©serve d'actions mise de cÃ´tÃ© pour motiver et recruter salariÃ©s et dirigeants, exprimÃ©e en % du capital post-money.",
+      'bspce':         "<b>BSPCE</b> â€” Bons de Souscription de Parts de CrÃ©ateur d'Entreprise. Droit franÃ§ais rÃ©servÃ© aux salariÃ©s/dirigeants d'acheter plus tard des actions Ã  un prix fixÃ© aujourd'hui, avec fiscalitÃ© avantageuse.",
+      'bsa':           "<b>BSA</b> â€” Bons de Souscription d'Actions. Droit d'acheter des actions futures Ã  un prix convenu, attribuable aussi Ã  des non-salariÃ©s (advisors, investisseurs).",
+      'stock-options': "<b>Stock-options</b> â€” droit d'acheter des actions Ã  un prix fixÃ©, en rÃ©compense de l'implication dans la sociÃ©tÃ©. En France, ce rÃ´le est le plus souvent jouÃ© par les BSPCE.",
+      'shuffle':       "<b>Option pool shuffle</b> â€” selon que le pool est crÃ©Ã© <b>avant</b> le tour (dilue les seuls fondateurs) ou <b>aprÃ¨s</b> (dilue tout le monde, investisseur inclus). Un point de nÃ©gociation qui peut coÃ»ter plusieurs points aux fondateurs.",
+      'convertibles':  "<b>Instruments convertibles</b> â€” titres qui deviendront des actions plus tard (obligations convertibles, SAFE, BSA AIR). Pas encore des actions, mais comptÃ©s dans le fully diluted car ils diluent Ã  terme.",
+      'bsa-air':       "<b>BSA AIR</b> (Accord d'Investissement Rapide) â€” instrument franÃ§ais d'investissement early-stage : l'argent entre tout de suite, les bons se convertissent en actions au tour suivant, avec une <b>dÃ©cote</b> et/ou un <b>plafond</b> de valorisation qui rÃ©compensent l'entrÃ©e prÃ©coce.",
+      'decote':        "<b>DÃ©cote</b> â€” rÃ©duction (souvent 15â€“25 %) appliquÃ©e au prix du tour lors de la conversion : le porteur convertit moins cher que les nouveaux investisseurs et obtient donc plus d'actions pour le mÃªme montant.",
+      'plafond':       "<b>Plafond de valorisation</b> (<i>valuation cap</i>) â€” valorisation maximale retenue pour la conversion. Si le tour se fait au-dessus, le porteur convertit comme si la valo Ã©tait le plafond : c'est souvent le vrai moteur de sa dilution.",
+      'plancher':      "<b>Plancher de valorisation</b> â€” valorisation minimale de conversion. Il protÃ¨ge les fondateurs en limitant le nombre d'actions crÃ©Ã©es si le tour se fait Ã  trÃ¨s bas prix.",
+      'pct-cede':      "<b>% cÃ©dÃ© au tour</b> â€” part du capital post-money remise aux nouveaux entrants lors du tour. Â« Net de pool Â» = investisseurs seuls ; Â« investisseur + pool Â» = investisseurs plus le nouveau pool.",
     };
     (function initTips() {
       const tip = document.createElement('div');
@@ -2017,7 +2017,7 @@
       document.addEventListener('focusout', (e) => {
         if (e.target.closest && e.target.closest('.term')) hide();
       });
-      // Tactile : une tape affiche / masque la définition
+      // Tactile : une tape affiche / masque la dÃ©finition
       document.addEventListener('click', (e) => {
         const t = e.target.closest('.term');
         if (t) { current === t ? hide() : show(t); }
@@ -2027,7 +2027,7 @@
       window.addEventListener('resize', hide);
     })();
 
-    // Boîte de dialogue de saisie promise-based (window.prompt est indisponible sous Electron)
+    // BoÃ®te de dialogue de saisie promise-based (window.prompt est indisponible sous Electron)
     function askText(message, defaultValue = '', okLabel = 'Valider') {
       return new Promise((resolve) => {
         const backdrop = document.getElementById('ask-backdrop');
@@ -2064,13 +2064,13 @@
       });
     }
 
-    // Init : formulaire vide par défaut (l'utilisateur choisit un exemple s'il le souhaite)
+    // Init : formulaire vide par dÃ©faut (l'utilisateur choisit un exemple s'il le souhaite)
     updateModeUI();
     syncResultsBasisUI();
     resetForm();
     hydrateHistory();
 
-    // Valorisation reportée depuis l'estimateur (outil à part) : ?premoney=NNN → renseigne le 1er tour
+    // Valorisation reportÃ©e depuis l'estimateur (outil Ã  part) : ?premoney=NNN â†’ renseigne le 1er tour
     const urlPremoney = parseNum(new URLSearchParams(window.location.search).get('premoney'));
     if (urlPremoney > 0) {
       const firstCard = roundsContainer.querySelector('[data-role="round"]');
@@ -2083,7 +2083,7 @@
     }
   </script>
 
-  <!-- Boîte de dialogue de saisie (remplace window.prompt, indisponible sous Electron) -->
+  <!-- BoÃ®te de dialogue de saisie (remplace window.prompt, indisponible sous Electron) -->
   <div class="ask-backdrop" id="ask-backdrop">
     <div class="ask-box" role="dialog" aria-modal="true" aria-labelledby="ask-title">
       <div class="ask-box__title" id="ask-title"></div>

@@ -1,20 +1,20 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Liquid+ — Éditeur de term sheet</title>
-  <meta name="description" content="Traitement de texte pour vos term sheets de levée de fonds, avec chaque clause expliquée en langage courant." />
+  <title>Liquid+ â€” Ã‰diteur de term sheet</title>
+  <meta name="description" content="Traitement de texte pour vos term sheets de levÃ©e de fonds, avec chaque clause expliquÃ©e en langage courant." />
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=6" />
   <link rel="stylesheet" href="editor.css?v=31" />
-  <link rel="stylesheet" href="drawer-menu.css?v=6" />
+  <link rel="stylesheet" href="drawer-menu.css?v=7" />
   <style>.app{visibility:hidden}.app.ready{visibility:visible}</style>
   <style>
-    /* Historique des versions validées (menu déroulant sous le bouton « Versions ») */
+    /* Historique des versions validÃ©es (menu dÃ©roulant sous le bouton Â« Versions Â») */
     .verpanel{position:fixed;z-index:1300;width:min(460px,calc(100vw - 20px));background:#fff;border:1px solid rgba(8,9,12,0.12);border-radius:14px;box-shadow:0 18px 50px rgba(8,9,12,0.28);overflow:hidden}
     .verpanel__head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(8,9,12,0.08)}
     .verpanel__title{font:700 12px/1 'Archivo',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#08090c}
@@ -43,11 +43,11 @@
   </style>
   <script src="auth.js?v=3"></script>
   <script src="tasks.js?v=2" defer></script>
-  <script src="drawer-menu.js?v=3" defer></script>
+  <script src="drawer-menu.js?v=7" defer></script>
   <script src="drawer-steps.js?v=1" defer></script>
 </head>
 <body>
-  <!-- En-tête et pied de page : visibles uniquement à l'impression / export PDF -->
+  <!-- En-tÃªte et pied de page : visibles uniquement Ã  l'impression / export PDF -->
   <div class="print-head" aria-hidden="true">
     <span class="print-head__org">LUMIO SAS</span>
     <span class="print-head__doc">Lettre d'intention</span>
@@ -61,14 +61,14 @@
         <button type="button" class="hamburger" id="nav-menu-btn" aria-label="Ouvrir la navigation" aria-controls="nav-drawer" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
-        <a href="/index.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
-        <span class="topbar__doc">Lettre d'intention — Lumio SAS.docx</span>
+        <a href="tableau-de-bord.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
+        <span class="topbar__doc">Lettre d'intention â€” Lumio SAS.docx</span>
       </div>
       <div class="topbar__actions">
-        <button type="button" class="aimax" data-aimax-toggle aria-pressed="false" title="Mode rapide. Cliquez pour une analyse approfondie « Max »."><span class="aimax__i" aria-hidden="true">✦</span><span>Max</span></button>
-        <button class="btn btn--primary" id="analyze-btn" title="Analyser le document avec Claude : remplit la bibliothèque, le conseil et les explications">Analyser</button>
-        <button class="btn btn--ghost" id="sign-btn" title="Signer le document à la souris">Signer</button>
-        <button class="btn btn--ghost" id="versions-btn" title="Historique des versions validées du document">Versions</button>
+        <button type="button" class="aimax" data-aimax-toggle aria-pressed="false" title="Mode rapide. Cliquez pour une analyse approfondie Â« Max Â»."><span class="aimax__i" aria-hidden="true">âœ¦</span><span>Max</span></button>
+        <button class="btn btn--primary" id="analyze-btn" title="Analyser le document avec Claude : remplit la bibliothÃ¨que, le conseil et les explications">Analyser</button>
+        <button class="btn btn--ghost" id="sign-btn" title="Signer le document Ã  la souris">Signer</button>
+        <button class="btn btn--ghost" id="versions-btn" title="Historique des versions validÃ©es du document">Versions</button>
         <div class="export-menu" id="export-menu">
           <button class="btn btn--ghost export-menu__toggle" id="export-btn" type="button" aria-haspopup="true" aria-expanded="false">Exporter</button>
           <div class="export-menu__list" id="export-menu-list" role="menu" hidden>
@@ -84,13 +84,13 @@
 
     <!-- Menu hamburger gauche : navigation -->
     <div class="drawer-backdrop" id="nav-backdrop" data-drawer-close></div>
-    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Étapes de la levée">
+    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Ã‰tapes de la levÃ©e">
       <div class="drawer__head"></div>
       <nav class="drawer__body">
-        <div class="drawer__section-title">Étapes de la levée</div>
-        <div id="nav-steps"><p class="drawer__steps-loading">Chargement des étapes…</p></div>
+        <div class="drawer__section-title">Ã‰tapes de la levÃ©e</div>
+        <div id="nav-steps"><p class="drawer__steps-loading">Chargement des Ã©tapesâ€¦</p></div>
       </nav>
-      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. FlÃ¨ches : 10 px, Maj + flÃ¨ches : 50 px, double-clic : rÃ©initialiser"></div>
     </aside>
 
     <!-- Menu hamburger droite : compte & actions -->
@@ -99,7 +99,7 @@
       <div class="drawer__head"></div>
       <nav class="drawer__body">
         <div class="drawer__section-title">Outils</div>
-        <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Éditeur</a>
+        <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Ã‰diteur</a>
         <a class="drawer__link" href="benchmark.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Benchmark</a>
         <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
         <div class="drawer__sep"></div>
@@ -107,30 +107,30 @@
         <a class="drawer__link" href="dilution.html" target="_blank" rel="noopener" title="Simulation de dilution"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
         <a class="drawer__link" href="exit.html" target="_blank" rel="noopener" title="Simulateur d'exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Exit</a>
         <div class="drawer__sep"></div>
-        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>Tâches</a>
+        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>TÃ¢ches</a>
         <a class="drawer__link" href="documents.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>Documents</a>
         <a class="drawer__link" href="data-room.html" target="_blank" rel="noopener" title="Data room"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/></svg>Data room</a>
         <a class="drawer__link" href="avocat.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M6 21h12"/><path d="M3 7h18"/><path d="M7 7l-3 6a3 3 0 0 0 6 0Z"/><path d="M17 7l3 6a3 3 0 0 0-6 0Z"/></svg>Avocat</a>
         <div class="drawer__sep"></div>
         <a class="drawer__link" href="compte.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>Mon compte</a>
-        <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Écrire au fondateur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
+        <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Ã‰crire au fondateur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
         <div class="drawer__sep"></div>
-        <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>Déconnexion</button>
+        <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>DÃ©connexion</button>
       </nav>
-      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. FlÃ¨ches : 10 px, Maj + flÃ¨ches : 50 px, double-clic : rÃ©initialiser"></div>
     </aside>
 
-    <!-- Historique des versions VALIDÉES : seule la validation explicite fige une
-         version (les enregistrements automatiques n'en créent jamais). -->
+    <!-- Historique des versions VALIDÃ‰ES : seule la validation explicite fige une
+         version (les enregistrements automatiques n'en crÃ©ent jamais). -->
     <div class="verpanel" id="verpanel" hidden>
       <div class="verpanel__head">
         <span class="verpanel__title">Historique des versions</span>
-        <button class="verpanel__close" id="verpanel-close" type="button" aria-label="Fermer">×</button>
+        <button class="verpanel__close" id="verpanel-close" type="button" aria-label="Fermer">Ã—</button>
       </div>
       <div class="verpanel__bar">
-        <button class="verpanel__validate" id="verpanel-validate" type="button" title="Figer l'état actuel du document comme version officielle">Valider la version actuelle</button>
-        <a class="verpanel__compare" id="verpanel-compare-all" target="_blank" rel="noopener" aria-disabled="true" title="Comparer toutes les versions (validées + actuelle) dans une frise chronologique : modifications, auteurs et intentions (analyse IA)">⇄ Comparer tout l'historique</a>
-        <span class="verpanel__hint">Les enregistrements (dont l'enregistrement automatique) ne créent pas de version : seul ce bouton fige une version, stockée à part de vos documents.</span>
+        <button class="verpanel__validate" id="verpanel-validate" type="button" title="Figer l'Ã©tat actuel du document comme version officielle">Valider la version actuelle</button>
+        <a class="verpanel__compare" id="verpanel-compare-all" target="_blank" rel="noopener" aria-disabled="true" title="Comparer toutes les versions (validÃ©es + actuelle) dans une frise chronologique : modifications, auteurs et intentions (analyse IA)">â‡„ Comparer tout l'historique</a>
+        <span class="verpanel__hint">Les enregistrements (dont l'enregistrement automatique) ne crÃ©ent pas de version : seul ce bouton fige une version, stockÃ©e Ã  part de vos documents.</span>
       </div>
       <div class="verpanel__list" id="verpanel-list"></div>
     </div>
@@ -138,8 +138,8 @@
     <!-- Ribbon : barre d'outils de mise en forme -->
     <div class="ribbon" id="ribbon">
       <div class="tgroup">
-        <button class="tbtn" data-cmd="undo" title="Annuler (Ctrl+Z)">↶</button>
-        <button class="tbtn" data-cmd="redo" title="Rétablir (Ctrl+Y)">↷</button>
+        <button class="tbtn" data-cmd="undo" title="Annuler (Ctrl+Z)">â†¶</button>
+        <button class="tbtn" data-cmd="redo" title="RÃ©tablir (Ctrl+Y)">â†·</button>
       </div>
       <div class="tdiv"></div>
 
@@ -169,8 +169,8 @@
       <div class="tgroup">
         <button class="tbtn" data-cmd="bold" data-state="bold" title="Gras (Ctrl+B)"><b>G</b></button>
         <button class="tbtn" data-cmd="italic" data-state="italic" title="Italique (Ctrl+I)"><i>I</i></button>
-        <button class="tbtn" data-cmd="underline" data-state="underline" title="Souligné (Ctrl+U)"><u>S</u></button>
-        <button class="tbtn" data-cmd="strikeThrough" data-state="strikeThrough" title="Barré"><s>B</s></button>
+        <button class="tbtn" data-cmd="underline" data-state="underline" title="SoulignÃ© (Ctrl+U)"><u>S</u></button>
+        <button class="tbtn" data-cmd="strikeThrough" data-state="strikeThrough" title="BarrÃ©"><s>B</s></button>
       </div>
       <div class="tdiv"></div>
 
@@ -187,23 +187,23 @@
       <div class="tdiv"></div>
 
       <div class="tgroup">
-        <button class="tbtn" data-cmd="justifyLeft" data-state="justifyLeft" title="Aligner à gauche">⯇</button>
-        <button class="tbtn" data-cmd="justifyCenter" data-state="justifyCenter" title="Centrer">≡</button>
-        <button class="tbtn" data-cmd="justifyRight" data-state="justifyRight" title="Aligner à droite">⯈</button>
-        <button class="tbtn" data-cmd="justifyFull" data-state="justifyFull" title="Justifier">☰</button>
+        <button class="tbtn" data-cmd="justifyLeft" data-state="justifyLeft" title="Aligner Ã  gauche">â¯‡</button>
+        <button class="tbtn" data-cmd="justifyCenter" data-state="justifyCenter" title="Centrer">â‰¡</button>
+        <button class="tbtn" data-cmd="justifyRight" data-state="justifyRight" title="Aligner Ã  droite">â¯ˆ</button>
+        <button class="tbtn" data-cmd="justifyFull" data-state="justifyFull" title="Justifier">â˜°</button>
       </div>
       <div class="tdiv"></div>
 
       <div class="tgroup">
-        <button class="tbtn" data-cmd="insertUnorderedList" data-state="insertUnorderedList" title="Liste à puces">•</button>
-        <button class="tbtn" data-cmd="insertOrderedList" data-state="insertOrderedList" title="Liste numérotée">1.</button>
-        <button class="tbtn" data-cmd="outdent" title="Diminuer le retrait">⇤</button>
-        <button class="tbtn" data-cmd="indent" title="Augmenter le retrait">⇥</button>
+        <button class="tbtn" data-cmd="insertUnorderedList" data-state="insertUnorderedList" title="Liste Ã  puces">â€¢</button>
+        <button class="tbtn" data-cmd="insertOrderedList" data-state="insertOrderedList" title="Liste numÃ©rotÃ©e">1.</button>
+        <button class="tbtn" data-cmd="outdent" title="Diminuer le retrait">â‡¤</button>
+        <button class="tbtn" data-cmd="indent" title="Augmenter le retrait">â‡¥</button>
       </div>
       <div class="tdiv"></div>
 
       <div class="tgroup">
-        <button class="tbtn" data-cmd="removeFormat" title="Effacer la mise en forme">⌫</button>
+        <button class="tbtn" data-cmd="removeFormat" title="Effacer la mise en forme">âŒ«</button>
       </div>
       <div class="tdiv"></div>
 
@@ -212,10 +212,10 @@
       </div>
     </div>
 
-    <!-- Barre de progression de l'analyse : bandeau intégré sous la barre
+    <!-- Barre de progression de l'analyse : bandeau intÃ©grÃ© sous la barre
          d'outils, ne recouvre rien et laisse la navigation libre. -->
     <div class="azm" id="azm" hidden role="status" aria-label="Progression de l'analyse">
-      <span class="azm__title" id="azm-title">Analyse du document…</span>
+      <span class="azm__title" id="azm-title">Analyse du documentâ€¦</span>
       <div class="azm__bar"><div class="azm__bar-fill" id="azm-bar"></div></div>
       <ul class="azm__rows">
         <li class="azm__row" data-row="par">
@@ -225,54 +225,54 @@
         </li>
         <li class="azm__row" data-row="verif">
           <span class="azm__dot"></span>
-          <span class="azm__label">À vérifier</span>
+          <span class="azm__label">Ã€ vÃ©rifier</span>
           <span class="azm__val" id="azm-verif">En attente</span>
         </li>
         <li class="azm__row" data-row="cond">
           <span class="azm__dot"></span>
           <span class="azm__label">Conditions</span>
-          <span class="azm__val" id="azm-cond">—</span>
+          <span class="azm__val" id="azm-cond">â€”</span>
         </li>
         <li class="azm__row" data-row="lib">
           <span class="azm__dot"></span>
-          <span class="azm__label">Bibliothèque</span>
+          <span class="azm__label">BibliothÃ¨que</span>
           <span class="azm__val" id="azm-lib">En attente</span>
         </li>
         <li class="azm__row" data-row="full">
           <span class="azm__dot"></span>
-          <span class="azm__label">Fenêtre de droite</span>
+          <span class="azm__label">FenÃªtre de droite</span>
           <span class="azm__val" id="azm-full">En attente</span>
         </li>
       </ul>
       <button class="azm__cancel" id="azm-cancel" type="button">Annuler l'analyse</button>
-      <button class="azm__close" id="azm-close" type="button" aria-label="Fermer">×</button>
+      <button class="azm__close" id="azm-close" type="button" aria-label="Fermer">Ã—</button>
     </div>
 
     <!-- Workspace -->
     <div class="workspace">
-      <!-- Panneau gauche : Bibliothèque de clauses / Conseil -->
+      <!-- Panneau gauche : BibliothÃ¨que de clauses / Conseil -->
       <aside class="library">
         <div class="lib-tabs" role="tablist">
-          <button class="lib-tab is-active" data-tab="library" type="button">Bibliothèque</button>
-          <button class="lib-tab" data-tab="fill" type="button">À remplir</button>
-          <button class="lib-tab" data-tab="advice" type="button">À vérifier</button>
+          <button class="lib-tab is-active" data-tab="library" type="button">BibliothÃ¨que</button>
+          <button class="lib-tab" data-tab="fill" type="button">Ã€ remplir</button>
+          <button class="lib-tab" data-tab="advice" type="button">Ã€ vÃ©rifier</button>
         </div>
 
-        <!-- Vue Bibliothèque -->
+        <!-- Vue BibliothÃ¨que -->
         <div class="lib-view" id="view-library">
           <div class="library__head">
-            <div class="library__eyebrow">Bibliothèque</div>
+            <div class="library__eyebrow">BibliothÃ¨que</div>
             <h2 class="library__title">Clauses disponibles</h2>
             <p class="library__sub" id="library-count"></p>
           </div>
           <div class="library__list" id="library-list"></div>
         </div>
 
-        <!-- Vue À remplir : champs [entre crochets] à compléter -->
+        <!-- Vue Ã€ remplir : champs [entre crochets] Ã  complÃ©ter -->
         <div class="lib-view" id="view-fill" hidden>
           <div class="library__head">
             <div class="library__eyebrow">Champs</div>
-            <h2 class="library__title">À remplir</h2>
+            <h2 class="library__title">Ã€ remplir</h2>
             <p class="library__sub" id="fill-count"></p>
           </div>
           <div id="autofill-wrap"></div>
@@ -280,24 +280,24 @@
           <div class="library__list" id="fill-list"></div>
         </div>
 
-        <!-- Vue À faire : conseils et points d'attention -->
+        <!-- Vue Ã€ faire : conseils et points d'attention -->
         <div class="lib-view" id="view-advice" hidden>
           <div class="library__head">
             <div class="library__eyebrow">Conseils</div>
-            <h2 class="library__title">À faire</h2>
+            <h2 class="library__title">Ã€ faire</h2>
             <p class="library__sub" id="advice-count"></p>
           </div>
           <div class="library__list" id="advice-list"></div>
         </div>
       </aside>
 
-      <!-- Poignée de redimensionnement (bibliothèque) -->
-      <div class="gutter" id="gutter-left" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu Bibliothèque" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
+      <!-- PoignÃ©e de redimensionnement (bibliothÃ¨que) -->
+      <div class="gutter" id="gutter-left" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu BibliothÃ¨que" tabindex="0" title="Glissez pour redimensionner. FlÃ¨ches : 10 px, Maj + flÃ¨ches : 50 px, double-clic : rÃ©initialiser"></div>
 
-      <!-- Canevas + page éditable -->
+      <!-- Canevas + page Ã©ditable -->
       <div class="editor-canvas">
         <div class="editor-back-wrap">
-          <button type="button" class="editor-back" id="page-back-btn" aria-label="Revenir en arrière" title="Revenir en arrière">
+          <button type="button" class="editor-back" id="page-back-btn" aria-label="Revenir en arriÃ¨re" title="Revenir en arriÃ¨re">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
         </div>
@@ -307,13 +307,13 @@
         </div>
       </div>
 
-      <!-- Poignée de redimensionnement (décrypteur) -->
-      <div class="gutter" id="gutter-right" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu Décrypteur" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
+      <!-- PoignÃ©e de redimensionnement (dÃ©crypteur) -->
+      <div class="gutter" id="gutter-right" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu DÃ©crypteur" tabindex="0" title="Glissez pour redimensionner. FlÃ¨ches : 10 px, Maj + flÃ¨ches : 50 px, double-clic : rÃ©initialiser"></div>
 
       <!-- Panneau d'explication -->
       <aside class="panel">
         <div class="panel__head">
-          <div class="panel__eyebrow" id="panel-eyebrow">Décrypteur</div>
+          <div class="panel__eyebrow" id="panel-eyebrow">DÃ©crypteur</div>
           <h2 class="panel__title" id="panel-title">Placez le curseur dans une clause</h2>
         </div>
         <div class="panel__actions" id="panel-actions" hidden></div>
@@ -322,13 +322,13 @@
         </div>
         <div class="panel__body" id="panel-body"></div>
 
-        <!-- Assistant IA (Claude) : discuter et modifier la clause sélectionnée -->
+        <!-- Assistant IA (Claude) : discuter et modifier la clause sÃ©lectionnÃ©e -->
         <div class="gutter gutter-h" id="gutter-chat" hidden role="separator" aria-orientation="horizontal" title="Redimensionner l'assistant"></div>
         <div class="chat" id="chat" hidden>
           <div class="chat__head">
-            <span class="chat__title">Assistant IA — modifier cette clause</span>
+            <span class="chat__title">Assistant IA â€” modifier cette clause</span>
             <div class="chat__tools">
-              <button class="chat__attach" id="chat-attach" type="button" aria-pressed="false" title="Joindre le document complet à la conversation">
+              <button class="chat__attach" id="chat-attach" type="button" aria-pressed="false" title="Joindre le document complet Ã  la conversation">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 11.5l-8.5 8.5a5 5 0 0 1-7-7l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 <span class="chat__attach-label">Joindre le document</span>
               </button>
@@ -338,31 +338,31 @@
           <div class="chat__log" id="chat-log"></div>
           <form class="chat__form" id="chat-form">
             <input class="chat__input" id="chat-input" type="text" autocomplete="off"
-                   placeholder="Ex : raccourcis la non-concurrence à 6 mois" />
-            <button class="chat__send" id="chat-send" type="submit" aria-label="Envoyer">→</button>
+                   placeholder="Ex : raccourcis la non-concurrence Ã  6 mois" />
+            <button class="chat__send" id="chat-send" type="submit" aria-label="Envoyer">â†’</button>
           </form>
         </div>
 
       </aside>
     </div>
 
-    <!-- Bouton flottant « Expliquer la sélection » (apparaît à la sélection de texte) -->
+    <!-- Bouton flottant Â« Expliquer la sÃ©lection Â» (apparaÃ®t Ã  la sÃ©lection de texte) -->
     <button class="selx-btn" id="selx-btn" type="button" hidden>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3l1.9 4.9L19 9.8l-4 3.5 1.3 5.2L12 15.9 7.7 18.5 9 13.3 5 9.8l5.1-1.9L12 3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
       Expliquer
     </button>
 
-    <!-- Popover d'explication IA d'une sélection -->
-    <div class="selx-pop" id="selx-pop" hidden role="dialog" aria-label="Explication de la sélection">
+    <!-- Popover d'explication IA d'une sÃ©lection -->
+    <div class="selx-pop" id="selx-pop" hidden role="dialog" aria-label="Explication de la sÃ©lection">
       <div class="selx-pop__head">
-        <span class="selx-pop__title">Décrypteur IA</span>
-        <button class="selx-pop__close" id="selx-close" type="button" aria-label="Fermer">×</button>
+        <span class="selx-pop__title">DÃ©crypteur IA</span>
+        <button class="selx-pop__close" id="selx-close" type="button" aria-label="Fermer">Ã—</button>
       </div>
       <div class="selx-pop__quote" id="selx-quote"></div>
       <div class="selx-pop__body" id="selx-body"></div>
     </div>
 
-    <!-- Fenêtre de signature à la souris -->
+    <!-- FenÃªtre de signature Ã  la souris -->
     <div class="sign-modal" id="sign-modal" hidden role="dialog" aria-modal="true" aria-label="Signer le document">
       <div class="sign-modal__backdrop" id="sign-backdrop"></div>
       <div class="sign-modal__panel" role="document">
@@ -371,9 +371,9 @@
             <div class="sign-modal__eyebrow">Signature manuscrite</div>
             <h2 class="sign-modal__title">Signer le document</h2>
           </div>
-          <button class="sign-modal__close" id="sign-close" type="button" aria-label="Fermer">×</button>
+          <button class="sign-modal__close" id="sign-close" type="button" aria-label="Fermer">Ã—</button>
         </div>
-        <p class="sign-modal__hint" id="sign-hint">Tracez votre signature dans le cadre avec la souris (ou le doigt sur écran tactile).</p>
+        <p class="sign-modal__hint" id="sign-hint">Tracez votre signature dans le cadre avec la souris (ou le doigt sur Ã©cran tactile).</p>
         <div class="sign-pad-wrap">
           <canvas class="sign-pad" id="sign-pad"></canvas>
           <span class="sign-pad__baseline" aria-hidden="true"></span>
@@ -389,7 +389,7 @@
         </div>
         <div class="sign-modal__actions">
           <button class="btn btn--ghost" id="sign-cancel" type="button">Annuler</button>
-          <button class="btn btn--primary" id="sign-insert" type="button" disabled>Insérer la signature</button>
+          <button class="btn btn--primary" id="sign-insert" type="button" disabled>InsÃ©rer la signature</button>
         </div>
       </div>
     </div>
@@ -397,11 +397,11 @@
 
     <!-- Status bar -->
     <div class="statusbar">
-      <span id="caret-clause">Document prêt</span>
+      <span id="caret-clause">Document prÃªt</span>
       <div class="statusbar__right">
         <span id="wordcount">0 mot</span>
         <span id="save-status"></span>
-        <span>liquid + · traitement de texte</span>
+        <span>liquid + Â· traitement de texte</span>
       </div>
     </div>
   </div>
@@ -409,13 +409,13 @@
   <script src="editor.js?v=49"></script>
   <script src="documents.js?v=26"></script>
   <script>
-    // Garde d'accès : l'éditeur est réservé aux utilisateurs connectés.
+    // Garde d'accÃ¨s : l'Ã©diteur est rÃ©servÃ© aux utilisateurs connectÃ©s.
     requireAuth().then((user) => {
-      if (!user) return; // requireAuth a déjà redirigé vers login.html
+      if (!user) return; // requireAuth a dÃ©jÃ  redirigÃ© vers login.html
       document.querySelector('.app').classList.add('ready');
     });
 
-    // Retour en arrière
+    // Retour en arriÃ¨re
     document.getElementById('page-back-btn').addEventListener('click', () => {
       if (window.history.length > 1) window.history.back();
       else window.location.href = 'tableau-de-bord.html';

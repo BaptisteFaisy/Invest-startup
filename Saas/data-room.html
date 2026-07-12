@@ -1,17 +1,17 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Liquid+ — Data room</title>
-  <meta name="description" content="Partagez vos documents avec vos investisseurs via une data room sécurisée." />
+  <title>Liquid+ â€” Data room</title>
+  <meta name="description" content="Partagez vos documents avec vos investisseurs via une data room sÃ©curisÃ©e." />
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=6" />
   <link rel="stylesheet" href="editor.css?v=7" />
-  <link rel="stylesheet" href="drawer-menu.css?v=6" />
+  <link rel="stylesheet" href="drawer-menu.css?v=7" />
   <link rel="stylesheet" href="help-bulb.css?v=1" />
   <style>
     [hidden] { display: none !important; }
@@ -42,7 +42,7 @@
 
     .dil__foot { margin-top: 30px; }
 
-    /* Comptes cloud connectés */
+    /* Comptes cloud connectÃ©s */
     .dr-section-label { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.55); margin: 34px 0 12px; }
     .dr-accounts { display: flex; flex-direction: column; gap: 10px; }
     .dr-account { display: flex; align-items: center; justify-content: space-between; gap: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 16px 18px; }
@@ -100,7 +100,7 @@
   </style>
   <script src="auth.js?v=3"></script>
   <script src="tasks.js?v=2" defer></script>
-  <script src="drawer-menu.js?v=3" defer></script>
+  <script src="drawer-menu.js?v=7" defer></script>
   <script src="drawer-steps.js?v=1" defer></script>
   <script src="help-bulb.js?v=1" defer></script>
 </head>
@@ -111,7 +111,7 @@
         <button type="button" class="hamburger" id="nav-menu-btn" aria-label="Ouvrir la navigation" aria-controls="nav-drawer" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
-        <a href="/index.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
+        <a href="tableau-de-bord.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
         <span class="topbar__doc">Data room</span>
       </div>
       <div class="topbar__actions">
@@ -123,13 +123,13 @@
 
     <!-- Menu hamburger gauche : navigation -->
     <div class="drawer-backdrop" id="nav-backdrop" data-drawer-close></div>
-    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Étapes de la levée">
+    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Ã‰tapes de la levÃ©e">
       <div class="drawer__head"></div>
       <nav class="drawer__body">
-        <div class="drawer__section-title">Étapes de la levée</div>
-        <div id="nav-steps"><p class="drawer__steps-loading">Chargement des étapes…</p></div>
+        <div class="drawer__section-title">Ã‰tapes de la levÃ©e</div>
+        <div id="nav-steps"><p class="drawer__steps-loading">Chargement des Ã©tapesâ€¦</p></div>
       </nav>
-      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. FlÃ¨ches : 10 px, Maj + flÃ¨ches : 50 px, double-clic : rÃ©initialiser"></div>
     </aside>
 
     <!-- Menu hamburger droite : compte & actions -->
@@ -138,7 +138,7 @@
       <div class="drawer__head"></div>
       <nav class="drawer__body">
         <div class="drawer__section-title">Outils</div>
-        <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Éditeur</a>
+        <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Ã‰diteur</a>
         <a class="drawer__link" href="benchmark.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Benchmark</a>
         <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
         <div class="drawer__sep"></div>
@@ -146,21 +146,21 @@
         <a class="drawer__link" href="dilution.html" target="_blank" rel="noopener" title="Simulation de dilution"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9h9"/></svg>Dilution</a>
         <a class="drawer__link" href="exit.html" target="_blank" rel="noopener" title="Simulateur d'exit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Exit</a>
         <div class="drawer__sep"></div>
-        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>Tâches</a>
+        <a class="drawer__link" href="taches.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 5.5 1.2 1.2 2-2.4"/><path d="m3.5 11.5 1.2 1.2 2-2.4"/><path d="m3.5 17.5 1.2 1.2 2-2.4"/></svg>TÃ¢ches</a>
         <a class="drawer__link" href="documents.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>Documents</a>
         <a class="drawer__link" href="data-room.html" target="_blank" rel="noopener" title="Data room"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/></svg>Data room</a>
         <a class="drawer__link" href="avocat.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M6 21h12"/><path d="M3 7h18"/><path d="M7 7l-3 6a3 3 0 0 0 6 0Z"/><path d="M17 7l3 6a3 3 0 0 0-6 0Z"/></svg>Avocat</a>
         <div class="drawer__sep"></div>
         <a class="drawer__link" href="compte.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>Mon compte</a>
-        <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Écrire au fondateur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
+        <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Ã‰crire au fondateur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
         <div class="drawer__sep"></div>
-        <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>Déconnexion</button>
+        <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>DÃ©connexion</button>
       </nav>
-      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
+      <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0" title="Glissez pour redimensionner. FlÃ¨ches : 10 px, Maj + flÃ¨ches : 50 px, double-clic : rÃ©initialiser"></div>
     </aside>
 
     <div class="page-back-row">
-      <button type="button" class="page-back" id="page-back-btn" aria-label="Revenir en arrière" title="Revenir en arrière">
+      <button type="button" class="page-back" id="page-back-btn" aria-label="Revenir en arriÃ¨re" title="Revenir en arriÃ¨re">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
       </button>
     </div>
@@ -171,18 +171,18 @@
       <h1 class="dil__title">Data room</h1>
       <div class="help-pop" hidden>
         <div class="help-pop__label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg> Comprendre cet outil</div>
-        <p>Envoyez vos documents de due diligence vers un compte cloud connecté (Google Drive, Dropbox), directement depuis liquid +.</p>
+        <p>Envoyez vos documents de due diligence vers un compte cloud connectÃ© (Google Drive, Dropbox), directement depuis liquid +.</p>
       </div>
       <div id="dr-alert" hidden></div>
 
-      <div class="dr-section-label">Comptes connectés</div>
+      <div class="dr-section-label">Comptes connectÃ©s</div>
       <div class="dr-accounts" id="dr-accounts"></div>
 
       <div class="dr-section-label">Dossiers de due diligence</div>
       <div id="dr-folders"></div>
 
       <div class="dil__foot">
-        <a href="tableau-de-bord.html" class="btn btn--ghost">← Retour au tableau de bord</a>
+        <a href="tableau-de-bord.html" class="btn btn--ghost">â† Retour au tableau de bord</a>
       </div>
     </main>
   </div>
@@ -197,13 +197,13 @@
       </div>
       <div class="pick__body">
         <div class="pick__section">
-          <div class="pick__label">Compte cloud connecté</div>
+          <div class="pick__label">Compte cloud connectÃ©</div>
           <div id="dataroom-modal-providers" class="dr-providers"></div>
         </div>
         <div class="pick__section">
-          <div class="pick__label">Data rooms spécialisées</div>
+          <div class="pick__label">Data rooms spÃ©cialisÃ©es</div>
           <div id="dataroom-modal-pro" class="dr-providers"></div>
-          <div class="dr-hint">Ces plateformes n'ont pas de connexion directe : créez votre compte sur la plateforme de votre choix, puis téléchargez le dossier de due diligence en ZIP et importez-le dans l'outil.</div>
+          <div class="dr-hint">Ces plateformes n'ont pas de connexion directe : crÃ©ez votre compte sur la plateforme de votre choix, puis tÃ©lÃ©chargez le dossier de due diligence en ZIP et importez-le dans l'outil.</div>
         </div>
         <div class="pick__err" id="dataroom-modal-err"></div>
       </div>
@@ -216,14 +216,14 @@
     });
 
     const DATAROOM_PROVIDER_LABELS = { google_drive: 'Google Drive', dropbox: 'Dropbox' };
-    // Data rooms spécialisées : produits « enterprise » sans API d'inscription.
-    // On ne peut pas créer le compte à la place de l'utilisateur — on l'amène en un
-    // clic sur le tunnel officiel du fournisseur, puis il importe le ZIP structuré.
+    // Data rooms spÃ©cialisÃ©es : produits Â« enterprise Â» sans API d'inscription.
+    // On ne peut pas crÃ©er le compte Ã  la place de l'utilisateur â€” on l'amÃ¨ne en un
+    // clic sur le tunnel officiel du fournisseur, puis il importe le ZIP structurÃ©.
     const DATAROOM_PRO_PROVIDERS = [
-      { name: 'Ansarada',   url: 'https://www.ansarada.com/data-room',                   note: 'Compte gratuit pour démarrer, sans carte bancaire' },
-      { name: 'Datasite',   url: 'https://www.datasite.com/',                            note: 'Accès sur demande auprès de Datasite (essai possible)' },
-      { name: 'Intralinks', url: 'https://www.intralinks.com/products/virtual-data-room', note: 'Démo et accès sur demande auprès d’Intralinks' },
-      { name: 'Firmex',     url: 'https://www.firmex.com/signup/data-room-request-a-quote/', note: 'Devis et démo sur demande auprès de Firmex' },
+      { name: 'Ansarada',   url: 'https://www.ansarada.com/data-room',                   note: 'Compte gratuit pour dÃ©marrer, sans carte bancaire' },
+      { name: 'Datasite',   url: 'https://www.datasite.com/',                            note: 'AccÃ¨s sur demande auprÃ¨s de Datasite (essai possible)' },
+      { name: 'Intralinks', url: 'https://www.intralinks.com/products/virtual-data-room', note: 'DÃ©mo et accÃ¨s sur demande auprÃ¨s dâ€™Intralinks' },
+      { name: 'Firmex',     url: 'https://www.firmex.com/signup/data-room-request-a-quote/', note: 'Devis et dÃ©mo sur demande auprÃ¨s de Firmex' },
     ];
     const DATAROOM_FOLDER_KEYS = ['due-diligence-preliminaire', 'due-diligence'];
 
@@ -241,10 +241,10 @@
       alert.hidden = false;
       if (connected) {
         alert.className = 'dr-alert dr-alert--success';
-        alert.textContent = (DATAROOM_PROVIDER_LABELS[connected] || connected) + ' est maintenant connecté.';
+        alert.textContent = (DATAROOM_PROVIDER_LABELS[connected] || connected) + ' est maintenant connectÃ©.';
       } else {
         alert.className = 'dr-alert dr-alert--error';
-        alert.textContent = 'La connexion a échoué. Réessayez.';
+        alert.textContent = 'La connexion a Ã©chouÃ©. RÃ©essayez.';
       }
       params.delete('dataroom_connected');
       params.delete('dataroom_error');
@@ -268,7 +268,7 @@
     function dataroomLinksLabel(d) {
       const links = Array.isArray(d.dataroom_links) ? d.dataroom_links : [];
       if (!links.length) return '';
-      return '☁ Envoyé vers ' + links.map(l => DATAROOM_PROVIDER_LABELS[l.provider] || l.provider).join(', ');
+      return 'â˜ EnvoyÃ© vers ' + links.map(l => DATAROOM_PROVIDER_LABELS[l.provider] || l.provider).join(', ');
     }
 
     async function load() {
@@ -302,12 +302,12 @@
           <div>
             <div class="dr-account__name">${DATAROOM_PROVIDER_LABELS[provider]}</div>
             <div class="dr-account__status ${connected ? 'dr-account__status--on' : revoked ? 'dr-account__status--warn' : ''}">
-              ${connected ? 'Connecté — ' + esc(conn.account_label || '') : revoked ? 'Connexion expirée — reconnectez votre compte' : 'Non connecté'}
+              ${connected ? 'ConnectÃ© â€” ' + esc(conn.account_label || '') : revoked ? 'Connexion expirÃ©e â€” reconnectez votre compte' : 'Non connectÃ©'}
             </div>
           </div>`;
         const btn = document.createElement('button');
         btn.className = 'btn ' + (connected ? 'btn--ghost' : 'btn--primary');
-        btn.textContent = connected ? 'Déconnecter' : 'Connecter';
+        btn.textContent = connected ? 'DÃ©connecter' : 'Connecter';
         btn.addEventListener('click', () => {
           if (connected) disconnectProvider(provider);
           else window.location.href = '/api/saas/dataroom/' + provider + '/connect?return_to=' + encodeURIComponent('/saas/data-room.html');
@@ -318,7 +318,7 @@
     }
 
     async function disconnectProvider(provider) {
-      if (!confirm(`Déconnecter ${DATAROOM_PROVIDER_LABELS[provider]} ? Vous ne pourrez plus y envoyer de fichiers tant que vous ne l'aurez pas reconnecté.`)) return;
+      if (!confirm(`DÃ©connecter ${DATAROOM_PROVIDER_LABELS[provider]} ? Vous ne pourrez plus y envoyer de fichiers tant que vous ne l'aurez pas reconnectÃ©.`)) return;
       try {
         const res = await fetch('/api/saas/dataroom/connections/' + provider, { method: 'DELETE', credentials: 'include' });
         if (res.ok) { connections = connections.filter(c => c.provider !== provider); renderAccounts(); }
@@ -329,7 +329,7 @@
       const host = document.getElementById('dr-folders');
       const ddFolders = folders.filter(f => DATAROOM_FOLDER_KEYS.includes(f.key));
       if (!ddFolders.length) {
-        host.innerHTML = '<div class="dr-empty">Aucun dossier de due diligence pour l\'instant. Ouvrez un dossier « Due diligence » depuis <a href="tableau-de-bord.html">votre tableau de bord</a> et ajoutez-y des documents pour pouvoir les envoyer ici.</div>';
+        host.innerHTML = '<div class="dr-empty">Aucun dossier de due diligence pour l\'instant. Ouvrez un dossier Â« Due diligence Â» depuis <a href="tableau-de-bord.html">votre tableau de bord</a> et ajoutez-y des documents pour pouvoir les envoyer ici.</div>';
         return;
       }
       const wrap = document.createElement('div');
@@ -345,7 +345,7 @@
               <div class="dr-folder__name">${esc(f.name)}</div>
               <div class="dr-folder__count">${folderDocs.length} document${folderDocs.length > 1 ? 's' : ''}</div>
             </div>
-            <button class="dr-folder__toggle" type="button" aria-label="Afficher/masquer les documents">▾</button>
+            <button class="dr-folder__toggle" type="button" aria-label="Afficher/masquer les documents">â–¾</button>
           </div>
           <div class="dr-folder__body"></div>`;
         card.querySelector('[data-folder-toggle]').addEventListener('click', () => {
@@ -376,19 +376,19 @@
       row.innerHTML = `
         <div style="flex:1;min-width:0">
           <div class="dr-doc__name" title="${esc(d.name)}">${esc(d.name)}</div>
-          <div class="dr-doc__meta">${fmtSize(d.size)} · ${fmtDate(d.created_at)}</div>
+          <div class="dr-doc__meta">${fmtSize(d.size)} Â· ${fmtDate(d.created_at)}</div>
           ${label ? `<div class="dr-doc__sent">${esc(label)}</div>` : ''}
         </div>
         <div class="dr-doc__actions"></div>`;
       const actions = row.querySelector('.dr-doc__actions');
       const dl = document.createElement('a');
       dl.className = 'dr-doc-btn';
-      dl.textContent = 'Télécharger';
+      dl.textContent = 'TÃ©lÃ©charger';
       dl.href = '/api/saas/documents/' + d.id + '/download';
       actions.appendChild(dl);
       const send = document.createElement('button');
       send.className = 'dr-doc-btn';
-      send.textContent = '☁ Envoyer';
+      send.textContent = 'â˜ Envoyer';
       send.addEventListener('click', () => openDataroomModal({ id: d.id, folderId: d.folder_id, categoryTitle: d.category_key || '' }));
       actions.appendChild(send);
       return row;
@@ -413,7 +413,7 @@
         row.innerHTML = `
           <div>
             <div class="dr-provider__label">${DATAROOM_PROVIDER_LABELS[provider]}</div>
-            <div class="dr-provider__sub">${connected ? esc(conn.account_label || 'Connecté') : 'Non connecté'}</div>
+            <div class="dr-provider__sub">${connected ? esc(conn.account_label || 'ConnectÃ©') : 'Non connectÃ©'}</div>
           </div>`;
         const btn = document.createElement('button');
         if (connected) {
@@ -450,15 +450,15 @@
         signup.href = provider.url;
         signup.target = '_blank';
         signup.rel = 'noopener noreferrer';
-        signup.textContent = 'Créer un compte';
-        signup.setAttribute('aria-label', 'Créer un compte sur ' + provider.name);
+        signup.textContent = 'CrÃ©er un compte';
+        signup.setAttribute('aria-label', 'CrÃ©er un compte sur ' + provider.name);
         actions.appendChild(signup);
 
         const dl = document.createElement('a');
         dl.className = 'btn btn--ghost';
         dl.href = zipUrl;
         dl.rel = 'noopener';
-        dl.textContent = 'Télécharger le ZIP';
+        dl.textContent = 'TÃ©lÃ©charger le ZIP';
         actions.appendChild(dl);
 
         row.appendChild(actions);
@@ -485,7 +485,7 @@
       dataroomErr.classList.remove('is-shown');
       btn.disabled = true;
       const prevText = btn.textContent;
-      btn.textContent = 'Envoi…';
+      btn.textContent = 'Envoiâ€¦';
       try {
         const res = await fetch('/api/saas/dataroom/' + provider + '/push/document/' + dataroomCtx.id, {
           method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
@@ -493,12 +493,12 @@
         });
         if (res.status === 401) { window.location.href = 'login.html'; return; }
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) { dataroomShowErr(data.error || 'Envoi échoué.'); btn.disabled = false; btn.textContent = prevText; return; }
+        if (!res.ok) { dataroomShowErr(data.error || 'Envoi Ã©chouÃ©.'); btn.disabled = false; btn.textContent = prevText; return; }
         if (data.document) {
           const idx = docs.findIndex(x => x.id === data.document.id);
           if (idx !== -1) docs[idx] = data.document;
         }
-        btn.textContent = 'Envoyé ✓';
+        btn.textContent = 'EnvoyÃ© âœ“';
         setTimeout(closeDataroomModal, 900);
         renderFolders();
       } catch {
