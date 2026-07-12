@@ -3257,6 +3257,31 @@ app.put('/api/saas/documents/:id/investor', requireAuth, async (req, res) => {
   res.json({ success: true });
 });
 
+// Niveaux d'avancement d'un document, du plus tôt au plus avancé. Sert à la vue
+// « Par avancement » de l'outil Documents : généré → en cours de modification →
+// modifié (non signé) → validé → signé → disponible en data room.
+const SAAS_DOC_STATUSES = ['genere', 'en_cours', 'modifie', 'valide', 'signe', 'data_room'];
+
+// Définit (ou retire) le niveau d'avancement d'un document. Un document sans
+// statut explicite est déduit côté client (« généré » par défaut, « en cours de
+// modification » dès qu'il a été retravaillé après sa création).
+app.put('/api/saas/documents/:id/status', requireAuth, async (req, res) => {
+  const id  = Number(req.params.id);
+  const raw = req.body?.status;
+  const doc = await col('saas_documents').findOne({ id, user_id: req.user.id });
+  if (!doc) return res.status(404).json({ error: 'Document introuvable' });
+
+  if (raw === null || raw === '' || raw === undefined) {
+    await col('saas_documents').updateOne({ id, user_id: req.user.id }, { $unset: { status: '' } });
+  } else {
+    const status = String(raw);
+    if (!SAAS_DOC_STATUSES.includes(status))
+      return res.status(400).json({ error: 'Statut invalide' });
+    await col('saas_documents').updateOne({ id, user_id: req.user.id }, { $set: { status } });
+  }
+  res.json({ success: true });
+});
+
 // Lier un document à un élément de la checklist d'un dossier, et/ou marquer cet
 // élément comme « document final » (validé). L'état est conservé dans
 // `items_state` (carte slug -> { document_id, final }) sur le dossier lui-même ;
