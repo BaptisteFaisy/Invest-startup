@@ -209,6 +209,13 @@
             <span>Mes tâches</span>
             <select id="pref-task-count" aria-label="Nombre de mes tâches à afficher sur le tableau de bord"></select>
           </label>
+          <label class="dashprefs__ctrl">
+            <span>Trier par</span>
+            <select id="pref-task-sort" aria-label="Ordre d'affichage de mes tâches sur le tableau de bord">
+              <option value="priority">Niveau de priorité</option>
+              <option value="due">Échéance</option>
+            </select>
+          </label>
         </div>
       </div>
 
@@ -528,10 +535,24 @@
     function setPrefCount(user, kind, val) {
       try { localStorage.setItem(prefCountKey(user, kind), String(val)); } catch {}
     }
+    // Ordre d'affichage des tâches personnelles sur le tableau de bord :
+    // 'priority' (niveau de priorité) ou 'due' (échéance). Mêmes clés lues côté
+    // tableau de bord (cadrées par utilisateur).
+    function prefTaskSortKey(user) { return 'liquid_na_task_sort_' + raiseUserId(user); }
+    function getPrefTaskSort(user) {
+      try {
+        const v = localStorage.getItem(prefTaskSortKey(user));
+        return v === 'due' ? 'due' : 'priority';
+      } catch { return 'priority'; }
+    }
+    function setPrefTaskSort(user, val) {
+      try { localStorage.setItem(prefTaskSortKey(user), val === 'due' ? 'due' : 'priority'); } catch {}
+    }
     function setupDashPrefs(user) {
       const prioSel = document.getElementById('pref-prio-count');
       const taskSel = document.getElementById('pref-task-count');
-      if (!prioSel || !taskSel) return;
+      const sortSel = document.getElementById('pref-task-sort');
+      if (!prioSel || !taskSel || !sortSel) return;
       const prio = getPrefCount(user, 'prio');
       const task = getPrefCount(user, 'task');
       prioSel.innerHTML = Array.from({ length: 11 }, (_, n) =>
@@ -540,8 +561,10 @@
       taskSel.innerHTML = Array.from({ length: 11 }, (_, n) =>
         '<option value="' + n + '"' + (String(n) === taskVal ? ' selected' : '') + '>' + n + '</option>').join('')
         + '<option value="all"' + (taskVal === 'all' ? ' selected' : '') + '>Toutes</option>';
+      sortSel.value = getPrefTaskSort(user);
       prioSel.addEventListener('change', () => setPrefCount(user, 'prio', parseInt(prioSel.value, 10) || 0));
       taskSel.addEventListener('change', () => setPrefCount(user, 'task', taskSel.value === 'all' ? 'all' : (parseInt(taskSel.value, 10) || 0)));
+      sortSel.addEventListener('change', () => setPrefTaskSort(user, sortSel.value));
     }
 
     // ─── Journal d'activité ────────────────────────────────────────────────
