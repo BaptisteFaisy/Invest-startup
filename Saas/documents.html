@@ -103,16 +103,13 @@
     .doc-view-btn:hover { color: #fff; }
     .doc-view-btn.is-active { background: #fff; color: #08090c; }
 
-    /* ---- Barre secondaire : puces filtrant par groupe (étape / investisseur / stade) ---- */
-    .doc-subfilter { display: flex; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+    /* ---- Barre secondaire : filtre par groupe, même style segmenté que « Organiser » ---- */
+    .doc-subfilter { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
     .doc-subfilter__label { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.45); }
-    .doc-subfilter__chips { display: flex; gap: 8px; flex-wrap: wrap; }
-    .doc-chip { display: inline-flex; align-items: center; gap: 7px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.14); border-radius: 999px; color: rgba(255,255,255,0.8); font: 600 13px/1 'Libre Franklin', sans-serif; padding: 9px 14px; cursor: pointer; transition: border-color .15s, background .15s, color .15s; }
-    .doc-chip:hover { border-color: rgba(255,255,255,0.32); color: #fff; }
-    .doc-chip.is-active { background: #fff; border-color: #fff; color: #08090c; }
+    .doc-subfilter__chips { display: inline-flex; flex-wrap: wrap; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.14); border-radius: 12px; padding: 3px; gap: 3px; }
     .doc-chip__dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
     .doc-chip__count { font-size: 12px; opacity: 0.6; font-weight: 700; }
-    .doc-chip.is-active .doc-chip__count { opacity: 0.5; }
+    .doc-view-btn.is-active .doc-chip__count { opacity: 0.5; }
 
     .doc-hint { display: flex; align-items: flex-start; gap: 10px; background: rgba(96,165,250,0.08); border: 1px solid rgba(96,165,250,0.28); border-radius: 12px; padding: 12px 14px; margin-top: 16px; color: rgba(255,255,255,0.8); font-size: 13.5px; line-height: 1.5; }
     .doc-hint svg { flex: none; width: 17px; height: 17px; margin-top: 1px; fill: none; stroke: #93c5fd; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -536,7 +533,7 @@
         subfilterChips.innerHTML = chips.map(c => {
           const active = (subFilter === c.key) || (subFilter === 'all' && c.key === 'all');
           const dot = c.dot ? `<span class="doc-chip__dot" style="background:${c.dot}"></span>` : '';
-          return `<button type="button" class="doc-chip${active ? ' is-active' : ''}" data-key="${esc(c.key)}">${dot}${esc(c.name)} <span class="doc-chip__count">${c.count}</span></button>`;
+          return `<button type="button" class="doc-view-btn${active ? ' is-active' : ''}" data-key="${esc(c.key)}">${dot}${esc(c.name)} <span class="doc-chip__count">${c.count}</span></button>`;
         }).join('');
       }
 
@@ -753,7 +750,7 @@
       });
       // Barre secondaire : filtre l'affichage sur le groupe cliqué (ou « Tout »).
       subfilterChips.addEventListener('click', (e) => {
-        const chip = e.target.closest('.doc-chip');
+        const chip = e.target.closest('.doc-view-btn');
         if (!chip) return;
         subFilter = chip.getAttribute('data-key');
         render();
