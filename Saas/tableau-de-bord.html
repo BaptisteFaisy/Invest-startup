@@ -1754,7 +1754,7 @@
       // Après le changement d'étape, le contenu de la page est rendu à nouveau.
       // On attend donc l'image suivante avant de viser la ligne du document ou du modèle.
       // Certaines étapes n'affichent aucune liste de fichiers (« Ma levée » montre le
-      // profil de levée, « Investisseurs » et « Gouvernance » affichent « Bientôt ») :
+      // profil de levée, « Investisseurs » montre le pipeline, « Gouvernance » affiche « Bientôt ») :
       // la ligne exacte n'existe alors pas dans le DOM. Dans ce cas on se rabat sur la
       // carte de l'étape (#phase-<clé>) pour au moins amener l'utilisatrice au bon
       // endroit, au lieu de ne rien faire.
@@ -3533,7 +3533,10 @@
 
     // Étapes de la levée classique dont le contenu détaillé n'est pas encore
     // construit : le menu et la page d'étape affichent « Bientôt » à la place.
-    const CLASSIC_SOON_STEPS = new Set(['confidentialite', 'gouvernance']);
+    // NB : « Investisseurs » (confidentialite) n'y figure pas — son contenu (le
+    // pipeline) est construit. Le « Bientôt » ne subsiste que dans l'onglet
+    // « Trouver des investisseurs » (badge ip-soon interne à cette étape).
+    const CLASSIC_SOON_STEPS = new Set(['gouvernance']);
 
     // Avancement d'une étape. Un document « si applicable » non fourni ne bloque pas ;
     // tout document fourni doit être validé. « complete » = tout ce qui doit l'être
