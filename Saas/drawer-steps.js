@@ -147,7 +147,8 @@
     phases.forEach((f, i) => {
       const s = stats[i];
       const done = s.complete;
-      const isCurrent = i === currentIdx;
+      // « Ma levée » reste visuellement neutre, comme les autres entrées du menu.
+      const isCurrent = i === currentIdx && f.key !== 'mise-en-ordre';
       const num = type === 'classic' ? friseStepNumber(f, i) : i + 1;
       const soon = type === 'classic' && CLASSIC_SOON.has(f.key);
       const stepFrac = s.total > 0 ? s.done / s.total : (done ? 1 : 0);

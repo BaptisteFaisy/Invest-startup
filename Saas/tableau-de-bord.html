@@ -3838,7 +3838,8 @@
       phases.forEach((f, i) => {
         const s = stats[i];
         const done = s.complete;
-        const isCurrent = i === currentIdx;
+        // « Ma levée » ne reçoit pas le fond indigo réservé à l'étape courante.
+        const isCurrent = i === currentIdx && f.key !== 'mise-en-ordre';
         const isActive = (type === 'classic' && selectedClassicStep === f.key)
           || (type === 'bsa-air' && selectedBsaStep === f.key);
         const btn = document.createElement('button');
