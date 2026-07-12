@@ -57,7 +57,7 @@
     /* Dernière ligne « reprendre » : distincte des priorités numérotées (repère ↩,
        séparateur renforcé) pour ne pas se confondre avec la première. */
     .next-actions__item--resume { border-top: 1px solid var(--line); }
-    .next-actions__rank--resume { background: rgba(99,102,241,0.22); color: #c7c9ff; font-size: 13px; }
+    .next-actions__rank--resume { background: none; border-radius: 0; color: #c7c9ff; font-size: 17px; font-weight: 400; }
     .next-actions__main { flex: 1; min-width: 0; }
     .next-actions__text { display: block; font-size: 13px; font-weight: 700; letter-spacing: -0.01em; color: var(--on-dark); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .next-actions__step { display: block; font-family: 'Archivo', sans-serif; font-size: 11px; color: var(--on-dark-mut); margin-top: 2px; }
@@ -2709,7 +2709,7 @@
         const tgt = isTermsheet ? ' target="_blank" rel="noopener"' : '';
         return '<li class="next-actions__item next-actions__item--resume">'
           + '<a class="next-actions__link" href="' + href + '"' + tgt + '>'
-          + '<span class="next-actions__rank next-actions__rank--resume" aria-hidden="true">↩</span>'
+          + '<span class="next-actions__rank next-actions__rank--resume" aria-hidden="true">←</span>'
           + '<span class="next-actions__main">'
           + '<span class="next-actions__text">Reprendre « ' + esc(doc.name) + ' »</span>'
           + '<span class="next-actions__step">Là où vous vous êtes arrêté · modifié le ' + fmtDate(doc.updated_at || doc.created_at) + '</span>'
@@ -4617,7 +4617,7 @@
       const open = docCategoryOpen[stateKey] !== false;
       const s = investorFolderStatus(f, inv);
       const section = document.createElement('section');
-      section.className = 'doc-category doc-category--investor' + (open ? '' : ' is-collapsed');
+      section.className = 'doc-category doc-category--investor' + (f.key === 'term-sheet' ? ' dd-editorial' : '') + (open ? '' : ' is-collapsed');
       const countTxt = s.total
         ? (s.complete ? 'tous les documents validés ✓' : s.done + ' / ' + s.total + ' validé' + (s.done > 1 ? 's' : ''))
         : 'documents à préparer';
@@ -4635,6 +4635,7 @@
           </div>
         </div>
         <div class="doc-category__body">
+          ${f.key === 'term-sheet' ? '<div class="dd-editorial__columns" aria-hidden="true"><span>Document</span><span>Statut</span><span>Investisseur</span><span>Actions</span></div>' : ''}
           <ol class="bsa-list"></ol>
         </div>`;
       section.querySelector('[data-category-import]').addEventListener('click', () => openImport(f.id, catKey));
@@ -5213,7 +5214,7 @@
       const pendingName = pendingSlots[f.id + ':' + slug] || null;
       const versions    = Array.isArray(st.versions) ? st.versions : [];
       const verNote     = linked && versions.length ? ` <span class="bsa-item__ver">v${versions.length + 1}</span>` : '';
-      const editorialDD = f.key === 'due-diligence-preliminaire' || f.key === 'due-diligence';
+      const editorialDD = f.key === 'due-diligence-preliminaire' || f.key === 'due-diligence' || f.key === 'term-sheet';
       const editorialStatus = final ? ['Prêt', 'ready'] : linked ? ['En révision', 'review'] : ['À préparer', 'todo'];
       const li = document.createElement('li');
       li.className = 'bsa-item' + (linked ? ' bsa-item--done' : '') + (editorialDD ? ' dd-editorial-item' : '');
