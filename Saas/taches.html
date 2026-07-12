@@ -59,6 +59,14 @@
     .tsk__count { background: rgba(255,255,255,0.1); color: #fff; border-radius: 999px; font-size: 11px; padding: 2px 8px; }
     .tsk__empty { color: rgba(255,255,255,0.5); font-size: 14px; padding: 18px 4px; }
 
+    /* Priorités suggérées : générées d'après l'état du dossier (lecture seule). */
+    .tsk__suggested-sub { color: rgba(255,255,255,0.55); font-size: 13px; margin: -4px 0 12px; line-height: 1.5; }
+    a.titem { text-decoration: none; }
+    .titem--suggested { border-left: 3px solid #3b82f6; transition: box-shadow .15s, transform .15s; }
+    .titem--suggested:hover { box-shadow: 0 8px 26px rgba(0,0,0,0.32); transform: translateY(-1px); }
+    .titem__rank { flex: none; width: 24px; height: 24px; border-radius: 8px; background: #3b82f6; color: #fff; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 12.5px; display: grid; place-items: center; }
+    .tag--suggested { background: rgba(59,130,246,0.12); color: #2563eb; }
+
     .titem { background: #fff; border-radius: 13px; padding: 13px 16px; margin-bottom: 9px; display: flex; align-items: center; gap: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
     .titem--done { opacity: 0.62; }
     .titem__cb { width: 19px; height: 19px; flex: none; cursor: pointer; accent-color: #3b82f6; }
@@ -196,6 +204,12 @@
         </div>
         <div class="tskform__err" id="form-err" hidden></div>
       </form>
+
+      <div class="tsk__section tsk__suggested" id="suggested-section" hidden>
+        <div class="tsk__section-h">Priorités suggérées <span class="tsk__count" id="suggested-count">0</span></div>
+        <p class="tsk__suggested-sub">Générées automatiquement d'après l'état de votre dossier. Cliquez pour ouvrir l'étape concernée dans le tableau de bord.</p>
+        <div id="suggested-list"></div>
+      </div>
 
       <div class="tsk__loading" id="loading">Chargement…</div>
       <div class="tsk__err" id="error" hidden></div>
@@ -433,6 +447,46 @@
       }
     }
 
+    // ─── Priorités suggérées (générées par le tableau de bord) ─────────────
+    // Le tableau de bord calcule ces priorités d'après l'état du dossier et les
+    // persiste dans localStorage (clé cadrée par utilisateur, cf. tableau-de-bord.html).
+    // On les affiche ici en lecture seule, au-dessus des tâches du fondateur.
+    function raiseUserId(user) { return (user && (user.id || user.email)) || 'me'; }
+
+    function suggestedRow(payload, a, rank) {
+      const raise = payload.raiseType || 'classic';
+      let href = 'tableau-de-bord.html?raise=' + encodeURIComponent(raise);
+      if (a.key) href += '&step=' + encodeURIComponent(a.key);
+      const row = document.createElement('a');
+      row.className = 'titem titem--suggested';
+      row.href = href;
+      row.innerHTML =
+        '<span class="titem__rank" aria-hidden="true">' + rank + '</span>'
+        + '<span class="titem__main">'
+        + '<span class="titem__title">' + esc(a.text) + '</span>'
+        + (a.step ? '<span class="titem__notes">Étape · ' + esc(a.step) + '</span>' : '')
+        + '</span>'
+        + '<span class="titem__meta"><span class="tag tag--suggested">Suggéré</span></span>';
+      return row;
+    }
+
+    function renderSuggested(user) {
+      const sectionEl = document.getElementById('suggested-section');
+      const listEl = document.getElementById('suggested-list');
+      const countEl = document.getElementById('suggested-count');
+      let payload = null;
+      try {
+        const raw = localStorage.getItem('liquid_next_priorities_' + raiseUserId(user));
+        if (raw) payload = JSON.parse(raw);
+      } catch {}
+      const items = (payload && Array.isArray(payload.items)) ? payload.items : [];
+      if (!items.length) { sectionEl.hidden = true; return; }
+      listEl.innerHTML = '';
+      items.forEach((a, i) => listEl.appendChild(suggestedRow(payload, a, i + 1)));
+      countEl.textContent = String(items.length);
+      sectionEl.hidden = false;
+    }
+
     // ─── Journal d'activité ────────────────────────────────────────────────
     const ACT_ICONS = {
       document: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/>',
@@ -575,6 +629,7 @@
       const user = await requireAuth();
       if (!user) return;
       document.querySelector('.app').classList.add('ready');
+      renderSuggested(user);
       document.getElementById('add-form').addEventListener('submit', addTask);
       document.getElementById('activity-more-btn').addEventListener('click', () => {
         activityShown = Math.min(activityShown + ACT_PAGE, activity.length);

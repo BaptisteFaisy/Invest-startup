@@ -42,28 +42,45 @@
     .resume-toggle:hover { background: rgba(255,255,255,0.12); color: #fff; }
     .resume-toggle[aria-expanded="false"] svg { transform: rotate(-90deg); }
 
-    /* Bandeau « prochaines priorités » — même traitement que « Reprendre où vous en
-       étiez » : un libellé de section (hors bloc) suivi d'une liste de lignes qui se
-       fondent dans le fond sombre de la page (pas de bulle blanche, pas d'ombre).
-       Le contenu est calculé côté client à partir des documents manquants / à valider
-       (aucun appel à l'IA : zéro token). */
+    /* Réglages du bandeau : nombre de priorités générées (0–10) et de tâches
+       personnelles (0–toutes) affichées. Mémorisés par utilisateur. */
+    .next-actions__head { flex-wrap: wrap; gap: 10px 14px; }
+    .na-controls { display: flex; align-items: center; gap: 12px; margin-left: auto; text-transform: none; letter-spacing: 0; }
+    .na-ctrl { display: inline-flex; align-items: center; gap: 6px; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.62); white-space: nowrap; }
+    .na-ctrl__sel { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; color: #fff; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); border-radius: 7px; padding: 4px 7px; cursor: pointer; -webkit-appearance: none; appearance: none; }
+    .na-ctrl__sel:focus { outline: none; border-color: rgba(255,255,255,0.5); }
+    .na-ctrl__sel option { color: #08090c; }
+
+    /* Bandeau « prochaines priorités » — un libellé de section (hors bloc) suivi
+       d'une liste de cartes claires. Deux natures cohabitent dans le même bloc :
+       (a) les priorités générées (déterministes, zéro token) portent une étiquette
+       « Priorité n » et un liseré coloré ; (b) les tâches saisies par le fondateur
+       dans l'outil Tâches portent une case à cocher et un liseré neutre. */
     #next-actions:not(:empty) { margin-bottom: 28px; }
-    .next-actions-card { background: var(--dark); border-radius: 20px; padding: 4px 22px; }
+    .next-actions-card { display: flex; flex-direction: column; gap: 8px; }
     .next-actions-card.is-collapsed { display: none; }
-    .next-actions__list { list-style: none; margin: 0; padding: 0; }
-    .next-actions__item + .next-actions__item { border-top: 1px solid var(--line); }
-    .next-actions__link { width: 100%; display: flex; align-items: center; gap: 12px; padding: 13px 0; border: 0; background: transparent; cursor: pointer; text-align: left; font: inherit; color: inherit; text-decoration: none; }
-    .next-actions__rank { flex: none; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 7px; background: rgba(255,255,255,0.1); color: var(--on-dark); font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 11px; }
-    /* Dernière ligne « reprendre » : distincte des priorités numérotées (repère ↩,
-       séparateur renforcé) pour ne pas se confondre avec la première. */
-    .next-actions__item--resume { border-top: 1px solid var(--line); }
-    .next-actions__rank--resume { background: none; border-radius: 0; color: #c7c9ff; font-size: 17px; font-weight: 400; }
-    .next-actions__main { flex: 1; min-width: 0; }
-    .next-actions__text { display: block; font-size: 13px; font-weight: 700; letter-spacing: -0.01em; color: var(--on-dark); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .next-actions__step { display: block; font-family: 'Archivo', sans-serif; font-size: 11px; color: var(--on-dark-mut); margin-top: 2px; }
-    .next-actions__go { flex: none; color: var(--on-dark-mut); font-size: 16px; line-height: 1; }
-    .next-actions__link:hover .next-actions__go { color: var(--on-dark); }
-    .next-actions__empty { margin: 0; padding: 4px 22px 16px; font-size: 14px; line-height: 1.5; color: var(--on-dark-mut); }
+    .next-actions__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+    /* Chaque priorité / tâche est une carte claire, séparée par le gap (pas de filet). */
+    .next-actions__link { width: 100%; display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 1px solid var(--line); border-left: 3px solid var(--na-accent, rgba(8,9,12,0.14)); border-radius: 0 12px 12px 0; background: var(--card, #fff); cursor: pointer; text-align: left; font: inherit; color: inherit; text-decoration: none; transition: border-color .15s, box-shadow .15s; }
+    .next-actions__link:hover { box-shadow: 0 1px 3px rgba(8,9,12,0.08); border-color: rgba(8,9,12,0.16); }
+    .next-actions__link--static { cursor: default; }
+    .next-actions__pill { flex: none; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 4px 9px; border-radius: 6px; }
+    /* Case à cocher des tâches du fondateur : coche la tâche « faite » sur place. */
+    .next-actions__cb { flex: none; width: 22px; height: 22px; border-radius: 6px; border: 2px solid rgba(8,9,12,0.25); background: #fff; cursor: pointer; appearance: none; -webkit-appearance: none; margin: 0; display: grid; place-items: center; transition: border-color .15s, background .15s; }
+    .next-actions__cb:hover { border-color: rgba(8,9,12,0.45); }
+    .next-actions__cb:checked { background: var(--dark, #08090c); border-color: var(--dark, #08090c); }
+    .next-actions__cb:checked::after { content: '✓'; color: #fff; font-size: 13px; line-height: 1; }
+    .next-actions__main { flex: 1; min-width: 0; color: inherit; text-decoration: none; }
+    .next-actions__text { display: block; font-size: 14px; font-weight: 700; letter-spacing: -0.01em; color: var(--text, #08090c); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .next-actions__step { display: block; font-family: 'Archivo', sans-serif; font-size: 11.5px; color: var(--text-2, #6b6b78); margin-top: 3px; }
+    .next-actions__go { flex: none; color: #a8a8b3; font-size: 18px; line-height: 1; }
+    .next-actions__link:hover .next-actions__go { color: #08090c; }
+    .next-actions__due { flex: none; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; color: #945b07; background: #fff2d9; padding: 4px 9px; border-radius: 6px; white-space: nowrap; }
+    .next-actions__due--over { color: #991b1b; background: #fee2e2; }
+    /* Ligne « reprendre » : plus discrète, en pointillés, distincte des cartes. */
+    .next-actions__item--resume .next-actions__link { border: 1px dashed rgba(8,9,12,0.18); border-radius: 12px; background: transparent; }
+    .next-actions__resume-ic { flex: none; color: #534ab7; font-size: 17px; width: 22px; text-align: center; }
+    .next-actions__empty { margin: 0; padding: 2px 2px 6px; font-size: 14px; line-height: 1.5; color: var(--text-2, #6b6b78); }
 
     /* Dossiers (phases de levée) */
     .folder { background: var(--card); border: 1px solid var(--line); border-radius: 14px; margin-bottom: 12px; overflow: hidden; transition: border-color .15s, box-shadow .15s; }
@@ -1661,6 +1678,7 @@
 
     let folders = [];
     let docs    = [];
+    let founderTasks = [];
     let dataroomConnections = [];
     let fundraisingProfile = normalizeFundraisingProfile({});
     const dashboardSearchForm = document.getElementById('dashboard-search');
@@ -2548,12 +2566,13 @@
       // après un échec d'action optimiste, dont le message doit rester visible.
       if (!loaded) foldersEl.innerHTML = '<p class="empty">Chargement…</p>';
       try {
-        const [fr, dr, pr, cr, ir] = await Promise.all([
+        const [fr, dr, pr, cr, ir, tr] = await Promise.all([
           fetch('/api/saas/folders',   { credentials: 'include' }),
           fetch('/api/saas/documents', { credentials: 'include' }),
           fetch('/api/saas/fundraising-profile', { credentials: 'include' }).catch(() => null),
           fetch('/api/saas/dataroom/connections', { credentials: 'include' }).catch(() => null),
           fetch('/api/saas/investors', { credentials: 'include' }).catch(() => null),
+          fetch('/api/saas/tasks', { credentials: 'include' }).catch(() => null),
         ]);
         if (fr.status === 401 || dr.status === 401) { window.location.href = 'login.html'; return; }
         folders = (await fr.json()).folders || [];
@@ -2567,6 +2586,11 @@
         applyChecklistOverrides();
         applyDDFallbackModels();
         docs    = (await dr.json()).documents || [];
+        // Tâches saisies par le fondateur (outil Tâches) : affichées sous les
+        // priorités générées dans le même bandeau, avec une case à cocher.
+        if (tr && tr.ok) {
+          founderTasks = (await tr.json().catch(() => ({}))).tasks || [];
+        }
         if (cr && cr.ok) {
           const cdata = await cr.json().catch(() => ({}));
           dataroomConnections = cdata.connections || [];
@@ -2663,7 +2687,7 @@
         const { toAdd, toValidate } = phaseGaps(f);
         toAdd.forEach(item => actions.push({ text: 'Ajouter « ' + item + ' »', step: label, key: f.key }));
         toValidate.forEach(({ item, docId }) => actions.push({ text: 'Valider « ' + item + ' »', step: label, key: f.key, docId }));
-        if (actions.length >= 6) break; // assez de matière pour prioriser
+        if (actions.length >= 12) break; // le fondateur peut en afficher jusqu'à 10
       }
 
       // « Reprendre où vous en étiez » n'est plus une carte à part : c'est la
@@ -2675,24 +2699,79 @@
         .slice()
         .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))[0] || null;
 
-      const items = actions.slice(0, 3);
+      const items = actions.slice(0, 10);
       if (!items.length) return { done: true, items: [], resume: recentDoc };
       const resume = recentDoc && !(items[0] && items[0].docId === recentDoc.id) ? recentDoc : null;
       return { done: false, items, resume };
     }
+
+    // Les mêmes priorités générées sont réaffichées, en lecture seule, dans
+    // l'outil « Tâches » (taches.html), au-dessus des tâches saisies par le
+    // fondateur. Comme ce calcul dépend de tout l'état du dossier (profil,
+    // dossiers, checklists, pipeline), on le partage via localStorage plutôt
+    // que de le dupliquer : le tableau de bord persiste le résultat à chaque
+    // rendu, la page Tâches le relit. Clé cadrée par utilisateur, comme raiseKey().
+    function persistNextPriorities(type, data) {
+      try {
+        const key = 'liquid_next_priorities_' + raiseUser;
+        const payload = (data && !RAISE_SOON[type]) ? {
+          raiseType: type,
+          done: !!data.done,
+          items: (data.items || []).map(a => ({ text: a.text, step: a.step || '', key: a.key || '', docId: a.docId || null })),
+          savedAt: Date.now(),
+        } : null;
+        if (payload) localStorage.setItem(key, JSON.stringify(payload));
+        else localStorage.removeItem(key);
+      } catch {}
+    }
+
+    // Réglages du bandeau, mémorisés par utilisateur : combien de priorités
+    // générées (0–10) et de tâches personnelles (0–toutes) afficher. Défaut 2 / 2.
+    function naPrioCountKey() { return 'liquid_na_prio_count_' + raiseUser; }
+    function naTaskCountKey() { return 'liquid_na_task_count_' + raiseUser; }
+    function getNaPrioCount() {
+      try {
+        const v = localStorage.getItem(naPrioCountKey());
+        if (v === null) return 2;
+        const n = parseInt(v, 10);
+        return isNaN(n) ? 2 : Math.max(0, Math.min(10, n));
+      } catch { return 2; }
+    }
+    function getNaTaskCount() {
+      try {
+        const v = localStorage.getItem(naTaskCountKey());
+        if (v === null) return 2;
+        if (v === 'all') return 'all';
+        const n = parseInt(v, 10);
+        return isNaN(n) ? 2 : Math.max(0, n);
+      } catch { return 2; }
+    }
+    function setNaPrioCount(v) { try { localStorage.setItem(naPrioCountKey(), String(v)); } catch {} }
+    function setNaTaskCount(v) { try { localStorage.setItem(naTaskCountKey(), String(v)); } catch {} }
 
     const nextActionsHost = document.getElementById('next-actions');
     let nextActionsCollapsed = false;
     function renderNextActions() {
       if (!nextActionsHost) return;
       const type = getRaiseType();
+      // Le calcul ne dépend pas de l'étape affichée : on le persiste toujours
+      // pour la page Tâches, même quand le bandeau est masqué dans cette vue.
+      const data = computeNextActions();
+      persistNextPriorities(type, data);
       // Pas de bandeau sur un parcours « bientôt disponible » ni sur une étape « Bientôt ».
       if (RAISE_SOON[type] || (type === 'classic' && selectedClassicStep && CLASSIC_SOON_STEPS.has(selectedClassicStep))) {
         nextActionsHost.innerHTML = '';
         return;
       }
-      const data = computeNextActions();
-      if (!data) { nextActionsHost.innerHTML = ''; return; }
+      // Tâches du fondateur restant à faire (l'ordre de l'outil Tâches est conservé).
+      const pendingTasks = (founderTasks || []).filter(t => !t.done);
+      if (!data && !pendingTasks.length) { nextActionsHost.innerHTML = ''; return; }
+
+      // Réglages du fondateur : combien de priorités / tâches afficher.
+      const prioCount = getNaPrioCount();
+      const taskCount = getNaTaskCount();
+      const shownPriorities = (data && !data.done) ? data.items.slice(0, prioCount) : [];
+      const shownTasks = taskCount === 'all' ? pendingTasks : pendingTasks.slice(0, taskCount);
 
       const isClassic = type === 'classic';
       const openStep = (key) => {
@@ -2700,16 +2779,61 @@
         return isClassic ? openClassicStepPage(key) : openBsaStepCard(key);
       };
 
+      // Priorités générées (a) : carte claire, étiquette « Priorité n », liseré
+      // coloré (1 = corail, 2 = ambre, 3 = bleu). L'étiquette porte le rang.
+      const NA_ACCENT = ['#d85a30', '#ba7517', '#185fa5'];
+      const NA_PILL = [
+        { fg: '#993c1d', bg: '#faece7' },
+        { fg: '#854f0b', bg: '#faeeda' },
+        { fg: '#0c447c', bg: '#e6f1fb' },
+      ];
+      const priorityRowHtml = (a, i) => {
+        const j = Math.min(i, NA_ACCENT.length - 1);
+        const pill = NA_PILL[j];
+        return '<li class="next-actions__item" style="--na-accent:' + NA_ACCENT[j] + '">'
+          + '<button class="next-actions__link" type="button" data-na-step="' + esc(a.key) + '">'
+          + '<span class="next-actions__pill" style="color:' + pill.fg + ';background:' + pill.bg + '">Priorité ' + (i + 1) + '</span>'
+          + '<span class="next-actions__main">'
+          + '<span class="next-actions__text">' + esc(a.text) + '</span>'
+          + (a.step ? '<span class="next-actions__step">Étape · ' + esc(a.step) + '</span>' : '')
+          + '</span>'
+          + '<span class="next-actions__go" aria-hidden="true">→</span>'
+          + '</button></li>';
+      };
+
+      // Tâches du fondateur (b) : même carte, mais case à cocher (coche « faite »
+      // sur place) et liseré neutre ; le titre ouvre l'outil Tâches.
+      const PRIO_LABEL = { basse: 'Basse', moyenne: 'Moyenne', haute: 'Haute' };
+      const todayISO = () => new Date().toISOString().slice(0, 10);
+      const fmtDue = (s) => { try { return new Date(s + 'T00:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }); } catch { return ''; } };
+      const taskRowHtml = (t) => {
+        let due = '';
+        if (t.due_date) {
+          const over = t.due_date < todayISO();
+          due = '<span class="next-actions__due' + (over ? ' next-actions__due--over' : '') + '">'
+            + (over ? 'En retard · ' : 'Éch. ') + fmtDue(t.due_date) + '</span>';
+        }
+        const prio = (PRIO_LABEL[t.priority] || 'Moyenne').toLowerCase();
+        return '<li class="next-actions__item next-actions__item--task">'
+          + '<div class="next-actions__link next-actions__link--static">'
+          + '<input type="checkbox" class="next-actions__cb" data-na-task="' + esc(t.id) + '" aria-label="Marquer « ' + esc(t.title) + ' » comme faite">'
+          + '<a class="next-actions__main" href="taches.html">'
+          + '<span class="next-actions__text">' + esc(t.title) + '</span>'
+          + '<span class="next-actions__step">Tâche · priorité ' + prio + '</span>'
+          + '</a>'
+          + due
+          + '</div></li>';
+      };
+
       // Dernière priorité : reprendre le document travaillé en dernier.
-      // Ligne distincte (repère « ↩ » au lieu d'un rang), un lien direct vers
-      // le document plutôt qu'une navigation d'étape.
+      // Ligne distincte (repère « ↩ », pointillés) pour ne pas se confondre.
       const resumeItemHtml = (doc) => {
         const isTermsheet = doc.kind === 'termsheet';
         const href = isTermsheet ? ('editor.html?doc=' + doc.id) : ('/api/saas/documents/' + doc.id + '/download');
         const tgt = isTermsheet ? ' target="_blank" rel="noopener"' : '';
         return '<li class="next-actions__item next-actions__item--resume">'
           + '<a class="next-actions__link" href="' + href + '"' + tgt + '>'
-          + '<span class="next-actions__rank next-actions__rank--resume" aria-hidden="true">←</span>'
+          + '<span class="next-actions__resume-ic" aria-hidden="true">↩</span>'
           + '<span class="next-actions__main">'
           + '<span class="next-actions__text">Reprendre « ' + esc(doc.name) + ' »</span>'
           + '<span class="next-actions__step">Là où vous vous êtes arrêté · modifié le ' + fmtDate(doc.updated_at || doc.created_at) + '</span>'
@@ -2718,31 +2842,43 @@
           + '</a></li>';
       };
 
+      // Réglages (deux sélecteurs) : nombre de priorités générées (0–10) et de
+      // tâches personnelles (0–toutes). Regroupés à droite avec le chevron de repli.
+      const prioOptsHtml = Array.from({ length: 11 }, (_, n) =>
+        '<option value="' + n + '"' + (n === prioCount ? ' selected' : '') + '>' + n + '</option>').join('');
+      const taskSelVal = taskCount === 'all' ? 'all' : String(taskCount);
+      const taskNumOptsHtml = Array.from({ length: 11 }, (_, n) =>
+        '<option value="' + n + '"' + (String(n) === taskSelVal ? ' selected' : '') + '>' + n + '</option>').join('')
+        + '<option value="all"' + (taskSelVal === 'all' ? ' selected' : '') + '>Toutes</option>';
+      const toggleLabel = nextActionsCollapsed ? 'Afficher les prochaines priorités' : 'Masquer les prochaines priorités';
+      const controlsHtml =
+        '<div class="na-controls">'
+        + '<label class="na-ctrl">Priorités <select class="na-ctrl__sel" data-na-prio-count aria-label="Nombre de priorités générées à afficher">' + prioOptsHtml + '</select></label>'
+        + '<label class="na-ctrl">Mes tâches <select class="na-ctrl__sel" data-na-task-count aria-label="Nombre de mes tâches à afficher">' + taskNumOptsHtml + '</select></label>'
+        + '<button class="resume-toggle" type="button" aria-expanded="' + (nextActionsCollapsed ? 'false' : 'true') + '" aria-label="' + toggleLabel + '" title="' + toggleLabel + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6l6 -6"/></svg></button>'
+        + '</div>';
+
       const section = document.createElement('section');
-      section.className = data.done ? 'is-done' : '';
-      if (data.done) {
+      const taskRows = shownTasks.map(taskRowHtml).join('');
+      // Tout est fourni/validé ET aucune tâche personnelle en attente : message seul.
+      if (data && data.done && !pendingTasks.length) {
+        section.className = 'is-done';
         section.innerHTML =
           '<div class="section-label"><span>Prochaines priorités</span></div>'
           + '<p class="next-actions__empty">Tout est à jour : les documents attendus sont fournis et validés. 🎉</p>'
           + (data.resume ? '<div class="next-actions-card"><ol class="next-actions__list">' + resumeItemHtml(data.resume) + '</ol></div>' : '');
       } else {
-        const rows = data.items.map((a, i) =>
-          '<li class="next-actions__item">'
-          + '<button class="next-actions__link" type="button" data-na-step="' + esc(a.key) + '">'
-          + '<span class="next-actions__rank">' + (i + 1) + '</span>'
-          + '<span class="next-actions__main">'
-          + '<span class="next-actions__text">' + esc(a.text) + '</span>'
-          + (a.step ? '<span class="next-actions__step">Étape · ' + esc(a.step) + '</span>' : '')
-          + '</span>'
-          + '<span class="next-actions__go" aria-hidden="true">→</span>'
-          + '</button></li>').join('')
-          + (data.resume ? resumeItemHtml(data.resume) : '');
-        const toggleLabel = nextActionsCollapsed ? 'Afficher les prochaines priorités' : 'Masquer les prochaines priorités';
+        const priorityRows = shownPriorities.map(priorityRowHtml).join('');
+        const resumeRow = (data && data.resume) ? resumeItemHtml(data.resume) : '';
+        const rows = priorityRows + resumeRow + taskRows;
+        const cardHtml = rows
+          ? '<div class="next-actions-card' + (nextActionsCollapsed ? ' is-collapsed' : '') + '"><ol class="next-actions__list">' + rows + '</ol></div>'
+          : '<p class="next-actions__empty">Réglé sur 0 : augmentez le nombre de priorités ou de tâches ci-dessus pour les afficher.</p>';
         section.innerHTML =
-          '<div class="section-label"><span>Prochaines priorités</span>'
-          + '<button class="resume-toggle" type="button" aria-expanded="' + (nextActionsCollapsed ? 'false' : 'true') + '" aria-label="' + toggleLabel + '" title="' + toggleLabel + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6l6 -6"/></svg></button>'
+          '<div class="section-label next-actions__head"><span>Prochaines priorités</span>'
+          + controlsHtml
           + '</div>'
-          + '<div class="next-actions-card' + (nextActionsCollapsed ? ' is-collapsed' : '') + '"><ol class="next-actions__list">' + rows + '</ol></div>';
+          + cardHtml;
       }
       nextActionsHost.innerHTML = '';
       nextActionsHost.appendChild(section);
@@ -2753,6 +2889,10 @@
           renderNextActions();
         });
       }
+      const prioSel = section.querySelector('[data-na-prio-count]');
+      if (prioSel) prioSel.addEventListener('change', () => { setNaPrioCount(parseInt(prioSel.value, 10) || 0); renderNextActions(); });
+      const taskSel = section.querySelector('[data-na-task-count]');
+      if (taskSel) taskSel.addEventListener('change', () => { setNaTaskCount(taskSel.value === 'all' ? 'all' : (parseInt(taskSel.value, 10) || 0)); renderNextActions(); });
       section.querySelectorAll('[data-na-step]').forEach(btn => {
         btn.addEventListener('click', () => {
           const key = btn.getAttribute('data-na-step');
@@ -2767,6 +2907,26 @@
             });
           }
           if (navDrawer) navDrawer.close();
+        });
+      });
+      // Cocher une tâche du fondateur la marque « faite » (optimiste) et la retire.
+      section.querySelectorAll('[data-na-task]').forEach(cb => {
+        cb.addEventListener('change', async () => {
+          const id = cb.getAttribute('data-na-task');
+          const done = cb.checked;
+          const t = founderTasks.find(x => String(x.id) === String(id));
+          if (t) t.done = done;
+          renderNextActions();
+          try {
+            await fetch('/api/saas/tasks/' + id, {
+              method: 'PUT', credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ done }),
+            });
+          } catch {
+            if (t) t.done = !done;
+            renderNextActions();
+          }
         });
       });
     }
@@ -5981,6 +6141,14 @@
       showErr('');
       const old = btn ? btn.textContent : '';
       if (btn) { btn.disabled = true; btn.textContent = 'Création…'; }
+      const finish = () => { if (btn) { btn.disabled = false; btn.textContent = old; } };
+      // On ouvre l'onglet éditeur MAINTENANT, dans le geste du clic. Les « await »
+      // ci-dessous (téléchargement du modèle, création côté serveur) rompent
+      // l'activation utilisateur : un window.open() appelé APRÈS serait bloqué comme
+      // une pop-up — l'onglet ne s'ouvrait pas et le bouton restait figé sur
+      // « Création… ». On récupère la référence de l'onglet (blanc) pour y charger le
+      // document une fois créé. editorTab vaut null si la pop-up est bloquée d'entrée.
+      const editorTab = window.open('', '_blank');
       try {
         const tr = await fetch('ressources/modeles/' + (modelSlug || slug) + '.html', { credentials: 'include' });
         if (!tr.ok) throw new Error('modele');
@@ -5991,8 +6159,9 @@
         });
         const data = await cr.json().catch(() => ({}));
         if (!cr.ok || data.id == null) {
+          if (editorTab) editorTab.close();
           showErr(data.error || 'Création du modèle échouée.');
-          if (btn) { btn.disabled = false; btn.textContent = old; }
+          finish();
           return;
         }
         // Affichage instantané : on transmet à l'éditeur le contenu déjà chargé
@@ -6005,10 +6174,22 @@
           credentials: 'include', keepalive: true,
           body: JSON.stringify({ slug, document_id: data.id }),
         }).catch(() => {});
-        window.open('editor.html?doc=' + data.id + '&folder=' + folderId, '_blank', 'noopener');
+        const url = 'editor.html?doc=' + data.id + '&folder=' + folderId;
+        if (editorTab) {
+          // Onglet déjà ouvert dans le geste : on y charge l'éditeur. On reste sur le
+          // tableau de bord → bouton rétabli et liste rafraîchie pour afficher tout de
+          // suite le document créé et lié.
+          editorTab.location = url;
+          finish();
+          load();
+        } else {
+          // Pop-up bloquée par le navigateur : on ouvre l'éditeur dans l'onglet courant.
+          window.location.href = url;
+        }
       } catch {
+        if (editorTab) editorTab.close();
         showErr('Impossible de créer le modèle.');
-        if (btn) { btn.disabled = false; btn.textContent = old; }
+        finish();
       }
     }
 
@@ -6191,12 +6372,16 @@
       showErr('');
       // État occupé via classe (ne remplace pas le contenu → préserve l'icône).
       setDocBtnBusy(btnEl, true);
+      // Onglet éditeur ouvert dans le geste du clic : après l'« await » ci-dessous,
+      // window.open() serait bloqué comme une pop-up (voir useTemplate).
+      const editorTab = window.open('', '_blank');
       try {
         const r = await fetch('/api/saas/documents/' + id + '/to-editor', {
           method: 'POST', credentials: 'include',
         });
         const data = await r.json().catch(() => ({}));
         if (!r.ok) {
+          if (editorTab) editorTab.close();
           const msg = data.error || 'Impossible d\'ouvrir ce document dans l\'éditeur.';
           showErr(msg);
           errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -6204,13 +6389,17 @@
           return;
         }
         if (!data.id) {
+          if (editorTab) editorTab.close();
           showErr('Réponse inattendue du serveur. Réessayez.');
           setDocBtnBusy(btnEl, false);
           return;
         }
-        window.open('editor.html?doc=' + data.id, '_blank', 'noopener');
+        const url = 'editor.html?doc=' + data.id;
+        if (editorTab) editorTab.location = url;   // onglet déjà ouvert dans le geste
+        else window.location.href = url;           // pop-up bloquée → même onglet
         setDocBtnBusy(btnEl, false);
       } catch {
+        if (editorTab) editorTab.close();
         showErr('Impossible de joindre le serveur.');
         errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
         setDocBtnBusy(btnEl, false);

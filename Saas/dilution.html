@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="styles.css?v=6" />
   <link rel="stylesheet" href="editor.css?v=7" />
   <link rel="stylesheet" href="drawer-menu.css?v=5" />
+  <link rel="stylesheet" href="help-bulb.css?v=1" />
   <style>
     [hidden] { display: none !important; }
     .app { height: auto; overflow: visible; display: block; }
@@ -308,6 +309,7 @@
   <script src="tasks.js?v=2" defer></script>
   <script src="drawer-menu.js?v=3" defer></script>
   <script src="drawer-steps.js?v=1" defer></script>
+  <script src="help-bulb.js?v=1" defer></script>
 </head>
 <body>
   <div class="app">
@@ -368,10 +370,14 @@
       </button>
     </div>
 
-    <main class="dil">
+    <main class="dil tool-has-help">
+      <button type="button" class="help-bulb" aria-label="Comprendre cet outil" title="Comprendre cet outil"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg></button>
       <div class="dil__eyebrow">Outil</div>
       <h1 class="dil__title">Simulation de dilution</h1>
-      <p class="dil__sub">Renseignez votre <span class="term" data-term="cap-table" tabindex="0">cap table</span> actuelle — <b>en % suffit</b>, pas besoin du nombre exact d'actions — et les paramètres du tour. Le simulateur calcule le <span class="term" data-term="post-money" tabindex="0">post-money</span>, votre <span class="term" data-term="dilution" tabindex="0">dilution</span> et la répartition du capital, à lire au choix en <b><span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span></b> (pool et <span class="term" data-term="convertibles" tabindex="0">convertibles</span> inclus) ou en <b><span class="term" data-term="non-dilue" tabindex="0">non dilué</span></b> (actions émises seulement).</p>
+      <div class="help-pop" hidden>
+        <div class="help-pop__label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg> Comprendre cet outil</div>
+        <p>Renseignez votre <span class="term" data-term="cap-table" tabindex="0">cap table</span> actuelle — <b>en % suffit</b>, pas besoin du nombre exact d'actions — et les paramètres du tour. Le simulateur calcule le <span class="term" data-term="post-money" tabindex="0">post-money</span>, votre <span class="term" data-term="dilution" tabindex="0">dilution</span> et la répartition du capital, à lire au choix en <b><span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span></b> (pool et <span class="term" data-term="convertibles" tabindex="0">convertibles</span> inclus) ou en <b><span class="term" data-term="non-dilue" tabindex="0">non dilué</span></b> (actions émises seulement).</p>
+      </div>
       <p class="dil__link"><a class="dil__link-a" href="valorisation.html">Vous ne connaissez pas votre valorisation ? Utilisez l'estimateur de valorisation →</a></p>
 
       <div class="dil__grid">

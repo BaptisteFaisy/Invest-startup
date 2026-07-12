@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="styles.css?v=6" />
   <link rel="stylesheet" href="editor.css?v=7" />
   <link rel="stylesheet" href="drawer-menu.css?v=5" />
+  <link rel="stylesheet" href="help-bulb.css?v=1" />
   <style>
     /* L'attribut `hidden` doit toujours l'emporter : sans ça, les règles de type
        `.cmp__loading { display:flex }` / `.timeline { … }` écrasent le
@@ -212,6 +213,7 @@
   <script src="tasks.js?v=2" defer></script>
   <script src="drawer-menu.js?v=3" defer></script>
   <script src="drawer-steps.js?v=1" defer></script>
+  <script src="help-bulb.js?v=1" defer></script>
 </head>
 <body>
   <div class="app">
@@ -272,10 +274,14 @@
       </button>
     </div>
 
-    <main class="cmp">
+    <main class="cmp tool-has-help">
+      <button type="button" class="help-bulb" aria-label="Comprendre cet outil" title="Comprendre cet outil"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg></button>
       <div class="cmp__eyebrow">Analyse IA</div>
       <h1 class="cmp__title">Comparer les versions</h1>
-      <p class="cmp__sub" id="cmp-sub">Toutes les modifications d'un document au fil de la négociation, dans l'ordre chronologique — qui a probablement rédigé chaque version, et les intentions derrière chaque changement.</p>
+      <div class="help-pop" hidden>
+        <div class="help-pop__label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg> Comprendre cet outil</div>
+        <p id="cmp-sub">Toutes les modifications d'un document au fil de la négociation, dans l'ordre chronologique — qui a probablement rédigé chaque version, et les intentions derrière chaque changement.</p>
+      </div>
 
       <!-- Ne s'affiche qu'à l'ouverture générale de l'outil (pas sur un lien direct
            « comparer ces 2 versions » venant de l'éditeur ou du tableau de bord). -->

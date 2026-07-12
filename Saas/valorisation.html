@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="styles.css?v=6" />
   <link rel="stylesheet" href="editor.css?v=7" />
   <link rel="stylesheet" href="drawer-menu.css?v=5" />
+  <link rel="stylesheet" href="help-bulb.css?v=1" />
   <style>
     [hidden] { display: none !important; }
     .app { height: auto; overflow: visible; display: block; }
@@ -181,6 +182,7 @@
   <script src="tasks.js?v=2" defer></script>
   <script src="drawer-menu.js?v=3" defer></script>
   <script src="drawer-steps.js?v=1" defer></script>
+  <script src="help-bulb.js?v=1" defer></script>
 </head>
 <body>
   <div class="app">
@@ -241,10 +243,14 @@
       </button>
     </div>
 
-    <main class="val">
+    <main class="val tool-has-help">
+      <button type="button" class="help-bulb" aria-label="Comprendre cet outil" title="Comprendre cet outil"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg></button>
       <div class="val__eyebrow">Outil</div>
       <h1 class="val__title">Estimateur de valorisation</h1>
-      <p class="val__sub">Trois méthodes usuelles pour estimer une valorisation <b>pre-money</b> avant de la négocier : multiple de revenu pour une société qui facture déjà, Berkus pour une startup pré-revenu, Scorecard pour un stade amorçage. Une estimation indicative, pas un prix — un point de départ pour la négociation.</p>
+      <div class="help-pop" hidden>
+        <div class="help-pop__label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg> Comprendre cet outil</div>
+        <p>Trois méthodes usuelles pour estimer une valorisation <b>pre-money</b> avant de la négocier : multiple de revenu pour une société qui facture déjà, Berkus pour une startup pré-revenu, Scorecard pour un stade amorçage. Une estimation indicative, pas un prix — un point de départ pour la négociation.</p>
+      </div>
 
       <section id="valo-est">
         <div class="val__grid">
