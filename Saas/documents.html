@@ -124,6 +124,13 @@
     .verrow2__open { flex: none; display: inline-flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.05); color: #fff; font: 600 11.5px/1 'Libre Franklin', sans-serif; text-decoration: none; cursor: pointer; }
     .verrow2__open:hover { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.12); }
     .verrow2__open svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    /* Fil de lignée : provenance, type d'entrée, mise en avant du document courant. */
+    .verrow2__tag { font-size: 13px; background: rgba(255,255,255,0.08); }
+    .verrow2__tag--snap { background: rgba(96,165,250,0.18); }
+    .verrow2__tag--recv { background: rgba(52,211,153,0.18); }
+    .verrow2__prov { display: block; font-size: 11px; color: rgba(255,255,255,0.62); margin-top: 2px; }
+    .verrow2--focus { border-color: rgba(167,139,250,0.5); background: rgba(167,139,250,0.1); }
+    .verrow2__here { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 999px; background: rgba(167,139,250,0.28); color: #ddd6fe; font-size: 10px; font-weight: 700; vertical-align: middle; }
 
     /* ---- Sélecteur de vue (Par étape / Par investisseur) ---- */
     /* Choix du type de levée (tout premier niveau : classique / BSA-AIR) */
@@ -331,7 +338,8 @@
       let folders = [];
       let investors = [];
       let docs = [];
-      let versionCounts = {}; // { [document_id]: nombre de versions validées }
+      let versionCounts = {}; // { [document_id]: nombre d'instantanés éditeur validés }
+      let lineageSizes = {};  // { [document_id]: nombre de documents dans sa lignée }
       let solicitedDocIds = new Set(); // documents pour lesquels un avocat a été sollicité
       let raiseType = 'classic'; // parcours actif : classic | bsa-air (choix de tout 1er niveau)
       let raiseUser = 'me';      // clé de stockage, alignée sur le tableau de bord
@@ -495,8 +503,10 @@
           // de responsabilité que lorsqu'aucun avocat n'a été sollicité.
           const avReqs = ar && ar.ok ? ((await ar.json()).requests || []) : [];
           solicitedDocIds = new Set(avReqs.filter(r => r.status !== 'annule' && r.document_id != null).map(r => r.document_id));
-          // Nombre de versions validées par document (badge « Versions »).
-          versionCounts = vr && vr.ok ? ((await vr.json()).counts || {}) : {};
+          // Instantanés éditeur + taille de lignée par document (badge « Versions »).
+          const vData = vr && vr.ok ? await vr.json() : {};
+          versionCounts = vData.counts || {};
+          lineageSizes = vData.lineageSizes || {};
         } catch {
           loadingEl.hidden = true;
           errorEl.hidden = false;
@@ -781,19 +791,21 @@
           actions.appendChild(wrap);
         }
 
-        // Bouton « Versions » : seulement pour un document rédigé qui a au moins une
-        // version validée. Ouvre le popover listant chaque version (nom + date) avec
-        // accès à un aperçu en lecture seule.
-        const vCount = written ? (versionCounts[d.id] || 0) : 0;
-        if (vCount > 0) {
+        // Bouton « Versions » : présent dès que le document a des instantanés éditeur
+        // validés OU appartient à une lignée de plusieurs documents (une version
+        // reçue/envoyée y est rattachée). Ouvre le popover retraçant le fil : versions
+        // et échanges, avec accès à chaque pièce. Le compteur = nombre d'autres pièces.
+        const snapCount = versionCounts[d.id] || 0;
+        const lineageExtra = Math.max(0, (lineageSizes[d.id] || 1) - 1);
+        const relatedCount = snapCount + lineageExtra;
+        if (relatedCount > 0) {
           const vBtn = document.createElement('button');
           vBtn.type = 'button';
           vBtn.className = 'doc-act doc-act--versions';
-          vBtn.title = vCount + ' version' + (vCount > 1 ? 's' : '') + ' validée' + (vCount > 1 ? 's' : '') +
-            ' de ce document — cliquez pour les consulter et en ouvrir une.';
-          vBtn.setAttribute('aria-label', 'Voir les versions de « ' + d.name + ' »');
+          vBtn.title = 'Historique de ce document : ses versions et les échanges (envois/réceptions) rattachés. Cliquez pour les consulter et en ouvrir une.';
+          vBtn.setAttribute('aria-label', 'Voir l\'historique des versions de « ' + d.name + ' »');
           vBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>' +
-            '<span>Versions</span><span class="doc-act__count">' + vCount + '</span>';
+            '<span>Versions</span><span class="doc-act__count">' + relatedCount + '</span>';
           vBtn.addEventListener('click', (e) => { e.stopPropagation(); openVersionsPopover(d, vBtn); });
           actions.appendChild(vBtn);
         }
@@ -834,7 +846,7 @@
         verpop.innerHTML = `
           <div class="verpop__head">
             <div>
-              <div class="verpop__title">Versions du document</div>
+              <div class="verpop__title">Historique du document</div>
               <div class="verpop__sub" id="verpop-sub"></div>
             </div>
             <button class="verpop__close" type="button" aria-label="Fermer">×</button>
@@ -867,6 +879,16 @@
         catch { return ''; }
       }
 
+      // Libellé lisible d'un acteur (fondateur / investisseur / avocat).
+      function partyLabel(origin, partyId, investors) {
+        if (origin === 'lawyer') return 'l\'avocat';
+        if (origin === 'investor') {
+          const inv = (investors || []).find(i => i.id === partyId);
+          return inv ? (inv.firm ? inv.name + ' — ' + inv.firm : inv.name) : 'un investisseur';
+        }
+        return 'vous';
+      }
+
       async function openVersionsPopover(d, anchor) {
         const pop = ensureVerpop();
         // Recliquer le même bouton referme le popover.
@@ -878,42 +900,68 @@
         pop.hidden = false;
         placeVerpop();
         try {
-          const r = await fetch('/api/saas/termsheets/' + d.id + '/versions', { credentials: 'include' });
+          const r = await fetch('/api/saas/documents/' + d.id + '/lineage', { credentials: 'include' });
           if (r.status === 401) { window.location.href = 'login.html'; return; }
           const data = await r.json().catch(() => ({}));
-          const versions = Array.isArray(data.versions) ? data.versions : [];
           // Course : un autre bouton a été cliqué entre-temps.
           if (verpopAnchor !== anchor) return;
-          renderVersions(d, versions, listEl);
+          renderLineage(d, data, listEl);
           placeVerpop();
         } catch {
-          if (verpopAnchor === anchor) listEl.innerHTML = '<div class="verpop__empty">Impossible de charger les versions.</div>';
+          if (verpopAnchor === anchor) listEl.innerHTML = '<div class="verpop__empty">Impossible de charger l\'historique.</div>';
         }
       }
 
-      function renderVersions(d, versions, listEl) {
-        if (!versions.length) {
-          listEl.innerHTML = '<div class="verpop__empty">Aucune version validée pour l\'instant.</div>';
+      // Retrace le fil : chaque version/instantané avec sa provenance, du plus ancien
+      // au plus récent, et un accès à chaque pièce. Le document courant est mis en avant.
+      function renderLineage(d, data, listEl) {
+        const nodes = Array.isArray(data.nodes) ? data.nodes : [];
+        const investors = Array.isArray(data.investors) ? data.investors : [];
+        if (!nodes.length) {
+          listEl.innerHTML = '<div class="verpop__empty">Aucune version pour l\'instant. Validez une version dans l\'éditeur, ou importez une nouvelle version reçue.</div>';
           return;
         }
         listEl.innerHTML = '';
-        // La plus récente en tête (le serveur trie par id décroissant).
-        versions.forEach((v, i) => {
-          const num = versions.length - i;
+        nodes.forEach(n => {
+          const isSnap = n.node_type === 'snapshot';
+          const isFocus = !isSnap && n.doc_id === data.focus_id;
+          // Étiquette + intitulé de provenance.
+          let tag, tagCls, prov;
+          if (isSnap) {
+            tag = '✎'; tagCls = ' verrow2__tag--snap';
+            prov = 'Instantané validé dans l\'éditeur';
+          } else if (n.origin === 'investor' || n.origin === 'lawyer') {
+            tag = '📥'; tagCls = ' verrow2__tag--recv';
+            prov = 'Reçu de ' + partyLabel(n.origin, n.origin_party_id, investors);
+          } else {
+            tag = '✍️'; tagCls = '';
+            prov = 'Créé par vous';
+          }
+          const label = n.name || (isSnap ? 'Instantané éditeur' : 'Document');
           const row = document.createElement('div');
-          row.className = 'verrow2';
+          row.className = 'verrow2' + (isFocus ? ' verrow2--focus' : '');
           row.innerHTML = `
-            <span class="verrow2__tag${i === 0 ? ' verrow2__tag--last' : ''}">v${num}</span>
+            <span class="verrow2__tag${tagCls}">${tag}</span>
             <span class="verrow2__main">
-              <span class="verrow2__label" title="${esc(v.label || '')}">${esc(v.label || 'Version ' + num)}</span>
-              <span class="verrow2__date">${esc(fmtVerDate(v.created_at))}</span>
+              <span class="verrow2__label" title="${esc(label)}">${esc(label)}${isFocus ? ' <span class="verrow2__here">ce fichier</span>' : ''}</span>
+              <span class="verrow2__prov">${esc(prov)}</span>
+              <span class="verrow2__date">${esc(fmtVerDate(n.date || n.created_at))}</span>
             </span>`;
+          // Accès à la pièce : aperçu de l'instantané, éditeur (term sheet) ou téléchargement (fichier).
           const open = document.createElement('a');
           open.className = 'verrow2__open';
-          open.href = '/api/saas/termsheets/' + d.id + '/versions/' + v.id + '/preview';
           open.target = '_blank';
           open.rel = 'noopener';
-          open.title = 'Ouvrir cette version en lecture seule (nouvel onglet)';
+          if (isSnap) {
+            open.href = '/api/saas/termsheets/' + n.doc_id + '/versions/' + n.version_id + '/preview';
+            open.title = 'Ouvrir cet instantané en lecture seule (nouvel onglet)';
+          } else if (n.kind === 'termsheet') {
+            open.href = 'editor.html?doc=' + n.doc_id;
+            open.title = 'Ouvrir dans l\'éditeur';
+          } else {
+            open.href = '/api/saas/documents/' + n.doc_id + '/download';
+            open.title = 'Télécharger ce fichier';
+          }
           open.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Ouvrir';
           row.appendChild(open);
           listEl.appendChild(row);
@@ -972,6 +1020,15 @@
       window.liquidImportDestinations = () => ({
         folders: folders.filter(folderInActiveRaise).map(f => ({ id: f.id, name: f.name })),
         defaultFolderId: (view === 'etape' && /^f\d+$/.test(subFilter)) ? Number(subFilter.slice(1)) : null,
+      });
+
+      // Contexte pour le rattachement « nouvelle version de… » : documents existants
+      // proposables comme parent (du parcours actif) + investisseurs pour la provenance.
+      window.liquidImportContext = () => ({
+        documents: docs.filter(d => docInActiveRaise(d))
+          .slice().sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))
+          .map(d => ({ id: d.id, name: d.name })),
+        investors: investors.map(inv => ({ id: inv.id, name: inv.name, firm: inv.firm || '' })),
       });
 
       // Rafraîchissement après un import (émis par documents.js).

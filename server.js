@@ -201,6 +201,7 @@ async function deleteUserAccountById(id) {
   await Promise.all([
     col('saas_documents').deleteMany({ user_id: id }),
     col('saas_doc_versions').deleteMany({ user_id: id }),
+    col('saas_doc_transmissions').deleteMany({ user_id: id }),
     col('saas_folders').deleteMany({ user_id: id }),
     col('saas_dilution_simulations').deleteMany({ user_id: id }),
     col('saas_valuation_estimations').deleteMany({ user_id: id }),
@@ -3846,10 +3847,11 @@ app.delete('/api/saas/termsheets/:id/versions/:vid', requireAuth, async (req, re
   res.json({ success: true });
 });
 
-// Nombre de versions validées par document (un seul appel pour toute la liste).
-// Sert à afficher le badge « Versions » de la page Documents sans interroger
-// chaque document séparément. Chemin distinct (pas /termsheets/…) pour ne pas
-// entrer en collision avec la route /:id/versions/:vid.
+// Pour toute la liste en un seul appel : nombre d'instantanés validés par document
+// (`counts`) ET taille de la lignée de chaque document (`lineageSizes`). Le bouton
+// « Versions » s'affiche dès qu'un document a des instantanés OU appartient à une
+// lignée de plus d'un document (une version reçue/envoyée y est rattachée). Chemin
+// distinct (pas /termsheets/…) pour ne pas entrer en collision avec /:id/versions/:vid.
 app.get('/api/saas/doc-versions/counts', requireAuth, async (req, res) => {
   const rows = await col('saas_doc_versions').aggregate([
     { $match: { user_id: req.user.id } },
@@ -3857,7 +3859,19 @@ app.get('/api/saas/doc-versions/counts', requireAuth, async (req, res) => {
   ]).toArray();
   const counts = {};
   rows.forEach(r => { if (r._id != null) counts[r._id] = r.count; });
-  res.json({ counts });
+
+  // Taille de chaque lignée : on regroupe les documents par racine (lineage_id, ou
+  // l'id du document pour les anciens documents sans champ), puis on reporte la
+  // taille du groupe sur chacun de ses membres.
+  const docs = await col('saas_documents')
+    .find({ user_id: req.user.id }, { projection: { _id: 0, id: 1, lineage_id: 1 } })
+    .toArray();
+  const groups = {};
+  docs.forEach(d => { const root = d.lineage_id || d.id; (groups[root] = groups[root] || []).push(d.id); });
+  const lineageSizes = {};
+  Object.values(groups).forEach(ids => { ids.forEach(docId => { lineageSizes[docId] = ids.length; }); });
+
+  res.json({ counts, lineageSizes });
 });
 
 // Aperçu d'une version en LECTURE SEULE : rendu autonome et stylé de l'instantané
@@ -3872,6 +3886,251 @@ app.get('/api/saas/termsheets/:id/versions/:vid/preview', requireAuth, async (re
   const title = (v.label || (doc && doc.name) || 'Version').replace(/\.[^.]+$/, '');
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.send(buildExportHtml(v.html, title));
+});
+
+// ─── SaaS : lignée / graphe d'échanges des documents (Phase 1 : filiation) ─────
+// Un document peut être une NOUVELLE VERSION d'un autre. Tous les documents d'un
+// même fil partagent `lineage_id` (l'id du document racine). `parent_document_id`
+// relie chaque version à son prédécesseur direct (arbre, pour gérer les branches :
+// une même v2 renvoyée différemment par plusieurs investisseurs). `origin` dit qui
+// a produit la version : le fondateur, un investisseur ou l'avocat. Les échanges
+// « reçu de / envoyé à » sont consignés dans saas_doc_transmissions.
+const DOC_ORIGINS = new Set(['founder', 'investor', 'lawyer']);
+
+// Racine (lineage_id) d'un document parent ; null si le parent n'existe pas.
+async function lineageRootOf(userId, parentId) {
+  if (!parentId) return null;
+  const parent = await col('saas_documents').findOne(
+    { id: Number(parentId), user_id: userId },
+    { projection: { id: 1, lineage_id: 1 } }
+  );
+  if (!parent) return null;
+  return parent.lineage_id || parent.id;
+}
+
+// Empêche un cycle : le parent proposé ne doit pas déjà descendre du document.
+async function wouldCreateCycle(userId, docId, parentId) {
+  let cur = Number(parentId);
+  const seen = new Set();
+  while (cur) {
+    if (cur === Number(docId)) return true;
+    if (seen.has(cur)) break;
+    seen.add(cur);
+    const p = await col('saas_documents').findOne({ id: cur, user_id: userId }, { projection: { parent_document_id: 1 } });
+    cur = p && p.parent_document_id ? Number(p.parent_document_id) : 0;
+  }
+  return false;
+}
+
+// Normalise la provenance transmise par le client vers { origin, origin_party_id }.
+async function resolveOrigin(userId, originRaw, partyIdRaw) {
+  const origin = String(originRaw || 'founder');
+  if (!DOC_ORIGINS.has(origin) || origin === 'founder') return { origin: 'founder', origin_party_id: null };
+  const pid = partyIdRaw ? Number(partyIdRaw) : null;
+  if (origin === 'investor') {
+    if (pid && await col('saas_investors').findOne({ id: pid, user_id: userId })) return { origin, origin_party_id: pid };
+    return { origin: 'founder', origin_party_id: null }; // investisseur inconnu : on n'affirme rien
+  }
+  // avocat : identité facultative (prestataire générique accepté)
+  return { origin: 'lawyer', origin_party_id: pid || null };
+}
+
+// Consigne une transmission « reçu de » quand une version vient d'un tiers.
+async function recordReceivedTransmission(userId, doc) {
+  if (doc.origin !== 'investor' && doc.origin !== 'lawyer') return;
+  await col('saas_doc_transmissions').insertOne({
+    id: await nextId('saas_doc_transmissions'),
+    user_id: userId, document_id: doc.id, lineage_id: doc.lineage_id,
+    direction: 'received',
+    counterparty_type: doc.origin, counterparty_id: doc.origin_party_id || null,
+    date: doc.created_at, created_at: doc.created_at,
+  });
+}
+
+// ---- Suggestion de filiation (rattachement « nouvelle version de… ») ----
+// Nom de fichier normalisé : retire extension, numéros de version, mentions
+// « final / vf / copie », dates et séparateurs, pour comparer les intitulés.
+function normalizeDocName(name) {
+  return String(name || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/\.[a-z0-9]+$/i, '')
+    .replace(/\d{1,4}[-_/.]\d{1,2}[-_/.]\d{1,4}/g, ' ')
+    .replace(/\bv?\d+([.\-]\d+)*\b/g, ' ')
+    .replace(/\b(final|def|definitif|vf|vdef|copie|copy|draft|brouillon|version|revised|revise|revisee|markup|clean|signe|signed|relu|relue)\b/g, ' ')
+    .replace(/\(\s*\d+\s*\)/g, ' ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+function nameTokenSet(name) {
+  return new Set(normalizeDocName(name).split(' ').filter(w => w.length > 2));
+}
+function textTokenSet(text) {
+  return new Set(String(text || '')
+    .toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ').split(' ').filter(w => w.length > 3).slice(0, 4000));
+}
+function jaccard(a, b) {
+  if (!a.size || !b.size) return 0;
+  let inter = 0;
+  a.forEach(x => { if (b.has(x)) inter++; });
+  return inter / (a.size + b.size - inter);
+}
+
+// Suggestion RAPIDE (nom + étape + type, sans lire le contenu) : sert au nudge
+// immédiat après import. La version enrichie par le contenu vit dans l'endpoint
+// /version-suggestions (appelé à la demande).
+async function heuristicParentSuggestions(userId, doc, limit = 3) {
+  const L = doc.lineage_id || doc.id;
+  const others = await col('saas_documents')
+    .find({ user_id: userId, id: { $ne: doc.id } }, { projection: { _id: 0, id: 1, name: 1, folder_id: 1, kind: 1, originalname: 1, lineage_id: 1 } })
+    .toArray();
+  const myTokens = nameTokenSet(doc.name);
+  const myType = doc.kind === 'termsheet' ? 'termsheet' : path.extname(doc.originalname || doc.name || '').toLowerCase();
+  return others
+    .filter(o => (o.lineage_id || o.id) !== L)
+    .map(o => {
+      const otype = o.kind === 'termsheet' ? 'termsheet' : path.extname(o.originalname || o.name || '').toLowerCase();
+      const nsim = jaccard(myTokens, nameTokenSet(o.name));
+      let score = 0; const reasons = [];
+      if (nsim > 0) { score += nsim * 0.6; if (nsim >= 0.4) reasons.push('nom proche'); }
+      if (doc.folder_id && o.folder_id === doc.folder_id) { score += 0.2; reasons.push('même étape'); }
+      if (otype && otype === myType) { score += 0.1; reasons.push('même type'); }
+      return { document_id: o.id, name: o.name, score, reasons };
+    })
+    .filter(s => s.score >= 0.3)   // seuil prudent : on ne propose que du plausible
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
+}
+
+// Candidats « ce document est probablement une nouvelle version de… ». Combine des
+// heuristiques (nom, étape, type) et la similarité de CONTENU (texte extrait, déjà
+// mis en cache pour la comparaison IA). Ne décide jamais : propose, l'utilisateur confirme.
+app.get('/api/saas/documents/:id/version-suggestions', requireAuth, async (req, res) => {
+  const id  = Number(req.params.id);
+  const doc = await col('saas_documents').findOne({ id, user_id: req.user.id }, { projection: { data: 0 } });
+  if (!doc) return res.status(404).json({ error: 'Document introuvable' });
+  const L = doc.lineage_id || doc.id;
+  const others = await col('saas_documents')
+    .find({ user_id: req.user.id, id: { $ne: id } }, { projection: { data: 0, html: 0, extracted_text: 0 } })
+    .toArray();
+  // On ne propose pas un document déjà dans la même lignée.
+  const candidates = others.filter(o => (o.lineage_id || o.id) !== L);
+  const myTokens = nameTokenSet(doc.name);
+  const myType = doc.kind === 'termsheet' ? 'termsheet' : path.extname(doc.originalname || doc.name || '').toLowerCase();
+
+  let scored = candidates.map(o => {
+    const otype = o.kind === 'termsheet' ? 'termsheet' : path.extname(o.originalname || o.name || '').toLowerCase();
+    const nsim = jaccard(myTokens, nameTokenSet(o.name));
+    let score = 0; const reasons = [];
+    if (nsim > 0) { score += nsim * 0.6; if (nsim >= 0.4) reasons.push('nom proche'); }
+    if (doc.folder_id && o.folder_id === doc.folder_id) { score += 0.2; reasons.push('même étape'); }
+    if (otype && otype === myType) { score += 0.1; reasons.push('même type'); }
+    return { document_id: o.id, name: o.name, score, reasons, folder_id: o.folder_id || null };
+  }).sort((a, b) => b.score - a.score).slice(0, 8);
+
+  // Affinage par le contenu : sur la petite liste de tête, on compare le texte réel.
+  // Coûteux (extraction), donc limité aux 5 meilleurs candidats.
+  try {
+    const myText = await docPlainText(doc);
+    const myTextTokens = textTokenSet(myText);
+    if (myTextTokens.size) {
+      for (const s of scored.slice(0, 5)) {
+        const cand = candidates.find(c => c.id === s.document_id);
+        const ctext = await docPlainText(cand);
+        const tsim = jaccard(myTextTokens, textTokenSet(ctext));
+        if (tsim > 0) {
+          s.score += tsim * 0.8;
+          if (tsim >= 0.35 && !s.reasons.includes('contenu proche')) s.reasons.push('contenu proche');
+        }
+      }
+    }
+  } catch (e) { /* contenu illisible : on garde le score heuristique */ }
+
+  scored = scored.filter(s => s.score > 0.15).sort((a, b) => b.score - a.score).slice(0, 5);
+  res.json({ suggestions: scored });
+});
+
+// Thread complet de la lignée d'un document : documents rattachés + instantanés de
+// l'éditeur + transmissions, avec les libellés des acteurs. Sert au bouton
+// « Versions » (portion d'arbre d'un fichier) et, plus tard, à l'arbre global.
+app.get('/api/saas/documents/:id/lineage', requireAuth, async (req, res) => {
+  const id  = Number(req.params.id);
+  const doc = await col('saas_documents').findOne({ id, user_id: req.user.id }, { projection: { data: 0, html: 0, extracted_text: 0 } });
+  if (!doc) return res.status(404).json({ error: 'Document introuvable' });
+  const L = doc.lineage_id || doc.id;
+  const docsInLineage = await col('saas_documents')
+    .find({ user_id: req.user.id, $or: [{ lineage_id: L }, { id: L }] }, { projection: { data: 0, html: 0, extracted_text: 0 } })
+    .toArray();
+  const docIds = docsInLineage.map(d => d.id);
+  const [snapshots, transmissions, investors] = await Promise.all([
+    col('saas_doc_versions').find({ user_id: req.user.id, document_id: { $in: docIds } },
+      { projection: { _id: 0, id: 1, document_id: 1, label: 1, created_at: 1, size: 1 } }).toArray(),
+    col('saas_doc_transmissions').find({ user_id: req.user.id, document_id: { $in: docIds } },
+      { projection: { _id: 0 } }).toArray(),
+    col('saas_investors').find({ user_id: req.user.id }, { projection: { _id: 0, id: 1, name: 1, firm: 1 } }).toArray(),
+  ]);
+
+  const docNodes = docsInLineage.map(d => ({
+    node_type: 'document', doc_id: d.id, kind: d.kind === 'termsheet' ? 'termsheet' : 'file',
+    name: d.name, created_at: d.created_at, date: d.updated_at || d.created_at,
+    parent_document_id: d.parent_document_id || null,
+    origin: d.origin || 'founder', origin_party_id: d.origin_party_id || null,
+    is_root: (d.lineage_id || d.id) === L && (!d.parent_document_id),
+  }));
+  const snapNodes = snapshots.map(s => ({
+    node_type: 'snapshot', version_id: s.id, doc_id: s.document_id,
+    name: s.label || '', created_at: s.created_at, date: s.created_at,
+    parent_document_id: s.document_id, origin: 'founder', origin_party_id: null, size: s.size,
+  }));
+  res.json({
+    lineage_id: L, focus_id: id,
+    nodes: [...docNodes, ...snapNodes].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)),
+    transmissions, investors,
+  });
+});
+
+// Rattache (ou détache) un document à une lignée + fixe sa provenance. Sert à
+// corriger/confirmer après import (flux « nouvelle version de… »).
+app.patch('/api/saas/documents/:id/lineage', requireAuth, async (req, res) => {
+  const id  = Number(req.params.id);
+  const doc = await col('saas_documents').findOne({ id, user_id: req.user.id }, { projection: { data: 0, html: 0 } });
+  if (!doc) return res.status(404).json({ error: 'Document introuvable' });
+
+  const detach = req.body?.detach === true || req.body?.parent_document_id === null;
+  if (detach) {
+    // Le document redevient une racine indépendante. (Ses éventuels descendants
+    // gardent leur lineage_id actuel ; en Phase 1 le détachement vise un document
+    // fraîchement importé, sans descendance.)
+    await col('saas_documents').updateOne(
+      { id, user_id: req.user.id },
+      { $set: { lineage_id: id }, $unset: { parent_document_id: '', origin: '', origin_party_id: '' } }
+    );
+    await col('saas_doc_transmissions').deleteMany({ user_id: req.user.id, document_id: id, direction: 'received' });
+    return res.json({ success: true, lineage_id: id });
+  }
+
+  const parentId = Number(req.body?.parent_document_id);
+  if (!parentId || parentId === id) return res.status(400).json({ error: 'Parent invalide.' });
+  const root = await lineageRootOf(req.user.id, parentId);
+  if (!root) return res.status(404).json({ error: 'Document parent introuvable.' });
+  if (await wouldCreateCycle(req.user.id, id, parentId))
+    return res.status(400).json({ error: 'Rattachement impossible : cela créerait une boucle.' });
+
+  const { origin, origin_party_id } = await resolveOrigin(req.user.id, req.body?.origin, req.body?.origin_party_id);
+  // Toute la sous-lignée du document rejoint la racine du parent.
+  const oldRoot = doc.lineage_id || doc.id;
+  await col('saas_documents').updateMany(
+    { user_id: req.user.id, $or: [{ lineage_id: oldRoot }, { id: oldRoot }] },
+    { $set: { lineage_id: root } }
+  );
+  await col('saas_documents').updateOne(
+    { id, user_id: req.user.id },
+    { $set: { lineage_id: root, parent_document_id: parentId, origin, origin_party_id } }
+  );
+  await col('saas_doc_transmissions').deleteMany({ user_id: req.user.id, document_id: id, direction: 'received' });
+  await recordReceivedTransmission(req.user.id, { id, lineage_id: root, origin, origin_party_id, created_at: doc.created_at || new Date().toISOString() });
+  res.json({ success: true, lineage_id: root, parent_document_id: parentId, origin, origin_party_id });
 });
 
 app.post('/api/saas/documents', requireAuth, saasUpload.single('file'), async (req, res) => {
@@ -3893,8 +4152,30 @@ app.post('/api/saas/documents', requireAuth, saasUpload.single('file'), async (r
       if (categoryKey) doc.category_key = categoryKey;
     }
   }
+  // Filiation optionnelle : ce fichier est une nouvelle version d'un document
+  // existant (envoyé/reçu). On hérite alors de la lignée du parent et on note la
+  // provenance (créé par vous / reçu d'un investisseur / de l'avocat).
+  const parentId = req.body.parent_document_id ? Number(req.body.parent_document_id) : null;
+  const root = parentId ? await lineageRootOf(req.user.id, parentId) : null;
+  if (parentId && !root) return res.status(400).json({ error: 'Document parent introuvable.' });
+  if (root) { doc.parent_document_id = parentId; doc.lineage_id = root; }
+  else { doc.lineage_id = doc.id; }        // racine d'un nouveau fil
+  const { origin, origin_party_id } = await resolveOrigin(req.user.id, req.body.origin, req.body.origin_party_id);
+  doc.origin = origin;
+  if (origin_party_id != null) doc.origin_party_id = origin_party_id;
+
   await col('saas_documents').insertOne(doc);
-  res.status(201).json({ document: publicDoc(doc) });
+  await recordReceivedTransmission(req.user.id, doc);
+
+  // Si l'utilisateur n'a PAS déjà rattaché ce fichier, on propose un nudge : ce
+  // document ressemble-t-il à un existant ? (heuristique rapide, confirmation côté
+  // client via PATCH /lineage). Ne bloque jamais l'import en cas d'échec.
+  let versionSuggestions = [];
+  if (!parentId) {
+    try { versionSuggestions = await heuristicParentSuggestions(req.user.id, doc, 2); }
+    catch { versionSuggestions = []; }
+  }
+  res.status(201).json({ document: publicDoc(doc), versionSuggestions });
 });
 
 // ─── SaaS : checklist de due diligence envoyée par l'investisseur ────────────
@@ -4243,6 +4524,45 @@ app.delete('/api/saas/documents/:id', requireAuth, async (req, res) => {
   await col('saas_documents').deleteOne({ id, user_id: req.user.id });
   // Purge les versions validées de ce document (stockées à part).
   await col('saas_doc_versions').deleteMany({ user_id: req.user.id, document_id: id });
+  // Purge les échanges consignés pour ce document.
+  await col('saas_doc_transmissions').deleteMany({ user_id: req.user.id, document_id: id });
+  // Reparente les enfants directs sur le parent du document supprimé (on ne casse
+  // pas le fil) ; s'il était racine, ils deviennent chacun leur propre racine.
+  const grandParent = doc.parent_document_id || null;
+  if (grandParent) {
+    await col('saas_documents').updateMany(
+      { user_id: req.user.id, parent_document_id: id },
+      { $set: { parent_document_id: grandParent } }
+    );
+  } else {
+    const remainingLineage = await col('saas_documents')
+      .find({ user_id: req.user.id, lineage_id: (doc.lineage_id || id), id: { $ne: id } },
+        { projection: { _id: 0, id: 1, parent_document_id: 1 } }).toArray();
+    const children = remainingLineage.filter(d => d.parent_document_id === id);
+    for (const c of children) {
+      // Chaque enfant direct devient la racine de sa propre branche. On propage
+      // cette nouvelle racine à tous ses descendants, pas seulement à l'enfant.
+      const subtree = new Set([c.id]);
+      let grew = true;
+      while (grew) {
+        grew = false;
+        remainingLineage.forEach(d => {
+          if (!subtree.has(d.id) && subtree.has(d.parent_document_id)) {
+            subtree.add(d.id);
+            grew = true;
+          }
+        });
+      }
+      await col('saas_documents').updateMany(
+        { user_id: req.user.id, id: { $in: [...subtree] } },
+        { $set: { lineage_id: c.id } }
+      );
+      await col('saas_documents').updateOne(
+        { id: c.id, user_id: req.user.id },
+        { $unset: { parent_document_id: '' } }
+      );
+    }
+  }
   // Détache le document de toute checklist de phase qui le référence.
   const folders = await col('saas_folders').find({ user_id: req.user.id }).toArray();
   for (const f of folders) {
