@@ -447,11 +447,8 @@ function publicAuthUser(user) {
     name: user.full_name,
     created_at: user.created_at,
     account_types: Array.isArray(user.account_types) ? user.account_types : [],
-<<<<<<< Updated upstream
     theme: user.theme === 'dark' ? 'dark' : 'paper',
-=======
     lawyer_profile_completed: !!user.lawyer_profile_completed,
->>>>>>> Stashed changes
     is_admin: ADMIN_EMAILS.includes(user.email),
   };
 }
