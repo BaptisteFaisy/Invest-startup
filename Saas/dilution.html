@@ -344,7 +344,7 @@
             <div class="dil__col-num">1</div>
             <div>
               <div class="dil__col-lab">À remplir — vos données</div>
-              <p class="dil__col-sub">Les champs sont vides par défaut : entrez les infos de votre startup, ou chargez un exemple ci-dessous pour voir le simulateur en action.</p>
+              <p class="dil__col-sub">Les champs sont vides par défaut : entrez les infos de votre startup, ou chargez un exemple ci-dessous. Les exemples partent tous de la même société et ne changent qu'un réglage à la fois — chargez-en deux à la suite pour comparer l'effet d'un seul paramètre.</p>
             </div>
           </div>
 
@@ -353,11 +353,12 @@
               <label class="example-picker__lab" for="example-select">Exemple</label>
               <select class="example-picker__sel" id="example-select">
                 <option value="" selected>— Partir d'un formulaire vide —</option>
-                <option value="0">Amorçage — le cas simple (pre-money)</option>
-                <option value="1">Amorçage — pool créé avant le tour</option>
-                <option value="2">Série A — post-money, pool après le tour</option>
-                <option value="3">Amorçage — BSA AIR qui se convertit</option>
-                <option value="4">Négociation — en % cédé</option>
+                <option value="0">Référence — pre-money, sans pool ni BSA AIR</option>
+                <option value="1">Base de saisie — le même tour en post-money</option>
+                <option value="2">Base de saisie — le même tour en % cédé</option>
+                <option value="3">Pool — créé avant le tour (dilue les fondateurs)</option>
+                <option value="4">Pool — créé après le tour (dilue tout le monde)</option>
+                <option value="5">Convertible — un BSA AIR se convertit</option>
               </select>
             </div>
             <button type="button" class="btn" id="reset-btn">↺ Vider le formulaire</button>
@@ -654,106 +655,83 @@
     };
 
     // ---------- Données d'exemple ----------
-    // Les exemples forment une progression : chacun n'introduit qu'une seule
-    // mécanique nouvelle par rapport au précédent, et l'ensemble couvre
-    // systématiquement les axes du simulateur —
-    //   • base de calcul du tour : pre-money / post-money / % cédé ;
-    //   • pool d'options : absent / créé avant le tour / créé après le tour ;
-    //   • instruments convertibles (BSA AIR) : absents / présents (décote + plafond).
-    // On peut ainsi comparer deux exemples voisins pour isoler l'effet d'un
-    // seul paramètre (ex. #0 vs #1 : le seul ajout est le pool créé avant le tour).
+    // Les exemples partent tous de LA MÊME société de référence — deux
+    // fondateurs (600 000 / 400 000 actions) qui lèvent 1 000 000 € sur une
+    // valorisation pre-money de 4 000 000 € (donc post-money 5 000 000 €,
+    // 20 % cédés). Chaque exemple ne fait varier QU'UN seul paramètre par
+    // rapport à la référence, si bien que chacun a son « contraire » dans la
+    // liste et qu'on peut isoler l'effet d'un réglage en comparant deux
+    // exemples :
+    //   • base de saisie : pre-money (réf.) ↔ post-money ↔ % cédé
+    //       → même tour exprimé de 3 façons, résultat identique ;
+    //   • pool d'options : sans (réf.) ↔ créé avant ↔ créé après le tour ;
+    //   • convertibles (BSA AIR) : sans (réf.) ↔ avec.
+    const REF = {
+      shareholders: [
+        { name: 'Fondateur A', shares: 600000, type: 'founder' },
+        { name: 'Fondateur B', shares: 400000, type: 'founder' },
+      ],
+      investors: [
+        { name: 'Investisseur lead', amount: 1000000 },
+      ],
+    };
     const EXAMPLES = [
       {
-        // #0 — Le mécanisme de base, sans aucune option : post = pre + montant levé.
-        label: 'Amorçage — le cas simple (pre-money)',
-        basis: 'pre',
-        shareholders: [
-          { name: 'Fondateur A', shares: 500000, type: 'founder' },
-          { name: 'Fondateur B', shares: 500000, type: 'founder' },
-        ],
-        investors: [
-          { name: 'Investisseur lead', amount: 500000 },
-        ],
-        valo: 2000000,
-        interp: 'net',
+        // RÉFÉRENCE — pre-money, sans pool ni convertible. Sert de « sans »
+        // commun : post = pre + montant levé (4 M + 1 M = 5 M), investisseur 20 %.
+        label: 'Référence — pre-money, sans pool ni BSA AIR',
+        basis: 'pre', valo: 4000000, interp: 'net',
+        ...REF,
         pool: { on: false, pct: 10, timing: 'pre' },
         conv: [],
       },
       {
-        // #1 — Identique à #0, on n'ajoute QUE le pool créé avant le tour :
-        // il dilue les fondateurs et préserve la part de l'investisseur.
-        label: 'Amorçage — pool créé avant le tour',
-        basis: 'pre',
-        shareholders: [
-          { name: 'Fondateur A', shares: 500000, type: 'founder' },
-          { name: 'Fondateur B', shares: 500000, type: 'founder' },
-        ],
-        investors: [
-          { name: 'Investisseur lead', amount: 500000 },
-        ],
-        valo: 2000000,
-        interp: 'net',
+        // Contraire de la référence sur la BASE DE SAISIE : le même tour saisi
+        // en post-money (5 M = 4 M + 1 M) → résultat rigoureusement identique.
+        label: 'Base de saisie — le même tour en post-money',
+        basis: 'post', valo: 5000000, interp: 'net',
+        ...REF,
+        pool: { on: false, pct: 10, timing: 'pre' },
+        conv: [],
+      },
+      {
+        // Contraire de la référence sur la BASE DE SAISIE : le même tour saisi
+        // directement en % cédé (20 %) → l'outil retrouve la valo, résultat identique.
+        label: 'Base de saisie — le même tour en % cédé',
+        basis: 'pct', valo: 20, interp: 'net',
+        ...REF,
+        pool: { on: false, pct: 10, timing: 'pre' },
+        conv: [],
+      },
+      {
+        // Contraire de la référence sur le POOL : un pool de 10 % créé AVANT le
+        // tour → il dilue les seuls fondateurs et préserve la part investisseur.
+        label: 'Pool — créé avant le tour (dilue les fondateurs)',
+        basis: 'pre', valo: 4000000, interp: 'net',
+        ...REF,
         pool: { on: true, pct: 10, timing: 'pre' },
         conv: [],
       },
       {
-        // #2 — On passe en base post-money, avec une cap table déjà constituée
-        // (investisseur seed + pool historiques) et un pool créé APRÈS le tour :
-        // cette fois le pool dilue tout le monde, investisseur compris.
-        label: 'Série A — post-money, pool après le tour',
-        basis: 'post',
-        shareholders: [
-          { name: 'Fondateur A', shares: 4000000, type: 'founder' },
-          { name: 'Fondateur B', shares: 2500000, type: 'founder' },
-          { name: 'Investisseur Seed', shares: 2500000, type: 'invest0' },
-          { name: 'Pool existant', shares: 1000000, type: 'pool0' },
-        ],
-        investors: [
-          { name: 'Lead Série A', amount: 4000000 },
-          { name: 'Investisseur suiveur', amount: 1000000 },
-        ],
-        valo: 25000000,
-        interp: 'net',
-        pool: { on: true, pct: 12, timing: 'post' },
+        // Contraire du précédent sur le TIMING du pool : le même pool de 10 %
+        // créé APRÈS le tour → il dilue tout le monde, investisseur compris.
+        label: 'Pool — créé après le tour (dilue tout le monde)',
+        basis: 'pre', valo: 4000000, interp: 'net',
+        ...REF,
+        pool: { on: true, pct: 10, timing: 'post' },
         conv: [],
       },
       {
-        // #3 — Un tour d'amorçage où un BSA AIR levé plus tôt se convertit :
-        // seul exemple exerçant la section « instruments convertibles »
-        // (conversion au prix du tour, minorée d'une décote et plafonnée).
-        label: 'Amorçage — BSA AIR qui se convertit',
-        basis: 'pre',
-        shareholders: [
-          { name: 'Fondateur A', shares: 600000, type: 'founder' },
-          { name: 'Fondateur B', shares: 400000, type: 'founder' },
-        ],
-        investors: [
-          { name: 'Investisseur lead', amount: 1000000 },
-        ],
-        valo: 4000000,
-        interp: 'net',
+        // Contraire de la référence sur les CONVERTIBLES : un BSA AIR levé plus
+        // tôt se convertit au prix du tour (décote 20 %, plafond 3,5 M) → les
+        // actions créées diluent fondateurs et investisseur du tour.
+        label: 'Convertible — un BSA AIR se convertit',
+        basis: 'pre', valo: 4000000, interp: 'net',
+        ...REF,
         pool: { on: false, pct: 10, timing: 'pre' },
         conv: [
           { name: 'BSA AIR (pré-amorçage)', amount: 300000, discount: 20, cap: 3500000, floor: 0 },
         ],
-      },
-      {
-        // #4 — On raisonne directement en % cédé au tour (l'outil déduit la
-        // valo), avec un pool avant le tour pour illustrer l'interprétation
-        // « part investisseur nette de pool ».
-        label: 'Négociation — en % cédé',
-        basis: 'pct',
-        shareholders: [
-          { name: 'Fondateur A', shares: 600000, type: 'founder' },
-          { name: 'Fondateur B', shares: 400000, type: 'founder' },
-        ],
-        investors: [
-          { name: 'Investisseur', amount: 700000 },
-        ],
-        valo: 20,
-        interp: 'net',
-        pool: { on: true, pct: 10, timing: 'pre' },
-        conv: [],
       },
     ];
 
