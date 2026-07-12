@@ -219,6 +219,21 @@
         </div>
       </div>
 
+      <div class="round">
+        <div class="round__q">Dans quel secteur ? <span style="font-weight:600;letter-spacing:0;text-transform:none;color:rgba(255,255,255,0.4);">— agit sur les repères « Par secteur »</span></div>
+        <div class="round__opts round__opts--3" role="radiogroup" aria-label="Secteur">
+          <button type="button" class="round-opt is-on" data-sector="saas" role="radio" aria-checked="true">
+            <span class="round-opt__t"><span class="round-opt__dot" aria-hidden="true"></span>SaaS / B2B</span>
+          </button>
+          <button type="button" class="round-opt" data-sector="marketplace" role="radio" aria-checked="false">
+            <span class="round-opt__t"><span class="round-opt__dot" aria-hidden="true"></span>Marketplace</span>
+          </button>
+          <button type="button" class="round-opt" data-sector="d2c" role="radio" aria-checked="false">
+            <span class="round-opt__t"><span class="round-opt__dot" aria-hidden="true"></span>Consumer / D2C</span>
+          </button>
+        </div>
+      </div>
+
       <div class="filters" role="tablist" aria-label="Filtrer les repères">
         <button type="button" class="filter is-on" data-filter="montants">Montants &amp; valorisation</button>
         <button type="button" class="filter" data-filter="termes">Termes du deal</button>
@@ -227,6 +242,7 @@
         <button type="button" class="filter" data-filter="clauses">Clauses juridiques</button>
         <button type="button" class="filter" data-filter="traction">Traction &amp; metrics</button>
         <button type="button" class="filter" data-filter="process">Process &amp; délais</button>
+        <button type="button" class="filter" data-filter="secteur">Par secteur</button>
       </div>
 
       <!-- 1. Montants & valorisation par stade -->
@@ -771,6 +787,131 @@
         <p class="bsrc">Repères indicatifs du marché early-stage FR/EU 2023–2025. Très variables selon le contexte de marché et la maturité du dossier.</p>
       </section>
 
+      <!-- 9. Repères par secteur -->
+      <section class="bsec" data-cat="secteur" data-rounds="classique bsaair" id="sec-secteur">
+        <div class="bsec__head">
+          <span class="bsec__num">09</span>
+          <h2 class="bsec__h">Repères par secteur</h2>
+          <p class="bsec__desc">Le secteur change surtout <strong style="color:#fff;">la façon dont on valorise</strong> et <strong style="color:#fff;">les metrics scrutées</strong> — pas les clauses juridiques ni les termes du deal, qui restent standards. Choisissez votre secteur dans le sélecteur en haut de page. Seuls les secteurs à benchmarks publics fiables sont proposés ; deeptech et fintech se valorisent au cas par cas (jalons, PI, régulation) plutôt que sur un multiple standard.</p>
+        </div>
+
+        <!-- SaaS / B2B -->
+        <div class="sector-panel" data-sector="saas">
+          <div class="bgrid">
+            <div class="bcard">
+              <div class="bcard__k">Base de valorisation</div>
+              <div class="bcard__v">Multiple<small> d'ARR</small></div>
+              <div class="bcard__note">Le revenu récurrent est roi : la valo se cale sur l'ARR (revenu annuel récurrent), pas sur le CA ponctuel.</div>
+            </div>
+            <div class="bcard">
+              <div class="bcard__k">Multiple d'ARR (early-stage)</div>
+              <div class="bcard__v">5 – 15<small>×</small></div>
+              <div class="bcard__range">très sensible au marché</div>
+              <div class="bcard__note">Le public est retombé à ~6–8× l'ARR en 2024-25 (pic à ~17× en 2021). Le privé « high-growth » (NRR &gt; 110 %) tient 3–6× ; l'early-stage se paie plus cher sur la croissance.</div>
+            </div>
+            <div class="bcard">
+              <div class="bcard__k">Marge brute</div>
+              <div class="bcard__v">75 – 85<small> %</small></div>
+              <div class="bcard__note">En dessous de ~70 %, les investisseurs SaaS s'interrogent sur la scalabilité du modèle.</div>
+            </div>
+            <div class="bcard">
+              <div class="bcard__k">Rétention nette (NRR)</div>
+              <div class="bcard__v">&gt; 100<small> %</small></div>
+              <div class="bcard__range">best-in-class 110 – 120 %+</div>
+              <div class="bcard__note">La société grandit sur sa base existante même sans nouveaux clients.</div>
+            </div>
+            <div class="bcard">
+              <div class="bcard__k">Règle du 40</div>
+              <div class="bcard__v">≥ 40</div>
+              <div class="bcard__note">Taux de croissance % + marge de cash-flow % ≥ 40 : l'arbitrage croissance / rentabilité sain.</div>
+            </div>
+            <div class="bcard">
+              <div class="bcard__k">Burn multiple</div>
+              <div class="bcard__v">&lt; 1,5</div>
+              <div class="bcard__range">excellent &lt; 1</div>
+              <div class="bcard__note">Cash net brûlé pour générer 1 € d'ARR nouveau.</div>
+            </div>
+          </div>
+          <p class="bsrc">Sources : Bessemer Venture Partners (BVP Cloud Index &amp; Cloud 100), SaaS Capital Index, OpenView / KeyBanc SaaS Survey (2023–2026). Les multiples fluctuent fortement avec le marché.</p>
+        </div>
+
+        <!-- Marketplace -->
+        <div class="sector-panel" data-sector="marketplace" hidden>
+          <div class="bgrid">
+            <div class="bcard">
+              <div class="bcard__k">Base de valorisation</div>
+              <div class="bcard__v">Multiple<small> du revenu net</small></div>
+              <div class="bcard__note">On valorise le revenu net (GMV × take rate), <em>pas</em> le GMV : le take rate varie trop d'un modèle à l'autre pour valoriser sur le volume brut.</div>
+            </div>
+            <div class="bcard">
+              <div class="bcard__k">Take rate</div>
+              <div class="bcard__v">10 – 20<small> %</small></div>
+              <div class="bcard__range">du GMV</div>
+              <div class="bcard__note">Part du GMV captée en commissions et frais. Au-delà de ~20 %, on scrute le risque de désintermédiation.</div>
+            </div>
+            <div class="bcard">
+              <div class="bcard__k">Rétention du GMV</div>
+              <div class="bcard__v">≥ 100<small> %</small></div>
+              <div class="bcard__range">best-in-class, côté offre</div>
+              <div class="bcard__note">En moyenne le GMV côté offre retombe à ~45–50 % à 12 mois ; les meilleures marketplaces dépassent 100 % grâce à l'expansion des vendeurs.</div>
+            </div>
+            <div class="bcard">
+              <div class="bcard__k">Marge brute</div>
+              <div class="bcard__v">50 – 70<small> %</small></div>
+              <div class="bcard__note">Plus basse que le SaaS : coûts de support, paiement et infrastructure des deux côtés du marché.</div>
+            </div>
+            <div class="bcard">
+              <div class="bcard__k">Metric moteur</div>
+              <div class="bcard__v">Liquidité</div>
+              <div class="bcard__note">Taux de matching offre/demande (part des annonces qui trouvent preneur) : le vrai moteur d'une marketplace.</div>
+            </div>
+          </div>
+          <p class="bsrc">Sources : Andreessen Horowitz — « 13 Metrics for Marketplace Companies » &amp; « GMV Retention », Tidemark (Marketplace Take Rates). Repères indicatifs.</p>
+        </div>
+
+        <!-- Consumer / D2C -->
+        <div class="sector-panel" data-sector="d2c" hidden>
+          <div class="bgrid">
+            <div class="bcard">
+              <div class="bcard__k">Base de valorisation</div>
+              <div class="bcard__v">Multiple<small> du CA</small></div>
+              <div class="bcard__note">Marges plus faibles et revenu moins récurrent → multiples plus bas que le SaaS. L'EBITDA sert aussi de base à mesure que la marque mûrit.</div>
+            </div>
+            <div class="bcard">
+              <div class="bcard__k">Multiple du CA</div>
+              <div class="bcard__v">2 – 6<small>×</small></div>
+              <div class="bcard__range">souvent 1,5 – 3,5× en trailing</div>
+              <div class="bcard__note">En EBITDA : 6 – 12× pour une marque à fort réachat et unit economics propres.</div>
+            </div>
+            <div class="bcard">
+              <div class="bcard__k">Marge brute</div>
+              <div class="bcard__v">50 – 70<small> %</small></div>
+              <div class="bcard__range">beauté 60-70 % · mode 50-60 %</div>
+              <div class="bcard__note">Dépend fortement de la catégorie et du taux de retour produit.</div>
+            </div>
+            <div class="bcard">
+              <div class="bcard__k">Ratio LTV / CAC</div>
+              <div class="bcard__v">≥ 3<small> : 1</small></div>
+              <div class="bcard__range">cible 3 – 5 : 1</div>
+              <div class="bcard__note">En dessous de 2:1, le modèle d'acquisition est cassé.</div>
+            </div>
+            <div class="bcard">
+              <div class="bcard__k">Taux de réachat</div>
+              <div class="bcard__v">&gt; 40<small> %</small></div>
+              <div class="bcard__range">à 6 mois</div>
+              <div class="bcard__note">Au-delà de 40 % de réachat à M6, la probabilité d'atteindre une échelle rentable grimpe nettement.</div>
+            </div>
+            <div class="bcard">
+              <div class="bcard__k">Marge de contribution</div>
+              <div class="bcard__v">≈ 22<small> %</small></div>
+              <div class="bcard__range">médian 2025 (35 % en 2021)</div>
+              <div class="bcard__note">Comprimée par le renchérissement de l'acquisition payante ces dernières années.</div>
+            </div>
+          </div>
+          <p class="bsrc">Sources : Fairview (D2C Metrics), Commerce Catalyst (DTC Benchmarks by Category), Northstar Financial Advisory, Level CFO (E-commerce &amp; DTC Benchmarks 2025–2026). Repères indicatifs.</p>
+        </div>
+      </section>
+
       <div class="mkt__foot">
         <a href="tableau-de-bord.html" class="btn btn--ghost">← Retour au tableau de bord</a>
       </div>
@@ -787,7 +928,9 @@
     // Type de levée (1re étape) + stade (2e étape) + filtres par famille de repères
     const roundOpts = document.querySelectorAll('.round-opt[data-round]');
     const stageOpts = document.querySelectorAll('.round-opt[data-stage]');
+    const sectorOpts = document.querySelectorAll('.round-opt[data-sector]');
     const stageRows = document.querySelectorAll('.btable tr[data-stage]');
+    const sectorPanels = document.querySelectorAll('.sector-panel[data-sector]');
     const filters = document.querySelectorAll('.filter');
     const sections = document.querySelectorAll('.bsec');
 
@@ -800,15 +943,22 @@
       clauses: ['classique'],
       traction: ['classique', 'bsaair'],
       process: ['classique', 'bsaair'],
+      secteur: ['classique', 'bsaair'],
     };
 
     let round = localStorage.getItem('benchmark_round') || 'classique';
     let stage = localStorage.getItem('benchmark_stage') || 'seed';
+    let sector = localStorage.getItem('benchmark_sector') || 'saas';
     let cat = 'montants';
 
     // Surbrillance de la ligne du stade choisi dans les tableaux « par stade »
     function applyStage() {
       stageRows.forEach(tr => tr.classList.toggle('is-stage', tr.dataset.stage === stage));
+    }
+
+    // Affiche le panneau du secteur choisi dans la section « Par secteur »
+    function applySector() {
+      sectorPanels.forEach(p => { p.hidden = p.dataset.sector !== sector; });
     }
 
     function applyView() {
@@ -854,6 +1004,17 @@
       applyStage();
     }));
 
+    sectorOpts.forEach(btn => btn.addEventListener('click', () => {
+      sector = btn.dataset.sector;
+      localStorage.setItem('benchmark_sector', sector);
+      sectorOpts.forEach(b => {
+        const on = b === btn;
+        b.classList.toggle('is-on', on);
+        b.setAttribute('aria-checked', on ? 'true' : 'false');
+      });
+      applySector();
+    }));
+
     filters.forEach(btn => btn.addEventListener('click', () => {
       cat = btn.dataset.filter;
       applyView();
@@ -870,8 +1031,14 @@
       b.classList.toggle('is-on', on);
       b.setAttribute('aria-checked', on ? 'true' : 'false');
     });
+    sectorOpts.forEach(b => {
+      const on = b.dataset.sector === sector;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-checked', on ? 'true' : 'false');
+    });
     applyView();
     applyStage();
+    applySector();
 
     async function init() {
       const user = await requireAuth();
