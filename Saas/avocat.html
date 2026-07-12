@@ -6,6 +6,14 @@
   <title>Liquid+ — Avocat</title>
   <meta name="description" content="Accompagnement juridique pour votre levée de fonds." />
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
+  <script>
+    // Applique le thème mémorisé au plus tôt, avant tout rendu (évite le flash).
+    (function () {
+      var t = 'paper';
+      try { if (localStorage.getItem('liquidAvocatTheme') === 'dark') t = 'dark'; } catch (e) {}
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -14,157 +22,236 @@
   <link rel="stylesheet" href="drawer-menu.css?v=5" />
   <link rel="stylesheet" href="help-bulb.css?v=1" />
   <style>
+    /* ═══════════════════════════════════════════════════════════════════
+       Thème de l'outil Avocat — piloté par variables.
+       Défaut = « Papier » (clair). Variante sombre via <html data-theme="dark">,
+       cohérente avec la coquille sombre du reste de l'app SaaS. Le choix est
+       mémorisé (localStorage + compte) et basculé par le bouton de la topbar.
+       ═══════════════════════════════════════════════════════════════════ */
+    :root {
+      --av-bg:            #f7f6f3;
+      --av-bg-raise:      #efece6;
+      --av-bg-raise-2:    #e0dcd2;
+      --av-ink:           #111111;
+      --av-ink-strong:    #141414;
+      --av-text:          #3a3630;
+      --av-text-2:        #57534a;
+      --av-text-3:        #8a8578;
+      --av-text-firm:     #6a655c;
+      --av-card:          #ffffff;
+      --av-card-border:   #e4e0d8;
+      --av-line:          #ddd9d1;
+      --av-field-border:  #cfcabd;
+      --av-pick-border:   #ddd9d1;
+      --av-pick-hover:    #b8b3a6;
+      --av-solid:         #141414;
+      --av-solid-hover:   #000000;
+      --av-on-solid:      #f7f6f3;
+      --av-ghost-border:      rgba(0,0,0,0.3);
+      --av-ghost-border-hov:  rgba(0,0,0,0.6);
+      --av-outline:           rgba(0,0,0,0.32);
+      --av-outline-hov:       rgba(0,0,0,0.6);
+      --av-doc-border:        rgba(0,0,0,0.18);
+      --av-hair-strong:       rgba(0,0,0,0.5);
+      --av-danger-border:     rgba(0,0,0,0.28);
+      --av-danger-hover:      rgba(0,0,0,0.05);
+      --av-overlay:       rgba(20,18,15,0.45);
+      --av-shadow:        rgba(0,0,0,0.18);
+      --av-shadow-pop:    rgba(0,0,0,0.12);
+      --av-title-rule:    #141414;
+    }
+    :root[data-theme="dark"] {
+      --av-bg:            #0d0e11;
+      --av-bg-raise:      #1c1e24;
+      --av-bg-raise-2:    #262931;
+      --av-ink:           #f4f2ee;
+      --av-ink-strong:    #f4f2ee;
+      --av-text:          #d7d5ce;
+      --av-text-2:        #a9a7a0;
+      --av-text-3:        #83817b;
+      --av-text-firm:     #a9a7a0;
+      --av-card:          #16181d;
+      --av-card-border:   rgba(255,255,255,0.09);
+      --av-line:          rgba(255,255,255,0.12);
+      --av-field-border:  rgba(255,255,255,0.18);
+      --av-pick-border:   rgba(255,255,255,0.12);
+      --av-pick-hover:    rgba(255,255,255,0.4);
+      --av-solid:         #f4f2ee;
+      --av-solid-hover:   #ffffff;
+      --av-on-solid:      #0d0e11;
+      --av-ghost-border:      rgba(255,255,255,0.3);
+      --av-ghost-border-hov:  rgba(255,255,255,0.65);
+      --av-outline:           rgba(255,255,255,0.32);
+      --av-outline-hov:       rgba(255,255,255,0.65);
+      --av-doc-border:        rgba(255,255,255,0.2);
+      --av-hair-strong:       rgba(255,255,255,0.5);
+      --av-danger-border:     rgba(255,255,255,0.28);
+      --av-danger-hover:      rgba(255,255,255,0.06);
+      --av-overlay:       rgba(0,0,0,0.6);
+      --av-shadow:        rgba(0,0,0,0.5);
+      --av-shadow-pop:    rgba(0,0,0,0.45);
+      --av-title-rule:    rgba(255,255,255,0.85);
+    }
+
     [hidden] { display: none !important; }
 
     .app { visibility: hidden; }
     .app.ready { visibility: visible; }
     .app { height: auto; overflow: visible; display: block; }
-    body, .app { background: #f7f6f3 !important; }
+    body, .app { background: var(--av-bg) !important; }
 
-    /* Topbar clair (thème « Papier » propre à l'outil Avocat) */
-    .topbar { background: #f7f6f3 !important; border-bottom: 1px solid #ddd9d1 !important; }
-    .topbar .brand { color: #111 !important; display: flex; align-items: center; gap: 8px; }
-    .topbar .brand__plus { color: #111 !important; }
+    /* Topbar — thème « Papier » (clair) / sombre, piloté par variables. */
+    .topbar { background: var(--av-bg) !important; border-bottom: 1px solid var(--av-line) !important; }
+    .topbar .brand { color: var(--av-ink) !important; display: flex; align-items: center; gap: 8px; }
+    .topbar .brand__plus { color: var(--av-ink) !important; }
     .topbar .brand__logo { display: block; flex: none; }
-    .topbar .brand__logo path { stroke: #111 !important; }
-    .topbar__doc { color: #111 !important; border-left-color: rgba(0,0,0,0.18) !important; }
-    .topbar .hamburger { color: #111 !important; }
-    .topbar .btn--ghost { color: #111 !important; border-color: rgba(0,0,0,0.32) !important; }
-    .topbar .btn--ghost:hover { color: #111 !important; border-color: rgba(0,0,0,0.6) !important; }
+    .topbar .brand__logo path { stroke: var(--av-ink) !important; }
+    .topbar__doc { color: var(--av-ink) !important; border-left-color: var(--av-doc-border) !important; }
+    /* Icône : couleur pilotée par le thème. La bordure vient de la base .hamburger
+       (invisible sur fond clair, visible sur fond sombre) — comme aujourd'hui. */
+    .topbar .hamburger { color: var(--av-ink) !important; }
+    .topbar .btn--ghost { color: var(--av-ink) !important; border-color: var(--av-outline) !important; }
+    .topbar .btn--ghost:hover { color: var(--av-ink) !important; border-color: var(--av-outline-hov) !important; }
+
+    /* Bouton bascule de thème (topbar) — affiche l'icône de l'action à venir. */
+    .theme-toggle__sun  { display: none; }
+    .theme-toggle__moon { display: block; }
+    :root[data-theme="dark"] .theme-toggle__moon { display: none; }
+    :root[data-theme="dark"] .theme-toggle__sun  { display: block; }
 
     .mkt { max-width: 940px; margin: 0 auto; padding: 24px 28px 90px; }
     .page-back-row { height: 6px; }
-    .page-back { position: fixed; top: 56px; left: max(12px, calc(50% - 486px)); z-index: 15; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #111; cursor: pointer; opacity: 0.9; transition: opacity .15s, transform .15s; }
+    .page-back { position: fixed; top: 56px; left: max(12px, calc(50% - 486px)); z-index: 15; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: var(--av-ink); cursor: pointer; opacity: 0.9; transition: opacity .15s, transform .15s; }
     .page-back:hover { opacity: 0.6; transform: translateX(-1px); }
     .page-back:focus-visible { outline: none; opacity: 1; }
     .page-back svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-    .mkt__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #8a8578; }
-    .mkt__title { font-size: 30px; letter-spacing: -0.03em; color: #111; margin-top: 6px; padding-bottom: 16px; border-bottom: 2px solid #141414; }
-    .mkt__sub { color: #57534a; font-size: 15px; margin-top: 8px; line-height: 1.55; max-width: 640px; }
+    .mkt__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--av-text-3); }
+    .mkt__title { font-size: 30px; letter-spacing: -0.03em; color: var(--av-ink); margin-top: 6px; padding-bottom: 16px; border-bottom: 2px solid var(--av-title-rule); }
+    .mkt__sub { color: var(--av-text-2); font-size: 15px; margin-top: 8px; line-height: 1.55; max-width: 640px; }
 
     /* ── Blocs / sections ─────────────────────────────────────────── */
     .av-sec { margin-top: 30px; }
     .av-sec__h { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; }
-    .av-sec__t { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #8a8578; }
-    .av-card { background: #ffffff; border: 1px solid #e4e0d8; border-radius: 16px; }
+    .av-sec__t { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--av-text-3); }
+    .av-card { background: var(--av-card); border: 1px solid var(--av-card-border); border-radius: 16px; }
 
     /* ── Carte « Mon avocat » ─────────────────────────────────────── */
     .av-lawyer { padding: 22px 24px; display: flex; gap: 18px; align-items: flex-start; }
-    .av-avatar { flex: 0 0 auto; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 18px; color: #f7f6f3; background: #141414; letter-spacing: 0.02em; }
+    .av-avatar { flex: 0 0 auto; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 18px; color: var(--av-on-solid); background: var(--av-solid); letter-spacing: 0.02em; }
     .av-lawyer__body { flex: 1 1 auto; min-width: 0; }
-    .av-lawyer__name { font-size: 18px; font-weight: 700; color: #111; letter-spacing: -0.01em; }
-    .av-lawyer__firm { font-size: 13.5px; color: #6a655c; margin-top: 2px; }
+    .av-lawyer__name { font-size: 18px; font-weight: 700; color: var(--av-ink); letter-spacing: -0.01em; }
+    .av-lawyer__firm { font-size: 13.5px; color: var(--av-text-firm); margin-top: 2px; }
     .av-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 11px; }
-    .av-chip { font-size: 11.5px; font-weight: 600; color: #3a3630; background: transparent; border: 1px solid #cfcabd; border-radius: 99px; padding: 3px 10px; }
-    .av-lawyer__bio { font-size: 13.5px; line-height: 1.55; color: #3a3630; margin-top: 12px; }
-    .av-lawyer__rcp { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #57534a; margin-top: 12px; }
-    .av-lawyer__rcp svg { width: 14px; height: 14px; flex: none; fill: none; stroke: #141414; stroke-width: 2; }
+    .av-chip { font-size: 11.5px; font-weight: 600; color: var(--av-text); background: transparent; border: 1px solid var(--av-field-border); border-radius: 99px; padding: 3px 10px; }
+    .av-lawyer__bio { font-size: 13.5px; line-height: 1.55; color: var(--av-text); margin-top: 12px; }
+    .av-lawyer__rcp { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--av-text-2); margin-top: 12px; }
+    .av-lawyer__rcp svg { width: 14px; height: 14px; flex: none; fill: none; stroke: var(--av-ink-strong); stroke-width: 2; }
     .av-lawyer__side { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-    .av-badge-mode { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #f7f6f3; background: #141414; padding: 4px 10px; border-radius: 99px; white-space: nowrap; }
+    .av-badge-mode { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--av-on-solid); background: var(--av-solid); padding: 4px 10px; border-radius: 99px; white-space: nowrap; }
 
     /* ── Prestations ──────────────────────────────────────────────── */
     .av-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); gap: 12px; }
     .av-presta { padding: 18px 18px 16px; display: flex; flex-direction: column; transition: border-color .15s, transform .15s; }
-    .av-presta:hover { border-color: #cfcabd; }
+    .av-presta:hover { border-color: var(--av-field-border); }
     .av-presta__top { display: flex; align-items: flex-start; gap: 8px; justify-content: space-between; }
-    .av-presta__label { font-size: 15px; font-weight: 700; color: #111; letter-spacing: -0.01em; }
-    .av-presta__crit { flex: none; font-size: 9.5px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: #111; background: transparent; border: 1px solid #141414; border-radius: 99px; padding: 3px 8px; white-space: nowrap; }
-    .av-presta__desc { font-size: 13px; line-height: 1.5; color: #57534a; margin-top: 8px; flex: 1 1 auto; }
+    .av-presta__label { font-size: 15px; font-weight: 700; color: var(--av-ink); letter-spacing: -0.01em; }
+    .av-presta__crit { flex: none; font-size: 9.5px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--av-ink); background: transparent; border: 1px solid var(--av-ink-strong); border-radius: 99px; padding: 3px 8px; white-space: nowrap; }
+    .av-presta__desc { font-size: 13px; line-height: 1.5; color: var(--av-text-2); margin-top: 8px; flex: 1 1 auto; }
     .av-presta__meta { display: flex; align-items: center; gap: 12px; margin-top: 14px; font-size: 12.5px; }
-    .av-presta__price { font-weight: 700; color: #111; }
-    .av-presta__delay { color: #8a8578; display: inline-flex; align-items: center; gap: 5px; }
+    .av-presta__price { font-weight: 700; color: var(--av-ink); }
+    .av-presta__delay { color: var(--av-text-3); display: inline-flex; align-items: center; gap: 5px; }
     .av-presta__delay svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; }
     .av-presta__cta { margin-top: 14px; width: 100%; }
 
     /* ── Boutons ──────────────────────────────────────────────────── */
     .av-btn { font-family: inherit; font-weight: 600; font-size: 13.5px; line-height: 1; padding: 10px 16px; border-radius: 10px; border: 1px solid transparent; cursor: pointer; transition: background .15s, border-color .15s, color .15s; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
-    .av-btn--primary { background: #141414; color: #f7f6f3; }
-    .av-btn--primary:hover { background: #000; }
-    .av-btn--ghost { background: transparent; color: #141414; border-color: rgba(0,0,0,0.3); }
-    .av-btn--ghost:hover { border-color: rgba(0,0,0,0.6); }
+    .av-btn--primary { background: var(--av-solid); color: var(--av-on-solid); }
+    .av-btn--primary:hover { background: var(--av-solid-hover); }
+    .av-btn--ghost { background: transparent; color: var(--av-ink-strong); border-color: var(--av-ghost-border); }
+    .av-btn--ghost:hover { border-color: var(--av-ghost-border-hov); }
     .av-btn--sm { padding: 7px 13px; font-size: 12.5px; border-radius: 8px; }
     .av-btn:disabled { opacity: 0.5; cursor: default; }
-    .av-btn--danger { color: #57534a; border-color: rgba(0,0,0,0.28); background: transparent; }
-    .av-btn--danger:hover { background: rgba(0,0,0,0.05); }
-    .av-btn--link { background: none; border: 0; padding: 2px 2px; color: #8a8578; font: 600 12px/1.3 'Libre Franklin', sans-serif; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; text-align: right; }
-    .av-btn--link:hover { color: #111; }
+    .av-btn--danger { color: var(--av-text-2); border-color: var(--av-danger-border); background: transparent; }
+    .av-btn--danger:hover { background: var(--av-danger-hover); }
+    .av-btn--link { background: none; border: 0; padding: 2px 2px; color: var(--av-text-3); font: 600 12px/1.3 'Libre Franklin', sans-serif; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; text-align: right; }
+    .av-btn--link:hover { color: var(--av-ink); }
 
     /* ── Vos documents à sécuriser ────────────────────────────────── */
     .av-docs { display: flex; flex-direction: column; gap: 0; }
     /* Lignes éditoriales (filet bas) plutôt que cartes pleines. */
-    .av-docs .av-doc { padding: 14px 6px; display: flex; align-items: center; gap: 12px; background: transparent; border: 0; border-bottom: 1px solid #e4e0d8; border-radius: 0; }
+    .av-docs .av-doc { padding: 14px 6px; display: flex; align-items: center; gap: 12px; background: transparent; border: 0; border-bottom: 1px solid var(--av-card-border); border-radius: 0; }
     .av-docs .av-doc:last-child { border-bottom: 0; }
     .av-doc__main { flex: 1 1 auto; min-width: 0; }
-    .av-doc__name { font-size: 14.5px; font-weight: 600; color: #111; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    /* Pastilles de risque — encodées par le REMPLISSAGE (noir & blanc), pas par la couleur. */
+    .av-doc__name { font-size: 14.5px; font-weight: 600; color: var(--av-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    /* Pastilles de risque — encodées par le REMPLISSAGE (contraste fort/faible), pas par la couleur. */
     .av-docrisk { display: inline-flex; align-items: center; gap: 7px; flex: none; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; border: 0; border-radius: 0; padding: 0; background: transparent; box-shadow: none; }
     .av-docrisk__dot { width: 9px; height: 9px; border-radius: 0; flex: none; box-sizing: border-box; }
-    .av-docrisk--critique { color: #111; }
-    .av-docrisk--critique .av-docrisk__dot { background: #141414; }
-    .av-docrisk--conseille { color: #57534a; }
-    .av-docrisk--conseille .av-docrisk__dot { background: linear-gradient(135deg, #141414 50%, transparent 50%); border: 1px solid #141414; }
-    .av-docrisk--faible { color: #8a8578; }
-    .av-docrisk--faible .av-docrisk__dot { background: transparent; border: 1px solid #8a8578; }
+    .av-docrisk--critique { color: var(--av-ink); }
+    .av-docrisk--critique .av-docrisk__dot { background: var(--av-solid); }
+    .av-docrisk--conseille { color: var(--av-text-2); }
+    .av-docrisk--conseille .av-docrisk__dot { background: linear-gradient(135deg, var(--av-solid) 50%, transparent 50%); border: 1px solid var(--av-solid); }
+    .av-docrisk--faible { color: var(--av-text-3); }
+    .av-docrisk--faible .av-docrisk__dot { background: transparent; border: 1px solid var(--av-text-3); }
     .av-doc .av-btn--sm { flex: none; }
 
     /* ── Demandes ─────────────────────────────────────────────────── */
     .av-reqs { display: flex; flex-direction: column; gap: 10px; }
     .av-req { padding: 15px 18px; display: flex; align-items: center; gap: 14px; }
     .av-req__main { flex: 1 1 auto; min-width: 0; }
-    .av-req__t { font-size: 14.5px; font-weight: 600; color: #111; }
-    .av-req__sub { font-size: 12.5px; color: #57534a; margin-top: 3px; display: flex; flex-wrap: wrap; gap: 6px 12px; }
-    .av-req__doc { color: #141414; font-weight: 600; }
-    /* Statut encodé par le remplissage : plein (remis) → gris (en cours) → contour (envoyée/annulée). */
+    .av-req__t { font-size: 14.5px; font-weight: 600; color: var(--av-ink); }
+    .av-req__sub { font-size: 12.5px; color: var(--av-text-2); margin-top: 3px; display: flex; flex-wrap: wrap; gap: 6px 12px; }
+    .av-req__doc { color: var(--av-ink-strong); font-weight: 600; }
+    /* Statut encodé par le remplissage : plein (remis) → intermédiaire (en cours) → contour (envoyée/annulée). */
     .av-status { flex: none; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 4px 11px; border-radius: 99px; white-space: nowrap; }
-    .av-status--demande { color: #57534a; background: #efece6; }
-    .av-status--en_cours { color: #111; background: #e0dcd2; }
-    .av-status--relu { color: #f7f6f3; background: #141414; }
-    .av-status--annule { color: #8a8578; background: transparent; box-shadow: inset 0 0 0 1px #ddd9d1; }
-    .av-empty { padding: 26px 20px; text-align: center; color: #8a8578; font-size: 13.5px; }
-    .av-empty a { color: #141414; }
+    .av-status--demande { color: var(--av-text-2); background: var(--av-bg-raise); }
+    .av-status--en_cours { color: var(--av-ink); background: var(--av-bg-raise-2); }
+    .av-status--relu { color: var(--av-on-solid); background: var(--av-solid); }
+    .av-status--annule { color: var(--av-text-3); background: transparent; box-shadow: inset 0 0 0 1px var(--av-line); }
+    .av-empty { padding: 26px 20px; text-align: center; color: var(--av-text-3); font-size: 13.5px; }
+    .av-empty a { color: var(--av-ink); text-decoration: underline; }
 
     /* ── Modale ───────────────────────────────────────────────────── */
-    .av-modal { position: fixed; inset: 0; z-index: 100; background: rgba(20,18,15,0.45); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .av-dialog { width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto; background: #ffffff; border: 1px solid #ddd9d1; border-radius: 18px; padding: 24px; box-shadow: 0 24px 60px rgba(0,0,0,0.18); }
-    .av-dialog__h { font-size: 19px; font-weight: 700; color: #111; letter-spacing: -0.01em; }
-    .av-dialog__p { font-size: 13.5px; color: #57534a; margin-top: 6px; line-height: 1.5; }
+    .av-modal { position: fixed; inset: 0; z-index: 100; background: var(--av-overlay); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .av-dialog { width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto; background: var(--av-card); border: 1px solid var(--av-line); border-radius: 18px; padding: 24px; box-shadow: 0 24px 60px var(--av-shadow); }
+    .av-dialog__h { font-size: 19px; font-weight: 700; color: var(--av-ink); letter-spacing: -0.01em; }
+    .av-dialog__p { font-size: 13.5px; color: var(--av-text-2); margin-top: 6px; line-height: 1.5; }
     .av-field { margin-top: 16px; }
-    .av-field__l { display: block; font-size: 12.5px; font-weight: 600; color: #3a3630; margin-bottom: 6px; }
-    .av-input, .av-select, .av-textarea { width: 100%; box-sizing: border-box; background: #ffffff; border: 1px solid #cfcabd; border-radius: 10px; color: #111; font-family: inherit; font-size: 14px; padding: 10px 12px; }
-    .av-input:focus, .av-select:focus, .av-textarea:focus { outline: none; border-color: #141414; }
+    .av-field__l { display: block; font-size: 12.5px; font-weight: 600; color: var(--av-text); margin-bottom: 6px; }
+    .av-input, .av-select, .av-textarea { width: 100%; box-sizing: border-box; background: var(--av-card); border: 1px solid var(--av-field-border); border-radius: 10px; color: var(--av-ink); font-family: inherit; font-size: 14px; padding: 10px 12px; }
+    .av-input:focus, .av-select:focus, .av-textarea:focus { outline: none; border-color: var(--av-ink-strong); }
     .av-textarea { resize: vertical; min-height: 84px; line-height: 1.5; }
-    .av-select option { background: #ffffff; color: #111; }
+    .av-select option { background: var(--av-card); color: var(--av-ink); }
     .av-dialog__act { display: flex; gap: 10px; margin-top: 22px; }
     .av-dialog__act .av-btn { flex: 1; }
-    .av-err { color: #111; font-weight: 600; font-size: 12.5px; margin-top: 12px; min-height: 16px; }
+    .av-err { color: var(--av-ink); font-weight: 600; font-size: 12.5px; margin-top: 12px; min-height: 16px; }
 
     /* ── Choix d'avocat (liste de partenaires) ────────────────────── */
     .av-picks { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
-    .av-pick { display: flex; gap: 12px; align-items: flex-start; padding: 13px 14px; border: 1px solid #ddd9d1; border-radius: 12px; cursor: pointer; transition: border-color .15s, background .15s; }
-    .av-pick:hover { border-color: #b8b3a6; }
-    .av-pick.is-sel { border-color: #141414; background: #efece6; }
-    .av-pick input { margin-top: 3px; accent-color: #141414; }
-    .av-pick__n { display: block; font-size: 14px; font-weight: 600; color: #111; }
-    .av-pick__d { display: block; font-size: 12px; color: #57534a; margin-top: 2px; }
-    .av-own-toggle { margin-top: 16px; padding-top: 16px; border-top: 1px solid #e4e0d8; }
-    .av-note { font-size: 12px; color: #8a8578; margin-top: 18px; line-height: 1.55; }
-    .av-note strong { color: #3a3630; font-weight: 600; }
+    .av-pick { display: flex; gap: 12px; align-items: flex-start; padding: 13px 14px; border: 1px solid var(--av-pick-border); border-radius: 12px; cursor: pointer; transition: border-color .15s, background .15s; }
+    .av-pick:hover { border-color: var(--av-pick-hover); }
+    .av-pick.is-sel { border-color: var(--av-ink-strong); background: var(--av-bg-raise); }
+    .av-pick input { margin-top: 3px; accent-color: var(--av-ink-strong); }
+    .av-pick__n { display: block; font-size: 14px; font-weight: 600; color: var(--av-ink); }
+    .av-pick__d { display: block; font-size: 12px; color: var(--av-text-2); margin-top: 2px; }
+    .av-own-toggle { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--av-card-border); }
+    .av-note { font-size: 12px; color: var(--av-text-3); margin-top: 18px; line-height: 1.55; }
+    .av-note strong { color: var(--av-text); font-weight: 600; }
 
     @media (max-width: 640px) {
       .av-lawyer { flex-direction: column; }
       .av-lawyer__side { flex-direction: row; align-items: center; align-self: stretch; }
     }
 
-    /* ── Surcharges « Papier » des composants partagés (clairs) ────── */
-    .mkt__foot .btn--ghost { color: #141414; border-color: rgba(0,0,0,0.3); }
-    .mkt__foot .btn--ghost:hover { border-color: rgba(0,0,0,0.6); }
+    /* ── Surcharges des composants partagés (pilotées par le thème) ── */
+    .mkt__foot .btn--ghost { color: var(--av-ink-strong); border-color: var(--av-ghost-border); }
+    .mkt__foot .btn--ghost:hover { border-color: var(--av-ghost-border-hov); }
 
-    .help-bulb { background: #f7f6f3; border-color: rgba(0,0,0,0.5); color: #141414; }
-    .help-bulb:hover { border-color: #141414; background: #efece6; }
-    .help-bulb.is-open { border-color: #141414; color: #141414; background: #efece6; }
-    .help-pop { background: #ffffff; border-color: #ddd9d1; color: #3a3630; box-shadow: 0 20px 50px rgba(0,0,0,0.12); }
-    .help-pop b, .help-pop strong { color: #111; }
-    .help-pop__label { color: #8a8578; }
+    .help-bulb { background: var(--av-bg); border-color: var(--av-hair-strong); color: var(--av-ink-strong); }
+    .help-bulb:hover { border-color: var(--av-ink-strong); background: var(--av-bg-raise); }
+    .help-bulb.is-open { border-color: var(--av-ink-strong); color: var(--av-ink-strong); background: var(--av-bg-raise); }
+    .help-pop { background: var(--av-card); border-color: var(--av-line); color: var(--av-text); box-shadow: 0 20px 50px var(--av-shadow-pop); }
+    .help-pop b, .help-pop strong { color: var(--av-ink); }
+    .help-pop__label { color: var(--av-text-3); }
   </style>
   <script src="auth.js?v=3"></script>
   <script src="drawer-menu.js?v=3" defer></script>
@@ -182,6 +269,10 @@
         <span class="topbar__doc">Avocat</span>
       </div>
       <div class="topbar__actions">
+        <button type="button" class="hamburger theme-toggle" id="theme-toggle-btn" aria-label="Passer en thème sombre" title="Passer en thème sombre">
+          <svg class="theme-toggle__moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+          <svg class="theme-toggle__sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        </button>
         <button type="button" class="hamburger" id="actions-menu-btn" aria-label="Ouvrir le menu" aria-controls="actions-drawer" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
@@ -348,6 +439,29 @@
     function jsonPut(path, body)  { return api(path, { method: 'PUT',  headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); }
     function jsonPost(path, body) { return api(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); }
 
+    /* ── Thème clair (« Papier ») / sombre ───────────────────────────
+       Défaut = clair. Le choix est appliqué au plus tôt par le script du
+       <head> (localStorage), réconcilié avec le compte au chargement, et
+       basculé par le bouton de la topbar. */
+    const THEME_KEY = 'liquidAvocatTheme';
+    function currentTheme() {
+      return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'paper';
+    }
+    function applyTheme(theme, persistRemote) {
+      const t = theme === 'dark' ? 'dark' : 'paper';
+      document.documentElement.setAttribute('data-theme', t);
+      try { localStorage.setItem(THEME_KEY, t); } catch {}
+      const btn = document.getElementById('theme-toggle-btn');
+      if (btn) {
+        const label = t === 'dark' ? 'Passer en thème clair' : 'Passer en thème sombre';
+        btn.setAttribute('aria-label', label);
+        btn.setAttribute('title', label);
+      }
+      // Mémorise le choix sur le compte (best-effort : ne bloque pas l'interface).
+      if (persistRemote) jsonPut('/api/auth/preferences', { theme: t }).catch(() => {});
+    }
+    function toggleTheme() { applyTheme(currentTheme() === 'dark' ? 'paper' : 'dark', true); }
+
     const STATUS_LABELS = { demande: 'Demande envoyée', en_cours: 'Relecture en cours', relu: 'Relu — remis', annule: 'Annulée' };
 
     let STATE = { prestations: [], partners: [], requests: [], mode: 'assigned', partner: null, own_lawyer: null };
@@ -455,7 +569,7 @@
     function renderSecureDocs() {
       const box = document.getElementById('secure-docs');
       if (!DOCS.length) {
-        box.innerHTML = '<div class="av-card av-empty">Vos documents apparaîtront ici avec leur niveau de risque juridique. Rédigez-les ou importez-les depuis <a href="documents.html" style="color:#141414;text-decoration:underline">Documents</a>.</div>';
+        box.innerHTML = '<div class="av-card av-empty">Vos documents apparaîtront ici avec leur niveau de risque juridique. Rédigez-les ou importez-les depuis <a href="documents.html">Documents</a>.</div>';
         return;
       }
       const sorted = DOCS.slice().sort((a, b) =>
@@ -613,6 +727,8 @@
 
     /* ── Câblage global ──────────────────────────────────────────── */
     function wireEvents() {
+      // Bascule de thème (topbar)
+      document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
       // Boutons « Demander une relecture » (délégation)
       document.getElementById('presta-grid').addEventListener('click', (e) => {
         const btn = e.target.closest('button[data-presta]');
@@ -651,6 +767,9 @@
     async function init() {
       const user = await requireAuth();
       if (!user) return;
+      // Le compte fait foi (le thème suit l'utilisateur d'un appareil à l'autre) ;
+      // sinon on conserve le choix local déjà appliqué par le script du <head>.
+      applyTheme((user.theme === 'dark' || user.theme === 'paper') ? user.theme : currentTheme(), false);
       document.querySelector('.app').classList.add('ready');
       wireEvents();
       await Promise.all([loadOverview(), loadDocs()]);
