@@ -383,9 +383,51 @@
     .ip-card__del:hover { background: #fdeeee; color: #dc2626; }
     .ip-card__del svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
+    /* ── Barre d'entonnoir : un stade par segment (compteur + montant) ── */
+    .ip-funnel { display: flex; gap: 8px; margin-top: 22px; overflow-x: auto; padding-bottom: 4px; }
+    .ip-funnel__seg { flex: 1 0 116px; min-width: 116px; background: #fff; border: 1px solid var(--line); border-top: 3px solid var(--seg, #9a978f); border-radius: 12px; padding: 11px 12px 12px; }
+    .ip-funnel__seg.is-empty { opacity: .5; }
+    .ip-funnel__label { font-family: 'Archivo', sans-serif; font-size: 9.5px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; color: #6b6b78; line-height: 1.32; min-height: 25px; }
+    .ip-funnel__count { font-size: 22px; font-weight: 800; color: #08090c; letter-spacing: -0.02em; margin-top: 8px; line-height: 1; }
+    .ip-funnel__amount { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 600; color: #15803d; margin-top: 4px; white-space: nowrap; min-height: 13px; }
+
+    /* ── Bascule Kanban / Tableau ── */
+    .ip-viewbar { display: flex; align-items: center; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
+    .ip-viewbar__title { font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 700; color: #fff; margin-right: auto; }
+    .ip-viewtabs { display: inline-flex; background: #f0eee9; border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 2px; }
+    .ip-viewbtn { border: 0; background: transparent; font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 700; color: #6b6b78; padding: 7px 14px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+    .ip-viewbtn:hover { color: #08090c; }
+    .ip-viewbtn.is-active { background: #fff; color: #08090c; box-shadow: 0 1px 2px rgba(8,9,12,.1); }
+    .ip-viewbtn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ── Vue Kanban : une colonne par stade, cartes déplaçables ── */
+    .ip-kanban { margin-top: 16px; display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px; align-items: flex-start; }
+    .ip-kcol { flex: 0 0 252px; width: 252px; background: #f7f6f3; border: 1px solid var(--line); border-radius: 14px; display: flex; flex-direction: column; max-height: 640px; transition: background .12s, border-color .12s; }
+    .ip-kcol.is-drop { background: #eef4ff; border-color: var(--blue); }
+    .ip-kcol__head { display: flex; align-items: flex-start; gap: 8px; padding: 12px 14px 8px; }
+    .ip-kcol__dot { width: 9px; height: 9px; border-radius: 50%; flex: none; margin-top: 3px; }
+    .ip-kcol__label { font-family: 'Archivo', sans-serif; font-size: 11.5px; font-weight: 800; color: #08090c; line-height: 1.28; flex: 1; }
+    .ip-kcol__count { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 800; color: #6b6b78; background: #fff; border: 1px solid var(--line); border-radius: 99px; padding: 2px 8px; flex: none; }
+    .ip-kcol__amount { padding: 0 14px 8px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 600; color: #15803d; min-height: 13px; }
+    .ip-kcol__body { padding: 2px 10px 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 46px; }
+    .ip-kcol__empty { color: #b0aca3; font-size: 12px; text-align: center; padding: 12px 6px; border: 1px dashed #ddd9d1; border-radius: 10px; }
+    .ip-kcard { background: #fff; border: 1px solid var(--line); border-radius: 11px; padding: 11px 12px; cursor: grab; box-shadow: 0 1px 2px rgba(8,9,12,.05); }
+    .ip-kcard:active { cursor: grabbing; }
+    .ip-kcard.is-dragging { opacity: .4; }
+    .ip-kcard__top { display: flex; align-items: flex-start; gap: 8px; }
+    .ip-kcard__name { font-size: 13px; font-weight: 700; color: #08090c; overflow-wrap: anywhere; flex: 1; }
+    .ip-kcard__firm { font-size: 11.5px; color: #6b6b78; margin-top: 1px; overflow-wrap: anywhere; }
+    .ip-kcard__amount { font-family: 'Archivo', sans-serif; font-size: 11.5px; font-weight: 700; color: #15803d; margin-top: 7px; }
+    .ip-kcard__meta { font-size: 11px; color: #6b6b78; margin-top: 6px; line-height: 1.45; overflow-wrap: anywhere; }
+    .ip-kcard__notes { font-size: 11px; color: #6b6b78; margin-top: 7px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; border-top: 1px solid #f0eee9; padding-top: 7px; }
+    .ip-kcard__foot { display: flex; align-items: center; gap: 6px; margin-top: 9px; }
+    .ip-kcard__move { flex: 1; min-width: 0; font-size: 11px; padding: 6px 7px; border-radius: 8px; background: #f4f3f1; border: 1px solid #e7e5e1; color: #08090c; }
+    .ip-kanban-empty { margin-top: 16px; color: #6b6b78; font-size: 14px; padding: 24px; text-align: center; border: 1px dashed var(--line); border-radius: 14px; background: #fff; }
+
     @media (max-width: 720px) {
       .ip-form__grid, .ip-form__grid2 { grid-template-columns: 1fr; }
       .ip-board { border-radius: 10px; }
+      .ip-viewbar__title { width: 100%; }
     }
 
     /* Parcours BSA-AIR : roadlist numérotée des documents par étape */
@@ -2888,9 +2930,24 @@
               <button type="submit" class="ip-form__add">Ajouter l'investisseur</button>
             </div>
           </form>
+          <div class="ip-funnel" data-el="funnel" hidden></div>
+          <div class="ip-viewbar" data-el="viewbar" hidden>
+            <div class="ip-viewbar__title">Suivi de l'entonnoir</div>
+            <div class="ip-viewtabs" role="tablist">
+              <button type="button" class="ip-viewbtn is-active" data-view="kanban">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="10" rx="1"/><rect x="17" y="4" width="4" height="7" rx="1"/></svg>
+                Entonnoir
+              </button>
+              <button type="button" class="ip-viewbtn" data-view="table">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18"/><path d="M3 12h18"/><path d="M3 19h18"/></svg>
+                Tableau
+              </button>
+            </div>
+          </div>
           <div class="ip-loading" data-el="loading">Chargement…</div>
           <div class="ip-err" data-el="error" hidden></div>
           <div class="ip-board" data-el="board" hidden></div>
+          <div class="ip-kanban" data-el="kanban" hidden></div>
         </div>`;
 
       // Onglets
@@ -2908,9 +2965,29 @@
       const loadingEl = root.querySelector('[data-el="loading"]');
       const errorEl   = root.querySelector('[data-el="error"]');
       const boardEl   = root.querySelector('[data-el="board"]');
+      const kanbanEl  = root.querySelector('[data-el="kanban"]');
+      const funnelEl  = root.querySelector('[data-el="funnel"]');
+      const viewbarEl = root.querySelector('[data-el="viewbar"]');
       const formEl    = root.querySelector('[data-el="form"]');
       const stageSelect = root.querySelector('[data-in="stage"]');
       invFillStageSelect(stageSelect, 'a_contacter');
+
+      let currentView = 'kanban';   // 'kanban' | 'table'
+      let dragId = null;            // id de la carte en cours de déplacement
+
+      // Bascule Kanban / Tableau
+      viewbarEl.querySelectorAll('.ip-viewbtn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (currentView === btn.dataset.view) return;
+          currentView = btn.dataset.view;
+          viewbarEl.querySelectorAll('.ip-viewbtn').forEach(b => b.classList.toggle('is-active', b === btn));
+          applyView();
+        });
+      });
+      function applyView() {
+        boardEl.hidden  = currentView !== 'table';
+        kanbanEl.hidden = currentView !== 'kanban';
+      }
 
       function invRow(inv) {
         const el = document.createElement('tr');
@@ -2981,19 +3058,190 @@
         return el;
       }
 
+      // Carte d'un investisseur dans la vue Kanban (entonnoir).
+      function invKanbanCard(inv) {
+        const card = document.createElement('div');
+        card.className = 'ip-kcard';
+        card.dataset.id = inv.id;
+        card.draggable = true;
+
+        const top = document.createElement('div');
+        top.className = 'ip-kcard__top';
+        const name = document.createElement('div');
+        name.className = 'ip-kcard__name';
+        name.textContent = inv.name;
+        top.appendChild(name);
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'ip-card__del';
+        del.setAttribute('aria-label', 'Supprimer ' + inv.name);
+        del.title = 'Supprimer';
+        del.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1 -2 2H8a2 2 0 0 1 -2 -2L5 6"/></svg>';
+        del.addEventListener('click', () => deleteInvestor(inv.id));
+        top.appendChild(del);
+        card.appendChild(top);
+
+        if (inv.firm) {
+          const firm = document.createElement('div');
+          firm.className = 'ip-kcard__firm';
+          firm.textContent = inv.firm;
+          card.appendChild(firm);
+        }
+        if (inv.amount) {
+          const amount = document.createElement('div');
+          amount.className = 'ip-kcard__amount';
+          amount.textContent = invFmtAmount(inv.amount);
+          card.appendChild(amount);
+        }
+        if (inv.email || inv.phone) {
+          const meta = document.createElement('div');
+          meta.className = 'ip-kcard__meta';
+          meta.textContent = [inv.email, inv.phone].filter(Boolean).join(' · ');
+          card.appendChild(meta);
+        }
+        if (inv.notes) {
+          const notes = document.createElement('div');
+          notes.className = 'ip-kcard__notes';
+          notes.textContent = inv.notes;
+          card.appendChild(notes);
+        }
+
+        const foot = document.createElement('div');
+        foot.className = 'ip-kcard__foot';
+        const select = document.createElement('select');
+        select.className = 'ip-kcard__move';
+        select.setAttribute('aria-label', 'Déplacer ' + inv.name + ' vers un autre stade');
+        invFillStageSelect(select, inv.stage);
+        select.addEventListener('change', () => moveStage(inv.id, select.value));
+        // Évite de démarrer un glisser-déposer en ouvrant le menu.
+        select.addEventListener('pointerdown', e => e.stopPropagation());
+        foot.appendChild(select);
+        card.appendChild(foot);
+
+        card.addEventListener('dragstart', (e) => {
+          dragId = inv.id;
+          card.classList.add('is-dragging');
+          if (e.dataTransfer) { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(inv.id)); }
+        });
+        card.addEventListener('dragend', () => {
+          dragId = null;
+          card.classList.remove('is-dragging');
+          kanbanEl.querySelectorAll('.ip-kcol.is-drop').forEach(c => c.classList.remove('is-drop'));
+        });
+        return card;
+      }
+
+      // Barre d'entonnoir : compteur + montant cumulé par stade.
+      function renderFunnel(counts, amounts) {
+        funnelEl.innerHTML = '';
+        INV_STAGES.forEach(stage => {
+          const n = counts[stage.key] || 0;
+          const seg = document.createElement('div');
+          seg.className = 'ip-funnel__seg' + (n ? '' : ' is-empty');
+          seg.style.setProperty('--seg', stage.dot);
+          const label = document.createElement('div');
+          label.className = 'ip-funnel__label';
+          label.textContent = stage.label;
+          const count = document.createElement('div');
+          count.className = 'ip-funnel__count';
+          count.textContent = String(n);
+          const amount = document.createElement('div');
+          amount.className = 'ip-funnel__amount';
+          amount.textContent = amounts[stage.key] ? invFmtAmount(amounts[stage.key]) : '';
+          seg.append(label, count, amount);
+          funnelEl.appendChild(seg);
+        });
+      }
+
+      // Vue Kanban : une colonne par stade, les cartes s'y rangent selon leur statut.
+      function renderKanban(byStage, amounts) {
+        kanbanEl.innerHTML = '';
+        if (!invPipeline.length) {
+          const empty = document.createElement('div');
+          empty.className = 'ip-kanban-empty';
+          empty.textContent = 'Aucun investisseur dans le pipeline. Ajoutez-en un ci-dessus pour démarrer votre entonnoir.';
+          kanbanEl.appendChild(empty);
+          return;
+        }
+        INV_STAGES.forEach(stage => {
+          const list = byStage[stage.key] || [];
+          const col = document.createElement('div');
+          col.className = 'ip-kcol';
+          col.dataset.stage = stage.key;
+
+          const head = document.createElement('div');
+          head.className = 'ip-kcol__head';
+          const dot = document.createElement('span');
+          dot.className = 'ip-kcol__dot';
+          dot.style.background = stage.dot;
+          const label = document.createElement('div');
+          label.className = 'ip-kcol__label';
+          label.textContent = stage.label;
+          const badge = document.createElement('span');
+          badge.className = 'ip-kcol__count';
+          badge.textContent = String(list.length);
+          head.append(dot, label, badge);
+          col.appendChild(head);
+
+          const amountEl = document.createElement('div');
+          amountEl.className = 'ip-kcol__amount';
+          amountEl.textContent = amounts[stage.key] ? invFmtAmount(amounts[stage.key]) : '';
+          col.appendChild(amountEl);
+
+          const body = document.createElement('div');
+          body.className = 'ip-kcol__body';
+          if (!list.length) {
+            const empty = document.createElement('div');
+            empty.className = 'ip-kcol__empty';
+            empty.textContent = 'Déposez ici';
+            body.appendChild(empty);
+          } else {
+            list.forEach(inv => body.appendChild(invKanbanCard(inv)));
+          }
+          col.appendChild(body);
+
+          col.addEventListener('dragover', (e) => {
+            if (dragId == null) return;
+            e.preventDefault();
+            if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+            col.classList.add('is-drop');
+          });
+          col.addEventListener('dragleave', (e) => {
+            if (!col.contains(e.relatedTarget)) col.classList.remove('is-drop');
+          });
+          col.addEventListener('drop', (e) => {
+            e.preventDefault();
+            col.classList.remove('is-drop');
+            const id = dragId != null ? dragId : Number(e.dataTransfer?.getData('text/plain'));
+            if (id != null && !Number.isNaN(id)) moveStage(id, stage.key);
+          });
+
+          kanbanEl.appendChild(col);
+        });
+      }
+
       function render() {
         boardEl.innerHTML = '';
         let totalEngagedAmount = 0;
         let totalPipelineAmount = 0;
         let engagedCount = 0;
+        const counts = {};
+        const stageAmounts = {};
+        const byStage = {};
 
         invPipeline.forEach(inv => {
           totalPipelineAmount += inv.amount || 0;
+          counts[inv.stage] = (counts[inv.stage] || 0) + 1;
+          stageAmounts[inv.stage] = (stageAmounts[inv.stage] || 0) + (inv.amount || 0);
+          (byStage[inv.stage] = byStage[inv.stage] || []).push(inv);
           if (inv.stage === 'contrats_signes' || inv.stage === 'gouvernance') {
             totalEngagedAmount += inv.amount || 0;
             engagedCount += 1;
           }
         });
+
+        renderFunnel(counts, stageAmounts);
+        renderKanban(byStage, stageAmounts);
 
         const table = document.createElement('table');
         table.className = 'ip-table';
@@ -3025,6 +3273,9 @@
         root.querySelector('[data-stat="engaged-amount"]').textContent = totalEngagedAmount ? invFmtAmount(totalEngagedAmount) : '—';
         root.querySelector('[data-stat="pipeline-amount"]').textContent = totalPipelineAmount ? invFmtAmount(totalPipelineAmount) : '—';
         summaryEl.hidden = false;
+        funnelEl.hidden = false;
+        viewbarEl.hidden = false;
+        applyView();
       }
 
       async function moveStage(id, stage) {
@@ -3090,7 +3341,6 @@
       async function load() {
         if (invPipelineLoaded) {
           loadingEl.hidden = true;
-          boardEl.hidden = false;
           render();
           return;
         }
@@ -3101,7 +3351,6 @@
           invPipeline = data.investors || [];
           invPipelineLoaded = true;
           loadingEl.hidden = true;
-          boardEl.hidden = false;
           render();
         } catch (err) {
           loadingEl.hidden = true;
