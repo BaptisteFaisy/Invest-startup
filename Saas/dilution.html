@@ -87,6 +87,8 @@
     .rows__head, .row { display: grid; align-items: center; gap: 8px; }
     .rows--sh .rows__head, .rows--sh .row { grid-template-columns: 1fr 118px 128px 30px; }
     .rows--inv .rows__head, .rows--inv .row { grid-template-columns: 1fr 132px 30px; }
+    .rows--conv .rows__head, .rows--conv .row { grid-template-columns: 1fr 84px 62px 92px 92px 30px; }
+    .rows--conv .row .inp { padding: 8px 8px; }
     .rows__head { padding: 0 2px 6px; }
     .rows__head span { font-family: 'Archivo', sans-serif; font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #a8a8b3; }
     .rows__head span.r { text-align: right; }
@@ -152,6 +154,7 @@
     .c-pool0 { background: #d97706; }
     .c-investN { background: #9333ea; }
     .c-poolN { background: #db2777; }
+    .c-convertN { background: #2563eb; }
 
     /* Table résultat */
     .rtable-wrap { overflow-x: auto; margin-top: 4px; }
@@ -465,6 +468,33 @@
               </div>
             </div>
           </div>
+
+          <div class="card">
+            <div class="card__h">4 · Instruments convertibles — <span class="term" data-term="bsa-air" tabindex="0">BSA AIR</span> / <span class="term" data-term="convertibles" tabindex="0">OC</span> (optionnel)</div>
+            <label class="pool-toggle">
+              <input type="checkbox" id="conv-on" />
+              <span>Des <span class="term" data-term="convertibles" tabindex="0">instruments convertibles</span> (BSA AIR, obligations convertibles, SAFE) se convertissent à ce tour</span>
+            </label>
+            <div class="pool-body" id="conv-body" hidden>
+              <div class="card__desc" style="margin:12px 0 0">
+                Chaque instrument convertit au prix du tour, minoré de sa <span class="term" data-term="decote" tabindex="0">décote</span> et/ou plafonné par sa valorisation <span class="term" data-term="plafond" tabindex="0">plafond</span> (le <span class="term" data-term="plancher" tabindex="0">plancher</span> est optionnel). L'argent déjà investi n'est pas recompté dans la levée : la conversion <b>crée des actions qui diluent tout le monde</b>, fondateurs comme nouveaux investisseurs.
+              </div>
+              <div class="field" style="margin-top:12px">
+                <div class="rows rows--conv">
+                  <div class="rows__head">
+                    <span>Instrument</span>
+                    <span class="r">Montant €</span>
+                    <span class="r">Décote %</span>
+                    <span class="r">Plafond €</span>
+                    <span class="r">Plancher €</span>
+                    <span></span>
+                  </div>
+                  <div id="conv-rows"></div>
+                </div>
+                <button type="button" class="addrow" id="add-conv">+ Ajouter un instrument convertible</button>
+              </div>
+            </div>
+          </div>
         </form>
 
         <!-- COLONNE RÉSULTATS -->
@@ -617,6 +647,7 @@
       invest0: { label: 'Investisseurs existants', cls: 'c-invest0', color: '#0d9488' },
       pool0:   { label: 'Pool existant', cls: 'c-pool0', color: '#d97706' },
       investN: { label: 'Nouveaux investisseurs', cls: 'c-investN', color: '#9333ea' },
+      convertN:{ label: 'Conversion BSA AIR / OC', cls: 'c-convertN', color: '#2563eb' },
       poolN:   { label: 'Nouveau pool', cls: 'c-poolN', color: '#db2777' },
     };
 
@@ -696,7 +727,18 @@
         <button type="button" class="row__del" title="Supprimer">×</button>
       </div>`;
     }
+    function convRowHTML(cv) {
+      return `<div class="row" data-role="conv">
+        <input class="inp in-cname" type="text" value="${escAttr(cv.name || '')}" placeholder="BSA AIR" />
+        <input class="inp inp--money in-camount" type="text" inputmode="numeric" value="${cv.amount ? nfInt.format(cv.amount) : ''}" placeholder="0" />
+        <input class="inp inp--money in-cdisc" type="text" inputmode="decimal" value="${cv.discount ? fmtPctInput(cv.discount) : ''}" placeholder="20" />
+        <input class="inp inp--money in-ccap" type="text" inputmode="numeric" value="${cv.cap ? nfInt.format(cv.cap) : ''}" placeholder="—" />
+        <input class="inp inp--money in-cfloor" type="text" inputmode="numeric" value="${cv.floor ? nfInt.format(cv.floor) : ''}" placeholder="—" />
+        <button type="button" class="row__del" title="Supprimer">×</button>
+      </div>`;
+    }
     function escAttr(s) { return String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+    const convRowsEl = () => document.getElementById('conv-rows');
 
     // Convertit les actionnaires d'un exemple (stockés en actions) vers le mode courant
     function exampleShRows(ex) {
@@ -719,8 +761,11 @@
       document.getElementById('pool-on').checked = ex.pool.on;
       document.getElementById('pool-pct').value = String(ex.pool.pct);
       document.querySelectorAll('input[name="pool-timing"]').forEach(r => { r.checked = (r.value === ex.pool.timing); });
+      document.getElementById('conv-on').checked = false;
+      convRowsEl().innerHTML = convRowHTML({});
       syncBasisUI();
       syncPoolUI();
+      syncConvUI();
       recompute();
     }
 
@@ -735,8 +780,11 @@
       document.getElementById('pool-on').checked = false;
       document.getElementById('pool-pct').value = '10';
       document.querySelectorAll('input[name="pool-timing"]').forEach(r => { r.checked = (r.value === 'pre'); });
+      document.getElementById('conv-on').checked = false;
+      convRowsEl().innerHTML = convRowHTML({});
       syncBasisUI();
       syncPoolUI();
+      syncConvUI();
       recompute();
     }
 
@@ -790,7 +838,17 @@
       const interp = interpEl ? interpEl.value : 'net';
       const raw = parseNum(document.getElementById('valo-input').value);
       const { premoney, error } = resolvePremoney(basis, raw, I, pool, interp);
-      return { shareholders, investors, premoney, pool, roundError: error };
+      const convOn = document.getElementById('conv-on').checked;
+      const convertibles = convOn
+        ? [...convRowsEl().querySelectorAll('[data-role="conv"]')].map(r => ({
+            name: r.querySelector('.in-cname').value.trim() || 'BSA AIR',
+            amount: parseNum(r.querySelector('.in-camount').value),
+            discount: parseNum(r.querySelector('.in-cdisc').value) / 100,  // fraction
+            cap: parseNum(r.querySelector('.in-ccap').value),
+            floor: parseNum(r.querySelector('.in-cfloor').value),
+          })).filter(cv => cv.amount > 0)
+        : [];
+      return { shareholders, investors, premoney, pool, convertibles, roundError: error };
     }
 
     // ---------- Calcul ----------
@@ -831,8 +889,34 @@
       }
 
       const invSharesTotal = I / pps;
+
+      // ---- Instruments convertibles (BSA AIR / OC / SAFE) qui convertissent au tour ----
+      // Prix de conversion = min(prix du tour − décote ; plafond ÷ capital FD pré-tour),
+      // borné par le plancher éventuel (plafond/plancher exprimés en valorisation pré-money).
+      // L'argent est déjà entré : il ne s'ajoute pas à la levée, mais crée des actions
+      // qui diluent tout le monde (fondateurs ET nouveaux investisseurs).
+      let convShares = 0;
+      const convDetail = [];
+      (st.convertibles || []).forEach(cv => {
+        if (!(cv.amount > 0) || !(E > 0)) return;
+        const disc = Math.min(Math.max(cv.discount || 0, 0), 0.95);
+        const candidates = [];
+        const discPrice = pps * (1 - disc);
+        if (discPrice > 0) candidates.push(discPrice);
+        if (cv.cap > 0) candidates.push(cv.cap / E);           // prix « au plafond »
+        let convPrice = candidates.length ? Math.min(...candidates) : pps;
+        if (cv.floor > 0) convPrice = Math.max(convPrice, cv.floor / E); // plancher de valo
+        if (!(convPrice > 0)) return;
+        const sh = cv.amount / convPrice;
+        convShares += sh;
+        convDetail.push({ name: cv.name, shares: sh, convPrice, amount: cv.amount, disc, cap: cv.cap, floor: cv.floor });
+      });
+      T += convShares;                        // les conversions grossissent le capital post-tour
+
       res.pps = pps;
       res.poolShares = poolShares;
+      res.convShares = convShares;
+      res.convDetail = convDetail;
       res.T = T;
       res.invSharesTotal = invSharesTotal;
       res.invPct = invSharesTotal / T;
@@ -846,6 +930,9 @@
       st.investors.forEach(inv => {
         const sh = inv.amount / pps;
         rows.push({ name: inv.name, cat: 'investN', before: 0, after: sh });
+      });
+      convDetail.forEach(cv => {
+        rows.push({ name: cv.name || 'BSA AIR', cat: 'convertN', before: 0, after: cv.shares });
       });
       if (poolShares > 0.5) {
         rows.push({ name: 'Nouveau pool d\'options', cat: 'poolN', before: 0, after: poolShares });
@@ -862,7 +949,7 @@
       res.founderPctAfter = fBefore / T;
 
       // Segments pour la barre (groupés par catégorie)
-      const groups = ['founder', 'invest0', 'pool0', 'investN', 'poolN'];
+      const groups = ['founder', 'invest0', 'pool0', 'investN', 'convertN', 'poolN'];
       res.segBefore = groups.map(g => ({ cat: g, val: res.rows.filter(r => r.cat === g).reduce((a, r) => a + r.before, 0) })).filter(s => s.val > 0);
       res.segAfter = groups.map(g => ({ cat: g, val: res.rows.filter(r => r.cat === g).reduce((a, r) => a + r.after, 0) })).filter(s => s.val > 0);
       res.usedCats = groups.filter(g => res.rows.some(r => r.cat === g && (r.before > 0 || r.after > 0)));
@@ -1040,7 +1127,7 @@
       const body = document.getElementById('rtable-body');
       const rowHTML = (row) => {
         const c = CATS[row.cat];
-        const isNew = (row.cat === 'investN' || row.cat === 'poolN');
+        const isNew = (row.cat === 'investN' || row.cat === 'poolN' || row.cat === 'convertN');
         const pctB = iss ? row.pctBeforeIss : row.pctBefore;
         const pctA = iss ? row.pctAfterIss : row.pctAfter;
         // En base non diluée, les lignes de pool ne sont pas des actions émises.
@@ -1090,6 +1177,10 @@
       });
       // Le choix d'interprétation du % n'a de sens qu'en base « % cédé » avec pool actif
       document.getElementById('pct-interp').hidden = !(basis === 'pct' && on);
+    }
+
+    function syncConvUI() {
+      document.getElementById('conv-body').hidden = !document.getElementById('conv-on').checked;
     }
 
     // Met à jour les libellés / champs qui dépendent de la base de saisie du tour
@@ -1233,6 +1324,11 @@
             ? 'AVANT le tour (option pool shuffle : il gonfle le pre-money en actions et dilue surtout les actionnaires existants ; l\'investisseur obtient son % net de pool)'
             : 'APRÈS le tour (il dilue tout le monde, y compris l\'investisseur)') + '.');
       }
+      if (r.convShares > 0.5 && (iss ? r.Tiss : r.T) > 0) {
+        const convPct = r.convShares / (iss ? r.Tiss : r.T);
+        notes.push('Des instruments convertibles (BSA AIR / OC) se convertissent à ce tour et pèsent ' + pct1(convPct)
+          + ' du capital ' + basisLabel + ' après conversion. Grâce à leur décote et/ou leur plafond, ils obtiennent plus d\'actions que le prix du tour : cette dilution s\'ajoute à celle de la levée et touche fondateurs comme nouveaux investisseurs.');
+      }
       return { kind: 'dilution', figures, table: { columns, rows }, notes };
     }
 
@@ -1296,6 +1392,7 @@
     // Recalcule à chaque frappe / changement
     form.addEventListener('input', (e) => {
       if (e.target.id === 'pool-on') syncPoolUI();
+      if (e.target.id === 'conv-on') syncConvUI();
       recompute();
     });
     form.addEventListener('change', (e) => {
@@ -1316,6 +1413,12 @@
       } else if (t.classList.contains('in-amount')) {
         t.value = fmtLiveInt(t.value);
         recompute();
+      } else if (t.classList.contains('in-camount') || t.classList.contains('in-ccap') || t.classList.contains('in-cfloor')) {
+        t.value = fmtLiveInt(t.value);
+        recompute();
+      } else if (t.classList.contains('in-cdisc')) {
+        t.value = fmtPctInput(parseNum(t.value));
+        recompute();
       }
     }, true);
 
@@ -1334,6 +1437,10 @@
     // Ajout / suppression de lignes
     document.getElementById('add-sh').addEventListener('click', () => {
       shRowsEl.insertAdjacentHTML('beforeend', shRowHTML({ name: '', value: 0, type: 'invest0' }));
+      recompute();
+    });
+    document.getElementById('add-conv').addEventListener('click', () => {
+      convRowsEl().insertAdjacentHTML('beforeend', convRowHTML({}));
       recompute();
     });
     document.getElementById('add-inv').addEventListener('click', () => {
@@ -1420,6 +1527,13 @@
       }));
       const interpEl = document.querySelector('input[name="pct-interp"]:checked');
       const timingEl = document.querySelector('input[name="pool-timing"]:checked');
+      const convertibles = [...convRowsEl().querySelectorAll('[data-role="conv"]')].map(r => ({
+        name: r.querySelector('.in-cname').value.trim(),
+        amount: parseNum(r.querySelector('.in-camount').value),
+        discount: parseNum(r.querySelector('.in-cdisc').value),   // en %
+        cap: parseNum(r.querySelector('.in-ccap').value),
+        floor: parseNum(r.querySelector('.in-cfloor').value),
+      }));
       return {
         mode, basis,
         shareholders, investors,
@@ -1429,6 +1543,10 @@
           on: document.getElementById('pool-on').checked,
           pct: parseNum(document.getElementById('pool-pct').value),
           timing: timingEl ? timingEl.value : 'pre',
+        },
+        conv: {
+          on: document.getElementById('conv-on').checked,
+          rows: convertibles,
         },
       };
     }
@@ -1444,9 +1562,14 @@
       document.getElementById('pool-on').checked = s.pool.on;
       document.getElementById('pool-pct').value = s.pool.pct ? String(s.pool.pct) : '';
       document.querySelectorAll('input[name="pool-timing"]').forEach(r => { r.checked = (r.value === s.pool.timing); });
+      const conv = s.conv || { on: false, rows: [] };
+      document.getElementById('conv-on').checked = !!conv.on;
+      const convRows = (conv.rows && conv.rows.length) ? conv.rows : [{}];
+      convRowsEl().innerHTML = convRows.map(convRowHTML).join('');
       updateModeUI();
       syncBasisUI();
       syncPoolUI();
+      syncConvUI();
       recompute();
     }
 
@@ -1591,6 +1714,10 @@
       'stock-options': "<b>Stock-options</b> — droit d'acheter des actions à un prix fixé, en récompense de l'implication dans la société. En France, ce rôle est le plus souvent joué par les BSPCE.",
       'shuffle':       "<b>Option pool shuffle</b> — selon que le pool est créé <b>avant</b> le tour (dilue les seuls fondateurs) ou <b>après</b> (dilue tout le monde, investisseur inclus). Un point de négociation qui peut coûter plusieurs points aux fondateurs.",
       'convertibles':  "<b>Instruments convertibles</b> — titres qui deviendront des actions plus tard (obligations convertibles, SAFE, BSA AIR). Pas encore des actions, mais comptés dans le fully diluted car ils diluent à terme.",
+      'bsa-air':       "<b>BSA AIR</b> (Accord d'Investissement Rapide) — instrument français d'investissement early-stage : l'argent entre tout de suite, les bons se convertissent en actions au tour suivant, avec une <b>décote</b> et/ou un <b>plafond</b> de valorisation qui récompensent l'entrée précoce.",
+      'decote':        "<b>Décote</b> — réduction (souvent 15–25 %) appliquée au prix du tour lors de la conversion : le porteur convertit moins cher que les nouveaux investisseurs et obtient donc plus d'actions pour le même montant.",
+      'plafond':       "<b>Plafond de valorisation</b> (<i>valuation cap</i>) — valorisation maximale retenue pour la conversion. Si le tour se fait au-dessus, le porteur convertit comme si la valo était le plafond : c'est souvent le vrai moteur de sa dilution.",
+      'plancher':      "<b>Plancher de valorisation</b> — valorisation minimale de conversion. Il protège les fondateurs en limitant le nombre d'actions créées si le tour se fait à très bas prix.",
       'pct-cede':      "<b>% cédé au tour</b> — part du capital post-money remise aux nouveaux entrants lors du tour. « Net de pool » = investisseurs seuls ; « investisseur + pool » = investisseurs plus le nouveau pool.",
     };
     (function initTips() {
