@@ -2539,6 +2539,43 @@
       return match && MODELS.has(match[0]) ? match[0] : null;
     }
 
+    // Documents sans modèle figé mais suffisamment structurables pour produire
+    // un brouillon guidé. Les pièces émises par un tiers ou retraçant des faits
+    // réels restent volontairement en mode import.
+    const GUIDED_DOCUMENT_PATTERNS = [
+      /organigramme/, /note de |note marche|note de reconciliation/, /historique synthetique/,
+      /questionnaire|q&a|q a tracker/, /liste des |liste de |index de data room/,
+      /tableau de tresorerie|tableau fully diluted|simulation de dilution/,
+      /conditions generales|contrats? types?|modeles? d.offres|politique /,
+      /registre des activites|registre des violations|registre des decisions/,
+      /cartographie|inventaire|roadmap|architecture technique|documentation produit/,
+      /procedure|plan de continuite|plan de reprise|plan de reponse|plan d.utilisation/,
+      /notification aux investisseurs|pouvoirs pour formalites|delegations? de signature/,
+      /actes? d.adhesion|disclosure letter|closing bible|funds flow memo/,
+      /dpa|sous-traitance rgpd|analyses? d.impact|dpia|tia|aitd/,
+      /politique de confidentialite|cookies|conservation|suppression|anonymisation/,
+      /gouvernance ia|conformite fournisseurs|anti-corruption|conflits d.interets/,
+      /cartographie des risques|plans? de mitigation|litigation hold/,
+    ];
+    const EXTERNAL_DOCUMENT_PATTERNS = [
+      /kbis|extrait rcs/, /attestation de regularite|attestation de vigilance/,
+      /comptes annuels|liasses? fiscales?|declarations? tva|declarations? d.impot/,
+      /balance generale|grand livre|releves? bancaires?|rapprochements? bancaires?/,
+      /bulletins? de paie|dsn|dpae|duerp/, /certificats? d.immatriculation/,
+      /annonces? legales?|depot au greffe|formalites au greffe/,
+      /polices? d.assurance|attestations? d.assurance/, /courriers? d.avocats?/,
+      /rapports? d.audit|legal opinions?|counsel letters?/, /contrats?.*signes?/,
+      /preuves? de |justificatifs? |recus?|recepisses?/, /titres de propriete/,
+    ];
+    function documentModeFor(label, modelSlug) {
+      if (modelSlug) return 'template';
+      const value = String(label || '').toLowerCase().normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '').replace(/[’']/g, '.');
+      if (EXTERNAL_DOCUMENT_PATTERNS.some(pattern => pattern.test(value))) return 'external';
+      if (GUIDED_DOCUMENT_PATTERNS.some(pattern => pattern.test(value))) return 'guided';
+      return 'upload';
+    }
+
     function showErr(msg) { errEl.textContent = msg || ''; errEl.hidden = !msg; }
     function fmtSize(b) { if (b == null) return ''; if (b < 1024) return b + ' o'; if (b < 1048576) return Math.round(b / 1024) + ' Ko'; return (b / 1048576).toFixed(1) + ' Mo'; }
     function fmtDate(s) { try { return new Date(s).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return ''; } }
@@ -5582,6 +5619,7 @@
       // Générer un modèle pré-rempli (si un modèle existe — alias inclus — et qu'aucun
       // document n'est lié). Le slug du modèle peut différer du slug de l'item (alias).
       const modelSlug = !linked ? modelSlugFor(baseSlug, item) : null;
+      const documentMode = documentModeFor(item, modelSlug);
       if (modelSlug) {
         const b = document.createElement('button');
         b.className = 'fbtn fbtn--mini fbtn--accent';
@@ -5589,6 +5627,24 @@
         b.title = 'Générer un document pré-rempli à partir d\'un modèle et l\'éditer';
         b.addEventListener('click', () => useTemplate(f.id, slug, item, b, modelSlug));
         acts.appendChild(b);
+      }
+      if (!linked && documentMode === 'guided') {
+        const b = document.createElement('button');
+        b.className = 'fbtn fbtn--mini fbtn--accent';
+        b.textContent = 'Créer avec l’assistant';
+        b.title = 'Répondre à une question puis générer un brouillon structuré à personnaliser';
+        b.addEventListener('click', () => createGuidedDocument(f.id, slug, item, b));
+        acts.appendChild(b);
+      }
+      if (!linked) {
+        const add = document.createElement('button');
+        add.className = 'fbtn fbtn--mini';
+        add.textContent = 'Importer';
+        add.title = documentMode === 'external'
+          ? 'Pièce officielle ou document fondé sur des faits réels : récupérez-le auprès de son émetteur puis importez-le ici'
+          : 'Importer un document existant depuis votre ordinateur ou votre espace Liquid+';
+        add.addEventListener('click', () => openPicker(f.id, slug, item));
+        acts.appendChild(add);
       }
 
       if (linked) {
@@ -5877,6 +5933,7 @@
         // dans la phase, la lie à cette ligne, puis ouvre l'éditeur (même style
         // que l'édition de la term sheet). Affiché si aucun document n'est encore lié.
         const modelSlug = !linked ? modelSlugFor(slug, item) : null;
+        const documentMode = documentModeFor(item, modelSlug);
         if (modelSlug) {
           const tpl = document.createElement('button');
           tpl.className = 'fbtn fbtn--mini fbtn--accent';
@@ -5885,11 +5942,20 @@
           tpl.addEventListener('click', () => useTemplate(f.id, slug, item, tpl, modelSlug));
           acts.appendChild(tpl);
         }
+        if (!linked && documentMode === 'guided') {
+          const guided = document.createElement('button');
+          guided.className = 'fbtn fbtn--mini fbtn--accent';
+          guided.textContent = 'Créer avec l’assistant';
+          guided.title = 'Générer un brouillon structuré à vérifier et personnaliser';
+          guided.addEventListener('click', () => createGuidedDocument(f.id, slug, item, guided));
+          acts.appendChild(guided);
+        }
 
         // 1) Ajouter / Remplacer un document (ordinateur ou compte).
         const add = document.createElement('button');
         add.className = 'fbtn fbtn--mini';
-        add.textContent = linked ? 'Remplacer' : 'Ajouter';
+        add.textContent = linked ? 'Remplacer' : 'Importer';
+        if (!linked && documentMode === 'external') add.title = 'Document émis par un tiers ou fondé sur des pièces réelles : import requis';
         add.addEventListener('click', () => openPicker(f.id, slug, item));
         acts.appendChild(add);
 
@@ -6301,6 +6367,49 @@
           if (!r1.ok || !r2.ok) { showErr('Action échouée.'); load(); }
         } catch { showErr('Impossible de joindre le serveur.'); load(); }
       })();
+    }
+
+    // Crée un brouillon sur mesure pour les documents qui ne peuvent pas être
+    // couverts sérieusement par un modèle figé, puis l'ouvre dans l'éditeur.
+    async function createGuidedDocument(folderId, slug, item, btn) {
+      const context = await promptText({
+        title: 'Créer avec l’assistant',
+        text: 'Décrivez brièvement votre situation et l’objectif du document. N’indiquez que des faits certains : les informations manquantes resteront marquées « À compléter ».',
+        placeholder: 'Ex. société SAS française, 12 salariés, premier tour seed…',
+        confirmText: 'Générer le brouillon',
+      });
+      if (context == null) return;
+      showErr('');
+      const old = btn ? btn.textContent : '';
+      if (btn) { btn.disabled = true; btn.textContent = 'Génération…'; }
+      const finish = () => { if (btn) { btn.disabled = false; btn.textContent = old; } };
+      const editorTab = window.open('', '_blank');
+      try {
+        const draftRes = await fetch('/api/saas/guided-document-draft', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+          body: JSON.stringify({ title: item, context }),
+        });
+        const draft = await draftRes.json().catch(() => ({}));
+        if (!draftRes.ok || !draft.html) throw new Error(draft.error || 'Brouillon indisponible');
+        const cr = await fetch('/api/saas/termsheets', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+          body: JSON.stringify({ name: item, html: draft.html, folder_id: folderId }),
+        });
+        const data = await cr.json().catch(() => ({}));
+        if (!cr.ok || data.id == null) throw new Error(data.error || 'Création impossible');
+        try { sessionStorage.setItem('liquid_prefill_' + data.id, JSON.stringify({ html: draft.html, name: item })); } catch {}
+        await fetch('/api/saas/folders/' + folderId + '/checklist', {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+          body: JSON.stringify({ slug, document_id: data.id }),
+        });
+        const url = 'editor.html?doc=' + data.id + '&folder=' + folderId;
+        if (editorTab) { editorTab.location = url; finish(); load(); }
+        else window.location.href = url;
+      } catch (error) {
+        if (editorTab) editorTab.close();
+        showErr(error && error.message ? error.message : 'Impossible de générer le brouillon.');
+        finish();
+      }
     }
 
     // Crée une term sheet à partir d'un modèle, la range dans la phase, la lie à

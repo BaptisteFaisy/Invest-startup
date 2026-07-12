@@ -3798,6 +3798,51 @@ app.delete('/api/saas/compare-history/:id', requireAuth, async (req, res) => {
 });
 
 // ─── SaaS : term sheets éditées (stockées en base, pas de fichier) ────────────
+// Produit un premier brouillon structuré pour les documents qui dépendent trop
+// de la situation de la société pour qu'un modèle figé soit suffisamment fiable.
+// Le modèle ne renvoie que du texte JSON : le HTML est construit et échappé ici.
+app.post('/api/saas/guided-document-draft', requireAuth, enforceDailyCap, async (req, res) => {
+  if (!zaiClient) return res.status(503).json({ error: 'Assistant IA non configuré.' });
+  const title = shortText(req.body?.title, 180);
+  const context = shortText(req.body?.context, 4000);
+  if (!title) return res.status(400).json({ error: 'Titre du document requis.' });
+
+  const system =
+`Tu aides un fondateur de startup française, généralement une SAS, à préparer un brouillon de document pour une levée de fonds ou une due diligence.
+Document demandé : « ${title} ».
+Contexte fourni par le fondateur : « ${context || 'aucun contexte fourni'} ».
+
+Crée un brouillon prudent, concret et exploitable, sans inventer aucun nom, montant, date, fait, conformité ou engagement. Utilise [À COMPLÉTER] dès qu'une information manque. Ne prétends jamais qu'une formalité a été accomplie. Pour une liste, un registre, une cartographie, un tableau de suivi ou une politique, propose les rubriques réellement utiles. Pour un acte juridique engageant, reste conservateur et signale les choix qui nécessitent validation.
+Réponds en français avec un objet JSON contenant "intro" (2 phrases maximum) et "sections" (3 à 10 objets avec "title" et "content"). Le contenu de chaque section est du texte brut, éventuellement avec des lignes commençant par "- ", sans HTML.`;
+
+  try {
+    const response = await glmChat({
+      system,
+      messages: [{ role: 'user', content: 'Prépare le brouillon structuré.' }],
+      maxTokens: 3500,
+      thinking: true,
+      json: true,
+      jsonHint: 'Format : {"intro":"...","sections":[{"title":"...","content":"..."}]}.',
+    });
+    await recordClaudeUsage(req.user.id, response);
+    const data = glmJson(response);
+    const sections = Array.isArray(data.sections) ? data.sections.slice(0, 10) : [];
+    if (!sections.length) return res.status(502).json({ error: 'Le brouillon généré est incomplet. Réessayez.' });
+    const paragraphize = value => escapeHtml(shortText(value, 6000))
+      .split(/\r?\n/).filter(Boolean).map(line => `<p>${line}</p>`).join('');
+    const html = `<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>${escapeHtml(title)}</title></head><body>`
+      + `<h1>${escapeHtml(title)}</h1>`
+      + `<p><strong>Brouillon guidé Liquid+ — à vérifier et personnaliser avant utilisation ou signature.</strong></p>`
+      + (data.intro ? `<p>${escapeHtml(shortText(data.intro, 1200))}</p>` : '')
+      + sections.map(section => `<h2>${escapeHtml(shortText(section?.title, 180) || 'Section')}</h2>${paragraphize(section?.content || '[À COMPLÉTER]')}`).join('')
+      + '</body></html>';
+    res.json({ html });
+  } catch (err) {
+    console.error('guided-document-draft error:', err.message);
+    res.status(502).json({ error: 'Impossible de générer le brouillon pour le moment.' });
+  }
+});
+
 // Enregistre / met à jour le document de travail (apparaît dans « Mes documents »).
 app.post('/api/saas/termsheets', requireAuth, async (req, res) => {
   const { name, html } = req.body ?? {};
