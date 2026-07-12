@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Liquid+ — Benchmark</title>
-  <meta name="description" content="Repères de marché sur les levées seed françaises : montants, valorisations, termes BSA-AIR/SAFE et clauses juridiques standards." />
+  <meta name="description" content="Repères de marché sur les levées seed françaises : montants, valorisations, multiples, termes BSA-AIR/SAFE, points de négociation, dilution, traction attendue et délais de levée." />
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -94,6 +94,15 @@
     .btable .sub { display: block; font-size: 11.5px; color: rgba(255,255,255,0.45); font-weight: 400; margin-top: 2px; }
 
     .bsrc { font-size: 11.5px; color: rgba(255,255,255,0.4); margin-top: 12px; font-style: italic; }
+
+    /* Tableau de négociation (4 colonnes larges) */
+    .btable--nego { min-width: 760px; }
+    .btable--nego td:first-child { min-width: 150px; }
+    .btable--nego .cell-std { color: #6ee7b7; }
+    .btable--nego .cell-watch { color: #fcd34d; }
+    .btable--nego .cell-lever { color: #a5b4fc; }
+    .btable--nego thead th { vertical-align: bottom; }
+    .btable--nego th .th-hint { display: block; font-size: 9.5px; font-weight: 600; letter-spacing: 0.02em; text-transform: none; color: rgba(255,255,255,0.35); margin-top: 3px; }
 
     .mkt__foot { margin-top: 44px; padding-top: 28px; border-top: 1px solid rgba(255,255,255,0.09); }
 
@@ -195,8 +204,11 @@
         <button type="button" class="filter is-on" data-filter="all">Tout</button>
         <button type="button" class="filter" data-filter="montants">Montants &amp; valorisation</button>
         <button type="button" class="filter" data-filter="termes">Termes du deal</button>
+        <button type="button" class="filter" data-filter="negociation">Négociation</button>
         <button type="button" class="filter" data-filter="captable">Cap table &amp; dilution</button>
         <button type="button" class="filter" data-filter="clauses">Clauses juridiques</button>
+        <button type="button" class="filter" data-filter="traction">Traction &amp; metrics</button>
+        <button type="button" class="filter" data-filter="process">Process &amp; délais</button>
       </div>
 
       <!-- 1. Montants & valorisation par stade -->
@@ -403,7 +415,43 @@
             <div class="bcard__note">Les investisseurs regardent l'équilibre du partage : un fondateur très majoritaire ou une répartition strictement égale sont tous deux scrutés.</div>
           </div>
         </div>
-        <p class="bsrc">Sources : Carta Europe, Index Ventures Option Plan, pratiques de marché FR. À croiser avec l'outil <a href="dilution.html" style="color:#a5b4fc;">Dilution</a>.</p>
+
+        <h3 style="font-size:14px;font-weight:700;color:#fff;margin:30px 0 0;letter-spacing:-0.01em;">Dilution cumulée des fondateurs</h3>
+        <p class="bsec__desc" style="flex-basis:auto;margin-top:5px;">Trajectoire indicative d'une équipe qui enchaîne les tours au rythme standard (~20 % de dilution par tour, pool inclus). Chaque levée s'applique sur ce qui reste.</p>
+        <div class="btable-wrap">
+          <table class="btable">
+            <thead>
+              <tr>
+                <th>Étape</th>
+                <th>Dilution du tour</th>
+                <th>Part fondateurs (cumul) <span class="sub">médian · fourchette</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Création</td>
+                <td>—</td>
+                <td><b>100 %</b></td>
+              </tr>
+              <tr>
+                <td>Après pre-seed</td>
+                <td>15 – 20 %</td>
+                <td><b>≈ 82 %</b><span class="sub">78 – 85 %</span></td>
+              </tr>
+              <tr>
+                <td>Après seed</td>
+                <td>18 – 25 %</td>
+                <td><b>≈ 65 %</b><span class="sub">60 – 70 %</span></td>
+              </tr>
+              <tr>
+                <td>Après série A</td>
+                <td>18 – 25 %</td>
+                <td><b>≈ 52 %</b><span class="sub">45 – 58 %</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="bsrc">Sources : Carta Europe, Index Ventures Option Plan, pratiques de marché FR. Simulez votre propre trajectoire avec l'outil <a href="dilution.html" style="color:#a5b4fc;">Dilution</a>.</p>
       </section>
 
       <!-- 5. Clauses juridiques -->
@@ -465,6 +513,246 @@
         <p class="bsrc">Sources : Term Sheet standard The Galion Project, pactes seed FR. Ne remplace pas l'avis d'un avocat sur votre pacte.</p>
       </section>
 
+      <!-- 6. Ce qui se négocie -->
+      <section class="bsec" data-cat="negociation" data-rounds="classique" id="sec-negociation">
+        <div class="bsec__head">
+          <span class="bsec__num">06</span>
+          <h2 class="bsec__h">Ce qui se négocie</h2>
+          <p class="bsec__desc">La term sheet et le pacte se négocient point par point — pas seulement la valorisation. Pour chaque levier : le <strong style="color:#6ee7b7;">standard de marché</strong> (une demande saine), la <strong style="color:#fcd34d;">version agressive</strong> à repérer, et votre <strong style="color:#a5b4fc;">marge de manœuvre</strong>.</p>
+        </div>
+
+        <div class="btable-wrap">
+          <table class="btable btable--nego">
+            <thead>
+              <tr>
+                <th>Point négocié</th>
+                <th class="cell-std">Standard de marché<span class="th-hint">demande saine</span></th>
+                <th class="cell-watch">À surveiller<span class="th-hint">version agressive</span></th>
+                <th class="cell-lever">Marge de négociation<span class="th-hint">votre levier</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Valorisation pre-money</td>
+                <td class="cell-std">Dilution du tour 15 – 25 %</td>
+                <td class="cell-watch">Dilution &gt; 30 %, ou valo tirée par un pool gonflé</td>
+                <td class="cell-lever">Jouer sur montant <em>et</em> valo pour tenir la dilution cible</td>
+              </tr>
+              <tr>
+                <td>Pool ESOP (taille &amp; timing)</td>
+                <td class="cell-std">10 – 15 %, idéalement créé après le tour</td>
+                <td class="cell-watch">Pool 15 %+ créé avant le tour (dilue les seuls fondateurs)</td>
+                <td class="cell-lever">Négocier le % <em>et</em> le moment de création (option pool shuffle)</td>
+              </tr>
+              <tr>
+                <td>Préférence de liquidation</td>
+                <td class="cell-std">1× non-participante</td>
+                <td class="cell-watch">Participante, multiple &gt; 1×, ou sans plafond</td>
+                <td class="cell-lever">Tenir le 1× non-participant ; refuser la participante au seed</td>
+              </tr>
+              <tr>
+                <td>Anti-dilution</td>
+                <td class="cell-std">Weighted average broad-based</td>
+                <td class="cell-watch">Full ratchet</td>
+                <td class="cell-lever">Le full ratchet est un drapeau rouge : ramener au weighted average</td>
+              </tr>
+              <tr>
+                <td>Composition du board</td>
+                <td class="cell-std">Fondateurs majoritaires, 1 siège investisseur</td>
+                <td class="cell-watch">Parité ou contrôle investisseur, voix prépondérante</td>
+                <td class="cell-lever">Garder la majorité ; concéder un observateur avant un siège de vote</td>
+              </tr>
+              <tr>
+                <td>Droits de véto (reserved matters)</td>
+                <td class="cell-std">Liste ciblée : levée, cession, dette, budget annuel</td>
+                <td class="cell-watch">Vétos sur l'opérationnel (recrutements, dépenses courantes)</td>
+                <td class="cell-lever">Restreindre aux seules décisions structurantes</td>
+              </tr>
+              <tr>
+                <td>Drag-along</td>
+                <td class="cell-std">Déclenché à une majorité qualifiée incluant les fondateurs</td>
+                <td class="cell-watch">Seuil bas, ou drag piloté par les investisseurs seuls</td>
+                <td class="cell-lever">Relever le seuil et protéger un prix plancher</td>
+              </tr>
+              <tr>
+                <td>Pro-rata (droit de suivre)</td>
+                <td class="cell-std">Accordé aux principaux investisseurs</td>
+                <td class="cell-watch">Super pro-rata (droit de sur-souscrire au tour suivant)</td>
+                <td class="cell-lever">OK sur le pro-rata simple ; limiter le super pro-rata</td>
+              </tr>
+              <tr>
+                <td>Vesting fondateurs</td>
+                <td class="cell-std">4 ans, cliff 12 mois</td>
+                <td class="cell-watch">Reverse vesting total remis à zéro, peu d'accélération</td>
+                <td class="cell-lever">Négocier l'accélération (single / double trigger) au change of control</td>
+              </tr>
+              <tr>
+                <td>Good / bad leaver</td>
+                <td class="cell-std">Good leaver racheté à la valeur de marché</td>
+                <td class="cell-watch">Rachat au nominal, y compris en good leaver</td>
+                <td class="cell-lever">Définir précisément les cas de bad leaver (fraude, faute grave)</td>
+              </tr>
+              <tr>
+                <td>Exclusivité (no-shop)</td>
+                <td class="cell-std">30 – 45 jours</td>
+                <td class="cell-watch">90 jours+ avec exclusivité large</td>
+                <td class="cell-lever">Borner la durée et le périmètre de l'exclusivité</td>
+              </tr>
+              <tr>
+                <td>Frais juridiques investisseur</td>
+                <td class="cell-std">Plafonnés, à la charge de la société si closing</td>
+                <td class="cell-watch">Non plafonnés à la charge de la société</td>
+                <td class="cell-lever">Fixer un plafond en euros dès la term sheet</td>
+              </tr>
+              <tr>
+                <td>Déclarations &amp; garanties (R&amp;W / GAP)</td>
+                <td class="cell-std">Plafond et durée limités, seuil de minimis</td>
+                <td class="cell-watch">Plafond élevé, durée longue, garantie large</td>
+                <td class="cell-lever">Négocier plafond, franchise et durée de la garantie</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="bsrc">Sources : Term Sheet standard The Galion Project, guides Index Ventures &amp; Y Combinator, pratiques de marché FR 2023–2025. Faites toujours relire votre pacte par un avocat.</p>
+      </section>
+
+      <!-- 7. Traction & metrics attendus par stade -->
+      <section class="bsec" data-cat="traction" data-rounds="classique bsaair" id="sec-traction">
+        <div class="bsec__head">
+          <span class="bsec__num">07</span>
+          <h2 class="bsec__h">Traction &amp; metrics attendus par stade</h2>
+          <p class="bsec__desc">Les repères que les investisseurs regardent pour juger qu'une société est « prête » pour un tour. Indicatifs et sensibles au secteur : plus le stade est précoce, plus l'équipe et le marché priment sur les chiffres.</p>
+        </div>
+
+        <div class="btable-wrap">
+          <table class="btable">
+            <thead>
+              <tr>
+                <th>Stade</th>
+                <th>Revenu (ARR) <span class="sub">ordre de grandeur</span></th>
+                <th>Croissance</th>
+                <th>Autres repères</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Pre-seed</td>
+                <td><b>0 – 100 k€</b><span class="sub">MVP, premiers usages</span></td>
+                <td>Premiers signaux</td>
+                <td>Équipe &amp; taille de marché priment sur les chiffres</td>
+              </tr>
+              <tr>
+                <td>Seed</td>
+                <td><b>0,2 – 1 M€</b><span class="sub">product-market fit naissant</span></td>
+                <td>× 2,5 – 3 / an</td>
+                <td>Marge brute SaaS &gt; 70 % · rétention nette ≥ 100 %</td>
+              </tr>
+              <tr>
+                <td>Série A</td>
+                <td><b>1 – 3 M€</b><span class="sub">modèle qui scale</span></td>
+                <td>× 2,5 – 3 / an</td>
+                <td>Burn multiple &lt; 1,5 · NRR &gt; 100 % · CAC payback &lt; 18 mois</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="bgrid">
+          <div class="bcard">
+            <div class="bcard__k">Croissance visée (règle T2D3)</div>
+            <div class="bcard__v">×3 ×3<small> puis ×2</small></div>
+            <div class="bcard__range">triple, triple, double…</div>
+            <div class="bcard__note">Trajectoire de référence d'un SaaS qui scale : tripler l'ARR deux années de suite, puis doubler trois ans.</div>
+          </div>
+          <div class="bcard">
+            <div class="bcard__k">Burn multiple</div>
+            <div class="bcard__v">&lt; 1,5</div>
+            <div class="bcard__range">excellent &lt; 1 · à surveiller &gt; 2</div>
+            <div class="bcard__note">Cash net brûlé pour générer 1 € d'ARR nouveau. Mesure l'efficacité de la croissance.</div>
+          </div>
+          <div class="bcard">
+            <div class="bcard__k">Marge brute (SaaS)</div>
+            <div class="bcard__v">&gt; 70<small> %</small></div>
+            <div class="bcard__range">75 – 85 % à maturité</div>
+            <div class="bcard__note">En dessous de 60 %, les investisseurs SaaS s'interrogent sur la scalabilité du modèle.</div>
+          </div>
+          <div class="bcard">
+            <div class="bcard__k">Rétention nette (NRR)</div>
+            <div class="bcard__v">&gt; 100<small> %</small></div>
+            <div class="bcard__range">110 %+ = excellent</div>
+            <div class="bcard__note">Revenu conservé + expansion sur la base existante. Au-dessus de 100 %, la société grandit même sans nouveaux clients.</div>
+          </div>
+          <div class="bcard">
+            <div class="bcard__k">Ratio LTV / CAC</div>
+            <div class="bcard__v">&gt; 3<small> : 1</small></div>
+            <div class="bcard__range">CAC payback &lt; 12–18 mois</div>
+            <div class="bcard__note">Valeur vie client rapportée au coût d'acquisition. En dessous de 3:1, l'acquisition coûte trop cher.</div>
+          </div>
+          <div class="bcard">
+            <div class="bcard__k">Runway après le tour</div>
+            <div class="bcard__v">18<small> mois</small></div>
+            <div class="bcard__range">12 – 24 mois</div>
+            <div class="bcard__note">De quoi atteindre les jalons qui déclenchent le tour suivant, avec une marge de sécurité.</div>
+          </div>
+        </div>
+        <p class="bsrc">Repères SaaS/tech indicatifs (a16z, Bessemer, OpenView, pratiques FR/EU). Fortement dépendants du secteur et du modèle.</p>
+      </section>
+
+      <!-- 8. Process & délais de levée -->
+      <section class="bsec" data-cat="process" data-rounds="classique bsaair" id="sec-process">
+        <div class="bsec__head">
+          <span class="bsec__num">08</span>
+          <h2 class="bsec__h">Process &amp; délais de levée</h2>
+          <p class="bsec__desc">Combien de temps prend une levée, combien d'investisseurs contacter et à quoi ressemble l'entonnoir de conversion. À anticiper : une levée est un projet à part entière, souvent plus long que prévu.</p>
+        </div>
+
+        <div class="bgrid">
+          <div class="bcard">
+            <div class="bcard__k">Durée d'une levée seed</div>
+            <div class="bcard__v">4 – 6<small> mois</small></div>
+            <div class="bcard__range">de la préparation au closing</div>
+            <div class="bcard__note">Préparation (~1 mois), prise de contacts et RDV (2–3 mois), due diligence et closing (1–2 mois).</div>
+          </div>
+          <div class="bcard">
+            <div class="bcard__k">Investisseurs à contacter</div>
+            <div class="bcard__v">50 – 100</div>
+            <div class="bcard__range">pour sécuriser un lead</div>
+            <div class="bcard__note">Le taux de réponse positive est faible : viser un pipeline large et qualifié dès le départ.</div>
+          </div>
+          <div class="bcard">
+            <div class="bcard__k">Entonnoir de conversion</div>
+            <div class="bcard__v">100 → 1</div>
+            <div class="bcard__range">contacts → term sheet</div>
+            <div class="bcard__note">≈ 100 contacts → 20 premiers RDV → 3–5 due diligences → 1 term sheet signée. Ordre de grandeur.</div>
+          </div>
+          <div class="bcard">
+            <div class="bcard__k">Runway au démarrage</div>
+            <div class="bcard__v">9 – 12<small> mois</small></div>
+            <div class="bcard__range">devant soi avant de lever</div>
+            <div class="bcard__note">Lancer la levée avec assez de trésorerie pour ne pas négocier « le dos au mur ».</div>
+          </div>
+          <div class="bcard">
+            <div class="bcard__k">Term sheets visées</div>
+            <div class="bcard__v">2<small>+</small></div>
+            <div class="bcard__range">pour une vraie négociation</div>
+            <div class="bcard__note">Une seconde offre crée l'effet de concurrence qui améliore réellement vos termes.</div>
+          </div>
+          <div class="bcard">
+            <div class="bcard__k">Durée de due diligence</div>
+            <div class="bcard__v">4 – 8<small> sem.</small></div>
+            <div class="bcard__range">après term sheet</div>
+            <div class="bcard__note">Une data room prête en amont raccourcit nettement cette phase. Voir l'outil <a href="data-room.html" style="color:#a5b4fc;">Data room</a>.</div>
+          </div>
+          <div class="bcard">
+            <div class="bcard__k">Structure du tour</div>
+            <div class="bcard__v">1 lead</div>
+            <div class="bcard__range">30 – 50 % du tour + suiveurs</div>
+            <div class="bcard__note">Un investisseur lead fixe les termes et entraîne les suiveurs (follow-on) qui complètent le tour.</div>
+          </div>
+        </div>
+        <p class="bsrc">Repères indicatifs du marché early-stage FR/EU 2023–2025. Très variables selon le contexte de marché et la maturité du dossier.</p>
+      </section>
+
       <div class="mkt__foot">
         <a href="tableau-de-bord.html" class="btn btn--ghost">← Retour au tableau de bord</a>
       </div>
@@ -488,8 +776,11 @@
       all: ['classique', 'bsaair'],
       montants: ['classique', 'bsaair'],
       termes: ['bsaair'],
+      negociation: ['classique'],
       captable: ['classique', 'bsaair'],
       clauses: ['classique'],
+      traction: ['classique', 'bsaair'],
+      process: ['classique', 'bsaair'],
     };
 
     let round = localStorage.getItem('benchmark_round') || 'classique';
