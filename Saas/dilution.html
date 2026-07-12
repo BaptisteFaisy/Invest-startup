@@ -353,9 +353,11 @@
               <label class="example-picker__lab" for="example-select">Exemple</label>
               <select class="example-picker__sel" id="example-select">
                 <option value="" selected>— Partir d'un formulaire vide —</option>
-                <option value="0">Amorçage — pool créé avant le tour</option>
-                <option value="1">Série A — historiques + pool existant</option>
-                <option value="2">Négociation en % cédé</option>
+                <option value="0">Amorçage — le cas simple (pre-money)</option>
+                <option value="1">Amorçage — pool créé avant le tour</option>
+                <option value="2">Série A — post-money, pool après le tour</option>
+                <option value="3">Amorçage — BSA AIR qui se convertit</option>
+                <option value="4">Négociation — en % cédé</option>
               </select>
             </div>
             <button type="button" class="btn" id="reset-btn">↺ Vider le formulaire</button>
@@ -652,42 +654,94 @@
     };
 
     // ---------- Données d'exemple ----------
-    // Trois scénarios réalistes couvrant les principaux cas d'usage du simulateur.
+    // Les exemples forment une progression : chacun n'introduit qu'une seule
+    // mécanique nouvelle par rapport au précédent, et l'ensemble couvre
+    // systématiquement les axes du simulateur —
+    //   • base de calcul du tour : pre-money / post-money / % cédé ;
+    //   • pool d'options : absent / créé avant le tour / créé après le tour ;
+    //   • instruments convertibles (BSA AIR) : absents / présents (décote + plafond).
+    // On peut ainsi comparer deux exemples voisins pour isoler l'effet d'un
+    // seul paramètre (ex. #0 vs #1 : le seul ajout est le pool créé avant le tour).
     const EXAMPLES = [
       {
+        // #0 — Le mécanisme de base, sans aucune option : post = pre + montant levé.
+        label: 'Amorçage — le cas simple (pre-money)',
+        basis: 'pre',
+        shareholders: [
+          { name: 'Fondateur A', shares: 500000, type: 'founder' },
+          { name: 'Fondateur B', shares: 500000, type: 'founder' },
+        ],
+        investors: [
+          { name: 'Investisseur lead', amount: 500000 },
+        ],
+        valo: 2000000,
+        interp: 'net',
+        pool: { on: false, pct: 10, timing: 'pre' },
+        conv: [],
+      },
+      {
+        // #1 — Identique à #0, on n'ajoute QUE le pool créé avant le tour :
+        // il dilue les fondateurs et préserve la part de l'investisseur.
         label: 'Amorçage — pool créé avant le tour',
         basis: 'pre',
         shareholders: [
           { name: 'Fondateur A', shares: 500000, type: 'founder' },
-          { name: 'Fondateur B', shares: 400000, type: 'founder' },
-          { name: 'Pool BSPCE existant', shares: 100000, type: 'pool0' },
+          { name: 'Fondateur B', shares: 500000, type: 'founder' },
         ],
         investors: [
-          { name: 'Investisseur lead', amount: 1000000 },
+          { name: 'Investisseur lead', amount: 500000 },
         ],
-        valo: 4000000,
+        valo: 2000000,
         interp: 'net',
         pool: { on: true, pct: 10, timing: 'pre' },
+        conv: [],
       },
       {
-        label: 'Série A — historiques + pool existant',
+        // #2 — On passe en base post-money, avec une cap table déjà constituée
+        // (investisseur seed + pool historiques) et un pool créé APRÈS le tour :
+        // cette fois le pool dilue tout le monde, investisseur compris.
+        label: 'Série A — post-money, pool après le tour',
         basis: 'post',
         shareholders: [
-          { name: 'Fondateur A', shares: 4500000, type: 'founder' },
-          { name: 'Fondateur B', shares: 3000000, type: 'founder' },
-          { name: 'Investisseur Seed', shares: 1500000, type: 'invest0' },
+          { name: 'Fondateur A', shares: 4000000, type: 'founder' },
+          { name: 'Fondateur B', shares: 2500000, type: 'founder' },
+          { name: 'Investisseur Seed', shares: 2500000, type: 'invest0' },
           { name: 'Pool existant', shares: 1000000, type: 'pool0' },
         ],
         investors: [
           { name: 'Lead Série A', amount: 4000000 },
           { name: 'Investisseur suiveur', amount: 1000000 },
         ],
-        valo: 20000000,
+        valo: 25000000,
         interp: 'net',
         pool: { on: true, pct: 12, timing: 'post' },
+        conv: [],
       },
       {
-        label: 'Négociation en % cédé',
+        // #3 — Un tour d'amorçage où un BSA AIR levé plus tôt se convertit :
+        // seul exemple exerçant la section « instruments convertibles »
+        // (conversion au prix du tour, minorée d'une décote et plafonnée).
+        label: 'Amorçage — BSA AIR qui se convertit',
+        basis: 'pre',
+        shareholders: [
+          { name: 'Fondateur A', shares: 600000, type: 'founder' },
+          { name: 'Fondateur B', shares: 400000, type: 'founder' },
+        ],
+        investors: [
+          { name: 'Investisseur lead', amount: 1000000 },
+        ],
+        valo: 4000000,
+        interp: 'net',
+        pool: { on: false, pct: 10, timing: 'pre' },
+        conv: [
+          { name: 'BSA AIR (pré-amorçage)', amount: 300000, discount: 20, cap: 3500000, floor: 0 },
+        ],
+      },
+      {
+        // #4 — On raisonne directement en % cédé au tour (l'outil déduit la
+        // valo), avec un pool avant le tour pour illustrer l'interprétation
+        // « part investisseur nette de pool ».
+        label: 'Négociation — en % cédé',
         basis: 'pct',
         shareholders: [
           { name: 'Fondateur A', shares: 600000, type: 'founder' },
@@ -699,6 +753,7 @@
         valo: 20,
         interp: 'net',
         pool: { on: true, pct: 10, timing: 'pre' },
+        conv: [],
       },
     ];
 
@@ -761,8 +816,9 @@
       document.getElementById('pool-on').checked = ex.pool.on;
       document.getElementById('pool-pct').value = String(ex.pool.pct);
       document.querySelectorAll('input[name="pool-timing"]').forEach(r => { r.checked = (r.value === ex.pool.timing); });
-      document.getElementById('conv-on').checked = false;
-      convRowsEl().innerHTML = convRowHTML({});
+      const convs = Array.isArray(ex.conv) ? ex.conv : [];
+      document.getElementById('conv-on').checked = convs.length > 0;
+      convRowsEl().innerHTML = (convs.length ? convs : [{}]).map(convRowHTML).join('');
       syncBasisUI();
       syncPoolUI();
       syncConvUI();
