@@ -197,6 +197,10 @@
       if (r.ok) {
         submit.textContent = 'Ajouté';
         busy = false;
+        // Prévient les pages qui affichent la liste (ex. l'outil Documents) pour
+        // qu'elles se rafraîchissent sans rechargement complet.
+        const data = await r.json().catch(() => ({}));
+        window.dispatchEvent(new CustomEvent('liquid:document-added', { detail: data.document || null }));
         setTimeout(closeModal, 900);
       } else {
         const data = await r.json().catch(() => ({}));

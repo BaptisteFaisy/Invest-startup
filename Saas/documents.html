@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Liquid+ — Documents</title>
-  <meta name="description" content="Tous vos documents juridiques de levée de fonds, au même endroit." />
+  <meta name="description" content="Tous vos documents de levée de fonds — importés, téléchargés et rédigés sur Liquid+ — réunis au même endroit." />
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -26,20 +26,92 @@
     .topbar .btn--ghost { color: #fff !important; border-color: rgba(255,255,255,0.35) !important; }
     .topbar .btn--ghost:hover { color: #fff !important; border-color: rgba(255,255,255,0.65) !important; }
 
-    .dil { max-width: 780px; margin: 0 auto; padding: 24px 28px 90px; }
+    .dil { max-width: 900px; margin: 0 auto; padding: 24px 28px 90px; }
     .page-back-row { height: 6px; }
-    .page-back { position: fixed; top: 56px; left: max(12px, calc(50% - 406px)); z-index: 15; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
+    .page-back { position: fixed; top: 56px; left: max(12px, calc(50% - 466px)); z-index: 15; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
     .page-back:hover { opacity: 0.68; transform: translateX(-1px); }
     .page-back:focus-visible { outline: none; opacity: 1; }
     .page-back svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
     .dil__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
     .dil__title { font-size: 30px; letter-spacing: -0.03em; color: #fff; margin-top: 6px; }
-    .dil__sub { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 8px; line-height: 1.6; }
+    .dil__sub { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 8px; line-height: 1.6; max-width: 620px; }
 
-    .dil__soon { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 26px 24px; margin-top: 26px; color: rgba(255,255,255,0.85); font-size: 15px; line-height: 1.6; }
-    .dil__soon b { color: #fff; }
+    /* ---- Bandeau de statistiques ---- */
+    .doc-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 24px; }
+    .doc-stat { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 14px 16px; }
+    .doc-stat__num { font-family: 'Archivo', sans-serif; font-size: 26px; font-weight: 800; color: #fff; line-height: 1; letter-spacing: -0.02em; }
+    .doc-stat__label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 8px; }
+    .doc-stat__dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+    .doc-stat__dot--written { background: #60a5fa; }
+    .doc-stat__dot--imported { background: #fbbf24; }
+    @media (max-width: 640px) { .doc-stats { grid-template-columns: repeat(2, 1fr); } }
 
-    .dil__foot { margin-top: 30px; }
+    /* ---- Barre d'outils : recherche + filtres + import ---- */
+    .doc-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 26px; }
+    .doc-search { position: relative; flex: 1; min-width: 200px; }
+    .doc-search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; fill: none; stroke: rgba(255,255,255,0.45); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; pointer-events: none; }
+    .doc-search input { width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.14); border-radius: 12px; color: #fff; font: 500 14px/1.2 'Libre Franklin', sans-serif; padding: 11px 14px 11px 36px; outline: none; transition: border-color .15s, background .15s; }
+    .doc-search input::placeholder { color: rgba(255,255,255,0.4); }
+    .doc-search input:focus { border-color: rgba(96,165,250,0.7); background: rgba(255,255,255,0.07); }
+
+    .doc-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+    .doc-chip { display: inline-flex; align-items: center; gap: 7px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.14); border-radius: 999px; color: rgba(255,255,255,0.8); font: 600 13px/1 'Libre Franklin', sans-serif; padding: 9px 14px; cursor: pointer; transition: border-color .15s, background .15s, color .15s; }
+    .doc-chip:hover { border-color: rgba(255,255,255,0.32); color: #fff; }
+    .doc-chip.is-active { background: #fff; border-color: #fff; color: #08090c; }
+    .doc-chip__count { font-size: 12px; opacity: 0.65; font-weight: 700; }
+    .doc-chip.is-active .doc-chip__count { opacity: 0.55; }
+
+    .doc-import-btn { display: inline-flex; align-items: center; gap: 8px; }
+    .doc-import-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ---- Sections par étape ---- */
+    .doc-sections { margin-top: 22px; display: flex; flex-direction: column; gap: 26px; }
+    .doc-section__head { display: flex; align-items: baseline; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.09); }
+    .doc-section__name { font-family: 'Archivo', sans-serif; font-size: 15px; font-weight: 700; color: #fff; }
+    .doc-section__count { font-size: 12px; color: rgba(255,255,255,0.5); }
+
+    .doc-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+    .doc-item { display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 14px 16px; transition: border-color .15s, background .15s; }
+    .doc-item:hover { border-color: rgba(255,255,255,0.22); background: rgba(255,255,255,0.055); }
+    .doc-item__icon { flex: none; width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center; }
+    .doc-item__icon svg { width: 20px; height: 20px; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .doc-item__icon--written { background: rgba(96,165,250,0.14); }
+    .doc-item__icon--written svg { stroke: #93c5fd; }
+    .doc-item__icon--imported { background: rgba(251,191,36,0.14); }
+    .doc-item__icon--imported svg { stroke: #fcd34d; }
+
+    .doc-item__main { flex: 1; min-width: 0; }
+    .doc-item__name { font: 600 15px/1.35 'Libre Franklin', sans-serif; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .doc-item__meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 5px; font-size: 12.5px; color: rgba(255,255,255,0.55); }
+    .doc-item__meta-sep { opacity: 0.4; }
+
+    .doc-badge { display: inline-flex; align-items: center; gap: 5px; font: 700 10.5px/1 'Archivo', sans-serif; letter-spacing: 0.05em; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; }
+    .doc-badge--written { background: rgba(96,165,250,0.16); color: #bfdbfe; }
+    .doc-badge--imported { background: rgba(251,191,36,0.16); color: #fde68a; }
+    .doc-badge__dot { width: 6px; height: 6px; border-radius: 50%; }
+    .doc-badge--written .doc-badge__dot { background: #60a5fa; }
+    .doc-badge--imported .doc-badge__dot { background: #fbbf24; }
+    .doc-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,0.62); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-radius: 999px; padding: 3px 9px; }
+    .doc-pill svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .doc-item__actions { display: flex; align-items: center; gap: 6px; flex: none; }
+    .doc-act { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04); color: #fff; cursor: pointer; text-decoration: none; transition: border-color .15s, background .15s; }
+    .doc-act:hover { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.1); }
+    .doc-act svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .doc-empty { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 40px 26px; margin-top: 24px; text-align: center; color: rgba(255,255,255,0.7); font-size: 15px; line-height: 1.6; }
+    .doc-empty b { color: #fff; }
+    .doc-empty a { color: #93c5fd; }
+    .doc-loading { color: rgba(255,255,255,0.6); font-size: 14px; margin-top: 30px; }
+    .doc-error { color: #fca5a5; font-size: 14px; margin-top: 20px; }
+
+    .dil__foot { margin-top: 34px; }
+
+    @media (max-width: 560px) {
+      .doc-item { flex-wrap: wrap; }
+      .doc-item__actions { width: 100%; justify-content: flex-end; }
+    }
   </style>
   <script src="auth.js?v=3"></script>
   <script src="tasks.js?v=2" defer></script>
@@ -107,11 +179,49 @@
     <main class="dil">
       <div class="dil__eyebrow">Outil</div>
       <h1 class="dil__title">Documents</h1>
-      <p class="dil__sub">Retrouvez tous les documents de vos dossiers, tous types et toutes étapes confondus, avec leur statut et un accès rapide au téléchargement.</p>
+      <p class="dil__sub">Tous les documents de votre levée réunis au même endroit — ceux que vous avez <b style="color:#fde68a">importés</b> et ceux que vous avez <b style="color:#bfdbfe">rédigés sur Liquid+</b> — avec leur étape, leur date et un accès direct.</p>
 
-      <div class="dil__soon">
-        <b>Bientôt disponible.</b> Cette vue d'ensemble de vos documents est en cours de construction.
+      <!-- Statistiques -->
+      <div class="doc-stats" id="doc-stats" hidden>
+        <div class="doc-stat">
+          <div class="doc-stat__num" id="stat-total">0</div>
+          <div class="doc-stat__label">Documents au total</div>
+        </div>
+        <div class="doc-stat">
+          <div class="doc-stat__num" id="stat-written">0</div>
+          <div class="doc-stat__label"><span class="doc-stat__dot doc-stat__dot--written"></span>Rédigés sur Liquid+</div>
+        </div>
+        <div class="doc-stat">
+          <div class="doc-stat__num" id="stat-imported">0</div>
+          <div class="doc-stat__label"><span class="doc-stat__dot doc-stat__dot--imported"></span>Importés / téléchargés</div>
+        </div>
+        <div class="doc-stat">
+          <div class="doc-stat__num" id="stat-classified">0</div>
+          <div class="doc-stat__label">Classés dans une étape</div>
+        </div>
       </div>
+
+      <!-- Barre d'outils -->
+      <div class="doc-toolbar" id="doc-toolbar" hidden>
+        <div class="doc-search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="search" id="doc-search-input" placeholder="Rechercher un document…" autocomplete="off" aria-label="Rechercher un document" />
+        </div>
+        <div class="doc-filters" id="doc-filters">
+          <button type="button" class="doc-chip is-active" data-filter="all">Tous <span class="doc-chip__count" data-count="all">0</span></button>
+          <button type="button" class="doc-chip" data-filter="written">Rédigés <span class="doc-chip__count" data-count="written">0</span></button>
+          <button type="button" class="doc-chip" data-filter="imported">Importés <span class="doc-chip__count" data-count="imported">0</span></button>
+        </div>
+        <button type="button" class="btn btn--primary doc-import-btn" id="docs-btn">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Importer un document
+        </button>
+        <input type="file" id="docs-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" hidden />
+      </div>
+
+      <div class="doc-loading" id="doc-loading">Chargement de vos documents…</div>
+      <div class="doc-error" id="doc-error" hidden></div>
+      <div class="doc-sections" id="doc-sections"></div>
+      <div class="doc-empty" id="doc-empty" hidden></div>
 
       <div class="dil__foot">
         <a href="tableau-de-bord.html" class="btn btn--ghost">← Retour au tableau de bord</a>
@@ -119,11 +229,239 @@
     </main>
   </div>
 
+  <script src="documents.js?v=2" defer></script>
   <script>
     document.getElementById('page-back-btn').addEventListener('click', () => {
       if (window.history.length > 1) window.history.back();
       else window.location.href = 'tableau-de-bord.html';
     });
+
+    (function () {
+      const sectionsEl = document.getElementById('doc-sections');
+      const loadingEl  = document.getElementById('doc-loading');
+      const errorEl    = document.getElementById('doc-error');
+      const emptyEl    = document.getElementById('doc-empty');
+      const statsEl    = document.getElementById('doc-stats');
+      const toolbarEl  = document.getElementById('doc-toolbar');
+      const searchEl   = document.getElementById('doc-search-input');
+      const filtersEl  = document.getElementById('doc-filters');
+
+      let folders = [];
+      let docs = [];
+      let filter = 'all';     // all | written | imported
+      let query = '';
+
+      /* ---------- Helpers ---------- */
+      function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      }
+      function fmtSize(b) {
+        if (b == null) return '';
+        if (b < 1024) return b + ' o';
+        if (b < 1024 * 1024) return (b / 1024).toFixed(0) + ' Ko';
+        return (b / (1024 * 1024)).toFixed(1) + ' Mo';
+      }
+      function fmtDate(s) {
+        if (!s) return '';
+        return new Date(s).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+      }
+      function ext(name) { const m = /\.([a-z0-9]+)$/i.exec(name || ''); return m ? m[1].toLowerCase() : ''; }
+      function isWritten(d) { return d.kind === 'termsheet'; }
+
+      // Ne garde que les vrais documents de l'utilisateur : on masque les anciennes
+      // versions conservées pour la comparaison, les checklists investisseurs et les
+      // modèles ouverts mais jamais personnalisés.
+      function isVisible(d) {
+        return !d.is_version && !d.is_investor_checklist &&
+          !(d.kind === 'termsheet' && d.template_source && d.is_personalized === false);
+      }
+
+      // Icône selon le type de fichier / d'origine.
+      function iconFor(d) {
+        if (isWritten(d)) {
+          return { cls: 'written', svg: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>' };
+        }
+        const e = ext(d.originalname || d.name);
+        if (['png', 'jpg', 'jpeg', 'webp', 'gif', 'svg'].includes(e)) {
+          return { cls: 'imported', svg: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>' };
+        }
+        if (['xls', 'xlsx', 'csv'].includes(e)) {
+          return { cls: 'imported', svg: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="m9 13 6 6M15 13l-6 6"/>' };
+        }
+        // PDF, Word et autres : icône document générique.
+        return { cls: 'imported', svg: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h4"/>' };
+      }
+
+      // Libellé du type lisible.
+      function typeLabel(d) {
+        if (isWritten(d)) return d.template_source ? 'Rédigé (modèle Liquid+)' : 'Rédigé sur Liquid+';
+        const e = ext(d.originalname || d.name);
+        const map = { pdf: 'PDF', doc: 'Word', docx: 'Word', xls: 'Excel', xlsx: 'Excel', csv: 'CSV', png: 'Image', jpg: 'Image', jpeg: 'Image', webp: 'Image', gif: 'Image' };
+        return map[e] || (e ? e.toUpperCase() : 'Fichier');
+      }
+
+      function folderName(id) {
+        const f = folders.find(x => x.id === id);
+        return f ? f.name : null;
+      }
+
+      /* ---------- Chargement ---------- */
+      async function load() {
+        try {
+          const [fr, dr] = await Promise.all([
+            fetch('/api/saas/folders', { credentials: 'include' }),
+            fetch('/api/saas/documents', { credentials: 'include' }),
+          ]);
+          if (fr.status === 401 || dr.status === 401) { window.location.href = 'login.html'; return; }
+          folders = (await fr.json()).folders || [];
+          docs = ((await dr.json()).documents || []).filter(isVisible);
+        } catch {
+          loadingEl.hidden = true;
+          errorEl.hidden = false;
+          errorEl.textContent = 'Impossible de charger vos documents. Vérifiez votre connexion et réessayez.';
+          return;
+        }
+        loadingEl.hidden = true;
+        statsEl.hidden = false;
+        toolbarEl.hidden = false;
+        renderStats();
+        render();
+      }
+
+      function renderStats() {
+        const written = docs.filter(isWritten).length;
+        const imported = docs.length - written;
+        const classified = docs.filter(d => d.folder_id != null).length;
+        document.getElementById('stat-total').textContent = docs.length;
+        document.getElementById('stat-written').textContent = written;
+        document.getElementById('stat-imported').textContent = imported;
+        document.getElementById('stat-classified').textContent = classified;
+        filtersEl.querySelector('[data-count="all"]').textContent = docs.length;
+        filtersEl.querySelector('[data-count="written"]').textContent = written;
+        filtersEl.querySelector('[data-count="imported"]').textContent = imported;
+      }
+
+      /* ---------- Rendu ---------- */
+      function matches(d) {
+        if (filter === 'written' && !isWritten(d)) return false;
+        if (filter === 'imported' && isWritten(d)) return false;
+        if (query) {
+          const hay = ((d.name || '') + ' ' + (d.originalname || '') + ' ' + (folderName(d.folder_id) || '')).toLowerCase();
+          if (!hay.includes(query)) return false;
+        }
+        return true;
+      }
+
+      function render() {
+        const shown = docs.filter(matches);
+        sectionsEl.innerHTML = '';
+
+        if (!docs.length) {
+          emptyEl.hidden = false;
+          emptyEl.innerHTML = '<b>Aucun document pour l\'instant.</b><br>Importez un fichier avec le bouton ci-dessus, ou rédigez votre premier document depuis <a href="editor.html" target="_blank" rel="noopener">l\'éditeur</a> ou votre <a href="tableau-de-bord.html">tableau de bord</a>.';
+          return;
+        }
+        if (!shown.length) {
+          emptyEl.hidden = false;
+          emptyEl.innerHTML = '<b>Aucun document ne correspond.</b><br>Modifiez votre recherche ou votre filtre.';
+          return;
+        }
+        emptyEl.hidden = true;
+
+        // Groupement par étape (dossier), dans l'ordre des étapes, puis « Non classés ».
+        const groups = [];
+        folders.forEach(f => {
+          const items = shown.filter(d => d.folder_id === f.id);
+          if (items.length) groups.push({ name: f.name, items });
+        });
+        const unclassified = shown.filter(d => d.folder_id == null || !folders.some(f => f.id === d.folder_id));
+        if (unclassified.length) groups.push({ name: 'Non classés', items: unclassified });
+
+        groups.forEach(g => {
+          const items = g.items.slice().sort((a, b) =>
+            new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at));
+          const sec = document.createElement('section');
+          sec.className = 'doc-section';
+          const head = document.createElement('div');
+          head.className = 'doc-section__head';
+          head.innerHTML = `<span class="doc-section__name">${esc(g.name)}</span><span class="doc-section__count">${items.length} document${items.length > 1 ? 's' : ''}</span>`;
+          sec.appendChild(head);
+          const list = document.createElement('div');
+          list.className = 'doc-list';
+          items.forEach(d => list.appendChild(docRow(d)));
+          sec.appendChild(list);
+          sectionsEl.appendChild(sec);
+        });
+      }
+
+      function docRow(d) {
+        const written = isWritten(d);
+        const ic = iconFor(d);
+        const fname = folderName(d.folder_id);
+        const row = document.createElement('div');
+        row.className = 'doc-item';
+
+        const badge = written
+          ? '<span class="doc-badge doc-badge--written"><span class="doc-badge__dot"></span>Rédigé</span>'
+          : '<span class="doc-badge doc-badge--imported"><span class="doc-badge__dot"></span>Importé</span>';
+        const folderPill = fname
+          ? `<span class="doc-pill"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9L9.6 3.9A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>${esc(fname)}</span>`
+          : '';
+
+        row.innerHTML = `
+          <div class="doc-item__icon doc-item__icon--${ic.cls}"><svg viewBox="0 0 24 24" aria-hidden="true">${ic.svg}</svg></div>
+          <div class="doc-item__main">
+            <div class="doc-item__name" title="${esc(d.name)}">${esc(d.name)}</div>
+            <div class="doc-item__meta">
+              ${badge}
+              <span>${esc(typeLabel(d))}</span>
+              ${d.size != null ? `<span class="doc-item__meta-sep">·</span><span>${fmtSize(d.size)}</span>` : ''}
+              <span class="doc-item__meta-sep">·</span><span>${fmtDate(d.updated_at || d.created_at)}</span>
+              ${folderPill}
+            </div>
+          </div>
+          <div class="doc-item__actions"></div>`;
+
+        const actions = row.querySelector('.doc-item__actions');
+        if (written) {
+          const open = document.createElement('a');
+          open.className = 'doc-act';
+          open.href = 'editor.html?doc=' + d.id;
+          open.target = '_blank';
+          open.rel = 'noopener';
+          open.title = 'Ouvrir dans l\'éditeur';
+          open.setAttribute('aria-label', 'Ouvrir dans l\'éditeur');
+          open.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+          actions.appendChild(open);
+        }
+        const dl = document.createElement('a');
+        dl.className = 'doc-act';
+        dl.href = '/api/saas/documents/' + d.id + '/download';
+        dl.title = 'Télécharger';
+        dl.setAttribute('aria-label', 'Télécharger');
+        dl.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="m8 11 4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>';
+        actions.appendChild(dl);
+        return row;
+      }
+
+      /* ---------- Interactions ---------- */
+      filtersEl.addEventListener('click', (e) => {
+        const chip = e.target.closest('.doc-chip');
+        if (!chip) return;
+        filter = chip.getAttribute('data-filter');
+        filtersEl.querySelectorAll('.doc-chip').forEach(c => c.classList.toggle('is-active', c === chip));
+        render();
+      });
+      searchEl.addEventListener('input', () => {
+        query = searchEl.value.trim().toLowerCase();
+        render();
+      });
+
+      // Rafraîchissement après un import (émis par documents.js).
+      window.addEventListener('liquid:document-added', () => { load(); });
+
+      load();
+    })();
   </script>
 </body>
 </html>
