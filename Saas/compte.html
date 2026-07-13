@@ -45,7 +45,7 @@
     .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--t-divider); margin: 32px 0 28px; }
     .tab { padding: 11px 20px; font-family: 'Archivo', sans-serif; font-size: 13.5px; font-weight: 700; color: var(--t-on-bg-faint); cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; }
     .tab:hover { color: var(--t-on-bg); }
-    .tab.active { color: var(--t-on-bg); border-bottom-color: var(--t-accent); }
+    .tab.active { color: var(--t-on-bg); border-bottom-color: #22c55e; }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
 
@@ -69,9 +69,9 @@
     .appearance { display: flex; gap: 10px; flex-wrap: wrap; }
     .appearance__opt { flex: 1 1 140px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 14px; border-radius: 12px; border: 1.5px solid rgba(8,9,12,0.14); background: #fff; color: #08090c; font-family: 'Archivo', sans-serif; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: border-color .15s, background .15s; }
     .appearance__opt:hover { border-color: rgba(8,9,12,0.32); }
-    .appearance__opt.is-active { border-color: #3b82f6; background: rgba(59,130,246,0.07); }
+    .appearance__opt.is-active { border-color: #22c55e; background: rgba(34,197,94,0.07); }
     .appearance__icon { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .appearance__opt.is-active .appearance__icon { stroke: #3b82f6; }
+    .appearance__opt.is-active .appearance__icon { stroke: #22c55e; }
 
     /* Consommation IA */
     .usage-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
