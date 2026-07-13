@@ -12,21 +12,22 @@
   if (!btn || !fileInput) return;
 
   const ACCEPT = fileInput.getAttribute('accept') || '';
+  const editorImport = fileInput.dataset.importMode === 'editor';
 
   /* ---- Styles du modal (injectés pour rester autonome) ---- */
   const css = `
   .docmodal{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;padding:24px}
   .docmodal.is-open{display:flex}
   .docmodal__backdrop{position:absolute;inset:0;background:rgba(8,9,12,0.45);backdrop-filter:blur(2px)}
-  .docmodal__dialog{position:relative;width:100%;max-width:460px;background:var(--card,#fff);border-radius:var(--radius,16px);
+  .docmodal__dialog{position:relative;display:flex;flex-direction:column;width:100%;max-width:460px;max-height:calc(100vh - 48px);max-height:calc(100dvh - 48px);background:var(--card,#fff);border-radius:var(--radius,16px);
     box-shadow:0 24px 60px rgba(8,9,12,0.28);border:1px solid var(--line-card,rgba(8,9,12,0.06));overflow:hidden;
     animation:docmodal-in .18s ease}
   @keyframes docmodal-in{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
-  .docmodal__head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--line,rgba(8,9,12,0.08))}
+  .docmodal__head{display:flex;flex:none;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--line,rgba(8,9,12,0.08))}
   .docmodal__title{margin:0;font:600 16px/1.2 'Archivo',sans-serif;color:var(--text,#08090c)}
   .docmodal__close{border:0;background:none;font-size:22px;line-height:1;cursor:pointer;color:var(--text-2,#6b6b78);padding:2px 6px;border-radius:8px}
   .docmodal__close:hover{background:var(--bg,#f4f2ee);color:var(--text,#08090c)}
-  .docmodal__body{padding:20px}
+  .docmodal__body{min-height:0;padding:20px;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
   .docmodal__drop{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;
     padding:28px 18px;border:2px dashed var(--line,rgba(8,9,12,0.18));border-radius:12px;cursor:pointer;
     transition:border-color .15s,background .15s;color:var(--text-2,#6b6b78)}
@@ -48,7 +49,7 @@
   .docmodal__dest-label{display:block;font:600 13px/1.3 'Libre Franklin',sans-serif;color:var(--text,#08090c);margin-bottom:7px}
   .docmodal__dest-select{width:100%;box-sizing:border-box;background:var(--card,#fff);border:1px solid var(--line,rgba(8,9,12,0.18));border-radius:10px;color:var(--text,#08090c);font:500 14px/1.2 'Libre Franklin',sans-serif;padding:11px 12px;cursor:pointer}
   .docmodal__dest-select:focus{outline:none;border-color:var(--blue,#3b82f6)}
-  .docmodal__foot{display:flex;justify-content:flex-end;gap:10px;padding:16px 20px;border-top:1px solid var(--line,rgba(8,9,12,0.08))}
+  .docmodal__foot{display:flex;flex:none;justify-content:flex-end;gap:10px;padding:16px 20px;border-top:1px solid var(--line,rgba(8,9,12,0.08))}
   .docmodal__foot .btn[disabled]{opacity:.5;cursor:not-allowed}
   .docmodal__ver{display:none;margin-top:16px;padding-top:14px;border-top:1px solid var(--line,rgba(8,9,12,0.08))}
   .docmodal__ver.is-shown{display:block}
@@ -66,6 +67,10 @@
   .docmodal__nudge-grid .docmodal__dest-select{padding:9px 10px;font-size:12.5px}
   .docmodal__nudge-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
   .docmodal__nudge-acts .btn{padding:7px 12px;font-size:12.5px}
+  @media(max-height:620px),(max-width:520px){
+    .docmodal{padding:12px}
+    .docmodal__dialog{max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px)}
+  }
   `;
   const style = document.createElement('style');
   style.textContent = css;
@@ -215,6 +220,10 @@
     errBox.classList.remove('is-shown');
   }
 
+  function updateSubmitState() {
+    submit.disabled = busy || !selected || (editorImport && !destSel.value);
+  }
+
   function setFile(file) {
     clearError();
     if (!file) return;
@@ -226,25 +235,53 @@
     fileName.textContent = file.name;
     fileSize.textContent = fmtSize(file.size);
     fileBox.classList.add('is-shown');
-    submit.disabled = false;
+    updateSubmitState();
   }
 
   function resetFile() {
     selected = null;
     fileInput.value = '';
     fileBox.classList.remove('is-shown');
-    submit.disabled = true;
+    updateSubmitState();
   }
 
   // Remplit le sélecteur de destination avec les étapes du parcours actif,
-  // fournies par la page (window.liquidImportDestinations). Absente ailleurs
-  // (ex. éditeur) : le champ reste masqué et l'import se fait « non classé ».
-  function populateDest() {
-    destSel.innerHTML = '<option value="">— Non classé —</option>';
+  // fournies par la page. Dans l'éditeur, elles sont chargées directement et
+  // le choix d'une étape est obligatoire avant l'import.
+  async function populateDest() {
+    destSel.innerHTML = editorImport
+      ? '<option value="">— Choisir une étape —</option>'
+      : '<option value="">— Non classé —</option>';
+    destSel.required = editorImport;
+    const destLabel = modal.querySelector('label[for="docmodal-dest-select"]');
+    if (destLabel) destLabel.textContent = editorImport ? 'Ranger dans une étape *' : 'Ranger dans une étape';
+
     let ctx = null;
     try { ctx = typeof window.liquidImportDestinations === 'function' ? window.liquidImportDestinations() : null; } catch { ctx = null; }
+    if (!ctx && editorImport) {
+      try {
+        const [foldersResponse, profileResponse] = await Promise.all([
+          fetch('/api/saas/folders', { credentials: 'include' }),
+          fetch('/api/saas/fundraising-profile', { credentials: 'include' }),
+        ]);
+        const foldersData = foldersResponse.ok ? await foldersResponse.json() : {};
+        const profileData = profileResponse.ok ? await profileResponse.json() : {};
+        const raiseType = (profileData.profile || {}).raise_type || 'classic';
+        ctx = {
+          folders: (Array.isArray(foldersData.folders) ? foldersData.folders : [])
+            .filter((folder) => !folder.track || folder.track === raiseType)
+            .map((folder) => ({ id: folder.id, name: folder.name })),
+        };
+      } catch { ctx = null; }
+    }
+
     const folders = (ctx && Array.isArray(ctx.folders)) ? ctx.folders : [];
-    if (!folders.length) { destBox.classList.remove('is-shown'); return; }
+    if (!folders.length) {
+      destBox.classList.toggle('is-shown', editorImport);
+      if (editorImport) showError('Impossible de charger les étapes. Fermez cette fenêtre puis réessayez.');
+      updateSubmitState();
+      return;
+    }
     folders.forEach((f) => {
       const o = document.createElement('option');
       o.value = String(f.id);
@@ -253,6 +290,7 @@
     });
     if (ctx && ctx.defaultFolderId != null) destSel.value = String(ctx.defaultFolderId);
     destBox.classList.add('is-shown');
+    updateSubmitState();
   }
 
   // Remplit la section « nouvelle version de… » depuis le contexte fourni par la
@@ -337,10 +375,9 @@
     clearError();
     resetFile();
     hideNudge();
-    populateDest();
     modal.classList.add('is-open');
     drop.focus();
-    await populateVersionCtx();
+    await Promise.all([populateDest(), populateVersionCtx()]);
   }
 
   function closeModal() {
@@ -382,6 +419,10 @@
     setFile(fileInput.files && fileInput.files[0]);
   });
   fileX.addEventListener('click', resetFile);
+  destSel.addEventListener('change', () => {
+    clearError();
+    updateSubmitState();
+  });
 
   /* ---- Glisser-déposer ---- */
   ['dragenter', 'dragover'].forEach((ev) =>
@@ -396,6 +437,11 @@
   /* ---- Téléversement ---- */
   submit.addEventListener('click', async () => {
     if (!selected || busy) return;
+    if (editorImport && !destSel.value) {
+      showError('Choisissez l’étape dans laquelle ranger ce document.');
+      destSel.focus();
+      return;
+    }
     const versionRequested = verBox.classList.contains('is-shown') && verCheck.checked;
     if (versionRequested && !verParent.value) {
       showError('Choisissez le document dont ce fichier est une nouvelle version.');
@@ -437,6 +483,26 @@
         // qu'elles se rafraîchissent sans rechargement complet.
         const data = await r.json().catch(() => ({}));
         window.dispatchEvent(new CustomEvent('liquid:document-added', { detail: data.document || null }));
+        // Depuis l'éditeur, l'import Word est immédiatement converti en document
+        // éditable puis ouvert dans la page courante.
+        if (editorImport && data.document && data.document.id) {
+          submit.textContent = 'Ouverture…';
+          busy = true;
+          updateSubmitState();
+          const editorResponse = await fetch('/api/saas/documents/' + data.document.id + '/to-editor', {
+            method: 'POST', credentials: 'include',
+          });
+          const editorData = await editorResponse.json().catch(() => ({}));
+          if (!editorResponse.ok || !editorData.id) {
+            busy = false;
+            submit.textContent = 'Téléverser';
+            updateSubmitState();
+            showError(editorData.error || 'Le document a été importé, mais son ouverture dans l’éditeur a échoué.');
+            return;
+          }
+          window.location.href = 'editor.html?doc=' + encodeURIComponent(editorData.id);
+          return;
+        }
         // Nudge : si l'utilisateur n'a pas rattaché lui-même et que le serveur
         // détecte une ressemblance, on propose de lier plutôt que de fermer.
         const sugg = !linking && data.document && Array.isArray(data.versionSuggestions) && data.versionSuggestions.length

@@ -1858,12 +1858,186 @@ function startBlankDocument() {
 }
 const emptyCreateBtn = document.getElementById('empty-create');
 if (emptyCreateBtn) emptyCreateBtn.addEventListener('click', startBlankDocument);
-// « Ouvrir un document » : affiche la bibliothèque, dont les documents
-// éditables renvoient ensuite vers l'éditeur.
+
+/* ---------- « Ouvrir un document » : bibliothèque intégrée ---------- */
+let openDocModalEl = null;
+let openDocModalData = { folders: [], documents: [], raiseType: 'classic' };
+
+function openDocEsc(value) {
+  return String(value == null ? '' : value).replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[char]));
+}
+
+function openDocIsWord(doc) {
+  return /\.docx?$/i.test(String(doc.originalname || doc.name || ''));
+}
+
+function openDocDate(doc) {
+  const value = doc.updated_at || doc.created_at;
+  if (!value) return '';
+  try { return new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value)); }
+  catch { return ''; }
+}
+
+function buildOpenDocModal() {
+  if (openDocModalEl) return openDocModalEl;
+  const modal = document.createElement('div');
+  modal.className = 'open-doc-modal';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-labelledby', 'open-doc-title');
+  modal.innerHTML = `
+    <div class="open-doc-modal__backdrop" data-open-doc-close></div>
+    <div class="open-doc-modal__dialog">
+      <div class="open-doc-modal__head">
+        <div>
+          <h2 class="open-doc-modal__title" id="open-doc-title">Ouvrir un document</h2>
+          <p class="open-doc-modal__sub">Choisissez un document : il s’ouvrira ici, dans l’éditeur.</p>
+        </div>
+        <button class="open-doc-modal__close" type="button" data-open-doc-close aria-label="Fermer">×</button>
+      </div>
+      <label class="open-doc-modal__search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="search" id="open-doc-search" placeholder="Rechercher un document…" autocomplete="off" aria-label="Rechercher un document" />
+      </label>
+      <div class="open-doc-modal__body" id="open-doc-body"></div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', (event) => {
+    if (event.target.closest('[data-open-doc-close]')) closeOpenDocModal();
+  });
+  modal.querySelector('#open-doc-search').addEventListener('input', renderOpenDocModal);
+  modal.querySelector('#open-doc-body').addEventListener('click', (event) => {
+    const row = event.target.closest('.open-doc-row[data-doc-id]');
+    if (!row || row.disabled) return;
+    const doc = openDocModalData.documents.find((item) => String(item.id) === row.dataset.docId);
+    if (doc) openDocumentFromModal(doc, row);
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && modal.classList.contains('is-open')) closeOpenDocModal();
+  });
+  openDocModalEl = modal;
+  return modal;
+}
+
+function closeOpenDocModal() {
+  if (!openDocModalEl) return;
+  openDocModalEl.classList.remove('is-open');
+  document.body.classList.remove('open-doc-modal-open');
+}
+
+function renderOpenDocModal() {
+  if (!openDocModalEl) return;
+  const body = openDocModalEl.querySelector('#open-doc-body');
+  const search = openDocModalEl.querySelector('#open-doc-search');
+  const query = String(search.value || '').trim().toLocaleLowerCase('fr');
+  const activeFolders = openDocModalData.folders.filter((folder) => !folder.track || folder.track === openDocModalData.raiseType);
+  const activeFolderIds = new Set(activeFolders.map((folder) => Number(folder.id)));
+  const editorSources = new Set(openDocModalData.documents
+    .filter((doc) => doc.kind === 'termsheet' && doc.editor_source != null)
+    .map((doc) => Number(doc.editor_source)));
+  const documents = openDocModalData.documents.filter((doc) => {
+    const editable = doc.kind === 'termsheet' || (openDocIsWord(doc) && !editorSources.has(Number(doc.id)));
+    const inActiveRaise = doc.folder_id == null || activeFolderIds.has(Number(doc.folder_id));
+    const matches = !query || String(doc.name || doc.originalname || '').toLocaleLowerCase('fr').includes(query);
+    return editable && inActiveRaise && matches && !doc.is_version;
+  });
+
+  const groups = activeFolders.map((folder) => ({
+    name: folder.name,
+    items: documents.filter((doc) => Number(doc.folder_id) === Number(folder.id)),
+  }));
+  const unclassified = documents.filter((doc) => doc.folder_id == null || !activeFolderIds.has(Number(doc.folder_id)));
+  if (unclassified.length) groups.push({ name: 'Non classés', items: unclassified });
+  const visibleGroups = groups.filter((group) => group.items.length);
+
+  if (!visibleGroups.length) {
+    body.innerHTML = `<div class="open-doc-modal__state">${query
+      ? 'Aucun document ne correspond à cette recherche.'
+      : 'Aucun document éditable n’est disponible pour le moment.'}</div>`;
+    return;
+  }
+
+  const documentIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>';
+  body.innerHTML = visibleGroups.map((group) => {
+    const rows = group.items
+      .slice()
+      .sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0))
+      .map((doc) => {
+        const date = openDocDate(doc);
+        const type = doc.kind === 'termsheet' ? 'Document Liquid+' : 'Fichier Word';
+        return `<button class="open-doc-row" type="button" data-doc-id="${openDocEsc(doc.id)}">
+          <span class="open-doc-row__icon">${documentIcon}</span>
+          <span class="open-doc-row__main">
+            <span class="open-doc-row__name">${openDocEsc(doc.name || doc.originalname || 'Sans titre')}</span>
+            <span class="open-doc-row__meta">${openDocEsc(type + (date ? ' · ' + date : ''))}</span>
+          </span>
+          <span class="open-doc-row__go" aria-hidden="true">→</span>
+        </button>`;
+      }).join('');
+    return `<section class="open-doc-group">
+      <div class="open-doc-group__head"><span class="open-doc-group__name">${openDocEsc(group.name)}</span><span class="open-doc-group__count">${group.items.length} document${group.items.length > 1 ? 's' : ''}</span></div>
+      <div class="open-doc-group__list">${rows}</div>
+    </section>`;
+  }).join('');
+}
+
+async function openDocumentFromModal(doc, row) {
+  row.disabled = true;
+  const nameEl = row.querySelector('.open-doc-row__meta');
+  if (nameEl) nameEl.textContent = 'Ouverture…';
+  if (doc.kind === 'termsheet') {
+    window.location.href = 'editor.html?doc=' + encodeURIComponent(doc.id);
+    return;
+  }
+  try {
+    const response = await fetch('/api/saas/documents/' + encodeURIComponent(doc.id) + '/to-editor', {
+      method: 'POST', credentials: 'include',
+    });
+    if (response.status === 401) { window.location.href = 'login.html'; return; }
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.id) throw new Error(data.error || 'Impossible d’ouvrir ce document.');
+    window.location.href = 'editor.html?doc=' + encodeURIComponent(data.id);
+  } catch (error) {
+    const body = openDocModalEl.querySelector('#open-doc-body');
+    body.innerHTML = `<div class="open-doc-modal__state open-doc-modal__state--error">${openDocEsc(error.message || 'Impossible d’ouvrir ce document.')}</div>`;
+  }
+}
+
+async function openDocumentLibrary() {
+  const modal = buildOpenDocModal();
+  const body = modal.querySelector('#open-doc-body');
+  const search = modal.querySelector('#open-doc-search');
+  search.value = '';
+  body.innerHTML = '<div class="open-doc-modal__state">Chargement de vos documents…</div>';
+  modal.classList.add('is-open');
+  document.body.classList.add('open-doc-modal-open');
+  search.focus();
+  try {
+    const [foldersResponse, documentsResponse, profileResponse] = await Promise.all([
+      fetch('/api/saas/folders', { credentials: 'include' }),
+      fetch('/api/saas/documents', { credentials: 'include' }),
+      fetch('/api/saas/fundraising-profile', { credentials: 'include' }),
+    ]);
+    if (foldersResponse.status === 401 || documentsResponse.status === 401) { window.location.href = 'login.html'; return; }
+    if (!foldersResponse.ok || !documentsResponse.ok) throw new Error('Impossible de charger vos documents.');
+    const foldersData = await foldersResponse.json();
+    const documentsData = await documentsResponse.json();
+    const profileData = profileResponse.ok ? await profileResponse.json() : {};
+    openDocModalData = {
+      folders: Array.isArray(foldersData.folders) ? foldersData.folders : [],
+      documents: Array.isArray(documentsData.documents) ? documentsData.documents : [],
+      raiseType: (profileData.profile || {}).raise_type || 'classic',
+    };
+    renderOpenDocModal();
+  } catch (error) {
+    body.innerHTML = `<div class="open-doc-modal__state open-doc-modal__state--error">${openDocEsc(error.message || 'Impossible de charger vos documents.')}</div>`;
+  }
+}
+
 const emptyOpenBtn = document.getElementById('empty-open');
-if (emptyOpenBtn) emptyOpenBtn.addEventListener('click', () => {
-  window.location.href = 'documents.html';
-});
+if (emptyOpenBtn) emptyOpenBtn.addEventListener('click', openDocumentLibrary);
 // « Importer un document » : réutilise la modale d'ajout (documents.js).
 const emptyImportBtn = document.getElementById('empty-import');
 if (emptyImportBtn) emptyImportBtn.addEventListener('click', () => {
