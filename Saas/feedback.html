@@ -172,8 +172,19 @@
 
   <script>
     document.getElementById('fb-back-btn').addEventListener('click', () => {
-      if (window.history.length > 1) window.history.back();
-      else window.location.href = 'tableau-de-bord.html';
+      // Feedback s'ouvre le plus souvent dans un nouvel onglet (target="_blank") :
+      // l'historique de cet onglet est vide, donc window.history.back() ne mène
+      // nulle part (« rien ne se passe »). On revient sur la page d'origine si
+      // elle est connue et de même origine, sinon sur le tableau de bord.
+      const ref = document.referrer;
+      if (ref && ref.indexOf(window.location.origin + '/') === 0
+          && ref !== window.location.href) {
+        window.location.href = ref;
+      } else if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = 'tableau-de-bord.html';
+      }
     });
 
     const threadEl  = document.getElementById('fb-thread');
