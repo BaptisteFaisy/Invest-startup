@@ -66,7 +66,7 @@
     .next-actions__step { display: block; font-family: 'Archivo', sans-serif; font-size: 11.5px; color: var(--text-2, #6b6b78); margin-top: 3px; }
     .next-actions__go { flex: none; color: #a8a8b3; font-size: 18px; line-height: 1; }
     .next-actions__link:hover .next-actions__go { color: #08090c; }
-    .next-actions__due { flex: none; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; color: #945b07; background: #fff2d9; padding: 4px 9px; border-radius: 6px; white-space: nowrap; }
+    .next-actions__due { flex: none; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; color: #1a7a45; background: #e4f4ea; padding: 4px 9px; border-radius: 6px; white-space: nowrap; }
     .next-actions__due--over { color: #991b1b; background: #fee2e2; }
     /* Ligne « reprendre » : même carte que les priorités, étiquette « Reprendre ». */
     .next-actions__empty { margin: 0; padding: 2px 2px 6px; font-size: 14px; line-height: 1.5; color: var(--text-2, #6b6b78); }
@@ -380,7 +380,7 @@
 
     /* Vue « bientôt disponible » pour un parcours non encore implémenté */
     .raise-soon { text-align: center; padding: 52px 24px; background: var(--card); border: 1px dashed var(--line); border-radius: 16px; }
-    .raise-soon__badge { display: inline-block; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--blue); background: #eef4ff; padding: 4px 10px; border-radius: 99px; }
+    .raise-soon__badge { display: inline-block; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #16a34a; background: #e7f6ec; padding: 4px 10px; border-radius: 99px; }
     .raise-soon__title { font-size: 22px; letter-spacing: -0.02em; margin: 14px 0 8px; }
     .raise-soon__text { color: #fff; font-size: 15px; max-width: 540px; margin: 0 auto 18px; line-height: 1.6; }
 
@@ -394,7 +394,7 @@
     .ip-panel.is-active { display: block; }
 
     .ip-soon { background: var(--card); border: 1px dashed var(--line); border-radius: 16px; padding: 40px 34px; margin-top: 22px; text-align: center; }
-    .ip-soon__badge { display: inline-flex; align-items: center; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--blue); background: #eef4ff; padding: 4px 11px; border-radius: 99px; margin-bottom: 14px; }
+    .ip-soon__badge { display: inline-flex; align-items: center; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #16a34a; background: #e7f6ec; padding: 4px 11px; border-radius: 99px; margin-bottom: 14px; }
     .ip-soon__h { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; color: #08090c; margin-bottom: 10px; }
     .ip-soon__p { font-size: 14.5px; line-height: 1.6; color: #6b6b78; max-width: 540px; margin: 0 auto; }
 
@@ -591,7 +591,7 @@
     .hamburger:hover { border-color:rgba(255,255,255,0.55); background:rgba(255,255,255,0.06); }
     .hamburger svg { width:18px; height:18px; stroke:currentColor; stroke-width:2; stroke-linecap:round; fill:none; }
     /* Pastille de notification (message feedback non lu) sur le hamburger droit. */
-    .hamburger--notify::after { content:''; position:absolute; top:-4px; right:-4px; width:10px; height:10px; border-radius:50%; background:#22c55e; box-shadow:0 0 0 2px var(--t-topbar-bg, #08090c); }
+    .hamburger--notify::after { content:''; position:absolute; top:-4px; right:-4px; width:10px; height:10px; border-radius:50%; background:#86efac; }
     .topbar__search { position:relative; width:min(340px, 30vw); }
     .topbar__search-field { height:38px; display:flex; align-items:center; gap:8px; padding:0 11px; border:1px solid rgba(255,255,255,0.22); border-radius:10px; background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.65); transition:border-color .15s, background .15s, box-shadow .15s; }
     .topbar__search-field:focus-within { border-color:rgba(255,255,255,0.62); background:rgba(255,255,255,0.07); box-shadow:0 0 0 3px rgba(255,255,255,0.08); color:#fff; }
@@ -661,14 +661,14 @@
     .drawer__link--step.is-current { background:rgba(99,102,241,0.13); color:#fff; }
     .drawer__link--step.is-current .drawer__step-num { background:rgba(99,102,241,0.30); color:#a5b4fc; }
     .drawer__link--step.is-active { background:rgba(255,255,255,0.10); color:#fff; }
-    .drawer__soon-tag { margin-left:auto; flex:none; font-family:'Archivo',sans-serif; font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#a5b4fc; background:rgba(99,102,241,0.20); padding:2px 7px; border-radius:99px; }
-    .drawer__unread-dot { margin-left:auto; flex:none; width:8px; height:8px; border-radius:50%; background:#22c55e; box-shadow:0 0 0 2px rgba(34,197,94,0.25); }
+    .drawer__soon-tag { margin-left:auto; flex:none; font-family:'Archivo',sans-serif; font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#22c55e; background:rgba(34,197,94,0.20); padding:2px 7px; border-radius:99px; }
+    .drawer__unread-dot { margin-left:auto; flex:none; width:8px; height:8px; border-radius:50%; background:#86efac; }
     .drawer__mode { flex:none; padding:12px 14px 26px; border-top:1px solid rgba(255,255,255,0.08); direction:ltr; }
     .drawer__mode-label { display:block; margin:0 0 8px 2px; color:rgba(255,255,255,0.62); font-family:'Archivo',sans-serif; font-size:10px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; }
     .drawer__mode-options { display:grid; grid-template-columns:1fr 1fr; gap:3px; padding:3px; border:1px solid rgba(255,255,255,0.12); border-radius:10px; background:rgba(255,255,255,0.04); }
     .drawer__mode-option { min-width:0; padding:8px 6px; border:0; border-radius:7px; background:transparent; color:rgba(255,255,255,0.58); font-family:'Libre Franklin',sans-serif; font-size:12px; font-weight:600; cursor:pointer; transition:background .15s,color .15s,box-shadow .15s; }
-    .drawer__mode-soon { display:block; margin-top:3px; color:#a5b4fc; font-family:'Archivo',sans-serif; font-size:8px; font-weight:800; letter-spacing:.07em; line-height:1; text-transform:uppercase; }
-    .drawer__mode-option.is-active .drawer__mode-soon { color:#6366f1; }
+    .drawer__mode-soon { display:block; margin-top:3px; color:#22c55e; font-family:'Archivo',sans-serif; font-size:8px; font-weight:800; letter-spacing:.07em; line-height:1; text-transform:uppercase; }
+    .drawer__mode-option.is-active .drawer__mode-soon { color:#16a34a; }
     .drawer__mode-option:hover { color:#fff; }
     .drawer__mode-option.is-active { background:#fff; color:#111318; box-shadow:0 1px 5px rgba(0,0,0,0.24); }
     .drawer__mode-option:focus-visible { outline:2px solid #a5b4fc; outline-offset:1px; }
@@ -2962,9 +2962,9 @@
       // coloré (1 = corail, 2 = ambre, 3 = bleu). L'étiquette porte le rang.
       const NA_ACCENT = ['#d85a30', '#ba7517', '#185fa5'];
       const NA_PILL = [
-        { fg: '#993c1d', bg: '#faece7' },
-        { fg: '#854f0b', bg: '#faeeda' },
-        { fg: '#0c447c', bg: '#e6f1fb' },
+        { fg: '#1a7a45', bg: '#e4f4ea' },
+        { fg: '#1a7a45', bg: '#e4f4ea' },
+        { fg: '#1a7a45', bg: '#e4f4ea' },
       ];
       const priorityRowHtml = (a, i) => {
         const j = Math.min(i, NA_ACCENT.length - 1);
@@ -3167,10 +3167,6 @@
       if (selected.key === 'confidentialite') {
         // Étape « Investisseurs » : onglets Trouver / Pipeline.
         container.appendChild(investorSectionEl());
-        // Sous l'entonnoir, les documents de confidentialité de l'étape : NDA
-        // (accord de confidentialité), engagement d'accès à la data room et deck.
-        // noAnchor : la section investisseurs porte déjà #phase-confidentialite.
-        container.appendChild(phaseCard(selected, idx, { title: 'Documents', icon: 'DOC', hideStep: true, documentActions: true, noAnchor: true }));
       } else if (CLASSIC_SOON_STEPS.has(selected.key)) {
         container.appendChild(stepSoonEl(selected));
       } else if (idx >= 2 && idx <= 7) {
