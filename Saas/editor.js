@@ -1869,6 +1869,10 @@ if (closeDocumentBtn) closeDocumentBtn.addEventListener('click', async () => {
 });
 
 /* ---------- État vide : éditeur sans aucun document ouvert ---------- */
+function editorHasNoOpenDocument() {
+  const canvas = document.querySelector('.editor-canvas');
+  return !currentDocId && !!canvas && canvas.classList.contains('is-empty');
+}
 function showEmptyState() {
   // Aucun document : le modèle ne doit contenir aucune clause « au contrat »
   // (sinon la bibliothèque afficherait un décompte trompeur).
@@ -1884,7 +1888,20 @@ function showEmptyState() {
   if (cs) cs.textContent = 'Aucun document ouvert';
   // RafraÃ®chit les panneaux aprÃ¨s la fermeture : sinon la bibliothÃ¨que
   // conserve le rendu du dernier document ouvert.
-  renderLibrary();
+  // Les références DOM des trois panneaux sont déclarées plus bas dans ce
+  // fichier : différer le rendu évite d'accéder à une variable encore en TDZ
+  // lors de l'ouverture initiale de editor.html.
+  setTimeout(() => {
+    const libTitle = document.querySelector('#view-library .library__title');
+    const adviceEyebrow = document.querySelector('#view-advice .library__eyebrow');
+    const adviceTitle = document.querySelector('#view-advice .library__title');
+    if (libTitle) libTitle.textContent = 'Clauses disponibles';
+    if (adviceEyebrow) adviceEyebrow.textContent = 'Conseils';
+    if (adviceTitle) adviceTitle.textContent = 'À faire';
+    renderLibrary();
+    renderFill();
+    renderAdvice();
+  }, 0);
 }
 function hideEmptyState() {
   const canvas = document.querySelector('.editor-canvas');
@@ -2972,8 +2989,7 @@ function jumpToClause(key) {
 }
 
 function renderLibrary() {
-  const editorCanvas = document.querySelector('.editor-canvas');
-  if (!currentDocId && editorCanvas && editorCanvas.classList.contains('is-empty')) {
+  if (editorHasNoOpenDocument()) {
     libraryCount.textContent = 'Aucun document ouvert';
     libraryList.innerHTML = '<p class="library__empty">Ouvrez ou créez un document pour afficher sa bibliothèque.</p>';
     return;
@@ -3259,6 +3275,13 @@ function _fillDraftKeys(ph) {
 }
 
 function renderFill() {
+  if (editorHasNoOpenDocument()) {
+    fillCount.textContent = 'Aucun document ouvert';
+    if (autofillWrap) autofillWrap.innerHTML = '';
+    if (fillNextWrap) fillNextWrap.innerHTML = '';
+    fillList.innerHTML = '<p class="library__empty">Ouvrez ou créez un document pour afficher les champs à remplir.</p>';
+    return;
+  }
   const ph = findPlaceholders();
   fillCount.textContent = ph.length
     ? `${ph.length} champ${ph.length > 1 ? 's' : ''} à compléter`
@@ -3649,6 +3672,11 @@ function findPlaceholders() {
 }
 
 function renderAdvice() {
+  if (editorHasNoOpenDocument()) {
+    adviceCount.textContent = 'Aucun document ouvert';
+    adviceList.innerHTML = '<p class="library__empty">Ouvrez ou créez un document pour afficher les points à vérifier.</p>';
+    return;
+  }
   if (isCustom) { renderDocAdvice(); return; }
 
   const toNegotiate = TERMSHEET
@@ -3881,6 +3909,7 @@ const libViews = {
 function showLibTab(which) {
   libTabs.forEach(t => t.classList.toggle('is-active', t.dataset.tab === which));
   Object.entries(libViews).forEach(([k, v]) => { v.hidden = k !== which; });
+  if (which === 'library') renderLibrary();
   if (which === 'advice') renderAdvice();
   if (which === 'fill')   renderFill();
 }
