@@ -667,7 +667,7 @@
     .drawer__mode-label { display:block; margin:0 0 8px 2px; color:rgba(255,255,255,0.62); font-family:'Archivo',sans-serif; font-size:10px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; }
     .drawer__mode-options { display:grid; grid-template-columns:1fr 1fr; gap:3px; padding:3px; border:1px solid rgba(255,255,255,0.12); border-radius:10px; background:rgba(255,255,255,0.04); }
     .drawer__mode-option { min-width:0; padding:8px 6px; border:0; border-radius:7px; background:transparent; color:rgba(255,255,255,0.58); font-family:'Libre Franklin',sans-serif; font-size:12px; font-weight:600; cursor:pointer; transition:background .15s,color .15s,box-shadow .15s; }
-    .drawer__mode-soon { display:block; margin-top:3px; color:#22c55e; font-family:'Archivo',sans-serif; font-size:8px; font-weight:800; letter-spacing:.07em; line-height:1; text-transform:uppercase; }
+    .drawer__mode-soon { display:block; width:max-content; margin:3px auto 0; padding:2px 6px; border-radius:99px; background:rgba(34,197,94,0.20); color:#22c55e; font-family:'Archivo',sans-serif; font-size:8px; font-weight:800; letter-spacing:.07em; line-height:1; text-transform:uppercase; }
     .drawer__mode-option.is-active .drawer__mode-soon { color:#16a34a; }
     .drawer__mode-option:hover { color:#fff; }
     .drawer__mode-option.is-active { background:#fff; color:#111318; box-shadow:0 1px 5px rgba(0,0,0,0.24); }
@@ -782,7 +782,9 @@
     .dash-metric__sub { font-size:13px; color:#6b6b78; margin-top:4px; }
     .classic-actions { display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 24px; }
     .classic-actions[hidden] { display:none !important; }
-    .raise-profile { background:#fff; color:#08090c; border:1px solid rgba(255,255,255,0.1); border-radius:14px; padding:18px; box-shadow:0 10px 26px rgba(0,0,0,0.22); margin:12px 0 24px; }
+    /* Profil de la levée (« Ma levée ») : reprend la chrome du bloc documents
+       (carte .folder--phase : bulle blanche, en-tête à liseré, ombre douce). */
+    .raise-profile { color:#08090c; margin:12px 0 24px; }
     .raise-profile__form { display:flex; flex-direction:column; gap:18px; }
     .raise-profile__grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:14px; }
     .raise-field { display:flex; flex-direction:column; gap:7px; min-width:0; }
@@ -3839,8 +3841,19 @@
     function fundraisingProfileEl() {
       const profile = normalizeFundraisingProfile(fundraisingProfile);
       const card = document.createElement('section');
-      card.className = 'raise-profile';
+      // Même habillage que le bloc « Documents » (carte .folder--phase) : en-tête
+      // à icône + titre + sous-titre, puis corps. On ne reprend que le style, le
+      // contenu reste le formulaire de profil de la levée.
+      card.className = 'raise-profile folder folder--phase open';
       card.innerHTML = `
+        <div class="folder__head" style="cursor:default">
+          <div class="folder__ic">🚀</div>
+          <div class="folder__main">
+            <div class="folder__name">Profil de la levée</div>
+            <div class="folder__count">Informations sur votre levée — facultatif</div>
+          </div>
+        </div>
+        <div class="folder__body" style="display:block">
         <form class="raise-profile__form" id="raise-profile-form">
           <div class="raise-profile__grid">
             <label class="raise-field">
@@ -3909,7 +3922,8 @@
             <span class="raise-profile__status" data-profile-status></span>
             <button class="documents-action-btn" type="submit">Enregistrer</button>
           </div>
-        </form>`;
+        </form>
+        </div>`;
 
       const form = card.querySelector('#raise-profile-form');
       const list = card.querySelector('.raise-founders__list');
