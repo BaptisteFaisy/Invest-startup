@@ -445,12 +445,12 @@
     .ip-grid th.is-leve { border-top-color: #3f9e6b; }
     .ip-grid th.is-intent { border-top-color: #6b8afd; }
     .ip-grid__lab { display: flex; align-items: flex-start; gap: 7px; }
-    .ip-grid__lab-t { flex: 1; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; color: #c4c8cf; line-height: 1.3; }
+    .ip-grid__lab-t { flex: 1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; color: #c4c8cf; line-height: 1.3; }
     .ip-grid th.is-leve .ip-grid__lab-t { color: #8fe0b3; }
     .ip-grid__count { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 800; color: #8b919b; background: #0f1013; border: 1px solid rgba(255,255,255,0.12); border-radius: 99px; padding: 1px 6px; flex: none; }
-    .ip-grid__amt { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 600; color: #8b919b; margin-top: 6px; min-height: 13px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .ip-grid__amt { overflow:hidden; text-overflow:ellipsis; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 600; color: #8b919b; margin-top: 6px; min-height: 13px; white-space: nowrap; font-variant-numeric: tabular-nums; }
     .ip-grid th.is-leve .ip-grid__amt { color: #5ec38c; }
-    .ip-grid td { vertical-align: middle; padding: 11px 10px; border-left: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.07); background:#101216; }
+    .ip-grid td { overflow:hidden; vertical-align: middle; padding: 11px 10px; border-left: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.07); background:#101216; }
     .ip-grid tbody tr:last-child td { border-bottom:0; }
     .ip-grid td:first-child { border-left: 0; }
     .ip-grid thead th { position:sticky; top:0; z-index:3; }
@@ -3686,10 +3686,10 @@
           : DEFAULT_COL_WIDTHS[key];
       }
       function columnLimits(key) {
-        if (key === 'investor') return [180, 420];
-        if (key === 'contact') return [160, 420];
-        if (key === 'amount') return [120, 260];
-        return [90, 260];
+        if (key === 'investor') return [24, 420];
+        if (key === 'contact') return [24, 420];
+        if (key === 'amount') return [24, 260];
+        return [20, 260];
       }
       function persistColumnWidths() {
         try { localStorage.setItem(COL_WIDTHS_STORE_KEY, JSON.stringify(columnWidths)); } catch {}
