@@ -31,8 +31,8 @@
     .app { height: auto; overflow: visible; display: block; }
     body, .app { background: var(--t-bg) !important; }
 
-    /* Topbar noir (identique aux autres pages du SaaS) */
-    .topbar { background: var(--t-topbar-bg) !important; border-bottom: 1px solid var(--t-topbar-border) !important; }
+    /* Topbar noir (identique aux autres pages du SaaS), toujours visible au défilement. */
+    .topbar { position: sticky; top: 0; z-index: 70; background: var(--t-topbar-bg) !important; border-bottom: 1px solid var(--t-topbar-border) !important; }
     .topbar .brand { color: var(--t-on-bg) !important; display: flex; align-items: center; gap: 8px; }
     .topbar .brand__plus { color: var(--t-on-bg) !important; }
     .topbar .brand__logo { display: block; flex: none; }
