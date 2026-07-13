@@ -427,53 +427,55 @@
     .ip-loading { color: #8b919b; font-size: 14px; padding: 18px 4px; }
     .ip-err { font-size: 14px; color: #f2b8b8; background: rgba(220,38,38,0.14); border: 1px solid rgba(220,38,38,0.32); border-radius: 12px; padding: 14px 16px; margin-top: 18px; line-height: 1.55; }
 
-    /* Barre d'outils : titre + sélecteur des colonnes (stades) à afficher. */
+    /* Barre d'outils du tableau. */
     .ip-toolbar { display: flex; align-items: center; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
     .ip-toolbar__title { font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 700; color: #fff; margin-right: auto; }
-    .ip-colpick { position: relative; }
-    .ip-colbtn { display: inline-flex; align-items: center; gap: 7px; font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; color: #c4c8cf; background: #181a1f; border: 1px solid rgba(255,255,255,0.14); border-radius: 10px; padding: 8px 13px; cursor: pointer; }
-    .ip-colbtn:hover { border-color: rgba(255,255,255,0.3); }
-    .ip-colbtn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .ip-colmenu { position: absolute; top: calc(100% + 6px); right: 0; z-index: 40; width: 258px; max-height: 340px; overflow-y: auto; background: #16181d; border: 1px solid rgba(255,255,255,0.14); border-radius: 12px; box-shadow: 0 18px 44px rgba(0,0,0,0.5); padding: 7px; display: none; }
-    .ip-colmenu.is-open { display: block; }
-    .ip-colmenu__row { display: flex; align-items: center; gap: 9px; padding: 8px 9px; border-radius: 8px; cursor: pointer; font-size: 13px; color: #d4d7dd; }
-    .ip-colmenu__row:hover { background: rgba(255,255,255,0.05); }
-    .ip-colmenu__row input { accent-color: var(--blue, #3b82f6); width: 15px; height: 15px; flex: none; }
-    .ip-colmenu__dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
 
-    /* Le tableau du pipeline : une colonne par stade, filets entre colonnes. */
-    .ip-grid-wrap { margin-top: 12px; overflow-x: auto; border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; }
-    table.ip-grid { border-collapse: collapse; width: 100%; table-layout: fixed; }
-    .ip-grid col { width: 178px; }
-    .ip-grid th { text-align: left; vertical-align: top; padding: 12px 12px 10px; background: #15161a; border-bottom: 1px solid rgba(255,255,255,0.1); border-left: 1px solid rgba(255,255,255,0.06); border-top: 2px solid #6b7078; }
+    /* Tableau du pipeline : une ligne par investisseur, puis une colonne par stade. */
+    .ip-grid-wrap { margin-top: 12px; overflow: auto; border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; }
+    table.ip-grid { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 1780px; table-layout: fixed; }
+    .ip-grid col.ip-col--investor { width: 240px; }
+    .ip-grid col.ip-col--contact { width: 220px; }
+    .ip-grid col.ip-col--amount { width: 145px; }
+    .ip-grid col.ip-col--stage { width: 118px; }
+    .ip-grid th { text-align: left; vertical-align: top; padding: 12px 10px; background: #15161a; border-bottom: 1px solid rgba(255,255,255,0.1); border-left: 1px solid rgba(255,255,255,0.06); border-top: 2px solid #6b7078; }
     .ip-grid th:first-child { border-left: 0; }
     .ip-grid th.is-leve { border-top-color: #3f9e6b; }
     .ip-grid th.is-intent { border-top-color: #6b8afd; }
     .ip-grid__lab { display: flex; align-items: flex-start; gap: 7px; }
-    .ip-grid__lab-t { flex: 1; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; color: #c4c8cf; line-height: 1.3; }
+    .ip-grid__lab-t { flex: 1; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; color: #c4c8cf; line-height: 1.3; }
     .ip-grid th.is-leve .ip-grid__lab-t { color: #8fe0b3; }
-    .ip-grid__count { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 800; color: #8b919b; background: #0f1013; border: 1px solid rgba(255,255,255,0.12); border-radius: 99px; padding: 1px 7px; flex: none; }
-    .ip-grid__amt { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 600; color: #8b919b; margin-top: 7px; min-height: 13px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .ip-grid__count { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 800; color: #8b919b; background: #0f1013; border: 1px solid rgba(255,255,255,0.12); border-radius: 99px; padding: 1px 6px; flex: none; }
+    .ip-grid__amt { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 600; color: #8b919b; margin-top: 6px; min-height: 13px; white-space: nowrap; font-variant-numeric: tabular-nums; }
     .ip-grid th.is-leve .ip-grid__amt { color: #5ec38c; }
-    .ip-grid td { vertical-align: top; padding: 8px; border-left: 1px solid rgba(255,255,255,0.06); transition: background .12s; }
+    .ip-grid td { vertical-align: middle; padding: 11px 10px; border-left: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.07); background:#101216; }
+    .ip-grid tbody tr:last-child td { border-bottom:0; }
     .ip-grid td:first-child { border-left: 0; }
-    .ip-grid td.is-drop { background: rgba(59,130,246,0.1); }
-    .ip-gcard { background: #101216; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 9px 10px; margin-bottom: 7px; cursor: grab; }
-    .ip-gcard:last-child { margin-bottom: 0; }
-    .ip-gcard:active { cursor: grabbing; }
-    .ip-gcard.is-dragging { opacity: .4; }
-    .ip-gcard__top { display: flex; align-items: flex-start; gap: 8px; }
-    .ip-gcard__name { flex: 1; font-size: 12.5px; font-weight: 700; color: #eef0f3; overflow-wrap: anywhere; }
-    .ip-gcard__firm { font-size: 11px; color: #8b919b; margin-top: 1px; overflow-wrap: anywhere; }
-    .ip-gcard__amt { font-family: 'Archivo', sans-serif; font-size: 11.5px; font-weight: 700; color: #c4c8cf; margin-top: 7px; font-variant-numeric: tabular-nums; }
-    .ip-gcard__meta { font-size: 11px; color: #8b919b; margin-top: 6px; line-height: 1.45; overflow-wrap: anywhere; }
-    .ip-gcard__notes { font-size: 11px; color: #8b919b; margin-top: 7px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 6px; }
-    .ip-gcard__foot { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
-    .ip-gcard__move { flex: 1; min-width: 0; font-size: 11px; padding: 5px 6px; border-radius: 7px; background: #0f1013; border: 1px solid rgba(255,255,255,0.14); color: #d4d7dd; }
-    .ip-gcard__del { flex: none; width: 24px; height: 24px; display: grid; place-items: center; border: 0; background: transparent; color: #6b7078; cursor: pointer; border-radius: 7px; }
-    .ip-gcard__del:hover { background: rgba(220,38,38,0.14); color: #f2a4a4; }
-    .ip-gcard__del svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .ip-gcol-empty { font-size: 11px; color: #565b64; text-align: center; padding: 12px 6px; border: 1px dashed rgba(255,255,255,0.1); border-radius: 9px; }
+    .ip-grid thead th { position:sticky; top:0; z-index:3; }
+    .ip-grid th:nth-child(1), .ip-grid td:nth-child(1) { position:sticky; left:0; z-index:2; }
+    .ip-grid th:nth-child(2), .ip-grid td:nth-child(2) { position:sticky; left:240px; z-index:2; }
+    .ip-grid th:nth-child(3), .ip-grid td:nth-child(3) { position:sticky; left:460px; z-index:2; box-shadow:5px 0 10px rgba(15,23,42,.06); }
+    .ip-grid thead th:nth-child(-n+3) { z-index:4; }
+    .ip-investor__top { display:flex; align-items:flex-start; gap:8px; }
+    .ip-investor__main { flex:1; min-width:0; }
+    .ip-investor__name { color:#eef0f3; font-size:13px; font-weight:800; overflow-wrap:anywhere; }
+    .ip-investor__firm { margin-top:2px; color:#8b919b; font-size:11.5px; overflow-wrap:anywhere; }
+    .ip-investor__type { display:inline-flex; margin-top:7px; padding:3px 8px; border-radius:99px; color:#16a34a; background:#e7f6ec; font:800 9.5px/1.2 'Archivo',sans-serif; letter-spacing:.04em; text-transform:uppercase; }
+    .ip-investor__actions { flex:none; display:flex; gap:3px; }
+    .ip-row-action { width:26px; height:26px; display:grid; place-items:center; border:0; border-radius:7px; background:transparent; color:#8b919b; cursor:pointer; }
+    .ip-row-action:hover { background:rgba(255,255,255,.08); color:#eef0f3; }
+    .ip-row-action--delete:hover { background:rgba(220,38,38,.14); color:#f2a4a4; }
+    .ip-row-action svg { width:14px; height:14px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .ip-contact__line { display:block; color:#c4c8cf; font-size:11.5px; line-height:1.5; overflow-wrap:anywhere; text-decoration:none; }
+    a.ip-contact__line:hover { text-decoration:underline; }
+    .ip-cell-empty { color:#6b7078; font-size:11.5px; }
+    .ip-ticket { color:#eef0f3; font:800 12.5px/1.3 'Archivo',sans-serif; font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .ip-stage-cell { text-align:center; padding:8px 6px !important; }
+    .ip-stage-btn { width:100%; min-height:38px; display:grid; place-items:center; border:1px solid transparent; border-radius:9px; background:transparent; color:#9ca3af; cursor:pointer; }
+    .ip-stage-btn:hover { background:#f3f4f6; color:#374151; }
+    .ip-stage-btn.is-active { background:#e7f6ec; border-color:#bbebca; color:#16a34a; }
+    .ip-stage-btn__mark { width:12px; height:12px; border:2px solid currentColor; border-radius:50%; }
+    .ip-stage-btn.is-active .ip-stage-btn__mark { border-width:4px; }
     .ip-grid-empty { margin-top: 12px; color: #8b919b; font-size: 14px; padding: 24px; text-align: center; border: 1px dashed rgba(255,255,255,0.14); border-radius: 14px; background: #16181d; }
 
     /* Pied de tableau : totaux par palier. */
@@ -490,26 +492,16 @@
     .ip-addbtn { display:inline-flex; align-items:center; gap:8px; padding:10px 16px; border:1px solid transparent; border-radius:10px; background:#e7f6ec; color:#16a34a; font-family:'Archivo',sans-serif; font-size:13.5px; font-weight:700; cursor:pointer; box-shadow:0 2px 8px rgba(22,163,74,.16); }
     .ip-addbtn:hover { background:#d8f0e0; }
     .ip-addbtn svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; }
-    .ip-colbtn { color:#374151; background:#fff; border-color:#d1d5db; }
-    .ip-colbtn:hover { border-color:#9ca3af; }
-    .ip-colmenu { background:#fff; border-color:#d1d5db; box-shadow:0 18px 44px rgba(15,23,42,.18); }
-    .ip-colmenu__row { color:#374151; }
-    .ip-colmenu__row:hover { background:#f3f4f6; }
     .ip-grid-wrap { background:#fff; border-color:#e5e7eb; }
     .ip-grid th { background:#f8fafc; border-bottom-color:#e5e7eb; border-left-color:#e5e7eb; }
     .ip-grid__lab-t { color:#374151; }
     .ip-grid__count { color:#6b7280; background:#fff; border-color:#d1d5db; }
     .ip-grid__amt { color:#6b7280; }
-    .ip-grid td { background:#fff; border-left-color:#e5e7eb; }
-    .ip-grid td.is-drop { background:#eff6ff; }
-    .ip-gcard { background:#fff; border-color:#dfe3e8; box-shadow:0 1px 3px rgba(15,23,42,.06); }
-    .ip-gcard__name { color:#111827; }
-    .ip-gcard__firm, .ip-gcard__meta, .ip-gcard__notes { color:#6b7280; }
-    .ip-gcard__amt { color:#374151; }
-    .ip-gcard__notes { border-top-color:#e5e7eb; }
-    .ip-gcard__move { background:#fff; border-color:#d1d5db; color:#374151; }
-    .ip-gcard__del { color:#9ca3af; }
-    .ip-gcol-empty { color:#9ca3af; border-color:#d1d5db; }
+    .ip-grid td { background:#fff; border-left-color:#e5e7eb; border-bottom-color:#e5e7eb; }
+    .ip-investor__name, .ip-ticket { color:#111827; }
+    .ip-investor__firm, .ip-contact__line { color:#6b7280; }
+    .ip-row-action { color:#9ca3af; }
+    .ip-row-action:hover { background:#f3f4f6; color:#374151; }
     .ip-grid-empty { color:#6b7280; background:#fff; border-color:#d1d5db; }
 
     /* Le formulaire est une modale, ouverte uniquement depuis le bouton d'ajout. */
@@ -3387,8 +3379,17 @@
       { key: 'contrats_signes',                     label: 'Contrats signés',                               dot: '#16a34a' },
       { key: 'gouvernance',                         label: 'Gouvernance',                                     dot: '#15803d' },
     ];
+    const INV_TYPES = [
+      { key: 'ba', label: 'BA' },
+      { key: 'vc', label: 'VC' },
+      { key: 'love_money', label: 'Love money' },
+    ];
     const invMoney = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
     function invFmtAmount(n) { return n == null ? null : invMoney.format(n); }
+    function invTypeLabel(type) {
+      const item = INV_TYPES.find(x => x.key === type);
+      return item ? item.label : 'Non renseigné';
+    }
 
     // Paliers de suivi (vocabulaire fondateur) :
     //  · « levé »        = argent sécurisé, à partir des contrats signés ;
@@ -3513,6 +3514,12 @@
       select.value = value;
     }
 
+    function invFillTypeSelect(select, value) {
+      select.innerHTML = '<option value="">Type d’investisseur</option>'
+        + INV_TYPES.map(t => `<option value="${t.key}">${esc(t.label)}</option>`).join('');
+      select.value = value || '';
+    }
+
     function investorSectionEl() {
       const root = document.createElement('section');
       root.className = 'ip-root';
@@ -3556,7 +3563,7 @@
                 <div class="ip-form__grid">
                   <input data-in="name" type="text" placeholder="Nom de l'investisseur *" maxlength="200" autocomplete="off" required />
                   <input data-in="firm" type="text" placeholder="Fonds / structure" maxlength="200" autocomplete="off" />
-                  <select data-in="stage" aria-label="Stade initial"></select>
+                  <select data-in="investor_type" aria-label="Type d'investisseur" required></select>
                 </div>
                 <div class="ip-form__grid2">
                   <input data-in="email" type="email" placeholder="Email" maxlength="200" autocomplete="off" />
@@ -3564,6 +3571,7 @@
                   <input data-in="amount" type="number" min="0" step="1000" placeholder="Ticket envisagé (€)" />
                 </div>
                 <div class="ip-form__grid2">
+                  <select data-in="stage" aria-label="Stade"></select>
                   <textarea data-in="notes" placeholder="Notes (contexte, prochaine étape…)" maxlength="2000"></textarea>
                 </div>
                 <div class="ip-form__foot">
@@ -3575,14 +3583,7 @@
             </div>
           </div>
           <div class="ip-toolbar" data-el="toolbar" hidden>
-            <div class="ip-toolbar__title">Suivi de l'entonnoir</div>
-            <div class="ip-colpick">
-              <button type="button" class="ip-colbtn" data-el="colbtn" aria-haspopup="true" aria-expanded="false">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="16" rx="1"/><rect x="17" y="4" width="4" height="16" rx="1"/></svg>
-                Colonnes<span data-el="colcount"></span>
-              </button>
-              <div class="ip-colmenu" data-el="colmenu" role="menu"></div>
-            </div>
+            <div class="ip-toolbar__title">Suivi du pipeline — cliquez sur une étape pour faire avancer un investisseur</div>
           </div>
           <div class="ip-loading" data-el="loading">Chargement…</div>
           <div class="ip-err" data-el="error" hidden></div>
@@ -3606,17 +3607,35 @@
       const errorEl   = root.querySelector('[data-el="error"]');
       const boardEl   = root.querySelector('[data-el="board"]');
       const toolbarEl = root.querySelector('[data-el="toolbar"]');
-      const colBtn    = root.querySelector('[data-el="colbtn"]');
-      const colMenu   = root.querySelector('[data-el="colmenu"]');
-      const colCount  = root.querySelector('[data-el="colcount"]');
       const footEl    = root.querySelector('[data-el="foot"]');
       const formEl    = root.querySelector('[data-el="form"]');
       const modalEl   = root.querySelector('[data-el="modal"]');
       const openFormBtn = root.querySelector('[data-el="open-form"]');
       const stageSelect = root.querySelector('[data-in="stage"]');
+      const typeSelect = root.querySelector('[data-in="investor_type"]');
       invFillStageSelect(stageSelect, 'a_contacter');
+      invFillTypeSelect(typeSelect, '');
+      let editingInvestorId = null;
 
-      function openInvestorForm() {
+      function setFormValue(key, value) {
+        const field = root.querySelector('[data-in="' + key + '"]');
+        if (field) field.value = value == null ? '' : String(value);
+      }
+      function openInvestorForm(inv) {
+        editingInvestorId = inv ? inv.id : null;
+        setFormValue('name', inv && inv.name);
+        setFormValue('firm', inv && inv.firm);
+        setFormValue('investor_type', inv && inv.investor_type);
+        setFormValue('email', inv && inv.email);
+        setFormValue('phone', inv && inv.phone);
+        setFormValue('amount', inv && inv.amount);
+        setFormValue('stage', (inv && inv.stage) || 'a_contacter');
+        setFormValue('notes', inv && inv.notes);
+        root.querySelector('#ip-modal-title').textContent = inv ? 'Modifier un investisseur' : 'Ajouter un investisseur';
+        root.querySelector('.ip-modal__desc').textContent = inv
+          ? 'Modifiez les informations de cette ligne et son avancement.'
+          : 'Renseignez ses coordonnées et positionnez-le dans votre pipeline.';
+        root.querySelector('.ip-form__add').textContent = inv ? 'Enregistrer les modifications' : "Ajouter l’investisseur";
         modalEl.hidden = false;
         document.body.classList.add('ip-modal-open');
         requestAnimationFrame(() => root.querySelector('[data-in="name"]').focus());
@@ -3626,7 +3645,7 @@
         document.body.classList.remove('ip-modal-open');
         openFormBtn.focus();
       }
-      openFormBtn.addEventListener('click', openInvestorForm);
+      openFormBtn.addEventListener('click', () => openInvestorForm(null));
       root.querySelector('[data-el="close-form"]').addEventListener('click', closeInvestorForm);
       root.querySelector('[data-el="cancel-form"]').addEventListener('click', closeInvestorForm);
       root.querySelector('[data-el="modal-backdrop"]').addEventListener('click', closeInvestorForm);
@@ -3634,154 +3653,34 @@
         if (e.key === 'Escape') closeInvestorForm();
       });
 
-      let dragId = null;            // id de la carte en cours de déplacement
-
-      // Colonnes (stades) masquées par l'utilisateur, mémorisées localement.
-      const COLS_STORE_KEY = 'liquid_inv_hidden_stages';
-      let hiddenStages = new Set();
-      try {
-        const raw = JSON.parse(localStorage.getItem(COLS_STORE_KEY) || '[]');
-        if (Array.isArray(raw)) hiddenStages = new Set(raw.filter(k => INV_STAGES.some(s => s.key === k)));
-      } catch {}
-      function persistHiddenStages() {
-        try { localStorage.setItem(COLS_STORE_KEY, JSON.stringify([...hiddenStages])); } catch {}
-      }
-      function visibleStages() {
-        return INV_STAGES.filter(s => !hiddenStages.has(s.key));
-      }
-
-      // Menu de sélection des colonnes : une case à cocher par stade.
-      function buildColMenu() {
-        colMenu.innerHTML = '';
-        INV_STAGES.forEach(stage => {
-          const row = document.createElement('label');
-          row.className = 'ip-colmenu__row';
-          const cb = document.createElement('input');
-          cb.type = 'checkbox';
-          cb.checked = !hiddenStages.has(stage.key);
-          cb.addEventListener('change', () => {
-            if (cb.checked) hiddenStages.delete(stage.key);
-            else hiddenStages.add(stage.key);
-            // Garder au moins une colonne visible.
-            if (!visibleStages().length) { hiddenStages.delete(stage.key); cb.checked = true; return; }
-            persistHiddenStages();
-            render();
-          });
-          const dot = document.createElement('span');
-          dot.className = 'ip-colmenu__dot';
-          dot.style.background = invTierColor(invTier(stage.key));
-          const txt = document.createElement('span');
-          txt.textContent = stage.label;
-          row.append(cb, dot, txt);
-          colMenu.appendChild(row);
-        });
-      }
-      buildColMenu();
-
-      // Ouverture / fermeture du menu de colonnes.
-      function onDocClickCol(e) {
-        if (!colMenu.contains(e.target) && !colBtn.contains(e.target)) {
-          colMenu.classList.remove('is-open');
-          colBtn.setAttribute('aria-expanded', 'false');
-          document.removeEventListener('click', onDocClickCol, true);
-        }
-      }
-      colBtn.addEventListener('click', () => {
-        const open = colMenu.classList.toggle('is-open');
-        colBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-        if (open) document.addEventListener('click', onDocClickCol, true);
-        else document.removeEventListener('click', onDocClickCol, true);
-      });
-
-      // Carte d'un investisseur dans le tableau (déplaçable entre colonnes).
-      function invBoardCard(inv) {
-        const card = document.createElement('div');
-        card.className = 'ip-gcard';
-        card.dataset.id = inv.id;
-        card.draggable = true;
-
-        const top = document.createElement('div');
-        top.className = 'ip-gcard__top';
-        const name = document.createElement('div');
-        name.className = 'ip-gcard__name';
-        name.textContent = inv.name;
-        top.appendChild(name);
-        const del = document.createElement('button');
-        del.type = 'button';
-        del.className = 'ip-gcard__del';
-        del.setAttribute('aria-label', 'Supprimer ' + inv.name);
-        del.title = 'Supprimer';
-        del.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1 -2 2H8a2 2 0 0 1 -2 -2L5 6"/></svg>';
-        del.addEventListener('click', () => deleteInvestor(inv.id));
-        del.addEventListener('pointerdown', e => e.stopPropagation());
-        top.appendChild(del);
-        card.appendChild(top);
-
-        if (inv.firm) {
-          const firm = document.createElement('div');
-          firm.className = 'ip-gcard__firm';
-          firm.textContent = inv.firm;
-          card.appendChild(firm);
-        }
-        if (inv.amount) {
-          const amount = document.createElement('div');
-          amount.className = 'ip-gcard__amt';
-          amount.textContent = invFmtAmount(inv.amount);
-          card.appendChild(amount);
-        }
-        if (inv.email || inv.phone) {
-          const meta = document.createElement('div');
-          meta.className = 'ip-gcard__meta';
-          meta.textContent = [inv.email, inv.phone].filter(Boolean).join(' · ');
-          card.appendChild(meta);
-        }
-        if (inv.notes) {
-          const notes = document.createElement('div');
-          notes.className = 'ip-gcard__notes';
-          notes.textContent = inv.notes;
-          card.appendChild(notes);
-        }
-
-        const foot = document.createElement('div');
-        foot.className = 'ip-gcard__foot';
-        const select = document.createElement('select');
-        select.className = 'ip-gcard__move';
-        select.setAttribute('aria-label', 'Déplacer ' + inv.name + ' vers un autre stade');
-        invFillStageSelect(select, inv.stage);
-        select.addEventListener('change', () => moveStage(inv.id, select.value));
-        // Évite de démarrer un glisser-déposer en ouvrant le menu.
-        select.addEventListener('pointerdown', e => e.stopPropagation());
-        foot.appendChild(select);
-        card.appendChild(foot);
-
-        card.addEventListener('dragstart', (e) => {
-          dragId = inv.id;
-          card.classList.add('is-dragging');
-          if (e.dataTransfer) { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(inv.id)); }
-        });
-        card.addEventListener('dragend', () => {
-          dragId = null;
-          card.classList.remove('is-dragging');
-          boardEl.querySelectorAll('.is-drop').forEach(c => c.classList.remove('is-drop'));
-        });
-        return card;
-      }
-
-      // Tableau du pipeline : une colonne par stade visible, cartes déplaçables.
-      function renderBoard(byStage, counts, amounts) {
+      // Tableau du pipeline : une ligne éditable par investisseur.
+      function renderBoard(counts, amounts) {
         boardEl.innerHTML = '';
         boardEl.classList.add('ip-grid-wrap');
-        const stages = visibleStages();
         const table = document.createElement('table');
         table.className = 'ip-grid';
 
         const colgroup = document.createElement('colgroup');
-        stages.forEach(() => colgroup.appendChild(document.createElement('col')));
+        ['investor', 'contact', 'amount'].forEach(kind => {
+          const col = document.createElement('col');
+          col.className = 'ip-col--' + kind;
+          colgroup.appendChild(col);
+        });
+        INV_STAGES.forEach(() => {
+          const col = document.createElement('col');
+          col.className = 'ip-col--stage';
+          colgroup.appendChild(col);
+        });
         table.appendChild(colgroup);
 
         const thead = document.createElement('thead');
         const htr = document.createElement('tr');
-        stages.forEach(stage => {
+        ['Investisseur / type', 'Contact', 'Ticket envisagé'].forEach(label => {
+          const th = document.createElement('th');
+          th.innerHTML = '<span class="ip-grid__lab-t">' + esc(label) + '</span>';
+          htr.appendChild(th);
+        });
+        INV_STAGES.forEach(stage => {
           const tier = invTier(stage.key);
           const th = document.createElement('th');
           if (tier === 'leve') th.classList.add('is-leve');
@@ -3806,37 +3705,66 @@
         table.appendChild(thead);
 
         const tbody = document.createElement('tbody');
-        const btr = document.createElement('tr');
-        stages.forEach(stage => {
-          const td = document.createElement('td');
-          td.dataset.stage = stage.key;
-          const list = byStage[stage.key] || [];
-          if (!list.length) {
-            const empty = document.createElement('div');
-            empty.className = 'ip-gcol-empty';
-            empty.textContent = 'Déposez ici';
-            td.appendChild(empty);
-          } else {
-            list.forEach(inv => td.appendChild(invBoardCard(inv)));
-          }
-          td.addEventListener('dragover', (e) => {
-            if (dragId == null) return;
-            e.preventDefault();
-            if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
-            td.classList.add('is-drop');
+        invPipeline.forEach(inv => {
+          const tr = document.createElement('tr');
+          tr.dataset.id = inv.id;
+
+          const identity = document.createElement('td');
+          identity.innerHTML = '<div class="ip-investor__top"><div class="ip-investor__main">'
+            + '<div class="ip-investor__name">' + esc(inv.name) + '</div>'
+            + (inv.firm ? '<div class="ip-investor__firm">' + esc(inv.firm) + '</div>' : '')
+            + '<span class="ip-investor__type">' + esc(invTypeLabel(inv.investor_type)) + '</span></div>'
+            + '<div class="ip-investor__actions"></div></div>';
+          const actions = identity.querySelector('.ip-investor__actions');
+          const edit = document.createElement('button');
+          edit.type = 'button'; edit.className = 'ip-row-action'; edit.title = 'Modifier';
+          edit.setAttribute('aria-label', 'Modifier ' + inv.name);
+          edit.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+          edit.addEventListener('click', () => openInvestorForm(inv));
+          const del = document.createElement('button');
+          del.type = 'button'; del.className = 'ip-row-action ip-row-action--delete'; del.title = 'Supprimer';
+          del.setAttribute('aria-label', 'Supprimer ' + inv.name);
+          del.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>';
+          del.addEventListener('click', () => deleteInvestor(inv.id));
+          actions.append(edit, del);
+          tr.appendChild(identity);
+
+          const contact = document.createElement('td');
+          if (inv.email) contact.innerHTML += '<a class="ip-contact__line" href="mailto:' + esc(inv.email) + '">' + esc(inv.email) + '</a>';
+          if (inv.phone) contact.innerHTML += '<a class="ip-contact__line" href="tel:' + esc(inv.phone) + '">' + esc(inv.phone) + '</a>';
+          if (!inv.email && !inv.phone) contact.innerHTML = '<span class="ip-cell-empty">Non renseigné</span>';
+          tr.appendChild(contact);
+
+          const ticket = document.createElement('td');
+          ticket.innerHTML = inv.amount
+            ? '<span class="ip-ticket">' + esc(invFmtAmount(inv.amount)) + '</span>'
+            : '<span class="ip-cell-empty">Non renseigné</span>';
+          tr.appendChild(ticket);
+
+          INV_STAGES.forEach(stage => {
+            const td = document.createElement('td');
+            td.className = 'ip-stage-cell';
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'ip-stage-btn' + (inv.stage === stage.key ? ' is-active' : '');
+            button.title = 'Placer ' + inv.name + ' à l’étape « ' + stage.label + ' »';
+            button.setAttribute('aria-label', button.title);
+            button.setAttribute('aria-pressed', inv.stage === stage.key ? 'true' : 'false');
+            button.innerHTML = '<span class="ip-stage-btn__mark"></span>';
+            button.addEventListener('click', () => moveStage(inv.id, stage.key));
+            td.appendChild(button);
+            tr.appendChild(td);
           });
-          td.addEventListener('dragleave', (e) => {
-            if (!td.contains(e.relatedTarget)) td.classList.remove('is-drop');
-          });
-          td.addEventListener('drop', (e) => {
-            e.preventDefault();
-            td.classList.remove('is-drop');
-            const id = dragId != null ? dragId : Number(e.dataTransfer?.getData('text/plain'));
-            if (id != null && !Number.isNaN(id)) moveStage(id, stage.key);
-          });
-          btr.appendChild(td);
+          tbody.appendChild(tr);
         });
-        tbody.appendChild(btr);
+        if (!invPipeline.length) {
+          const tr = document.createElement('tr');
+          const td = document.createElement('td');
+          td.colSpan = 3 + INV_STAGES.length;
+          td.className = 'ip-grid-empty';
+          td.textContent = 'Aucun investisseur dans le pipeline. Ajoutez votre premier investisseur pour démarrer.';
+          tr.appendChild(td); tbody.appendChild(tr);
+        }
         table.appendChild(tbody);
         boardEl.appendChild(table);
       }
@@ -3847,28 +3775,24 @@
         let totalAmount = 0;
         const counts = {};
         const stageAmounts = {};
-        const byStage = {};
 
         invPipeline.forEach(inv => {
           const amt = inv.amount || 0;
           totalAmount += amt;
           counts[inv.stage] = (counts[inv.stage] || 0) + 1;
           stageAmounts[inv.stage] = (stageAmounts[inv.stage] || 0) + amt;
-          (byStage[inv.stage] = byStage[inv.stage] || []).push(inv);
           const tier = invTier(inv.stage);
           if (tier === 'leve') { leveAmount += amt; intentAmount += amt; }
           else if (tier === 'intentionne') { intentAmount += amt; }
         });
 
-        renderBoard(byStage, counts, stageAmounts);
+        renderBoard(counts, stageAmounts);
         boardEl.hidden = false;
 
         root.querySelector('[data-stat="count"]').textContent = String(invPipeline.length);
         root.querySelector('[data-stat="leve-amount"]').textContent = leveAmount ? invFmtAmount(leveAmount) : '—';
         root.querySelector('[data-stat="intent-amount"]').textContent = intentAmount ? invFmtAmount(intentAmount) : '—';
         root.querySelector('[data-stat="total-amount"]').textContent = totalAmount ? invFmtAmount(totalAmount) : '—';
-
-        colCount.textContent = ' · ' + visibleStages().length + '/' + INV_STAGES.length;
 
         footEl.innerHTML = invPipeline.length
           ? '<span>' + invPipeline.length + ' investisseur' + (invPipeline.length > 1 ? 's' : '') + '</span>'
@@ -3922,23 +3846,28 @@
         const name = val('name').trim();
         if (!name) return;
         try {
-          const { investor } = await invApi('/api/saas/investors', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              name, firm: val('firm').trim(), stage: val('stage'),
-              email: val('email').trim(), phone: val('phone').trim(),
-              amount: val('amount') ? Number(val('amount')) : null,
-              notes: val('notes').trim(),
-            }),
+          const payload = {
+            name, firm: val('firm').trim(), investor_type: val('investor_type'), stage: val('stage'),
+            email: val('email').trim(), phone: val('phone').trim(),
+            amount: val('amount') ? Number(val('amount')) : null,
+            notes: val('notes').trim(),
+          };
+          const editing = editingInvestorId != null;
+          const data = await invApi(editing ? '/api/saas/investors/' + editingInvestorId : '/api/saas/investors', {
+            method: editing ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
           });
-          invPipeline.push(investor);
+          if (editing) {
+            const idx = invPipeline.findIndex(x => x.id === editingInvestorId);
+            if (idx >= 0) invPipeline[idx] = data.investor || Object.assign({}, invPipeline[idx], payload);
+          } else {
+            invPipeline.push(data.investor);
+          }
           render();
-          ['name', 'firm', 'email', 'phone', 'amount', 'notes'].forEach(k => { root.querySelector('[data-in="' + k + '"]').value = ''; });
-          stageSelect.value = 'a_contacter';
           closeInvestorForm();
         } catch (err) {
           errEl.hidden = false;
-          errEl.textContent = err.message || "Impossible d'ajouter l'investisseur.";
+          errEl.textContent = err.message || "Impossible d'enregistrer l'investisseur.";
         }
       });
 

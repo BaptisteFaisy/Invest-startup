@@ -3528,6 +3528,7 @@ const INVESTOR_STAGES = [
   'contrats_signes',
   'gouvernance',
 ];
+const INVESTOR_TYPES = ['ba', 'vc', 'love_money'];
 const LEGACY_INVESTOR_STAGES = {
   due_diligence: 'due_diligence_preliminaire',
   negociation: 'lettre_intention_negociation',
@@ -3553,6 +3554,7 @@ app.post('/api/saas/investors', requireAuth, async (req, res) => {
   const name = (req.body?.name || '').trim().slice(0, 200);
   if (!name) return res.status(400).json({ error: "Nom de l'investisseur requis" });
   const firm    = (req.body?.firm || '').toString().trim().slice(0, 200);
+  const investorType = INVESTOR_TYPES.includes(req.body?.investor_type) ? req.body.investor_type : null;
   const email   = (req.body?.email || '').toString().trim().slice(0, 200);
   const phone   = (req.body?.phone || '').toString().trim().slice(0, 60);
   const notes   = (req.body?.notes || '').toString().trim().slice(0, 2000);
@@ -3563,7 +3565,7 @@ app.post('/api/saas/investors', requireAuth, async (req, res) => {
   const id   = await nextId('saas_investors');
   const last = await col('saas_investors').findOne({ user_id: req.user.id }, { sort: { order: -1 }, projection: { order: 1 } });
   const investor = {
-    id, user_id: req.user.id, name, firm, email, phone, amount, stage, notes,
+    id, user_id: req.user.id, name, firm, investor_type: investorType, email, phone, amount, stage, notes,
     order: (last?.order ?? -1) + 1, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
   };
   await col('saas_investors').insertOne(investor);
@@ -3585,6 +3587,10 @@ app.put('/api/saas/investors/:id', requireAuth, async (req, res) => {
     set.name = name;
   }
   if ('firm' in body)  set.firm  = (body.firm || '').toString().trim().slice(0, 200);
+  if ('investor_type' in body) {
+    if (INVESTOR_TYPES.includes(body.investor_type)) set.investor_type = body.investor_type;
+    else unset.investor_type = '';
+  }
   if ('email' in body) set.email = (body.email || '').toString().trim().slice(0, 200);
   if ('phone' in body) set.phone = (body.phone || '').toString().trim().slice(0, 60);
   if ('notes' in body) set.notes = (body.notes || '').toString().trim().slice(0, 2000);
@@ -3601,7 +3607,8 @@ app.put('/api/saas/investors/:id', requireAuth, async (req, res) => {
     if (Object.keys(unset).length) update.$unset = unset;
     await col('saas_investors').updateOne({ id, user_id: req.user.id }, update);
   }
-  res.json({ success: true });
+  const saved = await col('saas_investors').findOne({ id, user_id: req.user.id });
+  res.json({ success: true, investor: publicInvestor(saved) });
 });
 
 app.delete('/api/saas/investors/:id', requireAuth, async (req, res) => {
