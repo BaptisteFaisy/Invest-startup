@@ -1865,6 +1865,172 @@ if (emptyImportBtn) emptyImportBtn.addEventListener('click', () => {
   if (b) b.click();
 });
 
+/* ---------- « Générer un modèle » : galerie des modèles Liquid+ ------------- */
+// Catalogue des modèles proposés (fichiers ressources/modeles/<slug>.html),
+// regroupés par phase de la levée. La galerie offre une recherche car la liste
+// est longue.
+const TEMPLATE_CATALOG = [
+  { group: 'Mise en ordre juridique', items: [
+    { slug: 'support-de-presentation-deck-investisseurs', label: 'Support de présentation (deck investisseurs)' },
+    { slug: 'statuts-a-jour', label: 'Statuts à jour' },
+    { slug: 'table-de-capitalisation-cap-table', label: 'Table de capitalisation (cap table)' },
+    { slug: 'registre-des-mouvements-de-titres', label: 'Registre des mouvements de titres' },
+    { slug: 'registre-des-beneficiaires-effectifs-rbe', label: 'Registre des bénéficiaires effectifs (RBE)' },
+    { slug: 'cessions-de-propriete-intellectuelle-depots-marques-brevets', label: 'Cessions de propriété intellectuelle (marques, brevets)' },
+    { slug: 'contrats-de-travail-bspce-bsa-management-package', label: 'Contrats de travail / BSPCE (management package)' },
+  ]},
+  { group: 'Confidentialité', items: [
+    { slug: 'accord-de-confidentialite-nda', label: 'Accord de confidentialité (NDA)' },
+    { slug: 'engagement-de-confidentialite-d-acces-a-la-data-room', label: 'Engagement de confidentialité — accès data room' },
+  ]},
+  { group: 'Term sheet', items: [
+    { slug: 'term-sheet-lettre-d-intention', label: "Term sheet / lettre d'intention" },
+    { slug: 'clause-d-exclusivite-de-negociation', label: "Clause d'exclusivité de négociation" },
+  ]},
+  { group: 'Due diligence', items: [
+    { slug: 'questionnaire-de-due-diligence-reponses', label: 'Questionnaire de due diligence (réponses)' },
+    { slug: 'etat-des-contentieux-et-litiges-en-cours', label: 'État des contentieux et litiges en cours' },
+    { slug: 'rapport-d-audit-juridique', label: "Rapport d'audit juridique" },
+  ]},
+  { group: "Documentation de l'opération", items: [
+    { slug: 'pacte-d-associes-shareholders-agreement', label: "Pacte d'associés (shareholders agreement)" },
+    { slug: 'statuts-modifies-actions-de-preference', label: 'Statuts modifiés (actions de préférence)' },
+    { slug: 'contrat-bulletin-de-souscription', label: 'Contrat / bulletin de souscription' },
+    { slug: 'declarations-garanties-r-w-integrees-au-pacte', label: 'Déclarations & garanties (R&W)' },
+    { slug: 'termes-des-valeurs-mobilieres-emises-adp-bsa-oc', label: 'Termes des valeurs mobilières émises (ADP, BSA, OC)' },
+    { slug: 'convention-de-garantie-d-actif-et-de-passif-gap', label: "Convention de garantie d'actif et de passif (GAP)" },
+    { slug: 'lettre-d-investissement-side-letter', label: "Lettre d'investissement (side letter)" },
+    { slug: 'convention-entre-investisseurs', label: 'Convention entre investisseurs' },
+  ]},
+  { group: 'Closing', items: [
+    { slug: 'certificat-du-depositaire-des-fonds', label: 'Certificat du dépositaire des fonds' },
+    { slug: 'pv-de-l-age-actant-l-augmentation-de-capital', label: "PV d'AGE actant l'augmentation de capital" },
+    { slug: 'pv-de-constatation-de-la-realisation-definitive', label: 'PV de constatation de la réalisation définitive' },
+    { slug: 'cap-table-post-money-mise-a-jour', label: 'Cap table post-money (mise à jour)' },
+    { slug: 'registre-des-mouvements-de-titres-mis-a-jour', label: 'Registre des mouvements de titres (mis à jour)' },
+  ]},
+  { group: 'Post-closing', items: [
+    { slug: 'information-reporting-des-investisseurs-info-rights', label: 'Information & reporting des investisseurs (info rights)' },
+    { slug: 'suivi-des-engagements-du-pacte-covenants', label: 'Suivi des engagements du pacte (covenants)' },
+    { slug: 'declaration-des-beneficiaires-effectifs-mise-a-jour', label: 'Déclaration des bénéficiaires effectifs (mise à jour)' },
+    { slug: 'pv-de-conseil-comite-de-surveillance', label: 'PV de conseil / comité de surveillance' },
+  ]},
+  { group: 'BSA-AIR', items: [
+    { slug: 'term-sheet-bsa-air-montant-decote-plafond-et-ou-plancher-de-valorisation', label: 'Term sheet BSA-AIR (décote, plafond / plancher)' },
+    { slug: 'contrat-d-emission-de-bsa-air-termes-et-conditions-des-bons', label: "Contrat d'émission de BSA-AIR" },
+    { slug: 'pv-de-la-decision-collective-age-autorisant-l-emission-des-bsa-air', label: "PV de décision collective autorisant l'émission des BSA-AIR" },
+    { slug: 'rapport-du-president-et-du-commissaire-aux-comptes-le-cas-echeant-sur-l-emission-de-bsa-avec-suppression-du-dps', label: 'Rapport du président / CAC sur l’émission de BSA (suppression du DPS)' },
+    { slug: 'bulletin-de-souscription-des-bsa-air', label: 'Bulletin de souscription des BSA-AIR' },
+    { slug: 'attestation-de-versement-des-fonds-par-le-s-souscripteur-s', label: 'Attestation de versement des fonds' },
+    { slug: 'constatation-de-la-souscription-des-bsa-air-par-le-president', label: 'Constatation de la souscription des BSA-AIR' },
+    { slug: 'inscription-des-bsa-air-au-registre-des-valeurs-mobilieres-mouvements-de-titres', label: 'Inscription des BSA-AIR au registre des mouvements de titres' },
+    { slug: 'suivi-des-engagements-bsa-air-en-cours-echeances-evenements-declencheurs', label: 'Suivi des engagements BSA-AIR (échéances, déclencheurs)' },
+    { slug: 'calcul-du-prix-de-conversion-application-de-la-decote-et-ou-du-plafond', label: 'Calcul du prix de conversion (décote / plafond)' },
+    { slug: 'tableau-de-simulation-de-la-conversion-et-de-la-dilution', label: 'Tableau de simulation de conversion / dilution' },
+  ]},
+];
+
+const _tplNorm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+let _tplModal = null;
+function buildTemplateModal() {
+  if (_tplModal) return _tplModal;
+  const modal = document.createElement('div');
+  modal.className = 'tplmodal';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-label', 'Modèles Liquid+');
+  modal.innerHTML = `
+    <div class="tplmodal__backdrop" data-tpl-close></div>
+    <div class="tplmodal__dialog">
+      <div class="tplmodal__head">
+        <div>
+          <div class="tplmodal__eyebrow">Modèles Liquid+</div>
+          <h2 class="tplmodal__title">Générer un modèle</h2>
+        </div>
+        <button class="tplmodal__close" type="button" data-tpl-close aria-label="Fermer">×</button>
+      </div>
+      <div class="tplmodal__search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="search" id="tpl-search" class="tplmodal__input" placeholder="Rechercher un modèle…" autocomplete="off" />
+      </div>
+      <div class="tplmodal__list" id="tpl-list"></div>
+    </div>`;
+  document.body.appendChild(modal);
+  _tplModal = modal;
+
+  const listEl = modal.querySelector('#tpl-list');
+  const inputEl = modal.querySelector('#tpl-search');
+
+  function render(filter) {
+    const q = _tplNorm(filter).trim();
+    let html = '';
+    let total = 0;
+    TEMPLATE_CATALOG.forEach(section => {
+      const matches = section.items.filter(it =>
+        !q || _tplNorm(it.label).includes(q) || _tplNorm(section.group).includes(q));
+      if (!matches.length) return;
+      total += matches.length;
+      html += `<div class="tplmodal__group">${section.group}</div>`;
+      html += matches.map(it => `
+        <button class="tplitem" type="button" data-slug="${it.slug}" data-label="${it.label.replace(/"/g, '&quot;')}">
+          <span class="tplitem__label">${it.label}</span>
+          <span class="tplitem__go" aria-hidden="true">→</span>
+        </button>`).join('');
+    });
+    listEl.innerHTML = total
+      ? html
+      : '<p class="tplmodal__empty">Aucun modèle ne correspond à votre recherche.</p>';
+  }
+
+  inputEl.addEventListener('input', () => render(inputEl.value));
+  listEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.tplitem');
+    if (!btn) return;
+    selectTemplate(btn.dataset.slug, btn.dataset.label);
+  });
+  modal.addEventListener('click', (e) => { if (e.target.closest('[data-tpl-close]')) closeTemplateModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('is-open')) closeTemplateModal(); });
+
+  modal._render = render;
+  return modal;
+}
+function openTemplateModal() {
+  const modal = buildTemplateModal();
+  modal._render('');
+  const input = modal.querySelector('#tpl-search');
+  if (input) input.value = '';
+  modal.classList.add('is-open');
+  document.body.classList.add('tplmodal-open');
+  setTimeout(() => { if (input) input.focus(); }, 30);
+}
+function closeTemplateModal() {
+  if (!_tplModal) return;
+  _tplModal.classList.remove('is-open');
+  document.body.classList.remove('tplmodal-open');
+}
+// Charge le modèle choisi dans l'éditeur et l'enregistre (document non classé).
+async function selectTemplate(slug, label) {
+  if (!slug) return;
+  const item = _tplModal ? _tplModal.querySelector(`.tplitem[data-slug="${slug}"]`) : null;
+  if (item) { item.classList.add('is-loading'); }
+  try {
+    const res = await fetch('ressources/modeles/' + slug + '.html', { credentials: 'include' });
+    if (!res.ok) throw new Error('modele');
+    const html = await res.text();
+    closeTemplateModal();
+    hideEmptyState();
+    applyTermsheet(null, html, label);
+    saveTermsheet();               // persiste immédiatement (document non classé)
+    page.focus();
+  } catch {
+    if (item) item.classList.remove('is-loading');
+    alert('Impossible de charger ce modèle. Réessayez.');
+  }
+}
+const emptyTemplateBtn = document.getElementById('empty-template');
+if (emptyTemplateBtn) emptyTemplateBtn.addEventListener('click', openTemplateModal);
+
 // Ouvre la term sheet enregistrée passée dans l'URL (?doc=ID).
 const urlDocId = new URLSearchParams(location.search).get('doc');
 if (urlDocId && /^\d+$/.test(urlDocId)) loadTermsheet(Number(urlDocId));
