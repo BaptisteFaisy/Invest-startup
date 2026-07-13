@@ -5086,6 +5086,14 @@ const COND_SIMPLE = {
   const valBtn   = document.getElementById('verpanel-validate');
   const closeBtn = document.getElementById('verpanel-close');
   const cmpAllBtn = document.getElementById('verpanel-compare-all');
+  const linkModal = document.getElementById('version-link-modal');
+  const linkFields = document.getElementById('version-link-fields');
+  const linkSearch = document.getElementById('version-link-search');
+  const linkParent = document.getElementById('version-link-parent');
+  const linkType = document.getElementById('version-link-type');
+  const linkError = document.getElementById('version-link-error');
+  const linkContinue = document.getElementById('version-link-continue');
+  const relationAsked = new Set();
 
   // Le bouton « Comparer tout l'historique » ouvre l'outil de comparaison sur
   // TOUTES les versions du document (frise chronologique). Actif seulement quand
@@ -5117,11 +5125,133 @@ const COND_SIMPLE = {
     panel.hidden = !v;
     if (v) { placePanel(); refresh(); }
   }
-  btn.addEventListener('click', (e) => { e.stopPropagation(); setOpen(!open); });
+  function closeLinkModal() {
+    if (linkModal) linkModal.hidden = true;
+  }
+
+  function filterLinkParents() {
+    if (!linkSearch || !linkParent) return;
+    const query = linkSearch.value.trim().toLocaleLowerCase();
+    Array.from(linkParent.options).forEach(option => {
+      if (!option.value) { option.hidden = false; return; }
+      option.hidden = !!query && !option.textContent.toLocaleLowerCase().includes(query);
+    });
+    const selected = linkParent.selectedOptions[0];
+    if (selected && selected.hidden) linkParent.value = '';
+  }
+
+  function showLinkModal(documents, current) {
+    if (!linkModal || !linkParent) { setOpen(true); return; }
+    const currentRoot = Number(current && (current.lineage_id || current.id));
+    const candidates = documents.filter(d => d && !d.is_version && Number(d.id) !== Number(currentDocId)
+      && (!currentRoot || Number(d.lineage_id || d.id) !== currentRoot));
+    linkModal.querySelectorAll('input[name="version-link-exists"]').forEach(input => {
+      input.checked = false;
+      input.disabled = input.value === 'yes' && !candidates.length;
+    });
+    linkFields.hidden = true;
+    linkSearch.value = '';
+    linkType.value = '';
+    linkError.textContent = candidates.length ? '' : 'Aucun autre document n’est disponible sur Liquid+ : ce document sera nécessairement distinct.';
+    linkParent.disabled = !candidates.length;
+    linkParent.innerHTML = '<option value="">— Choisir le document initial —</option>';
+    candidates
+      .slice().sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))
+      .forEach(d => {
+        const option = document.createElement('option');
+        option.value = String(d.id);
+        option.textContent = d.name || ('Document ' + d.id);
+        linkParent.appendChild(option);
+      });
+    linkModal.hidden = false;
+    const firstChoice = linkModal.querySelector('input[name="version-link-exists"]:not(:disabled)');
+    if (firstChoice) firstChoice.focus();
+  }
+
+  async function handleVersionsClick(e) {
+    e.stopPropagation();
+    if (open) { setOpen(false); return; }
+    if (!currentDocId) await saveTermsheet();
+    if (!currentDocId) { alert('Enregistrez d’abord le document, puis réessayez.'); return; }
+    if (relationAsked.has(Number(currentDocId))) { setOpen(true); return; }
+    try {
+      const [docsResponse, versionsResponse] = await Promise.all([
+        fetch('/api/saas/documents', { credentials: 'include' }),
+        fetch('/api/saas/termsheets/' + currentDocId + '/versions', { credentials: 'include' }),
+      ]);
+      const docsData = docsResponse.ok ? await docsResponse.json() : {};
+      const versionsData = versionsResponse.ok ? await versionsResponse.json() : {};
+      const documents = Array.isArray(docsData.documents) ? docsData.documents : [];
+      const current = documents.find(d => Number(d.id) === Number(currentDocId));
+      const alreadyUsed = Array.isArray(versionsData.versions) && versionsData.versions.length > 0;
+      if ((current && current.parent_document_id) || alreadyUsed) {
+        relationAsked.add(Number(currentDocId));
+        setOpen(true);
+        return;
+      }
+      showLinkModal(documents, current);
+    } catch {
+      alert('Impossible de vérifier les documents déjà présents sur Liquid+.');
+    }
+  }
+
+  btn.addEventListener('click', handleVersionsClick);
   closeBtn.addEventListener('click', () => setOpen(false));
   document.addEventListener('click', (e) => { if (open && !panel.contains(e.target)) setOpen(false); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && open) setOpen(false); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && linkModal && !linkModal.hidden) closeLinkModal(); });
   window.addEventListener('resize', () => { if (open) placePanel(); });
+
+  if (linkModal) {
+    linkModal.querySelectorAll('input[name="version-link-exists"]').forEach(input => {
+      input.addEventListener('change', () => {
+        const yes = input.value === 'yes' && input.checked;
+        linkFields.hidden = !yes;
+        linkError.textContent = '';
+        if (yes) linkSearch.focus();
+      });
+    });
+    linkSearch.addEventListener('input', filterLinkParents);
+    linkParent.addEventListener('change', () => {
+      const selected = linkParent.selectedOptions[0];
+      if (selected && selected.value) linkSearch.value = selected.textContent;
+      filterLinkParents();
+    });
+    linkModal.querySelectorAll('[data-version-link-close], #version-link-close, #version-link-cancel')
+      .forEach(el => el.addEventListener('click', closeLinkModal));
+    linkContinue.addEventListener('click', async () => {
+      const choice = linkModal.querySelector('input[name="version-link-exists"]:checked');
+      if (!choice) { linkError.textContent = 'Indiquez si une ancienne version existe déjà sur Liquid+.'; return; }
+      if (choice.value === 'no') {
+        relationAsked.add(Number(currentDocId));
+        closeLinkModal();
+        setOpen(true);
+        return;
+      }
+      if (!linkParent.value) { linkError.textContent = 'Choisissez le document initial.'; return; }
+      if (!linkType.value) { linkError.textContent = 'Indiquez la nature de cette nouvelle version.'; return; }
+      const oldLabel = linkContinue.textContent;
+      linkContinue.disabled = true;
+      linkContinue.textContent = 'Rattachement…';
+      linkError.textContent = '';
+      try {
+        const response = await fetch('/api/saas/documents/' + currentDocId + '/lineage', {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+          body: JSON.stringify({ parent_document_id: Number(linkParent.value), version_type: linkType.value, origin: 'founder' }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) { linkError.textContent = data.error || 'Rattachement impossible.'; return; }
+        relationAsked.add(Number(currentDocId));
+        closeLinkModal();
+        setOpen(true);
+      } catch {
+        linkError.textContent = 'Impossible de joindre le serveur.';
+      } finally {
+        linkContinue.disabled = false;
+        linkContinue.textContent = oldLabel;
+      }
+    });
+  }
 
   async function refresh() {
     if (!currentDocId) {

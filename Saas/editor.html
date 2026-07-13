@@ -65,6 +65,24 @@
     .verrow__btn:hover{border-color:rgba(8,9,12,0.5)}
     .verrow__btn--accent{color:#2563eb;border-color:rgba(37,99,235,0.35)}
     .verrow__btn--del{color:#dc2626;border-color:rgba(220,38,38,0.25)}
+    .verlink{position:fixed;inset:0;z-index:1400;display:grid;place-items:center;padding:20px}
+    .verlink[hidden]{display:none}
+    .verlink__backdrop{position:absolute;inset:0;background:rgba(8,9,12,.5);backdrop-filter:blur(2px)}
+    .verlink__dialog{position:relative;width:min(480px,100%);background:#fff;border:1px solid rgba(8,9,12,.12);border-radius:16px;box-shadow:0 24px 70px rgba(8,9,12,.32);overflow:hidden;color:#08090c}
+    .verlink__head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:18px 20px;border-bottom:1px solid rgba(8,9,12,.08)}
+    .verlink__title{margin:0;font:700 17px/1.25 'Archivo',sans-serif}
+    .verlink__close{border:0;background:none;color:#6b6b78;font-size:22px;line-height:1;cursor:pointer}
+    .verlink__body{padding:18px 20px}
+    .verlink__question{margin:0 0 14px;font:500 14px/1.5 'Libre Franklin',sans-serif}
+    .verlink__choices{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .verlink__choice{display:flex;align-items:center;gap:8px;padding:11px 12px;border:1px solid rgba(8,9,12,.16);border-radius:10px;font:600 13px 'Libre Franklin',sans-serif;cursor:pointer}
+    .verlink__fields{margin-top:16px;padding-top:16px;border-top:1px solid rgba(8,9,12,.08)}
+    .verlink__fields[hidden]{display:none}
+    .verlink__label{display:block;margin:0 0 7px;font:700 12.5px 'Libre Franklin',sans-serif}
+    .verlink__input{width:100%;box-sizing:border-box;margin:0 0 8px;padding:11px 12px;border:1px solid rgba(8,9,12,.18);border-radius:10px;background:#fff;color:#08090c;font:500 14px 'Libre Franklin',sans-serif}
+    .verlink__input:focus{outline:none;border-color:#3b82f6}
+    .verlink__error{min-height:18px;margin-top:10px;color:#b91c1c;font:500 12.5px/1.4 'Libre Franklin',sans-serif}
+    .verlink__foot{display:flex;justify-content:flex-end;gap:9px;padding:14px 20px;border-top:1px solid rgba(8,9,12,.08)}
   </style>
   <script src="auth.js?v=3"></script>
   <script src="theme.js?v=3" defer></script>
@@ -162,6 +180,40 @@
         <span class="verpanel__hint">Les enregistrements (dont l'enregistrement automatique) ne créent pas de version : seul ce bouton fige une version, stockée à part de vos documents.</span>
       </div>
       <div class="verpanel__list" id="verpanel-list"></div>
+    </div>
+
+    <div class="verlink" id="version-link-modal" role="dialog" aria-modal="true" aria-labelledby="version-link-title" hidden>
+      <div class="verlink__backdrop" data-version-link-close></div>
+      <div class="verlink__dialog">
+        <div class="verlink__head">
+          <h2 class="verlink__title" id="version-link-title">Rattacher ce document</h2>
+          <button class="verlink__close" id="version-link-close" type="button" aria-label="Fermer">×</button>
+        </div>
+        <div class="verlink__body">
+          <p class="verlink__question">Ce document est-il une nouvelle version d’un document qui existe déjà sur Liquid+ ?</p>
+          <div class="verlink__choices">
+            <label class="verlink__choice"><input type="radio" name="version-link-exists" value="yes" /> Oui</label>
+            <label class="verlink__choice"><input type="radio" name="version-link-exists" value="no" /> Non, document distinct</label>
+          </div>
+          <div class="verlink__fields" id="version-link-fields" hidden>
+            <label class="verlink__label" for="version-link-search">De quel document est-ce la nouvelle version ?</label>
+            <input class="verlink__input" id="version-link-search" type="search" placeholder="Rechercher un document…" autocomplete="off" />
+            <select class="verlink__input" id="version-link-parent"></select>
+            <label class="verlink__label" for="version-link-type" style="margin-top:12px">Quelle est la nature de cette nouvelle version ?</label>
+            <select class="verlink__input" id="version-link-type">
+              <option value="">— Choisir —</option>
+              <option value="revision">Révision personnelle</option>
+              <option value="counterproposal">Contreproposition de négociation</option>
+              <option value="signed">Version signée</option>
+            </select>
+          </div>
+          <div class="verlink__error" id="version-link-error" role="alert"></div>
+        </div>
+        <div class="verlink__foot">
+          <button class="btn btn--ghost" id="version-link-cancel" type="button">Annuler</button>
+          <button class="btn btn--primary" id="version-link-continue" type="button">Continuer</button>
+        </div>
+      </div>
     </div>
 
     <!-- Ribbon : barre d'outils de mise en forme -->
@@ -477,7 +529,7 @@
     </div>
   </div>
 
-  <script src="editor.js?v=58"></script>
+  <script src="editor.js?v=59"></script>
   <script src="documents.js?v=30"></script>
   <script>
     // Garde d'accès : l'éditeur est réservé aux utilisateurs connectés.
