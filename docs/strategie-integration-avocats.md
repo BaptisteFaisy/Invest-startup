@@ -247,6 +247,52 @@ et la convention d'honoraires avec le client).
 
 ---
 
+## 5 ter. Débundling, forfaits et packaging du prix
+
+### SeedLegals — profil concurrent (pour situer)
+
+Logiciel **self-service**, pas un cabinet : le fondateur **paramètre lui-même** (BSA-AIR, augmentation de
+capital, cap table, BSPCE), la plateforme **génère les docs + collecte les signatures**. Abonnement **dès
+0 €/mois** + frais/levée ; advisory humaine **en option**. Leurs templates sont *« approuvés par des avocats
+indépendants »* → l'avocat est **derrière le modèle générique**, **pas devant le dossier du fondateur**.
+**Personne ne valide LE deal spécifique ni n'engage sa RCP dessus.** → C'est la faille : LIQUID+ ajoute
+**l'IA qui prépare + un avocat nommé qui valide TON dossier**. On ne bat pas le DIY sur le prix, on le bat
+sur *« tu n'es pas seul »*.
+
+### Forfait, jamais à l'heure (et anti « gonflage d'heures »)
+
+Risque réel : à l'heure, l'avocat peut déclarer plus d'heures. **Donc tout tourne au FORFAIT fixe.** Le
+« 3 h × 300 € » du §5 bis est la **logique de coût interne de l'avocat** (ce qui lui permet d'accepter un
+forfait bas), **pas** ce que paie le fondateur — lui ne voit qu'un **prix fixe connu d'avance**. Le forfait
+**renverse le risque des heures sur l'avocat** (s'il met 5 h, c'est son problème) → **zéro incitation à
+gonfler**. Garanties : (1) adhésion à la grille à l'entrée ; (2) l'IA rend son temps réel bas → forfait
+réellement rentable ; (3) contrôle du réseau (hors grille = hors dealflow) ; (4) convention d'honoraires
+forfaitaire **signée avant** ; (5) vrai dépassement de périmètre → **devis complémentaire validé avant**,
+jamais d'heures cachées.
+
+### Quels documents chez l'avocat (mapping sur `documentRiskLevel`)
+
+| Niveau | Documents | Avocat ? |
+|---|---|---|
+| **CRITIQUE** (responsabilité perso + irréversible) | Déclarations & garanties (W&R)/GAP, Pacte d'associés, Statuts (à jour / actions de préférence) | **Quasi‑défaut** — le mode guidé insiste. Cœur de la valeur. |
+| **CONSEILLÉ** (enjeu réel mais réversible) | Term sheet, BSA‑AIR (termes/émission/bulletin), side letter, exclusivité, convention entre investisseurs, management package/BSPCE, cession PI, info rights | **Optionnel** (souvent revue de vigilance) — le débundling joue ici. |
+| **FAIBLE** | NDA, formalités internes (PV, registres, RBE), reporting | **Non** par défaut. |
+
+> **Débundler ≠ interdire.** Tout document reste **relisible à la demande** (la presta « question ponctuelle
+> · 150 € » couvre n'importe quel doc). Débundler = **pas forcé / pas inclus d'office**, mais **toujours
+> disponible à la carte**. Ne jamais bloquer un fondateur qui *veut* faire relire un doc « faible ».
+
+### « Les frais d'avocat sont‑ils dans notre tarif ? » → affichage groupé, facturation séparée
+
+- On **affiche** un *« Pack Levée sécurisée — 1 590 € tout compris »* (690 € outil + 900 € avocat) : le
+  fondateur vit **un seul prix**.
+- **Sous le capot : deux factures.** LIQUID+ facture ses 690 € (sa prestation) ; l'avocat facture ses 900 €
+  via **sa** convention d'honoraires et les **encaisse en direct** ; LIQUID+ prend **0 marge** dessus.
+- Donc : « compris dans le tarif **affiché** » = **oui** (rassurant) ; « compris dans la **facture** LIQUID+
+  / le CA » = **non**. **Seule** façon d'avoir le « tout compris » sans partage d'honoraires interdit.
+
+---
+
 ## 6. Sélection & attribution des avocats
 
 ### Concurrence ou attribution directe ? → **Attribution curée. Pas de mise en concurrence.**
