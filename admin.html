@@ -32,11 +32,18 @@
     .msg-list-item.active { background: rgba(255,255,255,0.12); }
     .msg-list-item__name { font-weight: 600; font-size: 0.86rem; display: flex; align-items: center; gap: 6px; }
     .msg-list-item__dot { width: 7px; height: 7px; border-radius: 50%; background: #e05d3a; flex: none; }
+    .msg-account-badge { margin-left:auto; padding:3px 7px; border-radius:99px; font:700 .62rem 'Archivo',sans-serif; letter-spacing:.04em; text-transform:uppercase; }
+    .msg-account-badge--lawyer { color:#5b21b6; background:#ede9fe; }
+    .msg-account-badge--startup { color:#1d4ed8; background:#dbeafe; }
+    .msg-list-item__people { margin-top:3px; color:var(--muted); font-size:.72rem; line-height:1.35; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .msg-list-item__preview { font-size: 0.78rem; color: var(--muted); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .msg-list-item__time { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
     .msg-panel { flex: 1; display: flex; flex-direction: column; padding: 16px 18px; min-width: 0; }
     .msg-panel__empty { margin: auto; color: var(--muted); font-size: 0.88rem; text-align: center; }
     .msg-panel__head { font-weight: 600; font-size: 0.92rem; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+    .msg-panel__identity { display:flex; align-items:center; gap:8px; }
+    .msg-panel__identity .msg-account-badge { margin-left:0; }
+    .msg-panel__details { margin-top:5px; color:var(--muted); font-size:.78rem; font-weight:400; line-height:1.45; }
     .msg-thread { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px; margin-bottom: 12px; max-height: 360px; }
     .msg-row { display: flex; }
     .msg-row--out { justify-content: flex-end; }
@@ -156,7 +163,6 @@
     </div>
 
     <div class="admin-section" id="admin-lawyers" data-admin-view-panel="lawyers" hidden>
-      <h2>Gestion des avocats</h2>
       <div class="lawyer-tabs" role="tablist" aria-label="Gestion des avocats">
         <button type="button" class="lawyer-tab is-active" role="tab" aria-selected="true" data-lawyer-tab="accounts">Comptes</button>
         <button type="button" class="lawyer-tab" role="tab" aria-selected="false" data-lawyer-tab="assignment">Attribution des startups</button>
@@ -286,6 +292,13 @@
     // ── Messagerie feedback ──────────────────────────────────────
     function escHtml(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
     function fmtMsgTime(iso) { return new Date(iso).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+    function feedbackAccountBadge(thread) {
+      const kind = thread.account_kind === 'lawyer' ? 'lawyer' : 'startup';
+      return `<span class="msg-account-badge msg-account-badge--${kind}">${escHtml(thread.account_label || (kind === 'lawyer' ? 'Avocat' : 'Startup'))}</span>`;
+    }
+    function feedbackPeople(thread) {
+      return Array.isArray(thread.people_names) ? thread.people_names.filter(Boolean).join(', ') : '';
+    }
 
     let threads = [];
     let activeThreadUserId = null;
@@ -307,9 +320,11 @@
       if (!threads.length) { el.innerHTML = '<p style="padding:14px;color:var(--muted);font-size:.85rem;">Aucun message pour l\'instant.</p>'; return; }
       el.innerHTML = threads.map((t, index) => {
         const last = (t.messages && t.messages[0]) || null;
-        const name = t.user_name || t.user_email || t.user_id;
+        const name = t.display_name || t.user_name || t.user_email || t.user_id;
+        const people = feedbackPeople(t);
         return `<button type="button" class="msg-list-item${t.id === activeThreadId ? ' active' : ''}" data-thread-index="${index}">
-          <div class="msg-list-item__name">${t.unread_by_admin ? '<span class="msg-list-item__dot"></span>' : ''}${escHtml(name)}</div>
+          <div class="msg-list-item__name">${t.unread_by_admin ? '<span class="msg-list-item__dot"></span>' : ''}${escHtml(name)}${feedbackAccountBadge(t)}</div>
+          ${people && people !== name ? `<div class="msg-list-item__people">${escHtml(people)}</div>` : ''}
           <div class="msg-list-item__preview">${last ? escHtml(last.text) : ''}</div>
           <div class="msg-list-item__time">${last ? fmtMsgTime(last.created_at) : ''}</div>
         </button>`;
@@ -353,9 +368,11 @@
 
     function renderPanel(thread) {
       const panel = document.getElementById('msg-panel');
-      const name = thread.user_name || thread.user_email || thread.user_id;
+      const name = thread.display_name || thread.user_name || thread.user_email || thread.user_id;
+      const people = feedbackPeople(thread);
+      const details = [people && people !== name ? people : '', thread.user_email || ''].filter(Boolean).join(' · ');
       panel.innerHTML = `
-        <div class="msg-panel__head">${escHtml(name)}${thread.user_email ? ` <span style="color:var(--muted);font-weight:400;font-size:.8rem;">${escHtml(thread.user_email)}</span>` : ''}</div>
+        <div class="msg-panel__head"><div class="msg-panel__identity">${escHtml(name)}${feedbackAccountBadge(thread)}</div>${details ? `<div class="msg-panel__details">${escHtml(details)}</div>` : ''}</div>
         <div class="msg-thread" id="msg-thread">${(thread.messages || []).map(renderBubble).join('')}</div>
         <form class="msg-reply-form" id="msg-reply-form">
           <textarea id="msg-reply-input" rows="2" placeholder="Répondre…" maxlength="4000"></textarea>

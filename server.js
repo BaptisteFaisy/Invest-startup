@@ -1252,12 +1252,52 @@ app.post('/api/saas/feedback', requireAuth, async (req, res) => {
   res.status(201).json({ success: true, message });
 });
 
+async function enrichFeedbackThreadIdentities(threads) {
+  const userIds = [...new Set(threads.map(thread => Number(thread.user_id)).filter(Number.isFinite))];
+  if (!userIds.length) return threads;
+  const [users, lawyerProfiles, fundraisingProfiles] = await Promise.all([
+    col('users').find({ id: { $in: userIds } }, { projection: { _id: 0, id: 1, email: 1, full_name: 1, account_types: 1 } }).toArray(),
+    col('saas_lawyer_profiles').find({ user_id: { $in: userIds } }, { projection: { _id: 0, user_id: 1, first_name: 1, last_name: 1 } }).toArray(),
+    col('saas_fundraising_profiles').find({ user_id: { $in: userIds } }, { projection: { _id: 0, user_id: 1, company_name: 1, founders: 1 } }).toArray(),
+  ]);
+  const usersById = new Map(users.map(user => [user.id, user]));
+  const lawyersById = new Map(lawyerProfiles.map(profile => [profile.user_id, profile]));
+  const fundraisingById = new Map(fundraisingProfiles.map(profile => [profile.user_id, profile]));
+  return threads.map(thread => {
+    const userId = Number(thread.user_id);
+    const user = usersById.get(userId);
+    const lawyerProfile = lawyersById.get(userId);
+    const fundraisingProfile = fundraisingById.get(userId);
+    const isLawyer = !!lawyerProfile || user?.account_types?.includes('avocat');
+    const lawyerName = [lawyerProfile?.first_name, lawyerProfile?.last_name].filter(Boolean).join(' ').trim();
+    const founderNames = Array.isArray(fundraisingProfile?.founders)
+      ? fundraisingProfile.founders
+        .filter(founder => founder && founder.status !== 'investor')
+        .map(founder => shortText(founder.name, 120))
+        .filter(Boolean)
+      : [];
+    if (!isLawyer && !founderNames.length && user?.full_name) founderNames.push(user.full_name);
+    return {
+      ...thread,
+      user_email: user?.email || thread.user_email || '',
+      account_kind: isLawyer ? 'lawyer' : 'startup',
+      account_label: isLawyer ? 'Avocat' : 'Startup',
+      display_name: isLawyer
+        ? (lawyerName || user?.full_name || thread.user_name || thread.user_email || `Compte ${thread.user_id}`)
+        : (fundraisingProfile?.company_name || user?.full_name || thread.user_name || thread.user_email || `Startup ${thread.user_id}`),
+      people_names: isLawyer
+        ? [lawyerName || user?.full_name || thread.user_name].filter(Boolean)
+        : [...new Set(founderNames)],
+    };
+  });
+}
+
 app.get('/api/admin/feedback', requireAdmin, async (req, res) => {
   const threads = await col('feedback_threads')
     .find({}, { projection: { _id: 0, id: 1, user_id: 1, user_email: 1, user_name: 1, unread_by_admin: 1, updated_at: 1, messages: { $slice: -1 } } })
     .sort({ updated_at: -1 })
     .toArray();
-  res.json({ threads });
+  res.json({ threads: await enrichFeedbackThreadIdentities(threads) });
 });
 
 function feedbackThreadFilter(identifier) {
@@ -1271,7 +1311,7 @@ app.get('/api/admin/feedback/:identifier', requireAdmin, async (req, res) => {
   if (thread.unread_by_admin) {
     await col('feedback_threads').updateOne(filter, { $set: { unread_by_admin: false } });
   }
-  res.json({ thread });
+  res.json({ thread: (await enrichFeedbackThreadIdentities([thread]))[0] });
 });
 
 app.post('/api/admin/feedback/:identifier', requireAdmin, async (req, res) => {
