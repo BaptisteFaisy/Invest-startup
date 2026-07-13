@@ -50,6 +50,7 @@
     .fb-security-warning { display: flex; gap: 10px; align-items: flex-start; margin: 14px 0 18px; padding: 12px 14px; border: 1px solid rgba(180,83,9,0.24); border-radius: 11px; background: rgba(245,158,11,0.09); color: #92400e; font-size: 0.84rem; line-height: 1.5; }
     .fb-security-warning svg { flex: none; width: 18px; height: 18px; margin-top: 1px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .fb-security-warning strong { font-weight: 800; }
+    .fb-security-warning a { color: inherit; font-weight: 700; text-underline-offset: 2px; }
 
     .fb-thread { display: flex; flex-direction: column; gap: 2px; max-height: 50vh; overflow-y: auto; padding: 4px 2px 8px; margin-bottom: 4px; }
     .fb-empty { text-align: center; padding: 34px 10px; color: #a8a8b3; font-size: 0.88rem; line-height: 1.6; }
@@ -163,7 +164,10 @@
         <p class="fb-card__desc">Vos échanges avec les fondateurs restent privés et ne sont visibles que par vous et eux.</p>
         <div class="fb-security-warning" role="alert">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2.5 20h19Z"/><path d="M12 9v5"/><path d="M12 18h.01"/></svg>
-          <div><strong>Attention :</strong> cette messagerie n’est pas chiffrée. Ne partagez aucune information confidentielle.</div>
+          <div>
+            <strong>Attention :</strong> cette messagerie n’est pas chiffrée. Ne partagez aucune information confidentielle.
+            <span id="fb-confidential-contact" hidden></span>
+          </div>
         </div>
 
         <div class="fb-thread" id="fb-thread"></div>
@@ -202,6 +206,7 @@
     const sendBtn   = document.getElementById('fb-send');
     const alertEl   = document.getElementById('fb-alert');
     const statusEl  = document.getElementById('fb-status');
+    const confidentialContactEl = document.getElementById('fb-confidential-contact');
 
     const emptyHTML = `<div class="fb-empty">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>
@@ -280,6 +285,12 @@
 
     requireAuth().then((user) => {
       if (!user) return;
+      if (!user.is_admin) {
+        const isLawyer = Array.isArray(user.account_types) && user.account_types.includes('avocat');
+        const contactEmail = isLawyer ? 'liquidplus.avocats@gmail.com' : 'liquidplus.startups@gmail.com';
+        confidentialContactEl.innerHTML = ` Si vous souhaitez nous transmettre des informations confidentielles, vous pouvez nous contacter à <a href="mailto:${contactEmail}">${contactEmail}</a>.`;
+        confidentialContactEl.hidden = false;
+      }
       document.querySelector('.app').classList.add('ready');
       loadThread();
       setInterval(loadThread, 20000);
