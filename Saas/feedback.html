@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Liquid+ — Feedback</title>
-  <meta name="description" content="Écrivez directement au fondateur de Liquid + : questions, bugs, suggestions." />
+  <meta name="description" content="Écrivez directement aux fondateurs de Liquid + : questions, bugs, suggestions." />
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
   <script>
     // Applique le thème mémorisé au plus tôt (anti-flash). Défaut : sombre (:root).
@@ -134,7 +134,7 @@
         <a class="drawer__link" href="avocat.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M6 21h12"/><path d="M3 7h18"/><path d="M7 7l-3 6a3 3 0 0 0 6 0Z"/><path d="M17 7l3 6a3 3 0 0 0-6 0Z"/></svg>Avocat</a>
         <div class="drawer__sep"></div>
         <a class="drawer__link" href="compte.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>Mon compte</a>
-        <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Écrire au fondateur"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
+        <a class="drawer__link" href="feedback.html" target="_blank" rel="noopener" title="Écrire aux fondateurs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4Z"/><path d="M8.5 10.5h7"/></svg>Feedback<span class="drawer__unread-dot" id="feedback-unread-dot" hidden></span></a>
         <div class="drawer__sep"></div>
         <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>Déconnexion</button>
       </nav>
@@ -149,15 +149,15 @@
 
     <main class="fb">
       <div class="fb__eyebrow">Contact</div>
-      <h1 class="fb__title">Écrire au fondateur</h1>
-      <p class="fb__sub">Une question, un bug, une suggestion ? Écrivez directement au fondateur de Liquid + — il vous répond ici même, dans ce fil.</p>
+      <h1 class="fb__title">Écrire aux fondateurs</h1>
+      <p class="fb__sub">Une question, un bug, une suggestion ? Écrivez directement aux fondateurs de Liquid + — ils vous répondent ici même, dans ce fil.</p>
 
       <div class="fb-card">
         <div class="fb-card__head">
           <h3 class="fb-card__title">Fil de discussion</h3>
           <span class="fb-card__hint" id="fb-status"></span>
         </div>
-        <p class="fb-card__desc">Vos échanges avec le fondateur restent privés et ne sont visibles que par vous deux.</p>
+        <p class="fb-card__desc">Vos échanges avec les fondateurs restent privés et ne sont visibles que par vous et eux.</p>
 
         <div class="fb-thread" id="fb-thread"></div>
 
@@ -219,7 +219,7 @@
         if (day !== lastDay) { html += `<div class="fb-day">${esc(fmtDay(m.created_at))}</div>`; lastDay = day; }
         if (m.from === 'admin') {
           html += `<div class="fb-msg fb-msg--admin">
-            <span class="fb-author">Fondateur — Liquid +</span>
+            <span class="fb-author">Fondateurs — Liquid +</span>
             <div class="fb-bubble">${esc(m.text)}<span class="fb-time">${esc(fmtTime(m.created_at))}</span></div>
           </div>`;
         } else {
