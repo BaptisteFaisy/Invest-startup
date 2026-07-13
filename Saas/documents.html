@@ -352,8 +352,6 @@
       let folders = [];
       let investors = [];
       let docs = [];
-      let versionCounts = {}; // { [document_id]: nombre d'instantanés éditeur validés }
-      let lineageSizes = {};  // { [document_id]: nombre de documents dans sa lignée }
       let solicitedDocIds = new Set(); // documents pour lesquels un avocat a été sollicité
       let raiseType = 'classic'; // parcours actif : classic | bsa-air (choix de tout 1er niveau)
       let raiseUser = 'me';      // clé de stockage, alignée sur le tableau de bord
@@ -509,14 +507,13 @@
       async function load() {
         let profileType = null;
         try {
-          const [fr, dr, ir, me, pr, ar, vr] = await Promise.all([
+          const [fr, dr, ir, me, pr, ar] = await Promise.all([
             fetch('/api/saas/folders', { credentials: 'include' }),
             fetch('/api/saas/documents', { credentials: 'include' }),
             fetch('/api/saas/investors', { credentials: 'include' }),
             fetch('/api/auth/me', { credentials: 'include' }),
             fetch('/api/saas/fundraising-profile', { credentials: 'include' }),
             fetch('/api/saas/avocat/requests', { credentials: 'include' }),
-            fetch('/api/saas/doc-versions/counts', { credentials: 'include' }),
           ]);
           if (fr.status === 401 || dr.status === 401) { window.location.href = 'login.html'; return; }
           folders = (await fr.json()).folders || [];
@@ -529,10 +526,6 @@
           // de responsabilité que lorsqu'aucun avocat n'a été sollicité.
           const avReqs = ar && ar.ok ? ((await ar.json()).requests || []) : [];
           solicitedDocIds = new Set(avReqs.filter(r => r.status !== 'annule' && r.document_id != null).map(r => r.document_id));
-          // Instantanés éditeur + taille de lignée par document (badge « Versions »).
-          const vData = vr && vr.ok ? await vr.json() : {};
-          versionCounts = vData.counts || {};
-          lineageSizes = vData.lineageSizes || {};
         } catch {
           loadingEl.hidden = true;
           errorEl.hidden = false;
@@ -833,23 +826,16 @@
           actions.appendChild(wrap);
         }
 
-        // Icône arbre : présente dès que le document a des instantanés éditeur
-        // validés OU appartient à une lignée de plusieurs documents (une version
-        // reçue/envoyée y est rattachée). Ouvre le popover retraçant le fil : versions
-        // et échanges, avec accès à chaque pièce. Le compteur = nombre d'autres pièces.
-        const snapCount = versionCounts[d.id] || 0;
-        const lineageExtra = Math.max(0, (lineageSizes[d.id] || 1) - 1);
-        const relatedCount = snapCount + lineageExtra;
-        if (relatedCount > 0) {
-          const vBtn = document.createElement('button');
-          vBtn.type = 'button';
-          vBtn.className = 'doc-act doc-act--versions';
-          vBtn.title = 'Voir l’arbre des versions et des échanges de « ' + d.name + ' »';
-          vBtn.setAttribute('aria-label', 'Voir l\'arbre des versions et des échanges de « ' + d.name + ' »');
-          vBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V5"/><path d="m12 8-5-4"/><path d="m12 8 5-4"/><path d="m12 13-6-4"/><path d="m12 13 6-4"/><path d="M8 21h8"/></svg>';
-          vBtn.addEventListener('click', (e) => { e.stopPropagation(); openVersionsPopover(d, vBtn); });
-          actions.appendChild(vBtn);
-        }
+        // Chaque document possède un arbre dès sa création : au départ il ne contient
+        // que le document racine, puis les versions et échanges viennent s'y rattacher.
+        const vBtn = document.createElement('button');
+        vBtn.type = 'button';
+        vBtn.className = 'doc-act doc-act--versions';
+        vBtn.title = 'Voir l’arbre des versions et des échanges de « ' + d.name + ' »';
+        vBtn.setAttribute('aria-label', 'Voir l\'arbre des versions et des échanges de « ' + d.name + ' »');
+        vBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V5"/><path d="m12 8-5-4"/><path d="m12 8 5-4"/><path d="m12 13-6-4"/><path d="m12 13 6-4"/><path d="M8 21h8"/></svg>';
+        vBtn.addEventListener('click', (e) => { e.stopPropagation(); openVersionsPopover(d, vBtn); });
+        actions.appendChild(vBtn);
 
         if (written) {
           const open = document.createElement('a');
