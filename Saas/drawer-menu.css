@@ -7,9 +7,8 @@
 .hamburger:hover { border-color:rgba(255,255,255,0.55); background:rgba(255,255,255,0.06); }
 .hamburger svg { width:18px; height:18px; stroke:currentColor; stroke-width:2; stroke-linecap:round; fill:none; }
 /* Pastille de notification sur le hamburger droit : un message du fondateur
-   (feedback) n'a pas encore été lu. Le liseré reprend le fond de la barre pour
-   détacher la pastille de l'icône dans les deux thèmes. */
-.hamburger--notify::after { content:''; position:absolute; top:-4px; right:-4px; width:10px; height:10px; border-radius:50%; background:#22c55e; box-shadow:0 0 0 2px var(--t-topbar-bg, #08090c); }
+   (feedback) n'a pas encore été lu. Vert pâle, sans liseré (ni clair ni sombre). */
+.hamburger--notify::after { content:''; position:absolute; top:-4px; right:-4px; width:10px; height:10px; border-radius:50%; background:#86efac; }
 .drawer-backdrop { position:fixed; inset:0; background:transparent; opacity:0; visibility:hidden; transition:visibility .2s; z-index:60; }
 .drawer-backdrop.is-open { opacity:1; visibility:visible; }
 .drawer { position:fixed; top:0; bottom:0; width:var(--drawer-w, 280px); min-width:220px; max-width:92vw; background:#0c0d11; border-right:1px solid rgba(255,255,255,0.08); box-shadow:0 0 40px rgba(0,0,0,0.5); z-index:61; display:flex; flex-direction:column; transition:transform .22s ease; }
@@ -46,14 +45,14 @@
 .drawer__link svg { width:18px; height:18px; flex:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; fill:none; opacity:.85; }
 .drawer__sep { height:1px; margin:8px 4px; background:rgba(255,255,255,0.08); }
 .drawer__section-title { font-family:'Archivo',sans-serif; font-size:12px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; color:#fff; padding:6px 12px 6px; }
-.drawer__soon-tag { margin-left:auto; flex:none; font-family:'Archivo',sans-serif; font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#a5b4fc; background:rgba(99,102,241,0.20); padding:2px 7px; border-radius:99px; }
-.drawer__unread-dot { margin-left:auto; flex:none; width:8px; height:8px; border-radius:50%; background:#22c55e; box-shadow:0 0 0 2px rgba(34,197,94,0.25); }
+.drawer__soon-tag { margin-left:auto; flex:none; font-family:'Archivo',sans-serif; font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#22c55e; background:rgba(34,197,94,0.20); padding:2px 7px; border-radius:99px; }
+.drawer__unread-dot { margin-left:auto; flex:none; width:8px; height:8px; border-radius:50%; background:#86efac; }
 .drawer__mode { flex:none; padding:12px 14px 26px; border-top:1px solid rgba(255,255,255,0.08); direction:ltr; }
 .drawer__mode-label { display:block; margin:0 0 8px 2px; color:rgba(255,255,255,0.62); font-family:'Archivo',sans-serif; font-size:10px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; }
 .drawer__mode-options { display:grid; grid-template-columns:1fr 1fr; gap:3px; padding:3px; border:1px solid rgba(255,255,255,0.12); border-radius:10px; background:rgba(255,255,255,0.04); }
 .drawer__mode-option { min-width:0; padding:8px 6px; border:0; border-radius:7px; background:transparent; color:rgba(255,255,255,0.58); font-family:'Libre Franklin',sans-serif; font-size:12px; font-weight:600; cursor:pointer; transition:background .15s,color .15s,box-shadow .15s; }
-.drawer__mode-soon { display:block; margin-top:3px; color:#a5b4fc; font-family:'Archivo',sans-serif; font-size:8px; font-weight:800; letter-spacing:.07em; line-height:1; text-transform:uppercase; }
-.drawer__mode-option.is-active .drawer__mode-soon { color:#6366f1; }
+.drawer__mode-soon { display:block; width:max-content; margin:3px auto 0; padding:2px 6px; border-radius:99px; background:rgba(34,197,94,0.20); color:#22c55e; font-family:'Archivo',sans-serif; font-size:8px; font-weight:800; letter-spacing:.07em; line-height:1; text-transform:uppercase; }
+.drawer__mode-option.is-active .drawer__mode-soon { color:#16a34a; }
 .drawer__mode-option:hover { color:#fff; }
 .drawer__mode-option.is-active { background:#fff; color:#111318; box-shadow:0 1px 5px rgba(0,0,0,0.24); }
 .drawer__mode-option:focus-visible { outline:2px solid #a5b4fc; outline-offset:1px; }
