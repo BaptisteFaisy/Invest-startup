@@ -112,20 +112,20 @@
         <div class="docmodal__ver" id="docmodal-ver">
           <label class="docmodal__ver-toggle">
             <input type="checkbox" id="docmodal-ver-check" />
-            <span>Ce fichier est une nouvelle version ou une contreproposition</span>
+            <span>Une ancienne version existe-t-elle déjà sur Liquid+ ?</span>
           </label>
           <div class="docmodal__ver-fields" id="docmodal-ver-fields">
-            <div class="docmodal__ver-callout">Liquid+ conservera les deux fichiers dans le même fil et vous permettra de comparer précisément ce qui a changé.</div>
-            <label class="docmodal__dest-label" for="docmodal-ver-type">Nature du fichier</label>
+            <div class="docmodal__ver-callout">Oui : choisissez le document initial ci-dessous, puis indiquez la nature de cette nouvelle version. Non : le fichier sera ajouté comme document distinct.</div>
+            <label class="docmodal__dest-label" for="docmodal-ver-parent-search" style="margin-top:12px">Document initial de cette nouvelle version</label>
+            <input class="docmodal__dest-select docmodal__ver-search" id="docmodal-ver-parent-search" type="search" placeholder="Rechercher le document initial…" autocomplete="off" aria-label="Rechercher le document initial" />
+            <select class="docmodal__dest-select" id="docmodal-ver-parent"></select>
+            <label class="docmodal__dest-label" for="docmodal-ver-type" style="margin-top:12px">Nature de cette nouvelle version</label>
             <select class="docmodal__dest-select" id="docmodal-ver-type">
               <option value="">— Choisir —</option>
               <option value="counterproposal">Contreproposition de négociation</option>
               <option value="revision">Révision personnelle</option>
               <option value="signed">Version signée</option>
             </select>
-            <label class="docmodal__dest-label" for="docmodal-ver-parent-search" style="margin-top:12px">Document initial de cette nouvelle version</label>
-            <input class="docmodal__dest-select docmodal__ver-search" id="docmodal-ver-parent-search" type="search" placeholder="Rechercher le document initial…" autocomplete="off" aria-label="Rechercher le document initial" />
-            <select class="docmodal__dest-select" id="docmodal-ver-parent"></select>
             <label class="docmodal__dest-label" for="docmodal-ver-origin" style="margin-top:12px">Qui a produit ce fichier ?</label>
             <select class="docmodal__dest-select" id="docmodal-ver-origin">
               <option value="founder">Créée par moi</option>
@@ -375,8 +375,14 @@
       nudgeInvestor.appendChild(genericInvestor.cloneNode(true));
     }
 
-    if (!verCtxDocs.length) { verBox.classList.remove('is-shown'); return; }
     verParent.innerHTML = '<option value="">— Choisir le document —</option>';
+    if (!verCtxDocs.length) {
+      verParent.innerHTML = '<option value="">Aucun document initial disponible</option>';
+      verParent.disabled = true;
+      verBox.classList.add('is-shown');
+      return;
+    }
+    verParent.disabled = false;
     verCtxDocs.forEach((d) => {
       const o = document.createElement('option');
       o.value = String(d.id);
