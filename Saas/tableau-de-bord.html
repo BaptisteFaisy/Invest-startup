@@ -393,99 +393,93 @@
     .ip-panel { display: none; }
     .ip-panel.is-active { display: block; }
 
-    .ip-soon { background: var(--card); border: 1px dashed var(--line); border-radius: 16px; padding: 40px 34px; margin-top: 22px; text-align: center; }
-    .ip-soon__badge { display: inline-flex; align-items: center; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #16a34a; background: #e7f6ec; padding: 4px 11px; border-radius: 99px; margin-bottom: 14px; }
-    .ip-soon__h { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; color: #08090c; margin-bottom: 10px; }
-    .ip-soon__p { font-size: 14.5px; line-height: 1.6; color: #6b6b78; max-width: 540px; margin: 0 auto; }
+    .ip-soon { background: #16181d; border: 1px dashed rgba(255,255,255,0.14); border-radius: 16px; padding: 40px 34px; margin-top: 22px; text-align: center; }
+    .ip-soon__badge { display: inline-flex; align-items: center; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #9fb4ff; background: rgba(59,130,246,0.14); padding: 4px 11px; border-radius: 99px; margin-bottom: 14px; }
+    .ip-soon__h { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; color: #fff; margin-bottom: 10px; }
+    .ip-soon__p { font-size: 14.5px; line-height: 1.6; color: #8b919b; max-width: 540px; margin: 0 auto; }
 
+    /* Bandeau de synthèse : paliers de montant (levé / intentionné) + compteur. */
     .ip-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 20px; }
-    .ip-stat { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
-    .ip-stat__label { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6b6b78; }
-    .ip-stat__value { font-size: 20px; font-weight: 700; color: #08090c; margin-top: 6px; letter-spacing: -0.02em; }
+    .ip-stat { background: #16181d; border: 1px solid rgba(255,255,255,0.09); border-radius: 14px; padding: 14px 16px; }
+    .ip-stat__label { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8b919b; }
+    .ip-stat__value { font-size: 20px; font-weight: 700; color: #eef0f3; margin-top: 6px; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+    .ip-stat--leve .ip-stat__value { color: #5ec38c; }
+    .ip-stat--intent .ip-stat__value { color: #8ba6ff; }
 
-    .ip-form { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px 20px; margin-top: 18px; }
+    /* Formulaire d'ajout (sombre). */
+    .ip-form { background: #16181d; border: 1px solid rgba(255,255,255,0.09); border-radius: 16px; padding: 18px 20px; margin-top: 18px; }
     .ip-form__grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 10px; }
     .ip-form__grid2 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; }
-    .ip-form input, .ip-form select, .ip-form textarea { background: #fff; border: 1px solid rgba(8,9,12,0.18); border-radius: 10px; padding: 10px 12px; font: inherit; font-size: 13.5px; color: #08090c; width: 100%; box-sizing: border-box; }
-    .ip-form input:focus, .ip-form select:focus, .ip-form textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(59,130,246,0.25); }
+    .ip-form input, .ip-form select, .ip-form textarea { background: #0f1013; border: 1px solid rgba(255,255,255,0.14); border-radius: 10px; padding: 10px 12px; font: inherit; font-size: 13.5px; color: #eef0f3; width: 100%; box-sizing: border-box; }
+    .ip-form input::placeholder, .ip-form textarea::placeholder { color: #6b7078; }
+    .ip-form input:focus, .ip-form select:focus, .ip-form textarea:focus { outline: none; border-color: var(--blue, #3b82f6); box-shadow: 0 0 0 2px rgba(59,130,246,0.25); }
     .ip-form textarea { resize: vertical; min-height: 40px; grid-column: 1 / -1; }
     .ip-form__foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; }
-    .ip-form__err { color: #dc2626; font-size: 13px; }
-    .ip-form__add { margin-left: auto; font-family: 'Archivo', sans-serif; font-size: 13.5px; font-weight: 600; padding: 10px 20px; border-radius: 10px; cursor: pointer; border: 1px solid transparent; background: var(--blue); color: #fff; }
+    .ip-form__err { color: #f2a4a4; font-size: 13px; }
+    .ip-form__add { margin-left: auto; font-family: 'Archivo', sans-serif; font-size: 13.5px; font-weight: 600; padding: 10px 20px; border-radius: 10px; cursor: pointer; border: 1px solid transparent; background: var(--blue, #3b82f6); color: #fff; }
     .ip-form__add:hover { background: #2563eb; }
 
-    .ip-loading { color: #6b6b78; font-size: 14px; padding: 18px 4px; }
-    .ip-err { font-size: 14px; color: #991b1b; background: #fee2e2; border: 1px solid rgba(220,38,38,0.25); border-radius: 12px; padding: 14px 16px; margin-top: 18px; line-height: 1.55; }
+    .ip-loading { color: #8b919b; font-size: 14px; padding: 18px 4px; }
+    .ip-err { font-size: 14px; color: #f2b8b8; background: rgba(220,38,38,0.14); border: 1px solid rgba(220,38,38,0.32); border-radius: 12px; padding: 14px 16px; margin-top: 18px; line-height: 1.55; }
 
-    .ip-board { margin-top: 22px; overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
-    .ip-table { width: 100%; min-width: 980px; border-collapse: collapse; table-layout: fixed; }
-    .ip-table th { padding: 11px 12px; background: #f7f6f3; border-bottom: 1px solid var(--line); color: #6b6b78; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-align: left; text-transform: uppercase; }
-    .ip-table td { padding: 12px; border-bottom: 1px solid #eceae6; color: #08090c; font-size: 12.5px; vertical-align: middle; }
-    .ip-table tbody tr:last-child td { border-bottom: 0; }
-    .ip-table tbody tr:hover { background: #fafafa; }
-    .ip-table__investor { width: 18%; }
-    .ip-table__contact { width: 17%; }
-    .ip-table__amount { width: 12%; }
-    .ip-table__stage { width: 25%; }
-    .ip-table__notes { width: 23%; }
-    .ip-table__action { width: 5%; text-align: right !important; }
-    .ip-card__name { font-size: 13.5px; font-weight: 700; color: #08090c; overflow-wrap: anywhere; }
-    .ip-card__firm { font-size: 12px; color: #6b6b78; margin-top: 2px; overflow-wrap: anywhere; }
-    .ip-card__amount { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; color: #15803d; white-space: nowrap; }
-    .ip-card__notes { color: #6b6b78; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; }
-    .ip-card__meta { color: #6b6b78; line-height: 1.5; overflow-wrap: anywhere; }
-    .ip-card__stage-wrap { display: flex; align-items: center; gap: 8px; }
-    .ip-card__stage-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
-    .ip-card__stage-select { width: 100%; min-width: 0; font-size: 11.5px; padding: 7px 8px; border-radius: 8px; background: #f4f3f1; border: 1px solid #e7e5e1; color: #08090c; }
-    .ip-card__del { flex: none; width: 26px; height: 26px; display: grid; place-items: center; border: 0; background: transparent; color: #b0aca3; cursor: pointer; border-radius: 8px; }
-    .ip-card__del:hover { background: #fdeeee; color: #dc2626; }
-    .ip-card__del svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    /* Barre d'outils : titre + sélecteur des colonnes (stades) à afficher. */
+    .ip-toolbar { display: flex; align-items: center; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
+    .ip-toolbar__title { font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 700; color: #fff; margin-right: auto; }
+    .ip-colpick { position: relative; }
+    .ip-colbtn { display: inline-flex; align-items: center; gap: 7px; font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; color: #c4c8cf; background: #181a1f; border: 1px solid rgba(255,255,255,0.14); border-radius: 10px; padding: 8px 13px; cursor: pointer; }
+    .ip-colbtn:hover { border-color: rgba(255,255,255,0.3); }
+    .ip-colbtn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .ip-colmenu { position: absolute; top: calc(100% + 6px); right: 0; z-index: 40; width: 258px; max-height: 340px; overflow-y: auto; background: #16181d; border: 1px solid rgba(255,255,255,0.14); border-radius: 12px; box-shadow: 0 18px 44px rgba(0,0,0,0.5); padding: 7px; display: none; }
+    .ip-colmenu.is-open { display: block; }
+    .ip-colmenu__row { display: flex; align-items: center; gap: 9px; padding: 8px 9px; border-radius: 8px; cursor: pointer; font-size: 13px; color: #d4d7dd; }
+    .ip-colmenu__row:hover { background: rgba(255,255,255,0.05); }
+    .ip-colmenu__row input { accent-color: var(--blue, #3b82f6); width: 15px; height: 15px; flex: none; }
+    .ip-colmenu__dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
 
-    /* ── Barre d'entonnoir : un stade par segment (compteur + montant) ── */
-    .ip-funnel { display: flex; gap: 8px; margin-top: 22px; overflow-x: auto; padding-bottom: 4px; }
-    .ip-funnel__seg { flex: 1 0 116px; min-width: 116px; background: #fff; border: 1px solid var(--line); border-top: 3px solid var(--seg, #9a978f); border-radius: 12px; padding: 11px 12px 12px; }
-    .ip-funnel__seg.is-empty { opacity: .5; }
-    .ip-funnel__label { font-family: 'Archivo', sans-serif; font-size: 9.5px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; color: #6b6b78; line-height: 1.32; min-height: 25px; }
-    .ip-funnel__count { font-size: 22px; font-weight: 800; color: #08090c; letter-spacing: -0.02em; margin-top: 8px; line-height: 1; }
-    .ip-funnel__amount { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 600; color: #15803d; margin-top: 4px; white-space: nowrap; min-height: 13px; }
+    /* Le tableau du pipeline : une colonne par stade, filets entre colonnes. */
+    .ip-grid-wrap { margin-top: 12px; overflow-x: auto; border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; }
+    table.ip-grid { border-collapse: collapse; width: 100%; table-layout: fixed; }
+    .ip-grid col { width: 178px; }
+    .ip-grid th { text-align: left; vertical-align: top; padding: 12px 12px 10px; background: #15161a; border-bottom: 1px solid rgba(255,255,255,0.1); border-left: 1px solid rgba(255,255,255,0.06); border-top: 2px solid #6b7078; }
+    .ip-grid th:first-child { border-left: 0; }
+    .ip-grid th.is-leve { border-top-color: #3f9e6b; }
+    .ip-grid th.is-intent { border-top-color: #6b8afd; }
+    .ip-grid__lab { display: flex; align-items: flex-start; gap: 7px; }
+    .ip-grid__lab-t { flex: 1; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; color: #c4c8cf; line-height: 1.3; }
+    .ip-grid th.is-leve .ip-grid__lab-t { color: #8fe0b3; }
+    .ip-grid__count { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 800; color: #8b919b; background: #0f1013; border: 1px solid rgba(255,255,255,0.12); border-radius: 99px; padding: 1px 7px; flex: none; }
+    .ip-grid__amt { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 600; color: #8b919b; margin-top: 7px; min-height: 13px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .ip-grid th.is-leve .ip-grid__amt { color: #5ec38c; }
+    .ip-grid td { vertical-align: top; padding: 8px; border-left: 1px solid rgba(255,255,255,0.06); transition: background .12s; }
+    .ip-grid td:first-child { border-left: 0; }
+    .ip-grid td.is-drop { background: rgba(59,130,246,0.1); }
+    .ip-gcard { background: #101216; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 9px 10px; margin-bottom: 7px; cursor: grab; }
+    .ip-gcard:last-child { margin-bottom: 0; }
+    .ip-gcard:active { cursor: grabbing; }
+    .ip-gcard.is-dragging { opacity: .4; }
+    .ip-gcard__top { display: flex; align-items: flex-start; gap: 8px; }
+    .ip-gcard__name { flex: 1; font-size: 12.5px; font-weight: 700; color: #eef0f3; overflow-wrap: anywhere; }
+    .ip-gcard__firm { font-size: 11px; color: #8b919b; margin-top: 1px; overflow-wrap: anywhere; }
+    .ip-gcard__amt { font-family: 'Archivo', sans-serif; font-size: 11.5px; font-weight: 700; color: #c4c8cf; margin-top: 7px; font-variant-numeric: tabular-nums; }
+    .ip-gcard__meta { font-size: 11px; color: #8b919b; margin-top: 6px; line-height: 1.45; overflow-wrap: anywhere; }
+    .ip-gcard__notes { font-size: 11px; color: #8b919b; margin-top: 7px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 6px; }
+    .ip-gcard__foot { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+    .ip-gcard__move { flex: 1; min-width: 0; font-size: 11px; padding: 5px 6px; border-radius: 7px; background: #0f1013; border: 1px solid rgba(255,255,255,0.14); color: #d4d7dd; }
+    .ip-gcard__del { flex: none; width: 24px; height: 24px; display: grid; place-items: center; border: 0; background: transparent; color: #6b7078; cursor: pointer; border-radius: 7px; }
+    .ip-gcard__del:hover { background: rgba(220,38,38,0.14); color: #f2a4a4; }
+    .ip-gcard__del svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .ip-gcol-empty { font-size: 11px; color: #565b64; text-align: center; padding: 12px 6px; border: 1px dashed rgba(255,255,255,0.1); border-radius: 9px; }
+    .ip-grid-empty { margin-top: 12px; color: #8b919b; font-size: 14px; padding: 24px; text-align: center; border: 1px dashed rgba(255,255,255,0.14); border-radius: 14px; background: #16181d; }
 
-    /* ── Bascule Kanban / Tableau ── */
-    .ip-viewbar { display: flex; align-items: center; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
-    .ip-viewbar__title { font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 700; color: #fff; margin-right: auto; }
-    .ip-viewtabs { display: inline-flex; background: #f0eee9; border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 2px; }
-    .ip-viewbtn { border: 0; background: transparent; font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 700; color: #6b6b78; padding: 7px 14px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
-    .ip-viewbtn:hover { color: #08090c; }
-    .ip-viewbtn.is-active { background: #fff; color: #08090c; box-shadow: 0 1px 2px rgba(8,9,12,.1); }
-    .ip-viewbtn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-
-    /* ── Vue Kanban : une colonne par stade, cartes déplaçables ── */
-    .ip-kanban { margin-top: 16px; display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px; align-items: flex-start; }
-    .ip-kcol { flex: 0 0 252px; width: 252px; background: #f7f6f3; border: 1px solid var(--line); border-radius: 14px; display: flex; flex-direction: column; max-height: 640px; transition: background .12s, border-color .12s; }
-    .ip-kcol.is-drop { background: #eef4ff; border-color: var(--blue); }
-    .ip-kcol__head { display: flex; align-items: flex-start; gap: 8px; padding: 12px 14px 8px; }
-    .ip-kcol__dot { width: 9px; height: 9px; border-radius: 50%; flex: none; margin-top: 3px; }
-    .ip-kcol__label { font-family: 'Archivo', sans-serif; font-size: 11.5px; font-weight: 800; color: #08090c; line-height: 1.28; flex: 1; }
-    .ip-kcol__count { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 800; color: #6b6b78; background: #fff; border: 1px solid var(--line); border-radius: 99px; padding: 2px 8px; flex: none; }
-    .ip-kcol__amount { padding: 0 14px 8px; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 600; color: #15803d; min-height: 13px; }
-    .ip-kcol__body { padding: 2px 10px 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; flex: 1; min-height: 46px; }
-    .ip-kcol__empty { color: #b0aca3; font-size: 12px; text-align: center; padding: 12px 6px; border: 1px dashed #ddd9d1; border-radius: 10px; }
-    .ip-kcard { background: #fff; border: 1px solid var(--line); border-radius: 11px; padding: 11px 12px; cursor: grab; box-shadow: 0 1px 2px rgba(8,9,12,.05); }
-    .ip-kcard:active { cursor: grabbing; }
-    .ip-kcard.is-dragging { opacity: .4; }
-    .ip-kcard__top { display: flex; align-items: flex-start; gap: 8px; }
-    .ip-kcard__name { font-size: 13px; font-weight: 700; color: #08090c; overflow-wrap: anywhere; flex: 1; }
-    .ip-kcard__firm { font-size: 11.5px; color: #6b6b78; margin-top: 1px; overflow-wrap: anywhere; }
-    .ip-kcard__amount { font-family: 'Archivo', sans-serif; font-size: 11.5px; font-weight: 700; color: #15803d; margin-top: 7px; }
-    .ip-kcard__meta { font-size: 11px; color: #6b6b78; margin-top: 6px; line-height: 1.45; overflow-wrap: anywhere; }
-    .ip-kcard__notes { font-size: 11px; color: #6b6b78; margin-top: 7px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; border-top: 1px solid #f0eee9; padding-top: 7px; }
-    .ip-kcard__foot { display: flex; align-items: center; gap: 6px; margin-top: 9px; }
-    .ip-kcard__move { flex: 1; min-width: 0; font-size: 11px; padding: 6px 7px; border-radius: 8px; background: #f4f3f1; border: 1px solid #e7e5e1; color: #08090c; }
-    .ip-kanban-empty { margin-top: 16px; color: #6b6b78; font-size: 14px; padding: 24px; text-align: center; border: 1px dashed var(--line); border-radius: 14px; background: #fff; }
+    /* Pied de tableau : totaux par palier. */
+    .ip-foot { display: flex; align-items: center; gap: 16px; margin-top: 12px; flex-wrap: wrap; font-size: 12.5px; color: #8b919b; }
+    .ip-foot b { font-family: 'Archivo', sans-serif; font-weight: 700; font-variant-numeric: tabular-nums; color: #eef0f3; }
+    .ip-foot .is-leve { color: #5ec38c; }
+    .ip-foot .is-intent { color: #8ba6ff; }
 
     @media (max-width: 720px) {
       .ip-form__grid, .ip-form__grid2 { grid-template-columns: 1fr; }
-      .ip-board { border-radius: 10px; }
-      .ip-viewbar__title { width: 100%; }
+      .ip-toolbar__title { width: 100%; }
     }
 
     /* Parcours BSA-AIR : roadlist numérotée des documents par étape */
@@ -2997,12 +2991,12 @@
         const prio = (PRIO_LABEL[t.priority] || 'Moyenne').toLowerCase();
         return '<li class="next-actions__item next-actions__item--task">'
           + '<div class="next-actions__link next-actions__link--static">'
+          + due
           + '<input type="checkbox" class="next-actions__cb" data-na-task="' + esc(t.id) + '" aria-label="Marquer « ' + esc(t.title) + ' » comme faite">'
           + '<a class="next-actions__main" href="taches.html">'
           + '<span class="next-actions__text">' + esc(t.title) + '</span>'
           + '<span class="next-actions__step">Tâche · priorité ' + prio + '</span>'
           + '</a>'
-          + due
           + '</div></li>';
       };
 
@@ -3208,6 +3202,22 @@
     const invMoney = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
     function invFmtAmount(n) { return n == null ? null : invMoney.format(n); }
 
+    // Paliers de suivi (vocabulaire fondateur) :
+    //  · « levé »        = argent sécurisé, à partir des contrats signés ;
+    //  · « intentionné » = engagement moral, à partir de la lettre d'intention signée.
+    // Pour compter dès la LOI en cours de négociation, remplacer le seuil ci-dessous
+    // par 'lettre_intention_negociation'.
+    const INV_LEVE_STAGES = new Set(['contrats_signes', 'gouvernance']);
+    const INV_INTENT_MIN_STAGE = 'lettre_intention_signee';
+    function invTier(stage) {
+      if (INV_LEVE_STAGES.has(stage)) return 'leve';
+      if (stageIndex(stage) >= stageIndex(INV_INTENT_MIN_STAGE)) return 'intentionne';
+      return 'approche';
+    }
+    function invTierColor(tier) {
+      return tier === 'leve' ? '#3f9e6b' : tier === 'intentionne' ? '#6b8afd' : '#6b7078';
+    }
+
     let invPipeline = [];
     let invPipelineLoaded = false;
 
@@ -3334,9 +3344,9 @@
         <div class="ip-panel is-active" data-panel="pipeline">
           <div class="ip-summary" data-el="summary" hidden>
             <div class="ip-stat"><div class="ip-stat__label">Investisseurs</div><div class="ip-stat__value" data-stat="count">0</div></div>
-            <div class="ip-stat"><div class="ip-stat__label">Engagés</div><div class="ip-stat__value" data-stat="engaged">0</div></div>
-            <div class="ip-stat"><div class="ip-stat__label">Montant engagé</div><div class="ip-stat__value" data-stat="engaged-amount">—</div></div>
-            <div class="ip-stat"><div class="ip-stat__label">Pipeline en discussion</div><div class="ip-stat__value" data-stat="pipeline-amount">—</div></div>
+            <div class="ip-stat ip-stat--leve"><div class="ip-stat__label">Levé (sécurisé)</div><div class="ip-stat__value" data-stat="leve-amount">—</div></div>
+            <div class="ip-stat ip-stat--intent"><div class="ip-stat__label">Intentionné (≥ LOI)</div><div class="ip-stat__value" data-stat="intent-amount">—</div></div>
+            <div class="ip-stat"><div class="ip-stat__label">Pipeline total</div><div class="ip-stat__value" data-stat="total-amount">—</div></div>
           </div>
           <form class="ip-form" data-el="form">
             <div class="ip-form__grid">
@@ -3357,24 +3367,20 @@
               <button type="submit" class="ip-form__add">Ajouter l'investisseur</button>
             </div>
           </form>
-          <div class="ip-funnel" data-el="funnel" hidden></div>
-          <div class="ip-viewbar" data-el="viewbar" hidden>
-            <div class="ip-viewbar__title">Suivi de l'entonnoir</div>
-            <div class="ip-viewtabs" role="tablist">
-              <button type="button" class="ip-viewbtn is-active" data-view="kanban">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="10" rx="1"/><rect x="17" y="4" width="4" height="7" rx="1"/></svg>
-                Entonnoir
+          <div class="ip-toolbar" data-el="toolbar" hidden>
+            <div class="ip-toolbar__title">Suivi de l'entonnoir</div>
+            <div class="ip-colpick">
+              <button type="button" class="ip-colbtn" data-el="colbtn" aria-haspopup="true" aria-expanded="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="16" rx="1"/><rect x="17" y="4" width="4" height="16" rx="1"/></svg>
+                Colonnes<span data-el="colcount"></span>
               </button>
-              <button type="button" class="ip-viewbtn" data-view="table">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18"/><path d="M3 12h18"/><path d="M3 19h18"/></svg>
-                Tableau
-              </button>
+              <div class="ip-colmenu" data-el="colmenu" role="menu"></div>
             </div>
           </div>
           <div class="ip-loading" data-el="loading">Chargement…</div>
           <div class="ip-err" data-el="error" hidden></div>
-          <div class="ip-board" data-el="board" hidden></div>
-          <div class="ip-kanban" data-el="kanban" hidden></div>
+          <div class="ip-grid-wrap" data-el="board" hidden></div>
+          <div class="ip-foot" data-el="foot" hidden></div>
         </div>`;
 
       // Onglets
@@ -3392,9 +3398,11 @@
       const loadingEl = root.querySelector('[data-el="loading"]');
       const errorEl   = root.querySelector('[data-el="error"]');
       const boardEl   = root.querySelector('[data-el="board"]');
-      const kanbanEl  = root.querySelector('[data-el="kanban"]');
-      const funnelEl  = root.querySelector('[data-el="funnel"]');
-      const viewbarEl = root.querySelector('[data-el="viewbar"]');
+      const toolbarEl = root.querySelector('[data-el="toolbar"]');
+      const colBtn    = root.querySelector('[data-el="colbtn"]');
+      const colMenu   = root.querySelector('[data-el="colmenu"]');
+      const colCount  = root.querySelector('[data-el="colcount"]');
+      const footEl    = root.querySelector('[data-el="foot"]');
       const formEl    = root.querySelector('[data-el="form"]');
       const stageSelect = root.querySelector('[data-in="stage"]');
       invFillStageSelect(stageSelect, 'a_contacter');
@@ -3847,7 +3855,7 @@
       card.className = 'raise-profile folder folder--phase open';
       card.innerHTML = `
         <div class="folder__head" style="cursor:default">
-          <div class="folder__ic">🚀</div>
+          <div class="folder__ic" style="color:#4b3fb0"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h4"/></svg></div>
           <div class="folder__main">
             <div class="folder__name">Profil de la levée</div>
             <div class="folder__count">Informations sur votre levée — facultatif</div>
