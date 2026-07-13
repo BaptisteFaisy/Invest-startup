@@ -295,20 +295,28 @@
         const { user } = await meRes.json();
         const isLawyer = user?.account_types?.includes('avocat');
         if (!isLawyer) { location.replace(user?.account_types?.length ? 'tableau-de-bord.html' : 'onboarding.html'); return; }
-        if (!user.lawyer_profile_completed) { location.replace('onboarding-avocat.html'); return; }
         const profileRes = await fetch('/api/saas/lawyer-profile', { credentials:'include' });
         if (!profileRes.ok) throw new Error('Profil indisponible');
-        const { profile } = await profileRes.json();
-        document.getElementById('welcome').textContent = 'Bienvenue, ' + profile.first_name;
-        document.getElementById('avatar').textContent = initials(profile);
+        const data = await profileRes.json();
+        const profile = data.profile || {};
+        const nameParts = String(user.name || '').trim().split(/\s+/).filter(Boolean);
+        const displayProfile = {
+          first_name: profile.first_name || nameParts[0] || 'Maître',
+          last_name: profile.last_name || nameParts.slice(1).join(' '),
+          oath_date: profile.oath_date || '',
+          city: profile.city || '',
+          specialty: profile.specialty || '',
+        };
+        document.getElementById('welcome').textContent = 'Bienvenue, ' + displayProfile.first_name;
+        document.getElementById('avatar').textContent = initials(displayProfile);
         const active=user.lawyer_status==='active';
         const statusEl=document.querySelector('.status');
         statusEl.textContent=active?'Compte avocat actif':({suspended:'Compte suspendu',rejected:'Candidature refusée'}[user.lawyer_status]||'Candidature en cours d’évaluation');
         profileEl.replaceChildren(
-          profileRow('Nom', profile.first_name + ' ' + profile.last_name),
-          profileRow('Serment', new Date(profile.oath_date + 'T12:00:00').toLocaleDateString('fr-FR')),
-          profileRow('Ville', profile.city),
-          profileRow('Spécialité', profile.specialty)
+          profileRow('Nom', (displayProfile.first_name + ' ' + displayProfile.last_name).trim()),
+          profileRow('Serment', displayProfile.oath_date ? new Date(displayProfile.oath_date + 'T12:00:00').toLocaleDateString('fr-FR') : ''),
+          profileRow('Ville', displayProfile.city),
+          profileRow('Spécialité', displayProfile.specialty)
         );
         await loadClientTools(active);
         app.classList.add('ready');

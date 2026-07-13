@@ -483,9 +483,7 @@ function authLandingPath(user) {
   // Le rôle avocat est prioritaire pour les anciens comptes qui auraient gardé
   // simultanément les valeurs « avocat » et « fondateur ».
   if (types.includes('avocat')) {
-    return user.lawyer_profile_completed
-      ? '/saas/tableau-de-bord-avocat.html'
-      : '/saas/onboarding-avocat.html';
+    return '/saas/tableau-de-bord-avocat.html';
   }
   return '/saas/tableau-de-bord.html';
 }
