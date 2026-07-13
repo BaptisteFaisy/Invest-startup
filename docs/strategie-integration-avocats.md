@@ -61,6 +61,29 @@ Trois règles françaises structurent **tout** le modèle. On ne les contourne p
 > transparent). Avant lancement, fais valider le montage exact par un avocat + le barreau, en t'appuyant sur
 > le **« Guide pratique — participation des avocats aux plateformes détenues par des tiers »** du CNB.
 
+### 1.1 — Deux pièges fréquents (précisions)
+
+**Piège n°1 — « un montant FIXE prélevé sur la relecture, ça passe ».** Non. Ce n'est **pas** le
+« fixe vs pourcentage » qui rend le montage légal, c'est **d'où vient l'argent que LIQUID+ garde** :
+
+- ❌ Fondateur paie 890 €, LIQUID+ garde 100 €, l'avocat touche 790 € → **interdit**, même en montant fixe.
+  On a prélevé 100 € **sur les honoraires de l'avocat** = partage d'honoraires / apport d'affaires (prohibé
+  quelle que soit la forme).
+- ✅ L'avocat facture 890 € et **touche 890 €** ; LIQUID+ facture **en plus** au fondateur ses **propres**
+  frais (logiciel, préparation du dossier, coordination) → **autorisé**, c'est la prestation de LIQUID+,
+  pas une part de celle de l'avocat.
+
+> Ligne rouge : « je prends dans la poche de l'avocat » (interdit) vs « je facture ma propre valeur au
+> fondateur, l'avocat garde 100 % » (OK). **Le moteur sûr est l'abonnement fixe** (récurrent, pour un
+> service, non indexé) — **pas un péage à l'acte**, même fixe, qui reste plus exposé à la requalification
+> en apport d'affaires.
+
+**Piège n°2 — maniement de fonds (CARPA).** Éviter que LIQUID+ **encaisse / détienne** les honoraires de
+l'avocat : le maniement de fonds d'un avocat est encadré (CARPA). Le plus propre : **l'avocat facture et
+encaisse en direct** ses honoraires ; LIQUID+ facture sa prestation séparément et ne s'assied jamais dans
+le flux des honoraires. (Une facilitation de paiement type Stripe Connect reversant 100 % à l'avocat reste
+possible, mais l'option « l'avocat encaisse en direct » est la moins risquée.)
+
 ---
 
 ## 2. Le modèle recommandé, de bout en bout
@@ -186,6 +209,26 @@ Raisons (convergentes) :
 
 → **Garde le modèle actuel du code** (attribution par défaut, nommé, changeable, ou « je déclare le mien »).
 C'est le bon. Il faut juste le **rendre visible et guidé** (§7).
+
+#### Peut‑on quand même attribuer « selon le tarif » ? — nuance
+
+Trois niveaux de risque distincts :
+
+- **Enchères / comparateur de prix affiché au fondateur** (« 3 avocats classés du moins cher au plus cher »)
+  → **à éviter** (c'est le comparateur/notation sanctionné par la CA de Paris, + méfiance sur la concurrence
+  par les prix).
+- **Pondérer le prix dans l'attribution INTERNE** (LIQUID+ choisit, et « meilleur tarif sur ce type de doc »
+  est l'un des critères) → **plus défendable** (pas de comparateur public), mais sélectionne le *moins cher*,
+  pas le *meilleur*.
+- **Grille unique commune acceptée par tous les partenaires à l'entrée** → **recommandé** : il n'y a alors
+  **plus de concurrence par les prix** (prix fixe identique sur tout le réseau) et on attribue sur le **fit**
+  (spécialité, stade, région, dispo, qualité).
+
+Pourquoi éviter la course au moins‑disant : (1) sur un W&R / pacte, la **responsabilité personnelle du
+fondateur** est en jeu → on veut le meilleur, pas le moins cher (une relecture bâclée est **pire que rien**) ;
+(2) ça **fait fuir les bons avocats**, le côté rare de la marketplace ; (3) ça **détruit le positionnement
+premium**. Si différenciation de prix souhaitée : **paliers** (junior / senior) à tarifs fixes publiés, le
+**fondateur choisit son palier** — un choix de gamme, pas une enchère.
 
 ### Quels avocats ? → **Spécialistes venture uniquement, réseau boutique restreint**
 
