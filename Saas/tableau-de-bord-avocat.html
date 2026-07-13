@@ -53,15 +53,6 @@
     .drawer__link svg { width:18px; height:18px; flex:none; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
     .drawer__sep { height:1px; margin:8px 4px; background:rgba(255,255,255,.08); }
     .drawer__soon { margin-left:auto; padding:2px 7px; border-radius:99px; background:rgba(34,197,94,0.20); color:#22c55e; font:800 9px 'Archivo',sans-serif; letter-spacing:.06em; text-transform:uppercase; }
-    .drawer__mode { flex:none; margin-top:8px; padding:12px 10px 6px; border-top:1px solid rgba(255,255,255,.08); direction:ltr; }
-    .drawer__mode-label { display:block; margin:0 0 8px 2px; color:rgba(255,255,255,.62); font:800 10px 'Archivo',sans-serif; letter-spacing:.11em; text-transform:uppercase; }
-    .drawer__mode-options { display:grid; grid-template-columns:1fr 1fr; gap:3px; padding:3px; border:1px solid rgba(255,255,255,.12); border-radius:10px; background:rgba(255,255,255,.04); }
-    .drawer__mode-option { min-width:0; padding:8px 6px; border:0; border-radius:7px; background:transparent; color:rgba(255,255,255,.58); font:600 12px 'Libre Franklin',sans-serif; cursor:pointer; }
-    .drawer__mode-soon { display:block; width:max-content; margin:3px auto 0; padding:2px 6px; border-radius:99px; background:rgba(34,197,94,0.20); color:#22c55e; font:800 8px/1 'Archivo',sans-serif; letter-spacing:.07em; text-transform:uppercase; }
-    .drawer__mode-option.is-active .drawer__mode-soon { color:#16a34a; }
-    .drawer__mode-option:hover:not(:disabled) { color:#fff; }
-    .drawer__mode-option:disabled { cursor:not-allowed; color:rgba(255,255,255,.38); }
-    .drawer__mode-option.is-active { background:#fff; color:#111318; box-shadow:0 1px 5px rgba(0,0,0,.24); }
     .drawer__resize { position:absolute; inset-block:0; z-index:2; width:10px; cursor:col-resize; touch-action:none; }
     .drawer--left .drawer__resize { right:-5px; }
     .drawer--right .drawer__resize { left:-5px; }
@@ -145,8 +136,7 @@
     :root[data-theme="paper"] .section-link:hover { color:var(--t-on-bg); }
     :root[data-theme="paper"] .status { color:var(--t-on-bg); background:var(--t-surface); border-color:var(--t-surface-brd); }
     :root[data-theme="paper"] .drawer { background:var(--t-bg); border-color:var(--t-divider); box-shadow:var(--t-elevated-shadow); }
-    :root[data-theme="paper"] .drawer__head,
-    :root[data-theme="paper"] .drawer__mode { border-color:var(--t-divider); }
+    :root[data-theme="paper"] .drawer__head { border-color:var(--t-divider); }
     :root[data-theme="paper"] .drawer__title,
     :root[data-theme="paper"] .drawer__section-title { color:var(--t-on-bg); }
     :root[data-theme="paper"] .drawer__body { scrollbar-color:#8a8578 transparent; }
@@ -154,11 +144,6 @@
     :root[data-theme="paper"] .drawer__link:hover,
     :root[data-theme="paper"] .drawer__link.is-current { background:var(--t-chip); color:var(--t-on-bg); }
     :root[data-theme="paper"] .drawer__sep { background:var(--t-divider); }
-    :root[data-theme="paper"] .drawer__mode-label { color:var(--t-on-bg-muted); }
-    :root[data-theme="paper"] .drawer__mode-options { background:var(--t-surface); border-color:var(--t-border); }
-    :root[data-theme="paper"] .drawer__mode-option { color:var(--t-on-bg-muted); }
-    :root[data-theme="paper"] .drawer__mode-option:hover { background:var(--t-chip); color:var(--t-on-bg); }
-    :root[data-theme="paper"] .drawer__mode-option.is-active { background:var(--t-solid); color:var(--t-on-solid); box-shadow:0 1px 5px rgba(8,9,12,.18); }
   </style>
 </head>
 <body>
@@ -176,7 +161,7 @@
     </header>
 
     <div class="drawer-backdrop" id="nav-backdrop" data-drawer-close></div>
-    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Navigation avocat">
+    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Navigation avocat" data-hide-experience-mode>
       <div class="drawer__head"><span class="drawer__title">Navigation</span></div>
       <nav class="drawer__body">
         <a class="drawer__link is-current" href="tableau-de-bord-avocat.html"><svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3Z"/><path d="M9 20v-6h6v6"/></svg>Tableau de bord</a>
@@ -195,7 +180,7 @@
       <nav class="drawer__body">
         <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Éditeur</a>
         <a class="drawer__link" href="feedback.html"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 3Z"/><path d="M8 9h8M8 13h5"/></svg>Feedback</a>
-        <a class="drawer__link" href="compte.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-5 3-8 8-8s8 3 8 8"/></svg>Mon compte</a>
+        <a class="drawer__link" href="/saas/compte.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-5 3-8 8-8s8 3 8 8"/></svg>Mon compte</a>
       </nav>
       <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0"></div>
     </aside>
@@ -241,7 +226,7 @@
     </main>
   </div>
 
-  <script src="drawer-menu.js?v=13"></script>
+  <script src="drawer-menu.js?v=14"></script>
   <script src="theme.js?v=3"></script>
   <script>
     const app = document.getElementById('app');

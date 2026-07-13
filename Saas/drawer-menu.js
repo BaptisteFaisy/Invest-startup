@@ -62,7 +62,7 @@
   (function setupExperienceMode() {
     const drawer = document.getElementById('nav-drawer');
     const body = drawer && drawer.querySelector('.drawer__body');
-    if (!drawer || !body || drawer.querySelector('.drawer__mode')) return;
+    if (!drawer || !body || drawer.hasAttribute('data-hide-experience-mode') || drawer.querySelector('.drawer__mode')) return;
     const control = document.createElement('div');
     control.className = 'drawer__mode';
     control.innerHTML = `<span class="drawer__mode-label" id="drawer-mode-label">Mode</span><div class="drawer__mode-options" role="group" aria-labelledby="drawer-mode-label"><button class="drawer__mode-option" type="button" data-mode="autonome" aria-pressed="false">Autonome</button><button class="drawer__mode-option" type="button" data-mode="guide" aria-pressed="false" disabled aria-disabled="true" title="Bientôt disponible">Guidé<span class="drawer__mode-soon">Bientôt</span></button></div>`;

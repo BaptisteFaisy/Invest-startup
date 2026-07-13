@@ -483,10 +483,15 @@
       unknown: 'Type de levée à définir',
     };
 
-    requireAuth().then((user) => {
+    const accountLoginUrl = '/saas/login.html?return_to=' + encodeURIComponent('/saas/compte.html');
+
+    requireAuth(accountLoginUrl).then((user) => {
       if (!user) return;
       document.getElementById('profile-name').value  = user.name || '';
       document.getElementById('profile-email').value = user.email || '';
+      if (user.account_types?.includes('avocat')) {
+        document.querySelector('.brand').href = '/saas/tableau-de-bord-avocat.html';
+      }
       loadAccountStatus(user);
       document.querySelector('.app').classList.add('ready');
       initAppearance(user.theme);
@@ -591,7 +596,7 @@
       try {
         const connectionsResponse = await fetch('/api/saas/dataroom/connections', { credentials: 'include' });
         if (connectionsResponse.status === 401) {
-          window.location.href = 'login.html';
+          window.location.href = accountLoginUrl;
           return;
         }
         dataroomConnections = connectionsResponse.ok

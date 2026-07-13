@@ -31,7 +31,7 @@
     .msg-list-item:hover { background: rgba(255,255,255,0.08); }
     .msg-list-item.active { background: rgba(255,255,255,0.12); }
     .msg-list-item__name { font-weight: 600; font-size: 0.86rem; display: flex; align-items: center; gap: 6px; }
-    .msg-list-item__dot { width: 7px; height: 7px; border-radius: 50%; background: #e05d3a; flex: none; }
+    .msg-list-item__dot { width: 8px; height: 8px; border-radius: 50%; background:#22c55e; box-shadow:0 0 0 3px rgba(34,197,94,.16); flex: none; }
     .msg-account-badge { margin-left:auto; padding:3px 7px; border-radius:99px; font:700 .62rem 'Archivo',sans-serif; letter-spacing:.04em; text-transform:uppercase; }
     .msg-account-badge--lawyer { color:#5b21b6; background:#ede9fe; }
     .msg-account-badge--startup { color:#1d4ed8; background:#dbeafe; }
@@ -85,6 +85,10 @@
     .assigned-startups__title { margin-bottom:7px; color:var(--muted); font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; }
     .assigned-startups__item { display:block; margin-top:5px; font-size:.78rem; }
     .admin-menu-btn { position:fixed; top:9px; left:18px; z-index:92; width:38px; height:38px; display:grid; place-items:center; flex:none; padding:0; border:1px solid var(--line); border-radius:10px; background:#000; color:var(--text); cursor:pointer; }
+    .admin-notification-dot { width:9px; height:9px; border-radius:50%; background:#22c55e; box-shadow:0 0 0 3px #f7f6f3; }
+    .admin-menu-btn .admin-notification-dot { position:absolute; top:-2px; right:-2px; }
+    .admin-drawer__link .admin-notification-dot { margin-left:auto; flex:none; }
+    .admin-notification-dot[hidden] { display:none; }
     .admin-menu-btn:hover { background:rgba(255,255,255,.08); }
     .admin-menu-btn svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; }
     .admin-menu-btn--right { right:18px; left:auto; margin-left:0; }
@@ -132,7 +136,7 @@
   <nav class="nav">
     <div class="nav-inner">
       <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
-      <button type="button" class="admin-menu-btn admin-menu-btn--right" id="admin-menu-right-btn" aria-label="Ouvrir le menu administrateur droit" aria-controls="admin-menu-right" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <button type="button" class="admin-menu-btn admin-menu-btn--right" id="admin-menu-right-btn" aria-label="Ouvrir le menu administrateur droit" aria-controls="admin-menu-right" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span class="admin-notification-dot" id="admin-menu-notification" aria-label="Messages non lus" hidden></span></button>
       <div id="nav-links" class="nav-links">
         <span class="nav-link" id="admin-email" style="color:var(--muted);font-size:.85rem;"></span>
         <button class="button ghost" id="nav-switch-account">Changer de compte</button>
@@ -147,7 +151,7 @@
       <a class="admin-drawer__link" href="#administrators" data-admin-view="administrators"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-2.8 7.8-7 10-4.2-2.2-7-5.5-7-10V6Z"/><path d="M9 12l2 2 4-4"/></svg>Administrateurs</a>
       <a class="admin-drawer__link" href="#startups" data-admin-view="startups"><svg viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 13h14l2 8H3Z"/></svg>Startups</a>
       <a class="admin-drawer__link" href="#lawyers" data-admin-view="lawyers"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-4 2-6 6-6s6 2 6 6M16 5a3 3 0 0 1 0 6M17 14c3 .3 4 2.3 4 6"/></svg>Avocats</a>
-      <a class="admin-drawer__link" href="#messages" data-admin-view="messages"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 3Z"/><path d="M8 9h8M8 13h5"/></svg>Messages</a>
+      <a class="admin-drawer__link" href="#messages" data-admin-view="messages"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 3Z"/><path d="M8 9h8M8 13h5"/></svg>Messages<span class="admin-notification-dot" id="messages-menu-notification" aria-label="Messages non lus" hidden></span></a>
     </nav>
   </aside>
 
@@ -200,7 +204,6 @@
 
     <!-- Messagerie feedback -->
     <div class="admin-section" id="admin-feedback" data-admin-view-panel="messages" hidden>
-      <h2>Messagerie — Feedback utilisateurs</h2>
       <div class="msg-layout">
         <div class="msg-list" id="msg-list"><p style="padding:14px;color:var(--muted);font-size:.85rem;">Chargement…</p></div>
         <div class="msg-panel" id="msg-panel"><p class="msg-panel__empty">Sélectionnez une conversation.</p></div>
@@ -278,6 +281,7 @@
           window.location.href = 'login.html?switch=1';
         });
         loadThreads();
+        window.setInterval(loadThreads, 15000);
         loadLawyerManagement();
       })
       .catch(err => {
@@ -303,12 +307,19 @@
     let threads = [];
     let activeThreadUserId = null;
 
+    function updateMessageNotifications() {
+      const hasUnread = threads.some(thread => thread.unread_by_admin);
+      document.getElementById('admin-menu-notification').hidden = !hasUnread;
+      document.getElementById('messages-menu-notification').hidden = !hasUnread;
+    }
+
     async function loadThreads() {
       try {
         const r = await fetch('/api/admin/feedback', { credentials: 'include' });
         if (!r.ok) throw new Error();
         const data = await r.json();
         threads = data.threads || [];
+        updateMessageNotifications();
         renderThreadList();
       } catch {
         document.getElementById('msg-list').innerHTML = '<p style="padding:14px;color:var(--muted);font-size:.85rem;">Erreur de chargement.</p>';
@@ -360,6 +371,9 @@
           return;
         }
         const data = await r.json();
+        threadSummary.unread_by_admin = false;
+        updateMessageNotifications();
+        renderThreadList();
         renderPanel(data.thread);
       } catch {
         panel.innerHTML = '<p class="msg-panel__empty">Impossible de charger la conversation.</p>';

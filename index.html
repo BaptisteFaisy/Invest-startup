@@ -253,6 +253,12 @@
       .grain { opacity: .22; mix-blend-mode: multiply; }
 
       .site-header { background: rgba(247,246,243,.96); border-bottom-color: #ddd9d1; backdrop-filter: blur(14px); }
+      .nav { padding: 12px 0; }
+      .nav-primary { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 30px; height: 100%; }
+      .nav-primary__link { position: relative; color: #625f58; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
+      .nav-primary__link:hover { color: #111; }
+      .nav-primary__link--active { color: #111; }
+      .nav-primary__link--active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -13px; height: 2px; background: #3b82f6; border-radius: 99px; }
       .logo-mark, .logo-wordmark, .nav-link { color: #111; }
       .nav-user-name { color: #57534a; background: rgba(17,17,17,.05); border-color: rgba(17,17,17,.12); }
       .button.ghost { color: #111; border-color: rgba(17,17,17,.2); }
@@ -336,6 +342,9 @@
       .btn-plan:hover { color: #111; border-color: #777168; }
       .plan--featured .btn-plan { background: #fff; color: #111; }
       .plan--featured .btn-plan:hover { background: #eeece7; }
+      .pricing-single { max-width: 620px; margin: 0 auto; }
+      .pricing-single .plan { padding: 36px; }
+      .pricing-note { margin-top: 18px; color: rgba(255,255,255,.48); font-size: 12px; line-height: 1.6; }
 
       .cta, .footer { border-color: #ddd9d1; }
       .brand, .brand .brand__mark { color: #111; }
@@ -362,6 +371,9 @@
         .footer-contact__details { grid-template-columns: 1fr; gap: 20px; }
         .cta { padding: 64px 20px; }
       }
+      @media (max-width: 720px) {
+        .nav-primary { display: none; }
+      }
     </style>
   </head>
   <body>
@@ -370,6 +382,10 @@
     <header class="site-header">
       <nav class="nav">
         <a class="logo" href="#top"><span class="logo-mark" aria-hidden="true"><svg viewBox="-10 -12 60 76" focusable="false"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/></svg></span><span class="logo-wordmark">LIQUID+</span></a>
+        <div class="nav-primary" aria-label="Navigation principale">
+          <a class="nav-primary__link nav-primary__link--active" href="#top" aria-current="page">PILOTER MA LEVÉE</a>
+          <a class="nav-primary__link" href="#tarifs">TARIFS</a>
+        </div>
         <div class="nav-links" id="nav-links">
           <a class="button ghost" href="login.html">Se connecter</a>
           <a class="button light" href="register.html">Créer un compte</a>
@@ -379,7 +395,8 @@
 
     <div class="mobile-menu" id="mobile-menu" role="dialog" aria-label="Navigation">
       <button class="nav-hamburger" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><span></span><span></span><span></span></button>
-      <a href="index.html">Accueil</a>
+      <a href="#top">PILOTER MA LEVÉE</a>
+      <a href="#tarifs">TARIFS</a>
       <a href="login.html" style="margin-top:16px; font-size:1.1rem; color:rgba(255,255,255,0.5);">Se connecter</a>
       <a href="register.html" style="font-size:1.1rem; color:rgba(255,255,255,0.5);">Créer un compte</a>
     </div>
@@ -412,7 +429,8 @@
           `;
           document.getElementById('mobile-menu').innerHTML = `
             <button class="nav-hamburger" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><span></span><span></span><span></span></button>
-            <a href="index.html">Accueil</a>
+            <a href="#top">PILOTER MA LEVÉE</a>
+            <a href="#tarifs">TARIFS</a>
             <a href="settings.html">Paramètres</a>
             <a href="/saas/tableau-de-bord.html">liquid+ SaaS</a>
             <button id="mobile-logout" style="margin-top:16px;font-size:1.1rem;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer;font-family:inherit;">Se déconnecter</button>
@@ -678,6 +696,35 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TARIFS -->
+      <section class="section pricing" id="tarifs">
+        <div class="section__inner">
+          <span class="eyebrow">Tarifs</span>
+          <h2 class="section__title">Un prix clair pour aller jusqu'au closing.</h2>
+          <p class="section__sub">Un forfait global pour piloter votre levée, produire vos documents et sécuriser les actes avant signature.</p>
+          <div class="pricing-single">
+            <article class="plan plan--featured">
+              <div class="plan__badge">Forfait tout compris</div>
+              <h3>Votre levée, de A à Z</h3>
+              <div class="plan__price">700–1 500 <span>€</span></div>
+              <p class="plan__desc">Par levée, selon la complexité de l'opération. Aucun abonnement obligatoire et aucun honoraire au compteur.</p>
+              <ul>
+                <li>Levée classique ou BSA-AIR</li>
+                <li>Pilotage et checklist de bout en bout</li>
+                <li>Documents juridiques de la levée</li>
+                <li>Plateforme et décryptage IA</li>
+                <li>Data room et suivi des négociations</li>
+                <li>Validation par un avocat avant signature</li>
+                <li>Exports Word et PDF</li>
+                <li>Interlocuteur dédié</li>
+              </ul>
+              <a class="btn-plan" href="https://calendly.com/liquidplus-contact" target="_blank" rel="noopener">Parler de ma levée</a>
+              <p class="pricing-note">Le périmètre et le montant définitifs sont confirmés avec vous avant le démarrage.</p>
+            </article>
           </div>
         </div>
       </section>
