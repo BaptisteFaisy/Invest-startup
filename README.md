@@ -461,6 +461,8 @@ Tous les fichiers binaires du SaaS (imports, conversions, exports) sont stockés
 | `upload` (diskStorage, 20 Mo) | Portail startup (collection `documents`) | `uploads/` sur disque |
 | `imageUpload` (diskStorage, 5 Mo) | Images admin publiques | `uploads/public/` sur disque |
 
+Les contenus des comptes fondateur et avocat sont chiffrés par l'application en AES-256-GCM avant leur écriture dans MongoDB : binaires `data`, HTML éditables, versions validées et caches `extracted_text`. À chaque démarrage, une migration idempotente chiffre les anciens contenus encore en clair. La clé est dérivée de `ENCRYPTION_KEY` et ne doit jamais être modifiée sans procédure de rotation, sous peine de rendre les documents illisibles.
+
 ### Export termsheet (HTML → DOCX ou PDF)
 ```
 POST /api/saas/termsheets/:id/export { to: "docx" | "pdf" }
@@ -544,6 +546,7 @@ DROPBOX_APP_KEY             # Data room : App key Dropbox (console Dropbox)
 DROPBOX_APP_SECRET          # Data room : App secret Dropbox
 BASE_URL              # https://votre-domaine.railway.app ou domaine custom
 JWT_SECRET            # Longue chaîne aléatoire (openssl rand -hex 32)
+ENCRYPTION_KEY         # Clé racine du chiffrement applicatif (min. 32 caractères)
 NODE_ENV              # production
 ```
 
@@ -585,6 +588,7 @@ res.cookie('auth_token', token, {
 | `DROPBOX_APP_SECRET` | Data room | — | |
 | `BASE_URL` | — | `http://localhost:3000` | Utilisé dans les redirects OAuth |
 | `JWT_SECRET` | — | `invest_bg_dev_secret_CHANGE_IN_PROD` | Changer en prod |
+| `ENCRYPTION_KEY` | ✅ en production | `JWT_SECRET` en développement | Chiffrement AES-256-GCM des documents et secrets ; ne jamais changer sans rotation |
 | `STARTUP_SECRET` | — | `startup_post_secret_2026` | Auth portail startup |
 | `PORT` | — | `3000` | Injecté par Railway |
 | `NODE_ENV` | — | — | `production` active HTTPS cookies |

@@ -23,6 +23,7 @@ const ExcelJS          = require('exceljs');
 const { google }       = require('googleapis');
 const { Dropbox }      = require('dropbox');
 const archiver         = require('archiver');
+const { createDocumentEncryption } = require('./lib/document-encryption');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -143,6 +144,7 @@ function assertSecretsOrExit() {
 // Clé 32 octets dérivée de ENCRYPTION_KEY (sinon de JWT_SECRET en dev).
 const ENC_KEY = crypto.createHash('sha256')
   .update(process.env.ENCRYPTION_KEY || JWT_SECRET).digest();
+const documentEncryption = createDocumentEncryption(process.env.ENCRYPTION_KEY || JWT_SECRET);
 
 function encryptSecret(plain) {
   const iv     = crypto.randomBytes(12);
@@ -171,10 +173,13 @@ async function connectDB() {
   const client = new MongoClient(MONGODB_URI);
   await client.connect();
   db = client.db('liquidplus');
+  const migrated = await documentEncryption.migrateExistingDocuments(db);
+  const migratedCount = Object.values(migrated).reduce((sum, count) => sum + count, 0);
+  if (migratedCount) console.log(`  ✓  ${migratedCount} document(s) existant(s) chiffré(s)`);
   console.log('  ✓  MongoDB connecté');
 }
 
-function col(name) { return db.collection(name); }
+function col(name) { return documentEncryption.wrapCollection(name, db.collection(name)); }
 
 async function nextId(colName) {
   const last = await col(colName).findOne({}, { sort: { id: -1 }, projection: { id: 1 } });
