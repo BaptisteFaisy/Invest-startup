@@ -62,6 +62,16 @@
     });
   })();
 
+  (function addBenchmarkSoonTag() {
+    const benchmarkLink = document.querySelector('#actions-drawer .drawer__link[href="benchmark.html"]');
+    if (!benchmarkLink || benchmarkLink.querySelector('.drawer__soon-tag')) return;
+
+    const tag = document.createElement('span');
+    tag.className = 'drawer__soon-tag';
+    tag.textContent = 'Bientôt';
+    benchmarkLink.appendChild(tag);
+  })();
+
   // Sur telephone, les deux tiroirs sont aussi accessibles par glissement :
   // bord gauche vers le centre pour la navigation, bord droit vers le centre
   // pour les actions. Le defilement vertical reste prioritaire.
