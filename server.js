@@ -3534,6 +3534,10 @@ const LEGACY_INVESTOR_STAGES = {
   engage: 'contrats_signes',
   decline: 'a_contacter',
 };
+// Type d'investisseur (business angel, fonds VC, etc.). Facultatif : '' = non précisé.
+const INVESTOR_TYPES = new Set([
+  '', 'ba', 'vc', 'family_office', 'corporate', 'crowdfunding', 'public', 'autre',
+]);
 
 function publicInvestor(inv) {
   const { _id, user_id, ...rest } = inv;
@@ -3556,6 +3560,7 @@ app.post('/api/saas/investors', requireAuth, async (req, res) => {
   const email   = (req.body?.email || '').toString().trim().slice(0, 200);
   const phone   = (req.body?.phone || '').toString().trim().slice(0, 60);
   const notes   = (req.body?.notes || '').toString().trim().slice(0, 2000);
+  const type    = INVESTOR_TYPES.has(req.body?.type) ? req.body.type : '';
   const stage   = INVESTOR_STAGES.includes(req.body?.stage) ? req.body.stage : 'a_contacter';
   const amountRaw = Number(req.body?.amount);
   const amount = Number.isFinite(amountRaw) && amountRaw > 0 ? amountRaw : null;
@@ -3563,7 +3568,7 @@ app.post('/api/saas/investors', requireAuth, async (req, res) => {
   const id   = await nextId('saas_investors');
   const last = await col('saas_investors').findOne({ user_id: req.user.id }, { sort: { order: -1 }, projection: { order: 1 } });
   const investor = {
-    id, user_id: req.user.id, name, firm, email, phone, amount, stage, notes,
+    id, user_id: req.user.id, name, firm, type, email, phone, amount, stage, notes,
     order: (last?.order ?? -1) + 1, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
   };
   await col('saas_investors').insertOne(investor);
@@ -3585,6 +3590,7 @@ app.put('/api/saas/investors/:id', requireAuth, async (req, res) => {
     set.name = name;
   }
   if ('firm' in body)  set.firm  = (body.firm || '').toString().trim().slice(0, 200);
+  if ('type' in body)  set.type  = INVESTOR_TYPES.has(body.type) ? body.type : '';
   if ('email' in body) set.email = (body.email || '').toString().trim().slice(0, 200);
   if ('phone' in body) set.phone = (body.phone || '').toString().trim().slice(0, 60);
   if ('notes' in body) set.notes = (body.notes || '').toString().trim().slice(0, 2000);

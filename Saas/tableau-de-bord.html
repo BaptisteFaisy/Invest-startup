@@ -421,8 +421,8 @@
     .ip-form textarea { resize: vertical; min-height: 40px; grid-column: 1 / -1; }
     .ip-form__foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; }
     .ip-form__err { color: #f2a4a4; font-size: 13px; }
-    .ip-form__add { margin-left: auto; font-family: 'Archivo', sans-serif; font-size: 13.5px; font-weight: 600; padding: 10px 20px; border-radius: 10px; cursor: pointer; border: 1px solid transparent; background: var(--blue, #3b82f6); color: #fff; }
-    .ip-form__add:hover { background: #2563eb; }
+    .ip-form__add { margin-left: auto; font-family: 'Archivo', sans-serif; font-size: 13.5px; font-weight: 600; padding: 10px 20px; border-radius: 10px; cursor: pointer; border: 1px solid transparent; background: #16a34a; color: #fff; }
+    .ip-form__add:hover { background: #15803d; }
 
     .ip-loading { color: #8b919b; font-size: 14px; padding: 18px 4px; }
     .ip-err { font-size: 14px; color: #f2b8b8; background: rgba(220,38,38,0.14); border: 1px solid rgba(220,38,38,0.32); border-radius: 12px; padding: 14px 16px; margin-top: 18px; line-height: 1.55; }
@@ -487,8 +487,8 @@
     .ip-stat__label { color: #6b7280; }
     .ip-stat__value { color: #111827; }
     .ip-actions { display:flex; justify-content:flex-end; margin-top:18px; }
-    .ip-addbtn { display:inline-flex; align-items:center; gap:8px; padding:10px 16px; border:1px solid transparent; border-radius:10px; background:var(--blue, #3b82f6); color:#fff; font-family:'Archivo',sans-serif; font-size:13.5px; font-weight:700; cursor:pointer; box-shadow:0 2px 8px rgba(37,99,235,.22); }
-    .ip-addbtn:hover { background:#2563eb; }
+    .ip-addbtn { display:inline-flex; align-items:center; gap:8px; padding:10px 16px; border:1px solid transparent; border-radius:10px; background:#16a34a; color:#fff; font-family:'Archivo',sans-serif; font-size:13.5px; font-weight:700; cursor:pointer; box-shadow:0 2px 8px rgba(22,163,74,.24); }
+    .ip-addbtn:hover { background:#15803d; }
     .ip-addbtn svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; }
     .ip-colbtn { color:#374151; background:#fff; border-color:#d1d5db; }
     .ip-colbtn:hover { border-color:#9ca3af; }
@@ -511,6 +511,71 @@
     .ip-gcard__del { color:#9ca3af; }
     .ip-gcol-empty { color:#9ca3af; border-color:#d1d5db; }
     .ip-grid-empty { color:#6b7280; background:#fff; border-color:#d1d5db; }
+
+    /* ── Tableau investisseurs : une ligne par investisseur, une colonne par stade ──
+       Colonnes fixes (nom/fonds/type, contact, ticket) puis une colonne par stade ;
+       la cellule du stade courant est « active » et se clique pour la changer. */
+    .ip-table-wrap { margin-top: 12px; overflow-x: auto; border: 1px solid #e5e7eb; border-radius: 14px; background: #fff; }
+    table.ip-table { border-collapse: separate; border-spacing: 0; width: 100%; table-layout: fixed; }
+    .ip-table th, .ip-table td { border-bottom: 1px solid #eef1f4; border-left: 1px solid #eef1f4; vertical-align: middle; }
+    .ip-table th:first-child, .ip-table td:first-child { border-left: 0; }
+    .ip-table tbody tr:last-child td { border-bottom: 0; }
+    .ip-table thead th { text-align: left; vertical-align: top; padding: 11px 12px 9px; background: #f8fafc; border-top: 2px solid #9ca3af; }
+    .ip-th-info { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; color: #374151; line-height: 1.3; border-top-color: #cbd2da !important; }
+    .ip-col-name { width: 236px; }
+    .ip-col-contact { width: 190px; }
+    .ip-col-ticket { width: 132px; }
+    /* Première colonne gelée à gauche pour rester visible en défilement horizontal. */
+    .ip-table th.ip-sticky, .ip-table td.ip-sticky { position: sticky; left: 0; z-index: 2; }
+    .ip-table thead th.ip-sticky { z-index: 3; background: #f8fafc; box-shadow: 1px 0 0 #e5e7eb; }
+    .ip-table td.ip-sticky { background: #fff; box-shadow: 1px 0 0 #eef1f4; }
+
+    /* En-tête d'un stade : repère de palier (couleur) + compteur + montant. */
+    .ip-th-stage { width: 116px; }
+    .ip-th-stage.is-leve { border-top-color: #16a34a; }
+    .ip-th-stage.is-intent { border-top-color: #3b82f6; }
+    .ip-th-stage__lab { display: flex; align-items: flex-start; gap: 6px; }
+    .ip-th-stage__t { flex: 1; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; color: #374151; line-height: 1.3; }
+    .ip-th-stage.is-leve .ip-th-stage__t { color: #15803d; }
+    .ip-th-stage__count { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 800; color: #6b7280; background: #fff; border: 1px solid #d1d5db; border-radius: 99px; padding: 1px 6px; flex: none; }
+    .ip-th-stage__amt { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 600; color: #6b7280; margin-top: 6px; min-height: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+    /* Cellules d'information éditables en ligne (champ discret jusqu'au survol). */
+    .ip-cell { padding: 7px 9px; }
+    .ip-namecell { display: flex; align-items: flex-start; gap: 6px; }
+    .ip-namecell__main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+    .ip-ci { display: block; width: 100%; box-sizing: border-box; font-family: inherit; border: 1px solid transparent; border-radius: 7px; background: transparent; color: #111827; padding: 4px 6px; font-size: 13px; }
+    .ip-ci::placeholder { color: #9ca3af; }
+    .ip-ci:hover { border-color: #e5e7eb; background: #fafbfc; }
+    .ip-ci:focus { outline: none; border-color: #16a34a; background: #fff; box-shadow: 0 0 0 2px rgba(22,163,74,.15); }
+    .ip-ci--name { font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 13.5px; }
+    .ip-ci--sub { font-size: 12px; color: #6b7280; }
+    select.ip-ci { cursor: pointer; font-size: 12px; color: #6b7280; }
+    select.ip-ci:has(option:checked[value=""]) { color: #9ca3af; }
+    .ip-ci--amount { font-variant-numeric: tabular-nums; text-align: right; font-weight: 600; }
+    .ip-rowdel { flex: none; width: 26px; height: 26px; display: grid; place-items: center; border: 0; background: transparent; color: #9ca3af; cursor: pointer; border-radius: 7px; }
+    .ip-rowdel:hover { background: rgba(220,38,38,.1); color: #dc2626; }
+    .ip-rowdel svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* Cellule de stade : pastille cliquable, remplie au stade courant, grisée avant. */
+    .ip-stcell { padding: 2px; text-align: center; }
+    .ip-stbtn { display: grid; place-items: center; gap: 3px; width: 100%; min-height: 50px; border: 1px solid transparent; background: transparent; cursor: pointer; padding: 6px 3px; border-radius: 9px; }
+    .ip-stbtn:hover { background: #f6f8f5; }
+    .ip-stbtn__dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #d1d5db; display: grid; place-items: center; transition: transform .1s, background .1s, border-color .1s; }
+    .ip-stbtn:hover .ip-stbtn__dot { border-color: var(--st, #16a34a); }
+    .ip-stbtn.is-passed .ip-stbtn__dot { border-color: transparent; background: #d7dbe0; }
+    .ip-stbtn.is-active { background: var(--st-bg, rgba(22,163,74,.08)); border-color: var(--st-bd, rgba(22,163,74,.28)); }
+    .ip-stbtn.is-active .ip-stbtn__dot { border-color: transparent; background: var(--st, #16a34a); width: 22px; height: 22px; }
+    .ip-stbtn__dot svg { width: 12px; height: 12px; fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; opacity: 0; }
+    .ip-stbtn.is-active .ip-stbtn__dot svg { opacity: 1; }
+    .ip-stbtn__lab { font-family: 'Archivo', sans-serif; font-size: 9px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--st, #16a34a); opacity: 0; }
+    .ip-stbtn.is-active .ip-stbtn__lab { opacity: 1; }
+    .ip-table-empty { padding: 26px; text-align: center; color: #6b7280; font-size: 14px; }
+
+    @media (max-width: 720px) {
+      .ip-col-name { width: 200px; }
+      .ip-col-contact { width: 168px; }
+    }
 
     /* Le formulaire est une modale, ouverte uniquement depuis le bouton d'ajout. */
     .ip-modal { position:fixed; inset:0; z-index:1000; display:grid; place-items:center; padding:20px; }
@@ -3353,6 +3418,18 @@
       { key: 'contrats_signes',                     label: 'Contrats signés',                               dot: '#16a34a' },
       { key: 'gouvernance',                         label: 'Gouvernance',                                     dot: '#15803d' },
     ];
+    // Types d'investisseur (petite étiquette sous le nom). '' = non précisé.
+    const INV_TYPES = [
+      { key: '',             label: 'Type…' },
+      { key: 'ba',           label: 'Business Angel' },
+      { key: 'vc',           label: 'Fonds VC' },
+      { key: 'family_office',label: 'Family Office' },
+      { key: 'corporate',    label: 'Corporate / CVC' },
+      { key: 'crowdfunding', label: 'Crowdfunding' },
+      { key: 'public',       label: 'Public / Bpifrance' },
+      { key: 'autre',        label: 'Autre' },
+    ];
+    const INV_TYPE_LABELS = Object.fromEntries(INV_TYPES.map(t => [t.key, t.label]));
     const invMoney = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
     function invFmtAmount(n) { return n == null ? null : invMoney.format(n); }
 
@@ -3479,6 +3556,11 @@
       select.value = value;
     }
 
+    function invFillTypeSelect(select, value) {
+      select.innerHTML = INV_TYPES.map(t => `<option value="${t.key}">${esc(t.label)}</option>`).join('');
+      select.value = value || '';
+    }
+
     function investorSectionEl() {
       const root = document.createElement('section');
       root.className = 'ip-root';
@@ -3522,6 +3604,7 @@
                 <div class="ip-form__grid">
                   <input data-in="name" type="text" placeholder="Nom de l'investisseur *" maxlength="200" autocomplete="off" required />
                   <input data-in="firm" type="text" placeholder="Fonds / structure" maxlength="200" autocomplete="off" />
+                  <select data-in="type" aria-label="Type d'investisseur"></select>
                   <select data-in="stage" aria-label="Stade initial"></select>
                 </div>
                 <div class="ip-form__grid2">
@@ -3552,7 +3635,7 @@
           </div>
           <div class="ip-loading" data-el="loading">Chargement…</div>
           <div class="ip-err" data-el="error" hidden></div>
-          <div class="ip-grid-wrap" data-el="board" hidden></div>
+          <div data-el="board" hidden></div>
           <div class="ip-foot" data-el="foot" hidden></div>
         </div>`;
 
@@ -3580,7 +3663,9 @@
       const modalEl   = root.querySelector('[data-el="modal"]');
       const openFormBtn = root.querySelector('[data-el="open-form"]');
       const stageSelect = root.querySelector('[data-in="stage"]');
+      const typeSelect  = root.querySelector('[data-in="type"]');
       invFillStageSelect(stageSelect, 'a_contacter');
+      invFillTypeSelect(typeSelect, '');
 
       function openInvestorForm() {
         modalEl.hidden = false;
@@ -3599,8 +3684,6 @@
       modalEl.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closeInvestorForm();
       });
-
-      let dragId = null;            // id de la carte en cours de déplacement
 
       // Colonnes (stades) masquées par l'utilisateur, mémorisées localement.
       const COLS_STORE_KEY = 'liquid_inv_hidden_stages';
@@ -3659,111 +3742,134 @@
         else document.removeEventListener('click', onDocClickCol, true);
       });
 
-      // Carte d'un investisseur dans le tableau (déplaçable entre colonnes).
-      function invBoardCard(inv) {
-        const card = document.createElement('div');
-        card.className = 'ip-gcard';
-        card.dataset.id = inv.id;
-        card.draggable = true;
-
-        const top = document.createElement('div');
-        top.className = 'ip-gcard__top';
-        const name = document.createElement('div');
-        name.className = 'ip-gcard__name';
-        name.textContent = inv.name;
-        top.appendChild(name);
-        const del = document.createElement('button');
-        del.type = 'button';
-        del.className = 'ip-gcard__del';
-        del.setAttribute('aria-label', 'Supprimer ' + inv.name);
-        del.title = 'Supprimer';
-        del.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1 -2 2H8a2 2 0 0 1 -2 -2L5 6"/></svg>';
-        del.addEventListener('click', () => deleteInvestor(inv.id));
-        del.addEventListener('pointerdown', e => e.stopPropagation());
-        top.appendChild(del);
-        card.appendChild(top);
-
-        if (inv.firm) {
-          const firm = document.createElement('div');
-          firm.className = 'ip-gcard__firm';
-          firm.textContent = inv.firm;
-          card.appendChild(firm);
+      // Champ d'information éditable en place. Enregistre sur « change »
+      // (déclenché à la perte du focus) via updateInvestorField.
+      function invField(inv, field, opts) {
+        const o = opts || {};
+        const el = document.createElement(o.tag === 'select' ? 'select' : 'input');
+        el.className = 'ip-ci' + (o.cls ? ' ' + o.cls : '');
+        if (o.tag !== 'select') {
+          el.type = o.type || 'text';
+          el.value = inv[field] == null ? '' : inv[field];
+          if (o.placeholder) el.placeholder = o.placeholder;
+          if (o.maxLength) el.maxLength = o.maxLength;
+          if (o.type === 'number') { el.min = '0'; el.step = '1000'; }
+          el.addEventListener('keydown', e => { if (e.key === 'Enter') el.blur(); });
         }
-        if (inv.amount) {
-          const amount = document.createElement('div');
-          amount.className = 'ip-gcard__amt';
-          amount.textContent = invFmtAmount(inv.amount);
-          card.appendChild(amount);
-        }
-        if (inv.email || inv.phone) {
-          const meta = document.createElement('div');
-          meta.className = 'ip-gcard__meta';
-          meta.textContent = [inv.email, inv.phone].filter(Boolean).join(' · ');
-          card.appendChild(meta);
-        }
-        if (inv.notes) {
-          const notes = document.createElement('div');
-          notes.className = 'ip-gcard__notes';
-          notes.textContent = inv.notes;
-          card.appendChild(notes);
-        }
-
-        const foot = document.createElement('div');
-        foot.className = 'ip-gcard__foot';
-        const select = document.createElement('select');
-        select.className = 'ip-gcard__move';
-        select.setAttribute('aria-label', 'Déplacer ' + inv.name + ' vers un autre stade');
-        invFillStageSelect(select, inv.stage);
-        select.addEventListener('change', () => moveStage(inv.id, select.value));
-        // Évite de démarrer un glisser-déposer en ouvrant le menu.
-        select.addEventListener('pointerdown', e => e.stopPropagation());
-        foot.appendChild(select);
-        card.appendChild(foot);
-
-        card.addEventListener('dragstart', (e) => {
-          dragId = inv.id;
-          card.classList.add('is-dragging');
-          if (e.dataTransfer) { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(inv.id)); }
-        });
-        card.addEventListener('dragend', () => {
-          dragId = null;
-          card.classList.remove('is-dragging');
-          boardEl.querySelectorAll('.is-drop').forEach(c => c.classList.remove('is-drop'));
-        });
-        return card;
+        if (o.ariaLabel) el.setAttribute('aria-label', o.ariaLabel);
+        el.addEventListener('change', () => updateInvestorField(inv, field, el.value));
+        return el;
       }
 
-      // Tableau du pipeline : une colonne par stade visible, cartes déplaçables.
-      function renderBoard(byStage, counts, amounts) {
-        boardEl.innerHTML = '';
-        boardEl.classList.add('ip-grid-wrap');
-        const stages = visibleStages();
-        const table = document.createElement('table');
-        table.className = 'ip-grid';
+      // Cellule de stade : pastille cliquable. Pleine au stade courant, grisée
+      // pour les stades déjà franchis, creuse pour les stades à venir. Un clic
+      // positionne l'investisseur à ce stade (un seul stade actif par ligne).
+      function invStageCell(inv, stage) {
+        const td = document.createElement('td');
+        td.className = 'ip-stcell';
+        const cur = stageIndex(inv.stage);
+        const here = stageIndex(stage.key);
+        const tier = invTier(stage.key);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'ip-stbtn' + (inv.stage === stage.key ? ' is-active' : here < cur ? ' is-passed' : '');
+        btn.style.setProperty('--st', invTierColor(tier));
+        btn.style.setProperty('--st-bg', tier === 'leve' ? 'rgba(22,163,74,.10)' : tier === 'intentionne' ? 'rgba(59,130,246,.10)' : 'rgba(107,112,120,.10)');
+        btn.style.setProperty('--st-bd', tier === 'leve' ? 'rgba(22,163,74,.30)' : tier === 'intentionne' ? 'rgba(59,130,246,.30)' : 'rgba(107,112,120,.30)');
+        btn.title = 'Positionner « ' + inv.name + ' » au stade : ' + stage.label;
+        btn.setAttribute('aria-label', btn.title);
+        btn.setAttribute('aria-pressed', inv.stage === stage.key ? 'true' : 'false');
+        btn.innerHTML = '<span class="ip-stbtn__dot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg></span><span class="ip-stbtn__lab">Ici</span>';
+        btn.addEventListener('click', () => moveStage(inv.id, stage.key));
+        td.appendChild(btn);
+        return td;
+      }
 
-        const colgroup = document.createElement('colgroup');
-        stages.forEach(() => colgroup.appendChild(document.createElement('col')));
-        table.appendChild(colgroup);
+      // Ligne complète d'un investisseur : colonnes fixes + colonnes de stade.
+      function invRow(inv, stages) {
+        const tr = document.createElement('tr');
+        tr.dataset.id = inv.id;
+
+        // Colonne 1 : nom + fonds + type (étiquette éditable) + suppression.
+        const nameTd = document.createElement('td');
+        nameTd.className = 'ip-cell ip-sticky ip-col-name';
+        const wrap = document.createElement('div');
+        wrap.className = 'ip-namecell';
+        const main = document.createElement('div');
+        main.className = 'ip-namecell__main';
+        main.appendChild(invField(inv, 'name', { cls: 'ip-ci--name', placeholder: "Nom de l'investisseur", maxLength: 200, ariaLabel: "Nom de l'investisseur" }));
+        main.appendChild(invField(inv, 'firm', { cls: 'ip-ci--sub', placeholder: 'Fonds / structure', maxLength: 200, ariaLabel: 'Fonds / structure' }));
+        const typeSel = invField(inv, 'type', { tag: 'select', ariaLabel: "Type d'investisseur" });
+        invFillTypeSelect(typeSel, inv.type || '');
+        main.appendChild(typeSel);
+        wrap.appendChild(main);
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'ip-rowdel';
+        del.title = 'Supprimer';
+        del.setAttribute('aria-label', 'Supprimer ' + inv.name);
+        del.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1 -2 2H8a2 2 0 0 1 -2 -2L5 6"/></svg>';
+        del.addEventListener('click', () => deleteInvestor(inv.id));
+        wrap.appendChild(del);
+        nameTd.appendChild(wrap);
+        tr.appendChild(nameTd);
+
+        // Colonne 2 : contact (email + téléphone).
+        const contactTd = document.createElement('td');
+        contactTd.className = 'ip-cell ip-col-contact';
+        contactTd.appendChild(invField(inv, 'email', { type: 'email', placeholder: 'Email', maxLength: 200, ariaLabel: 'Email' }));
+        contactTd.appendChild(invField(inv, 'phone', { cls: 'ip-ci--sub', placeholder: 'Téléphone', maxLength: 60, ariaLabel: 'Téléphone' }));
+        tr.appendChild(contactTd);
+
+        // Colonne 3 : ticket envisagé.
+        const ticketTd = document.createElement('td');
+        ticketTd.className = 'ip-cell ip-col-ticket';
+        ticketTd.appendChild(invField(inv, 'amount', { type: 'number', cls: 'ip-ci--amount', placeholder: '— €', ariaLabel: 'Ticket envisagé en euros' }));
+        tr.appendChild(ticketTd);
+
+        // Colonnes suivantes : une par stade (À contacter → Gouvernance).
+        stages.forEach(stage => tr.appendChild(invStageCell(inv, stage)));
+        return tr;
+      }
+
+      // Tableau : une ligne par investisseur ; colonnes fixes (investisseur,
+      // contact, ticket) puis une colonne par stade visible.
+      function renderBoard(counts, amounts) {
+        boardEl.innerHTML = '';
+        const stages = visibleStages();
+        const wrap = document.createElement('div');
+        wrap.className = 'ip-table-wrap';
+        const table = document.createElement('table');
+        table.className = 'ip-table';
 
         const thead = document.createElement('thead');
         const htr = document.createElement('tr');
+        const thName = document.createElement('th');
+        thName.className = 'ip-th-info ip-sticky ip-col-name';
+        thName.textContent = 'Investisseur';
+        const thContact = document.createElement('th');
+        thContact.className = 'ip-th-info ip-col-contact';
+        thContact.textContent = 'Contact';
+        const thTicket = document.createElement('th');
+        thTicket.className = 'ip-th-info ip-col-ticket';
+        thTicket.textContent = 'Ticket envisagé';
+        htr.append(thName, thContact, thTicket);
         stages.forEach(stage => {
           const tier = invTier(stage.key);
           const th = document.createElement('th');
-          if (tier === 'leve') th.classList.add('is-leve');
-          else if (tier === 'intentionne') th.classList.add('is-intent');
+          th.className = 'ip-th-stage' + (tier === 'leve' ? ' is-leve' : tier === 'intentionne' ? ' is-intent' : '');
           th.style.borderTopColor = invTierColor(tier);
           const lab = document.createElement('div');
-          lab.className = 'ip-grid__lab';
-          const labT = document.createElement('span');
-          labT.className = 'ip-grid__lab-t';
-          labT.textContent = stage.label;
+          lab.className = 'ip-th-stage__lab';
+          const t = document.createElement('span');
+          t.className = 'ip-th-stage__t';
+          t.textContent = stage.label;
           const cnt = document.createElement('span');
-          cnt.className = 'ip-grid__count';
+          cnt.className = 'ip-th-stage__count';
           cnt.textContent = String(counts[stage.key] || 0);
-          lab.append(labT, cnt);
+          lab.append(t, cnt);
           const amt = document.createElement('div');
-          amt.className = 'ip-grid__amt';
+          amt.className = 'ip-th-stage__amt';
           amt.textContent = amounts[stage.key] ? invFmtAmount(amounts[stage.key]) : '';
           th.append(lab, amt);
           htr.appendChild(th);
@@ -3772,39 +3878,46 @@
         table.appendChild(thead);
 
         const tbody = document.createElement('tbody');
-        const btr = document.createElement('tr');
-        stages.forEach(stage => {
+        if (!invPipeline.length) {
+          const tr = document.createElement('tr');
           const td = document.createElement('td');
-          td.dataset.stage = stage.key;
-          const list = byStage[stage.key] || [];
-          if (!list.length) {
-            const empty = document.createElement('div');
-            empty.className = 'ip-gcol-empty';
-            empty.textContent = 'Déposez ici';
-            td.appendChild(empty);
-          } else {
-            list.forEach(inv => td.appendChild(invBoardCard(inv)));
-          }
-          td.addEventListener('dragover', (e) => {
-            if (dragId == null) return;
-            e.preventDefault();
-            if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
-            td.classList.add('is-drop');
-          });
-          td.addEventListener('dragleave', (e) => {
-            if (!td.contains(e.relatedTarget)) td.classList.remove('is-drop');
-          });
-          td.addEventListener('drop', (e) => {
-            e.preventDefault();
-            td.classList.remove('is-drop');
-            const id = dragId != null ? dragId : Number(e.dataTransfer?.getData('text/plain'));
-            if (id != null && !Number.isNaN(id)) moveStage(id, stage.key);
-          });
-          btr.appendChild(td);
-        });
-        tbody.appendChild(btr);
+          td.className = 'ip-table-empty';
+          td.colSpan = stages.length + 3;
+          td.textContent = 'Aucun investisseur pour l’instant. Cliquez sur « Ajouter un investisseur » pour commencer votre pipeline.';
+          tr.appendChild(td);
+          tbody.appendChild(tr);
+        } else {
+          invPipeline.forEach(inv => tbody.appendChild(invRow(inv, stages)));
+        }
         table.appendChild(tbody);
-        boardEl.appendChild(table);
+        wrap.appendChild(table);
+        boardEl.appendChild(wrap);
+      }
+
+      // Enregistre la modification d'un champ éditable (nom, fonds, type,
+      // email, téléphone, ticket). Optimiste, avec restauration si l'API échoue.
+      async function updateInvestorField(inv, field, rawValue) {
+        let value;
+        if (field === 'amount') {
+          const n = Number(rawValue);
+          value = rawValue !== '' && Number.isFinite(n) && n > 0 ? n : null;
+        } else {
+          value = (rawValue || '').toString().trim();
+        }
+        const prev = inv[field] == null ? (field === 'amount' ? null : '') : inv[field];
+        if (prev === value) return;
+        inv[field] = value;
+        // Le ticket alimente les totaux : on rafraîchit les compteurs et cartes.
+        if (field === 'amount') render();
+        try {
+          await invApi('/api/saas/investors/' + inv.id, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ [field]: value }),
+          });
+        } catch (err) {
+          inv[field] = prev;
+          render();
+        }
       }
 
       function render() {
@@ -3813,20 +3926,18 @@
         let totalAmount = 0;
         const counts = {};
         const stageAmounts = {};
-        const byStage = {};
 
         invPipeline.forEach(inv => {
           const amt = inv.amount || 0;
           totalAmount += amt;
           counts[inv.stage] = (counts[inv.stage] || 0) + 1;
           stageAmounts[inv.stage] = (stageAmounts[inv.stage] || 0) + amt;
-          (byStage[inv.stage] = byStage[inv.stage] || []).push(inv);
           const tier = invTier(inv.stage);
           if (tier === 'leve') { leveAmount += amt; intentAmount += amt; }
           else if (tier === 'intentionne') { intentAmount += amt; }
         });
 
-        renderBoard(byStage, counts, stageAmounts);
+        renderBoard(counts, stageAmounts);
         boardEl.hidden = false;
 
         root.querySelector('[data-stat="count"]').textContent = String(invPipeline.length);
@@ -3891,7 +4002,7 @@
           const { investor } = await invApi('/api/saas/investors', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              name, firm: val('firm').trim(), stage: val('stage'),
+              name, firm: val('firm').trim(), type: val('type'), stage: val('stage'),
               email: val('email').trim(), phone: val('phone').trim(),
               amount: val('amount') ? Number(val('amount')) : null,
               notes: val('notes').trim(),
@@ -3901,6 +4012,7 @@
           render();
           ['name', 'firm', 'email', 'phone', 'amount', 'notes'].forEach(k => { root.querySelector('[data-in="' + k + '"]').value = ''; });
           stageSelect.value = 'a_contacter';
+          typeSelect.value = '';
           closeInvestorForm();
         } catch (err) {
           errEl.hidden = false;
