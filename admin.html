@@ -147,9 +147,6 @@
   </aside>
 
   <div class="admin-wrap">
-    <h1 class="admin-title" id="admin-view-title">Startups</h1>
-    <p class="admin-sub" id="admin-view-subtitle">Comptes startups inscrits sur Liquid+ et attribution de leur avocat.</p>
-
     <div class="admin-section" id="admin-startups" data-admin-view-panel="startups">
       <h2>Comptes startups</h2>
       <div class="admin-grid" id="startup-list"><p class="notice">Chargement…</p></div>
@@ -234,18 +231,12 @@
       document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMenus(); });
     })();
 
-    const ADMIN_VIEWS = {
-      startups: { title:'Startups', subtitle:'Comptes startups inscrits sur Liquid+ et attribution de leur avocat.' },
-      lawyers: { title:'Avocats', subtitle:'Candidatures, comptes avocats, portefeuille de startups et propositions de missions.' },
-      messages: { title:'Messages', subtitle:'Messagerie Feedback des utilisateurs Liquid+.' },
-    };
+    const ADMIN_VIEWS = { startups:'Startups', lawyers:'Avocats', messages:'Messages' };
     function showAdminView(view, updateHash = true) {
       if (!ADMIN_VIEWS[view]) view = 'startups';
       document.querySelectorAll('[data-admin-view-panel]').forEach(panel => { panel.hidden = panel.dataset.adminViewPanel !== view; });
       document.querySelectorAll('[data-admin-view]').forEach(link => link.classList.toggle('is-active', link.dataset.adminView === view));
-      document.getElementById('admin-view-title').textContent = ADMIN_VIEWS[view].title;
-      document.getElementById('admin-view-subtitle').textContent = ADMIN_VIEWS[view].subtitle;
-      document.title = ADMIN_VIEWS[view].title + ' — Admin Liquid+';
+      document.title = ADMIN_VIEWS[view] + ' — Admin Liquid+';
       if (updateHash && window.location.hash !== '#' + view) history.pushState(null, '', '#' + view);
       window.scrollTo({ top:0, behavior:'auto' });
     }
