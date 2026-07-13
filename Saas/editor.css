@@ -250,6 +250,48 @@
 .page blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--blue); color: var(--text); background: #f8fafd; }
 .page hr { border: 0; border-top: 1px solid var(--line); margin: 16px 0 22px; }
 
+/* ── État vide : éditeur ouvert sans aucun document ─────────────────────────
+   Affiché quand l'éditeur est ouvert « à blanc » (menu → Éditeur). La feuille
+   est masquée et l'on propose d'importer un document ou de créer une page
+   blanche. ── */
+.editor-canvas.is-empty .paper { display: none; }
+.editor-empty {
+  display: flex; align-items: center; justify-content: center;
+  min-height: calc(100vh - 240px); padding: 20px 16px;
+}
+.editor-empty__card {
+  width: 100%; max-width: 460px; text-align: center;
+  background: var(--card, #fff); border: 1px solid var(--line, rgba(8,9,12,0.08));
+  border-radius: 16px; padding: 40px 32px;
+  box-shadow: 0 1px 3px rgba(8,9,12,0.06), 0 18px 50px -28px rgba(8,9,12,0.28);
+}
+.editor-empty__icon {
+  width: 56px; height: 56px; margin: 0 auto 18px; display: grid; place-items: center;
+  border-radius: 14px; background: #eef4ff; color: var(--blue, #3b82f6);
+}
+.editor-empty__icon svg { width: 28px; height: 28px; display: block; }
+.editor-empty__title {
+  margin: 0 0 8px; font-family: 'Archivo', sans-serif; font-size: 20px;
+  font-weight: 700; color: var(--text, #08090c);
+}
+.editor-empty__sub {
+  margin: 0 auto 26px; max-width: 340px; font-size: 14px; line-height: 1.6;
+  color: var(--text-2, #6b6b78);
+}
+.editor-empty__actions { display: flex; flex-direction: column; gap: 10px; }
+.editor-empty__btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  width: 100%; box-sizing: border-box; padding: 12px 18px;
+  font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700;
+  border-radius: 11px; cursor: pointer;
+  border: 1px solid var(--line, rgba(8,9,12,0.18)); background: var(--card, #fff);
+  color: var(--text, #08090c); transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+.editor-empty__btn svg { width: 17px; height: 17px; display: block; }
+.editor-empty__btn:hover { border-color: var(--blue, #3b82f6); color: var(--blue, #3b82f6); background: #f6f9ff; }
+.editor-empty__btn--primary { background: #08090c; border-color: #08090c; color: #fff; }
+.editor-empty__btn--primary:hover { background: #1d1f26; border-color: #1d1f26; color: #fff; }
+
 /* En-tête de groupe */
 .page .ts-group { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--navy); margin: 32px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
 .page .ts-group:first-of-type { margin-top: 8px; }

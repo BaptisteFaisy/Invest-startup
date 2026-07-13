@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=6" />
-  <link rel="stylesheet" href="editor.css?v=31" />
+  <link rel="stylesheet" href="editor.css?v=32" />
   <link rel="stylesheet" href="drawer-menu.css?v=15" />
   <link rel="stylesheet" href="theme.css?v=3" />
   <style>.app{visibility:hidden}.app.ready{visibility:visible}</style>
@@ -331,6 +331,28 @@
           <div class="sheet-bg" id="sheet-bg" aria-hidden="true"></div>
           <div class="page" id="page" contenteditable="true" spellcheck="false"></div>
         </div>
+
+        <!-- État vide : éditeur ouvert sans aucun document (menu → Éditeur).
+             Propose d'importer un document existant ou de partir d'une page blanche. -->
+        <div class="editor-empty" id="editor-empty" hidden>
+          <div class="editor-empty__card">
+            <div class="editor-empty__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
+            </div>
+            <h2 class="editor-empty__title">Aucun document ouvert</h2>
+            <p class="editor-empty__sub">Importez un document existant pour le retravailler, ou partez d'une page blanche.</p>
+            <div class="editor-empty__actions">
+              <button class="editor-empty__btn editor-empty__btn--primary" id="empty-create" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                Créer un document
+              </button>
+              <button class="editor-empty__btn" id="empty-import" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+                Importer un document
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Poignée de redimensionnement (décrypteur) -->
@@ -421,6 +443,11 @@
     </div>
 
 
+    <!-- Import de document : déclencheurs cachés pilotés par documents.js
+         (réutilisés par l'état vide de l'éditeur, bouton « Importer un document »). -->
+    <button type="button" id="docs-btn" hidden aria-hidden="true" tabindex="-1"></button>
+    <input type="file" id="docs-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" hidden />
+
     <!-- Status bar -->
     <div class="statusbar">
       <span id="caret-clause">Document prêt</span>
@@ -432,7 +459,7 @@
     </div>
   </div>
 
-  <script src="editor.js?v=49"></script>
+  <script src="editor.js?v=50"></script>
   <script src="documents.js?v=26"></script>
   <script>
     // Garde d'accès : l'éditeur est réservé aux utilisateurs connectés.

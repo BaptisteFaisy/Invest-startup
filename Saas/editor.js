@@ -570,7 +570,16 @@ function buildDocument() {
 
   page.innerHTML = html;
 }
-buildDocument();
+
+// Éditeur ouvert « à blanc » depuis le menu (Outils → Éditeur) : ni document
+// enregistré (?doc), ni création dans un dossier (?folder/?category). Dans ce
+// cas on n'injecte PAS la term sheet de démonstration : on laisse la page vide
+// et l'on affichera l'état vide (importer un document / partir d'une page blanche).
+const openBlankEditor = (() => {
+  const p = new URLSearchParams(location.search);
+  return !p.get('doc') && !p.get('folder') && !p.get('category');
+})();
+if (!openBlankEditor) buildDocument();
 
 /* ---------- 2. Barre d'outils : commandes de mise en forme ---------- */
 try { document.execCommand('styleWithCSS', false, true); } catch (e) {}
@@ -1811,11 +1820,58 @@ document.addEventListener('keydown', e => {
   }
 });
 
+/* ---------- État vide : éditeur sans aucun document ouvert ---------- */
+function showEmptyState() {
+  // Aucun document : le modèle ne doit contenir aucune clause « au contrat »
+  // (sinon la bibliothèque afficherait un décompte trompeur).
+  TERMSHEET.forEach(c => { c.inDoc = false; });
+  const canvas = document.querySelector('.editor-canvas');
+  const empty = document.getElementById('editor-empty');
+  if (canvas) canvas.classList.add('is-empty');
+  if (empty) empty.hidden = false;
+  if (docNameEl) docNameEl.textContent = 'Éditeur';
+  const cs = document.getElementById('caret-clause');
+  if (cs) cs.textContent = 'Aucun document ouvert';
+}
+function hideEmptyState() {
+  const canvas = document.querySelector('.editor-canvas');
+  const empty = document.getElementById('editor-empty');
+  if (canvas) canvas.classList.remove('is-empty');
+  if (empty) empty.hidden = true;
+}
+// « Créer un document » : part d'une page blanche, prête à la saisie.
+function startBlankDocument() {
+  hideEmptyState();
+  page.innerHTML = '<p><br></p>';
+  if (docNameEl) docNameEl.textContent = 'Nouveau document';
+  const cs = document.getElementById('caret-clause');
+  if (cs) cs.textContent = 'Document prêt';
+  syncModelFromDOM();
+  try { if (typeof paginate === 'function') paginate(); } catch {}
+  page.focus();
+  try {
+    const r = document.createRange();
+    r.selectNodeContents(page); r.collapse(true);
+    const sel = window.getSelection();
+    sel.removeAllRanges(); sel.addRange(r);
+  } catch {}
+}
+const emptyCreateBtn = document.getElementById('empty-create');
+if (emptyCreateBtn) emptyCreateBtn.addEventListener('click', startBlankDocument);
+// « Importer un document » : réutilise la modale d'ajout (documents.js).
+const emptyImportBtn = document.getElementById('empty-import');
+if (emptyImportBtn) emptyImportBtn.addEventListener('click', () => {
+  const b = document.getElementById('docs-btn');
+  if (b) b.click();
+});
+
 // Ouvre la term sheet enregistrée passée dans l'URL (?doc=ID).
 const urlDocId = new URLSearchParams(location.search).get('doc');
 if (urlDocId && /^\d+$/.test(urlDocId)) loadTermsheet(Number(urlDocId));
-// Sans ?doc (document par défaut déjà présent dans la page) : réconcilie quand même
-// une éventuelle analyse complète lancée en tâche de fond pour cet écran.
+// Éditeur ouvert à blanc (menu → Éditeur) : aucun document, on propose l'état vide.
+else if (openBlankEditor) showEmptyState();
+// Sans ?doc mais création dans un dossier (?folder/?category) : document par défaut
+// déjà présent dans la page ; réconcilie une éventuelle analyse en tâche de fond.
 else reconcileFullWhenReady(0);
 
 /* ---------- Redimensionnement des colonnes (gauche / droite) ---------- */
