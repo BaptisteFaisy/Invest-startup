@@ -77,41 +77,46 @@
     .assigned-startups { margin-top:13px; padding-top:11px; border-top:1px solid var(--line); }
     .assigned-startups__title { margin-bottom:7px; color:var(--muted); font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; }
     .assigned-startups__item { display:block; margin-top:5px; font-size:.78rem; }
-    .admin-menu-btn { position:fixed; top:16px; left:18px; z-index:92; width:38px; height:38px; display:grid; place-items:center; flex:none; padding:0; border:1px solid var(--line); border-radius:10px; background:#000; color:var(--text); cursor:pointer; }
+    .admin-menu-btn { position:fixed; top:9px; left:18px; z-index:92; width:38px; height:38px; display:grid; place-items:center; flex:none; padding:0; border:1px solid var(--line); border-radius:10px; background:#000; color:var(--text); cursor:pointer; }
     .admin-menu-btn:hover { background:rgba(255,255,255,.08); }
     .admin-menu-btn svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; }
     .admin-menu-btn--right { right:18px; left:auto; margin-left:0; }
-    .nav .nav-inner { padding-left:max(70px,var(--gutter)); padding-right:max(70px,var(--gutter)); }
+    .nav .nav-inner { width:100%; height:100%; display:flex; align-items:center; gap:14px; padding-left:70px; padding-right:70px; }
+    .nav .nav-links { margin-left:auto; gap:8px; }
     .admin-drawer-backdrop { position:fixed; inset:0; z-index:90; visibility:hidden; background:rgba(0,0,0,.28); opacity:0; transition:opacity .18s ease; }
     .admin-drawer-backdrop.is-open { visibility:visible; opacity:1; }
     .admin-drawer { position:fixed; inset-block:0; z-index:91; width:min(280px,88vw); background:#0c0d11; box-shadow:0 0 40px rgba(0,0,0,.5); transition:transform .22s ease; }
     .admin-drawer--left { left:0; border-right:1px solid var(--line); transform:translateX(-100%); }
     .admin-drawer--right { right:0; border-left:1px solid var(--line); transform:translateX(100%); }
     .admin-drawer.is-open { transform:translateX(0); }
-    .admin-drawer__body { padding:82px 12px 16px; }
+    .admin-drawer__body { padding:68px 12px 16px; }
     .admin-drawer__link { display:flex; align-items:center; gap:12px; width:100%; padding:11px 12px; border-radius:10px; color:var(--text); text-decoration:none; font-size:.88rem; }
     .admin-drawer__link:hover { background:rgba(255,255,255,.08); }
+    .admin-drawer__link.is-active { background:rgba(17,17,17,.06); font-weight:700; }
     .admin-drawer__link svg { width:18px; height:18px; flex:none; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+    [data-admin-view-panel][hidden] { display:none; }
 
     /* L'espace administrateur reste toujours en mode clair. */
-    :root { color-scheme:light; --bg:#f4f2ee; --text:#08090c; --muted:#66635d; --line:rgba(8,9,12,.13); }
-    body { background:#f4f2ee; color:var(--text); }
-    .nav { background:#fff; border-bottom:1px solid var(--line); }
+    :root { color-scheme:light; --bg:#f7f6f3; --text:#111; --muted:#57534a; --line:#e4e0d8; }
+    body { background:var(--bg); color:var(--text); }
+    .nav { position:sticky; top:0; z-index:70; display:block; width:100%; height:56px; padding:0; background:#f7f6f3; border-bottom:1px solid #ddd9d1; }
     .logo-icon { filter:invert(1); }
-    .logo-wordmark, .nav-link { color:var(--text); }
-    .button.ghost { color:var(--text); border-color:rgba(8,9,12,.2); }
-    .button.ghost:hover { color:var(--text); border-color:rgba(8,9,12,.48); }
-    .admin-card, .msg-layout { background:#fff; }
-    .admin-card select, .admin-card textarea, .msg-reply-form textarea { color:var(--text); background:#faf9f6; }
-    .msg-list-item:hover, .msg-list-item.active { background:rgba(8,9,12,.06); }
-    .msg-row--in .msg-bubble { background:#efede8; color:var(--text); }
-    .lawyer-tabs { background:#ebe8e1; }
-    .choice-item { background:#faf9f6; }
-    .choice-item:hover, .choice-item:has(input:checked) { background:#efede8; }
-    .admin-menu-btn { background:#fff; color:var(--text); box-shadow:0 2px 12px rgba(8,9,12,.08); }
-    .admin-menu-btn:hover { background:#efede8; }
-    .admin-drawer { background:#f4f2ee; box-shadow:0 0 40px rgba(8,9,12,.18); }
-    .admin-drawer__link:hover { background:rgba(8,9,12,.07); }
+    .logo-icon { height:28px; }
+    .logo-wordmark { color:var(--text); font-size:18px; }
+    .nav-link { color:var(--text); }
+    .nav .button.ghost { height:38px; padding:0 13px; color:var(--text); border-color:rgba(0,0,0,.18); border-radius:10px; font-size:12px; letter-spacing:.04em; }
+    .nav .button.ghost:hover { color:var(--text); border-color:rgba(0,0,0,.45); background:rgba(0,0,0,.05); }
+    .admin-card, .msg-layout { background:#fff; border-color:#e4e0d8; box-shadow:0 8px 24px rgba(8,9,12,.08); }
+    .admin-card select, .admin-card textarea, .msg-reply-form textarea { color:var(--text); background:#fff; border-color:#e4e0d8; }
+    .msg-list-item:hover, .msg-list-item.active { background:rgba(17,17,17,.06); }
+    .msg-row--in .msg-bubble { background:rgba(17,17,17,.06); color:var(--text); }
+    .lawyer-tabs { background:rgba(17,17,17,.035); border-color:rgba(17,17,17,.12); }
+    .choice-item { background:#fff; border-color:#e4e0d8; }
+    .choice-item:hover, .choice-item:has(input:checked) { background:rgba(17,17,17,.06); }
+    .admin-menu-btn { background:transparent; color:var(--text); border-color:rgba(0,0,0,.18); box-shadow:none; }
+    .admin-menu-btn:hover { background:rgba(0,0,0,.05); border-color:rgba(0,0,0,.45); }
+    .admin-drawer { background:#f7f6f3; border-color:#ddd9d1; box-shadow:0 20px 50px rgba(8,9,12,.14); }
+    .admin-drawer__link:hover { background:rgba(17,17,17,.06); }
     .admin-drawer-backdrop { background:rgba(8,9,12,.18); }
     @media (max-width:760px) { .admin-grid, .assignment-grid { grid-template-columns:1fr; } .lawyer-tabs { display:grid; } }
     @media (max-width: 640px) { .msg-layout { flex-direction: column; } .msg-list { width: 100%; max-height: 200px; border-right: 0; border-bottom: 1px solid var(--line); } }
@@ -135,16 +140,22 @@
   <aside class="admin-drawer admin-drawer--left" id="admin-menu-left" aria-label="Menu administrateur gauche"></aside>
   <aside class="admin-drawer admin-drawer--right" id="admin-menu-right" aria-label="Menu administrateur droit">
     <nav class="admin-drawer__body">
-      <a class="admin-drawer__link" href="#admin-lawyers"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-4 2-6 6-6s6 2 6 6M16 5a3 3 0 0 1 0 6M17 14c3 .3 4 2.3 4 6"/></svg>Avocats</a>
-      <a class="admin-drawer__link" href="#admin-feedback"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 3Z"/><path d="M8 9h8M8 13h5"/></svg>Messages</a>
+      <a class="admin-drawer__link" href="#startups" data-admin-view="startups"><svg viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 13h14l2 8H3Z"/></svg>Startups</a>
+      <a class="admin-drawer__link" href="#lawyers" data-admin-view="lawyers"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-4 2-6 6-6s6 2 6 6M16 5a3 3 0 0 1 0 6M17 14c3 .3 4 2.3 4 6"/></svg>Avocats</a>
+      <a class="admin-drawer__link" href="#messages" data-admin-view="messages"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 3Z"/><path d="M8 9h8M8 13h5"/></svg>Messages</a>
     </nav>
   </aside>
 
   <div class="admin-wrap">
-    <h1 class="admin-title">Espace admin</h1>
-    <p class="admin-sub">Gestion des avocats, attribution des clients et messagerie.</p>
+    <h1 class="admin-title" id="admin-view-title">Startups</h1>
+    <p class="admin-sub" id="admin-view-subtitle">Comptes startups inscrits sur Liquid+ et attribution de leur avocat.</p>
 
-    <div class="admin-section" id="admin-lawyers">
+    <div class="admin-section" id="admin-startups" data-admin-view-panel="startups">
+      <h2>Comptes startups</h2>
+      <div class="admin-grid" id="startup-list"><p class="notice">Chargement…</p></div>
+    </div>
+
+    <div class="admin-section" id="admin-lawyers" data-admin-view-panel="lawyers" hidden>
       <h2>Gestion des avocats</h2>
       <div class="lawyer-tabs" role="tablist" aria-label="Gestion des avocats">
         <button type="button" class="lawyer-tab is-active" role="tab" aria-selected="true" data-lawyer-tab="accounts">Comptes</button>
@@ -182,7 +193,7 @@
     </div>
 
     <!-- Messagerie feedback -->
-    <div class="admin-section" id="admin-feedback">
+    <div class="admin-section" id="admin-feedback" data-admin-view-panel="messages" hidden>
       <h2>Messagerie — Feedback utilisateurs</h2>
       <div class="msg-layout">
         <div class="msg-list" id="msg-list"><p style="padding:14px;color:var(--muted);font-size:.85rem;">Chargement…</p></div>
@@ -222,6 +233,28 @@
       backdrop.addEventListener('click', closeMenus);
       document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMenus(); });
     })();
+
+    const ADMIN_VIEWS = {
+      startups: { title:'Startups', subtitle:'Comptes startups inscrits sur Liquid+ et attribution de leur avocat.' },
+      lawyers: { title:'Avocats', subtitle:'Candidatures, comptes avocats, portefeuille de startups et propositions de missions.' },
+      messages: { title:'Messages', subtitle:'Messagerie Feedback des utilisateurs Liquid+.' },
+    };
+    function showAdminView(view, updateHash = true) {
+      if (!ADMIN_VIEWS[view]) view = 'startups';
+      document.querySelectorAll('[data-admin-view-panel]').forEach(panel => { panel.hidden = panel.dataset.adminViewPanel !== view; });
+      document.querySelectorAll('[data-admin-view]').forEach(link => link.classList.toggle('is-active', link.dataset.adminView === view));
+      document.getElementById('admin-view-title').textContent = ADMIN_VIEWS[view].title;
+      document.getElementById('admin-view-subtitle').textContent = ADMIN_VIEWS[view].subtitle;
+      document.title = ADMIN_VIEWS[view].title + ' — Admin Liquid+';
+      if (updateHash && window.location.hash !== '#' + view) history.pushState(null, '', '#' + view);
+      window.scrollTo({ top:0, behavior:'auto' });
+    }
+    document.querySelectorAll('[data-admin-view]').forEach(link => link.addEventListener('click', event => {
+      event.preventDefault();
+      showAdminView(link.dataset.adminView);
+    }));
+    window.addEventListener('popstate', () => showAdminView(window.location.hash.slice(1), false));
+    showAdminView(window.location.hash.slice(1) || 'startups', false);
 
     // ── Auth check ──────────────────────────────────────────────
     fetch('/api/admin/me', { credentials: 'include' })
@@ -380,8 +413,13 @@
       try {
         const [l,f,p,c] = await Promise.all([adminJson('/api/admin/lawyers'), adminJson('/api/admin/founders'), adminJson('/api/admin/client-proposals'), adminJson('/api/admin/lawyer-change-requests')]);
         adminLawyers=l.lawyers||[]; adminFounders=f.founders||[]; adminProposals=p.proposals||[]; adminLawyerChangeRequests=c.requests||[];
-        renderLawyers(); renderProposalForm(); renderProposals(); renderLawyerChangeRequests();
+        renderStartups(); renderLawyers(); renderProposalForm(); renderProposals(); renderLawyerChangeRequests();
       } catch(e) { document.getElementById('lawyer-list').innerHTML='<p class="notice">'+escHtml(e.message)+'</p>'; }
+    }
+    function renderStartups() {
+      const el=document.getElementById('startup-list');
+      if(!adminFounders.length){el.innerHTML='<p class="notice">Aucun compte startup.</p>';return;}
+      el.innerHTML=adminFounders.map(f=>`<article class="admin-card"><h3>${escHtml(f.company_name||f.full_name||f.email)}</h3><p>${escHtml(f.email)}</p><p>Compte créé le ${new Date(f.created_at).toLocaleDateString('fr-FR')}</p><div class="admin-actions"><span class="admin-pill">${f.lawyer_id?'Avocat attribué':f.has_open_proposal?'Proposition en cours':'Sans avocat'}</span></div>${f.lawyer_id?`<div class="assigned-startups"><div class="assigned-startups__title">Avocat</div><span class="assigned-startups__item">${escHtml(f.lawyer_name||'Avocat Liquid+')}</span></div>`:''}</article>`).join('');
     }
     function renderLawyers() {
       const el=document.getElementById('lawyer-list');
