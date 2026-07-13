@@ -626,8 +626,9 @@
 
     /* Topbar noir */
     .topbar { position: sticky; top: 0; z-index: 70; background: #08090c !important; border-bottom: 1px solid rgba(255,255,255,0.07) !important; }
-    html.drawer-open, html.drawer-open body { overscroll-behavior:none; }
-    html.drawer-open body { overflow:hidden; }
+    /* Un tiroir ouvert ne fige plus la page : l'arrière-plan reste défilable.
+       Le corps des tiroirs a son propre overflow, donc leur défilement interne
+       ne « fuit » pas vers la page (voir .drawer__body). */
     .topbar .brand { color: #fff !important; display: flex; align-items: center; gap: 8px; }
     .topbar .brand__plus { color: #fff !important; }
     .topbar .brand__logo { display: block; flex: none; }
@@ -1686,31 +1687,13 @@
     }
 
     // Menus hamburger : tiroirs gauche (navigation) & droite (compte)
-    let drawerLockedScrollY = 0;
+    // Les tiroirs sont des panneaux fixes : ils restent en place tandis que la
+    // page centrale, en arrière-plan, continue de défiler normalement. On se
+    // contente de refléter l'état ouvert via la classe « drawer-open » sans
+    // figer le body.
     function syncDrawerPageScrollLock() {
-      const root = document.documentElement;
-      const shouldLock = !!document.querySelector('.drawer.is-open');
-      const isLocked = root.classList.contains('drawer-open');
-      if (shouldLock && !isLocked) {
-        drawerLockedScrollY = window.scrollY || window.pageYOffset || 0;
-        root.classList.add('drawer-open');
-        document.body.style.position = 'fixed';
-        document.body.style.top = `-${drawerLockedScrollY}px`;
-        document.body.style.left = '0';
-        document.body.style.right = '0';
-        document.body.style.width = '100%';
-      } else if (!shouldLock && isLocked) {
-        root.classList.remove('drawer-open');
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.left = '';
-        document.body.style.right = '';
-        document.body.style.width = '';
-        const previousScrollBehavior = root.style.scrollBehavior;
-        root.style.scrollBehavior = 'auto';
-        window.scrollTo(0, drawerLockedScrollY);
-        root.style.scrollBehavior = previousScrollBehavior;
-      }
+      const anyOpen = !!document.querySelector('.drawer.is-open');
+      document.documentElement.classList.toggle('drawer-open', anyOpen);
     }
 
     function setupDrawer(btnId, drawerId, backdropId) {
