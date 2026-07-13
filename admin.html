@@ -59,8 +59,8 @@
     .proposal-row { display:flex; justify-content:space-between; align-items:center; gap:15px; padding:13px 15px; border:1px solid var(--line); border-radius:11px; font-size:.84rem; }
     .proposal-row small { display:block; color:var(--muted); margin-top:4px; }
     .notice { color:var(--muted); font-size:.85rem; }
-    .lawyer-tabs { display:flex; gap:4px; margin-bottom:22px; padding:4px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.03); }
-    .lawyer-tab { flex:1; padding:10px 12px; border:0; border-radius:8px; background:transparent; color:var(--muted); cursor:pointer; font:600 .82rem inherit; }
+    .lawyer-tabs { display:flex; flex-wrap:nowrap; gap:4px; margin-bottom:22px; padding:4px; border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.03); overflow-x:auto; }
+    .lawyer-tab { flex:1 0 auto; padding:10px 12px; border:0; border-radius:8px; background:transparent; color:var(--muted); cursor:pointer; font:600 .82rem inherit; white-space:nowrap; }
     .lawyer-tab.is-active { background:#fff; color:#08090c; }
     .lawyer-panel[hidden] { display:none; }
     .assignment-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
@@ -117,7 +117,7 @@
     .admin-drawer { background:#f7f6f3; border-color:#ddd9d1; box-shadow:0 20px 50px rgba(8,9,12,.14); }
     .admin-drawer__link:hover { background:rgba(17,17,17,.06); }
     .admin-drawer-backdrop { background:rgba(8,9,12,.18); }
-    @media (max-width:760px) { .admin-grid, .assignment-grid { grid-template-columns:1fr; } .lawyer-tabs { display:grid; } }
+    @media (max-width:760px) { .admin-grid, .assignment-grid { grid-template-columns:1fr; } }
     @media (max-width: 640px) { .msg-layout { flex-direction: column; } .msg-list { width: 100%; max-height: 200px; border-right: 0; border-bottom: 1px solid var(--line); } }
   </style>
 </head>
