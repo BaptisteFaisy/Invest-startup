@@ -52,7 +52,7 @@
     .next-actions-card.is-collapsed { display: none; }
     .next-actions__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
     /* Chaque priorité / tâche est une carte claire, séparée par le gap (pas de filet). */
-    .next-actions__link { width: 100%; display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 1px solid var(--line); border-left: 3px solid var(--na-accent, rgba(8,9,12,0.14)); border-radius: 0 12px 12px 0; background: var(--card, #fff); cursor: pointer; text-align: left; font: inherit; color: inherit; text-decoration: none; transition: border-color .15s, box-shadow .15s; }
+    .next-actions__link { width: 100%; display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--card, #fff); cursor: pointer; text-align: left; font: inherit; color: inherit; text-decoration: none; transition: border-color .15s, box-shadow .15s; }
     .next-actions__link:hover { box-shadow: 0 1px 3px rgba(8,9,12,0.08); border-color: rgba(8,9,12,0.16); }
     .next-actions__link--static { cursor: default; }
     .next-actions__pill { flex: none; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 4px 9px; border-radius: 6px; }
@@ -662,7 +662,7 @@
     .drawer__link--step.is-current .drawer__step-num { background:rgba(99,102,241,0.30); color:#a5b4fc; }
     .drawer__link--step.is-active { background:rgba(255,255,255,0.10); color:#fff; }
     .drawer__soon-tag { margin-left:auto; flex:none; font-family:'Archivo',sans-serif; font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#22c55e; background:rgba(34,197,94,0.20); padding:2px 7px; border-radius:99px; }
-    .drawer__unread-dot { margin-left:auto; flex:none; width:8px; height:8px; border-radius:50%; background:#86efac; }
+    .drawer__unread-dot { margin-left:auto; flex:none; width:10px; height:10px; border-radius:50%; background:#86efac; }
     .drawer__mode { flex:none; padding:12px 14px 26px; border-top:1px solid rgba(255,255,255,0.08); direction:ltr; }
     .drawer__mode-label { display:block; margin:0 0 8px 2px; color:rgba(255,255,255,0.62); font-family:'Archivo',sans-serif; font-size:10px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; }
     .drawer__mode-options { display:grid; grid-template-columns:1fr 1fr; gap:3px; padding:3px; border:1px solid rgba(255,255,255,0.12); border-radius:10px; background:rgba(255,255,255,0.04); }
@@ -3014,7 +3014,7 @@
         const tgt = isTermsheet ? ' target="_blank" rel="noopener"' : '';
         return '<li class="next-actions__item next-actions__item--resume" style="--na-accent:#534ab7">'
           + '<a class="next-actions__link" href="' + href + '"' + tgt + '>'
-          + '<span class="next-actions__pill" style="color:#3f3a8f;background:#ecebfa">Reprendre</span>'
+          + '<span class="next-actions__pill" style="color:#1a7a45;background:#e4f4ea">Reprendre</span>'
           + '<span class="next-actions__main">'
           + '<span class="next-actions__text">Reprendre « ' + esc(doc.name) + ' »</span>'
           + '<span class="next-actions__step">Là où vous vous êtes arrêté · modifié le ' + fmtDate(doc.updated_at || doc.created_at) + '</span>'
