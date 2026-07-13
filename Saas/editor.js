@@ -1858,6 +1858,12 @@ function startBlankDocument() {
 }
 const emptyCreateBtn = document.getElementById('empty-create');
 if (emptyCreateBtn) emptyCreateBtn.addEventListener('click', startBlankDocument);
+// « Ouvrir un document » : affiche la bibliothèque, dont les documents
+// éditables renvoient ensuite vers l'éditeur.
+const emptyOpenBtn = document.getElementById('empty-open');
+if (emptyOpenBtn) emptyOpenBtn.addEventListener('click', () => {
+  window.location.href = 'documents.html';
+});
 // « Importer un document » : réutilise la modale d'ajout (documents.js).
 const emptyImportBtn = document.getElementById('empty-import');
 if (emptyImportBtn) emptyImportBtn.addEventListener('click', () => {
