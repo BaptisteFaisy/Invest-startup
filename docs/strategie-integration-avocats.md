@@ -195,6 +195,58 @@ point de départ. La convention d'honoraires se matérialise **avocat ↔ fondat
 
 ---
 
+## 5 bis. Business model : comment être « moins cher qu'un avocat » sans marge sur ses honoraires
+
+**La tension à résoudre :** si le fondateur paie « prestation LIQUID+ **+** honoraires d'avocat à 100 % »,
+le total peut être **plus cher** qu'un avocat seul — ce qui tue la promesse « moins cher ». On ne peut ni
+prélever sur l'avocat (§1) ni le faire baisser son taux (il part). **La sortie : réduire ses HEURES.**
+
+Une facture d'avocat = **heures × taux**. L'IA + l'outillage font ~80 % du travail (rédaction, structuration,
+dossier prêt à relire) → il ne reste à l'avocat que la **validation** à forte valeur → **moins d'heures →
+facture plus basse en valeur absolue**, sans toucher à son taux horaire.
+
+**Unit economics (pacte + W&R sur une seed, illustratif) :**
+
+| | Heures avocat | Facture avocat | Prestation LIQUID+ | **Total fondateur** |
+|---|---|---|---|---|
+| Avocat classique | ~15 h × 300 €/h | 4 500 € | — | **4 500 €** |
+| LIQUID+ (IA prépare, avocat valide) | ~3 h × 300 €/h | 900 € | 690 € | **1 590 €** |
+
+- **Fondateur** : ~65 % moins cher. **Avocat** : garde 300 €/h, traite plus de dossiers/h → gagne plus au total.
+- **LIQUID+** : 690 € à coût marginal quasi nul. **Déonto** : LIQUID+ n'a jamais touché aux 900 €.
+
+→ **Le moteur = la compression du travail par l'IA, pas la compression de marge.** C'est un avantage qui
+**se compose** (meilleure IA → moins d'heures → plus attractif) : c'est là qu'est le moat et la priorité R&D.
+
+**Repères de prix concurrents (France, seed) :**
+
+| Option | Coût seed | Avocat qui couvre ? |
+|---|---|---|
+| Avocat / cabinet | pacte seul **1 500–5 000 €** ; levée **3 000–15 000 €** (jusqu'à 50 000 € complexe) | ✅ mais cher + friction |
+| SeedLegals | logiciel **dès 0 €/mois**, forfait levée en sus | ⚠️ DIY‑first, le fondateur porte le risque |
+| **LIQUID+ (cible)** | **~1 100–2 500 € tout compris** | ✅ avocat nommé qui valide |
+
+**Positionnement (à corriger vs « le moins cher de tous ») :**
+
+- Contre l'**avocat traditionnel** : **2 à 6× moins cher** — vrai, gagnable, c'est **la** promesse.
+- Contre **SeedLegals** : on **ne peut pas** battre un pur DIY sans avocat sur le prix (leur plancher est
+  sous le nôtre). Objectif = **« le prix le plus bas pour une sécurité d'avocat »**, pas « le moins cher tout court ».
+  vs SeedLegals : *« à peu près le même prix, mais un avocat te couvre »*.
+
+**Leviers business model (tous légaux) :** (1) compression IA [cœur] ; (2) **monétisation à deux faces**
+(forfait fondateur + abonnement avocat) → l'abonnement avocat subventionne le prix fondateur, sans commission ;
+(3) **coût marginal ~nul** → gagner au volume, pas à la marge/deal ; (4) **débundler** (l'avocat n'est payé que
+sur W&R/pacte, le reste en autonomie) ; (5) **forfait fixe** = sensation de moins cher + zéro risque ;
+(6) **grille négociée** à laquelle l'avocat **adhère librement** (forfait réduit justifié par le dossier
+pré‑mâché + le volume — LIQUID+ ne prend pas de marge, garder la liberté de l'avocat de fixer ses honoraires
+et la convention d'honoraires avec le client).
+
+> **Garde‑fou de positionnement.** Ne pas mettre « le moins cher » en tête d'affiche : sur un achat où la
+> **responsabilité personnelle du fondateur** est en jeu, la peur est « suis‑je couvert ? », pas « c'est cher ».
+> Mener avec **sécurité + certitude** ; le « 2 à 6× moins cher qu'un avocat » est la **bonne surprise**, pas le slogan.
+
+---
+
 ## 6. Sélection & attribution des avocats
 
 ### Concurrence ou attribution directe ? → **Attribution curée. Pas de mise en concurrence.**
