@@ -868,12 +868,12 @@
     .raise-progress__eyebrow { font-family:'Archivo',sans-serif; font-size:11px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:#6b6b78; margin-bottom:6px; }
     .raise-progress__amount { font-family:'Libre Franklin',sans-serif; font-size:15px; color:#3a3a45; }
     .raise-progress__amount strong { font-family:'Archivo',sans-serif; font-weight:800; font-size:22px; color:#08090c; }
-    .raise-progress__pct { font-family:'Archivo',sans-serif; font-weight:800; font-size:28px; line-height:1; color:#bbebca; flex:none; }
+    .raise-progress__pct { font-family:'Archivo',sans-serif; font-weight:800; font-size:28px; line-height:1; color:#9bd8ad; flex:none; }
     .raise-progress__track-wrap { position:relative; padding-top:24px; }
     .raise-progress__bar { position:relative; height:26px; border-radius:8px; background:#eef0f2; overflow:hidden; }
     .raise-progress__fill { position:absolute; top:0; bottom:0; left:0; border-radius:8px; transition:width .5s ease; }
-    .raise-progress__fill--total { background:#e7f6ec; }
-    .raise-progress__fill--engaged { background:#bbebca; }
+    .raise-progress__fill--total { background:#d2ecda; }
+    .raise-progress__fill--engaged { background:#9bd8ad; }
     .raise-progress__target { position:absolute; top:16px; bottom:0; width:2px; background:#08090c; border-radius:2px; transform:translateX(-1px); z-index:2; }
     .raise-progress__target::before { content:attr(data-label); position:absolute; top:-16px; right:3px; white-space:nowrap; font-family:'Archivo',sans-serif; font-size:10px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:#08090c; }
     .raise-progress__legend { display:flex; flex-wrap:wrap; gap:16px; margin-top:12px; font-size:12.5px; color:#6b6b78; }
@@ -884,8 +884,8 @@
     .raise-progress__tile-label { font-family:'Archivo',sans-serif; font-size:10.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#6b6b78; }
     .raise-progress__tile-value { font-family:'Archivo',sans-serif; font-size:19px; font-weight:800; color:#08090c; margin-top:5px; }
     .raise-progress__tile-sub { font-size:12px; color:#6b6b78; margin-top:3px; }
-    .raise-progress__tile--accent .raise-progress__tile-value { color:#bbebca; }
-    .raise-progress__tile--intentions .raise-progress__tile-value { color:#e7f6ec; }
+    .raise-progress__tile--accent .raise-progress__tile-value { color:#9bd8ad; }
+    .raise-progress__tile--intentions .raise-progress__tile-value { color:#d2ecda; }
 
     @media (max-width:680px) {
       .raise-profile__grid { grid-template-columns:1fr; }
@@ -3498,8 +3498,8 @@
         + '<div class="raise-progress__target" style="left:' + targetPct.toFixed(1) + '%" data-label="Objectif ' + esc(fmt(target)) + '"></div>'
         + '</div>'
         + '<div class="raise-progress__legend">'
-        + '<span><span class="raise-progress__dot" style="background:#bbebca"></span>Levé (contrats signés)</span>'
-        + (discussion > 0 ? '<span><span class="raise-progress__dot" style="background:#e7f6ec"></span>Intentionnés</span>' : '')
+        + '<span><span class="raise-progress__dot" style="background:#9bd8ad"></span>Levé (contrats signés)</span>'
+        + (discussion > 0 ? '<span><span class="raise-progress__dot" style="background:#d2ecda"></span>Intentionnés</span>' : '')
         + '<span><span class="raise-progress__dot" style="width:3px;border-radius:2px;background:#08090c"></span>Montant visé</span>'
         + '</div>'
         + '<div class="raise-progress__tiles">' + tiles.join('') + '</div>';
