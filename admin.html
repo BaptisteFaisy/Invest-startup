@@ -81,12 +81,11 @@
     .admin-menu-btn:hover { background:rgba(255,255,255,.08); }
     .admin-menu-btn svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; }
     .admin-menu-btn--right { right:18px; left:auto; margin-left:0; }
-    .nav .nav-inner { width:100%; height:100%; display:flex; align-items:center; gap:14px; padding-left:70px; padding-right:70px; }
+    .nav .nav-inner { width:100%; height:100%; display:flex; align-items:center; gap:14px; padding-left:20px; padding-right:70px; }
     .nav .nav-links { margin-left:auto; gap:8px; }
     .admin-drawer-backdrop { position:fixed; inset:0; z-index:90; visibility:hidden; background:rgba(0,0,0,.28); opacity:0; transition:opacity .18s ease; }
     .admin-drawer-backdrop.is-open { visibility:visible; opacity:1; }
     .admin-drawer { position:fixed; inset-block:0; z-index:91; width:min(280px,88vw); background:#0c0d11; box-shadow:0 0 40px rgba(0,0,0,.5); transition:transform .22s ease; }
-    .admin-drawer--left { left:0; border-right:1px solid var(--line); transform:translateX(-100%); }
     .admin-drawer--right { right:0; border-left:1px solid var(--line); transform:translateX(100%); }
     .admin-drawer.is-open { transform:translateX(0); }
     .admin-drawer__body { padding:68px 12px 16px; }
@@ -125,7 +124,6 @@
 <body>
   <nav class="nav">
     <div class="nav-inner">
-      <button type="button" class="admin-menu-btn" id="admin-menu-left-btn" aria-label="Ouvrir le menu administrateur gauche" aria-controls="admin-menu-left" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
       <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
       <button type="button" class="admin-menu-btn admin-menu-btn--right" id="admin-menu-right-btn" aria-label="Ouvrir le menu administrateur droit" aria-controls="admin-menu-right" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
       <div id="nav-links" class="nav-links">
@@ -137,9 +135,9 @@
   </nav>
 
   <div class="admin-drawer-backdrop" id="admin-menu-backdrop"></div>
-  <aside class="admin-drawer admin-drawer--left" id="admin-menu-left" aria-label="Menu administrateur gauche"></aside>
   <aside class="admin-drawer admin-drawer--right" id="admin-menu-right" aria-label="Menu administrateur droit">
     <nav class="admin-drawer__body">
+      <a class="admin-drawer__link" href="#administrators" data-admin-view="administrators"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-2.8 7.8-7 10-4.2-2.2-7-5.5-7-10V6Z"/><path d="M9 12l2 2 4-4"/></svg>Administrateurs</a>
       <a class="admin-drawer__link" href="#startups" data-admin-view="startups"><svg viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 13h14l2 8H3Z"/></svg>Startups</a>
       <a class="admin-drawer__link" href="#lawyers" data-admin-view="lawyers"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-4 2-6 6-6s6 2 6 6M16 5a3 3 0 0 1 0 6M17 14c3 .3 4 2.3 4 6"/></svg>Avocats</a>
       <a class="admin-drawer__link" href="#messages" data-admin-view="messages"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 3Z"/><path d="M8 9h8M8 13h5"/></svg>Messages</a>
@@ -147,6 +145,11 @@
   </aside>
 
   <div class="admin-wrap">
+    <div class="admin-section" id="admin-administrators" data-admin-view-panel="administrators" hidden>
+      <h2>Comptes administrateurs</h2>
+      <div class="admin-grid" id="administrator-list"><p class="notice">Chargement…</p></div>
+    </div>
+
     <div class="admin-section" id="admin-startups" data-admin-view-panel="startups">
       <h2>Comptes startups</h2>
       <div class="admin-grid" id="startup-list"><p class="notice">Chargement…</p></div>
@@ -200,15 +203,13 @@
   </div>
 
   <script>
-    // Deux tiroirs administrateur volontairement vides, prêts à recevoir leur navigation.
+    // Tiroir de navigation administrateur, à droite du bandeau.
     (() => {
       const backdrop = document.getElementById('admin-menu-backdrop');
       const drawers = {
-        left: document.getElementById('admin-menu-left'),
         right: document.getElementById('admin-menu-right'),
       };
       const buttons = {
-        left: document.getElementById('admin-menu-left-btn'),
         right: document.getElementById('admin-menu-right-btn'),
       };
       function closeMenus() {
@@ -224,14 +225,13 @@
         buttons[side].setAttribute('aria-expanded', 'true');
         backdrop.classList.add('is-open');
       }
-      buttons.left.addEventListener('click', () => toggleMenu('left'));
       buttons.right.addEventListener('click', () => toggleMenu('right'));
       Object.values(drawers).forEach(drawer => drawer.querySelectorAll('a').forEach(link => link.addEventListener('click', closeMenus)));
       backdrop.addEventListener('click', closeMenus);
       document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMenus(); });
     })();
 
-    const ADMIN_VIEWS = { startups:'Startups', lawyers:'Avocats', messages:'Messages' };
+    const ADMIN_VIEWS = { administrators:'Administrateurs', startups:'Startups', lawyers:'Avocats', messages:'Messages' };
     function showAdminView(view, updateHash = true) {
       if (!ADMIN_VIEWS[view]) view = 'startups';
       document.querySelectorAll('[data-admin-view-panel]').forEach(panel => { panel.hidden = panel.dataset.adminViewPanel !== view; });
@@ -393,7 +393,7 @@
     }
 
     const LAWYER_STATUS_LABELS = { pending:'À valider', active:'Actif', suspended:'Suspendu', rejected:'Refusé' };
-    let adminLawyers = [], adminFounders = [], adminProposals = [], adminLawyerChangeRequests = [];
+    let adminAdministrators = [], adminLawyers = [], adminFounders = [], adminProposals = [], adminLawyerChangeRequests = [];
     async function adminJson(url, opts) {
       const r = await fetch(url, Object.assign({ credentials:'include' }, opts || {}));
       const data = await r.json().catch(() => ({}));
@@ -402,10 +402,15 @@
     }
     async function loadLawyerManagement() {
       try {
-        const [l,f,p,c] = await Promise.all([adminJson('/api/admin/lawyers'), adminJson('/api/admin/founders'), adminJson('/api/admin/client-proposals'), adminJson('/api/admin/lawyer-change-requests')]);
-        adminLawyers=l.lawyers||[]; adminFounders=f.founders||[]; adminProposals=p.proposals||[]; adminLawyerChangeRequests=c.requests||[];
-        renderStartups(); renderLawyers(); renderProposalForm(); renderProposals(); renderLawyerChangeRequests();
+        const [a,l,f,p,c] = await Promise.all([adminJson('/api/admin/administrators'), adminJson('/api/admin/lawyers'), adminJson('/api/admin/founders'), adminJson('/api/admin/client-proposals'), adminJson('/api/admin/lawyer-change-requests')]);
+        adminAdministrators=a.administrators||[]; adminLawyers=l.lawyers||[]; adminFounders=f.founders||[]; adminProposals=p.proposals||[]; adminLawyerChangeRequests=c.requests||[];
+        renderAdministrators(); renderStartups(); renderLawyers(); renderProposalForm(); renderProposals(); renderLawyerChangeRequests();
       } catch(e) { document.getElementById('lawyer-list').innerHTML='<p class="notice">'+escHtml(e.message)+'</p>'; }
+    }
+    function renderAdministrators() {
+      const el=document.getElementById('administrator-list');
+      if(!adminAdministrators.length){el.innerHTML='<p class="notice">Aucun compte administrateur.</p>';return;}
+      el.innerHTML=adminAdministrators.map(a=>`<article class="admin-card"><h3>${escHtml(a.full_name||a.email)}</h3><p>${escHtml(a.email)}</p><div class="admin-actions"><span class="admin-pill">${a.registered?'Compte actif':'Compte non créé'}</span></div>${a.created_at?`<p>Inscrit le ${new Date(a.created_at).toLocaleDateString('fr-FR')}</p>`:''}</article>`).join('');
     }
     function renderStartups() {
       const el=document.getElementById('startup-list');

@@ -958,6 +958,18 @@ app.get('/api/admin/me', requireAdmin, (req, res) => {
   res.json({ admin: true, email: req.user.email });
 });
 
+app.get('/api/admin/administrators', requireAdmin, async (_req, res) => {
+  const users = await col('users').find(
+    { email: { $in: ADMIN_EMAILS } },
+    { projection: { _id: 0, id: 1, email: 1, full_name: 1, created_at: 1 } },
+  ).toArray();
+  const byEmail = new Map(users.map(user => [user.email, user]));
+  res.json({ administrators: ADMIN_EMAILS.map(email => {
+    const user = byEmail.get(email);
+    return user ? { ...user, registered: true } : { email, registered: false };
+  }) });
+});
+
 app.post('/api/admin/startups', requireAdmin, async (req, res) => {
   const { name, tagline, sector, stage, color, emoji, logo_url, founded, employees,
           raised, ticket, open, website, linkedin, description, problem, solution, market, team, kpis } = req.body ?? {};
