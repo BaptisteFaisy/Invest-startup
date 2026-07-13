@@ -32,11 +32,13 @@
     if (!drawer || !body || drawer.querySelector('.drawer__mode')) return;
     const control = document.createElement('div');
     control.className = 'drawer__mode';
-    control.innerHTML = `<span class="drawer__mode-label" id="drawer-mode-label">Mode</span><div class="drawer__mode-options" role="group" aria-labelledby="drawer-mode-label"><button class="drawer__mode-option" type="button" data-mode="autonome" aria-pressed="false">Autonome</button><button class="drawer__mode-option" type="button" data-mode="guide" aria-pressed="false">Guidé<span class="drawer__mode-soon">Bientôt</span></button></div>`;
+    control.innerHTML = `<span class="drawer__mode-label" id="drawer-mode-label">Mode</span><div class="drawer__mode-options" role="group" aria-labelledby="drawer-mode-label"><button class="drawer__mode-option" type="button" data-mode="autonome" aria-pressed="false">Autonome</button><button class="drawer__mode-option" type="button" data-mode="guide" aria-pressed="false" disabled aria-disabled="true" title="Bientôt disponible">Guidé<span class="drawer__mode-soon">Bientôt</span></button></div>`;
     body.insertAdjacentElement('afterend', control);
     let currentMode = 'autonome';
     try { currentMode = localStorage.getItem('liquid_experience_mode') || currentMode; } catch {}
-    if (!['autonome', 'guide'].includes(currentMode)) currentMode = 'autonome';
+    // Seul le mode « Autonome » est disponible pour l'instant : tout autre
+    // choix mémorisé (ancien « Guidé ») retombe sur « Autonome ».
+    if (currentMode !== 'autonome') currentMode = 'autonome';
     function applyMode(mode, notify) {
       document.documentElement.dataset.experienceMode = mode;
       control.querySelectorAll('[data-mode]').forEach(button => {
@@ -49,7 +51,7 @@
     }
     control.addEventListener('click', event => {
       const button = event.target.closest('[data-mode]');
-      if (button) applyMode(button.dataset.mode, true);
+      if (button && !button.disabled) applyMode(button.dataset.mode, true);
     });
     applyMode(currentMode, false);
   })();

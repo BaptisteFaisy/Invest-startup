@@ -53,7 +53,8 @@
 .drawer__mode-option { min-width:0; padding:8px 6px; border:0; border-radius:7px; background:transparent; color:rgba(255,255,255,0.58); font-family:'Libre Franklin',sans-serif; font-size:12px; font-weight:600; cursor:pointer; transition:background .15s,color .15s,box-shadow .15s; }
 .drawer__mode-soon { display:block; width:max-content; margin:3px auto 0; padding:2px 6px; border-radius:99px; background:rgba(34,197,94,0.20); color:#22c55e; font-family:'Archivo',sans-serif; font-size:8px; font-weight:800; letter-spacing:.07em; line-height:1; text-transform:uppercase; }
 .drawer__mode-option.is-active .drawer__mode-soon { color:#16a34a; }
-.drawer__mode-option:hover { color:#fff; }
+.drawer__mode-option:not(:disabled):hover { color:#fff; }
+.drawer__mode-option:disabled { cursor:not-allowed; opacity:.5; }
 .drawer__mode-option.is-active { background:#fff; color:#111318; box-shadow:0 1px 5px rgba(0,0,0,0.24); }
 .drawer__mode-option:focus-visible { outline:2px solid #a5b4fc; outline-offset:1px; }
 

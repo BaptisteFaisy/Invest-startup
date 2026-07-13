@@ -57,7 +57,8 @@
     .drawer__mode-option { min-width:0; padding:8px 6px; border:0; border-radius:7px; background:transparent; color:rgba(255,255,255,.58); font:600 12px 'Libre Franklin',sans-serif; cursor:pointer; }
     .drawer__mode-soon { display:block; width:max-content; margin:3px auto 0; padding:2px 6px; border-radius:99px; background:rgba(34,197,94,0.20); color:#22c55e; font:800 8px/1 'Archivo',sans-serif; letter-spacing:.07em; text-transform:uppercase; }
     .drawer__mode-option.is-active .drawer__mode-soon { color:#16a34a; }
-    .drawer__mode-option:hover { color:#fff; }
+    .drawer__mode-option:not(:disabled):hover { color:#fff; }
+    .drawer__mode-option:disabled { cursor:not-allowed; opacity:.5; }
     .drawer__mode-option.is-active { background:#fff; color:#111318; box-shadow:0 1px 5px rgba(0,0,0,.24); }
     .drawer__resize { position:absolute; inset-block:0; z-index:2; width:10px; cursor:col-resize; touch-action:none; }
     .drawer--left .drawer__resize { right:-5px; }
@@ -225,7 +226,7 @@
     </main>
   </div>
 
-  <script src="drawer-menu.js?v=9"></script>
+  <script src="drawer-menu.js?v=10"></script>
   <script src="theme.js?v=1"></script>
   <script>
     const app = document.getElementById('app');
