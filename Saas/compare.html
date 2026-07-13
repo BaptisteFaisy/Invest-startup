@@ -132,12 +132,12 @@
     .linhead { display:flex; align-items:center; gap:12px; margin-top:22px; padding:14px 16px; border:1px solid var(--t-surface-brd); border-radius:14px; background:var(--t-surface); }
     .linhead__title { color:var(--t-on-bg); font:700 15px/1.3 'Archivo',sans-serif; }
     .linhead__meta { margin-left:auto; color:var(--t-on-bg-faint); font-size:12px; }
-    .lintree { margin-top:22px; overflow-x:auto; padding:4px 4px 18px; }
-    .lintree ul { list-style:none; margin:0; padding-left:34px; position:relative; }
-    .lintree > ul { padding-left:0; }
-    .lintree ul ul::before { content:''; position:absolute; left:15px; top:-12px; bottom:25px; border-left:1px solid var(--t-border); }
-    .lintree li { position:relative; padding:8px 0; min-width:350px; }
-    .lintree ul ul > li::before { content:''; position:absolute; left:-19px; top:35px; width:19px; border-top:1px solid var(--t-border); }
+    .lintree { margin-top:22px; overflow:auto; padding:4px 4px 18px; scrollbar-color:var(--t-outline) transparent; }
+    .linmap { position:relative; min-height:120px; }
+    .linmap__links { position:absolute;inset:0;overflow:visible;pointer-events:none; }
+    .linmap__link { fill:none;stroke:var(--t-outline);stroke-width:1.5;vector-effect:non-scaling-stroke; }
+    .linmap__link--snapshot { stroke:#93c5fd;stroke-dasharray:5 5; }
+    .linmap .linnode { position:absolute;width:420px;box-sizing:border-box; }
     .linnode { display:flex; align-items:center; gap:12px; width:min(620px,calc(100vw - 100px)); padding:12px 14px; border-radius:13px; background:var(--t-card); border:1px solid var(--t-card-border); box-shadow:var(--t-card-shadow); }
     .linnode--root { border:2px solid #3b82f6; }
     .linnode--snap { background:#eef5ff; box-shadow:none; }
@@ -158,14 +158,14 @@
     .lintype--counterproposal { background:#fef3c7;color:#a16207; }
     .lintype--signed { background:#ede9fe;color:#6d28d9; }
     .linforest { display:grid;gap:14px;margin-top:18px; }
-    .linfamily { border:1px solid rgba(255,255,255,.12);border-radius:15px;background:rgba(255,255,255,.03);overflow:hidden; }
+    .linfamily { border:1px solid var(--t-surface-brd);border-radius:15px;background:var(--t-surface);overflow:hidden; }
     .linfamily[hidden] { display:none; }
-    .linfamily__summary { display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;color:#fff;list-style:none; }
+    .linfamily__summary { display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer;color:var(--t-on-bg);list-style:none; }
     .linfamily__summary::-webkit-details-marker { display:none; }
-    .linfamily__chev { color:rgba(255,255,255,.55);transition:transform .15s; }
+    .linfamily__chev { color:var(--t-on-bg-faint);transition:transform .15s; }
     .linfamily[open] .linfamily__chev { transform:rotate(90deg); }
     .linfamily__name { font:700 14px/1.3 'Archivo',sans-serif; }
-    .linfamily__count { margin-left:auto;color:rgba(255,255,255,.5);font-size:11.5px; }
+    .linfamily__count { margin-left:auto;color:var(--t-on-bg-faint);font-size:11.5px; }
     .linfamily .lintree { margin:0;padding:2px 16px 18px; }
     .linnode__type { display:block;margin-bottom:5px; }
     .linnode__events { display:flex;flex-direction:column;gap:3px;margin-top:7px; }
@@ -174,6 +174,15 @@
     .linevent--received { color:#15803d; }
     .linnode__actions { flex:none;display:flex;gap:6px;align-items:center; }
     .linnode__compare { color:#7c3aed;background:#f5f3ff; }
+    @media (max-width:700px) {
+      .linmap .linnode { width:330px; }
+      .linnode { gap:9px;padding:11px; }
+      .linnode__ico { width:30px;height:30px; }
+      .linnode__actions { flex-direction:column;align-items:stretch; }
+      .linnode__open { text-align:center; }
+      .linfamily__summary { align-items:flex-start;flex-wrap:wrap; }
+      .linfamily__count { width:100%;margin-left:22px; }
+    }
 
     /* Sélecteur multi-documents (comparaison entre investisseurs) : case + nom + input investisseur */
     .docpick__row { display: flex; align-items: center; gap: 12px; width: 100%; background: var(--t-card); border: 1px solid var(--t-card-border); border-radius: 12px; padding: 11px 14px; cursor: pointer; }
@@ -349,7 +358,7 @@
       <div class="cmp__tabs" id="cmp-tabs" hidden>
         <button type="button" class="cmp__tab is-active" data-tab="versions">Versions d'un même document</button>
         <button type="button" class="cmp__tab" data-tab="investors">Term sheets de plusieurs investisseurs</button>
-        <button type="button" class="cmp__tab" data-tab="lineage">Carte des documents</button>
+        <button type="button" class="cmp__tab" data-tab="lineage">Arbre des versions</button>
       </div>
 
       <div id="panel-versions">
@@ -458,7 +467,7 @@
       <div id="panel-lineage" hidden>
         <div class="lincontrols">
           <div class="lincontrols__top">
-            <input class="linsearch" id="lineage-search" type="search" placeholder="Rechercher un document, un investisseur ou une étape…" aria-label="Rechercher dans la carte des documents">
+            <input class="linsearch" id="lineage-search" type="search" placeholder="Rechercher un document, un investisseur ou une étape…" aria-label="Rechercher dans l’arbre des versions">
             <span class="lincontrols__meta" id="lineage-overview-meta">Chargement…</span>
           </div>
           <div class="linlegend" aria-label="Types de versions">
@@ -580,10 +589,10 @@
       return (tx.direction === 'sent' ? 'Envoyé à ' : 'Reçu de ') + who + (when ? ' · ' + when : '');
     }
     function makeLineageNode(node, investors, transmissions, isRoot) {
-      const li = document.createElement('li');
       const snap = node.node_type === 'snapshot';
       const card = document.createElement('div');
       card.className = 'linnode' + (snap ? ' linnode--snap' : '') + (isRoot ? ' linnode--root' : '');
+      card.setAttribute('role', 'treeitem');
       const tx = transmissions.filter(t => Number(t.document_id) === Number(node.doc_id));
       const date = lineageDate(node.date || node.created_at);
       const type = lineageType(node, isRoot);
@@ -607,7 +616,7 @@
         compare.href = 'compare.html?old=' + encodeURIComponent(node.parent_document_id) + '&new=' + encodeURIComponent(node.doc_id);
         actions.appendChild(compare);
       }
-      card.appendChild(actions); li.appendChild(card); return li;
+      card.appendChild(actions); return card;
     }
     function makeLineageTree(nodes, investors, transmissions) {
       const docs = nodes.filter(n => n.node_type === 'document');
@@ -615,20 +624,73 @@
       const byParent = new Map(), snapByDoc = new Map();
       docs.forEach(n => { const p = n.parent_document_id || 0; if (!byParent.has(p)) byParent.set(p, []); byParent.get(p).push(n); });
       snaps.forEach(n => { if (!snapByDoc.has(n.doc_id)) snapByDoc.set(n.doc_id, []); snapByDoc.get(n.doc_id).push(n); });
-      const roots = docs.filter(n => !n.parent_document_id || !docs.some(d => d.doc_id === n.parent_document_id));
-      const build = (doc, root) => {
-        const li = makeLineageNode(doc, investors, transmissions, root);
-        const children = [...(snapByDoc.get(doc.doc_id) || []), ...(byParent.get(doc.doc_id) || [])];
-        if (children.length) {
-          const ul = document.createElement('ul');
-          children.forEach(n => ul.appendChild(n.node_type === 'snapshot' ? makeLineageNode(n, investors, transmissions, false) : build(n, false)));
-          li.appendChild(ul);
-        }
-        return li;
+      let roots = docs.filter(n => !n.parent_document_id || !docs.some(d => d.doc_id === n.parent_document_id));
+      if (!roots.length && docs.length) roots = [docs[0]];
+      const nodeDate = n => new Date(n.date || n.created_at || 0).getTime() || 0;
+      const canvas = document.createElement('div'); canvas.className = 'linmap'; canvas.setAttribute('role', 'tree');
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.classList.add('linmap__links'); svg.setAttribute('aria-hidden', 'true'); canvas.appendChild(svg);
+      const build = (node, root, ancestors) => {
+        const card = makeLineageNode(node, investors, transmissions, root);
+        canvas.appendChild(card);
+        const item = { node, card, children:[], height:0, subtreeHeight:0, x:0, y:0 };
+        if (node.node_type === 'snapshot') return item;
+        const nextAncestors = new Set(ancestors); nextAncestors.add(Number(node.doc_id));
+        const children = [...(snapByDoc.get(node.doc_id) || []), ...(byParent.get(node.doc_id) || [])]
+          .filter(child => child.node_type === 'snapshot' || !nextAncestors.has(Number(child.doc_id)))
+          .sort((a, b) => nodeDate(a) - nodeDate(b));
+        item.children = children.map(child => build(child, false, nextAncestors));
+        return item;
       };
+      const models = roots.map(root => build(root, true, new Set()));
       const tree = document.createElement('div'); tree.className = 'lintree';
-      const ul = document.createElement('ul'); roots.forEach(r => ul.appendChild(build(r, true))); tree.appendChild(ul);
-      return { tree, root: roots[0] || docs[0], docs, snaps };
+      tree.appendChild(canvas);
+      const layout = () => {
+        if (!canvas.isConnected || !models.length) return;
+        const narrow = window.matchMedia('(max-width:700px)').matches;
+        const nodeWidth = narrow ? 330 : 420;
+        const xGap = narrow ? 72 : 96;
+        const yGap = 22, rootGap = 34, pad = 18;
+        const measure = item => {
+          item.height = Math.max(70, Math.ceil(item.card.getBoundingClientRect().height));
+          const childHeights = item.children.map(measure);
+          const childrenHeight = childHeights.reduce((sum, h) => sum + h, 0) + Math.max(0, childHeights.length - 1) * yGap;
+          item.subtreeHeight = Math.max(item.height, childrenHeight);
+          return item.subtreeHeight;
+        };
+        models.forEach(measure);
+        let maxX = 0, maxY = 0;
+        const links = [];
+        const place = (item, depth, top) => {
+          item.x = pad + depth * (nodeWidth + xGap);
+          item.y = top + (item.subtreeHeight - item.height) / 2;
+          item.card.style.left = item.x + 'px'; item.card.style.top = item.y + 'px';
+          maxX = Math.max(maxX, item.x + nodeWidth); maxY = Math.max(maxY, item.y + item.height);
+          if (!item.children.length) return;
+          const total = item.children.reduce((sum, child) => sum + child.subtreeHeight, 0) + (item.children.length - 1) * yGap;
+          let childTop = top + (item.subtreeHeight - total) / 2;
+          item.children.forEach(child => {
+            place(child, depth + 1, childTop); links.push([item, child]);
+            childTop += child.subtreeHeight + yGap;
+          });
+        };
+        let top = pad;
+        models.forEach(model => { place(model, 0, top); top += model.subtreeHeight + rootGap; });
+        const width = maxX + pad, height = Math.max(120, maxY + pad);
+        canvas.style.width = width + 'px'; canvas.style.height = height + 'px';
+        svg.setAttribute('width', width); svg.setAttribute('height', height); svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        svg.replaceChildren();
+        links.forEach(([parent, child]) => {
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          const sx = parent.x + nodeWidth, sy = parent.y + parent.height / 2;
+          const tx = child.x, ty = child.y + child.height / 2;
+          const bend = Math.max(28, (tx - sx) * .48);
+          path.setAttribute('d', `M ${sx} ${sy} C ${sx + bend} ${sy}, ${tx - bend} ${ty}, ${tx} ${ty}`);
+          path.setAttribute('class', 'linmap__link' + (child.node.node_type === 'snapshot' ? ' linmap__link--snapshot' : ''));
+          svg.appendChild(path);
+        });
+      };
+      return { tree, root: roots[0] || docs[0], docs, snaps, layout };
     }
     let lineageDataset = null;
     function renderLineageForest(query) {
@@ -649,7 +711,7 @@
         return { ...built, group, hay, tx };
       }).sort((a,b) => new Date((b.root && (b.root.date || b.root.created_at)) || 0) - new Date((a.root && (a.root.date || a.root.created_at)) || 0));
       const needle = String(query || '').trim().toLowerCase();
-      let shown = 0;
+      let shown = 0; const layouts = [];
       families.forEach(family => {
         if (needle && !family.hay.includes(needle)) return;
         shown++;
@@ -658,9 +720,13 @@
         summary.innerHTML = '<span class="linfamily__chev">›</span><span class="linfamily__name">' + esc((family.root && family.root.name) || 'Document') + '</span>' +
           '<span class="linfamily__count">' + family.docs.length + ' fichier' + (family.docs.length > 1 ? 's' : '') + ' · ' + family.snaps.length + ' version' + (family.snaps.length > 1 ? 's' : '') + ' enregistrée' + (family.snaps.length > 1 ? 's' : '') + ' · ' + family.tx.length + ' échange' + (family.tx.length > 1 ? 's' : '') + '</span>';
         details.appendChild(summary); details.appendChild(family.tree); forest.appendChild(details);
+        details.addEventListener('toggle', () => { if (details.open) requestAnimationFrame(family.layout); });
+        layouts.push(family.layout);
       });
       if (!shown) forest.innerHTML = '<div class="docpick__empty">Aucune lignée ne correspond à cette recherche.</div>';
       document.getElementById('lineage-overview-meta').textContent = shown + ' document' + (shown > 1 ? 's' : '') + ' racine · ' + nodes.filter(n => n.node_type === 'document').length + ' fichiers au total';
+      requestAnimationFrame(() => layouts.forEach(layout => layout()));
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => layouts.forEach(layout => layout()));
     }
     async function initLineagePanel() {
       const err = document.getElementById('error-lineage');
