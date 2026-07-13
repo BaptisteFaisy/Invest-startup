@@ -215,7 +215,7 @@
           const data = await res.json();
           if (!res.ok) { loginErr.textContent = data.error || 'Identifiants incorrects'; loginErr.hidden = false; return; }
           if (data.requires2FA) { tempToken = data.tempToken; showPanel('panel-2fa'); document.getElementById('totp-input').focus(); }
-          else window.location.href = data.user?.is_admin ? '/admin.html' : '/saas/tableau-de-bord.html';
+          else window.location.href = data.redirect || (data.user?.is_admin ? '/admin.html' : '/saas/tableau-de-bord.html');
         } catch {
           loginErr.textContent = 'Impossible de joindre le serveur';
           loginErr.hidden = false;
@@ -245,7 +245,7 @@
           });
           const data = await res.json();
           if (!res.ok) { twofaErr.textContent = data.error || 'Code incorrect'; twofaErr.hidden = false; return; }
-          window.location.href = data.user?.is_admin ? '/admin.html' : '/saas/tableau-de-bord.html';
+          window.location.href = data.redirect || (data.user?.is_admin ? '/admin.html' : '/saas/tableau-de-bord.html');
         } catch {
           twofaErr.textContent = 'Impossible de joindre le serveur';
           twofaErr.hidden = false;

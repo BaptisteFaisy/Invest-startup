@@ -575,7 +575,7 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
   if (!user.twofa_method) {
     await ensureLawyerCompletion(user);
     const token = setAuthCookie(res, user);
-    return res.json({ success: true, token, user: publicAuthUser(user) });
+    return res.json({ success: true, token, user: publicAuthUser(user), redirect: authLandingPath(user) });
   }
 
   const tempToken = jwt.sign({ id: user.id, email: user.email, purpose: 'verify_2fa' }, JWT_SECRET, { expiresIn: '5m' });
@@ -670,7 +670,7 @@ app.post('/api/auth/2fa/verify', authLimiter, async (req, res) => {
 
   await ensureLawyerCompletion(user);
   const token = setAuthCookie(res, user);
-  res.json({ success: true, token, user: publicAuthUser(user) });
+  res.json({ success: true, token, user: publicAuthUser(user), redirect: authLandingPath(user) });
 });
 
 // ─── PUT /api/auth/profile ────────────────────────────────────────────────────
