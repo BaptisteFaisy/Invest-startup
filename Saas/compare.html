@@ -124,9 +124,9 @@
 
     /* Bascule entre les deux modes du comparateur */
     .cmp__tabs { display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
-    .cmp__tab { font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.01em; padding: 9px 16px; border-radius: 99px; border: 1px solid #22c55e; background: transparent; color: #22c55e; cursor: pointer; transition: background .15s, border-color .15s, color .15s; }
-    .cmp__tab:hover { background: rgba(34,197,94,0.12); border-color: #22c55e; color: #22c55e; }
-    .cmp__tab.is-active { background: #22c55e; border-color: #22c55e; color: #fff; }
+    .cmp__tab { font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.01em; padding: 9px 16px; border-radius: 99px; border: 1px solid var(--t-border); background: transparent; color: var(--t-on-bg-60); cursor: pointer; transition: background .15s, border-color .15s, color .15s; }
+    .cmp__tab:hover { border-color: rgba(34,197,94,0.20); color: var(--t-on-bg); }
+    .cmp__tab.is-active { background: rgba(34,197,94,0.20); border-color: rgba(34,197,94,0.20); color: var(--t-on-bg); }
 
     /* Arbre déterministe des versions et échanges (aucune analyse IA). */
     .linhead { display:flex; align-items:center; gap:12px; margin-top:22px; padding:14px 16px; border:1px solid var(--t-surface-brd); border-radius:14px; background:var(--t-surface); }
