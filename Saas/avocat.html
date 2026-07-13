@@ -162,6 +162,9 @@
     .av-presta__delay { color: var(--av-text-3); display: inline-flex; align-items: center; gap: 5px; }
     .av-presta__delay svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; }
     .av-presta__cta { margin-top: 14px; width: 100%; }
+    /* Formule mise en avant (pack) — accent par la bordure, pas par la couleur. */
+    .av-presta--featured { border-color: var(--av-ink-strong); box-shadow: inset 0 0 0 1px var(--av-ink-strong); }
+    .av-presta__feat { flex: none; font-size: 9.5px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--av-on-solid); background: var(--av-solid); border-radius: 99px; padding: 3px 8px; white-space: nowrap; }
 
     /* ── Boutons ──────────────────────────────────────────────────── */
     .av-btn { font-family: inherit; font-weight: 600; font-size: 13.5px; line-height: 1; padding: 10px 16px; border-radius: 10px; border: 1px solid transparent; cursor: pointer; transition: background .15s, border-color .15s, color .15s; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
@@ -236,6 +239,20 @@
     .av-own-toggle { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--av-card-border); }
     .av-note { font-size: 12px; color: var(--av-text-3); margin-top: 18px; line-height: 1.55; }
     .av-note strong { color: var(--av-text); font-weight: 600; }
+
+    /* ── Intros de section & aide (messaging tarifaire / débundling) ── */
+    .av-sec__intro { font-size: 13px; line-height: 1.55; color: var(--av-text-2); margin: -2px 0 14px; max-width: 660px; }
+    .av-sec__intro strong { color: var(--av-ink); font-weight: 600; }
+    .av-hint { font-size: 12px; color: var(--av-text-3); line-height: 1.5; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--av-card-border); }
+    .av-hint strong { color: var(--av-text); font-weight: 600; }
+
+    /* ── « Comment ça marche » — 3 étapes qui rendent le modèle lisible ── */
+    .av-how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .av-how__step { background: var(--av-card); border: 1px solid var(--av-card-border); border-radius: 14px; padding: 16px 16px 15px; }
+    .av-how__n { width: 26px; height: 26px; border-radius: 8px; background: var(--av-solid); color: var(--av-on-solid); font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 13px; display: grid; place-items: center; }
+    .av-how__t { font-size: 14px; font-weight: 700; color: var(--av-ink); margin-top: 11px; letter-spacing: -0.01em; }
+    .av-how__d { font-size: 12.5px; line-height: 1.5; color: var(--av-text-2); margin-top: 5px; }
+    @media (max-width: 640px) { .av-how { grid-template-columns: 1fr; } }
 
     @media (max-width: 640px) {
       .av-lawyer { flex-direction: column; }
@@ -325,8 +342,30 @@
       <h1 class="mkt__title">Avocat</h1>
       <div class="help-pop" hidden>
         <div class="help-pop__label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg> Comprendre cet outil</div>
-        <p>Un avocat partenaire vous est attribué pour sécuriser les documents les plus engageants de votre levée. Notre IA prépare et dégrossit ; l'avocat relit, valide et <strong>engage sa responsabilité</strong>. Vous gardez votre temps pour votre business.</p>
+        <p>Un avocat partenaire <strong>nommé</strong> valide les documents les plus engageants de votre levée : notre IA prépare et dégrossit, l'avocat relit, valide et <strong>engage sa responsabilité</strong> sur <em>votre</em> dossier — pas un simple modèle générique. Chaque prestation est un <strong>forfait à prix fixe, connu d'avance</strong> (jamais de facturation à l'heure). L'avocat facture ses honoraires en direct ; <strong>LIQUID+ ne prend aucune commission</strong>.</p>
       </div>
+
+      <!-- Comment ça marche -->
+      <section class="av-sec">
+        <div class="av-sec__h"><span class="av-sec__t">Comment ça marche</span></div>
+        <div class="av-how">
+          <div class="av-how__step">
+            <div class="av-how__n">1</div>
+            <div class="av-how__t">L'IA prépare</div>
+            <div class="av-how__d">Vos documents sont rédigés et dégrossis par la plateforme — vous arrivez chez l'avocat avec un dossier déjà prêt.</div>
+          </div>
+          <div class="av-how__step">
+            <div class="av-how__n">2</div>
+            <div class="av-how__t">L'avocat nommé valide</div>
+            <div class="av-how__d">Un avocat relit vos actes les plus engageants — pacte, W&amp;R, statuts — et engage sa responsabilité. Le reste est relisible à la carte.</div>
+          </div>
+          <div class="av-how__step">
+            <div class="av-how__n">3</div>
+            <div class="av-how__t">Vous signez couvert</div>
+            <div class="av-how__d">Forfait à prix fixe, connu d'avance et facturé par l'avocat. LIQUID+ ne prend aucune commission.</div>
+          </div>
+        </div>
+      </section>
 
       <!-- Mon avocat -->
       <section class="av-sec">
@@ -337,12 +376,14 @@
       <!-- Vos documents à sécuriser -->
       <section class="av-sec">
         <div class="av-sec__h"><span class="av-sec__t">Vos documents à sécuriser</span></div>
+        <p class="av-sec__intro">Un avocat est recommandé <strong>en priorité sur les documents critiques</strong> — ceux qui engagent votre responsabilité et sont difficiles à défaire une fois signés. Les autres restent <strong>relisibles à la carte</strong> si vous le souhaitez : rien n'est imposé.</p>
         <div class="av-docs" id="secure-docs"></div>
       </section>
 
       <!-- Prestations -->
       <section class="av-sec">
         <div class="av-sec__h"><span class="av-sec__t">Prestations &amp; tarifs</span></div>
+        <p class="av-sec__intro">Chaque prestation est un <strong>forfait à prix fixe</strong>, connu avant de lancer — jamais de facturation à l'heure. Les honoraires sont facturés directement par votre avocat (convention d'honoraires) ; <strong>LIQUID+ ne prélève aucune commission</strong>.</p>
         <div class="av-grid" id="presta-grid"></div>
       </section>
 
@@ -354,6 +395,9 @@
 
       <p class="av-note">
         <strong>Pourquoi un avocat nommé ?</strong> Chaque relecture engage la responsabilité personnelle de l'avocat, via une lettre de mission nominative et son assurance responsabilité civile professionnelle (RCP). C'est pourquoi vous savez toujours qui relit vos documents — et pouvez en changer.
+      </p>
+      <p class="av-note">
+        <strong>Prix total, connu d'avance.</strong> Vous voyez le forfait de chaque prestation avant de la lancer — pas de compteur d'heures. Votre avocat facture ses honoraires en direct, et LIQUID+ facture séparément son outil et son accompagnement : deux lignes claires, aucune commission cachée.
       </p>
     </main>
   </div>
@@ -371,6 +415,7 @@
         <label class="av-field__l" for="req-note">Précisions pour l'avocat (facultatif)</label>
         <textarea class="av-textarea" id="req-note" maxlength="1000" placeholder="Points d'attention, échéance, contexte de la négociation…"></textarea>
       </div>
+      <p class="av-hint"><strong>Forfait à prix fixe</strong>, connu d'avance — facturé par votre avocat via une convention d'honoraires. LIQUID+ ne prélève aucune commission.</p>
       <div class="av-err" id="req-err"></div>
       <div class="av-dialog__act">
         <button type="button" class="av-btn av-btn--ghost" data-close-modal="request-modal">Annuler</button>
@@ -505,17 +550,18 @@
     /* ── Rendu : prestations ─────────────────────────────────────── */
     function renderPrestations() {
       document.getElementById('presta-grid').innerHTML = STATE.prestations.map(p =>
-        '<div class="av-card av-presta">' +
+        '<div class="av-card av-presta' + (p.featured ? ' av-presta--featured' : '') + '">' +
           '<div class="av-presta__top">' +
             '<span class="av-presta__label">' + esc(p.label) + '</span>' +
-            (p.critical ? '<span class="av-presta__crit">Avocat recommandé</span>' : '') +
+            (p.featured ? '<span class="av-presta__feat">Formule complète</span>'
+                        : (p.critical ? '<span class="av-presta__crit">Avocat recommandé</span>' : '')) +
           '</div>' +
           '<div class="av-presta__desc">' + esc(p.desc) + '</div>' +
           '<div class="av-presta__meta">' +
             '<span class="av-presta__price">' + esc(p.price) + '</span>' +
             '<span class="av-presta__delay"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>' + esc(p.delay) + '</span>' +
           '</div>' +
-          '<button type="button" class="av-btn av-btn--primary av-presta__cta" data-presta="' + esc(p.key) + '">Demander une relecture</button>' +
+          '<button type="button" class="av-btn av-btn--primary av-presta__cta" data-presta="' + esc(p.key) + '">' + (p.featured ? 'Demander le pack' : 'Demander une relecture') + '</button>' +
         '</div>'
       ).join('');
     }
@@ -597,7 +643,7 @@
     function openRequestModal(key, preselectDocId) {
       modalPrestaKey = key;
       const p = STATE.prestations.find(x => x.key === key) || {};
-      document.getElementById('req-title').textContent = 'Relecture — ' + (p.label || '');
+      document.getElementById('req-title').textContent = (p.featured ? 'Demande — ' : 'Relecture — ') + (p.label || '');
       document.getElementById('req-desc').textContent = (p.desc || '') + (p.price ? ' · ' + p.price + ' · délai ' + p.delay : '');
       document.getElementById('req-err').textContent = '';
       document.getElementById('req-note').value = '';

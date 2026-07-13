@@ -3210,9 +3210,12 @@ const AVOCAT_PARTNERS = [
 function avocatPartner(id) { return AVOCAT_PARTNERS.find(p => p.id === id) || null; }
 
 // Prestations forfaitisées. `critical` = documents où le recours à l'avocat est le
-// plus recommandé (engagement le plus fort des fondateurs). Les tarifs sont
-// indicatifs : ils s'appuient sur une grille négociée en amont avec les partenaires.
+// plus recommandé (engagement le plus fort des fondateurs). `featured` = formule mise
+// en avant (pack tout-en-un, forfait remisé). Les tarifs sont indicatifs : ils
+// s'appuient sur une grille négociée en amont avec les partenaires ; l'avocat facture
+// ses honoraires en direct (convention d'honoraires), Liquid+ ne prend aucune commission.
 const AVOCAT_PRESTATIONS = [
+  { key: 'pack',      label: 'Pack levée sécurisée',             desc: 'Tous les documents critiques de votre tour validés en une seule mission : déclarations & garanties, pacte d’associés et statuts. Forfait remisé par rapport à l’addition des prestations à la carte.', critical: false, featured: true, price: 'à partir de 1 790 €', delay: '5–7 j' },
   { key: 'garantie',  label: 'Déclarations & garanties (W&R)',   desc: 'Relecture avant signature du document le plus engageant pour les fondateurs.', critical: true,  price: 'à partir de 890 €',   delay: '72 h' },
   { key: 'pacte',     label: 'Pacte d’associés',                 desc: 'Revue des clauses sensibles : gouvernance, liquidité, leaver, préférence.',    critical: true,  price: 'à partir de 1 190 €', delay: '3–4 j' },
   { key: 'termsheet', label: 'Term sheet / lettre d’intention',  desc: 'Vérification avant de vous engager sur les grands équilibres de la levée.',     critical: false, price: 'à partir de 490 €',   delay: '48 h' },
