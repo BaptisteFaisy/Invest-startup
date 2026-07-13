@@ -1,6 +1,37 @@
 // Menus hamburger partagés par les pages outils : tiroir gauche (navigation)
 // et tiroir droit (compte & outils), repris du tableau de bord.
 (function () {
+  let lockedScrollY = 0;
+
+  // Un tiroir peut rester ouvert pendant que l'autre se ferme. Le verrou est
+  // donc synchronise avec l'ensemble des tiroirs, et non avec un seul bouton.
+  function syncPageScrollLock() {
+    const root = document.documentElement;
+    const shouldLock = !!document.querySelector('.drawer.is-open');
+    const isLocked = root.classList.contains('drawer-open');
+
+    if (shouldLock && !isLocked) {
+      lockedScrollY = window.scrollY || window.pageYOffset || 0;
+      root.classList.add('drawer-open');
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${lockedScrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.width = '100%';
+    } else if (!shouldLock && isLocked) {
+      root.classList.remove('drawer-open');
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.width = '';
+      const previousScrollBehavior = root.style.scrollBehavior;
+      root.style.scrollBehavior = 'auto';
+      window.scrollTo(0, lockedScrollY);
+      root.style.scrollBehavior = previousScrollBehavior;
+    }
+  }
+
   function setupDrawer(btnId, drawerId, backdropId) {
     const btn = document.getElementById(btnId);
     const drawer = document.getElementById(drawerId);
@@ -10,11 +41,13 @@
       drawer.classList.remove('is-open');
       backdrop.classList.remove('is-open');
       btn.setAttribute('aria-expanded', 'false');
+      syncPageScrollLock();
     };
     const open = () => {
       drawer.classList.add('is-open');
       backdrop.classList.add('is-open');
       btn.setAttribute('aria-expanded', 'true');
+      syncPageScrollLock();
     };
     btn.addEventListener('click', () =>
       drawer.classList.contains('is-open') ? close() : open());
