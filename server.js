@@ -16,6 +16,7 @@ const multer           = require('multer');
 const { MongoClient }  = require('mongodb');
 const OpenAI           = require('openai');
 const CloudConvert     = require('cloudconvert');
+const JSZip            = require('jszip');
 const mammoth          = require('mammoth');
 const pdfParse         = require('pdf-parse');
 const ExcelJS          = require('exceljs');
@@ -338,12 +339,15 @@ const upload = multer({
   storage,
   limits: { fileSize: 20 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
-    const allowed = ['application/pdf', 'image/png', 'image/jpeg',
+    const allowed = ['application/pdf', 'image/png', 'image/jpeg', 'text/plain',
                      'application/vnd.ms-excel',
                      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                      'application/msword',
-                     'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-    cb(null, allowed.includes(file.mimetype));
+                     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                     'application/vnd.oasis.opendocument.text',
+                     'application/vnd.google-apps.document'];
+    const extAllowed = ['.txt', '.odt', '.gdoc'].includes(path.extname(file.originalname || '').toLowerCase());
+    cb(null, allowed.includes(file.mimetype) || extAllowed);
   },
 });
 
@@ -367,12 +371,15 @@ const saasUpload = multer({
   limits: { fileSize: 15 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     fixOriginalName(file);
-    const allowed = ['application/pdf', 'image/png', 'image/jpeg',
+    const allowed = ['application/pdf', 'image/png', 'image/jpeg', 'text/plain',
                      'application/vnd.ms-excel',
                      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                      'application/msword',
-                     'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-    cb(null, allowed.includes(file.mimetype));
+                     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                     'application/vnd.oasis.opendocument.text',
+                     'application/vnd.google-apps.document'];
+    const extAllowed = ['.txt', '.odt', '.gdoc'].includes(path.extname(file.originalname || '').toLowerCase());
+    cb(null, allowed.includes(file.mimetype) || extAllowed);
   },
 });
 
@@ -1914,9 +1921,36 @@ async function xlsxToText(buf) {
   return lines.join('\n');
 }
 
+function decodeXmlText(text) {
+  return String(text || '')
+    .replace(/&#x([0-9a-f]+);/gi, (_m, hex) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_m, dec) => String.fromCodePoint(parseInt(dec, 10)))
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'").replace(/&amp;/g, '&');
+}
+
+// Un ODT est une archive ZIP dont content.xml contient le texte du document.
+// On conserve les limites de paragraphes, listes et tableaux pour produire un
+// texte brut exploitable par la comparaison, l'autofill et les checklists.
+async function odtToText(buf) {
+  const zip = await JSZip.loadAsync(buf);
+  const content = zip.file('content.xml');
+  if (!content) throw new Error('content.xml absent du fichier ODT');
+  let xml = await content.async('string');
+  xml = xml
+    .replace(/<text:s(?:\s+text:c="(\d+)")?[^>]*\/>/gi, (_m, count) => ' '.repeat(Math.min(Number(count) || 1, 50)))
+    .replace(/<text:tab[^>]*\/>/gi, '\t')
+    .replace(/<text:line-break[^>]*\/>/gi, '\n')
+    .replace(/<\/text:(?:p|h|list-item)>/gi, '\n')
+    .replace(/<\/table:table-row>/gi, '\n')
+    .replace(/<\/table:table-cell>/gi, '\t')
+    .replace(/<[^>]+>/g, ' ');
+  return decodeXmlText(xml);
+}
+
 // ─── SaaS : remplissage automatique des champs depuis les documents importés ───
 // Extrait (et met en cache dans le document) le texte brut d'un document importé
-// (PDF via pdf-parse, Word via mammoth, Excel via exceljs, TXT tel quel). Renvoie '' si inexploitable.
+// (PDF, Word, OpenDocument, Excel ou TXT). Renvoie '' si inexploitable.
 async function extractImportedText(doc) {
   if (typeof doc.extracted_text === 'string') return doc.extracted_text;
 
@@ -1936,6 +1970,8 @@ async function extractImportedText(doc) {
       else text = (await mammoth.extractRawText({ buffer: buf })).value || '';
     } else if (ext === '.xlsx') {
       text = await xlsxToText(buf);
+    } else if (ext === '.odt') {
+      text = await odtToText(buf);
     } else if (ext === '.txt') {
       text = buf.toString('utf8');
     }
@@ -2006,14 +2042,14 @@ app.post('/api/saas/autofill', requireAuth, enforceDailyCap, async (req, res) =>
   for (const d of docs) {
     if (sources.length >= 8) break;
     const ext = path.extname(d.originalname || d.name || '').toLowerCase();
-    if (!['.pdf', '.docx', '.doc', '.xlsx', '.txt'].includes(ext)) { unsupported.push(d.name); continue; }
+    if (!['.pdf', '.docx', '.doc', '.odt', '.xlsx', '.txt'].includes(ext)) { unsupported.push(d.name); continue; }
     const text = await extractImportedText(d);
     if (text) sources.push({ name: d.name, text });
     else unsupported.push(d.name);
   }
 
   if (!sources.length)
-    return res.status(422).json({ error: 'Aucun texte exploitable dans vos documents importés : le remplissage automatique lit les PDF, Word, Excel et TXT.' });
+    return res.status(422).json({ error: 'Aucun texte exploitable dans vos documents importés : le remplissage automatique lit les PDF, Word, OpenDocument, Excel et TXT.' });
 
   // Budget de contexte réparti entre les documents.
   const PER_DOC = Math.max(2500, Math.floor(36000 / sources.length));
@@ -4600,8 +4636,65 @@ app.patch('/api/saas/documents/:id/lineage', requireAuth, async (req, res) => {
   res.json({ success: true, lineage_id: root, parent_document_id: parentId, origin, origin_party_id, version_type: versionType });
 });
 
+function googleDocIdFromShortcut(file) {
+  let shortcut;
+  try { shortcut = JSON.parse(file.buffer.toString('utf8')); }
+  catch { return null; }
+  const directId = String(shortcut.doc_id || shortcut.resource_id || '').replace(/^document:/, '').trim();
+  if (/^[\w-]{10,}$/.test(directId)) return directId;
+  const url = String(shortcut.url || '');
+  const match = url.match(/docs\.google\.com\/document\/d\/([\w-]+)/i);
+  return match ? match[1] : null;
+}
+
+// Un fichier .gdoc n'embarque pas le document : c'est un petit raccourci JSON.
+// On exporte donc le document Google en DOCX avec le compte Drive connecté avant
+// de le stocker, afin que le téléchargement et les fonctions IA restent utiles.
+async function materializeGoogleDocUpload(file, userId) {
+  if (path.extname(file.originalname || '').toLowerCase() !== '.gdoc') return file;
+  const fileId = googleDocIdFromShortcut(file);
+  if (!fileId) {
+    const err = new Error('Ce raccourci Google Docs est invalide. Ouvrez le document dans Google Docs puis téléchargez-le en Word (.docx) ou OpenDocument (.odt).');
+    err.status = 422;
+    throw err;
+  }
+  const connection = await col('saas_dataroom_connections').findOne({
+    user_id: userId, provider: 'google_drive', status: { $ne: 'disabled' },
+  });
+  if (!connection) {
+    const err = new Error('Pour importer un fichier .gdoc, connectez d’abord votre compte Google Drive depuis Mon compte. Vous pouvez aussi télécharger le document en .docx ou .odt depuis Google Docs.');
+    err.status = 422;
+    throw err;
+  }
+  try {
+    const drive = await driveClientFor(connection);
+    const response = await drive.files.export(
+      { fileId, mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' },
+      { responseType: 'arraybuffer' }
+    );
+    const buffer = Buffer.from(response.data);
+    if (!buffer.length || buffer.length > 15 * 1024 * 1024) {
+      const err = new Error('Le document Google exporté est vide ou dépasse la limite de 15 Mo. Téléchargez-le manuellement en .docx ou .odt avant de l’importer.');
+      err.status = 422;
+      throw err;
+    }
+    file.buffer = buffer;
+    file.size = buffer.length;
+    file.originalname = file.originalname.replace(/\.gdoc$/i, '.docx');
+    file.mimetype = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    return file;
+  } catch (error) {
+    if (error.status === 422) throw error;
+    const err = new Error('Impossible de lire ce Google Docs avec le compte Drive connecté. Reconnectez Google Drive, vérifiez vos droits d’accès, ou téléchargez le document en .docx/.odt.');
+    err.status = 422;
+    throw err;
+  }
+}
+
 app.post('/api/saas/documents', requireAuth, saasUpload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Aucun fichier reçu ou format non supporté (max 15 Mo)' });
+  try { await materializeGoogleDocUpload(req.file, req.user.id); }
+  catch (error) { return res.status(error.status || 422).json({ error: error.message }); }
   const id  = await nextId('saas_documents');
   const doc = {
     id, user_id: req.user.id,
@@ -4762,7 +4855,7 @@ function pruneInvestorItemsState(itemsState, allowedSlugs, allowedChecklistIds) 
 }
 
 app.post('/api/saas/folders/:id/investor-checklist', requireAuth, saasUpload.single('file'), async (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'Importez la checklist de l’investisseur au format PDF, Word ou Excel (max. 15 Mo).' });
+  if (!req.file) return res.status(400).json({ error: 'Importez la checklist de l’investisseur au format PDF, Word, OpenDocument ou Excel (max. 15 Mo).' });
 
   const id = Number(req.params.id);
   const folder = await col('saas_folders').findOne({ id, user_id: req.user.id });
@@ -4774,9 +4867,12 @@ app.post('/api/saas/folders/:id/investor-checklist', requireAuth, saasUpload.sin
   if (existing.length >= MAX_INVESTOR_CHECKLISTS)
     return res.status(409).json({ error: `Vous ne pouvez pas dépasser ${MAX_INVESTOR_CHECKLISTS} checklists sur une étape.` });
 
+  try { await materializeGoogleDocUpload(req.file, req.user.id); }
+  catch (error) { return res.status(error.status || 422).json({ error: error.message }); }
+
   const sourceExt = path.extname(req.file.originalname || '').toLowerCase();
-  if (!['.pdf', '.doc', '.docx', '.xlsx'].includes(sourceExt))
-    return res.status(422).json({ error: 'La checklist doit être un PDF, un document Word ou un fichier Excel (.xlsx) lisible.' });
+  if (!['.pdf', '.doc', '.docx', '.odt', '.xlsx'].includes(sourceExt))
+    return res.status(422).json({ error: 'La checklist doit être un PDF, un document Word/OpenDocument ou un fichier Excel (.xlsx) lisible.' });
 
   const now = new Date().toISOString();
   const investorName = shortText(req.body?.investor_name, 120);
@@ -4794,7 +4890,7 @@ app.post('/api/saas/folders/:id/investor-checklist', requireAuth, saasUpload.sin
   const items = investorChecklistItemsFromText(extracted);
   if (!items.length) {
     await col('saas_documents').deleteOne({ id: doc.id, user_id: req.user.id });
-    return res.status(422).json({ error: 'La liste de documents n’a pas pu être lue. Importez un PDF/Word/Excel contenant une liste sélectionnable.' });
+    return res.status(422).json({ error: 'La liste de documents n’a pas pu être lue. Importez un PDF, Word, OpenDocument ou Excel contenant une liste sélectionnable.' });
   }
 
   // Nouvelle checklist ajoutée à la suite des précédentes (jamais un remplacement) :
@@ -5367,7 +5463,11 @@ app.get('/api/saas/dataroom/:provider/connect', requireAuth, (req, res) => {
     const url = driveOAuthClient().generateAuthUrl({
       access_type: 'offline',
       prompt: 'consent', // force le renvoi d'un refresh_token à chaque connexion
-      scope: ['https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/userinfo.email'],
+      scope: [
+        'https://www.googleapis.com/auth/drive.file',
+        'https://www.googleapis.com/auth/drive.readonly',
+        'https://www.googleapis.com/auth/userinfo.email',
+      ],
       state,
     });
     return res.redirect(url);

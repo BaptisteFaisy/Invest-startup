@@ -281,7 +281,7 @@
         <button type="button" class="btn btn--primary doc-import-btn" id="docs-btn">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Importer un document
         </button>
-        <input type="file" id="docs-file" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" hidden />
+        <input type="file" id="docs-file" accept=".pdf,.doc,.docx,.odt,.gdoc,.txt,.xls,.xlsx,.png,.jpg,.jpeg" hidden />
       </div>
 
       <!-- Choix du type de levée : détermine les étapes affichées -->
@@ -440,7 +440,7 @@
       function typeLabel(d) {
         if (isWritten(d)) return d.template_source ? 'Rédigé (modèle Liquid+)' : 'Rédigé sur Liquid+';
         const e = ext(d.originalname || d.name);
-        const map = { pdf: 'PDF', doc: 'Word', docx: 'Word', xls: 'Excel', xlsx: 'Excel', csv: 'CSV', png: 'Image', jpg: 'Image', jpeg: 'Image', webp: 'Image', gif: 'Image' };
+        const map = { pdf: 'PDF', doc: 'Word', docx: 'Word', odt: 'OpenDocument', gdoc: 'Google Docs', txt: 'Texte', xls: 'Excel', xlsx: 'Excel', csv: 'CSV', png: 'Image', jpg: 'Image', jpeg: 'Image', webp: 'Image', gif: 'Image' };
         return map[e] || (e ? e.toUpperCase() : 'Fichier');
       }
 

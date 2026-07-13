@@ -88,7 +88,7 @@
         <div class="docmodal__drop" id="docmodal-drop" tabindex="0" role="button"
              aria-label="Glisser un fichier ou parcourir">
           <span><strong>Glissez un fichier ici</strong> ou cliquez pour parcourir</span>
-          <span class="docmodal__hint" id="docmodal-format-hint">PDF, Word, Excel ou image</span>
+          <span class="docmodal__hint" id="docmodal-format-hint">PDF, Word, OpenDocument, Google Docs, Excel ou image</span>
         </div>
         <div class="docmodal__file" id="docmodal-file">
           <div class="docmodal__file-meta">
@@ -160,7 +160,7 @@
     </div>`;
   document.body.appendChild(modal);
   modal.querySelector('#docmodal-format-hint').textContent =
-    fileInput.dataset.importHint || 'PDF, Word, Excel ou image';
+    fileInput.dataset.importHint || 'PDF, Word, OpenDocument, Google Docs, Excel ou image';
 
   const drop     = modal.querySelector('#docmodal-drop');
   const fileBox  = modal.querySelector('#docmodal-file');
