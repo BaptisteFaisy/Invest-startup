@@ -13,7 +13,7 @@
     // Applique le thème mémorisé au plus tôt (anti-flash). Défaut : sombre (:root).
     try { var t = localStorage.getItem('liquidTheme'); if (t === 'paper' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
   </script>
-  <link rel="stylesheet" href="theme.css?v=1" />
+  <link rel="stylesheet" href="theme.css?v=2" />
   <style>
     :root { --ink:#08090c; --panel:#101116; --card:#fff; --paper:#f5f4f0; --line:rgba(8,9,12,.11); --muted:#6b6b78; --purple:#6366f1; --green:#10b981; }
     * { box-sizing:border-box; }
@@ -226,7 +226,7 @@
   </div>
 
   <script src="drawer-menu.js?v=9"></script>
-  <script src="theme.js?v=1"></script>
+  <script src="theme.js?v=2"></script>
   <script>
     const app = document.getElementById('app');
     const profileEl = document.getElementById('profile');
