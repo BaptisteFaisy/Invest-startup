@@ -162,6 +162,9 @@
     .av-presta__delay { color: var(--av-text-3); display: inline-flex; align-items: center; gap: 5px; }
     .av-presta__delay svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; }
     .av-presta__cta { margin-top: 14px; width: 100%; }
+    /* Formule mise en avant (pack) — accent par la bordure, pas par la couleur. */
+    .av-presta--featured { border-color: var(--av-ink-strong); box-shadow: inset 0 0 0 1px var(--av-ink-strong); }
+    .av-presta__feat { flex: none; font-size: 9.5px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--av-on-solid); background: var(--av-solid); border-radius: 99px; padding: 3px 8px; white-space: nowrap; }
 
     /* ── Boutons ──────────────────────────────────────────────────── */
     .av-btn { font-family: inherit; font-weight: 600; font-size: 13.5px; line-height: 1; padding: 10px 16px; border-radius: 10px; border: 1px solid transparent; cursor: pointer; transition: background .15s, border-color .15s, color .15s; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
@@ -517,17 +520,18 @@
     /* ── Rendu : prestations ─────────────────────────────────────── */
     function renderPrestations() {
       document.getElementById('presta-grid').innerHTML = STATE.prestations.map(p =>
-        '<div class="av-card av-presta">' +
+        '<div class="av-card av-presta' + (p.featured ? ' av-presta--featured' : '') + '">' +
           '<div class="av-presta__top">' +
             '<span class="av-presta__label">' + esc(p.label) + '</span>' +
-            (p.critical ? '<span class="av-presta__crit">Avocat recommandé</span>' : '') +
+            (p.featured ? '<span class="av-presta__feat">Formule complète</span>'
+                        : (p.critical ? '<span class="av-presta__crit">Avocat recommandé</span>' : '')) +
           '</div>' +
           '<div class="av-presta__desc">' + esc(p.desc) + '</div>' +
           '<div class="av-presta__meta">' +
             '<span class="av-presta__price">' + esc(p.price) + '</span>' +
             '<span class="av-presta__delay"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>' + esc(p.delay) + '</span>' +
           '</div>' +
-          '<button type="button" class="av-btn av-btn--primary av-presta__cta" data-presta="' + esc(p.key) + '">Demander une relecture</button>' +
+          '<button type="button" class="av-btn av-btn--primary av-presta__cta" data-presta="' + esc(p.key) + '">' + (p.featured ? 'Demander le pack' : 'Demander une relecture') + '</button>' +
         '</div>'
       ).join('');
     }
@@ -609,7 +613,7 @@
     function openRequestModal(key, preselectDocId) {
       modalPrestaKey = key;
       const p = STATE.prestations.find(x => x.key === key) || {};
-      document.getElementById('req-title').textContent = 'Relecture — ' + (p.label || '');
+      document.getElementById('req-title').textContent = (p.featured ? 'Demande — ' : 'Relecture — ') + (p.label || '');
       document.getElementById('req-desc').textContent = (p.desc || '') + (p.price ? ' · ' + p.price + ' · délai ' + p.delay : '');
       document.getElementById('req-err').textContent = '';
       document.getElementById('req-note').value = '';
