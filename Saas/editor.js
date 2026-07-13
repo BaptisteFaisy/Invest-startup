@@ -1882,6 +1882,9 @@ function showEmptyState() {
   setLastSavedAt(null);
   const cs = document.getElementById('caret-clause');
   if (cs) cs.textContent = 'Aucun document ouvert';
+  // RafraÃ®chit les panneaux aprÃ¨s la fermeture : sinon la bibliothÃ¨que
+  // conserve le rendu du dernier document ouvert.
+  renderLibrary();
 }
 function hideEmptyState() {
   const canvas = document.querySelector('.editor-canvas');
@@ -2969,6 +2972,12 @@ function jumpToClause(key) {
 }
 
 function renderLibrary() {
+  const editorCanvas = document.querySelector('.editor-canvas');
+  if (!currentDocId && editorCanvas && editorCanvas.classList.contains('is-empty')) {
+    libraryCount.textContent = 'Aucun document ouvert';
+    libraryList.innerHTML = '<p class="library__empty">Ouvrez ou créez un document pour afficher sa bibliothèque.</p>';
+    return;
+  }
   // Document libre : clauses actuelles (clic = aller au paragraphe) + clauses
   // disponibles proposées par l'analyse IA (clic = ajouter au document).
   if (isCustom) {
@@ -3375,7 +3384,6 @@ function renderAutofill() {
     if (ph.length) {
       html += `<button class="af-btn" id="autofill-btn" type="button"
         title="Recherche la valeur de chaque champ dans les documents que vous avez importés (Kbis, statuts, pacte…)">
-        <span class="af-btn__ico" aria-hidden="true">✦</span>
         <span class="af-btn__txt"><strong>Remplir automatiquement</strong><small>depuis mes documents importés</small></span>
       </button>`;
     }
