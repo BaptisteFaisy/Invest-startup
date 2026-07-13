@@ -258,7 +258,7 @@
   // Remplit la section « nouvelle version de… » depuis le contexte fourni par la
   // page (window.liquidImportContext) : documents existants + investisseurs. Absente
   // ailleurs (ex. éditeur) : la section reste masquée.
-  function populateVersionCtx() {
+  async function populateVersionCtx() {
     verCheck.checked = false;
     verFields.classList.remove('is-shown');
     verInvestor.hidden = true;
@@ -267,6 +267,26 @@
     verType.value = '';
     let ctx = null;
     try { ctx = typeof window.liquidImportContext === 'function' ? window.liquidImportContext() : null; } catch { ctx = null; }
+    // La page Documents fournit déjà ce contexte. L'éditeur, lui, ne charge pas
+    // ces listes : on les récupère directement afin que les trois métadonnées de
+    // l'arbre des versions restent pleinement utilisables partout.
+    if (!ctx) {
+      try {
+        const [docsResponse, investorsResponse] = await Promise.all([
+          fetch('/api/saas/documents', { credentials: 'include' }),
+          fetch('/api/saas/investors', { credentials: 'include' }),
+        ]);
+        const docsData = docsResponse.ok ? await docsResponse.json() : {};
+        const investorsData = investorsResponse.ok ? await investorsResponse.json() : {};
+        ctx = {
+          documents: (Array.isArray(docsData.documents) ? docsData.documents : [])
+            .filter((d) => !d.is_version)
+            .map((d) => ({ id: d.id, name: d.name })),
+          investors: (Array.isArray(investorsData.investors) ? investorsData.investors : [])
+            .map((inv) => ({ id: inv.id, name: inv.name, firm: inv.firm || '' })),
+        };
+      } catch { ctx = null; }
+    }
     verCtxDocs = (ctx && Array.isArray(ctx.documents)) ? ctx.documents : [];
     const investors = (ctx && Array.isArray(ctx.investors)) ? ctx.investors : [];
 
@@ -290,18 +310,14 @@
       nudgeRecipient.appendChild(recipientOption.cloneNode(true));
     });
 
-    // Ne pas proposer « Reçue d'un investisseur » lorsqu'aucun investisseur
-    // n'est disponible : ce choix rendrait le champ suivant obligatoire sans
-    // qu'aucune valeur puisse y être sélectionnée.
-    [verOrigin, nudgeOrigin].forEach((select) => {
-      const investorOption = select.querySelector('option[value="investor"]');
-      if (investorOption) investorOption.disabled = investors.length === 0;
-    });
-    verInvestor.disabled = investors.length === 0;
-    nudgeInvestor.disabled = investors.length === 0;
+    // La provenance « investisseur » reste valable même avant la création de la
+    // fiche du contact. Comparer l'affichera alors comme « un investisseur ».
     if (!investors.length) {
-      verInvestor.options[0].textContent = '— Aucun investisseur enregistré —';
-      nudgeInvestor.options[0].textContent = '— Aucun investisseur enregistré —';
+      const genericInvestor = document.createElement('option');
+      genericInvestor.value = 'unknown';
+      genericInvestor.textContent = 'Un investisseur (non renseigné)';
+      verInvestor.appendChild(genericInvestor);
+      nudgeInvestor.appendChild(genericInvestor.cloneNode(true));
     }
 
     if (!verCtxDocs.length) { verBox.classList.remove('is-shown'); return; }
@@ -317,14 +333,14 @@
 
   function hideNudge() { nudgeBox.classList.remove('is-shown'); pendingNudge = null; }
 
-  function openModal() {
+  async function openModal() {
     clearError();
     resetFile();
     hideNudge();
     populateDest();
-    populateVersionCtx();
     modal.classList.add('is-open');
     drop.focus();
+    await populateVersionCtx();
   }
 
   function closeModal() {

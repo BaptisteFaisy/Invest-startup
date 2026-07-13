@@ -4200,7 +4200,9 @@ async function resolveOrigin(userId, originRaw, partyIdRaw) {
   const pid = partyIdRaw ? Number(partyIdRaw) : null;
   if (origin === 'investor') {
     if (pid && await col('saas_investors').findOne({ id: pid, user_id: userId })) return { origin, origin_party_id: pid };
-    return { origin: 'founder', origin_party_id: null }; // investisseur inconnu : on n'affirme rien
+    // La provenance reste utile à l'arbre des versions même si la fiche précise
+    // de l'investisseur n'a pas encore été créée.
+    return { origin: 'investor', origin_party_id: null };
   }
   // avocat : identité facultative (prestataire générique accepté)
   return { origin: 'lawyer', origin_party_id: pid || null };

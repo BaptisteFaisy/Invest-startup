@@ -1865,31 +1865,6 @@ if (emptyImportBtn) emptyImportBtn.addEventListener('click', () => {
   if (b) b.click();
 });
 
-// Après le téléversement depuis l'état vide, convertir le fichier Word en
-// document Liquid+ puis ouvrir immédiatement son contenu dans l'éditeur.
-// La modale d'import reste générique sur les autres pages (Documents, dossier…).
-window.addEventListener('liquid:document-added', async (event) => {
-  const imported = event.detail;
-  if (!imported || imported.id == null || !emptyImportBtn) return;
-  const status = document.getElementById('caret-clause');
-  const previousStatus = status ? status.textContent : '';
-  emptyImportBtn.disabled = true;
-  if (status) status.textContent = 'Ouverture du document importé…';
-  try {
-    const response = await fetch('/api/saas/documents/' + imported.id + '/to-editor', {
-      method: 'POST', credentials: 'include',
-    });
-    if (response.status === 401) { window.location.href = 'login.html'; return; }
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || data.id == null) throw new Error(data.error || 'Conversion impossible.');
-    window.location.href = 'editor.html?doc=' + encodeURIComponent(data.id);
-  } catch (error) {
-    emptyImportBtn.disabled = false;
-    if (status) status.textContent = previousStatus;
-    alert(error && error.message ? error.message : 'Impossible d’ouvrir ce document dans l’éditeur.');
-  }
-});
-
 /* ---------- « Générer un modèle » : galerie des modèles Liquid+ ------------- */
 // Catalogue des modèles proposés (fichiers ressources/modeles/<slug>.html),
 // regroupés par phase de la levée. La galerie offre une recherche car la liste
