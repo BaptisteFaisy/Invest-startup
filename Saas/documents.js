@@ -49,6 +49,7 @@
   .docmodal__dest-label{display:block;font:600 13px/1.3 'Libre Franklin',sans-serif;color:var(--text,#08090c);margin-bottom:7px}
   .docmodal__dest-select{width:100%;box-sizing:border-box;background:var(--card,#fff);border:1px solid var(--line,rgba(8,9,12,0.18));border-radius:10px;color:var(--text,#08090c);font:500 14px/1.2 'Libre Franklin',sans-serif;padding:11px 12px;cursor:pointer}
   .docmodal__dest-select:focus{outline:none;border-color:var(--blue,#3b82f6)}
+  .docmodal__ver-search{margin:0 0 7px}
   .docmodal__foot{display:flex;flex:none;justify-content:flex-end;gap:10px;padding:16px 20px;border-top:1px solid var(--line,rgba(8,9,12,0.08))}
   .docmodal__foot .btn[disabled]{opacity:.5;cursor:not-allowed}
   .docmodal__ver{display:none;margin-top:16px;padding-top:14px;border-top:1px solid var(--line,rgba(8,9,12,0.08))}
@@ -122,7 +123,8 @@
               <option value="revision">Révision personnelle</option>
               <option value="signed">Version signée</option>
             </select>
-            <label class="docmodal__dest-label" for="docmodal-ver-parent" style="margin-top:12px">Ce fichier répond à</label>
+            <label class="docmodal__dest-label" for="docmodal-ver-parent-search" style="margin-top:12px">Document initial de cette nouvelle version</label>
+            <input class="docmodal__dest-select docmodal__ver-search" id="docmodal-ver-parent-search" type="search" placeholder="Rechercher le document initial…" autocomplete="off" aria-label="Rechercher le document initial" />
             <select class="docmodal__dest-select" id="docmodal-ver-parent"></select>
             <label class="docmodal__dest-label" for="docmodal-ver-origin" style="margin-top:12px">Qui a produit ce fichier ?</label>
             <select class="docmodal__dest-select" id="docmodal-ver-origin">
@@ -180,6 +182,7 @@
   const verCheck = modal.querySelector('#docmodal-ver-check');
   const verFields = modal.querySelector('#docmodal-ver-fields');
   const verType = modal.querySelector('#docmodal-ver-type');
+  const verParentSearch = modal.querySelector('#docmodal-ver-parent-search');
   const verParent = modal.querySelector('#docmodal-ver-parent');
   const verOrigin = modal.querySelector('#docmodal-ver-origin');
   const verInvestor = modal.querySelector('#docmodal-ver-investor');
@@ -222,6 +225,19 @@
 
   function updateSubmitState() {
     submit.disabled = busy || !selected || (editorImport && !destSel.value);
+  }
+
+  function filterVersionParents() {
+    const query = verParentSearch.value.trim().toLocaleLowerCase();
+    let exact = null;
+    Array.from(verParent.options).forEach((option) => {
+      if (!option.value) { option.hidden = false; return; }
+      const matches = !query || option.textContent.toLocaleLowerCase().includes(query);
+      option.hidden = !matches;
+      if (query && option.textContent.trim().toLocaleLowerCase() === query) exact = option;
+    });
+    if (exact) verParent.value = exact.value;
+    else if (query && verParent.selectedOptions[0] && verParent.selectedOptions[0].hidden) verParent.value = '';
   }
 
   function setFile(file) {
@@ -303,6 +319,7 @@
     verRecipient.hidden = false;
     verOrigin.value = 'founder';
     verType.value = '';
+    verParentSearch.value = '';
     let ctx = null;
     try { ctx = typeof window.liquidImportContext === 'function' ? window.liquidImportContext() : null; } catch { ctx = null; }
     // La page Documents fournit déjà ce contexte. L'éditeur, lui, ne charge pas
@@ -366,6 +383,7 @@
       o.textContent = d.name;
       verParent.appendChild(o);
     });
+    filterVersionParents();
     verBox.classList.add('is-shown');
   }
 
@@ -395,6 +413,12 @@
   verOrigin.addEventListener('change', () => {
     verInvestor.hidden = verOrigin.value !== 'investor';
     verRecipient.hidden = verOrigin.value !== 'founder';
+  });
+  verParentSearch.addEventListener('input', filterVersionParents);
+  verParent.addEventListener('change', () => {
+    const selected = verParent.selectedOptions[0];
+    verParentSearch.value = selected && selected.value ? selected.textContent : '';
+    filterVersionParents();
   });
   nudgeOrigin.addEventListener('change', () => {
     nudgeInvestor.hidden = nudgeOrigin.value !== 'investor';
