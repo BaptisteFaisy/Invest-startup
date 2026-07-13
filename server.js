@@ -3767,7 +3767,7 @@ app.put('/api/saas/folders/:id/checklist/version', requireAuth, async (req, res)
   const versions = Array.isArray(cur.versions) ? cur.versions.slice() : [];
   if (oldId != null && oldId !== newId) {
     const oldDoc = await col('saas_documents').findOne(
-      { id: oldId, user_id: req.user.id }, { projection: { name: 1 } });
+      { id: oldId, user_id: req.user.id }, { projection: { name: 1, lineage_id: 1 } });
     versions.unshift({
       document_id: oldId,
       name: oldDoc ? oldDoc.name : ('Document #' + oldId),
@@ -3777,6 +3777,16 @@ app.put('/api/saas/folders/:id/checklist/version', requireAuth, async (req, res)
     // réapparaître comme fichier libre ni dans les sélecteurs.
     await col('saas_documents').updateOne(
       { id: oldId, user_id: req.user.id }, { $set: { is_version: true, folder_id: id } });
+    // Un remplacement depuis la roadlist rejoint la même lignée globale.
+    await col('saas_documents').updateOne(
+      { id: newId, user_id: req.user.id },
+      { $set: {
+        lineage_id: (oldDoc && oldDoc.lineage_id) || oldId,
+        parent_document_id: oldId,
+        origin: newDoc.origin || 'founder',
+        version_type: newDoc.version_type || 'revision',
+      } },
+    );
   }
 
   cur.document_id = newId;
@@ -4149,6 +4159,7 @@ app.get('/api/saas/termsheets/:id/versions/:vid/preview', requireAuth, async (re
 // a produit la version : le fondateur, un investisseur ou l'avocat. Les échanges
 // « reçu de / envoyé à » sont consignés dans saas_doc_transmissions.
 const DOC_ORIGINS = new Set(['founder', 'investor', 'lawyer']);
+const DOC_VERSION_TYPES = new Set(['counterproposal', 'revision', 'signed']);
 
 // Racine (lineage_id) d'un document parent ; null si le parent n'existe pas.
 async function lineageRootOf(userId, parentId) {
@@ -4197,6 +4208,25 @@ async function recordReceivedTransmission(userId, doc) {
     direction: 'received',
     counterparty_type: doc.origin, counterparty_id: doc.origin_party_id || null,
     date: doc.created_at, created_at: doc.created_at,
+  });
+}
+
+// Consigne séparément un envoi déclaré par le fondateur. Le type de version
+// (révision, contreproposition, version signée) ne présume jamais du sens de
+// l'échange : une contreproposition peut partir ou revenir.
+async function recordSentTransmission(userId, doc, recipientIdRaw) {
+  const recipientId = Number(recipientIdRaw);
+  if (!recipientId) return;
+  const investor = await col('saas_investors').findOne(
+    { id: recipientId, user_id: userId }, { projection: { id: 1, name: 1, firm: 1 } });
+  if (!investor) return;
+  await col('saas_doc_transmissions').insertOne({
+    id: await nextId('saas_doc_transmissions'),
+    user_id: userId, document_id: doc.id, lineage_id: doc.lineage_id,
+    direction: 'sent', counterparty_type: 'investor', counterparty_id: investor.id,
+    counterparty_label: investor.firm ? `${investor.name} — ${investor.firm}` : investor.name,
+    date: doc.updated_at || doc.created_at || new Date().toISOString(),
+    created_at: new Date().toISOString(),
   });
 }
 
@@ -4328,6 +4358,7 @@ app.get('/api/saas/documents/:id/lineage', requireAuth, async (req, res) => {
     node_type: 'document', doc_id: d.id, kind: d.kind === 'termsheet' ? 'termsheet' : 'file',
     name: d.name, created_at: d.created_at, date: d.updated_at || d.created_at,
     parent_document_id: d.parent_document_id || null,
+    version_type: DOC_VERSION_TYPES.has(d.version_type) ? d.version_type : (d.parent_document_id ? 'revision' : null),
     origin: d.origin || 'founder', origin_party_id: d.origin_party_id || null,
     is_root: (d.lineage_id || d.id) === L && (!d.parent_document_id),
   }));
@@ -4340,6 +4371,55 @@ app.get('/api/saas/documents/:id/lineage', requireAuth, async (req, res) => {
     lineage_id: L, focus_id: id,
     nodes: [...docNodes, ...snapNodes].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)),
     transmissions, investors,
+  });
+});
+
+// Carte globale, strictement limitée au compte connecté : toutes les lignées,
+// leurs instantanés enregistrés et les événements d'envoi/réception. L'outil
+// Comparer l'utilise pour afficher une forêt complète en une seule requête.
+app.get('/api/saas/document-lineages', requireAuth, async (req, res) => {
+  const [documents, snapshots, transmissions, investors, folders] = await Promise.all([
+    col('saas_documents').find(
+      { user_id: req.user.id },
+      { projection: { _id: 0, user_id: 0, data: 0, html: 0, extracted_text: 0, filename: 0 } },
+    ).toArray(),
+    col('saas_doc_versions').find(
+      { user_id: req.user.id }, { projection: { _id: 0, user_id: 0, html: 0 } },
+    ).toArray(),
+    col('saas_doc_transmissions').find(
+      { user_id: req.user.id }, { projection: { _id: 0, user_id: 0 } },
+    ).sort({ date: 1, created_at: 1 }).toArray(),
+    col('saas_investors').find(
+      { user_id: req.user.id }, { projection: { _id: 0, id: 1, name: 1, firm: 1 } },
+    ).toArray(),
+    col('saas_folders').find(
+      { user_id: req.user.id }, { projection: { _id: 0, id: 1, name: 1 } },
+    ).toArray(),
+  ]);
+  const docIds = new Set(documents.map(d => d.id));
+  const docById = new Map(documents.map(d => [d.id, d]));
+  const nodes = documents.map(d => ({
+    node_type: 'document', doc_id: d.id, lineage_id: d.lineage_id || d.id,
+    kind: d.kind === 'termsheet' ? 'termsheet' : 'file',
+    name: d.name, created_at: d.created_at, date: d.updated_at || d.created_at,
+    parent_document_id: d.parent_document_id || null,
+    version_type: DOC_VERSION_TYPES.has(d.version_type) ? d.version_type : (d.parent_document_id ? 'revision' : null),
+    origin: d.origin || 'founder', origin_party_id: d.origin_party_id || null,
+    folder_id: d.folder_id || null,
+  }));
+  snapshots.filter(s => docIds.has(s.document_id)).forEach(s => {
+    const owner = docById.get(s.document_id);
+    nodes.push({
+      node_type: 'snapshot', version_id: s.id, doc_id: s.document_id,
+      lineage_id: (owner && owner.lineage_id) || s.document_id,
+      name: s.label || '', created_at: s.created_at, date: s.created_at,
+      parent_document_id: s.document_id, version_type: 'snapshot',
+      origin: 'founder', origin_party_id: null, size: s.size,
+    });
+  });
+  res.json({
+    nodes: nodes.sort((a, b) => new Date(a.created_at || a.date) - new Date(b.created_at || b.date)),
+    transmissions, investors, folders,
   });
 });
 
@@ -4357,7 +4437,7 @@ app.patch('/api/saas/documents/:id/lineage', requireAuth, async (req, res) => {
     // fraîchement importé, sans descendance.)
     await col('saas_documents').updateOne(
       { id, user_id: req.user.id },
-      { $set: { lineage_id: id }, $unset: { parent_document_id: '', origin: '', origin_party_id: '' } }
+      { $set: { lineage_id: id }, $unset: { parent_document_id: '', origin: '', origin_party_id: '', version_type: '' } }
     );
     await col('saas_doc_transmissions').deleteMany({ user_id: req.user.id, document_id: id, direction: 'received' });
     return res.json({ success: true, lineage_id: id });
@@ -4371,6 +4451,8 @@ app.patch('/api/saas/documents/:id/lineage', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'Rattachement impossible : cela créerait une boucle.' });
 
   const { origin, origin_party_id } = await resolveOrigin(req.user.id, req.body?.origin, req.body?.origin_party_id);
+  const versionType = DOC_VERSION_TYPES.has(String(req.body?.version_type || ''))
+    ? String(req.body.version_type) : 'revision';
   // Toute la sous-lignée du document rejoint la racine du parent.
   const oldRoot = doc.lineage_id || doc.id;
   await col('saas_documents').updateMany(
@@ -4379,11 +4461,12 @@ app.patch('/api/saas/documents/:id/lineage', requireAuth, async (req, res) => {
   );
   await col('saas_documents').updateOne(
     { id, user_id: req.user.id },
-    { $set: { lineage_id: root, parent_document_id: parentId, origin, origin_party_id } }
+    { $set: { lineage_id: root, parent_document_id: parentId, origin, origin_party_id, version_type: versionType } }
   );
-  await col('saas_doc_transmissions').deleteMany({ user_id: req.user.id, document_id: id, direction: 'received' });
+  await col('saas_doc_transmissions').deleteMany({ user_id: req.user.id, document_id: id });
   await recordReceivedTransmission(req.user.id, { id, lineage_id: root, origin, origin_party_id, created_at: doc.created_at || new Date().toISOString() });
-  res.json({ success: true, lineage_id: root, parent_document_id: parentId, origin, origin_party_id });
+  if (origin === 'founder') await recordSentTransmission(req.user.id, { id, lineage_id: root, created_at: doc.created_at }, req.body?.sent_to_party_id);
+  res.json({ success: true, lineage_id: root, parent_document_id: parentId, origin, origin_party_id, version_type: versionType });
 });
 
 app.post('/api/saas/documents', requireAuth, saasUpload.single('file'), async (req, res) => {
@@ -4414,11 +4497,15 @@ app.post('/api/saas/documents', requireAuth, saasUpload.single('file'), async (r
   if (root) { doc.parent_document_id = parentId; doc.lineage_id = root; }
   else { doc.lineage_id = doc.id; }        // racine d'un nouveau fil
   const { origin, origin_party_id } = await resolveOrigin(req.user.id, req.body.origin, req.body.origin_party_id);
+  const versionType = DOC_VERSION_TYPES.has(String(req.body.version_type || ''))
+    ? String(req.body.version_type) : (parentId ? 'revision' : null);
   doc.origin = origin;
+  if (versionType) doc.version_type = versionType;
   if (origin_party_id != null) doc.origin_party_id = origin_party_id;
 
   await col('saas_documents').insertOne(doc);
   await recordReceivedTransmission(req.user.id, doc);
+  if (origin === 'founder') await recordSentTransmission(req.user.id, doc, req.body.sent_to_party_id);
 
   // Si l'utilisateur n'a PAS déjà rattaché ce fichier, on propose un nudge : ce
   // document ressemble-t-il à un existant ? (heuristique rapide, confirmation côté

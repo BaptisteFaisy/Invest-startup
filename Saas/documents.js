@@ -57,10 +57,13 @@
   .docmodal__ver-fields{display:none;margin-top:12px}
   .docmodal__ver-fields.is-shown{display:block}
   .docmodal__ver-hint{font-size:12px;color:var(--text-2,#6b6b78);margin:2px 0 12px}
+  .docmodal__ver-callout{margin:0 0 12px;padding:10px 12px;border-radius:10px;background:rgba(167,139,250,.09);border:1px solid rgba(167,139,250,.22);font-size:12px;line-height:1.45;color:var(--text-2,#6b6b78)}
   .docmodal__nudge{display:none;margin-top:14px;padding:12px 14px;background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.28);border-radius:12px}
   .docmodal__nudge.is-shown{display:block}
   .docmodal__nudge-txt{font:500 13px/1.45 'Libre Franklin',sans-serif;color:var(--text,#08090c)}
   .docmodal__nudge-txt b{font-weight:700}
+  .docmodal__nudge-grid{display:grid;gap:8px;margin-top:10px}
+  .docmodal__nudge-grid .docmodal__dest-select{padding:9px 10px;font-size:12.5px}
   .docmodal__nudge-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
   .docmodal__nudge-acts .btn{padding:7px 12px;font-size:12.5px}
   `;
@@ -103,25 +106,48 @@
         <div class="docmodal__ver" id="docmodal-ver">
           <label class="docmodal__ver-toggle">
             <input type="checkbox" id="docmodal-ver-check" />
-            <span>C'est une nouvelle version d'un document existant</span>
+            <span>Ce fichier est une nouvelle version ou une contreproposition</span>
           </label>
           <div class="docmodal__ver-fields" id="docmodal-ver-fields">
-            <div class="docmodal__ver-hint">Le fichier sera rattaché au fil du document, avec sa provenance.</div>
-            <label class="docmodal__dest-label" for="docmodal-ver-parent">Nouvelle version de</label>
+            <div class="docmodal__ver-callout">Liquid+ conservera les deux fichiers dans le même fil et vous permettra de comparer précisément ce qui a changé.</div>
+            <label class="docmodal__dest-label" for="docmodal-ver-type">Nature du fichier</label>
+            <select class="docmodal__dest-select" id="docmodal-ver-type">
+              <option value="">— Choisir —</option>
+              <option value="counterproposal">Contreproposition de négociation</option>
+              <option value="revision">Révision personnelle</option>
+              <option value="signed">Version signée</option>
+            </select>
+            <label class="docmodal__dest-label" for="docmodal-ver-parent" style="margin-top:12px">Ce fichier répond à</label>
             <select class="docmodal__dest-select" id="docmodal-ver-parent"></select>
-            <label class="docmodal__dest-label" for="docmodal-ver-origin" style="margin-top:12px">Provenance</label>
+            <label class="docmodal__dest-label" for="docmodal-ver-origin" style="margin-top:12px">Qui a produit ce fichier ?</label>
             <select class="docmodal__dest-select" id="docmodal-ver-origin">
               <option value="founder">Créée par moi</option>
               <option value="investor">Reçue d'un investisseur</option>
               <option value="lawyer">Reçue de l'avocat</option>
             </select>
             <select class="docmodal__dest-select" id="docmodal-ver-investor" hidden style="margin-top:10px"></select>
+            <select class="docmodal__dest-select" id="docmodal-ver-recipient" style="margin-top:10px"></select>
           </div>
         </div>
         <div class="docmodal__nudge" id="docmodal-nudge">
           <div class="docmodal__nudge-txt" id="docmodal-nudge-txt"></div>
+          <div class="docmodal__nudge-grid">
+            <select class="docmodal__dest-select" id="docmodal-nudge-type" aria-label="Nature du fichier">
+              <option value="">— Est-ce une contreproposition ? —</option>
+              <option value="counterproposal">Une contreproposition de négociation</option>
+              <option value="revision">Une révision personnelle</option>
+              <option value="signed">Non, une version signée</option>
+            </select>
+            <select class="docmodal__dest-select" id="docmodal-nudge-origin" aria-label="Auteur du fichier">
+              <option value="founder">Créée par moi</option>
+              <option value="investor">Reçue d'un investisseur</option>
+              <option value="lawyer">Reçue de l'avocat</option>
+            </select>
+            <select class="docmodal__dest-select" id="docmodal-nudge-investor" aria-label="Investisseur à l'origine du fichier" hidden></select>
+            <select class="docmodal__dest-select" id="docmodal-nudge-recipient" aria-label="Destinataire du fichier"></select>
+          </div>
           <div class="docmodal__nudge-acts">
-            <button class="btn btn--primary" type="button" id="docmodal-nudge-yes">Oui, la rattacher</button>
+            <button class="btn btn--primary" type="button" id="docmodal-nudge-yes">Rattacher au fil</button>
             <button class="btn btn--ghost" type="button" id="docmodal-nudge-no">Non, document distinct</button>
           </div>
         </div>
@@ -146,11 +172,17 @@
   const verBox   = modal.querySelector('#docmodal-ver');
   const verCheck = modal.querySelector('#docmodal-ver-check');
   const verFields = modal.querySelector('#docmodal-ver-fields');
+  const verType = modal.querySelector('#docmodal-ver-type');
   const verParent = modal.querySelector('#docmodal-ver-parent');
   const verOrigin = modal.querySelector('#docmodal-ver-origin');
   const verInvestor = modal.querySelector('#docmodal-ver-investor');
+  const verRecipient = modal.querySelector('#docmodal-ver-recipient');
   const nudgeBox = modal.querySelector('#docmodal-nudge');
   const nudgeTxt = modal.querySelector('#docmodal-nudge-txt');
+  const nudgeType = modal.querySelector('#docmodal-nudge-type');
+  const nudgeOrigin = modal.querySelector('#docmodal-nudge-origin');
+  const nudgeInvestor = modal.querySelector('#docmodal-nudge-investor');
+  const nudgeRecipient = modal.querySelector('#docmodal-nudge-recipient');
   const nudgeYes = modal.querySelector('#docmodal-nudge-yes');
   const nudgeNo  = modal.querySelector('#docmodal-nudge-no');
 
@@ -228,7 +260,9 @@
     verCheck.checked = false;
     verFields.classList.remove('is-shown');
     verInvestor.hidden = true;
+    verRecipient.hidden = false;
     verOrigin.value = 'founder';
+    verType.value = '';
     let ctx = null;
     try { ctx = typeof window.liquidImportContext === 'function' ? window.liquidImportContext() : null; } catch { ctx = null; }
     verCtxDocs = (ctx && Array.isArray(ctx.documents)) ? ctx.documents : [];
@@ -242,11 +276,19 @@
       verParent.appendChild(o);
     });
     verInvestor.innerHTML = '<option value="">— Quel investisseur ? —</option>';
+    nudgeInvestor.innerHTML = '<option value="">— Quel investisseur ? —</option>';
+    verRecipient.innerHTML = '<option value="">— Version interne, pas encore envoyée —</option>';
+    nudgeRecipient.innerHTML = '<option value="">— Version interne, pas encore envoyée —</option>';
     investors.forEach((inv) => {
       const o = document.createElement('option');
       o.value = String(inv.id);
       o.textContent = inv.firm ? inv.name + ' — ' + inv.firm : inv.name;
       verInvestor.appendChild(o);
+      nudgeInvestor.appendChild(o.cloneNode(true));
+      const recipientOption = o.cloneNode(true);
+      recipientOption.textContent = 'Envoyée à ' + recipientOption.textContent;
+      verRecipient.appendChild(recipientOption);
+      nudgeRecipient.appendChild(recipientOption.cloneNode(true));
     });
     verBox.classList.add('is-shown');
   }
@@ -277,6 +319,11 @@
   });
   verOrigin.addEventListener('change', () => {
     verInvestor.hidden = verOrigin.value !== 'investor';
+    verRecipient.hidden = verOrigin.value !== 'founder';
+  });
+  nudgeOrigin.addEventListener('change', () => {
+    nudgeInvestor.hidden = nudgeOrigin.value !== 'investor';
+    nudgeRecipient.hidden = nudgeOrigin.value !== 'founder';
   });
 
   /* ---- Ouverture / fermeture ---- */
@@ -316,6 +363,10 @@
       showError('Choisissez le document dont ce fichier est une nouvelle version.');
       return;
     }
+    if (versionRequested && !verType.value) {
+      showError('Indiquez s’il s’agit d’une contreproposition, d’une révision ou d’une version signée.');
+      return;
+    }
     if (versionRequested && verOrigin.value === 'investor' && !verInvestor.value) {
       showError('Choisissez l’investisseur à l’origine de cette version.');
       return;
@@ -333,8 +384,10 @@
     const linking = versionRequested && verParent.value;
     if (linking) {
       fd.append('parent_document_id', verParent.value);
+      fd.append('version_type', verType.value);
       fd.append('origin', verOrigin.value);
       if (verOrigin.value === 'investor' && verInvestor.value) fd.append('origin_party_id', verInvestor.value);
+      if (verOrigin.value === 'founder' && verRecipient.value) fd.append('sent_to_party_id', verRecipient.value);
     }
     try {
       const r = await fetch('/api/saas/documents', { method: 'POST', credentials: 'include', body: fd });
@@ -373,16 +426,32 @@
   }
   function showNudge(docId, suggestion) {
     pendingNudge = { docId, suggestion };
-    nudgeTxt.innerHTML = 'Ce fichier ressemble à <b>' + escN(suggestion.name) + '</b>. Est-ce une nouvelle version de ce document ?';
+    nudgeType.value = '';
+    nudgeOrigin.value = 'founder';
+    nudgeInvestor.value = '';
+    nudgeInvestor.hidden = true;
+    nudgeRecipient.value = '';
+    nudgeRecipient.hidden = false;
+    nudgeTxt.innerHTML = 'Ce fichier ressemble à <b>' + escN(suggestion.name) + '</b>. Indiquez sa nature et son auteur pour le rattacher au bon fil.';
     nudgeBox.classList.add('is-shown');
   }
   nudgeYes.addEventListener('click', async () => {
     if (!pendingNudge) return;
+    if (!nudgeType.value) { showError('Indiquez la nature du fichier avant de le rattacher.'); return; }
+    if (nudgeOrigin.value === 'investor' && !nudgeInvestor.value) {
+      showError('Choisissez l’investisseur à l’origine de cette version.'); return;
+    }
     nudgeYes.disabled = true; nudgeNo.disabled = true;
     try {
       const response = await fetch('/api/saas/documents/' + pendingNudge.docId + '/lineage', {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
-        body: JSON.stringify({ parent_document_id: pendingNudge.suggestion.document_id, origin: 'founder' }),
+        body: JSON.stringify({
+          parent_document_id: pendingNudge.suggestion.document_id,
+          version_type: nudgeType.value,
+          origin: nudgeOrigin.value,
+          origin_party_id: nudgeOrigin.value === 'investor' ? Number(nudgeInvestor.value) : null,
+          sent_to_party_id: nudgeOrigin.value === 'founder' && nudgeRecipient.value ? Number(nudgeRecipient.value) : null,
+        }),
       });
       if (!response.ok) throw new Error('Rattachement impossible');
       window.dispatchEvent(new CustomEvent('liquid:document-added', { detail: null }));

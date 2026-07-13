@@ -477,9 +477,59 @@
     .ip-foot .is-leve { color: #5ec38c; }
     .ip-foot .is-intent { color: #8ba6ff; }
 
+    /* Pipeline clair : les informations restent lisibles sur des cartes blanches. */
+    .ip-stat { background: #fff; border-color: #e5e7eb; box-shadow: 0 1px 2px rgba(15,23,42,.04); }
+    .ip-stat__label { color: #6b7280; }
+    .ip-stat__value { color: #111827; }
+    .ip-actions { display:flex; justify-content:flex-end; margin-top:18px; }
+    .ip-addbtn { display:inline-flex; align-items:center; gap:8px; padding:10px 16px; border:1px solid transparent; border-radius:10px; background:var(--blue, #3b82f6); color:#fff; font-family:'Archivo',sans-serif; font-size:13.5px; font-weight:700; cursor:pointer; box-shadow:0 2px 8px rgba(37,99,235,.22); }
+    .ip-addbtn:hover { background:#2563eb; }
+    .ip-addbtn svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; }
+    .ip-colbtn { color:#374151; background:#fff; border-color:#d1d5db; }
+    .ip-colbtn:hover { border-color:#9ca3af; }
+    .ip-colmenu { background:#fff; border-color:#d1d5db; box-shadow:0 18px 44px rgba(15,23,42,.18); }
+    .ip-colmenu__row { color:#374151; }
+    .ip-colmenu__row:hover { background:#f3f4f6; }
+    .ip-grid-wrap { background:#fff; border-color:#e5e7eb; }
+    .ip-grid th { background:#f8fafc; border-bottom-color:#e5e7eb; border-left-color:#e5e7eb; }
+    .ip-grid__lab-t { color:#374151; }
+    .ip-grid__count { color:#6b7280; background:#fff; border-color:#d1d5db; }
+    .ip-grid__amt { color:#6b7280; }
+    .ip-grid td { background:#fff; border-left-color:#e5e7eb; }
+    .ip-grid td.is-drop { background:#eff6ff; }
+    .ip-gcard { background:#fff; border-color:#dfe3e8; box-shadow:0 1px 3px rgba(15,23,42,.06); }
+    .ip-gcard__name { color:#111827; }
+    .ip-gcard__firm, .ip-gcard__meta, .ip-gcard__notes { color:#6b7280; }
+    .ip-gcard__amt { color:#374151; }
+    .ip-gcard__notes { border-top-color:#e5e7eb; }
+    .ip-gcard__move { background:#fff; border-color:#d1d5db; color:#374151; }
+    .ip-gcard__del { color:#9ca3af; }
+    .ip-gcol-empty { color:#9ca3af; border-color:#d1d5db; }
+    .ip-grid-empty { color:#6b7280; background:#fff; border-color:#d1d5db; }
+
+    /* Le formulaire est une modale, ouverte uniquement depuis le bouton d'ajout. */
+    .ip-modal { position:fixed; inset:0; z-index:1000; display:grid; place-items:center; padding:20px; }
+    .ip-modal[hidden] { display:none; }
+    .ip-modal__backdrop { position:absolute; inset:0; background:rgba(15,23,42,.62); backdrop-filter:blur(3px); }
+    .ip-modal__dialog { position:relative; width:min(720px, 100%); max-height:calc(100vh - 40px); overflow-y:auto; background:#fff; border:1px solid #e5e7eb; border-radius:18px; box-shadow:0 24px 70px rgba(15,23,42,.3); }
+    .ip-modal__head { display:flex; align-items:flex-start; gap:16px; padding:20px 22px 0; }
+    .ip-modal__title { flex:1; color:#111827; font-family:'Archivo',sans-serif; font-size:19px; font-weight:700; }
+    .ip-modal__desc { margin-top:5px; color:#6b7280; font-size:13.5px; line-height:1.5; }
+    .ip-modal__close { flex:none; width:32px; height:32px; display:grid; place-items:center; border:0; border-radius:8px; background:#f3f4f6; color:#4b5563; font-size:22px; line-height:1; cursor:pointer; }
+    .ip-modal__close:hover { background:#e5e7eb; }
+    .ip-form { background:#fff; border:0; border-radius:0; padding:20px 22px 22px; margin:0; }
+    .ip-form input, .ip-form select, .ip-form textarea { background:#fff; border-color:#d1d5db; color:#111827; }
+    .ip-form input::placeholder, .ip-form textarea::placeholder { color:#9ca3af; }
+    .ip-form__err { color:#b91c1c; }
+    .ip-form__cancel { padding:10px 16px; border:1px solid #d1d5db; border-radius:10px; background:#fff; color:#374151; font-family:'Archivo',sans-serif; font-size:13.5px; font-weight:600; cursor:pointer; }
+    .ip-form__cancel:hover { background:#f9fafb; }
+    body.ip-modal-open { overflow:hidden; }
+
     @media (max-width: 720px) {
       .ip-form__grid, .ip-form__grid2 { grid-template-columns: 1fr; }
       .ip-toolbar__title { width: 100%; }
+      .ip-modal { padding:10px; align-items:end; }
+      .ip-modal__dialog { max-height:calc(100vh - 20px); border-radius:18px 18px 10px 10px; }
     }
 
     /* Parcours BSA-AIR : roadlist numérotée des documents par étape */
@@ -3348,25 +3398,44 @@
             <div class="ip-stat ip-stat--intent"><div class="ip-stat__label">Intentionné (≥ LOI)</div><div class="ip-stat__value" data-stat="intent-amount">—</div></div>
             <div class="ip-stat"><div class="ip-stat__label">Pipeline total</div><div class="ip-stat__value" data-stat="total-amount">—</div></div>
           </div>
-          <form class="ip-form" data-el="form">
-            <div class="ip-form__grid">
-              <input data-in="name" type="text" placeholder="Nom de l'investisseur *" maxlength="200" autocomplete="off" required />
-              <input data-in="firm" type="text" placeholder="Fonds / structure" maxlength="200" autocomplete="off" />
-              <select data-in="stage" aria-label="Stade initial"></select>
+          <div class="ip-actions">
+            <button type="button" class="ip-addbtn" data-el="open-form" aria-haspopup="dialog">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+              Ajouter un investisseur
+            </button>
+          </div>
+          <div class="ip-modal" data-el="modal" hidden>
+            <div class="ip-modal__backdrop" data-el="modal-backdrop"></div>
+            <div class="ip-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="ip-modal-title">
+              <div class="ip-modal__head">
+                <div>
+                  <div class="ip-modal__title" id="ip-modal-title">Ajouter un investisseur</div>
+                  <div class="ip-modal__desc">Renseignez ses coordonnées et positionnez-le dans votre pipeline.</div>
+                </div>
+                <button type="button" class="ip-modal__close" data-el="close-form" aria-label="Fermer">×</button>
+              </div>
+              <form class="ip-form" data-el="form">
+                <div class="ip-form__grid">
+                  <input data-in="name" type="text" placeholder="Nom de l'investisseur *" maxlength="200" autocomplete="off" required />
+                  <input data-in="firm" type="text" placeholder="Fonds / structure" maxlength="200" autocomplete="off" />
+                  <select data-in="stage" aria-label="Stade initial"></select>
+                </div>
+                <div class="ip-form__grid2">
+                  <input data-in="email" type="email" placeholder="Email" maxlength="200" autocomplete="off" />
+                  <input data-in="phone" type="text" placeholder="Téléphone" maxlength="60" autocomplete="off" />
+                  <input data-in="amount" type="number" min="0" step="1000" placeholder="Ticket envisagé (€)" />
+                </div>
+                <div class="ip-form__grid2">
+                  <textarea data-in="notes" placeholder="Notes (contexte, prochaine étape…)" maxlength="2000"></textarea>
+                </div>
+                <div class="ip-form__foot">
+                  <div class="ip-form__err" data-el="form-err" hidden></div>
+                  <button type="button" class="ip-form__cancel" data-el="cancel-form">Annuler</button>
+                  <button type="submit" class="ip-form__add">Ajouter l'investisseur</button>
+                </div>
+              </form>
             </div>
-            <div class="ip-form__grid2">
-              <input data-in="email" type="email" placeholder="Email" maxlength="200" autocomplete="off" />
-              <input data-in="phone" type="text" placeholder="Téléphone" maxlength="60" autocomplete="off" />
-              <input data-in="amount" type="number" min="0" step="1000" placeholder="Ticket envisagé (€)" />
-            </div>
-            <div class="ip-form__grid2">
-              <textarea data-in="notes" placeholder="Notes (contexte, prochaine étape…)" maxlength="2000"></textarea>
-            </div>
-            <div class="ip-form__foot">
-              <div class="ip-form__err" data-el="form-err" hidden></div>
-              <button type="submit" class="ip-form__add">Ajouter l'investisseur</button>
-            </div>
-          </form>
+          </div>
           <div class="ip-toolbar" data-el="toolbar" hidden>
             <div class="ip-toolbar__title">Suivi de l'entonnoir</div>
             <div class="ip-colpick">
@@ -3404,8 +3473,28 @@
       const colCount  = root.querySelector('[data-el="colcount"]');
       const footEl    = root.querySelector('[data-el="foot"]');
       const formEl    = root.querySelector('[data-el="form"]');
+      const modalEl   = root.querySelector('[data-el="modal"]');
+      const openFormBtn = root.querySelector('[data-el="open-form"]');
       const stageSelect = root.querySelector('[data-in="stage"]');
       invFillStageSelect(stageSelect, 'a_contacter');
+
+      function openInvestorForm() {
+        modalEl.hidden = false;
+        document.body.classList.add('ip-modal-open');
+        requestAnimationFrame(() => root.querySelector('[data-in="name"]').focus());
+      }
+      function closeInvestorForm() {
+        modalEl.hidden = true;
+        document.body.classList.remove('ip-modal-open');
+        openFormBtn.focus();
+      }
+      openFormBtn.addEventListener('click', openInvestorForm);
+      root.querySelector('[data-el="close-form"]').addEventListener('click', closeInvestorForm);
+      root.querySelector('[data-el="cancel-form"]').addEventListener('click', closeInvestorForm);
+      root.querySelector('[data-el="modal-backdrop"]').addEventListener('click', closeInvestorForm);
+      modalEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeInvestorForm();
+      });
 
       let dragId = null;            // id de la carte en cours de déplacement
 
@@ -3543,14 +3632,6 @@
       // Tableau du pipeline : une colonne par stade visible, cartes déplaçables.
       function renderBoard(byStage, counts, amounts) {
         boardEl.innerHTML = '';
-        if (!invPipeline.length) {
-          boardEl.classList.remove('ip-grid-wrap');
-          const empty = document.createElement('div');
-          empty.className = 'ip-grid-empty';
-          empty.textContent = 'Aucun investisseur dans le pipeline. Ajoutez-en un ci-dessus pour démarrer votre entonnoir.';
-          boardEl.appendChild(empty);
-          return;
-        }
         boardEl.classList.add('ip-grid-wrap');
         const stages = visibleStages();
         const table = document.createElement('table');
@@ -3642,6 +3723,7 @@
         });
 
         renderBoard(byStage, counts, stageAmounts);
+        boardEl.hidden = false;
 
         root.querySelector('[data-stat="count"]').textContent = String(invPipeline.length);
         root.querySelector('[data-stat="leve-amount"]').textContent = leveAmount ? invFmtAmount(leveAmount) : '—';
@@ -3715,7 +3797,7 @@
           render();
           ['name', 'firm', 'email', 'phone', 'amount', 'notes'].forEach(k => { root.querySelector('[data-in="' + k + '"]').value = ''; });
           stageSelect.value = 'a_contacter';
-          root.querySelector('[data-in="name"]').focus();
+          closeInvestorForm();
         } catch (err) {
           errEl.hidden = false;
           errEl.textContent = err.message || "Impossible d'ajouter l'investisseur.";

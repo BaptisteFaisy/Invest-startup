@@ -78,6 +78,9 @@
     .doc-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; color: var(--t-on-bg-60); background: var(--t-chip-2); border: 1px solid var(--t-surface-brd); border-radius: 999px; padding: 3px 9px; }
     .doc-pill svg { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .doc-pill--inv { color: rgba(167,139,250,0.9); background: rgba(167,139,250,0.12); border-color: rgba(167,139,250,0.28); }
+    .doc-counter { display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;color:#86efac;font-size:12px;line-height:1.4; }
+    .doc-counter__badge { display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;background:rgba(34,197,94,.13);border:1px solid rgba(74,222,128,.3);font-weight:700; }
+    .doc-counter__parent { color:rgba(255,255,255,.62); }
     /* Pastilles de risque juridique — volontairement pâles et plates, sans bordure,
        ombre ni dégradé. */
     .doc-risk { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; border: 0; border-radius: 999px; padding: 3px 9px; box-shadow: none; }
@@ -110,6 +113,8 @@
     .doc-act--versions { width: auto; padding: 0 11px; gap: 6px; font: 600 12.5px/1 'Libre Franklin', sans-serif; white-space: nowrap; color: #c4b5fd; border-color: rgba(167,139,250,0.32); background: rgba(167,139,250,0.12); }
     .doc-act--versions:hover { border-color: rgba(167,139,250,0.6); background: rgba(167,139,250,0.2); }
     .doc-act--versions .doc-act__count { display: inline-grid; place-items: center; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px; background: rgba(167,139,250,0.28); font-size: 11px; font-weight: 700; }
+    .doc-act--compare { width:auto;padding:0 11px;gap:6px;font:600 12.5px/1 'Libre Franklin',sans-serif;white-space:nowrap;color:#86efac;border-color:rgba(74,222,128,.32);background:rgba(34,197,94,.1); }
+    .doc-act--compare:hover { border-color:rgba(74,222,128,.58);background:rgba(34,197,94,.17); }
 
     /* ---- Popover : liste des versions d'un document ---- */
     .verpop { position: fixed; z-index: 1200; width: 340px; max-width: calc(100vw - 24px); background: var(--t-elevated); border: 1px solid var(--t-border); border-radius: 14px; box-shadow: var(--t-elevated-shadow); overflow: hidden; }
@@ -134,6 +139,7 @@
     .verrow2__tag--snap { background: rgba(96,165,250,0.18); }
     .verrow2__tag--recv { background: rgba(52,211,153,0.18); }
     .verrow2__prov { display: block; font-size: 11px; color: var(--t-on-bg-60); margin-top: 2px; }
+    .verrow2__kind { display:inline-block;margin-top:4px;padding:2px 6px;border-radius:999px;background:rgba(34,197,94,.13);color:#86efac;font-size:10px;font-weight:700; }
     .verrow2--focus { border-color: rgba(167,139,250,0.5); background: rgba(167,139,250,0.1); }
     .verrow2__here { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 999px; background: rgba(167,139,250,0.28); color: #ddd6fe; font-size: 10px; font-weight: 700; vertical-align: middle; }
 
@@ -318,7 +324,7 @@
     </main>
   </div>
 
-  <script src="documents.js?v=3" defer></script>
+  <script src="documents.js?v=4" defer></script>
   <script>
     document.getElementById('page-back-btn').addEventListener('click', () => {
       if (window.history.length > 1) window.history.back();
@@ -464,6 +470,14 @@
       }
       function investorLabel(inv) {
         return inv.firm ? inv.name + ' — ' + inv.firm : inv.name;
+      }
+      function versionAuthor(d) {
+        if (d.origin === 'lawyer') return 'l’avocat';
+        if (d.origin === 'investor') {
+          const inv = investorById(d.origin_party_id);
+          return inv ? investorLabel(inv) : 'un investisseur';
+        }
+        return 'vous';
       }
       // Investisseur rattaché à un document : notre champ `investor_id` prime, sinon
       // on lit l'association déjà posée par le tableau de bord dans les étapes de
@@ -716,6 +730,11 @@
         const invPill = inv
           ? `<span class="doc-pill doc-pill--inv" title="Rendu disponible à ${esc(investorLabel(inv))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>${esc(investorLabel(inv))}</span>`
           : '';
+        const parentDoc = d.parent_document_id ? docs.find(x => x.id === d.parent_document_id) : null;
+        const isCounterproposal = d.version_type === 'counterproposal';
+        const counterHtml = isCounterproposal
+          ? `<div class="doc-counter"><span class="doc-counter__badge">↩ Contreproposition reçue de ${esc(versionAuthor(d))}</span><span class="doc-counter__parent">en réponse à « ${esc(parentDoc ? parentDoc.name : 'la version précédente')} »</span></div>`
+          : '';
         // Badge de risque juridique — pilote aussi l'action « Faire relire ».
         const rk = riskMeta(d);
         const riskPill = `<span class="doc-risk doc-risk--${esc(d.risk || 'faible')}" title="${esc(rk.title)}"><span class="doc-risk__dot"></span>${esc(rk.label)}</span>`;
@@ -739,11 +758,21 @@
               ${folderPill}
               ${invPill}
             </div>
+            ${counterHtml}
             ${warnHtml}
           </div>
           <div class="doc-item__actions"></div>`;
 
         const actions = row.querySelector('.doc-item__actions');
+
+        if (isCounterproposal && d.parent_document_id) {
+          const compare = document.createElement('a');
+          compare.className = 'doc-act doc-act--compare';
+          compare.href = 'compare.html?old=' + encodeURIComponent(d.parent_document_id) + '&new=' + encodeURIComponent(d.id);
+          compare.title = 'Comparer cette contreproposition avec le fichier auquel elle répond';
+          compare.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg><span>Comparer</span>';
+          actions.appendChild(compare);
+        }
 
         // Action « Faire relire » — proposée sur les documents à enjeu (critique /
         // conseillé). Ouvre l'outil Avocat, demande pré-remplie avec ce document.
@@ -943,7 +972,7 @@
             prov = 'Instantané validé dans l\'éditeur';
           } else if (n.origin === 'investor' || n.origin === 'lawyer') {
             tag = '📥'; tagCls = ' verrow2__tag--recv';
-            prov = 'Reçu de ' + partyLabel(n.origin, n.origin_party_id, investors);
+            prov = (n.version_type === 'counterproposal' ? 'Contreproposition reçue de ' : 'Reçu de ') + partyLabel(n.origin, n.origin_party_id, investors);
           } else {
             tag = '✍️'; tagCls = '';
             prov = 'Créé par vous';
@@ -956,6 +985,7 @@
             <span class="verrow2__main">
               <span class="verrow2__label" title="${esc(label)}">${esc(label)}${isFocus ? ' <span class="verrow2__here">ce fichier</span>' : ''}</span>
               <span class="verrow2__prov">${esc(prov)}</span>
+              ${n.version_type === 'counterproposal' ? '<span class="verrow2__kind">CONTREPROPOSITION</span>' : ''}
               <span class="verrow2__date">${esc(fmtVerDate(n.date || n.created_at))}</span>
             </span>`;
           // Accès à la pièce : aperçu de l'instantané, éditeur (term sheet) ou téléchargement (fichier).
@@ -975,6 +1005,14 @@
           }
           open.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"/></svg>Ouvrir';
           row.appendChild(open);
+          if (!isSnap && n.parent_document_id) {
+            const compare = document.createElement('a');
+            compare.className = 'verrow2__open';
+            compare.href = 'compare.html?old=' + encodeURIComponent(n.parent_document_id) + '&new=' + encodeURIComponent(n.doc_id);
+            compare.title = 'Comparer avec la version précédente';
+            compare.textContent = 'Comparer';
+            row.appendChild(compare);
+          }
           listEl.appendChild(row);
         });
       }
