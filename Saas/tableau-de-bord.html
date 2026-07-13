@@ -885,6 +885,7 @@
     .raise-progress__tile-value { font-family:'Archivo',sans-serif; font-size:19px; font-weight:800; color:#08090c; margin-top:5px; }
     .raise-progress__tile-sub { font-size:12px; color:#6b6b78; margin-top:3px; }
     .raise-progress__tile--accent .raise-progress__tile-value { color:#bbebca; }
+    .raise-progress__tile--intentions .raise-progress__tile-value { color:#e7f6ec; }
 
     @media (max-width:680px) {
       .raise-profile__grid { grid-template-columns:1fr; }
@@ -3457,7 +3458,7 @@
       tiles.push('<div class="raise-progress__tile"><div class="raise-progress__tile-label">Reste à lever</div><div class="raise-progress__tile-value">' + fmt(remaining) + '</div><div class="raise-progress__tile-sub">Objectif ' + fmt(target) + '</div></div>');
       if (discussion > 0) {
         const inTalks = Math.max(0, pipelineCount - engagedCount);
-        tiles.push('<div class="raise-progress__tile"><div class="raise-progress__tile-label">Intentionnés</div><div class="raise-progress__tile-value">' + fmt(discussion) + '</div><div class="raise-progress__tile-sub">' + inTalks + ' investisseur' + (inTalks > 1 ? 's' : '') + ' en cours</div></div>');
+        tiles.push('<div class="raise-progress__tile raise-progress__tile--intentions"><div class="raise-progress__tile-label">Intentionnés</div><div class="raise-progress__tile-value">' + fmt(discussion) + '</div><div class="raise-progress__tile-sub">' + inTalks + ' investisseur' + (inTalks > 1 ? 's' : '') + ' en cours</div></div>');
       }
       tiles.push('<div class="raise-progress__tile"><div class="raise-progress__tile-label">Contrats signés</div><div class="raise-progress__tile-value">' + engagedCount + (pipelineCount ? ' <span style="font-size:13px;color:#6b6b78">/ ' + pipelineCount + '</span>' : '') + '</div><div class="raise-progress__tile-sub">' + (pipelineCount ? 'sur ' + pipelineCount + ' au pipeline' : 'aucun au pipeline') + '</div></div>');
 
