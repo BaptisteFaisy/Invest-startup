@@ -9,6 +9,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
+  <script>
+    // Applique le thème mémorisé au plus tôt (anti-flash). Défaut : sombre (:root).
+    try { var t = localStorage.getItem('liquidTheme'); if (t === 'paper' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="theme.css?v=1" />
   <style>
     :root { --ink:#08090c; --panel:#101116; --card:#fff; --paper:#f5f4f0; --line:rgba(8,9,12,.11); --muted:#6b6b78; --purple:#6366f1; --green:#10b981; }
     * { box-sizing:border-box; }
@@ -112,6 +117,23 @@
       .stats { grid-template-columns:1fr; }
       .main-grid { grid-template-columns:1fr; }
     }
+
+    /* ═══════════ Mode « Papier » (clair) ═══════════
+       Seule la coquille bascule (fond, topbar, textes sur le fond). Les cartes
+       blanches et le tiroir sombre sont inchangés. Le mode sombre (défaut)
+       n'est jamais touché : ces règles ne valent qu'avec data-theme="paper". */
+    :root[data-theme="paper"] body { background:var(--t-bg); color:var(--t-on-bg); }
+    :root[data-theme="paper"] .topbar { background:var(--t-topbar-bg); border-bottom-color:var(--t-topbar-border); }
+    :root[data-theme="paper"] .brand { color:var(--t-on-bg); }
+    :root[data-theme="paper"] .topbar__context { color:var(--t-on-bg-muted); border-left-color:var(--t-divider); }
+    :root[data-theme="paper"] .avatar { background:var(--t-solid); color:var(--t-on-solid); }
+    :root[data-theme="paper"] .eyebrow,
+    :root[data-theme="paper"] h1,
+    :root[data-theme="paper"] .section-title { color:var(--t-on-bg); }
+    :root[data-theme="paper"] .lead,
+    :root[data-theme="paper"] .section-link { color:var(--t-on-bg-muted); }
+    :root[data-theme="paper"] .section-link:hover { color:var(--t-on-bg); }
+    :root[data-theme="paper"] .status { color:var(--t-on-bg); background:var(--t-surface); border-color:var(--t-surface-brd); }
   </style>
 </head>
 <body>
@@ -119,7 +141,7 @@
     <header class="topbar">
       <div class="topbar__side">
         <button type="button" class="hamburger" id="nav-menu-btn" aria-label="Ouvrir la navigation" aria-controls="nav-drawer" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
-        <a class="brand" href="tableau-de-bord-avocat.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" />LIQUID+</a>
+        <a class="brand" href="tableau-de-bord-avocat.html"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>LIQUID+</a>
         <span class="topbar__context">Espace avocat</span>
       </div>
       <div class="topbar__side topbar__side--right">
@@ -204,6 +226,7 @@
   </div>
 
   <script src="drawer-menu.js?v=9"></script>
+  <script src="theme.js?v=1"></script>
   <script>
     const app = document.getElementById('app');
     const profileEl = document.getElementById('profile');
