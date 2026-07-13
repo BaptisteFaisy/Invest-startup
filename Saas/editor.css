@@ -8,20 +8,18 @@
 .topbar-wrap.is-collapsed, .ribbon-wrap.is-collapsed { height: 20px; }
 .topbar-wrap.is-collapsed .topbar, .ribbon-wrap.is-collapsed .ribbon { display: none; }
 .chrome-toggle {
-  position: absolute; z-index: 5; right: 14px; bottom: -1px;
-  width: 30px; height: 18px; padding: 0; border: 1px solid var(--line);
-  border-bottom: 0; border-radius: 7px 7px 0 0; background: var(--card);
-  color: var(--text-2); cursor: pointer; font: 700 17px/16px Arial, sans-serif;
+  position: absolute; z-index: 5; top: 50%; right: 10px; transform: translateY(-50%);
+  width: 30px; height: 20px; padding: 0; border: 0; border-radius: 6px;
+  background: transparent; color: #08090c; cursor: pointer; font: 700 17px/20px Arial, sans-serif;
   transition: color .12s ease, background .12s ease;
 }
-.chrome-toggle:hover { color: var(--text); background: var(--bg); }
-.topbar-wrap:not(.is-collapsed) .chrome-toggle--topbar { background: #0a0a0a; border-color: #333; color: #fff; }
-.topbar-wrap.is-collapsed .chrome-toggle--topbar,
-.ribbon-wrap.is-collapsed .chrome-toggle--ribbon { bottom: 0; border-bottom: 1px solid var(--line); border-radius: 7px; }
-.chrome-toggle--ribbon { bottom: -1px; }
+.chrome-toggle:hover { background: transparent; }
+.topbar-wrap:not(.is-collapsed) .chrome-toggle--topbar { color: #08090c; }
+:root[data-theme="dark"] .topbar-wrap .chrome-toggle--topbar { color: #fff; }
+.ribbon-wrap .chrome-toggle--ribbon { color: #08090c; }
 
 /* ---------- Top bar ---------- */
-.topbar { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 56px; padding: 0 20px; background: #0a0a0a; border-bottom: 1px solid #222; }
+.topbar { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 56px; padding: 0 54px 0 20px; background: #0a0a0a; border-bottom: 1px solid #222; }
 .topbar__left { display: flex; align-items: center; gap: 16px; min-width: 0; }
 .topbar .brand { font-size: 18px; color: #fff; display: flex; align-items: center; gap: 8px; }
 .topbar .brand__plus { color: #fff; }
@@ -46,7 +44,7 @@
 .export-menu__item:disabled { opacity: .5; cursor: default; }
 
 /* ---------- Ribbon (barre d'outils) ---------- */
-.ribbon { flex: none; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 8px 16px; background: var(--card); border-bottom: 1px solid var(--line); }
+.ribbon { flex: none; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 8px 54px 8px 16px; background: var(--card); border-bottom: 1px solid var(--line); }
 .tgroup { display: flex; align-items: center; gap: 3px; }
 .tdiv { width: 1px; height: 22px; background: var(--line); margin: 0 6px; }
 
