@@ -6,11 +6,16 @@
   <title>Liquid+ — Tableau de bord</title>
   <meta name="description" content="Tous vos documents juridiques de levée de fonds, au même endroit." />
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
+  <script>
+    // Applique le thème mémorisé au plus tôt (anti-flash). Défaut : sombre (:root).
+    try { var t = localStorage.getItem('liquidTheme'); if (t === 'paper' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=6" />
   <link rel="stylesheet" href="editor.css?v=7" />
+  <link rel="stylesheet" href="theme.css?v=1" />
   <style>
     .app { visibility: hidden; }
     .app.ready { visibility: visible; }
@@ -886,8 +891,80 @@
       .fmodal { padding:0; }
       .fmodal__dialog { max-width:none; max-height:100vh; height:100vh; border-radius:0; }
     }
+
+    /* ═══════════ Mode « Papier » (clair) ═══════════
+       Seule la COQUILLE bascule (fond, topbar, titres/labels sur le fond,
+       sélecteurs translucides, boutons d'en-tête, états vides). Les « bulles
+       blanches » (dossiers, cartes, modales) restent claires — leur texte est
+       déjà sombre dans les deux thèmes — et les accents sombres (boutons noirs,
+       tiroir, infobulles) restent sombres. Le mode sombre (défaut) n'est jamais
+       touché : ces règles ne s'appliquent qu'avec data-theme="paper". */
+    :root[data-theme="paper"] body,
+    :root[data-theme="paper"] .app { background: var(--t-bg) !important; }
+    :root[data-theme="paper"] .topbar { background: var(--t-topbar-bg) !important; border-bottom-color: var(--t-topbar-border) !important; }
+    :root[data-theme="paper"] .topbar .brand,
+    :root[data-theme="paper"] .topbar .brand__plus,
+    :root[data-theme="paper"] .topbar__doc { color: var(--t-on-bg) !important; }
+    :root[data-theme="paper"] .topbar__doc { border-left-color: var(--t-divider) !important; }
+    :root[data-theme="paper"] .topbar .btn--ghost { color: var(--t-on-bg) !important; border-color: var(--t-outline) !important; }
+    :root[data-theme="paper"] .topbar .btn--ghost:hover { color: var(--t-on-bg) !important; border-color: var(--t-outline-hov) !important; }
+
+    /* Recherche de la topbar */
+    :root[data-theme="paper"] .topbar__search-field { background: var(--t-surface) !important; border-color: var(--t-border) !important; color: var(--t-on-bg-muted) !important; }
+    :root[data-theme="paper"] .topbar__search-field:focus-within { border-color: var(--t-outline-hov) !important; color: var(--t-on-bg) !important; }
+    :root[data-theme="paper"] .topbar__search-input { color: var(--t-on-bg) !important; }
+    :root[data-theme="paper"] .topbar__search-input::placeholder { color: var(--t-on-bg-muted) !important; }
+    :root[data-theme="paper"] .topbar__search-results,
+    :root[data-theme="paper"] .topbar__search-summary { background: var(--t-elevated) !important; }
+    :root[data-theme="paper"] .topbar__search-results { border-color: var(--t-surface-brd) !important; box-shadow: var(--t-elevated-shadow) !important; }
+    :root[data-theme="paper"] .topbar__search-result-main { color: var(--t-on-bg) !important; }
+    :root[data-theme="paper"] .topbar__search-result-main:hover,
+    :root[data-theme="paper"] .topbar__search-result-main:focus-visible { background: var(--t-chip) !important; }
+    :root[data-theme="paper"] .topbar__search-summary,
+    :root[data-theme="paper"] .topbar__search-result-kind { color: var(--t-on-bg-muted) !important; }
+    :root[data-theme="paper"] .topbar__search-empty { color: var(--t-on-bg-muted) !important; }
+
+    /* Chevron de repli sur le fond */
+    :root[data-theme="paper"] .resume-toggle { color: var(--t-on-bg-muted) !important; }
+    :root[data-theme="paper"] .resume-toggle:hover { background: var(--t-chip) !important; color: var(--t-on-bg) !important; }
+
+    /* Titres et labels de page (sur le fond) */
+    :root[data-theme="paper"] .dossiers__eyebrow,
+    :root[data-theme="paper"] .dossiers__title,
+    :root[data-theme="paper"] .dossiers__sub,
+    :root[data-theme="paper"] .section-label,
+    :root[data-theme="paper"] .section-label span:last-child,
+    :root[data-theme="paper"] .bsa-intro,
+    :root[data-theme="paper"] .bsa-intro strong,
+    :root[data-theme="paper"] .checklist__title { color: var(--t-on-bg) !important; }
+
+    /* Sélecteurs (type de levée) — surfaces translucides sur le fond */
+    :root[data-theme="paper"] .country-control,
+    :root[data-theme="paper"] .raise-switch { background: var(--t-surface) !important; border-color: var(--t-surface-brd) !important; }
+    :root[data-theme="paper"] .country-control__label,
+    :root[data-theme="paper"] .raise-switch__label,
+    :root[data-theme="paper"] .raise-switch__hint { color: var(--t-on-bg) !important; }
+    :root[data-theme="paper"] .seg { background: var(--t-chip-2) !important; border-color: var(--t-surface-brd) !important; }
+    :root[data-theme="paper"] .seg__btn { color: var(--t-on-bg) !important; }
+    :root[data-theme="paper"] .seg__btn.is-active { background: var(--t-solid) !important; color: var(--t-on-solid) !important; }
+
+    /* Bulles blanches : filet et ombre adaptés au fond clair (fond déjà blanc) */
+    :root[data-theme="paper"] .folder { border-color: var(--t-card-border) !important; }
+    :root[data-theme="paper"] .dash-metric,
+    :root[data-theme="paper"] .raise-progress { border-color: var(--t-card-border) !important; box-shadow: var(--t-card-shadow) !important; }
+
+    /* États vides (translucides sur le fond) */
+    :root[data-theme="paper"] .empty { background: var(--t-surface) !important; border-color: var(--t-surface-brd) !important; color: var(--t-on-bg) !important; }
+
+    /* Boutons d'en-tête (sur le fond) : pastille pleine à fort contraste */
+    :root[data-theme="paper"] #new-folder-btn,
+    :root[data-theme="paper"] #import-btn,
+    :root[data-theme="paper"] .dossiers__head .btn--primary { background: var(--t-solid) !important; color: var(--t-on-solid) !important; border-color: var(--t-solid) !important; }
+    :root[data-theme="paper"] #new-folder-btn:hover,
+    :root[data-theme="paper"] #import-btn:hover { background: var(--t-on-bg) !important; border-color: var(--t-on-bg) !important; }
   </style>
   <script src="auth.js?v=3"></script>
+  <script src="theme.js?v=1" defer></script>
   <script src="tasks.js?v=2" defer></script>
 </head>
 <body>
