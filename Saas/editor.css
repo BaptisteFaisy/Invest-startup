@@ -16,6 +16,7 @@
 .chrome-toggle:hover { background: transparent; }
 .topbar-wrap:not(.is-collapsed) .chrome-toggle--topbar { color: #08090c; }
 :root[data-theme="dark"] .topbar-wrap .chrome-toggle--topbar { color: #fff; }
+.topbar-wrap.is-collapsed .chrome-toggle--topbar { color: #08090c; }
 .ribbon-wrap .chrome-toggle--ribbon { color: #08090c; }
 
 /* ---------- Top bar ---------- */
