@@ -4980,6 +4980,111 @@
       });
     }
 
+    // Recueille le contexte utile à la génération d'un document sur mesure. Toutes
+    // les rubriques sont volontairement facultatives : l'assistant laisse des
+    // mentions « À compléter » lorsque l'utilisateur ne connaît pas encore une donnée.
+    function promptGuidedDocumentContext(documentTitle) {
+      const fields = [
+        {
+          key: 'societe',
+          label: 'Société et activité',
+          hint: 'Nom, forme juridique, pays, activité, taille ou stade de développement',
+          placeholder: 'Ex. Nova SAS, société française de logiciel B2B, 12 salariés…',
+        },
+        {
+          key: 'objectif',
+          label: 'Objectif et destinataire du document',
+          hint: 'Pourquoi il est préparé, à qui il sera remis et dans quel contexte',
+          placeholder: 'Ex. préparer la due diligence du tour seed pour les investisseurs…',
+        },
+        {
+          key: 'perimetre',
+          label: 'Périmètre à couvrir',
+          hint: 'Entités, équipes, produits, contrats, données ou sujets concernés et exclus',
+          placeholder: 'Ex. société mère et filiale française ; produit SaaS ; hors activité US…',
+        },
+        {
+          key: 'personnes',
+          label: 'Personnes et parties concernées',
+          hint: 'Noms ou fonctions, rôles, interlocuteurs, responsables et signataires éventuels',
+          placeholder: 'Ex. présidente, DPO, investisseurs, conseil juridique…',
+        },
+        {
+          key: 'dates',
+          label: 'Dates et période de référence',
+          hint: 'Date du document, période couverte, échéances ou chronologie utile',
+          placeholder: 'Ex. situation au 30 juin 2026 ; remise souhaitée le 15 juillet…',
+        },
+        {
+          key: 'chiffres',
+          label: 'Chiffres et éléments factuels',
+          hint: 'Montants, volumes, pourcentages, indicateurs et faits vérifiés à reprendre',
+          placeholder: 'Ex. 1,5 M€ recherchés, 120 clients actifs, aucun incident déclaré…',
+        },
+        {
+          key: 'sources',
+          label: 'Sources et documents disponibles',
+          hint: 'Contrats, registres, tableaux, politiques ou autres pièces à utiliser comme référence',
+          placeholder: 'Ex. cap table du 10 juillet, registre RGPD, contrats clients types…',
+        },
+        {
+          key: 'contraintes',
+          label: 'Contraintes et points particuliers',
+          hint: 'Format, ton, confidentialité, règles internes, risques ou sujets à signaler',
+          placeholder: 'Ex. version synthétique, français/anglais, information confidentielle…',
+        },
+      ];
+      return new Promise(resolve => {
+        const overlay = document.createElement('div');
+        overlay.className = 'fmodal is-open';
+        overlay.style.zIndex = '1200';
+        overlay.innerHTML = `
+          <div class="fmodal__backdrop" data-cancel></div>
+          <div class="fmodal__dialog" style="max-width:680px;max-height:90vh;display:flex;flex-direction:column">
+            <div class="fmodal__head">
+              <div class="fmodal__titles">
+                <h2 class="fmodal__title">Créer avec l’assistant</h2>
+                <p style="margin:4px 0 0;color:#64748b;font-size:12.5px">${esc(documentTitle)}</p>
+              </div>
+              <button class="fmodal__close" type="button" data-cancel aria-label="Fermer">&times;</button>
+            </div>
+            <div class="fmodal__body" style="overflow:auto">
+              <div style="padding:11px 12px;margin-bottom:16px;border:1px solid #bfdbfe;border-radius:10px;background:#eff6ff;color:#1e3a5f;font-size:13px;line-height:1.5">
+                Renseignez uniquement ce que vous savez. <strong>Toutes les informations ci-dessous sont facultatives</strong> : vous pouvez générer le brouillon sans les remplir, et les éléments manquants seront indiqués « À compléter ».
+              </div>
+              <div data-guided-fields style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px">
+                ${fields.map(field => `
+                  <label style="display:flex;flex-direction:column;gap:5px;color:#0f172a;font-size:13.5px;font-weight:650">
+                    <span>${esc(field.label)} <span style="color:#64748b;font-size:11.5px;font-weight:500">(facultatif)</span></span>
+                    <span style="min-height:32px;color:#64748b;font-size:11.5px;line-height:1.35;font-weight:400">${esc(field.hint)}</span>
+                    <textarea data-context-key="${esc(field.key)}" rows="3" placeholder="${esc(field.placeholder)}" style="width:100%;box-sizing:border-box;resize:vertical;padding:9px 10px;border:1px solid rgba(8,9,12,.18);border-radius:9px;font:inherit;font-weight:400;line-height:1.4"></textarea>
+                  </label>`).join('')}
+              </div>
+              <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px">
+                <button type="button" class="documents-action-btn" data-cancel>Annuler</button>
+                <button type="button" class="documents-action-btn" data-ok style="background:#2563eb;color:#fff;border-color:#2563eb">Générer le brouillon</button>
+              </div>
+            </div>
+          </div>`;
+        document.body.appendChild(overlay);
+        let done = false;
+        const close = (result) => { if (done) return; done = true; overlay.remove(); resolve(result); };
+        overlay.querySelectorAll('[data-cancel]').forEach(el => el.addEventListener('click', () => close(null)));
+        overlay.querySelector('[data-ok]').addEventListener('click', () => {
+          const values = fields.map(field => {
+            const input = overlay.querySelector(`[data-context-key="${field.key}"]`);
+            return { label: field.label, value: input ? input.value.trim() : '' };
+          }).filter(field => field.value);
+          close(values.map(field => `${field.label} : ${field.value}`).join('\n'));
+        });
+        overlay.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') { e.preventDefault(); close(null); }
+        });
+        const firstInput = overlay.querySelector('textarea');
+        setTimeout(() => { if (firstInput) firstInput.focus(); }, 30);
+      });
+    }
+
     // Choix des documents à inclure dans la checklist Liquid+ générée : les
     // indispensables et/ou les « si applicables ». Renvoie 'all' / 'required' /
     // 'optional', ou null si l'utilisateur annule.
@@ -6768,12 +6873,7 @@
     // Crée un brouillon sur mesure pour les documents qui ne peuvent pas être
     // couverts sérieusement par un modèle figé, puis l'ouvre dans l'éditeur.
     async function createGuidedDocument(folderId, slug, item, btn) {
-      const context = await promptText({
-        title: 'Créer avec l’assistant',
-        text: 'Décrivez brièvement votre situation et l’objectif du document. N’indiquez que des faits certains : les informations manquantes resteront marquées « À compléter ».',
-        placeholder: 'Ex. société SAS française, 12 salariés, premier tour seed…',
-        confirmText: 'Générer le brouillon',
-      });
+      const context = await promptGuidedDocumentContext(item);
       if (context == null) return;
       showErr('');
       const old = btn ? btn.textContent : '';
