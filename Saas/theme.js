@@ -18,7 +18,7 @@
   var KEY = 'liquidTheme';
 
   function current() {
-    return document.documentElement.getAttribute('data-theme') === 'paper' ? 'paper' : 'dark';
+    return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'paper';
   }
 
   function apply(theme, persistRemote) {

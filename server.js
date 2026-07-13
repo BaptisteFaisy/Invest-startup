@@ -4809,6 +4809,39 @@ app.put('/api/saas/folders/:id/checklist-item-sent', requireAuth, async (req, re
   cur.sent = arr;
   state[slug] = cur;
   await col('saas_folders').updateOne({ id, user_id: req.user.id }, { $set: { items_state: state } });
+
+  // Le statut de checklist alimente également le journal factuel des échanges.
+  // On conserve le destinataire lisible même si aucune fiche investisseur formelle
+  // ne lui correspond encore dans le pipeline.
+  const sourceKey = `${id}:${slug}:${cid}`;
+  await col('saas_doc_transmissions').deleteMany({
+    user_id: req.user.id, direction: 'sent', source: 'investor_checklist', source_key: sourceKey,
+  });
+  if (sent && cur.document_id != null) {
+    const checklist = (folder.investor_checklists || []).find(c => Number(c.id) === cid);
+    const label = shortText(checklist && checklist.name, 120) || 'un investisseur';
+    const investor = await col('saas_investors').findOne({
+      user_id: req.user.id,
+      $or: [{ name: label }, { firm: label }],
+    }, { projection: { id: 1, name: 1, firm: 1 } });
+    const document = await col('saas_documents').findOne(
+      { id: Number(cur.document_id), user_id: req.user.id },
+      { projection: { id: 1, lineage_id: 1 } });
+    if (document) {
+      const now = new Date().toISOString();
+      await col('saas_doc_transmissions').insertOne({
+        id: await nextId('saas_doc_transmissions'), user_id: req.user.id,
+        document_id: document.id, lineage_id: document.lineage_id || document.id,
+        direction: 'sent', counterparty_type: 'investor',
+        counterparty_id: investor ? investor.id : null,
+        counterparty_label: investor
+          ? (investor.firm ? `${investor.name} — ${investor.firm}` : investor.name)
+          : label,
+        source: 'investor_checklist', source_key: sourceKey,
+        date: now, created_at: now,
+      });
+    }
+  }
   const saved = await col('saas_folders').findOne({ id, user_id: req.user.id });
   res.json({ success: true, folder: publicFolder(saved) });
 });

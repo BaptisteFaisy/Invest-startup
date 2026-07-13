@@ -8,7 +8,9 @@
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
   <script>
     // Applique le thème mémorisé au plus tôt (anti-flash). Défaut : sombre (:root).
-    try { var t = localStorage.getItem('liquidTheme'); if (t === 'paper' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+    var t = 'paper';
+    try { var savedTheme = localStorage.getItem('liquidTheme'); if (savedTheme === 'paper' || savedTheme === 'dark') t = savedTheme; } catch (e) {}
+    document.documentElement.setAttribute('data-theme', t);
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -17,7 +19,7 @@
   <link rel="stylesheet" href="editor.css?v=7" />
   <link rel="stylesheet" href="drawer-menu.css?v=15" />
   <link rel="stylesheet" href="help-bulb.css?v=1" />
-  <link rel="stylesheet" href="theme.css?v=2" />
+  <link rel="stylesheet" href="theme.css?v=3" />
   <style>
     [hidden] { display: none !important; }
 
@@ -129,7 +131,7 @@
     }
   </style>
   <script src="auth.js?v=3"></script>
-  <script src="theme.js?v=2" defer></script>
+  <script src="theme.js?v=3" defer></script>
   <script src="drawer-menu.js?v=12" defer></script>
   <script src="drawer-steps.js?v=1" defer></script>
   <script src="help-bulb.js?v=1" defer></script>
@@ -984,9 +986,6 @@
         </div>
       </section>
 
-      <div class="mkt__foot">
-        <a href="tableau-de-bord.html" class="btn btn--ghost">← Retour au tableau de bord</a>
-      </div>
     </main>
   </div>
 

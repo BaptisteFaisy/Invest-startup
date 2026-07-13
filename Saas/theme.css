@@ -6,16 +6,14 @@
    thème ; seule la COQUILLE (fond de page, topbar, textes/onglets directement
    sur le fond, filets) bascule. D'où un petit jeu de variables sémantiques.
 
-   Défaut (sans attribut) = SOMBRE, identique à l'apparence actuelle de l'app,
-   pour ne rien changer aux utilisateurs qui ne basculent pas. « paper » est
-   l'alternative claire (le look « Papier » de l'outil Avocat).
+   Défaut (sans attribut) = CLAIR (« Papier »). Le thème sombre reste disponible
+   et continue de s'appliquer aux utilisateurs qui l'ont explicitement choisi.
 
    Le choix est piloté par l'attribut data-theme sur <html>, appliqué au plus
    tôt par un court script en ligne, basculé et mémorisé par theme.js
    (localStorage « liquidTheme » + PUT /api/auth/preferences).
    ════════════════════════════════════════════════════════════════════════ */
 
-:root,
 :root[data-theme="dark"] {
   --t-bg:                    #08090c;
   --t-topbar-bg:             #08090c;
@@ -53,6 +51,7 @@
   --t-on-solid:              #08090c;
 }
 
+:root,
 :root[data-theme="paper"] {
   --t-bg:                    #f7f6f3;
   --t-topbar-bg:             #f7f6f3;

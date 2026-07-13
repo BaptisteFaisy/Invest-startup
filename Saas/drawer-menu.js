@@ -76,6 +76,7 @@
     // (y compris si une ancienne valeur « guide » avait été mémorisée).
     if (currentMode !== 'autonome') currentMode = 'autonome';
     function applyMode(mode, notify) {
+      mode = 'autonome';
       document.documentElement.dataset.experienceMode = mode;
       control.querySelectorAll('[data-mode]').forEach(button => {
         const active = button.dataset.mode === mode;
@@ -90,7 +91,7 @@
       // Ignore les options désactivées (ex. « Guidé », pas encore disponible).
       if (button && !button.disabled) applyMode(button.dataset.mode, true);
     });
-    applyMode(currentMode, false);
+    applyMode('autonome', false);
   })();
 
   // Marque le lien correspondant à la page en cours dans les deux tiroirs.

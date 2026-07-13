@@ -62,6 +62,8 @@ html.drawer-open body { overflow:hidden; }
 .drawer__mode-option:hover:not(:disabled) { color:#fff; }
 .drawer__mode-option:disabled { cursor:not-allowed; color:rgba(255,255,255,0.38); }
 .drawer__mode-option.is-active { background:#fff; color:#111318; box-shadow:0 1px 5px rgba(0,0,0,0.24); }
+.drawer__mode-option:disabled { color:rgba(255,255,255,0.32); cursor:not-allowed; }
+.drawer__mode-option:disabled:hover { background:transparent; color:rgba(255,255,255,0.32); }
 .drawer__mode-option:focus-visible { outline:2px solid #a5b4fc; outline-offset:1px; }
 
 /* Recherche globale, injectée par drawer-menu.js sur les pages outils. */

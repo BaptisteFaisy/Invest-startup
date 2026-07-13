@@ -8,7 +8,9 @@
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
   <script>
     // Applique le thème mémorisé au plus tôt (anti-flash). Défaut : sombre (:root).
-    try { var t = localStorage.getItem('liquidTheme'); if (t === 'paper' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+    var t = 'paper';
+    try { var savedTheme = localStorage.getItem('liquidTheme'); if (savedTheme === 'paper' || savedTheme === 'dark') t = savedTheme; } catch (e) {}
+    document.documentElement.setAttribute('data-theme', t);
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -17,7 +19,7 @@
   <link rel="stylesheet" href="editor.css?v=7" />
   <link rel="stylesheet" href="drawer-menu.css?v=15" />
   <link rel="stylesheet" href="help-bulb.css?v=1" />
-  <link rel="stylesheet" href="theme.css?v=2" />
+  <link rel="stylesheet" href="theme.css?v=3" />
   <style>
     [hidden] { display: none !important; }
     .app { height: auto; overflow: visible; display: block; }
@@ -194,7 +196,7 @@
     }
   </style>
   <script src="auth.js?v=3"></script>
-  <script src="theme.js?v=2" defer></script>
+  <script src="theme.js?v=3" defer></script>
   <script src="tasks.js?v=2" defer></script>
   <script src="drawer-menu.js?v=12" defer></script>
   <script src="drawer-steps.js?v=1" defer></script>
@@ -322,9 +324,6 @@
       <div class="doc-empty" id="doc-empty" hidden></div>
       <div class="doc-sections" id="doc-sections"></div>
 
-      <div class="dil__foot">
-        <a href="tableau-de-bord.html" class="btn btn--ghost">← Retour au tableau de bord</a>
-      </div>
     </main>
   </div>
 
@@ -737,7 +736,7 @@
         const parentDoc = d.parent_document_id ? docs.find(x => x.id === d.parent_document_id) : null;
         const isCounterproposal = d.version_type === 'counterproposal';
         const counterHtml = isCounterproposal
-          ? `<div class="doc-counter"><span class="doc-counter__badge">↩ Contreproposition reçue de ${esc(versionAuthor(d))}</span><span class="doc-counter__parent">en réponse à « ${esc(parentDoc ? parentDoc.name : 'la version précédente')} »</span></div>`
+          ? `<div class="doc-counter"><span class="doc-counter__badge">↩ ${d.origin === 'founder' ? 'Contreproposition rédigée par vous' : 'Contreproposition reçue de ' + esc(versionAuthor(d))}</span><span class="doc-counter__parent">en réponse à « ${esc(parentDoc ? parentDoc.name : 'la version précédente')} »</span></div>`
           : '';
         // Badge de risque juridique — pilote aussi l'action « Faire relire ».
         const rk = riskMeta(d);
@@ -961,6 +960,7 @@
       function renderLineage(d, data, listEl) {
         const nodes = Array.isArray(data.nodes) ? data.nodes : [];
         const investors = Array.isArray(data.investors) ? data.investors : [];
+        const transmissions = Array.isArray(data.transmissions) ? data.transmissions : [];
         if (!nodes.length) {
           listEl.innerHTML = '<div class="verpop__empty">Aucune version pour l\'instant. Validez une version dans l\'éditeur, ou importez une nouvelle version reçue.</div>';
           return;
@@ -969,6 +969,7 @@
         nodes.forEach(n => {
           const isSnap = n.node_type === 'snapshot';
           const isFocus = !isSnap && n.doc_id === data.focus_id;
+          const sentTx = transmissions.find(t => Number(t.document_id) === Number(n.doc_id) && t.direction === 'sent');
           // Étiquette + intitulé de provenance.
           let tag, tagCls, prov;
           if (isSnap) {
@@ -979,7 +980,10 @@
             prov = (n.version_type === 'counterproposal' ? 'Contreproposition reçue de ' : 'Reçu de ') + partyLabel(n.origin, n.origin_party_id, investors);
           } else {
             tag = '✍️'; tagCls = '';
-            prov = 'Créé par vous';
+            if (n.version_type === 'counterproposal' && sentTx) {
+              const sentInv = investors.find(i => Number(i.id) === Number(sentTx.counterparty_id));
+              prov = 'Contreproposition envoyée à ' + (sentInv ? (sentInv.firm ? sentInv.name + ' — ' + sentInv.firm : sentInv.name) : (sentTx.counterparty_label || 'un investisseur'));
+            } else prov = n.version_type === 'counterproposal' ? 'Contreproposition rédigée par vous' : 'Créé par vous';
           }
           const label = n.name || (isSnap ? 'Instantané éditeur' : 'Document');
           const row = document.createElement('div');
