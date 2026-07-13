@@ -309,6 +309,9 @@
 // Le tableau de bord conserve sa recherche dédiée, qui connaît également les
 // éléments de chaque étape et les modèles de documents.
 (function setupGlobalSearch() {
+  // L'éditeur n'affiche pas la recherche partagée : sa barre supérieure est
+  // réservée aux actions du document (Analyser, Signer, Exporter…).
+  if (/(?:^|\/)editor\.html$/i.test(location.pathname)) return;
   const actions = document.querySelector('.topbar__actions');
   if (!actions || document.getElementById('dashboard-search') || actions.querySelector('.global-search')) return;
 
