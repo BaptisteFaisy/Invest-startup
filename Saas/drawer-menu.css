@@ -32,7 +32,7 @@ html.drawer-open body { overflow:hidden; }
 .drawer--right .drawer__resize { left:-5px; }
 /* Le titre du tiroir vit désormais dans le corps (.drawer__section-title) : la
    tête ne sert plus que d'entretoise pour garder le corps sous la barre du haut. */
-.drawer__head { box-sizing:border-box; min-height:56px; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:16px 18px; border-bottom:1px solid rgba(255,255,255,0.08); }
+.drawer__head { box-sizing:border-box; flex:none; min-height:56px; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:16px 18px; border-bottom:1px solid rgba(255,255,255,0.08); }
 /* Le drawer gauche s'ouvre par-dessus le hamburger qui l'a déclenché (même z-index élevé
    pour rester cliquable) : on décale son titre pour ne plus passer dessous. */
 .drawer--left .drawer__head { padding-left:66px; }
@@ -92,7 +92,7 @@ html.drawer-open body { overflow:hidden; }
 .global-search__name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; font-weight:600; }
 .global-search__detail { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:rgba(255,255,255,0.52); font-size:11.5px; }
 @media (max-width:1100px) { .global-search { width:190px; } .global-search__shortcut { display:none; } }
-@media (max-width:760px) { .global-search { position:static; flex:1; min-width:0; width:auto; } .global-search__results { right:14px; left:14px; width:auto; } .topbar:has(.global-search) { gap:8px; padding:10px 14px !important; } .topbar:has(.global-search) .topbar__left { flex:none; width:auto; gap:10px; } .topbar:has(.global-search) .topbar__doc { display:none; } .topbar:has(.global-search) .topbar__actions { flex:1; min-width:0; width:auto; } .topbar:has(.global-search) .topbar__actions > :not(.global-search):not(.hamburger) { display:none; } }
+@media (max-width:760px) { .drawer__head { min-height:59px; } .global-search { position:static; flex:1; min-width:0; width:auto; } .global-search__results { right:14px; left:14px; width:auto; } .topbar:has(.global-search) { gap:8px; padding:10px 14px !important; } .topbar:has(.global-search) .topbar__left { flex:none; width:auto; gap:10px; } .topbar:has(.global-search) .topbar__doc { display:none; } .topbar:has(.global-search) .topbar__actions { flex:1; min-width:0; width:auto; } .topbar:has(.global-search) .topbar__actions > :not(.global-search):not(.hamburger) { display:none; } }
 
 /* ═══ Étapes de la levée (tiroir gauche des pages outils), reprises du tableau de bord ═══ */
 .drawer__link--step { flex-direction:column; align-items:stretch; gap:9px; }
