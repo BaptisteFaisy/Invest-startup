@@ -233,7 +233,7 @@
       .footer__col h4 { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.24); margin-bottom: 5px; }
       .footer__col a { font-size: 14px; color: rgba(255,255,255,0.38); transition: color .15s; }
       .footer__col a:hover { color: #fff; }
-      .footer-contact { max-width: 1080px; margin: 0 auto 36px; padding: 28px; border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; background: rgba(255,255,255,0.03); display: grid; grid-template-columns: minmax(0,.75fr) minmax(0,2fr); gap: 36px; }
+      .footer-contact { width: calc(100% - 80px); max-width: 1080px; margin: 64px auto; padding: 28px; border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; background: rgba(255,255,255,0.03); display: grid; grid-template-columns: minmax(0,.75fr) minmax(0,2fr); gap: 36px; }
       .footer-contact > * { min-width: 0; }
       .footer-contact__intro h4 { font-size: 1.15rem; margin-bottom: 8px; }
       .footer-contact__intro p { font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.4); }
@@ -358,7 +358,7 @@
         .hero__benefits { grid-template-columns: 1fr; gap: 16px; }
         .footer { padding: 40px 20px 0; }
         .footer__inner { gap: 32px; }
-        .footer-contact { grid-template-columns: 1fr; gap: 24px; padding: 24px 20px; }
+        .footer-contact { width: calc(100% - 40px); margin: 40px auto; grid-template-columns: 1fr; gap: 24px; padding: 24px 20px; }
         .footer-contact__details { grid-template-columns: 1fr; gap: 20px; }
         .cta { padding: 64px 20px; }
       }
@@ -691,6 +691,36 @@
 
     </main>
 
+    <section class="footer-contact" aria-labelledby="footer-contact-title">
+      <div class="footer-contact__intro">
+        <h4 id="footer-contact-title">Nous contacter</h4>
+        <p>Fondateurs, échangez avec l'équipe Liquid+ au sujet de votre levée de fonds.</p>
+      </div>
+      <div class="footer-contact__details">
+        <div class="footer-contact__group">
+          <span class="footer-contact__label">Par e-mail</span>
+          <div class="footer-contact__links">
+            <a href="mailto:liquidplus.contact@gmail.com" title="Écrire à liquidplus.contact@gmail.com">liquidplus.contact@gmail.com</a>
+            <a href="mailto:liquidplus.investisseurs@gmail.com" title="Écrire à liquidplus.investisseurs@gmail.com">liquidplus.investisseurs@gmail.com</a>
+            <a href="mailto:liquidplus.avocats@gmail.com" title="Écrire à liquidplus.avocats@gmail.com">liquidplus.avocats@gmail.com</a>
+          </div>
+        </div>
+        <div class="footer-contact__group">
+          <span class="footer-contact__label">Par téléphone</span>
+          <div class="footer-contact__links">
+            <a href="tel:+33769664531" title="Appeler le 07 69 66 45 31">07 69 66 45 31</a>
+            <a href="tel:+33648176323" title="Appeler le 06 48 17 63 23">06 48 17 63 23</a>
+          </div>
+        </div>
+        <div class="footer-contact__group">
+          <span class="footer-contact__label">Prendre rendez-vous</span>
+          <div class="footer-contact__links">
+            <a class="footer-contact__calendly" href="https://calendly.com/liquidplus-contact" target="_blank" rel="noopener">Ouvrir Calendly</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- FOOTER -->
     <footer class="footer">
       <div class="footer__inner">
@@ -715,35 +745,6 @@
           <a href="cgu.html">CGU</a>
         </div>
       </div>
-      <section class="footer-contact" aria-labelledby="footer-contact-title">
-        <div class="footer-contact__intro">
-          <h4 id="footer-contact-title">Nous contacter</h4>
-          <p>Une question sur liquid+, un partenariat investisseur ou une collaboration avec notre réseau d'avocats&nbsp;?</p>
-        </div>
-        <div class="footer-contact__details">
-          <div class="footer-contact__group">
-            <span class="footer-contact__label">Par e-mail</span>
-            <div class="footer-contact__links">
-              <a href="mailto:liquidplus.contact@gmail.com">liquidplus.contact@gmail.com</a>
-              <a href="mailto:liquidplus.investisseurs@gmail.com">liquidplus.investisseurs@gmail.com</a>
-              <a href="mailto:liquidplus.avocats@gmail.com">liquidplus.avocats@gmail.com</a>
-            </div>
-          </div>
-          <div class="footer-contact__group">
-            <span class="footer-contact__label">Par téléphone</span>
-            <div class="footer-contact__links">
-              <a href="tel:+33769664531">07 69 66 45 31</a>
-              <a href="tel:+33648176323">06 48 17 63 23</a>
-            </div>
-          </div>
-          <div class="footer-contact__group">
-            <span class="footer-contact__label">Prendre rendez-vous</span>
-            <div class="footer-contact__links">
-              <a class="footer-contact__calendly" href="https://calendly.com/liquidplus-contact" target="_blank" rel="noopener">Ouvrir Calendly</a>
-            </div>
-          </div>
-        </div>
-      </section>
       <div class="footer__bottom">
         © 2026 liquid +. liquid + vous rend autonome sur la lecture et la négociation de vos documents juridiques ; il ne se substitue pas à un conseil juridique personnalisé pour les cas complexes.
       </div>
