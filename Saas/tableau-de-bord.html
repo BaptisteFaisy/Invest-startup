@@ -473,6 +473,9 @@
     .ip-gcard__del { flex: none; width: 24px; height: 24px; display: grid; place-items: center; border: 0; background: transparent; color: #6b7078; cursor: pointer; border-radius: 7px; }
     .ip-gcard__del:hover { background: rgba(220,38,38,0.14); color: #f2a4a4; }
     .ip-gcard__del svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .ip-gcard__edit { flex: none; width: 24px; height: 24px; display: grid; place-items: center; border: 0; background: transparent; color: #6b7078; cursor: pointer; border-radius: 7px; }
+    .ip-gcard__edit:hover { background: rgba(59,130,246,0.14); color: #9fb4ff; }
+    .ip-gcard__edit svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .ip-gcol-empty { font-size: 11px; color: #565b64; text-align: center; padding: 12px 6px; border: 1px dashed rgba(255,255,255,0.1); border-radius: 9px; }
     .ip-grid-empty { margin-top: 12px; color: #8b919b; font-size: 14px; padding: 24px; text-align: center; border: 1px dashed rgba(255,255,255,0.14); border-radius: 14px; background: #16181d; }
 
@@ -509,6 +512,7 @@
     .ip-gcard__notes { border-top-color:#e5e7eb; }
     .ip-gcard__move { background:#fff; border-color:#d1d5db; color:#374151; }
     .ip-gcard__del { color:#9ca3af; }
+    .ip-gcard__edit { color:#9ca3af; }
     .ip-gcol-empty { color:#9ca3af; border-color:#d1d5db; }
     .ip-grid-empty { color:#6b7280; background:#fff; border-color:#d1d5db; }
 
@@ -3473,7 +3477,8 @@
             <div class="ip-stat"><div class="ip-stat__label">Investisseurs</div><div class="ip-stat__value" data-stat="count">0</div></div>
             <div class="ip-stat ip-stat--leve"><div class="ip-stat__label">Levé (sécurisé)</div><div class="ip-stat__value" data-stat="leve-amount">—</div></div>
             <div class="ip-stat ip-stat--intent"><div class="ip-stat__label">Intentionné (≥ LOI)</div><div class="ip-stat__value" data-stat="intent-amount">—</div></div>
-            <div class="ip-stat"><div class="ip-stat__label">Pipeline total</div><div class="ip-stat__value" data-stat="total-amount">—</div></div>
+            <div class="ip-stat" title="Somme de tous les tickets envisagés, tous stades confondus (de « À contacter » jusqu'aux contrats signés). C'est le maximum théorique si tous les investisseurs du pipeline concluaient.">
+              <div class="ip-stat__label">Pipeline total</div><div class="ip-stat__value" data-stat="total-amount">—</div></div>
           </div>
           <div class="ip-actions">
             <button type="button" class="ip-addbtn" data-el="open-form" aria-haspopup="dialog">
@@ -3553,9 +3558,40 @@
       const modalEl   = root.querySelector('[data-el="modal"]');
       const openFormBtn = root.querySelector('[data-el="open-form"]');
       const stageSelect = root.querySelector('[data-in="stage"]');
+      const modalTitleEl = root.querySelector('#ip-modal-title');
+      const modalDescEl  = root.querySelector('.ip-modal__desc');
+      const submitBtn    = root.querySelector('.ip-form__add');
       invFillStageSelect(stageSelect, 'a_contacter');
 
-      function openInvestorForm() {
+      // Investisseur en cours de modification (null = ajout d'un nouvel investisseur).
+      let editingInvestorId = null;
+
+      function fillInvestorForm(inv) {
+        const set = (k, v) => { root.querySelector('[data-in="' + k + '"]').value = (v == null ? '' : v); };
+        set('name',  inv ? inv.name  : '');
+        set('firm',  inv ? inv.firm  : '');
+        set('email', inv ? inv.email : '');
+        set('phone', inv ? inv.phone : '');
+        set('amount', inv && inv.amount ? inv.amount : '');
+        set('notes', inv ? inv.notes : '');
+        stageSelect.value = inv ? inv.stage : 'a_contacter';
+      }
+
+      // Ouvre la modale en mode ajout (inv absent) ou modification (inv fourni).
+      function openInvestorForm(inv) {
+        editingInvestorId = inv ? inv.id : null;
+        fillInvestorForm(inv);
+        const errEl = root.querySelector('[data-el="form-err"]');
+        errEl.hidden = true;
+        if (inv) {
+          modalTitleEl.textContent = "Modifier l'investisseur";
+          modalDescEl.textContent  = 'Mettez à jour ses coordonnées et sa position dans votre pipeline.';
+          submitBtn.textContent    = 'Enregistrer les modifications';
+        } else {
+          modalTitleEl.textContent = 'Ajouter un investisseur';
+          modalDescEl.textContent  = 'Renseignez ses coordonnées et positionnez-le dans votre pipeline.';
+          submitBtn.textContent    = "Ajouter l'investisseur";
+        }
         modalEl.hidden = false;
         document.body.classList.add('ip-modal-open');
         requestAnimationFrame(() => root.querySelector('[data-in="name"]').focus());
@@ -3563,9 +3599,10 @@
       function closeInvestorForm() {
         modalEl.hidden = true;
         document.body.classList.remove('ip-modal-open');
+        editingInvestorId = null;
         openFormBtn.focus();
       }
-      openFormBtn.addEventListener('click', openInvestorForm);
+      openFormBtn.addEventListener('click', () => openInvestorForm());
       root.querySelector('[data-el="close-form"]').addEventListener('click', closeInvestorForm);
       root.querySelector('[data-el="cancel-form"]').addEventListener('click', closeInvestorForm);
       root.querySelector('[data-el="modal-backdrop"]').addEventListener('click', closeInvestorForm);
@@ -3645,6 +3682,15 @@
         name.className = 'ip-gcard__name';
         name.textContent = inv.name;
         top.appendChild(name);
+        const edit = document.createElement('button');
+        edit.type = 'button';
+        edit.className = 'ip-gcard__edit';
+        edit.setAttribute('aria-label', 'Modifier ' + inv.name);
+        edit.title = 'Modifier';
+        edit.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+        edit.addEventListener('click', () => openInvestorForm(inv));
+        edit.addEventListener('pointerdown', e => e.stopPropagation());
+        top.appendChild(edit);
         const del = document.createElement('button');
         del.type = 'button';
         del.className = 'ip-gcard__del';
@@ -3860,24 +3906,37 @@
         errEl.hidden = true;
         const name = val('name').trim();
         if (!name) return;
+        const payload = {
+          name, firm: val('firm').trim(), stage: val('stage'),
+          email: val('email').trim(), phone: val('phone').trim(),
+          amount: val('amount') ? Number(val('amount')) : null,
+          notes: val('notes').trim(),
+        };
         try {
-          const { investor } = await invApi('/api/saas/investors', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              name, firm: val('firm').trim(), stage: val('stage'),
-              email: val('email').trim(), phone: val('phone').trim(),
-              amount: val('amount') ? Number(val('amount')) : null,
-              notes: val('notes').trim(),
-            }),
-          });
-          invPipeline.push(investor);
-          render();
-          ['name', 'firm', 'email', 'phone', 'amount', 'notes'].forEach(k => { root.querySelector('[data-in="' + k + '"]').value = ''; });
-          stageSelect.value = 'a_contacter';
-          closeInvestorForm();
+          if (editingInvestorId != null) {
+            const id = editingInvestorId;
+            await invApi('/api/saas/investors/' + id, {
+              method: 'PUT', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
+            const inv = invPipeline.find(x => x.id === id);
+            if (inv) Object.assign(inv, payload);
+            render();
+            closeInvestorForm();
+          } else {
+            const { investor } = await invApi('/api/saas/investors', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            });
+            invPipeline.push(investor);
+            render();
+            closeInvestorForm();
+          }
         } catch (err) {
           errEl.hidden = false;
-          errEl.textContent = err.message || "Impossible d'ajouter l'investisseur.";
+          errEl.textContent = err.message || (editingInvestorId != null
+            ? "Impossible de modifier l'investisseur."
+            : "Impossible d'ajouter l'investisseur.");
         }
       });
 
