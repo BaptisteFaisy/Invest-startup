@@ -3204,11 +3204,11 @@
 
     // Paliers de suivi (vocabulaire fondateur) :
     //  · « levé »        = argent sécurisé, à partir des contrats signés ;
-    //  · « intentionné » = engagement moral, à partir de la lettre d'intention signée.
-    // Pour compter dès la LOI en cours de négociation, remplacer le seuil ci-dessous
-    // par 'lettre_intention_negociation'.
+    //  · « intentionné » = engagement moral, dès la lettre d'intention (LOI).
+    // Pour n'inclure qu'une LOI déjà signée, remplacer le seuil ci-dessous par
+    // 'lettre_intention_signee'.
     const INV_LEVE_STAGES = new Set(['contrats_signes', 'gouvernance']);
-    const INV_INTENT_MIN_STAGE = 'lettre_intention_signee';
+    const INV_INTENT_MIN_STAGE = 'lettre_intention_negociation';
     function invTier(stage) {
       if (INV_LEVE_STAGES.has(stage)) return 'leve';
       if (stageIndex(stage) >= stageIndex(INV_INTENT_MIN_STAGE)) return 'intentionne';
@@ -3407,144 +3407,118 @@
       const stageSelect = root.querySelector('[data-in="stage"]');
       invFillStageSelect(stageSelect, 'a_contacter');
 
-      let currentView = 'kanban';   // 'kanban' | 'table'
       let dragId = null;            // id de la carte en cours de déplacement
 
-      // Bascule Kanban / Tableau
-      viewbarEl.querySelectorAll('.ip-viewbtn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          if (currentView === btn.dataset.view) return;
-          currentView = btn.dataset.view;
-          viewbarEl.querySelectorAll('.ip-viewbtn').forEach(b => b.classList.toggle('is-active', b === btn));
-          applyView();
-        });
-      });
-      function applyView() {
-        boardEl.hidden  = currentView !== 'table';
-        kanbanEl.hidden = currentView !== 'kanban';
+      // Colonnes (stades) masquées par l'utilisateur, mémorisées localement.
+      const COLS_STORE_KEY = 'liquid_inv_hidden_stages';
+      let hiddenStages = new Set();
+      try {
+        const raw = JSON.parse(localStorage.getItem(COLS_STORE_KEY) || '[]');
+        if (Array.isArray(raw)) hiddenStages = new Set(raw.filter(k => INV_STAGES.some(s => s.key === k)));
+      } catch {}
+      function persistHiddenStages() {
+        try { localStorage.setItem(COLS_STORE_KEY, JSON.stringify([...hiddenStages])); } catch {}
+      }
+      function visibleStages() {
+        return INV_STAGES.filter(s => !hiddenStages.has(s.key));
       }
 
-      function invRow(inv) {
-        const el = document.createElement('tr');
-        el.dataset.id = inv.id;
-        const investorCell = document.createElement('td');
-        const name = document.createElement('div');
-        name.className = 'ip-card__name';
-        name.textContent = inv.name;
-        investorCell.appendChild(name);
-
-        if (inv.firm) {
-          const firm = document.createElement('div');
-          firm.className = 'ip-card__firm';
-          firm.textContent = inv.firm;
-          investorCell.appendChild(firm);
-        }
-        el.appendChild(investorCell);
-
-        const contactCell = document.createElement('td');
-        contactCell.className = 'ip-card__meta';
-        if (inv.email || inv.phone) {
-          [inv.email, inv.phone].filter(Boolean).forEach(value => {
-            const line = document.createElement('div');
-            line.textContent = value;
-            contactCell.appendChild(line);
+      // Menu de sélection des colonnes : une case à cocher par stade.
+      function buildColMenu() {
+        colMenu.innerHTML = '';
+        INV_STAGES.forEach(stage => {
+          const row = document.createElement('label');
+          row.className = 'ip-colmenu__row';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = !hiddenStages.has(stage.key);
+          cb.addEventListener('change', () => {
+            if (cb.checked) hiddenStages.delete(stage.key);
+            else hiddenStages.add(stage.key);
+            // Garder au moins une colonne visible.
+            if (!visibleStages().length) { hiddenStages.delete(stage.key); cb.checked = true; return; }
+            persistHiddenStages();
+            render();
           });
-        } else {
-          contactCell.textContent = '—';
-        }
-        el.appendChild(contactCell);
-
-        const amountCell = document.createElement('td');
-        amountCell.className = 'ip-card__amount';
-        amountCell.textContent = inv.amount ? invFmtAmount(inv.amount) : '—';
-        el.appendChild(amountCell);
-
-        const stageCell = document.createElement('td');
-        const stageWrap = document.createElement('div');
-        stageWrap.className = 'ip-card__stage-wrap';
-        const stageDot = document.createElement('span');
-        stageDot.className = 'ip-card__stage-dot';
-        stageDot.style.background = INV_STAGES.find(stage => stage.key === inv.stage)?.dot || '#9a978f';
-        stageWrap.appendChild(stageDot);
-        const select = document.createElement('select');
-        select.className = 'ip-card__stage-select';
-        select.setAttribute('aria-label', 'Changer le stade de ' + inv.name);
-        invFillStageSelect(select, inv.stage);
-        select.addEventListener('change', () => moveStage(inv.id, select.value));
-        stageWrap.appendChild(select);
-        stageCell.appendChild(stageWrap);
-        el.appendChild(stageCell);
-
-        const notesCell = document.createElement('td');
-        notesCell.className = 'ip-card__notes';
-        notesCell.textContent = inv.notes || '—';
-        el.appendChild(notesCell);
-
-        const actionCell = document.createElement('td');
-        const del = document.createElement('button');
-        del.type = 'button';
-        del.className = 'ip-card__del';
-        del.setAttribute('aria-label', 'Supprimer ' + inv.name);
-        del.title = 'Supprimer';
-        del.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1 -2 2H8a2 2 0 0 1 -2 -2L5 6"/></svg>';
-        del.addEventListener('click', () => deleteInvestor(inv.id));
-        actionCell.appendChild(del);
-        el.appendChild(actionCell);
-        return el;
+          const dot = document.createElement('span');
+          dot.className = 'ip-colmenu__dot';
+          dot.style.background = invTierColor(invTier(stage.key));
+          const txt = document.createElement('span');
+          txt.textContent = stage.label;
+          row.append(cb, dot, txt);
+          colMenu.appendChild(row);
+        });
       }
+      buildColMenu();
 
-      // Carte d'un investisseur dans la vue Kanban (entonnoir).
-      function invKanbanCard(inv) {
+      // Ouverture / fermeture du menu de colonnes.
+      function onDocClickCol(e) {
+        if (!colMenu.contains(e.target) && !colBtn.contains(e.target)) {
+          colMenu.classList.remove('is-open');
+          colBtn.setAttribute('aria-expanded', 'false');
+          document.removeEventListener('click', onDocClickCol, true);
+        }
+      }
+      colBtn.addEventListener('click', () => {
+        const open = colMenu.classList.toggle('is-open');
+        colBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open) document.addEventListener('click', onDocClickCol, true);
+        else document.removeEventListener('click', onDocClickCol, true);
+      });
+
+      // Carte d'un investisseur dans le tableau (déplaçable entre colonnes).
+      function invBoardCard(inv) {
         const card = document.createElement('div');
-        card.className = 'ip-kcard';
+        card.className = 'ip-gcard';
         card.dataset.id = inv.id;
         card.draggable = true;
 
         const top = document.createElement('div');
-        top.className = 'ip-kcard__top';
+        top.className = 'ip-gcard__top';
         const name = document.createElement('div');
-        name.className = 'ip-kcard__name';
+        name.className = 'ip-gcard__name';
         name.textContent = inv.name;
         top.appendChild(name);
         const del = document.createElement('button');
         del.type = 'button';
-        del.className = 'ip-card__del';
+        del.className = 'ip-gcard__del';
         del.setAttribute('aria-label', 'Supprimer ' + inv.name);
         del.title = 'Supprimer';
         del.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1 -2 2H8a2 2 0 0 1 -2 -2L5 6"/></svg>';
         del.addEventListener('click', () => deleteInvestor(inv.id));
+        del.addEventListener('pointerdown', e => e.stopPropagation());
         top.appendChild(del);
         card.appendChild(top);
 
         if (inv.firm) {
           const firm = document.createElement('div');
-          firm.className = 'ip-kcard__firm';
+          firm.className = 'ip-gcard__firm';
           firm.textContent = inv.firm;
           card.appendChild(firm);
         }
         if (inv.amount) {
           const amount = document.createElement('div');
-          amount.className = 'ip-kcard__amount';
+          amount.className = 'ip-gcard__amt';
           amount.textContent = invFmtAmount(inv.amount);
           card.appendChild(amount);
         }
         if (inv.email || inv.phone) {
           const meta = document.createElement('div');
-          meta.className = 'ip-kcard__meta';
+          meta.className = 'ip-gcard__meta';
           meta.textContent = [inv.email, inv.phone].filter(Boolean).join(' · ');
           card.appendChild(meta);
         }
         if (inv.notes) {
           const notes = document.createElement('div');
-          notes.className = 'ip-kcard__notes';
+          notes.className = 'ip-gcard__notes';
           notes.textContent = inv.notes;
           card.appendChild(notes);
         }
 
         const foot = document.createElement('div');
-        foot.className = 'ip-kcard__foot';
+        foot.className = 'ip-gcard__foot';
         const select = document.createElement('select');
-        select.className = 'ip-kcard__move';
+        select.className = 'ip-gcard__move';
         select.setAttribute('aria-label', 'Déplacer ' + inv.name + ' vers un autre stade');
         invFillStageSelect(select, inv.stage);
         select.addEventListener('change', () => moveStage(inv.id, select.value));
@@ -3561,156 +3535,131 @@
         card.addEventListener('dragend', () => {
           dragId = null;
           card.classList.remove('is-dragging');
-          kanbanEl.querySelectorAll('.ip-kcol.is-drop').forEach(c => c.classList.remove('is-drop'));
+          boardEl.querySelectorAll('.is-drop').forEach(c => c.classList.remove('is-drop'));
         });
         return card;
       }
 
-      // Barre d'entonnoir : compteur + montant cumulé par stade.
-      function renderFunnel(counts, amounts) {
-        funnelEl.innerHTML = '';
-        INV_STAGES.forEach(stage => {
-          const n = counts[stage.key] || 0;
-          const seg = document.createElement('div');
-          seg.className = 'ip-funnel__seg' + (n ? '' : ' is-empty');
-          seg.style.setProperty('--seg', stage.dot);
-          const label = document.createElement('div');
-          label.className = 'ip-funnel__label';
-          label.textContent = stage.label;
-          const count = document.createElement('div');
-          count.className = 'ip-funnel__count';
-          count.textContent = String(n);
-          const amount = document.createElement('div');
-          amount.className = 'ip-funnel__amount';
-          amount.textContent = amounts[stage.key] ? invFmtAmount(amounts[stage.key]) : '';
-          seg.append(label, count, amount);
-          funnelEl.appendChild(seg);
-        });
-      }
-
-      // Vue Kanban : une colonne par stade, les cartes s'y rangent selon leur statut.
-      function renderKanban(byStage, amounts) {
-        kanbanEl.innerHTML = '';
+      // Tableau du pipeline : une colonne par stade visible, cartes déplaçables.
+      function renderBoard(byStage, counts, amounts) {
+        boardEl.innerHTML = '';
         if (!invPipeline.length) {
+          boardEl.classList.remove('ip-grid-wrap');
           const empty = document.createElement('div');
-          empty.className = 'ip-kanban-empty';
+          empty.className = 'ip-grid-empty';
           empty.textContent = 'Aucun investisseur dans le pipeline. Ajoutez-en un ci-dessus pour démarrer votre entonnoir.';
-          kanbanEl.appendChild(empty);
+          boardEl.appendChild(empty);
           return;
         }
-        INV_STAGES.forEach(stage => {
+        boardEl.classList.add('ip-grid-wrap');
+        const stages = visibleStages();
+        const table = document.createElement('table');
+        table.className = 'ip-grid';
+
+        const colgroup = document.createElement('colgroup');
+        stages.forEach(() => colgroup.appendChild(document.createElement('col')));
+        table.appendChild(colgroup);
+
+        const thead = document.createElement('thead');
+        const htr = document.createElement('tr');
+        stages.forEach(stage => {
+          const tier = invTier(stage.key);
+          const th = document.createElement('th');
+          if (tier === 'leve') th.classList.add('is-leve');
+          else if (tier === 'intentionne') th.classList.add('is-intent');
+          th.style.borderTopColor = invTierColor(tier);
+          const lab = document.createElement('div');
+          lab.className = 'ip-grid__lab';
+          const labT = document.createElement('span');
+          labT.className = 'ip-grid__lab-t';
+          labT.textContent = stage.label;
+          const cnt = document.createElement('span');
+          cnt.className = 'ip-grid__count';
+          cnt.textContent = String(counts[stage.key] || 0);
+          lab.append(labT, cnt);
+          const amt = document.createElement('div');
+          amt.className = 'ip-grid__amt';
+          amt.textContent = amounts[stage.key] ? invFmtAmount(amounts[stage.key]) : '';
+          th.append(lab, amt);
+          htr.appendChild(th);
+        });
+        thead.appendChild(htr);
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+        const btr = document.createElement('tr');
+        stages.forEach(stage => {
+          const td = document.createElement('td');
+          td.dataset.stage = stage.key;
           const list = byStage[stage.key] || [];
-          const col = document.createElement('div');
-          col.className = 'ip-kcol';
-          col.dataset.stage = stage.key;
-
-          const head = document.createElement('div');
-          head.className = 'ip-kcol__head';
-          const dot = document.createElement('span');
-          dot.className = 'ip-kcol__dot';
-          dot.style.background = stage.dot;
-          const label = document.createElement('div');
-          label.className = 'ip-kcol__label';
-          label.textContent = stage.label;
-          const badge = document.createElement('span');
-          badge.className = 'ip-kcol__count';
-          badge.textContent = String(list.length);
-          head.append(dot, label, badge);
-          col.appendChild(head);
-
-          const amountEl = document.createElement('div');
-          amountEl.className = 'ip-kcol__amount';
-          amountEl.textContent = amounts[stage.key] ? invFmtAmount(amounts[stage.key]) : '';
-          col.appendChild(amountEl);
-
-          const body = document.createElement('div');
-          body.className = 'ip-kcol__body';
           if (!list.length) {
             const empty = document.createElement('div');
-            empty.className = 'ip-kcol__empty';
+            empty.className = 'ip-gcol-empty';
             empty.textContent = 'Déposez ici';
-            body.appendChild(empty);
+            td.appendChild(empty);
           } else {
-            list.forEach(inv => body.appendChild(invKanbanCard(inv)));
+            list.forEach(inv => td.appendChild(invBoardCard(inv)));
           }
-          col.appendChild(body);
-
-          col.addEventListener('dragover', (e) => {
+          td.addEventListener('dragover', (e) => {
             if (dragId == null) return;
             e.preventDefault();
             if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
-            col.classList.add('is-drop');
+            td.classList.add('is-drop');
           });
-          col.addEventListener('dragleave', (e) => {
-            if (!col.contains(e.relatedTarget)) col.classList.remove('is-drop');
+          td.addEventListener('dragleave', (e) => {
+            if (!td.contains(e.relatedTarget)) td.classList.remove('is-drop');
           });
-          col.addEventListener('drop', (e) => {
+          td.addEventListener('drop', (e) => {
             e.preventDefault();
-            col.classList.remove('is-drop');
+            td.classList.remove('is-drop');
             const id = dragId != null ? dragId : Number(e.dataTransfer?.getData('text/plain'));
             if (id != null && !Number.isNaN(id)) moveStage(id, stage.key);
           });
-
-          kanbanEl.appendChild(col);
+          btr.appendChild(td);
         });
+        tbody.appendChild(btr);
+        table.appendChild(tbody);
+        boardEl.appendChild(table);
       }
 
       function render() {
-        boardEl.innerHTML = '';
-        let totalEngagedAmount = 0;
-        let totalPipelineAmount = 0;
-        let engagedCount = 0;
+        let leveAmount = 0;       // ≥ contrats signés (sécurisé)
+        let intentAmount = 0;     // ≥ lettre d'intention (cumulatif, inclut le levé)
+        let totalAmount = 0;
         const counts = {};
         const stageAmounts = {};
         const byStage = {};
 
         invPipeline.forEach(inv => {
-          totalPipelineAmount += inv.amount || 0;
+          const amt = inv.amount || 0;
+          totalAmount += amt;
           counts[inv.stage] = (counts[inv.stage] || 0) + 1;
-          stageAmounts[inv.stage] = (stageAmounts[inv.stage] || 0) + (inv.amount || 0);
+          stageAmounts[inv.stage] = (stageAmounts[inv.stage] || 0) + amt;
           (byStage[inv.stage] = byStage[inv.stage] || []).push(inv);
-          if (inv.stage === 'contrats_signes' || inv.stage === 'gouvernance') {
-            totalEngagedAmount += inv.amount || 0;
-            engagedCount += 1;
-          }
+          const tier = invTier(inv.stage);
+          if (tier === 'leve') { leveAmount += amt; intentAmount += amt; }
+          else if (tier === 'intentionne') { intentAmount += amt; }
         });
 
-        renderFunnel(counts, stageAmounts);
-        renderKanban(byStage, stageAmounts);
-
-        const table = document.createElement('table');
-        table.className = 'ip-table';
-        table.innerHTML = `<thead><tr>
-          <th class="ip-table__investor">Investisseur</th>
-          <th class="ip-table__contact">Contact</th>
-          <th class="ip-table__amount">Ticket envisagé</th>
-          <th class="ip-table__stage">Statut</th>
-          <th class="ip-table__notes">Notes</th>
-          <th class="ip-table__action"><span class="sr-only">Actions</span></th>
-        </tr></thead>`;
-        const tbody = document.createElement('tbody');
-        if (!invPipeline.length) {
-          const emptyRow = document.createElement('tr');
-          const emptyCell = document.createElement('td');
-          emptyCell.colSpan = 6;
-          emptyCell.className = 'ip-card__notes';
-          emptyCell.textContent = 'Aucun investisseur dans le pipeline.';
-          emptyRow.appendChild(emptyCell);
-          tbody.appendChild(emptyRow);
-        } else {
-          invPipeline.forEach(inv => tbody.appendChild(invRow(inv)));
-        }
-        table.appendChild(tbody);
-        boardEl.appendChild(table);
+        renderBoard(byStage, counts, stageAmounts);
 
         root.querySelector('[data-stat="count"]').textContent = String(invPipeline.length);
-        root.querySelector('[data-stat="engaged"]').textContent = String(engagedCount);
-        root.querySelector('[data-stat="engaged-amount"]').textContent = totalEngagedAmount ? invFmtAmount(totalEngagedAmount) : '—';
-        root.querySelector('[data-stat="pipeline-amount"]').textContent = totalPipelineAmount ? invFmtAmount(totalPipelineAmount) : '—';
+        root.querySelector('[data-stat="leve-amount"]').textContent = leveAmount ? invFmtAmount(leveAmount) : '—';
+        root.querySelector('[data-stat="intent-amount"]').textContent = intentAmount ? invFmtAmount(intentAmount) : '—';
+        root.querySelector('[data-stat="total-amount"]').textContent = totalAmount ? invFmtAmount(totalAmount) : '—';
+
+        colCount.textContent = ' · ' + visibleStages().length + '/' + INV_STAGES.length;
+
+        footEl.innerHTML = invPipeline.length
+          ? '<span>' + invPipeline.length + ' investisseur' + (invPipeline.length > 1 ? 's' : '') + '</span>'
+            + '<span><b class="is-leve">' + esc(invFmtAmount(leveAmount) || '0 €') + '</b> levé</span>'
+            + '<span><b class="is-intent">' + esc(invFmtAmount(intentAmount) || '0 €') + '</b> intentionné</span>'
+            + '<span><b>' + esc(invFmtAmount(totalAmount) || '0 €') + '</b> pipeline total</span>'
+          : '';
+
         summaryEl.hidden = false;
-        funnelEl.hidden = false;
-        viewbarEl.hidden = false;
-        applyView();
+        toolbarEl.hidden = false;
+        footEl.hidden = !invPipeline.length;
       }
 
       async function moveStage(id, stage) {
