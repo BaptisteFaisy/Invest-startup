@@ -6,30 +6,41 @@
   <title>Liquid+ — Feedback</title>
   <meta name="description" content="Écrivez directement au fondateur de liquid + : questions, bugs, suggestions." />
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
+  <script>
+    // Applique le thème mémorisé au plus tôt (anti-flash). Défaut : sombre (:root).
+    try { var t = localStorage.getItem('liquidTheme'); if (t === 'paper' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=6" />
   <link rel="stylesheet" href="editor.css?v=7" />
   <link rel="stylesheet" href="drawer-menu.css?v=12" />
+  <link rel="stylesheet" href="theme.css?v=1" />
   <style>
-    body { background: #08090c; min-height: 100vh; }
+    body { background: var(--t-bg); min-height: 100vh; }
+
+    /* Topbar thémable (surcharge editor.css) */
+    .topbar { background: var(--t-topbar-bg) !important; border-bottom: 1px solid var(--t-topbar-border) !important; }
+    .topbar .brand { color: var(--t-on-bg) !important; }
+    .topbar .brand__plus { color: var(--t-on-bg) !important; }
+    .topbar__doc { color: var(--t-on-bg) !important; border-left-color: var(--t-divider) !important; }
     .app { visibility: hidden; }
     .app.ready { visibility: visible; }
     .app { height: auto; overflow: visible; display: block; }
 
     .fb { max-width: 720px; margin: 0 auto; padding: 24px 28px 80px; }
-    .fb__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
-    .fb__title { font-size: 32px; letter-spacing: -0.03em; margin-top: 6px; color: #fff; }
-    .fb__sub { color: rgba(255,255,255,0.55); font-size: 15px; margin-top: 8px; line-height: 1.55; max-width: 560px; }
+    .fb__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--t-on-bg); }
+    .fb__title { font-size: 32px; letter-spacing: -0.03em; margin-top: 6px; color: var(--t-on-bg); }
+    .fb__sub { color: var(--t-on-bg-muted); font-size: 15px; margin-top: 8px; line-height: 1.55; max-width: 560px; }
 
     .fb-back-row { height: 24px; }
-    .fb-back { position: fixed; top: 68px; left: max(12px, calc(50% - 376px)); z-index: 15; width: 32px; height: 32px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
+    .fb-back { position: fixed; top: 68px; left: max(12px, calc(50% - 376px)); z-index: 15; width: 32px; height: 32px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: var(--t-on-bg); cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
     .fb-back:hover { opacity: 0.68; transform: translateX(-1px); }
     .fb-back:focus-visible { outline: none; opacity: 1; }
     .fb-back svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
 
-    .fb-card { background: #fff; border-radius: 18px; padding: 22px 24px 20px; margin-top: 28px; box-shadow: 0 12px 40px rgba(0,0,0,0.35); }
+    .fb-card { background: var(--t-card); border: 1px solid var(--t-card-border); border-radius: 18px; padding: 22px 24px 20px; margin-top: 28px; box-shadow: var(--t-card-shadow); }
     .fb-card__head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
     .fb-card__title { font-size: 1.02rem; font-weight: 800; color: #08090c; letter-spacing: -0.01em; margin: 0; }
     .fb-card__hint { font-size: 0.8rem; color: #a8a8b3; }
@@ -68,6 +79,7 @@
     }
   </style>
   <script src="auth.js?v=3"></script>
+  <script src="theme.js?v=1" defer></script>
   <script src="tasks.js?v=2" defer></script>
   <script src="drawer-menu.js?v=9" defer></script>
   <script src="drawer-steps.js?v=1" defer></script>
