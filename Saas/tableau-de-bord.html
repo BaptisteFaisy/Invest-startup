@@ -977,6 +977,32 @@
     :root[data-theme="paper"] .topbar__search-result-kind { color: var(--t-on-bg-muted) !important; }
     :root[data-theme="paper"] .topbar__search-empty { color: var(--t-on-bg-muted) !important; }
 
+    /* Tiroirs de navigation et d'actions */
+    :root[data-theme="paper"] .drawer { background:var(--t-bg); border-color:var(--t-divider); box-shadow:var(--t-elevated-shadow); }
+    :root[data-theme="paper"] .drawer__head,
+    :root[data-theme="paper"] .drawer__mode { border-color:var(--t-divider); }
+    :root[data-theme="paper"] .drawer__title,
+    :root[data-theme="paper"] .drawer__section-title { color:var(--t-on-bg); }
+    :root[data-theme="paper"] .drawer__body { scrollbar-color:#8a8578 transparent; }
+    :root[data-theme="paper"] .drawer__body::-webkit-scrollbar-thumb { background:#8a8578; }
+    :root[data-theme="paper"] .drawer__resize:hover::after,
+    :root[data-theme="paper"] .drawer__resize.is-drag::after { background:rgba(17,17,17,.24); }
+    :root[data-theme="paper"] .drawer__link { color:#3f3b34; }
+    :root[data-theme="paper"] .drawer__link:hover,
+    :root[data-theme="paper"] .drawer__link.is-active { background:var(--t-chip); color:var(--t-on-bg); }
+    :root[data-theme="paper"] .drawer__sep { background:var(--t-divider); }
+    :root[data-theme="paper"] .drawer__step-num { background:var(--t-chip); color:var(--t-on-bg-muted); }
+    :root[data-theme="paper"] .drawer__step-bar { background:rgba(17,17,17,.09); }
+    :root[data-theme="paper"] .drawer__link--step.is-current { background:rgba(79,70,229,.10); color:#312e81; }
+    :root[data-theme="paper"] .drawer__link--step.is-current .drawer__step-num { background:rgba(79,70,229,.16); color:#4338ca; }
+    :root[data-theme="paper"] .drawer__mode-label { color:var(--t-on-bg-muted); }
+    :root[data-theme="paper"] .drawer__mode-options { background:var(--t-surface); border-color:var(--t-border); }
+    :root[data-theme="paper"] .drawer__mode-option { color:var(--t-on-bg-muted); }
+    :root[data-theme="paper"] .drawer__mode-option:hover { background:var(--t-chip); color:var(--t-on-bg); }
+    :root[data-theme="paper"] .drawer__mode-option.is-active { background:var(--t-solid); color:var(--t-on-solid); box-shadow:0 1px 5px rgba(8,9,12,.18); }
+    :root[data-theme="paper"] .drawer__mode-option:disabled,
+    :root[data-theme="paper"] .drawer__mode-option:disabled:hover { color:#a8a29e; background:transparent; }
+
     /* Chevron de repli sur le fond */
     :root[data-theme="paper"] .resume-toggle { color: var(--t-on-bg-muted) !important; }
     :root[data-theme="paper"] .resume-toggle:hover { background: var(--t-chip) !important; color: var(--t-on-bg) !important; }

@@ -134,6 +134,21 @@
     :root[data-theme="paper"] .section-link { color:var(--t-on-bg-muted); }
     :root[data-theme="paper"] .section-link:hover { color:var(--t-on-bg); }
     :root[data-theme="paper"] .status { color:var(--t-on-bg); background:var(--t-surface); border-color:var(--t-surface-brd); }
+    :root[data-theme="paper"] .drawer { background:var(--t-bg); border-color:var(--t-divider); box-shadow:var(--t-elevated-shadow); }
+    :root[data-theme="paper"] .drawer__head,
+    :root[data-theme="paper"] .drawer__mode { border-color:var(--t-divider); }
+    :root[data-theme="paper"] .drawer__title,
+    :root[data-theme="paper"] .drawer__section-title { color:var(--t-on-bg); }
+    :root[data-theme="paper"] .drawer__body { scrollbar-color:#8a8578 transparent; }
+    :root[data-theme="paper"] .drawer__link { color:#3f3b34; }
+    :root[data-theme="paper"] .drawer__link:hover,
+    :root[data-theme="paper"] .drawer__link.is-current { background:var(--t-chip); color:var(--t-on-bg); }
+    :root[data-theme="paper"] .drawer__sep { background:var(--t-divider); }
+    :root[data-theme="paper"] .drawer__mode-label { color:var(--t-on-bg-muted); }
+    :root[data-theme="paper"] .drawer__mode-options { background:var(--t-surface); border-color:var(--t-border); }
+    :root[data-theme="paper"] .drawer__mode-option { color:var(--t-on-bg-muted); }
+    :root[data-theme="paper"] .drawer__mode-option:hover { background:var(--t-chip); color:var(--t-on-bg); }
+    :root[data-theme="paper"] .drawer__mode-option.is-active { background:var(--t-solid); color:var(--t-on-solid); box-shadow:0 1px 5px rgba(8,9,12,.18); }
   </style>
 </head>
 <body>
