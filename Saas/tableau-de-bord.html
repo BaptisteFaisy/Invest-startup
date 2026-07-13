@@ -714,7 +714,7 @@
     .drawer__link--step.is-active { background:rgba(255,255,255,0.10); color:#fff; }
     .drawer__soon-tag { margin-left:auto; flex:none; font-family:'Archivo',sans-serif; font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#22c55e; background:rgba(34,197,94,0.20); padding:2px 7px; border-radius:99px; }
     .drawer__unread-dot { margin-left:auto; flex:none; width:10px; height:10px; border-radius:50%; background:#86efac; }
-    .drawer__mode { flex:none; padding:12px 10px; border-bottom:1px solid rgba(255,255,255,0.08); direction:ltr; }
+    .drawer__mode { flex:none; margin-top:8px; padding:12px 10px 6px; border-top:1px solid rgba(255,255,255,0.08); direction:ltr; }
     .drawer__mode-label { display:block; margin:0 0 8px 2px; color:rgba(255,255,255,0.62); font-family:'Archivo',sans-serif; font-size:10px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; }
     .drawer__mode-options { display:grid; grid-template-columns:1fr 1fr; gap:3px; padding:3px; border:1px solid rgba(255,255,255,0.12); border-radius:10px; background:rgba(255,255,255,0.04); }
     .drawer__mode-option { min-width:0; padding:8px 6px; border:0; border-radius:7px; background:transparent; color:rgba(255,255,255,0.58); font-family:'Libre Franklin',sans-serif; font-size:12px; font-weight:600; cursor:pointer; transition:background .15s,color .15s,box-shadow .15s; }
@@ -1712,9 +1712,9 @@
       const control = document.createElement('div');
       control.className = 'drawer__mode';
       control.innerHTML = `<span class="drawer__mode-label" id="drawer-mode-label">Mode</span><div class="drawer__mode-options" role="group" aria-labelledby="drawer-mode-label"><button class="drawer__mode-option" type="button" data-mode="autonome" aria-pressed="false">Autonome</button><button class="drawer__mode-option" type="button" data-mode="guide" aria-pressed="false">Guidé<span class="drawer__mode-soon">Bientôt</span></button></div>`;
-      // Épinglé en haut du tiroir (juste sous l'en-tête, au-dessus de la liste
-      // défilante) pour rester visible sans avoir à faire défiler le menu.
-      body.insertAdjacentElement('beforebegin', control);
+      // Placé à la fin de la liste de navigation (juste sous « Gouvernance »,
+      // avec un petit espace) : en bas du menu, sans être collé au tout fond.
+      body.appendChild(control);
       let currentMode = 'autonome';
       try { currentMode = localStorage.getItem('liquid_experience_mode') || currentMode; } catch {}
       if (!['autonome', 'guide'].includes(currentMode)) currentMode = 'autonome';
