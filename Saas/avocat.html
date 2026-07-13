@@ -498,7 +498,10 @@
             '<button type="button" class="av-btn--link" id="declare-own">J\'ai déjà mon avocat</button>' +
           '</div>';
       }
-      document.getElementById('change-lawyer')?.addEventListener('click', () => openChooser());
+      document.getElementById('change-lawyer')?.addEventListener('click', () => {
+        if (String(STATE.partner?.id || '').startsWith('platform-')) requestPlatformLawyerChange();
+        else openChooser();
+      });
       document.getElementById('declare-own')?.addEventListener('click', () => openChooser(true));
     }
 
@@ -647,6 +650,17 @@
     }
 
     /* ── Modale : choisir / changer d'avocat ─────────────────────── */
+    async function requestPlatformLawyerChange() {
+      const reason = window.prompt('Pourquoi souhaitez-vous changer d\'avocat ? (facultatif)');
+      if (reason === null) return;
+      try {
+        await jsonPost('/api/saas/avocat/change-request', { reason });
+        alert('Votre demande de changement a été transmise à Liquid+.');
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
     function openChooser(focusOwn) {
       const err = document.getElementById('chooser-err');
       err.textContent = '';

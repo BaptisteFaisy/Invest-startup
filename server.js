@@ -3363,6 +3363,28 @@ app.get('/api/saas/avocat/requests', requireAuth, async (req, res) => {
   res.json({ requests });
 });
 
+app.post('/api/saas/avocat/change-request', requireAuth, async (req, res) => {
+  const state = await col('saas_avocat').findOne({ user_id: req.user.id, mode: 'platform' });
+  if (!state?.lawyer_user_id) return res.status(409).json({ error: 'Aucun avocat Liquid+ ne vous est actuellement attribué' });
+  const existing = await col('lawyer_change_requests').findOne({ client_id: req.user.id, status: 'pending' });
+  if (existing) return res.status(409).json({ error: 'Une demande de changement est déjà en cours' });
+  const [client, fundraisingProfile, lawyer] = await Promise.all([
+    col('users').findOne({ id: req.user.id }, { projection: { email: 1, full_name: 1 } }),
+    col('saas_fundraising_profiles').findOne({ user_id: req.user.id }, { projection: { company_name: 1 } }),
+    col('users').findOne({ id: state.lawyer_user_id }, { projection: { email: 1, full_name: 1 } }),
+  ]);
+  const now = new Date().toISOString();
+  const request = {
+    id: crypto.randomUUID(), client_id: req.user.id,
+    client_name: client?.full_name || client?.email || '', client_email: client?.email || '',
+    startup_name: shortText(fundraisingProfile?.company_name, 200),
+    current_lawyer_id: state.lawyer_user_id, current_lawyer_name: lawyer?.full_name || lawyer?.email || '',
+    reason: shortText(req.body?.reason, 1000), status: 'pending', created_at: now, updated_at: now,
+  };
+  await col('lawyer_change_requests').insertOne(request);
+  res.status(201).json({ request });
+});
+
 app.put('/api/saas/avocat/preference', requireAuth, async (req, res) => {
   const body = req.body || {};
   const mode = ['assigned', 'chosen', 'own'].includes(body.mode) ? body.mode : null;
@@ -3908,12 +3930,42 @@ Réponds en français avec un objet JSON contenant "intro" (2 phrases maximum) e
 // Gestion administrateur des comptes avocat et de leur portefeuille clients.
 const LAWYER_ACCOUNT_STATUSES = ['pending', 'active', 'suspended', 'rejected'];
 
+async function proposalsWithStartupNames(proposals) {
+  const clientIds = [...new Set(proposals.map(item => item.client_id).filter(Number.isFinite))];
+  if (!clientIds.length) return proposals;
+  const profiles = await col('saas_fundraising_profiles')
+    .find({ user_id: { $in: clientIds } }, { projection: { _id: 0, user_id: 1, company_name: 1 } })
+    .toArray();
+  const names = new Map(profiles.map(profile => [profile.user_id, profile.company_name]));
+  return proposals.map(item => ({ ...item, startup_name: item.startup_name || names.get(item.client_id) || '' }));
+}
+
 app.get('/api/admin/lawyers', requireAdmin, async (_req, res) => {
   const users = await col('users').find({ account_types: 'avocat' }, { projection: { _id: 0, password: 0, totp_secret: 0 } }).sort({ created_at: -1 }).toArray();
   const ids = users.map(u => u.id);
-  const profiles = await col('saas_lawyer_profiles').find({ user_id: { $in: ids } }, { projection: { _id: 0 } }).toArray();
+  const [profiles, assignments] = await Promise.all([
+    col('saas_lawyer_profiles').find({ user_id: { $in: ids } }, { projection: { _id: 0 } }).toArray(),
+    col('saas_avocat').find({ mode: 'platform', lawyer_user_id: { $in: ids } }, { projection: { _id: 0, user_id: 1, lawyer_user_id: 1 } }).toArray(),
+  ]);
   const byUser = new Map(profiles.map(p => [p.user_id, p]));
-  res.json({ lawyers: users.map(u => ({ ...u, lawyer_status: u.lawyer_status || 'pending', profile: byUser.get(u.id) || null })) });
+  const clientIds = assignments.map(item => item.user_id);
+  const [clients, fundraisingProfiles] = await Promise.all([
+    col('users').find({ id: { $in: clientIds } }, { projection: { _id: 0, id: 1, email: 1, full_name: 1 } }).toArray(),
+    col('saas_fundraising_profiles').find({ user_id: { $in: clientIds } }, { projection: { _id: 0, user_id: 1, company_name: 1 } }).toArray(),
+  ]);
+  const clientsById = new Map(clients.map(client => [client.id, client]));
+  const companiesById = new Map(fundraisingProfiles.map(profile => [profile.user_id, profile.company_name]));
+  const startupsByLawyer = new Map(ids.map(id => [id, []]));
+  assignments.forEach(item => {
+    const client = clientsById.get(item.user_id);
+    if (!client) return;
+    startupsByLawyer.get(item.lawyer_user_id)?.push({
+      id: client.id,
+      name: companiesById.get(client.id) || client.full_name || client.email,
+      email: client.email,
+    });
+  });
+  res.json({ lawyers: users.map(u => ({ ...u, lawyer_status: u.lawyer_status || 'pending', profile: byUser.get(u.id) || null, assigned_startups: startupsByLawyer.get(u.id) || [] })) });
 });
 
 app.patch('/api/admin/lawyers/:id/status', requireAdmin, async (req, res) => {
@@ -3926,28 +3978,48 @@ app.patch('/api/admin/lawyers/:id/status', requireAdmin, async (req, res) => {
 
 app.get('/api/admin/founders', requireAdmin, async (_req, res) => {
   const users = await col('users').find({ account_types: 'fondateur' }, { projection: { _id: 0, id: 1, email: 1, full_name: 1, created_at: 1 } }).sort({ created_at: -1 }).toArray();
-  const profiles = await col('saas_fundraising_profiles').find({ user_id: { $in: users.map(u => u.id) } }, { projection: { _id: 0, user_id: 1, company_name: 1 } }).toArray();
+  const userIds = users.map(u => u.id);
+  const [profiles, assignments, openProposals] = await Promise.all([
+    col('saas_fundraising_profiles').find({ user_id: { $in: userIds } }, { projection: { _id: 0, user_id: 1, company_name: 1 } }).toArray(),
+    col('saas_avocat').find({ user_id: { $in: userIds }, mode: 'platform' }, { projection: { _id: 0, user_id: 1, lawyer_user_id: 1 } }).toArray(),
+    col('lawyer_client_proposals').find({ client_id: { $in: userIds }, status: { $in: ['proposed', 'accepted'] } }, { projection: { _id: 0, client_id: 1 } }).toArray(),
+  ]);
   const companies = new Map(profiles.map(p => [p.user_id, p.company_name]));
-  res.json({ founders: users.map(u => ({ ...u, company_name: companies.get(u.id) || '' })) });
+  const lawyerIds = [...new Set(assignments.map(item => item.lawyer_user_id).filter(Number.isFinite))];
+  const lawyers = await col('users').find({ id: { $in: lawyerIds } }, { projection: { _id: 0, id: 1, email: 1, full_name: 1 } }).toArray();
+  const lawyersById = new Map(lawyers.map(lawyer => [lawyer.id, lawyer]));
+  const assignmentsByClient = new Map(assignments.map(item => [item.user_id, item.lawyer_user_id]));
+  const clientsWithProposal = new Set(openProposals.map(item => item.client_id));
+  res.json({ founders: users.map(u => {
+    const lawyerId = assignmentsByClient.get(u.id) || null;
+    const lawyer = lawyersById.get(lawyerId);
+    return { ...u, company_name: companies.get(u.id) || '', lawyer_id: lawyerId, lawyer_name: lawyer ? (lawyer.full_name || lawyer.email) : '', has_open_proposal: clientsWithProposal.has(u.id) };
+  }) });
+});
+
+app.get('/api/admin/lawyer-change-requests', requireAdmin, async (_req, res) => {
+  const requests = await col('lawyer_change_requests').find({}, { projection: { _id: 0 } }).sort({ created_at: -1 }).toArray();
+  res.json({ requests });
 });
 
 app.get('/api/admin/client-proposals', requireAdmin, async (_req, res) => {
   const proposals = await col('lawyer_client_proposals').find({}, { projection: { _id: 0 } }).sort({ created_at: -1 }).toArray();
-  res.json({ proposals });
+  res.json({ proposals: await proposalsWithStartupNames(proposals) });
 });
 
 app.post('/api/admin/client-proposals', requireAdmin, async (req, res) => {
   const lawyerId = Number(req.body?.lawyer_id), clientId = Number(req.body?.client_id);
-  const [lawyer, client] = await Promise.all([
+  const [lawyer, client, fundraisingProfile] = await Promise.all([
     col('users').findOne({ id: lawyerId, account_types: 'avocat', lawyer_status: 'active' }),
     col('users').findOne({ id: clientId, account_types: 'fondateur' }),
+    col('saas_fundraising_profiles').findOne({ user_id: clientId }, { projection: { company_name: 1 } }),
   ]);
   if (!lawyer) return res.status(404).json({ error: 'Avocat actif introuvable' });
   if (!client) return res.status(404).json({ error: 'Client fondateur introuvable' });
   const duplicate = await col('lawyer_client_proposals').findOne({ lawyer_id: lawyerId, client_id: clientId, status: { $in: ['proposed', 'accepted', 'assigned'] } });
   if (duplicate) return res.status(409).json({ error: 'Une proposition est déjà ouverte pour ce binôme' });
   const now = new Date().toISOString();
-  const proposal = { id: crypto.randomUUID(), lawyer_id: lawyerId, lawyer_name: lawyer.full_name || lawyer.email, client_id: clientId, client_name: client.full_name || client.email, client_email: client.email, message: shortText(req.body?.message, 1000), status: 'proposed', created_at: now, updated_at: now };
+  const proposal = { id: crypto.randomUUID(), lawyer_id: lawyerId, lawyer_name: lawyer.full_name || lawyer.email, client_id: clientId, startup_name: shortText(fundraisingProfile?.company_name, 200), client_name: client.full_name || client.email, client_email: client.email, message: shortText(req.body?.message, 1000), status: 'proposed', created_at: now, updated_at: now };
   await col('lawyer_client_proposals').insertOne(proposal);
   res.status(201).json({ proposal });
 });
@@ -3966,7 +4038,7 @@ app.post('/api/admin/client-proposals/:id/assign', requireAdmin, async (req, res
 
 app.get('/api/lawyer/client-proposals', requireAuth, requireLawyer, async (req, res) => {
   const proposals = await col('lawyer_client_proposals').find({ lawyer_id: req.user.id }, { projection: { _id: 0 } }).sort({ created_at: -1 }).toArray();
-  res.json({ proposals });
+  res.json({ proposals: await proposalsWithStartupNames(proposals) });
 });
 
 app.patch('/api/lawyer/client-proposals/:id', requireAuth, requireLawyer, async (req, res) => {
@@ -3979,7 +4051,7 @@ app.patch('/api/lawyer/client-proposals/:id', requireAuth, requireLawyer, async 
 
 app.get('/api/lawyer/clients', requireAuth, requireLawyer, async (req, res) => {
   const clients = await col('lawyer_client_proposals').find({ lawyer_id: req.user.id, status: 'assigned' }, { projection: { _id: 0 } }).sort({ assigned_at: -1 }).toArray();
-  res.json({ clients });
+  res.json({ clients: await proposalsWithStartupNames(clients) });
 });
 
 // Enregistre / met à jour le document de travail (apparaît dans « Mes documents »).

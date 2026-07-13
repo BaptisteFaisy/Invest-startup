@@ -105,6 +105,13 @@
     .profile__row { display:grid; grid-template-columns:105px 1fr; gap:12px; font-size:12px; line-height:1.45; }
     .profile__row span:first-child { color:var(--muted); }
     .work-list { display:grid; gap:10px; padding:16px; }
+    .client-segment { overflow:hidden; border:1px solid var(--line); border-radius:12px; background:#fafaf8; }
+    .client-segment__head { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 16px; border-bottom:1px solid var(--line); background:#f1f1ed; }
+    .client-segment__name { font:800 13px 'Archivo',sans-serif; }
+    .client-segment__meta { margin-top:3px; color:var(--muted); font-size:11px; }
+    .client-segment__count { flex:none; padding:4px 7px; border-radius:99px; background:#fff; color:var(--muted); font:700 10px 'Archivo',sans-serif; }
+    .client-segment .work-row { border:0; border-radius:0; background:#fff; }
+    .client-segment .work-row + .work-row { border-top:1px solid var(--line); }
     .work-row { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:15px 16px; border:1px solid var(--line); border-radius:11px; background:#fafaf8; }
     .work-row__name { font:800 13px 'Archivo',sans-serif; }
     .work-row__meta { margin-top:4px; color:var(--muted); font-size:12px; line-height:1.45; }
@@ -170,36 +177,25 @@
 
     <div class="drawer-backdrop" id="nav-backdrop" data-drawer-close></div>
     <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Navigation avocat">
-      <div class="drawer__head"><span class="drawer__title">Mon activité</span></div>
+      <div class="drawer__head"><span class="drawer__title">Navigation</span></div>
       <nav class="drawer__body">
         <a class="drawer__link is-current" href="tableau-de-bord-avocat.html"><svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3Z"/><path d="M9 20v-6h6v6"/></svg>Tableau de bord</a>
-        <a class="drawer__link" href="#dossiers"><svg viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v11H3Z"/></svg>Dossiers</a>
-        <a class="drawer__link" href="#demandes"><svg viewBox="0 0 24 24"><path d="M6 3h12v18H6Z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Demandes de relecture</a>
-        <a class="drawer__link" href="#clients"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-4 2-6 6-6s6 2 6 6M16 5a3 3 0 0 1 0 6M17 14c3 .3 4 2.3 4 6"/></svg>Clients</a>
-        <a class="drawer__link" href="feedback.html"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 3Z"/><path d="M8 9h8M8 13h5"/></svg>Feedback</a>
         <div class="drawer__sep"></div>
-        <a class="drawer__link" href="#profil"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-5 3-8 8-8s8 3 8 8"/></svg>Profil professionnel</a>
+        <div class="drawer__section-title">Mes missions</div>
+        <a class="drawer__link" href="#propositions-missions"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 3Z"/><path d="M8 9h8M8 13h5"/></svg>Propositions de missions</a>
+        <a class="drawer__link" href="#missions-en-cours"><svg viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v11H3Z"/><path d="M8 12h8M8 16h5"/></svg>Missions en cours</a>
+        <a class="drawer__link" href="#missions-passees"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Missions passées</a>
       </nav>
       <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0"></div>
     </aside>
 
     <div class="drawer-backdrop" id="actions-backdrop" data-drawer-close></div>
-    <aside class="drawer drawer--right" id="actions-drawer" role="dialog" aria-modal="true" aria-label="Outils avocat">
-      <div class="drawer__head"><span class="drawer__title">Outils</span></div>
+    <aside class="drawer drawer--right" id="actions-drawer" role="dialog" aria-modal="true" aria-label="Menu avocat">
+      <div class="drawer__head"><span class="drawer__title">Menu</span></div>
       <nav class="drawer__body">
-        <div class="drawer__section-title">Outils juridiques</div>
         <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Éditeur</a>
-        <a class="drawer__link" href="compare.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M12 3v18M7 8l-4 4 4 4M17 8l4 4-4 4"/></svg>Comparer</a>
-        <a class="drawer__link" href="documents.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16h16V8Z"/><path d="M14 2v6h6"/></svg>Documents</a>
-        <div class="drawer__sep"></div>
-        <div class="drawer__section-title">Relation clients</div>
-        <a class="drawer__link" href="#propositions"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 3Z"/><path d="M8 9h8M8 13h5"/></svg>Propositions clients</a>
-        <a class="drawer__link" href="#clients"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-4 2-6 6-6s6 2 6 6M16 5a3 3 0 0 1 0 6M17 14c3 .3 4 2.3 4 6"/></svg>Clients</a>
         <a class="drawer__link" href="feedback.html"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 3Z"/><path d="M8 9h8M8 13h5"/></svg>Feedback</a>
-        <div class="drawer__sep"></div>
-        <div class="drawer__section-title">Compte</div>
-        <a class="drawer__link" href="#profil"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-5 3-8 8-8s8 3 8 8"/></svg>Mon profil</a>
-        <button type="button" class="drawer__link" id="drawer-logout"><svg viewBox="0 0 24 24"><path d="M10 4H4v16h6M14 8l4 4-4 4M18 12H8"/></svg>Se déconnecter</button>
+        <a class="drawer__link" href="compte.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-5 3-8 8-8s8 3 8 8"/></svg>Mon compte</a>
       </nav>
       <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0"></div>
     </aside>
@@ -236,10 +232,12 @@
           </section>
         </div>
       </div>
-      <div class="section-head" id="propositions"><h2 class="section-title">Propositions clients</h2></div>
+      <div class="section-head" id="propositions-missions"><h2 class="section-title">Propositions de missions</h2></div>
       <section class="card"><div class="work-list" id="proposal-work-list"><div class="empty"><p>Chargement des propositions…</p></div></div></section>
-      <div class="section-head" id="clients"><h2 class="section-title">Clients attribués</h2></div>
-      <section class="card"><div class="work-list" id="client-work-list"><div class="empty"><p>Chargement des clients…</p></div></div></section>
+      <div class="section-head" id="missions-en-cours"><h2 class="section-title">Missions en cours</h2></div>
+      <section class="card"><div class="work-list" id="client-work-list"><div class="empty"><p>Chargement des missions…</p></div></div></section>
+      <div class="section-head" id="missions-passees"><h2 class="section-title">Missions passées</h2></div>
+      <section class="card"><div class="work-list"><div class="empty"><p>Aucune mission passée pour le moment.</p></div></div></section>
     </main>
   </div>
 
@@ -255,17 +253,35 @@
     }
     function initials(profile) { return ((profile.first_name || '').charAt(0) + (profile.last_name || '').charAt(0)).toUpperCase() || 'AV'; }
     function esc(value) { const el=document.createElement('span'); el.textContent=value == null ? '' : String(value); return el.innerHTML; }
+    function groupByStartup(items) {
+      const groups = new Map();
+      items.forEach(item => {
+        const key = String(item.client_id || item.startup_name || item.client_name || 'startup');
+        if (!groups.has(key)) groups.set(key, {
+          name: item.startup_name || item.client_name || 'Startup',
+          email: item.client_email || '',
+          items: [],
+        });
+        groups.get(key).items.push(item);
+      });
+      return [...groups.values()];
+    }
+    function clientSegment(group, rows) {
+      const count = group.items.length;
+      return `<section class="client-segment"><header class="client-segment__head"><div><div class="client-segment__name">${esc(group.name)}</div><div class="client-segment__meta">${esc(group.email)}</div></div><span class="client-segment__count">${count} mission${count > 1 ? 's' : ''}</span></header>${rows}</section>`;
+    }
     const proposalLabels={proposed:'À répondre',accepted:'Acceptée — en attente d’attribution',declined:'Refusée',assigned:'Attribuée'};
     async function lawyerApi(path, opts) { const r=await fetch(path,Object.assign({credentials:'include'},opts||{})); const data=await r.json().catch(()=>({})); if(!r.ok) throw new Error(data.error||'Erreur serveur'); return data; }
     function renderProposals(items) {
+      items = items.filter(item => item.status !== 'assigned');
       const el=document.getElementById('proposal-work-list');
-      if(!items.length){el.innerHTML='<div class="empty"><p>Aucune proposition client pour le moment.</p></div>';return;}
-      el.innerHTML=items.map(p=>`<div class="work-row"><div><div class="work-row__name">${esc(p.client_name)}</div><div class="work-row__meta">${esc(p.client_email)}${p.message?' · '+esc(p.message):''}<br>${esc(proposalLabels[p.status]||p.status)}</div></div>${p.status==='proposed'?`<div class="work-actions"><button class="work-btn work-btn--primary" data-proposal="${esc(p.id)}" data-answer="accepted">Accepter</button><button class="work-btn" data-proposal="${esc(p.id)}" data-answer="declined">Refuser</button></div>`:''}</div>`).join('');
+      if(!items.length){el.innerHTML='<div class="empty"><p>Aucune proposition de mission pour le moment.</p></div>';return;}
+      el.innerHTML=groupByStartup(items).map(group => clientSegment(group, group.items.map(p=>`<div class="work-row"><div><div class="work-row__name">Proposition de mission</div><div class="work-row__meta">${p.message?esc(p.message)+'<br>':''}${esc(proposalLabels[p.status]||p.status)}</div></div>${p.status==='proposed'?`<div class="work-actions"><button class="work-btn work-btn--primary" data-proposal="${esc(p.id)}" data-answer="accepted">Accepter</button><button class="work-btn" data-proposal="${esc(p.id)}" data-answer="declined">Refuser</button></div>`:''}</div>`).join(''))).join('');
     }
     function renderClients(items) {
       const el=document.getElementById('client-work-list');
-      if(!items.length){el.innerHTML='<div class="empty"><p>Aucun client ne vous a encore été attribué.</p></div>';return;}
-      el.innerHTML=items.map(c=>`<div class="work-row"><div><div class="work-row__name">${esc(c.client_name)}</div><div class="work-row__meta">${esc(c.client_email)} · Attribué le ${new Date(c.assigned_at).toLocaleDateString('fr-FR')}</div></div></div>`).join('');
+      if(!items.length){el.innerHTML='<div class="empty"><p>Aucune mission ne vous a encore été attribuée.</p></div>';return;}
+      el.innerHTML=groupByStartup(items).map(group => clientSegment(group, group.items.map(c=>`<div class="work-row"><div><div class="work-row__name">Mission en cours</div><div class="work-row__meta">Attribuée le ${new Date(c.assigned_at).toLocaleDateString('fr-FR')}</div></div></div>`).join(''))).join('');
     }
     async function loadClientTools(active) {
       if(!active){renderProposals([]);renderClients([]);return;}
