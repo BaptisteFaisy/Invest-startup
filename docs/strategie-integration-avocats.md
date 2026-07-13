@@ -293,6 +293,44 @@ jamais d'heures cachées.
 
 ---
 
+## 5 quater. Montage contractuel & packaging du paiement
+
+### Trois contrats distincts (ne pas les confondre)
+
+| Contrat | Entre | Rôle |
+|---|---|---|
+| **Convention de partenariat** | **LIQUID+ ↔ avocat** | Adhésion grille/délais/qualité ; ce que LIQUID+ fournit (outils, dossier pré‑préparé, mise en relation) ; abonnement fixe (plus tard) ; **clauses déonto** : pas de partage d'honoraires, indépendance, mandat direct du client, **0 marge** sur honoraires, secret pro, RGPD, conflits. **Protège aussi LIQUID+** : écrit que **l'avocat porte la responsabilité juridique**, pas la plateforme. |
+| **Convention d'honoraires** (lettre de mission) | **Fondateur ↔ avocat** | Obligatoire (loi Macron), **directe**, une par mission ; acte le forfait. **LIQUID+ n'est pas partie.** |
+| **CGV / CGU** | **Fondateur ↔ LIQUID+** | Logiciel + accompagnement ; **disclaimer** : LIQUID+ ne fournit pas de conseil juridique. |
+
+### Structure juridique de LIQUID+
+
+Micro‑entreprise = OK pour **tester** (MVP, premiers deals). Passer en **SASU/SAS** assez vite : (1) plafond
+de CA micro (~77,7 k€ services) vite dépassé ; (2) crédibilité B2B face aux cabinets ; (3) séparation de
+responsabilité ; (4) lever soi‑même plus tard. Règle qui protège quel que soit le statut : **ne jamais
+encaisser les honoraires de l'avocat sur le compte LIQUID+** (évite le maniement de fonds). *(À confirmer
+avec expert‑comptable + avocat.)*
+
+### « 1 590 € tout compris » → le mot piège
+
+« Tout compris » sous‑entend **un seul bénéficiaire** ; or il y en a deux (LIQUID+ + avocat). Résolution :
+
+- **Reformuler la promesse.** Le fondateur veut *« prix total connu d'avance, zéro surprise, pas de compteur »*,
+  pas *« une seule facture »* — et ça se tient **en deux lignes**. Afficher :
+  > **« Votre levée sécurisée : ~1 590 € — prix total, connu d'avance. »**
+  > *dont 690 € LIQUID+ · 900 € honoraires de votre avocat (facturés par l'avocat).*
+
+  Plus honnête, et **meilleur** : voir l'avocat facturer **sa** part **rassure** (avocat réellement indépendant,
+  pas « revendu »).
+- **Fluidifier : un paiement, deux bénéficiaires.** Split payment (type Stripe Connect) → le fondateur paie
+  1 590 € une fois, 900 € routés **directement** vers le compte de l'avocat, 690 € vers LIQUID+ ; LIQUID+ ne
+  **détient jamais** la part avocat. UX = un paiement ; réalité = deux payés ; déonto = OK (0 marge sur 900 €).
+  ⚠️ Touche au **maniement de fonds** → à valider ; option conservatrice = l'avocat encaisse en direct.
+- **Ça ne casse pas le « moins cher »** : le total (1 590 €) reste 2–6× sous l'avocat classique (3 000–15 000 €) ;
+  deux lignes ≠ total plus élevé.
+
+---
+
 ## 6. Sélection & attribution des avocats
 
 ### Concurrence ou attribution directe ? → **Attribution curée. Pas de mise en concurrence.**
