@@ -88,7 +88,7 @@
         <div class="docmodal__drop" id="docmodal-drop" tabindex="0" role="button"
              aria-label="Glisser un fichier ou parcourir">
           <span><strong>Glissez un fichier ici</strong> ou cliquez pour parcourir</span>
-          <span class="docmodal__hint">PDF, Word, Excel ou image</span>
+          <span class="docmodal__hint" id="docmodal-format-hint">PDF, Word, Excel ou image</span>
         </div>
         <div class="docmodal__file" id="docmodal-file">
           <div class="docmodal__file-meta">
@@ -159,6 +159,8 @@
       </div>
     </div>`;
   document.body.appendChild(modal);
+  modal.querySelector('#docmodal-format-hint').textContent =
+    fileInput.dataset.importHint || 'PDF, Word, Excel ou image';
 
   const drop     = modal.querySelector('#docmodal-drop');
   const fileBox  = modal.querySelector('#docmodal-file');
@@ -267,14 +269,11 @@
     try { ctx = typeof window.liquidImportContext === 'function' ? window.liquidImportContext() : null; } catch { ctx = null; }
     verCtxDocs = (ctx && Array.isArray(ctx.documents)) ? ctx.documents : [];
     const investors = (ctx && Array.isArray(ctx.investors)) ? ctx.investors : [];
-    if (!verCtxDocs.length) { verBox.classList.remove('is-shown'); return; }
-    verParent.innerHTML = '<option value="">— Choisir le document —</option>';
-    verCtxDocs.forEach((d) => {
-      const o = document.createElement('option');
-      o.value = String(d.id);
-      o.textContent = d.name;
-      verParent.appendChild(o);
-    });
+
+    // Ces listes servent aussi au « nudge » affiché après l'import. Dans
+    // l'éditeur, aucun contexte de versions n'est fourni : on doit néanmoins
+    // leur laisser une option neutre, sinon la troisième liste est vide et le
+    // formulaire paraît impossible à compléter.
     verInvestor.innerHTML = '<option value="">— Quel investisseur ? —</option>';
     nudgeInvestor.innerHTML = '<option value="">— Quel investisseur ? —</option>';
     verRecipient.innerHTML = '<option value="">— Version interne, pas encore envoyée —</option>';
@@ -289,6 +288,29 @@
       recipientOption.textContent = 'Envoyée à ' + recipientOption.textContent;
       verRecipient.appendChild(recipientOption);
       nudgeRecipient.appendChild(recipientOption.cloneNode(true));
+    });
+
+    // Ne pas proposer « Reçue d'un investisseur » lorsqu'aucun investisseur
+    // n'est disponible : ce choix rendrait le champ suivant obligatoire sans
+    // qu'aucune valeur puisse y être sélectionnée.
+    [verOrigin, nudgeOrigin].forEach((select) => {
+      const investorOption = select.querySelector('option[value="investor"]');
+      if (investorOption) investorOption.disabled = investors.length === 0;
+    });
+    verInvestor.disabled = investors.length === 0;
+    nudgeInvestor.disabled = investors.length === 0;
+    if (!investors.length) {
+      verInvestor.options[0].textContent = '— Aucun investisseur enregistré —';
+      nudgeInvestor.options[0].textContent = '— Aucun investisseur enregistré —';
+    }
+
+    if (!verCtxDocs.length) { verBox.classList.remove('is-shown'); return; }
+    verParent.innerHTML = '<option value="">— Choisir le document —</option>';
+    verCtxDocs.forEach((d) => {
+      const o = document.createElement('option');
+      o.value = String(d.id);
+      o.textContent = d.name;
+      verParent.appendChild(o);
     });
     verBox.classList.add('is-shown');
   }
