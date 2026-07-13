@@ -965,6 +965,11 @@
     :root[data-theme="paper"] .topbar .btn--ghost { color: var(--t-on-bg) !important; border-color: var(--t-outline) !important; }
     :root[data-theme="paper"] .topbar .btn--ghost:hover { color: var(--t-on-bg) !important; border-color: var(--t-outline-hov) !important; }
 
+    /* Ampoule des vues d'étape — même traitement clair que l'outil Avocat. */
+    :root[data-theme="paper"] .step-guide-btn { background:var(--t-bg); border-color:rgba(0,0,0,0.5); color:#141414; }
+    :root[data-theme="paper"] .step-guide-btn:hover,
+    :root[data-theme="paper"] .step-guide-btn:focus-visible { background:#efece6; border-color:#141414; color:#141414; outline:none; }
+
     /* Recherche de la topbar */
     :root[data-theme="paper"] .topbar__search-field { background: var(--t-surface) !important; border-color: var(--t-border) !important; color: var(--t-on-bg) !important; }
     :root[data-theme="paper"] .topbar__search-field:focus-within { border-color: var(--t-outline-hov) !important; color: var(--t-on-bg) !important; }

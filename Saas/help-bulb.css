@@ -53,6 +53,31 @@
   stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round;
 }
 
+/* En mode clair, reprendre exactement le traitement de l'outil Avocat :
+   ampoule posée sur le papier, icône sombre et panneau d'aide clair. Les
+   styles sombres ci-dessus restent la référence en data-theme="dark". */
+:root[data-theme="paper"] .help-bulb {
+  background: var(--t-bg);
+  border-color: rgba(0, 0, 0, 0.5);
+  color: #141414;
+}
+:root[data-theme="paper"] .help-bulb:hover,
+:root[data-theme="paper"] .help-bulb:focus-visible,
+:root[data-theme="paper"] .help-bulb.is-open {
+  border-color: #141414;
+  color: #141414;
+  background: #efece6;
+}
+:root[data-theme="paper"] .help-pop {
+  background: var(--t-card);
+  border-color: var(--t-divider);
+  color: var(--t-on-bg-80);
+  box-shadow: var(--t-elevated-shadow);
+}
+:root[data-theme="paper"] .help-pop b,
+:root[data-theme="paper"] .help-pop strong { color: var(--t-on-bg); }
+:root[data-theme="paper"] .help-pop__label { color: var(--t-on-bg-faint); }
+
 @keyframes helpPopIn {
   from { opacity: 0; transform: translateY(-6px); }
   to   { opacity: 1; transform: translateY(0); }
