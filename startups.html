@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="styles.css?v=20260611b" />
     <style>
       body { background: #000; margin: 0; }
-      /* ���� Hero ���� */
+      /* ═══ Hero ═══ */
       .startup-hero {
         display: grid;
         gap: 20px;
@@ -32,7 +32,7 @@
       .startup-hero h1 { font-size: clamp(2.2rem, 4vw, 3.4rem); }
       .startup-hero .lead { font-size: 1rem; color: var(--muted); line-height: 1.75; }
 
-      /* ���� Filtres ���� */
+      /* ═══ Filtres ═══ */
       .filter-bar {
         display: flex;
         flex-wrap: wrap;
@@ -57,7 +57,7 @@
         border-color: var(--text);
       }
 
-      /* ���� Grille startups ���� */
+      /* ═══ Grille startups ═══ */
       .startup-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -81,7 +81,7 @@
         .sc-avatar { width: 22px; height: 22px; font-size: 0.58rem; }
       }
 
-      /* ���� Carte startup ���� */
+      /* ═══ Carte startup ═══ */
       .startup-card {
         background: rgba(255,255,255,0.72);
         border: 1px solid var(--line);
@@ -201,7 +201,7 @@
       }
       .sc-cta:hover { text-decoration: underline; }
 
-      /* ���� Liens startup ���� */
+      /* ═══ Liens startup ═══ */
       .modal-links { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
       .modal-link {
         display: inline-flex; align-items: center; gap: 6px;
@@ -213,7 +213,7 @@
       .modal-link:hover { background: #fff; border-color: rgba(31,29,26,0.2); }
       .modal-link svg { width: 14px; height: 14px; flex-shrink: 0; }
 
-      /* ���� Modal détail ���� */
+      /* ═══ Modal détail ═══ */
       .modal-overlay {
         display: none;
         position: fixed; inset: 0;
@@ -304,7 +304,7 @@
         .modal { padding: 24px 20px; }
       }
 
-      /* ���� Lien rapport d'audit ���� */
+      /* ═══ Lien rapport d'audit ═══ */
       .modal-audit {
         display: flex; align-items: center; justify-content: space-between;
         gap: 16px; padding: 18px 22px; border-radius: 14px; margin-top: 8px;
@@ -398,10 +398,10 @@
     </footer>
 
     <script>
-      // ���� Données startups (chargées via API) ������������������������������������������������������������
+      // ═══ Données startups (chargées via API) ═══
       let startupsData = [];
 
-      // ���� Render cards ����������������������������������������������������������������������������������������������������������
+      // ═══ Render cards ═══
       function renderCards(filter = 'all') {
         const grid = document.getElementById('startup-grid');
         const filtered = filter === 'all' ? startupsData : startupsData.filter(s => s.sector === filter);
@@ -434,7 +434,7 @@
               <span class="sc-badge stage">${s.stage}</span>
               <span class="sc-badge ${s.open ? 'open' : 'closed'}">${s.open ? 'Ouvert aux investisseurs' : 'Tour fermé'}</span>
             </div>
-            <p class="sc-desc">${s.description.slice(0, 160)}⬦</p>
+            <p class="sc-desc">${s.description.slice(0, 160)}…</p>
             <div class="sc-kpis">
               ${s.kpis.map(k => `
                 <div class="sc-kpi">
@@ -449,12 +449,12 @@
                 </div>
                 <span>${s.team.length} fondateur${s.team.length > 1 ? 's' : ''}</span>
               </div>
-              <span class="sc-cta">Voir le dossier � </span>
+              <span class="sc-cta">Voir le dossier → </span>
             </div>
           </div>`).join('');
       }
 
-      // ���� Modal ������������������������������������������������������������������������������������������������������������������������
+      // ═══ Modal ═══
       function openModal(id) {
         const s = startupsData.find(x => x.id === id);
         if (!s) return;
@@ -468,7 +468,7 @@
         ].filter(Boolean).join('');
 
         document.getElementById('modal-content').innerHTML = `
-          <button class="modal-close" id="modal-close" aria-label="Fermer">�S"</button>
+          <button class="modal-close" id="modal-close" aria-label="Fermer">✕</button>
           <div class="modal-header">
             ${s.logo_url
               ? `<img src="${s.logo_url}" alt="${s.name}" style="width:64px;height:64px;border-radius:18px;object-fit:cover;flex-shrink:0;">`
@@ -495,9 +495,9 @@
           <div class="modal-section">
             <h3>Chiffres clés</h3>
             <div class="modal-kpis">
-              <div class="modal-kpi"><strong>${s.founded || '�'}</strong><span>Fondée en</span></div>
-              <div class="modal-kpi"><strong>${s.employees || '�'}</strong><span>Collaborateurs</span></div>
-              <div class="modal-kpi"><strong>${s.raised || '�'}</strong><span>Levé à ce jour</span></div>
+              <div class="modal-kpi"><strong>${s.founded || '—'}</strong><span>Fondée en</span></div>
+              <div class="modal-kpi"><strong>${s.employees || '—'}</strong><span>Collaborateurs</span></div>
+              <div class="modal-kpi"><strong>${s.raised || '—'}</strong><span>Levé à ce jour</span></div>
               ${(s.kpis || []).map(k => `<div class="modal-kpi"><strong>${k.value}</strong><span>${k.label}</span></div>`).join('')}
             </div>
           </div>
@@ -528,10 +528,10 @@
               </div>
               <div>
                 <p class="modal-audit-label">Rapport d'analyse complet</p>
-                <p class="modal-audit-sub">Financier · Marché · �0quipe · Risques</p>
+                <p class="modal-audit-sub">Financier · Marché · Équipe · Risques</p>
               </div>
             </div>
-            <span class="modal-audit-arrow">� </span>
+            <span class="modal-audit-arrow">→ </span>
           </a>
 
           ${s.open ? `
@@ -541,7 +541,7 @@
           </div>` : `
           <div class="modal-invest-cta" style="background:rgba(111,106,98,0.06);border-color:var(--line);">
             <p>Ce tour est clôturé. <strong>Inscrivez-vous</strong> pour être alerté des prochaines opportunités.</p>
-            <a class="button" href="register.html">�`tre alerté</a>
+            <a class="button" href="register.html">Être alerté</a>
           </div>`}
         `;
         document.getElementById('modal-overlay').classList.add('open');
@@ -556,7 +556,7 @@
       });
       document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-      // ���� Nav auth ��������������������������������������������������������������������������������������������������������������������
+      // ═══ Nav auth ═══
       fetch('/api/auth/me', { credentials: 'include' })
         .then(r => r.ok ? r.json() : null)
         .then(data => {

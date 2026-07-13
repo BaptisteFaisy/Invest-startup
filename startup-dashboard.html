@@ -1,9 +1,9 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Liquid+ � Dashboard Startup</title>
+    <title>Liquid+ — Dashboard Startup</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Libre+Franklin:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -133,7 +133,7 @@
       <nav class="nav">
         <a class="logo" href="index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" class="logo-icon"><span class="logo-wordmark">LIQUID+</span></a>
         <div class="nav-links">
-          <span class="nav-link nav-user-name" id="startup-name">�</span>
+          <span class="nav-link nav-user-name" id="startup-name">…</span>
           <span style="font-size:0.72rem; text-transform:uppercase; letter-spacing:.14em; font-weight:600; padding:4px 12px; border-radius:999px; background:rgba(224,122,79,0.1); color:#b85c2a; border:1px solid rgba(224,122,79,0.2);">Startup</span>
           <button class="button ghost" id="btn-logout">Se déconnecter</button>
         </div>
@@ -145,8 +145,8 @@
 
         <!-- Greeting -->
         <div style="display:grid; gap:6px;">
-          <h1 id="greeting">Bonjour �x9</h1>
-          <p style="font-size:0.9rem; color:var(--muted);">Publiez vos documents � vos investisseurs y auront accès dès l'upload.</p>
+          <h1 id="greeting">Bonjour 👋</h1>
+          <p style="font-size:0.9rem; color:var(--muted);">Publiez vos documents — vos investisseurs y auront accès dès l'upload.</p>
         </div>
 
         <!-- Upload -->
@@ -156,7 +156,7 @@
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
               <div class="field">
                 <label for="doc-title">Titre du document</label>
-                <input type="text" id="doc-title" placeholder="Rapport mensuel � Juin 2026" required />
+                <input type="text" id="doc-title" placeholder="Rapport mensuel — Juin 2026" required />
               </div>
               <div class="field">
                 <label for="doc-type">Type</label>
@@ -172,15 +172,15 @@
             </div>
             <div class="field">
               <label for="doc-desc">Description (optionnel)</label>
-              <textarea id="doc-desc" placeholder="Résumé des points clés, chiffres importants⬦"></textarea>
+              <textarea id="doc-desc" placeholder="Résumé des points clés, chiffres importants…"></textarea>
             </div>
             <div class="drop-zone" id="drop-zone">
               <input type="file" id="file-input" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" />
-              <div class="drop-zone-icon">�x}</div>
+              <div class="drop-zone-icon">📤</div>
               <p><strong>Cliquez ou glissez</strong> votre fichier ici<br>PDF, Word, Excel, image · 20 Mo max</p>
             </div>
             <div class="file-selected" id="file-selected">
-              <span>�x</span>
+              <span>📎</span>
               <span id="file-name"></span>
             </div>
             <button class="button primary" type="submit" id="btn-upload">Publier le document</button>
@@ -213,8 +213,8 @@
         document:             'Document',
       };
       const TYPE_ICONS = {
-        rapport_mensuel: '�x&', rapport_trimestriel: '�x`', rapport_annuel: '�x9',
-        kpis: '�x�', pitch_deck: '�xa�', document: '�x',
+        rapport_mensuel: '📄', rapport_trimestriel: '📊', rapport_annuel: '📈',
+        kpis: '🎯', pitch_deck: '📑', document: '📄',
       };
 
       function fmt_size(bytes) {
@@ -233,13 +233,13 @@
         setTimeout(() => t.classList.remove('show'), 3500);
       }
 
-      // ���� Auth ������������������������������������������������������������������������������������������������������������������������������
+      // ═══ Auth ═══
       async function init() {
         const r = await fetch('/api/startup/me', { credentials: 'include' });
         if (!r.ok) { window.location.href = 'startup-login.html'; return; }
         const { startup } = await r.json();
         document.getElementById('startup-name').textContent = startup.company_name;
-        document.getElementById('greeting').textContent = `Bonjour, ${startup.company_name} �x9`;
+        document.getElementById('greeting').textContent = `Bonjour, ${startup.company_name} 👋`;
         loadDocuments();
       }
 
@@ -248,7 +248,7 @@
         window.location.href = 'startup-login.html';
       });
 
-      // ���� Drop zone ������������������������������������������������������������������������������������������������������������������
+      // ═══ Drop zone ═══
       const dropZone  = document.getElementById('drop-zone');
       const fileInput = document.getElementById('file-input');
       const fileSelected = document.getElementById('file-selected');
@@ -270,13 +270,13 @@
         fileSelected.style.display = 'flex';
       }
 
-      // ���� Upload ������������������������������������������������������������������������������������������������������������������������
+      // ═══ Upload ═══
       async function handleUpload(e) {
         e.preventDefault();
         if (!fileInput.files[0]) { showToast('Veuillez sélectionner un fichier', 'error'); return; }
 
         const btn = document.getElementById('btn-upload');
-        btn.textContent = 'Publication⬦'; btn.disabled = true;
+        btn.textContent = 'Publication…'; btn.disabled = true;
 
         const fd = new FormData();
         fd.append('document',    fileInput.files[0]);
@@ -289,7 +289,7 @@
           const data = await r.json();
           if (!r.ok) { showToast(data.error, 'error'); }
           else {
-            showToast('Document publié avec succès �S');
+            showToast('Document publié avec succès ✅');
             document.getElementById('upload-form').reset();
             fileSelected.style.display = 'none';
             loadDocuments();
@@ -298,7 +298,7 @@
         btn.textContent = 'Publier le document'; btn.disabled = false;
       }
 
-      // ���� Liste documents ��������������������������������������������������������������������������������������������������������
+      // ═══ Liste documents ═══
       async function loadDocuments() {
         const r = await fetch('/api/startup/documents', { credentials: 'include' });
         if (!r.ok) return;
@@ -311,10 +311,10 @@
         }
         el.innerHTML = documents.map((d, i) => `
           <div class="doc-row" style="animation-delay:${i * 0.06}s">
-            <div class="doc-icon">${TYPE_ICONS[d.type] || '�x'}</div>
+            <div class="doc-icon">${TYPE_ICONS[d.type] || '📄'}</div>
             <div class="doc-meta">
               <p class="doc-title">${d.title}</p>
-              <p class="doc-sub">${fmt_date(d.uploaded_at)} · ${fmt_size(d.size)}${d.description ? ' · ' + d.description.slice(0, 60) + (d.description.length > 60 ? '⬦' : '') : ''}</p>
+              <p class="doc-sub">${fmt_date(d.uploaded_at)} · ${fmt_size(d.size)}${d.description ? ' · ' + d.description.slice(0, 60) + (d.description.length > 60 ? '…' : '') : ''}</p>
             </div>
             <span class="doc-type-badge">${TYPE_LABELS[d.type] || d.type}</span>
             <div class="doc-actions">

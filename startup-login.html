@@ -1,9 +1,9 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Liquid+ � Espace Startup</title>
+    <title>Liquid+ — Espace Startup</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Libre+Franklin:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -108,7 +108,7 @@
     <div class="auth-page">
       <div class="auth-box">
         <div class="auth-header">
-          <span class="startup-badge">�xa� Espace Startup</span>
+          <span class="startup-badge">🚀 Espace Startup</span>
           <h1>Bienvenue sur votre espace</h1>
           <p>Publiez vos rapports et documents à destination de vos investisseurs LIQUID+.</p>
         </div>
@@ -130,7 +130,7 @@
               </div>
               <div class="field">
                 <label for="login-password">Mot de passe</label>
-                <input type="password" id="login-password" placeholder="⬢⬢⬢⬢⬢⬢⬢⬢" required />
+                <input type="password" id="login-password" placeholder="••••••••" required />
               </div>
               <button class="button primary" type="submit" id="btn-login">Se connecter</button>
             </div>
@@ -181,7 +181,7 @@
       async function handleLogin(e) {
         e.preventDefault();
         const btn = document.getElementById('btn-login');
-        btn.textContent = 'Connexion⬦'; btn.disabled = true;
+        btn.textContent = 'Connexion…'; btn.disabled = true;
         try {
           const r = await fetch('/api/startup/login', {
             method: 'POST', credentials: 'include',
@@ -203,7 +203,7 @@
       async function handleRegister(e) {
         e.preventDefault();
         const btn = document.getElementById('btn-register');
-        btn.textContent = 'Création⬦'; btn.disabled = true;
+        btn.textContent = 'Création…'; btn.disabled = true;
         try {
           const r = await fetch('/api/startup/register', {
             method: 'POST', credentials: 'include',
