@@ -574,11 +574,10 @@
         (new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at)));
       box.innerHTML = sorted.map(d => {
         const rk = RISK_META[d.risk] || RISK_META.faible;
-        const canReview = d.risk === 'critique' || d.risk === 'conseille';
         return '<div class="av-card av-doc">' +
           '<div class="av-doc__main"><div class="av-doc__name" title="' + esc(d.name) + '">' + esc(d.name) + '</div></div>' +
           '<span class="av-docrisk av-docrisk--' + esc(rk.cls) + '"><span class="av-docrisk__dot"></span>' + esc(rk.label) + '</span>' +
-          (canReview ? '<button type="button" class="av-btn av-btn--ghost av-btn--sm" data-review-doc="' + esc(d.id) + '" data-review-presta="' + esc(d.avocat_presta || 'question') + '">Faire relire</button>' : '') +
+          '<button type="button" class="av-btn av-btn--ghost av-btn--sm" data-review-doc="' + esc(d.id) + '" data-review-presta="' + esc(d.avocat_presta || 'question') + '">Faire relire</button>' +
         '</div>';
       }).join('');
     }
