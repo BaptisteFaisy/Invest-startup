@@ -82,7 +82,8 @@
 
   <div class="app">
     <!-- Top bar -->
-    <header class="topbar">
+    <div class="topbar-wrap" id="topbar-wrap">
+    <header class="topbar" id="topbar">
       <div class="topbar__left">
         <button type="button" class="hamburger" id="nav-menu-btn" aria-label="Ouvrir la navigation" aria-controls="nav-drawer" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
@@ -107,6 +108,8 @@
         </button>
       </div>
     </header>
+    <button type="button" class="chrome-toggle chrome-toggle--topbar" id="topbar-toggle" aria-controls="topbar" aria-expanded="true" aria-label="Masquer le bandeau" title="Masquer le bandeau">⌄</button>
+    </div>
 
     <!-- Menu hamburger gauche : navigation -->
     <div class="drawer-backdrop" id="nav-backdrop" data-drawer-close></div>
@@ -162,6 +165,7 @@
     </div>
 
     <!-- Ribbon : barre d'outils de mise en forme -->
+    <div class="ribbon-wrap" id="ribbon-wrap">
     <div class="ribbon" id="ribbon">
       <div class="tgroup">
         <button class="tbtn" data-cmd="undo" title="Annuler (Ctrl+Z)">↶</button>
@@ -236,6 +240,8 @@
       <div class="tgroup">
         <button class="tbtn tbtn--text" id="add-clause-btn" type="button" title="Ajouter une clause / un paragraphe respectant la mise en page">+ Clause</button>
       </div>
+    </div>
+    <button type="button" class="chrome-toggle chrome-toggle--ribbon" id="ribbon-toggle" aria-controls="ribbon" aria-expanded="true" aria-label="Masquer la barre d’édition" title="Masquer la barre d’édition">⌄</button>
     </div>
 
     <!-- Barre de progression de l'analyse : bandeau intégré sous la barre

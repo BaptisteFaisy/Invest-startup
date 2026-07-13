@@ -5,6 +5,25 @@
    Éditeur riche (façon Word) + décrypteur clause par clause.
    ========================================================= */
 
+// Repliage indépendant du bandeau et de la barre d'édition. Les deux restent
+// visibles au chargement ; aucun état n'est mémorisé entre deux ouvertures.
+function setupChromeToggles() {
+  [['topbar-wrap', 'topbar-toggle', 'bandeau'], ['ribbon-wrap', 'ribbon-toggle', 'barre d’édition']]
+    .forEach(([wrapId, buttonId, label]) => {
+      const wrap = document.getElementById(wrapId);
+      const button = document.getElementById(buttonId);
+      if (!wrap || !button) return;
+      button.addEventListener('click', () => {
+        const collapsed = wrap.classList.toggle('is-collapsed');
+        button.setAttribute('aria-expanded', String(!collapsed));
+        button.setAttribute('aria-label', `${collapsed ? 'Afficher' : 'Masquer'} le ${label}`);
+        button.title = `${collapsed ? 'Afficher' : 'Masquer'} le ${label}`;
+        button.textContent = collapsed ? '⌃' : '⌄';
+      });
+    });
+}
+setupChromeToggles();
+
 /* Société fictive : LUMIO SAS — éditeur d'un logiciel de pilotage
    financier pour PME. Investisseur lead fictif : Orbit Ventures. */
 

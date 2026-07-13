@@ -2,6 +2,24 @@
 
 .app { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
+/* Les deux bandes de l'éditeur peuvent être repliées indépendamment. Le
+   chevron reste présent dans une petite poignée afin de pouvoir les rouvrir. */
+.topbar-wrap, .ribbon-wrap { position: relative; flex: none; }
+.topbar-wrap.is-collapsed, .ribbon-wrap.is-collapsed { height: 20px; }
+.topbar-wrap.is-collapsed .topbar, .ribbon-wrap.is-collapsed .ribbon { display: none; }
+.chrome-toggle {
+  position: absolute; z-index: 5; right: 14px; bottom: -1px;
+  width: 30px; height: 18px; padding: 0; border: 1px solid var(--line);
+  border-bottom: 0; border-radius: 7px 7px 0 0; background: var(--card);
+  color: var(--text-2); cursor: pointer; font: 700 17px/16px Arial, sans-serif;
+  transition: color .12s ease, background .12s ease;
+}
+.chrome-toggle:hover { color: var(--text); background: var(--bg); }
+.topbar-wrap:not(.is-collapsed) .chrome-toggle--topbar { background: #0a0a0a; border-color: #333; color: #fff; }
+.topbar-wrap.is-collapsed .chrome-toggle--topbar,
+.ribbon-wrap.is-collapsed .chrome-toggle--ribbon { bottom: 0; border-bottom: 1px solid var(--line); border-radius: 7px; }
+.chrome-toggle--ribbon { bottom: -1px; }
+
 /* ---------- Top bar ---------- */
 .topbar { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 56px; padding: 0 20px; background: #0a0a0a; border-bottom: 1px solid #222; }
 .topbar__left { display: flex; align-items: center; gap: 16px; min-width: 0; }
@@ -717,7 +735,7 @@ mark.cond-val { background: rgba(251,191,36,0.38); border-radius: 3px; padding: 
   html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
 
   /* Interface d'édition et aides à l'écran masquées. */
-  .topbar, .ribbon, .statusbar, .panel, .library, .document-meta,
+  .topbar, .ribbon, .chrome-toggle, .statusbar, .panel, .library, .document-meta,
   .clause-cond__del, .clause-cond__tip { display: none !important; }
 
   /* Conteneurs neutralisés pour que .page démarre tout en haut de la page PDF. */
