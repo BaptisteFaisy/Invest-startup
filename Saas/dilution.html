@@ -6,6 +6,10 @@
   <title>Liquid+ — Simulation de dilution</title>
   <meta name="description" content="Simulateur de dilution : anticipez l'impact d'un tour de financement (pre-money, post-money, fully diluted) sur la répartition du capital." />
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
+  <script>
+    // Applique le thème mémorisé au plus tôt (anti-flash). Défaut : sombre (:root).
+    try { var t = localStorage.getItem('liquidTheme'); if (t === 'paper' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -13,53 +17,54 @@
   <link rel="stylesheet" href="editor.css?v=7" />
   <link rel="stylesheet" href="drawer-menu.css?v=12" />
   <link rel="stylesheet" href="help-bulb.css?v=1" />
+  <link rel="stylesheet" href="theme.css?v=1" />
   <style>
     [hidden] { display: none !important; }
     .app { height: auto; overflow: visible; display: block; }
-    body, .app { background: #08090c !important; }
+    body, .app { background: var(--t-bg) !important; }
 
     /* Topbar noir (identique aux autres pages du SaaS) */
-    .topbar { background: #08090c !important; border-bottom: 1px solid rgba(255,255,255,0.07) !important; position: sticky; top: 0; z-index: 20; }
-    .topbar .brand { color: #fff !important; display: flex; align-items: center; gap: 8px; }
-    .topbar .brand__plus { color: #fff !important; }
+    .topbar { background: var(--t-topbar-bg) !important; border-bottom: 1px solid var(--t-topbar-border) !important; position: sticky; top: 0; z-index: 20; }
+    .topbar .brand { color: var(--t-on-bg) !important; display: flex; align-items: center; gap: 8px; }
+    .topbar .brand__plus { color: var(--t-on-bg) !important; }
     .topbar .brand__logo { display: block; flex: none; }
-    .topbar__doc { color: #fff !important; border-left-color: rgba(255,255,255,0.2) !important; }
-    .topbar .btn--ghost { color: #fff !important; border-color: rgba(255,255,255,0.35) !important; }
-    .topbar .btn--ghost:hover { color: #fff !important; border-color: rgba(255,255,255,0.65) !important; }
+    .topbar__doc { color: var(--t-on-bg) !important; border-left-color: var(--t-divider) !important; }
+    .topbar .btn--ghost { color: var(--t-on-bg) !important; border-color: var(--t-outline) !important; }
+    .topbar .btn--ghost:hover { color: var(--t-on-bg) !important; border-color: var(--t-outline-hov) !important; }
 
     /* Retour en arrière : le chevron reste visible sans bandeau au défilement. */
     .page-back-row { height: 6px; }
-    .page-back { position: fixed; top: 56px; left: max(12px, calc(50% - 606px)); z-index: 15; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
+    .page-back { position: fixed; top: 56px; left: max(12px, calc(50% - 606px)); z-index: 15; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: var(--t-on-bg); cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
     .page-back:hover { opacity: 0.68; transform: translateX(-1px); }
     .page-back:focus-visible { outline: none; opacity: 1; }
     .page-back svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
 
     .dil { max-width: 1180px; margin: 0 auto; padding: 24px 24px 90px; }
-    .dil__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
-    .dil__title { font-size: 30px; letter-spacing: -0.03em; color: #fff; margin-top: 6px; }
-    .dil__sub { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 8px; line-height: 1.6; max-width: 720px; }
+    .dil__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--t-on-bg); }
+    .dil__title { font-size: 30px; letter-spacing: -0.03em; color: var(--t-on-bg); margin-top: 6px; }
+    .dil__sub { color: var(--t-on-bg-70); font-size: 15px; margin-top: 8px; line-height: 1.6; max-width: 720px; }
 
     .dil__next { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 10px; }
-    .dil__next .btn { background: rgba(255,255,255,0.06); color: #fff; border-color: rgba(255,255,255,0.2); }
-    .dil__next .btn:hover { border-color: rgba(255,255,255,0.5); }
+    .dil__next .btn { background: var(--t-chip-2); color: var(--t-on-bg); border-color: var(--t-divider); }
+    .dil__next .btn:hover { border-color: var(--t-on-bg-faint); }
 
     /* Disposition 2 colonnes : saisie à gauche, résultats à droite */
     .dil__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.04fr); gap: 20px; margin-top: 26px; align-items: start; }
     @media (max-width: 940px) { .dil__grid { grid-template-columns: minmax(0, 1fr); } }
 
     /* Deux blocs clairement délimités : « saisie » à gauche, « résultats » à droite */
-    .dil__block { border: 1px solid rgba(255,255,255,0.14); border-radius: 20px; background: rgba(255,255,255,0.03); padding: 4px 16px 16px; }
+    .dil__block { border: 1px solid var(--t-border); border-radius: 20px; background: var(--t-surface); padding: 4px 16px 16px; }
     .dil__results { position: sticky; top: 78px; }
     @media (max-width: 940px) { .dil__results { position: static; } }
 
     /* En-tête de bloc : numéro + intitulé, séparé du contenu par un filet */
-    .dil__col-head { display: flex; align-items: flex-start; gap: 12px; padding: 16px 2px 15px; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .dil__col-head { display: flex; align-items: flex-start; gap: 12px; padding: 16px 2px 15px; margin-bottom: 16px; border-bottom: 1px solid var(--t-surface-brd); }
     .dil__col-num { flex: none; width: 27px; height: 27px; border-radius: 8px; display: grid; place-items: center; font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 800; background: #fff; color: #08090c; }
-    .dil__col-lab { font-family: 'Archivo', sans-serif; font-size: 16px; font-weight: 800; color: #fff; }
-    .dil__col-sub { font-size: 12.5px; color: rgba(255,255,255,0.55); margin-top: 3px; line-height: 1.5; }
+    .dil__col-lab { font-family: 'Archivo', sans-serif; font-size: 16px; font-weight: 800; color: var(--t-on-bg); }
+    .dil__col-sub { font-size: 12.5px; color: var(--t-on-bg-muted); margin-top: 3px; line-height: 1.5; }
 
     /* Cartes blanches */
-    .card { background: #fff; border-radius: 16px; padding: 20px 20px 22px; box-shadow: 0 10px 34px rgba(0,0,0,0.35); margin-bottom: 18px; }
+    .card { background: var(--t-card); border: 1px solid var(--t-card-border); border-radius: 16px; padding: 20px 20px 22px; box-shadow: var(--t-card-shadow); margin-bottom: 18px; }
     .card__h { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #6b6b78; margin-bottom: 4px; }
     .card__desc { font-size: 12.5px; color: #8a8a95; line-height: 1.5; margin-bottom: 14px; }
     .card__toprow { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
@@ -119,24 +124,24 @@
 
     /* KPI */
     .kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .kpi { background: #fff; border-radius: 13px; padding: 14px 15px; box-shadow: 0 8px 26px rgba(0,0,0,0.3); }
+    .kpi { background: var(--t-card); border: 1px solid var(--t-card-border); border-radius: 13px; padding: 14px 15px; box-shadow: var(--t-card-shadow); }
     .kpi__lab { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #6b6b78; }
     .kpi__val { font-family: 'Archivo', sans-serif; font-size: 22px; font-weight: 700; color: #08090c; letter-spacing: -0.02em; margin-top: 5px; }
     .kpi__sub { font-size: 11.5px; color: #8a8a95; margin-top: 2px; }
     .kpi--accent { background: linear-gradient(135deg, #26272e, #131417); }
-    .kpi--accent .kpi__lab { color: rgba(255,255,255,0.72); }
-    .kpi--accent .kpi__val { color: #fff; }
-    .kpi--accent .kpi__sub { color: rgba(255,255,255,0.6); }
+    .kpi--accent .kpi__lab { color: var(--t-on-bg-70); }
+    .kpi--accent .kpi__val { color: var(--t-on-bg); }
+    .kpi--accent .kpi__sub { color: var(--t-on-bg-60); }
 
     /* Sélecteur de base de calcul (pleinement dilué / non dilué) */
     .dil__basis-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 2px 0 10px; }
-    .dil__basis-lab { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
-    .seg--dark { background: rgba(255,255,255,0.06); }
-    .seg--dark .seg__btn { color: rgba(255,255,255,0.6); }
-    .seg--dark .seg__btn:hover { color: #fff; }
-    .seg--dark .seg__btn.is-on { background: rgba(255,255,255,0.14); color: #fff; box-shadow: none; }
-    .dil__basis-hint { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.55; margin: 0 0 16px; }
-    .dil__basis-hint b { color: rgba(255,255,255,0.8); }
+    .dil__basis-lab { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--t-on-bg-muted); }
+    .seg--dark { background: var(--t-chip-2); }
+    .seg--dark .seg__btn { color: var(--t-on-bg-60); }
+    .seg--dark .seg__btn:hover { color: var(--t-on-bg); }
+    .seg--dark .seg__btn.is-on { background: var(--t-border); color: var(--t-on-bg); box-shadow: none; }
+    .dil__basis-hint { font-size: 12px; color: var(--t-on-bg-faint); line-height: 1.55; margin: 0 0 16px; }
+    .dil__basis-hint b { color: var(--t-on-bg-80); }
     .rt-muted { color: #b6b6c1; font-weight: 400; font-style: normal; }
 
     /* Barre de répartition */
@@ -182,16 +187,16 @@
     .warn { display: flex; gap: 10px; background: rgba(217,119,6,0.1); border: 1px solid rgba(217,119,6,0.28); border-radius: 12px; padding: 13px 15px; margin-bottom: 16px; font-size: 13px; line-height: 1.5; color: #92400e; }
     .warn svg { width: 18px; height: 18px; flex: none; stroke: #d97706; stroke-width: 1.9; fill: none; margin-top: 1px; }
 
-    .note { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.6; margin-top: 16px; }
-    .note b { color: rgba(255,255,255,0.8); }
+    .note { font-size: 12px; color: var(--t-on-bg-faint); line-height: 1.6; margin-top: 16px; }
+    .note b { color: var(--t-on-bg-80); }
 
     .dil__actions { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; align-items: center; }
-    .dil__actions .btn { background: rgba(255,255,255,0.06); color: #fff; border-color: rgba(255,255,255,0.2); }
-    .dil__actions .btn:hover { border-color: rgba(255,255,255,0.5); }
+    .dil__actions .btn { background: var(--t-chip-2); color: var(--t-on-bg); border-color: var(--t-divider); }
+    .dil__actions .btn:hover { border-color: var(--t-on-bg-faint); }
 
     /* Explication IA des résultats (le calcul reste en JS, l'IA ne fait que commenter) */
     .explain-card .card__toprow { margin-bottom: 8px; }
-    .btn--ai { background: #08090c; color: #fff; border-color: #08090c; padding: 8px 15px; min-height: 38px; font-size: 13px; }
+    .btn--ai { background: #08090c; color: var(--t-on-bg); border-color: #08090c; padding: 8px 15px; min-height: 38px; font-size: 13px; }
     .btn--ai:hover { background: #26262c; }
     .btn--ai:disabled { opacity: 0.5; cursor: default; }
     .explain-desc { font-size: 12px; color: #6b6b78; line-height: 1.55; margin: 0; }
@@ -204,10 +209,10 @@
     .explain-out.is-error { color: #b91c1c; }
     .explain-out.is-stale { opacity: 0.45; }
     .example-picker { display: flex; align-items: center; gap: 8px; }
-    .example-picker__lab { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
-    .example-picker__sel { font-family: 'Libre Franklin', sans-serif; font-size: 12.5px; color: #fff; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.2); border-radius: 9px; padding: 8px 10px; cursor: pointer; max-width: 260px; }
-    .example-picker__sel:hover { border-color: rgba(255,255,255,0.5); }
-    .example-picker__sel:focus { outline: none; border-color: rgba(255,255,255,0.7); }
+    .example-picker__lab { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--t-on-bg-muted); }
+    .example-picker__sel { font-family: 'Libre Franklin', sans-serif; font-size: 12.5px; color: var(--t-on-bg); background: var(--t-chip-2); border: 1px solid var(--t-divider); border-radius: 9px; padding: 8px 10px; cursor: pointer; max-width: 260px; }
+    .example-picker__sel:hover { border-color: var(--t-on-bg-faint); }
+    .example-picker__sel:focus { outline: none; border-color: var(--t-on-bg-70); }
     .example-picker__sel option { color: #08090c; }
 
     /* Historique des simulations */
@@ -243,26 +248,26 @@
     .ask-box__actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
     .ask-box__btn { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; border-radius: 9px; padding: 8px 14px; cursor: pointer; border: 1px solid rgba(8,9,12,0.14); background: #fff; color: #08090c; transition: .12s; }
     .ask-box__btn:hover { border-color: rgba(8,9,12,0.3); }
-    .ask-box__btn--primary { background: #08090c; border-color: #08090c; color: #fff; }
+    .ask-box__btn--primary { background: #08090c; border-color: #08090c; color: var(--t-on-bg); }
     .ask-box__btn--primary:hover { background: #26272e; border-color: #26272e; }
 
     /* Termes survolables (info-bulle de définition) */
     .term { border-bottom: 1px dashed currentColor; cursor: help; }
     .term:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: 2px; }
-    .tip { position: fixed; z-index: 200; max-width: 280px; background: #0f1115; color: #e8e8ec; font-family: 'Libre Franklin', sans-serif; font-size: 12.5px; font-weight: 400; font-style: normal; line-height: 1.5; letter-spacing: 0; text-transform: none; text-align: left; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.14); box-shadow: 0 12px 34px rgba(0,0,0,0.5); pointer-events: none; opacity: 0; transform: translateY(3px); transition: opacity .12s ease, transform .12s ease; }
+    .tip { position: fixed; z-index: 200; max-width: 280px; background: #0f1115; color: #e8e8ec; font-family: 'Libre Franklin', sans-serif; font-size: 12.5px; font-weight: 400; font-style: normal; line-height: 1.5; letter-spacing: 0; text-transform: none; text-align: left; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--t-border); box-shadow: 0 12px 34px rgba(0,0,0,0.5); pointer-events: none; opacity: 0; transform: translateY(3px); transition: opacity .12s ease, transform .12s ease; }
     .tip.is-on { opacity: 1; transform: translateY(0); }
-    .tip b { color: #fff; font-weight: 700; }
+    .tip b { color: var(--t-on-bg); font-weight: 700; }
 
     /* Renvoi vers l'estimateur de valorisation (outil à part) */
     .dil__link { margin-top: 10px; }
-    .dil__link-a { font-size: 13.5px; color: rgba(255,255,255,0.85); text-decoration: none; border-bottom: 1px dashed rgba(255,255,255,0.4); transition: color .12s, border-color .12s; }
-    .dil__link-a:hover { color: #fff; border-color: rgba(255,255,255,0.6); }
+    .dil__link-a { font-size: 13.5px; color: var(--t-on-bg-80); text-decoration: none; border-bottom: 1px dashed var(--t-on-bg-40); transition: color .12s, border-color .12s; }
+    .dil__link-a:hover { color: var(--t-on-bg); border-color: var(--t-on-bg-60); }
 
     /* Multi-tours : cartes de tour empilables */
     .rounds-container { display: flex; flex-direction: column; gap: 14px; }
-    .round-card { border: 1px solid rgba(8,9,12,0.14); border-radius: 16px; background: #fff; box-shadow: 0 10px 34px rgba(0,0,0,0.35); overflow: hidden; }
+    .round-card { border: 1px solid var(--t-card-border); border-radius: 16px; background: var(--t-card); box-shadow: var(--t-card-shadow); overflow: hidden; }
     .round-card__head { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid rgba(8,9,12,0.08); background: #fafafa; }
-    .round-card__num { flex: none; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #fff; background: #08090c; border-radius: 6px; padding: 4px 8px; white-space: nowrap; }
+    .round-card__num { flex: none; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: var(--t-on-bg); background: #08090c; border-radius: 6px; padding: 4px 8px; white-space: nowrap; }
     .round-name { flex: 1; min-width: 0; font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; color: #08090c; background: transparent; border: 1px solid transparent; border-radius: 8px; padding: 5px 8px; }
     .round-name:hover { border-color: rgba(8,9,12,0.12); }
     .round-name:focus { outline: none; border-color: #08090c; background: #f7f7f5; }
@@ -289,10 +294,10 @@
 
     /* Sélecteur de tour à visualiser */
     .round-view-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 2px 0 12px; }
-    .round-view-lab { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
-    .round-view-sel { font-family: 'Libre Franklin', sans-serif; font-size: 12.5px; color: #fff; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.2); border-radius: 9px; padding: 7px 10px; cursor: pointer; max-width: 260px; }
-    .round-view-sel:hover { border-color: rgba(255,255,255,0.5); }
-    .round-view-sel:focus { outline: none; border-color: rgba(255,255,255,0.7); }
+    .round-view-lab { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--t-on-bg-muted); }
+    .round-view-sel { font-family: 'Libre Franklin', sans-serif; font-size: 12.5px; color: var(--t-on-bg); background: var(--t-chip-2); border: 1px solid var(--t-divider); border-radius: 9px; padding: 7px 10px; cursor: pointer; max-width: 260px; }
+    .round-view-sel:hover { border-color: var(--t-on-bg-faint); }
+    .round-view-sel:focus { outline: none; border-color: var(--t-on-bg-70); }
     .round-view-sel option { color: #08090c; }
 
     @media (max-width: 520px) {
@@ -304,8 +309,19 @@
       .row .inp, .row .sel { padding: 8px 7px; font-size: 12.5px; }
       .kpi__val { font-size: 19px; }
     }
+    /* Composants « accent sombre » (bouton IA, badge, KPI accentué, tooltip) :
+       fond volontairement foncé dans les deux thèmes → texte clair conservé en clair. */
+    :root[data-theme="paper"] .btn--ai,
+    :root[data-theme="paper"] .ask-box__btn--primary,
+    :root[data-theme="paper"] .round-card__num,
+    :root[data-theme="paper"] .tip b,
+    :root[data-theme="paper"] .kpi--accent .kpi__val { color: #fff; }
+    :root[data-theme="paper"] .kpi--accent .kpi__lab { color: rgba(255,255,255,0.72); }
+    :root[data-theme="paper"] .kpi--accent .kpi__sub { color: rgba(255,255,255,0.6); }
+    :root[data-theme="paper"] .tip { border-color: rgba(255,255,255,0.14); }
   </style>
   <script src="auth.js?v=3"></script>
+  <script src="theme.js?v=1" defer></script>
   <script src="tasks.js?v=2" defer></script>
   <script src="drawer-menu.js?v=9" defer></script>
   <script src="drawer-steps.js?v=1" defer></script>
@@ -436,7 +452,7 @@
           </div>
 
           <div style="margin:2px 0 12px">
-            <div class="card__h" style="color:rgba(255,255,255,0.6);margin-bottom:6px">Les tours de financement</div>
+            <div class="card__h" style="color:var(--t-on-bg-60);margin-bottom:6px">Les tours de financement</div>
             <p class="dil__basis-hint" style="margin:0">Ajoutez un ou plusieurs tours. <b>Chaque tour part de la cap table issue du précédent</b> : la dilution se cumule, comme dans la vraie vie (Seed → Série A → Série B…).</p>
           </div>
           <div class="rounds-container" id="rounds-container"></div>

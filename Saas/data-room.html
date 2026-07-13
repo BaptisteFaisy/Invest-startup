@@ -6,6 +6,10 @@
   <title>Liquid+ — Data room</title>
   <meta name="description" content="Partagez vos documents avec vos investisseurs via une data room sécurisée." />
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
+  <script>
+    // Applique le thème mémorisé au plus tôt (anti-flash). Défaut : sombre (:root).
+    try { var t = localStorage.getItem('liquidTheme'); if (t === 'paper' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -13,29 +17,30 @@
   <link rel="stylesheet" href="editor.css?v=7" />
   <link rel="stylesheet" href="drawer-menu.css?v=12" />
   <link rel="stylesheet" href="help-bulb.css?v=1" />
+  <link rel="stylesheet" href="theme.css?v=1" />
   <style>
     [hidden] { display: none !important; }
     .app { height: auto; overflow: visible; display: block; }
-    body, .app { background: #08090c !important; }
+    body, .app { background: var(--t-bg) !important; }
 
     /* Topbar noir (identique aux autres pages du SaaS) */
-    .topbar { background: #08090c !important; border-bottom: 1px solid rgba(255,255,255,0.07) !important; }
-    .topbar .brand { color: #fff !important; display: flex; align-items: center; gap: 8px; }
-    .topbar .brand__plus { color: #fff !important; }
+    .topbar { background: var(--t-topbar-bg) !important; border-bottom: 1px solid var(--t-topbar-border) !important; }
+    .topbar .brand { color: var(--t-on-bg) !important; display: flex; align-items: center; gap: 8px; }
+    .topbar .brand__plus { color: var(--t-on-bg) !important; }
     .topbar .brand__logo { display: block; flex: none; }
-    .topbar__doc { color: #fff !important; border-left-color: rgba(255,255,255,0.2) !important; }
-    .topbar .btn--ghost { color: #fff !important; border-color: rgba(255,255,255,0.35) !important; }
-    .topbar .btn--ghost:hover { color: #fff !important; border-color: rgba(255,255,255,0.65) !important; }
+    .topbar__doc { color: var(--t-on-bg) !important; border-left-color: var(--t-divider) !important; }
+    .topbar .btn--ghost { color: var(--t-on-bg) !important; border-color: var(--t-outline) !important; }
+    .topbar .btn--ghost:hover { color: var(--t-on-bg) !important; border-color: var(--t-outline-hov) !important; }
 
     .dil { max-width: 780px; margin: 0 auto; padding: 24px 28px 90px; }
     .page-back-row { height: 6px; }
-    .page-back { position: fixed; top: 56px; left: max(12px, calc(50% - 406px)); z-index: 15; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
+    .page-back { position: fixed; top: 56px; left: max(12px, calc(50% - 406px)); z-index: 15; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: var(--t-on-bg); cursor: pointer; opacity: 0.92; transition: opacity .15s, transform .15s; }
     .page-back:hover { opacity: 0.68; transform: translateX(-1px); }
     .page-back:focus-visible { outline: none; opacity: 1; }
     .page-back svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-    .dil__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #fff; }
-    .dil__title { font-size: 30px; letter-spacing: -0.03em; color: #fff; margin-top: 6px; }
-    .dil__sub { color: rgba(255,255,255,0.7); font-size: 15px; margin-top: 8px; line-height: 1.6; }
+    .dil__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--t-on-bg); }
+    .dil__title { font-size: 30px; letter-spacing: -0.03em; color: var(--t-on-bg); margin-top: 6px; }
+    .dil__sub { color: var(--t-on-bg-70); font-size: 15px; margin-top: 8px; line-height: 1.6; }
     .dr-alert { margin-top: 18px; padding: 12px 14px; border-radius: 10px; font-size: 13px; line-height: 1.45; }
     .dr-alert--success { color: #bbf7d0; background: rgba(22,163,74,0.14); border: 1px solid rgba(74,222,128,0.3); }
     .dr-alert--error { color: #fecaca; background: rgba(220,38,38,0.14); border: 1px solid rgba(252,165,165,0.3); }
@@ -43,37 +48,37 @@
     .dil__foot { margin-top: 30px; }
 
     /* Comptes cloud connectés */
-    .dr-section-label { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.55); margin: 34px 0 12px; }
+    .dr-section-label { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--t-on-bg-muted); margin: 34px 0 12px; }
     .dr-accounts { display: flex; flex-direction: column; gap: 10px; }
-    .dr-account { display: flex; align-items: center; justify-content: space-between; gap: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 16px 18px; }
-    .dr-account__name { font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; color: #fff; }
-    .dr-account__status { font-size: 12.5px; color: rgba(255,255,255,0.55); margin-top: 3px; }
+    .dr-account { display: flex; align-items: center; justify-content: space-between; gap: 14px; background: var(--t-surface); border: 1px solid var(--t-surface-brd); border-radius: 14px; padding: 16px 18px; }
+    .dr-account__name { font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; color: var(--t-on-bg); }
+    .dr-account__status { font-size: 12.5px; color: var(--t-on-bg-muted); margin-top: 3px; }
     .dr-account__status--on { color: #34d399; }
     .dr-account__status--warn { color: #f59e0b; }
     .dr-account .btn { padding: 8px 14px; font-size: 12.5px; min-height: 0; }
 
     /* Dossiers de due diligence */
     .dr-folders { display: flex; flex-direction: column; gap: 12px; }
-    .dr-folder { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; overflow: hidden; }
+    .dr-folder { background: var(--t-surface); border: 1px solid var(--t-surface-brd); border-radius: 14px; overflow: hidden; }
     .dr-folder__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px; cursor: pointer; }
-    .dr-folder__name { font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; color: #fff; }
-    .dr-folder__count { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 2px; }
-    .dr-folder__toggle { border: 0; background: none; color: #fff; font-size: 13px; cursor: pointer; padding: 4px; transition: transform .15s; }
+    .dr-folder__name { font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; color: var(--t-on-bg); }
+    .dr-folder__count { font-size: 12px; color: var(--t-on-bg-muted); margin-top: 2px; }
+    .dr-folder__toggle { border: 0; background: none; color: var(--t-on-bg); font-size: 13px; cursor: pointer; padding: 4px; transition: transform .15s; }
     .dr-folder.is-open .dr-folder__toggle { transform: rotate(180deg); }
-    .dr-folder__body { display: none; border-top: 1px solid rgba(255,255,255,0.1); padding: 12px 18px 16px; }
+    .dr-folder__body { display: none; border-top: 1px solid var(--t-surface-brd); padding: 12px 18px 16px; }
     .dr-folder.is-open .dr-folder__body { display: block; }
 
     .dr-doclist { display: flex; flex-direction: column; gap: 8px; }
-    .dr-doc { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 12px; }
-    .dr-doc__name { font-size: 13.5px; font-weight: 600; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .dr-doc__meta { font-size: 11.5px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+    .dr-doc { display: flex; align-items: center; gap: 12px; background: var(--t-surface); border: 1px solid var(--t-surface-brd); border-radius: 10px; padding: 10px 12px; }
+    .dr-doc__name { font-size: 13.5px; font-weight: 600; color: var(--t-on-bg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dr-doc__meta { font-size: 11.5px; color: var(--t-on-bg-faint); margin-top: 2px; }
     .dr-doc__sent { font-size: 11.5px; color: #34d399; margin-top: 2px; }
     .dr-doc__actions { display: flex; gap: 8px; flex: none; }
-    .dr-doc-btn { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; color: #fff; background: transparent; border: 1px solid rgba(255,255,255,0.25); border-radius: 8px; padding: 6px 10px; cursor: pointer; text-decoration: none; white-space: nowrap; }
-    .dr-doc-btn:hover { border-color: #fff; }
+    .dr-doc-btn { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 600; color: var(--t-on-bg); background: transparent; border: 1px solid var(--t-outline); border-radius: 8px; padding: 6px 10px; cursor: pointer; text-decoration: none; white-space: nowrap; }
+    .dr-doc-btn:hover { border-color: var(--t-on-bg); }
 
-    .dr-empty { text-align: center; padding: 36px 20px; color: rgba(255,255,255,0.6); font-size: 14px; line-height: 1.6; background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.15); border-radius: 14px; }
-    .dr-empty a { color: #fff; text-decoration: underline; }
+    .dr-empty { text-align: center; padding: 36px 20px; color: var(--t-on-bg-60); font-size: 14px; line-height: 1.6; background: var(--t-surface); border: 1px dashed var(--t-border); border-radius: 14px; }
+    .dr-empty a { color: var(--t-on-bg); text-decoration: underline; }
 
     /* Modal : choisir le compte cloud vers lequel envoyer un document */
     .pick { position: fixed; inset: 0; z-index: 1000; display: none; align-items: center; justify-content: center; padding: 24px; }
@@ -99,6 +104,7 @@
     .dr-hint { font-size: 12px; color: #6b6b78; margin-top: 8px; line-height: 1.5; }
   </style>
   <script src="auth.js?v=3"></script>
+  <script src="theme.js?v=1" defer></script>
   <script src="tasks.js?v=2" defer></script>
   <script src="drawer-menu.js?v=9" defer></script>
   <script src="drawer-steps.js?v=1" defer></script>
