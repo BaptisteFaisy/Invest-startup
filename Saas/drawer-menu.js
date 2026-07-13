@@ -66,10 +66,10 @@
     const control = document.createElement('div');
     control.className = 'drawer__mode';
     control.innerHTML = `<span class="drawer__mode-label" id="drawer-mode-label">Mode</span><div class="drawer__mode-options" role="group" aria-labelledby="drawer-mode-label"><button class="drawer__mode-option" type="button" data-mode="autonome" aria-pressed="false">Autonome</button><button class="drawer__mode-option" type="button" data-mode="guide" aria-pressed="false">Guidé<span class="drawer__mode-soon">Bientôt</span></button></div>`;
-    // Épinglé en haut du tiroir (juste sous l'en-tête, au-dessus de la liste
-    // défilante) pour rester visible sans avoir à faire défiler le menu, sur
-    // téléphone, tablette et ordinateur.
-    body.insertAdjacentElement('beforebegin', control);
+    // Placé à la fin de la liste de navigation (juste sous la dernière étape,
+    // « Gouvernance », avec un petit espace) : en bas du menu, mais sans être
+    // collé au tout dernier pixel du tiroir.
+    body.appendChild(control);
     let currentMode = 'autonome';
     try { currentMode = localStorage.getItem('liquid_experience_mode') || currentMode; } catch {}
     if (!['autonome', 'guide'].includes(currentMode)) currentMode = 'autonome';
