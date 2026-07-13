@@ -1576,6 +1576,7 @@ if (analyzeBtn) analyzeBtn.addEventListener('click', () => analyzeFull(analyzeBt
 
 /* ---------- 6 bis. Enregistrer / charger la term sheet (Mes documents) ------ */
 let currentDocId = null;
+let documentDirty = false;
 const docNameEl = document.querySelector('.topbar__doc');
 const urlFolderId = new URLSearchParams(location.search).get('folder');
 const urlCategoryKey = new URLSearchParams(location.search).get('category');
@@ -1610,6 +1611,22 @@ function termsheetHtml() {
 const saveStatusEl = () => document.getElementById('save-status');
 function setSaveStatus(msg) { const el = saveStatusEl(); if (el) el.textContent = msg; }
 
+const lastSavedAtEl = document.getElementById('last-saved-at');
+function setLastSavedAt(value) {
+  if (!lastSavedAtEl) return;
+  const date = value ? new Date(value) : null;
+  if (!date || Number.isNaN(date.getTime())) {
+    lastSavedAtEl.textContent = 'Pas encore enregistré';
+    lastSavedAtEl.removeAttribute('title');
+    return;
+  }
+  const day = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const time = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const label = `Dernier enregistrement : ${day} à ${time}`;
+  lastSavedAtEl.textContent = label;
+  lastSavedAtEl.title = label;
+}
+
 async function saveTermsheet() {
   setSaveStatus('Enregistrement…');
   const name = termsheetName();
@@ -1629,8 +1646,11 @@ async function saveTermsheet() {
     if (res.ok) {
       if (data.id) { currentDocId = data.id; history.replaceState(null, '', '?doc=' + currentDocId); }
       if (docNameEl) docNameEl.textContent = name;
+      documentDirty = termsheetHtml() !== html;
+      setLastSavedAt(data.updated_at || (data.document && data.document.updated_at) || new Date());
       setSaveStatus('Enregistré');
       setTimeout(() => setSaveStatus(''), 2000);
+      return true;
     } else if (res.status === 401) {
       window.location.href = 'login.html';
     } else {
@@ -1639,6 +1659,7 @@ async function saveTermsheet() {
   } catch {
     setSaveStatus('Erreur réseau');
   }
+  return false;
 }
 
 // Réaligne le modèle (clauses présentes / éditées) sur le DOM chargé.
@@ -1718,7 +1739,7 @@ async function loadTermsheet(id) {
       sessionStorage.removeItem('liquid_prefill_' + id);
       const pre = JSON.parse(raw);
       if (pre && typeof pre.html === 'string' && pre.html) {
-        applyTermsheet(id, pre.html, pre.name);
+        applyTermsheet(id, pre.html, pre.name, pre.updated_at || pre.created_at);
         preHtml = pre.html;
       }
     }
@@ -1735,8 +1756,12 @@ async function loadTermsheet(id) {
       return;
     }
     // Déjà affiché à l'identique via le pré-chargement : rien à refaire.
-    if (preHtml !== null && data.html === preHtml) { currentDocId = data.id; return; }
-    applyTermsheet(data.id, data.html, data.name);
+    if (preHtml !== null && data.html === preHtml) {
+      currentDocId = data.id;
+      setLastSavedAt(data.updated_at || data.created_at);
+      return;
+    }
+    applyTermsheet(data.id, data.html, data.name, data.updated_at || data.created_at);
   } catch (err) {
     setSaveStatus('Erreur de chargement : ' + (err.message || 'réseau'));
   }
@@ -1744,9 +1769,10 @@ async function loadTermsheet(id) {
 
 // Rend une term sheet dans la page et (ré)initialise l'analyse codée en dur
 // (décrypteur, conseil et conditions embarqués dans le modèle).
-function applyTermsheet(id, html, name) {
+function applyTermsheet(id, html, name, savedAt) {
   page.innerHTML = html;
   currentDocId = id;
+  documentDirty = false;
   isCustom = false;
   docAdviceCache = null;
   docAdviceIsBaked = false;
@@ -1758,6 +1784,7 @@ function applyTermsheet(id, html, name) {
   if (libAbort) { libAbort.abort(); libAbort = null; }
   libSuggestLoading = false;
   if (docNameEl) docNameEl.textContent = name || 'Term sheet';
+  setLastSavedAt(savedAt);
   // Mémorise le dernier document ouvert pour l'accès rapide « Reprendre » des dossiers.
   if (id != null) { try { localStorage.setItem('liquid_last_doc', JSON.stringify({ id, name: name || 'Term sheet' })); } catch {} }
   if (isCustomDocument()) adoptDocumentClauses();
@@ -1797,6 +1824,7 @@ function readBakedConditions() {
 let _saveTimer = null;
 function scheduleAutosave() {
   clearTimeout(_saveTimer);
+  documentDirty = true;
   setSaveStatus('…');
   _saveTimer = setTimeout(saveTermsheet, 1500);
 }
@@ -1820,6 +1848,26 @@ document.addEventListener('keydown', e => {
   }
 });
 
+// Ferme le document dans l'éditeur. Toute modification en attente est d'abord
+// enregistrée afin que la croix ne puisse jamais provoquer une perte de contenu.
+const closeDocumentBtn = document.getElementById('close-document-btn');
+if (closeDocumentBtn) closeDocumentBtn.addEventListener('click', async () => {
+  clearTimeout(_saveTimer);
+  closeDocumentBtn.disabled = true;
+  const hasUnsavedDocument = !currentDocId && !!page.innerText.trim();
+  const saved = (documentDirty || hasUnsavedDocument) ? await saveTermsheet() : true;
+  closeDocumentBtn.disabled = false;
+  if (!saved) return;
+
+  currentDocId = null;
+  documentDirty = false;
+  page.innerHTML = '';
+  try { localStorage.removeItem('liquid_last_doc'); } catch {}
+  history.replaceState(null, '', 'editor.html');
+  showEmptyState();
+  paginate();
+});
+
 /* ---------- État vide : éditeur sans aucun document ouvert ---------- */
 function showEmptyState() {
   // Aucun document : le modèle ne doit contenir aucune clause « au contrat »
@@ -1830,6 +1878,8 @@ function showEmptyState() {
   if (canvas) canvas.classList.add('is-empty');
   if (empty) empty.hidden = false;
   if (docNameEl) docNameEl.textContent = 'Éditeur';
+  documentDirty = false;
+  setLastSavedAt(null);
   const cs = document.getElementById('caret-clause');
   if (cs) cs.textContent = 'Aucun document ouvert';
 }
@@ -1844,6 +1894,8 @@ function startBlankDocument() {
   hideEmptyState();
   page.innerHTML = '<p><br></p>';
   if (docNameEl) docNameEl.textContent = 'Nouveau document';
+  documentDirty = true;
+  setLastSavedAt(null);
   const cs = document.getElementById('caret-clause');
   if (cs) cs.textContent = 'Document prêt';
   syncModelFromDOM();

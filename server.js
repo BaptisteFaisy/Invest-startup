@@ -4196,7 +4196,7 @@ app.put('/api/saas/termsheets/:id', requireAuth, async (req, res) => {
     if (await col('saas_folders').findOne({ id: fid, user_id: req.user.id })) set.folder_id = fid;
   }
   await col('saas_documents').updateOne({ id, user_id: req.user.id }, { $set: set });
-  res.json({ success: true, id });
+  res.json({ success: true, id, updated_at: set.updated_at });
 });
 
 app.get('/api/saas/termsheets/:id', requireAuth, async (req, res) => {
@@ -4206,7 +4206,13 @@ app.get('/api/saas/termsheets/:id', requireAuth, async (req, res) => {
     { projection: { _id: 0, user_id: 0 } }
   );
   if (!doc) return res.status(404).json({ error: 'Term sheet introuvable' });
-  res.json({ id: doc.id, name: doc.name, html: doc.html || '' });
+  res.json({
+    id: doc.id,
+    name: doc.name,
+    html: doc.html || '',
+    created_at: doc.created_at,
+    updated_at: doc.updated_at || doc.created_at,
+  });
 });
 
 // ─── SaaS : versions VALIDÉES d'un document de travail ────────────────────────

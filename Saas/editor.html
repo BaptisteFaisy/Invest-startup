@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=6" />
-  <link rel="stylesheet" href="editor.css?v=34" />
+  <link rel="stylesheet" href="editor.css?v=35" />
   <link rel="stylesheet" href="drawer-menu.css?v=15" />
   <link rel="stylesheet" href="theme.css?v=3" />
   <style>.app{visibility:hidden}.app.ready{visibility:visible}</style>
@@ -327,6 +327,10 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
           </button>
         </div>
+        <div class="document-meta" id="document-meta">
+          <span class="document-meta__saved" id="last-saved-at">Pas encore enregistré</span>
+          <button type="button" class="document-meta__close" id="close-document-btn" aria-label="Fermer le document" title="Fermer le document">×</button>
+        </div>
         <div class="paper" id="paper">
           <div class="sheet-bg" id="sheet-bg" aria-hidden="true"></div>
           <div class="page" id="page" contenteditable="true" spellcheck="false"></div>
@@ -467,7 +471,7 @@
     </div>
   </div>
 
-  <script src="editor.js?v=55"></script>
+  <script src="editor.js?v=56"></script>
   <script src="documents.js?v=30"></script>
   <script>
     // Garde d'accès : l'éditeur est réservé aux utilisateurs connectés.

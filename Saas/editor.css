@@ -214,6 +214,22 @@
 .editor-back:hover { background: transparent; transform: translateX(-1px); }
 .editor-back:focus-visible { outline: 2px solid rgba(0,0,0,0.45); outline-offset: 2px; }
 .editor-back svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+/* Informations du document, placées juste au-dessus de la feuille. */
+.document-meta {
+  width: 820px; max-width: 100%; min-height: 24px; margin: 0 auto 8px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  font-family: 'Archivo', sans-serif; font-size: 11px; color: #6b6b78;
+}
+.document-meta__saved { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.document-meta__close {
+  flex: none; width: 24px; height: 24px; display: grid; place-items: center;
+  padding: 0; border: 0; border-radius: 6px; background: transparent; color: #52525f;
+  font: 400 20px/1 Arial, sans-serif; cursor: pointer;
+  transition: color .15s ease, background .15s ease;
+}
+.document-meta__close:hover { color: #08090c; background: rgba(8,9,12,0.08); }
+.document-meta__close:focus-visible { outline: 2px solid rgba(8,9,12,0.45); outline-offset: 2px; }
+.document-meta__close:disabled { cursor: wait; opacity: .45; }
 /* Conteneur paginé : pile de feuilles A4 + zone éditable au-dessus */
 .paper { position: relative; width: 820px; max-width: 100%; margin: 0 auto; }
 
@@ -255,6 +271,7 @@
    est masquée et l'on propose d'importer un document ou de créer une page
    blanche. ── */
 .editor-canvas.is-empty .paper { display: none; }
+.editor-canvas.is-empty .document-meta { display: none; }
 .editor-empty {
   display: flex; align-items: center; justify-content: center;
   min-height: calc(100vh - 240px); padding: 20px 16px;
@@ -701,7 +718,7 @@ mark.cond-val { background: rgba(251,191,36,0.38); border-radius: 3px; padding: 
   html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
 
   /* Interface d'édition et aides à l'écran masquées. */
-  .topbar, .ribbon, .statusbar, .panel, .library,
+  .topbar, .ribbon, .statusbar, .panel, .library, .document-meta,
   .clause-cond__del, .clause-cond__tip { display: none !important; }
 
   /* Conteneurs neutralisés pour que .page démarre tout en haut de la page PDF. */
