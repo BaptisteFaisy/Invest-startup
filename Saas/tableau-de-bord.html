@@ -4239,9 +4239,9 @@
       return !!f && EDITORIAL_ROW_KEYS.has(f.key);
     }
     // Étapes où le style éditorial s'applique À L'INTÉRIEUR des dossiers (dossiers
-    // investisseurs pour la négociation, dossiers thématiques pour closing /
-    // post-closing) plutôt qu'en liste unique à plat.
-    const EDITORIAL_FOLDER_KEYS = new Set(['confidentialite', 'term-sheet', 'documentation', 'closing', 'post-closing']);
+    // investisseurs pour la négociation, dossiers thématiques pour la due diligence
+    // préliminaire, closing / post-closing) plutôt qu'en liste unique à plat.
+    const EDITORIAL_FOLDER_KEYS = new Set(['confidentialite', 'due-diligence-preliminaire', 'term-sheet', 'documentation', 'closing', 'post-closing']);
     function isEditorialFolderStep(f) {
       return !!f && EDITORIAL_FOLDER_KEYS.has(f.key);
     }
@@ -5575,17 +5575,22 @@
       }
       if (isInvestorChecklistPhase(f)) body.appendChild(investorChecklistEl(f));
       if (f.key === 'due-diligence-preliminaire' || f.key === 'due-diligence') {
-        // Checklist Liquid+ générée : on la présente rangée par dossiers thématiques
-        // curés, avec un dossier « Fichiers importés de manière générale » en repli.
-        // Sans checklist générée (request list importée ou étape vierge), la vue
-        // éditoriale à plat reste inchangée.
-        const generatedCategories = (f.dd_fallback_models && !hasInvestorChecklists(f)) ? categories : null;
-        if (generatedCategories && generatedCategories.length) {
+        // Due diligence préliminaire : les documents demandés adoptent la même
+        // présentation que la Lettre d'intention — des dossiers thématiques
+        // repliables (contenu identique, seule la forme change). Les dossiers
+        // proviennent des checklists investisseurs importées ou de la checklist
+        // Liquid+ générée ; sans aucun document, la vue à plat sert de repli.
+        // Due diligence poussée : comportement inchangé (dossiers thématiques
+        // seulement pour la checklist Liquid+ générée, sinon vue à plat).
+        const foldered = f.key === 'due-diligence-preliminaire'
+          ? categories
+          : ((f.dd_fallback_models && !hasInvestorChecklists(f)) ? categories : null);
+        if (foldered && foldered.length) {
           body.appendChild(phaseLooseFilesEl(f, linkedIds, '', 'Fichiers importés de manière générale'));
           const catWrap = document.createElement('div');
           catWrap.className = 'doc-categories';
           let startIndex = 0;
-          generatedCategories.forEach(category => {
+          foldered.forEach(category => {
             catWrap.appendChild(categoryFolderEl(f, category, startIndex, linkedIds));
             startIndex += category.items.length;
           });
