@@ -435,7 +435,7 @@
 
     /* Tableau du pipeline : une ligne par investisseur, puis une colonne par stade. */
     .ip-grid-wrap { margin-top: 12px; overflow: auto; border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; }
-    table.ip-grid { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 1780px; table-layout: fixed; }
+    table.ip-grid { --ip-left-contact:240px; --ip-left-amount:460px; border-collapse: separate; border-spacing: 0; width: 100%; min-width: 1780px; table-layout: fixed; }
     .ip-grid col.ip-col--investor { width: 240px; }
     .ip-grid col.ip-col--contact { width: 220px; }
     .ip-grid col.ip-col--amount { width: 145px; }
@@ -455,9 +455,14 @@
     .ip-grid td:first-child { border-left: 0; }
     .ip-grid thead th { position:sticky; top:0; z-index:3; }
     .ip-grid th:nth-child(1), .ip-grid td:nth-child(1) { position:sticky; left:0; z-index:2; }
-    .ip-grid th:nth-child(2), .ip-grid td:nth-child(2) { position:sticky; left:240px; z-index:2; }
-    .ip-grid th:nth-child(3), .ip-grid td:nth-child(3) { position:sticky; left:460px; z-index:2; box-shadow:5px 0 10px rgba(15,23,42,.06); }
+    .ip-grid th:nth-child(2), .ip-grid td:nth-child(2) { position:sticky; left:var(--ip-left-contact); z-index:2; }
+    .ip-grid th:nth-child(3), .ip-grid td:nth-child(3) { position:sticky; left:var(--ip-left-amount); z-index:2; box-shadow:5px 0 10px rgba(15,23,42,.06); }
     .ip-grid thead th:nth-child(-n+3) { z-index:4; }
+    .ip-resize-handle { position:absolute; top:0; right:-4px; width:8px; height:100%; z-index:6; cursor:col-resize; touch-action:none; }
+    .ip-resize-handle::after { content:''; position:absolute; top:18%; bottom:18%; left:3px; width:2px; border-radius:2px; background:transparent; }
+    .ip-resize-handle:hover::after, .ip-resize-handle.is-active::after { background:#16a34a; }
+    .ip-resize-handle:focus-visible { outline:2px solid #16a34a; outline-offset:-2px; }
+    body.ip-resizing-columns { cursor:col-resize; user-select:none; }
     .ip-investor__top { display:flex; align-items:flex-start; gap:8px; }
     .ip-investor__main { flex:1; min-width:0; }
     .ip-investor__name { color:#eef0f3; font-size:13px; font-weight:800; overflow-wrap:anywhere; }
@@ -3658,6 +3663,98 @@
         if (e.key === 'Escape') closeInvestorForm();
       });
 
+      // Largeurs du tableau réglables à la souris, conservées sur cet appareil.
+      const COL_WIDTHS_STORE_KEY = 'liquid_inv_column_widths';
+      const DEFAULT_COL_WIDTHS = { investor: 240, contact: 220, amount: 145 };
+      INV_STAGES.forEach(stage => { DEFAULT_COL_WIDTHS['stage:' + stage.key] = 118; });
+      let columnWidths = {};
+      try {
+        const savedWidths = JSON.parse(localStorage.getItem(COL_WIDTHS_STORE_KEY) || '{}');
+        if (savedWidths && typeof savedWidths === 'object') columnWidths = savedWidths;
+      } catch {}
+      function columnWidth(key) {
+        const value = Number(columnWidths[key]);
+        const [min, max] = columnLimits(key);
+        return Number.isFinite(value) && value > 0
+          ? Math.max(min, Math.min(max, value))
+          : DEFAULT_COL_WIDTHS[key];
+      }
+      function columnLimits(key) {
+        if (key === 'investor') return [180, 420];
+        if (key === 'contact') return [160, 420];
+        if (key === 'amount') return [120, 260];
+        return [90, 260];
+      }
+      function persistColumnWidths() {
+        try { localStorage.setItem(COL_WIDTHS_STORE_KEY, JSON.stringify(columnWidths)); } catch {}
+      }
+      function applyColumnWidths(table) {
+        let total = 0;
+        table.querySelectorAll('col[data-col-key]').forEach(col => {
+          const width = columnWidth(col.dataset.colKey);
+          col.style.width = width + 'px';
+          total += width;
+        });
+        table.style.setProperty('--ip-left-contact', columnWidth('investor') + 'px');
+        table.style.setProperty('--ip-left-amount', (columnWidth('investor') + columnWidth('contact')) + 'px');
+        table.style.minWidth = total + 'px';
+        table.style.width = 'max(100%, ' + total + 'px)';
+      }
+      function addResizeHandle(th, key, table) {
+        const handle = document.createElement('span');
+        handle.className = 'ip-resize-handle';
+        handle.setAttribute('role', 'separator');
+        handle.setAttribute('aria-orientation', 'vertical');
+        handle.setAttribute('aria-label', 'Redimensionner la colonne');
+        handle.tabIndex = 0;
+        const [minWidth, maxWidth] = columnLimits(key);
+        handle.setAttribute('aria-valuemin', String(minWidth));
+        handle.setAttribute('aria-valuemax', String(maxWidth));
+        handle.setAttribute('aria-valuenow', String(columnWidth(key)));
+        handle.title = 'Glissez pour ajuster la largeur · Double-cliquez pour réinitialiser';
+        handle.addEventListener('pointerdown', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const startX = e.clientX;
+          const startWidth = columnWidth(key);
+          const [min, max] = columnLimits(key);
+          handle.classList.add('is-active');
+          document.body.classList.add('ip-resizing-columns');
+          const onMove = (event) => {
+            columnWidths[key] = Math.round(Math.max(min, Math.min(max, startWidth + event.clientX - startX)));
+            handle.setAttribute('aria-valuenow', String(columnWidths[key]));
+            applyColumnWidths(table);
+          };
+          const onUp = () => {
+            handle.classList.remove('is-active');
+            document.body.classList.remove('ip-resizing-columns');
+            document.removeEventListener('pointermove', onMove);
+            document.removeEventListener('pointerup', onUp);
+            persistColumnWidths();
+          };
+          document.addEventListener('pointermove', onMove);
+          document.addEventListener('pointerup', onUp);
+        });
+        handle.addEventListener('dblclick', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          delete columnWidths[key];
+          handle.setAttribute('aria-valuenow', String(columnWidth(key)));
+          applyColumnWidths(table);
+          persistColumnWidths();
+        });
+        handle.addEventListener('keydown', (e) => {
+          if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+          e.preventDefault();
+          const direction = e.key === 'ArrowRight' ? 1 : -1;
+          columnWidths[key] = Math.max(minWidth, Math.min(maxWidth, columnWidth(key) + direction * 10));
+          handle.setAttribute('aria-valuenow', String(columnWidths[key]));
+          applyColumnWidths(table);
+          persistColumnWidths();
+        });
+        th.appendChild(handle);
+      }
+
       // Tableau du pipeline : une ligne éditable par investisseur.
       function renderBoard(counts, amounts) {
         boardEl.innerHTML = '';
@@ -3669,20 +3766,27 @@
         ['investor', 'contact', 'amount'].forEach(kind => {
           const col = document.createElement('col');
           col.className = 'ip-col--' + kind;
+          col.dataset.colKey = kind;
           colgroup.appendChild(col);
         });
-        INV_STAGES.forEach(() => {
+        INV_STAGES.forEach(stage => {
           const col = document.createElement('col');
           col.className = 'ip-col--stage';
+          col.dataset.colKey = 'stage:' + stage.key;
           colgroup.appendChild(col);
         });
         table.appendChild(colgroup);
 
         const thead = document.createElement('thead');
         const htr = document.createElement('tr');
-        ['Investisseur / type', 'Contact', 'Ticket envisagé'].forEach(label => {
+        [
+          { key: 'investor', label: 'Investisseur / type' },
+          { key: 'contact', label: 'Contact' },
+          { key: 'amount', label: 'Ticket envisagé' },
+        ].forEach(column => {
           const th = document.createElement('th');
-          th.innerHTML = '<span class="ip-grid__lab-t">' + esc(label) + '</span>';
+          th.innerHTML = '<span class="ip-grid__lab-t">' + esc(column.label) + '</span>';
+          addResizeHandle(th, column.key, table);
           htr.appendChild(th);
         });
         INV_STAGES.forEach(stage => {
@@ -3704,6 +3808,7 @@
           amt.className = 'ip-grid__amt';
           amt.textContent = amounts[stage.key] ? invFmtAmount(amounts[stage.key]) : '';
           th.append(lab, amt);
+          addResizeHandle(th, 'stage:' + stage.key, table);
           htr.appendChild(th);
         });
         thead.appendChild(htr);
@@ -3772,6 +3877,7 @@
         }
         table.appendChild(tbody);
         boardEl.appendChild(table);
+        applyColumnWidths(table);
       }
 
       function render() {
