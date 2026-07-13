@@ -115,10 +115,9 @@
     .doc-act:hover { border-color: var(--t-on-bg-40); background: var(--t-surface-brd); }
     .doc-act--relire { width: auto; padding: 0 12px; gap: 7px; font: 600 12.5px/1 'Libre Franklin', sans-serif; white-space: nowrap; }
     .doc-act svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    /* Bouton « Versions » — présent seulement quand le document a des versions validées. */
-    .doc-act--versions { width: auto; padding: 0 11px; gap: 6px; font: 600 12.5px/1 'Libre Franklin', sans-serif; white-space: nowrap; color: #c4b5fd; border-color: rgba(167,139,250,0.32); background: rgba(167,139,250,0.12); }
+    /* Icône arbre — présente seulement quand le document a une lignée. */
+    .doc-act--versions { width: 36px; padding: 0; color: #c4b5fd; border-color: rgba(167,139,250,0.32); background: rgba(167,139,250,0.12); }
     .doc-act--versions:hover { border-color: rgba(167,139,250,0.6); background: rgba(167,139,250,0.2); }
-    .doc-act--versions .doc-act__count { display: inline-grid; place-items: center; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px; background: rgba(167,139,250,0.28); font-size: 11px; font-weight: 700; }
     .doc-act--compare { width:auto;padding:0 11px;gap:6px;font:600 12.5px/1 'Libre Franklin',sans-serif;white-space:nowrap;color:#86efac;border-color:rgba(74,222,128,.32);background:rgba(34,197,94,.1); }
     .doc-act--compare:hover { border-color:rgba(74,222,128,.58);background:rgba(34,197,94,.17); }
 
@@ -834,7 +833,7 @@
           actions.appendChild(wrap);
         }
 
-        // Bouton « Versions » : présent dès que le document a des instantanés éditeur
+        // Icône arbre : présente dès que le document a des instantanés éditeur
         // validés OU appartient à une lignée de plusieurs documents (une version
         // reçue/envoyée y est rattachée). Ouvre le popover retraçant le fil : versions
         // et échanges, avec accès à chaque pièce. Le compteur = nombre d'autres pièces.
@@ -845,10 +844,9 @@
           const vBtn = document.createElement('button');
           vBtn.type = 'button';
           vBtn.className = 'doc-act doc-act--versions';
-          vBtn.title = 'Historique de ce document : ses versions et les échanges (envois/réceptions) rattachés. Cliquez pour les consulter et en ouvrir une.';
-          vBtn.setAttribute('aria-label', 'Voir l\'historique des versions de « ' + d.name + ' »');
-          vBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg>' +
-            '<span>Versions</span><span class="doc-act__count">' + relatedCount + '</span>';
+          vBtn.title = 'Voir l’arbre des versions et des échanges de « ' + d.name + ' »';
+          vBtn.setAttribute('aria-label', 'Voir l\'arbre des versions et des échanges de « ' + d.name + ' »');
+          vBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V5"/><path d="m12 8-5-4"/><path d="m12 8 5-4"/><path d="m12 13-6-4"/><path d="m12 13 6-4"/><path d="M8 21h8"/></svg>';
           vBtn.addEventListener('click', (e) => { e.stopPropagation(); openVersionsPopover(d, vBtn); });
           actions.appendChild(vBtn);
         }
