@@ -860,20 +860,20 @@
     .raise-profile__status.is-ok { color:#16a34a; }
 
     /* Barre d'avancement de la levée — affichée au-dessus des « prochaines
-       priorités » sur l'étape « Ma levée ». Montre le montant engagé (sécurisé),
-       le montant en discussion, et un repère vertical fin du montant visé,
+       priorités » sur l'étape « Ma levée ». Montre le montant levé (contrats
+       signés), le montant intentionné et un repère vertical fin du montant visé,
        placé vers la fin de la barre (à 80 %) pour laisser voir un dépassement. */
     .raise-progress { background:#fff; color:#08090c; border:1px solid rgba(255,255,255,0.1); border-radius:14px; padding:18px 20px; box-shadow:0 10px 26px rgba(0,0,0,0.22); margin:12px 0 4px; }
     .raise-progress__head { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:18px; }
     .raise-progress__eyebrow { font-family:'Archivo',sans-serif; font-size:11px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:#6b6b78; margin-bottom:6px; }
     .raise-progress__amount { font-family:'Libre Franklin',sans-serif; font-size:15px; color:#3a3a45; }
     .raise-progress__amount strong { font-family:'Archivo',sans-serif; font-weight:800; font-size:22px; color:#08090c; }
-    .raise-progress__pct { font-family:'Archivo',sans-serif; font-weight:800; font-size:28px; line-height:1; color:#e7f6ec; flex:none; }
+    .raise-progress__pct { font-family:'Archivo',sans-serif; font-weight:800; font-size:28px; line-height:1; color:#bbebca; flex:none; }
     .raise-progress__track-wrap { position:relative; padding-top:24px; }
     .raise-progress__bar { position:relative; height:26px; border-radius:8px; background:#eef0f2; overflow:hidden; }
     .raise-progress__fill { position:absolute; top:0; bottom:0; left:0; border-radius:8px; transition:width .5s ease; }
-    .raise-progress__fill--total { background:rgba(99,102,241,0.24); }
-    .raise-progress__fill--engaged { background:#e7f6ec; }
+    .raise-progress__fill--total { background:#e7f6ec; }
+    .raise-progress__fill--engaged { background:#bbebca; }
     .raise-progress__target { position:absolute; top:16px; bottom:0; width:2px; background:#08090c; border-radius:2px; transform:translateX(-1px); z-index:2; }
     .raise-progress__target::before { content:attr(data-label); position:absolute; top:-16px; right:3px; white-space:nowrap; font-family:'Archivo',sans-serif; font-size:10px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:#08090c; }
     .raise-progress__legend { display:flex; flex-wrap:wrap; gap:16px; margin-top:12px; font-size:12.5px; color:#6b6b78; }
@@ -884,7 +884,7 @@
     .raise-progress__tile-label { font-family:'Archivo',sans-serif; font-size:10.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#6b6b78; }
     .raise-progress__tile-value { font-family:'Archivo',sans-serif; font-size:19px; font-weight:800; color:#08090c; margin-top:5px; }
     .raise-progress__tile-sub { font-size:12px; color:#6b6b78; margin-top:3px; }
-    .raise-progress__tile--accent .raise-progress__tile-value { color:#e7f6ec; }
+    .raise-progress__tile--accent .raise-progress__tile-value { color:#bbebca; }
 
     @media (max-width:680px) {
       .raise-profile__grid { grid-template-columns:1fr; }
@@ -3448,13 +3448,13 @@
       const fmt = (n) => invFmtAmount(Math.round(n));
 
       const tiles = [];
-      tiles.push('<div class="raise-progress__tile raise-progress__tile--accent"><div class="raise-progress__tile-label">Engagé (sécurisé)</div><div class="raise-progress__tile-value">' + fmt(engaged) + '</div><div class="raise-progress__tile-sub">' + pctOfTarget + '% de l’objectif</div></div>');
+      tiles.push('<div class="raise-progress__tile raise-progress__tile--accent"><div class="raise-progress__tile-label">Levé (contrats signés)</div><div class="raise-progress__tile-value">' + fmt(engaged) + '</div><div class="raise-progress__tile-sub">' + pctOfTarget + '% de l’objectif</div></div>');
       tiles.push('<div class="raise-progress__tile"><div class="raise-progress__tile-label">Reste à lever</div><div class="raise-progress__tile-value">' + fmt(remaining) + '</div><div class="raise-progress__tile-sub">Objectif ' + fmt(target) + '</div></div>');
       if (discussion > 0) {
         const inTalks = Math.max(0, pipelineCount - engagedCount);
-        tiles.push('<div class="raise-progress__tile"><div class="raise-progress__tile-label">En discussion</div><div class="raise-progress__tile-value">' + fmt(discussion) + '</div><div class="raise-progress__tile-sub">' + inTalks + ' investisseur' + (inTalks > 1 ? 's' : '') + ' en cours</div></div>');
+        tiles.push('<div class="raise-progress__tile"><div class="raise-progress__tile-label">Intentionnés</div><div class="raise-progress__tile-value">' + fmt(discussion) + '</div><div class="raise-progress__tile-sub">' + inTalks + ' investisseur' + (inTalks > 1 ? 's' : '') + ' en cours</div></div>');
       }
-      tiles.push('<div class="raise-progress__tile"><div class="raise-progress__tile-label">Investisseurs engagés</div><div class="raise-progress__tile-value">' + engagedCount + (pipelineCount ? ' <span style="font-size:13px;color:#6b6b78">/ ' + pipelineCount + '</span>' : '') + '</div><div class="raise-progress__tile-sub">' + (pipelineCount ? 'sur ' + pipelineCount + ' au pipeline' : 'aucun au pipeline') + '</div></div>');
+      tiles.push('<div class="raise-progress__tile"><div class="raise-progress__tile-label">Contrats signés</div><div class="raise-progress__tile-value">' + engagedCount + (pipelineCount ? ' <span style="font-size:13px;color:#6b6b78">/ ' + pipelineCount + '</span>' : '') + '</div><div class="raise-progress__tile-sub">' + (pipelineCount ? 'sur ' + pipelineCount + ' au pipeline' : 'aucun au pipeline') + '</div></div>');
 
       const td = fundraisingProfile.target_date;
       if (td) {
@@ -3481,7 +3481,7 @@
       el.innerHTML =
         '<div class="raise-progress__head">'
         + '<div><div class="raise-progress__eyebrow">Avancement de la levée</div>'
-        + '<div class="raise-progress__amount"><strong>' + fmt(engaged) + '</strong> engagés sur ' + fmt(target) + ' visés</div></div>'
+        + '<div class="raise-progress__amount"><strong>' + fmt(engaged) + '</strong> levés sur ' + fmt(target) + ' visés</div></div>'
         + '<div class="raise-progress__pct">' + pctOfTarget + '%</div>'
         + '</div>'
         + '<div class="raise-progress__track-wrap">'
@@ -3492,8 +3492,8 @@
         + '<div class="raise-progress__target" style="left:' + targetPct.toFixed(1) + '%" data-label="Objectif ' + esc(fmt(target)) + '"></div>'
         + '</div>'
         + '<div class="raise-progress__legend">'
-        + '<span><span class="raise-progress__dot" style="background:#e7f6ec"></span>Engagé (sécurisé)</span>'
-        + (discussion > 0 ? '<span><span class="raise-progress__dot" style="background:rgba(99,102,241,0.32)"></span>En discussion</span>' : '')
+        + '<span><span class="raise-progress__dot" style="background:#bbebca"></span>Levé (contrats signés)</span>'
+        + (discussion > 0 ? '<span><span class="raise-progress__dot" style="background:#e7f6ec"></span>Intentionnés</span>' : '')
         + '<span><span class="raise-progress__dot" style="width:3px;border-radius:2px;background:#08090c"></span>Montant visé</span>'
         + '</div>'
         + '<div class="raise-progress__tiles">' + tiles.join('') + '</div>';
