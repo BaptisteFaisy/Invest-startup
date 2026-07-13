@@ -6,14 +6,37 @@
   <title>Liquid+ — Éditeur de term sheet</title>
   <meta name="description" content="Traitement de texte pour vos term sheets de levée de fonds, avec chaque clause expliquée en langage courant." />
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
+  <script>
+    // Applique le thème mémorisé au plus tôt (anti-flash). Défaut : sombre (:root).
+    try { var t = localStorage.getItem('liquidTheme'); if (t === 'paper' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=6" />
   <link rel="stylesheet" href="editor.css?v=31" />
   <link rel="stylesheet" href="drawer-menu.css?v=12" />
+  <link rel="stylesheet" href="theme.css?v=1" />
   <style>.app{visibility:hidden}.app.ready{visibility:visible}</style>
   <style>
+    /* ── Mode « Papier » (clair) : seule la coquille (topbar) bascule. Le
+       ruban et la feuille de l'éditeur sont déjà clairs et ne changent pas.
+       En mode sombre (défaut), rien n'est surchargé : apparence inchangée. ── */
+    :root[data-theme="paper"] .topbar { background: var(--t-topbar-bg); border-bottom-color: var(--t-topbar-border); }
+    :root[data-theme="paper"] .topbar .brand,
+    :root[data-theme="paper"] .topbar .brand__plus { color: var(--t-on-bg); }
+    :root[data-theme="paper"] .topbar__doc { color: var(--t-on-bg); border-left-color: var(--t-divider); }
+    :root[data-theme="paper"] .topbar .btn { color: var(--t-on-bg); border-color: var(--t-outline); }
+    :root[data-theme="paper"] .topbar .btn:hover { border-color: var(--t-outline-hov); background: var(--t-hamburger-hover-bg); }
+    :root[data-theme="paper"] .topbar .btn--primary { background: #08090c; border-color: #08090c; color: #fff; }
+    :root[data-theme="paper"] .topbar .btn--primary:hover { background: #1d1f26; border-color: #1d1f26; }
+    :root[data-theme="paper"] .export-menu__list { background: var(--t-elevated); border-color: var(--t-card-border); box-shadow: var(--t-elevated-shadow); }
+    :root[data-theme="paper"] .export-menu__item { color: var(--t-on-bg); }
+    :root[data-theme="paper"] .export-menu__item:hover { background: var(--t-hamburger-hover-bg); }
+    /* Bascule « Max » injectée par tasks.js — surcharge à spécificité égale. */
+    :root[data-theme="paper"] .topbar .aimax { background: transparent; border-color: var(--t-outline); color: var(--t-on-bg); }
+    :root[data-theme="paper"] .topbar .aimax:hover { background: var(--t-hamburger-hover-bg); border-color: var(--t-outline-hov); }
+    :root[data-theme="paper"] .topbar .aimax.is-on { background: #3b82f6; border-color: #3b82f6; color: #fff; }
     /* Historique des versions validées (menu déroulant sous le bouton « Versions ») */
     .verpanel{position:fixed;z-index:1300;width:min(460px,calc(100vw - 20px));background:#fff;border:1px solid rgba(8,9,12,0.12);border-radius:14px;box-shadow:0 18px 50px rgba(8,9,12,0.28);overflow:hidden}
     .verpanel__head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(8,9,12,0.08)}
@@ -42,6 +65,7 @@
     .verrow__btn--del{color:#dc2626;border-color:rgba(220,38,38,0.25)}
   </style>
   <script src="auth.js?v=3"></script>
+  <script src="theme.js?v=1" defer></script>
   <script src="tasks.js?v=2" defer></script>
   <script src="drawer-menu.js?v=9" defer></script>
   <script src="drawer-steps.js?v=1" defer></script>
