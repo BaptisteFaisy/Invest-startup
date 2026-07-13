@@ -54,6 +54,15 @@
     .card__title { font-size: 1.05rem; font-weight: 800; color: #08090c; letter-spacing: -0.01em; margin: 0 0 4px; }
     .card__desc { font-size: 0.9rem; color: #6b6b78; margin: 0 0 18px; line-height: 1.55; }
 
+    /* Réglage d'apparence (dans la carte blanche → styles foncés, valables dans les 2 thèmes) */
+    .appearance { display: flex; gap: 10px; flex-wrap: wrap; }
+    .appearance__opt { flex: 1 1 140px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 14px; border-radius: 12px; border: 1.5px solid rgba(8,9,12,0.14); background: #fff; color: #08090c; font-family: 'Archivo', sans-serif; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: border-color .15s, background .15s; }
+    .appearance__opt:hover { border-color: rgba(8,9,12,0.32); }
+    .appearance__opt.is-active { border-color: #3b82f6; background: rgba(59,130,246,0.07); }
+    .appearance__swatch { width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(8,9,12,0.16); flex: none; }
+    .appearance__swatch--dark { background: #08090c; }
+    .appearance__swatch--paper { background: #f7f6f3; }
+
     /* Consommation IA */
     .usage-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
     .usage-tile { background: #f4f2ee; border: 1px solid rgba(8,9,12,0.06); border-radius: 12px; padding: 16px; text-align: center; }
@@ -233,6 +242,20 @@
             </div>
           </div>
           <div class="usage-updated" id="usage-updated" hidden></div>
+        </div>
+
+        <!-- Apparence (thème clair / sombre — choisi ici, appliqué à toutes vos pages) -->
+        <div class="card">
+          <h3 class="card__title">Apparence</h3>
+          <p class="card__desc">Choisissez le thème de votre espace. Il s'applique à toutes vos pages et est mémorisé sur votre compte.</p>
+          <div class="appearance" id="appearance" role="group" aria-label="Thème de l'interface">
+            <button type="button" class="appearance__opt" data-theme-choice="dark" aria-pressed="false">
+              <span class="appearance__swatch appearance__swatch--dark" aria-hidden="true"></span>Sombre
+            </button>
+            <button type="button" class="appearance__opt" data-theme-choice="paper" aria-pressed="false">
+              <span class="appearance__swatch appearance__swatch--paper" aria-hidden="true"></span>Clair
+            </button>
+          </div>
         </div>
 
         <!-- Informations personnelles -->
@@ -418,10 +441,40 @@
       document.getElementById('profile-name').value  = user.name || '';
       document.getElementById('profile-email').value = user.email || '';
       document.querySelector('.app').classList.add('ready');
+      initAppearance(user.theme);
       load2FAStatus();
       loadUsage();
       loadDataroomSettings();
     });
+
+    // ── Apparence : choix du thème (appliqué à toutes les pages, mémorisé sur le compte) ──
+    function currentTheme() {
+      return document.documentElement.getAttribute('data-theme') === 'paper' ? 'paper' : 'dark';
+    }
+    function markAppearance(t) {
+      document.querySelectorAll('.appearance__opt').forEach((b) => {
+        const on = b.dataset.themeChoice === t;
+        b.classList.toggle('is-active', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    }
+    function initAppearance(accountTheme) {
+      const active = (accountTheme === 'paper' || accountTheme === 'dark') ? accountTheme : currentTheme();
+      markAppearance(active);
+      document.querySelectorAll('.appearance__opt').forEach((b) => {
+        b.addEventListener('click', () => {
+          const t = b.dataset.themeChoice;
+          markAppearance(t);
+          // theme.js expose l'applicateur ; repli local si indisponible.
+          if (window.LiquidTheme) window.LiquidTheme.apply(t, true);
+          else {
+            document.documentElement.setAttribute('data-theme', t);
+            try { localStorage.setItem('liquidTheme', t); } catch (e) {}
+            fetch('/api/auth/preferences', { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ theme: t }) }).catch(() => {});
+          }
+        });
+      });
+    }
 
     function showAlert(id, type, msg) {
       const el = document.getElementById(id);
