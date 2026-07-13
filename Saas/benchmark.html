@@ -34,6 +34,15 @@
     .topbar__doc { color: var(--t-on-bg) !important; border-left-color: var(--t-divider) !important; }
     .topbar .btn--ghost { color: var(--t-on-bg) !important; border-color: var(--t-outline) !important; }
     .topbar .btn--ghost:hover { color: var(--t-on-bg) !important; border-color: var(--t-outline-hov) !important; }
+    /* Boutons « fantômes » hors topbar (ex. « Retour au tableau de bord ») : posés
+       sur le fond, ils doivent rester lisibles dans les deux thèmes. */
+    .btn--ghost { color: var(--t-on-bg); border-color: var(--t-outline); }
+    .btn--ghost:hover { color: var(--t-on-bg); border-color: var(--t-outline-hov); }
+    /* Accents sémantiques du benchmark : nuances claires pensées pour le fond
+       sombre ; en mode « Papier » on passe à des nuances foncées lisibles.
+       (Utilisées aussi dans des styles inline, d'où des variables.) */
+    :root { --bk-indigo:#a5b4fc; --bk-indigo-2:#c7d2fe; --bk-green:#6ee7b7; --bk-amber:#fcd34d; }
+    :root[data-theme="paper"] { --bk-indigo:#4338ca; --bk-indigo-2:#4338ca; --bk-green:#15803d; --bk-amber:#b45309; }
 
     .mkt { max-width: 940px; margin: 0 auto; padding: 24px 28px 90px; }
     .page-back-row { height: 6px; }
@@ -80,11 +89,11 @@
     .bcard__k { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--t-on-bg-faint); margin-bottom: 8px; min-height: 26px; }
     .bcard__v { font-size: 27px; font-weight: 800; letter-spacing: -0.03em; color: var(--t-on-bg); line-height: 1.05; }
     .bcard__v small { font-size: 15px; font-weight: 600; color: var(--t-on-bg-faint); letter-spacing: -0.01em; }
-    .bcard__range { font-size: 12.5px; color: #a5b4fc; margin-top: 6px; font-weight: 600; }
+    .bcard__range { font-size: 12.5px; color: var(--bk-indigo); margin-top: 6px; font-weight: 600; }
     .bcard__note { font-size: 12.5px; line-height: 1.5; color: var(--t-on-bg-60); margin-top: 10px; }
     .bcard__tag { align-self: flex-start; margin-top: 12px; font-family: 'Archivo', sans-serif; font-size: 9.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 9px; border-radius: 99px; }
-    .bcard__tag--std { color: #6ee7b7; background: rgba(16,185,129,0.16); }
-    .bcard__tag--watch { color: #fcd34d; background: rgba(245,158,11,0.16); }
+    .bcard__tag--std { color: var(--bk-green); background: rgba(16,185,129,0.16); }
+    .bcard__tag--watch { color: var(--bk-amber); background: rgba(245,158,11,0.16); }
 
     /* Tableau valorisation par stade */
     .btable-wrap { overflow-x: auto; margin-top: 18px; border: 1px solid var(--t-divider); border-radius: 14px; }
@@ -99,16 +108,16 @@
     /* Ligne du stade sélectionné mise en avant */
     .btable tbody tr.is-stage > td { background: rgba(99,102,241,0.13); }
     .btable tbody tr.is-stage > td:first-child { box-shadow: inset 3px 0 0 #6366f1; }
-    .btable tbody tr.is-stage > td b { color: #c7d2fe; }
+    .btable tbody tr.is-stage > td b { color: var(--bk-indigo-2); }
 
     .bsrc { font-size: 11.5px; color: var(--t-on-bg-40); margin-top: 12px; font-style: italic; }
 
     /* Tableau de négociation (4 colonnes larges) */
     .btable--nego { min-width: 760px; }
     .btable--nego td:first-child { min-width: 150px; }
-    .btable--nego .cell-std { color: #6ee7b7; }
-    .btable--nego .cell-watch { color: #fcd34d; }
-    .btable--nego .cell-lever { color: #a5b4fc; }
+    .btable--nego .cell-std { color: var(--bk-green); }
+    .btable--nego .cell-watch { color: var(--bk-amber); }
+    .btable--nego .cell-lever { color: var(--bk-indigo); }
     .btable--nego thead th { vertical-align: bottom; }
     .btable--nego th .th-hint { display: block; font-size: 9.5px; font-weight: 600; letter-spacing: 0.02em; text-transform: none; color: var(--t-outline); margin-top: 3px; }
 
@@ -313,7 +322,7 @@
         <div class="bsec__head">
           <span class="bsec__num">02</span>
           <h2 class="bsec__h">Multiples de valorisation</h2>
-          <p class="bsec__desc">Les multiples de chiffre d'affaires que le marché applique pour valoriser une société qui facture déjà : plus la croissance est forte, plus le multiple est élevé. Ce sont les mêmes repères que ceux calculés par l'outil <a href="valorisation.html" style="color:#a5b4fc;">Valorisation</a>.</p>
+          <p class="bsec__desc">Les multiples de chiffre d'affaires que le marché applique pour valoriser une société qui facture déjà : plus la croissance est forte, plus le multiple est élevé. Ce sont les mêmes repères que ceux calculés par l'outil <a href="valorisation.html" style="color:var(--bk-indigo);">Valorisation</a>.</p>
         </div>
 
         <div class="btable-wrap">
@@ -450,7 +459,7 @@
           </div>
         </div>
 
-        <h3 style="font-size:14px;font-weight:700;color:#fff;margin:30px 0 0;letter-spacing:-0.01em;">Dilution cumulée des fondateurs</h3>
+        <h3 style="font-size:14px;font-weight:700;color:var(--t-on-bg);margin:30px 0 0;letter-spacing:-0.01em;">Dilution cumulée des fondateurs</h3>
         <p class="bsec__desc" style="flex-basis:auto;margin-top:5px;">Trajectoire indicative d'une équipe qui enchaîne les tours au rythme standard (~20 % de dilution par tour, pool inclus). Chaque levée s'applique sur ce qui reste.</p>
         <div class="btable-wrap">
           <table class="btable">
@@ -485,7 +494,7 @@
             </tbody>
           </table>
         </div>
-        <p class="bsrc">Sources : Carta Europe, Index Ventures Option Plan, pratiques de marché FR. Simulez votre propre trajectoire avec l'outil <a href="dilution.html" style="color:#a5b4fc;">Dilution</a>.</p>
+        <p class="bsrc">Sources : Carta Europe, Index Ventures Option Plan, pratiques de marché FR. Simulez votre propre trajectoire avec l'outil <a href="dilution.html" style="color:var(--bk-indigo);">Dilution</a>.</p>
       </section>
 
       <!-- 5. Clauses juridiques -->
@@ -507,7 +516,7 @@
             <div class="bcard__k">Préférence participante</div>
             <div class="bcard__v">Non<small> au seed</small></div>
             <div class="bcard__range">si présente : cap 3×</div>
-            <div class="bcard__note">La préférence « participante » fait toucher à l'investisseur sa mise <em>puis</em> son prorata (double compte). Rare et scrutée au seed ; si elle existe, un plafond (cap) à 3× la limite. Chiffrez l'écart dans l'outil <a href="exit.html" style="color:#a5b4fc;">Exit</a>.</div>
+            <div class="bcard__note">La préférence « participante » fait toucher à l'investisseur sa mise <em>puis</em> son prorata (double compte). Rare et scrutée au seed ; si elle existe, un plafond (cap) à 3× la limite. Chiffrez l'écart dans l'outil <a href="exit.html" style="color:var(--bk-indigo);">Exit</a>.</div>
             <span class="bcard__tag bcard__tag--watch">À surveiller</span>
           </div>
           <div class="bcard">
@@ -552,7 +561,7 @@
         <div class="bsec__head">
           <span class="bsec__num">06</span>
           <h2 class="bsec__h">Ce qui se négocie</h2>
-          <p class="bsec__desc">La term sheet et le pacte se négocient point par point — pas seulement la valorisation. Pour chaque levier : le <strong style="color:#6ee7b7;">standard de marché</strong> (une demande saine), la <strong style="color:#fcd34d;">version agressive</strong> à repérer, et votre <strong style="color:#a5b4fc;">marge de manœuvre</strong>.</p>
+          <p class="bsec__desc">La term sheet et le pacte se négocient point par point — pas seulement la valorisation. Pour chaque levier : le <strong style="color:var(--bk-green);">standard de marché</strong> (une demande saine), la <strong style="color:var(--bk-amber);">version agressive</strong> à repérer, et votre <strong style="color:var(--bk-indigo);">marge de manœuvre</strong>.</p>
         </div>
 
         <div class="btable-wrap">
@@ -775,7 +784,7 @@
             <div class="bcard__k">Durée de due diligence</div>
             <div class="bcard__v">4 – 8<small> sem.</small></div>
             <div class="bcard__range">après term sheet</div>
-            <div class="bcard__note">Une data room prête en amont raccourcit nettement cette phase. Voir l'outil <a href="data-room.html" style="color:#a5b4fc;">Data room</a>.</div>
+            <div class="bcard__note">Une data room prête en amont raccourcit nettement cette phase. Voir l'outil <a href="data-room.html" style="color:var(--bk-indigo);">Data room</a>.</div>
           </div>
           <div class="bcard">
             <div class="bcard__k">Structure du tour</div>
@@ -792,7 +801,7 @@
         <div class="bsec__head">
           <span class="bsec__num">09</span>
           <h2 class="bsec__h">Repères par secteur</h2>
-          <p class="bsec__desc">Le secteur change surtout <strong style="color:#fff;">la façon dont on valorise</strong> et <strong style="color:#fff;">les metrics scrutées</strong> — pas les clauses juridiques ni les termes du deal, qui restent standards. Choisissez votre secteur dans le sélecteur en haut de page. Seuls les secteurs à benchmarks publics fiables sont proposés ; la deeptech, la biotech/santé et l'IA — sans multiple de marché standard — sont regroupées sous « Autre ».</p>
+          <p class="bsec__desc">Le secteur change surtout <strong style="color:var(--t-on-bg);">la façon dont on valorise</strong> et <strong style="color:var(--t-on-bg);">les metrics scrutées</strong> — pas les clauses juridiques ni les termes du deal, qui restent standards. Choisissez votre secteur dans le sélecteur en haut de page. Seuls les secteurs à benchmarks publics fiables sont proposés ; la deeptech, la biotech/santé et l'IA — sans multiple de marché standard — sont regroupées sous « Autre ».</p>
         </div>
 
         <!-- SaaS / B2B -->
@@ -954,7 +963,7 @@
             <div class="bcard">
               <div class="bcard__k">Valorisation</div>
               <div class="bcard__v">Au cas par cas</div>
-              <div class="bcard__note">Pas de multiple sectoriel. On s'appuie sur la croissance et la traction ; en pré-revenu, sur les méthodes Berkus / Scorecard. Voir la section <a href="#sec-multiples" style="color:#a5b4fc;">Multiples de valorisation</a> et l'outil <a href="valorisation.html" style="color:#a5b4fc;">Valorisation</a>.</div>
+              <div class="bcard__note">Pas de multiple sectoriel. On s'appuie sur la croissance et la traction ; en pré-revenu, sur les méthodes Berkus / Scorecard. Voir la section <a href="#sec-multiples" style="color:var(--bk-indigo);">Multiples de valorisation</a> et l'outil <a href="valorisation.html" style="color:var(--bk-indigo);">Valorisation</a>.</div>
             </div>
             <div class="bcard">
               <div class="bcard__k">Deeptech / hardware</div>
@@ -1074,11 +1083,11 @@
       setCard('sec-process', 5, { '.bcard__v': `${data.dd}<small> sem.</small>` });
 
       const tractionDesc = document.querySelector('#sec-traction .bsec__desc');
-      if (tractionDesc) tractionDesc.innerHTML = `Repères attendus au <strong style="color:#fff;">${label}</strong> pour une ${round === 'bsaair' ? 'levée en BSA-AIR' : 'levée classique'} : priorité actuelle — <strong style="color:#fff;">${data.traction}</strong>. Les valeurs restent sensibles au secteur.`;
+      if (tractionDesc) tractionDesc.innerHTML = `Repères attendus au <strong style="color:var(--t-on-bg);">${label}</strong> pour une ${round === 'bsaair' ? 'levée en BSA-AIR' : 'levée classique'} : priorité actuelle — <strong style="color:var(--t-on-bg);">${data.traction}</strong>. Les valeurs restent sensibles au secteur.`;
       const clausesDesc = document.querySelector('#sec-clauses .bsec__desc');
-      if (clausesDesc) clausesDesc.innerHTML = `Clauses généralement observées lors d’une levée classique au stade <strong style="color:#fff;">${label}</strong>. La gouvernance et le niveau de protection se renforcent avec la maturité du tour.`;
+      if (clausesDesc) clausesDesc.innerHTML = `Clauses généralement observées lors d’une levée classique au stade <strong style="color:var(--t-on-bg);">${label}</strong>. La gouvernance et le niveau de protection se renforcent avec la maturité du tour.`;
       const termsDesc = document.querySelector('#sec-termes .bsec__desc');
-      if (termsDesc) termsDesc.innerHTML = `Repères BSA-AIR au stade <strong style="color:#fff;">${label}</strong>. Le prix est reporté à la conversion ; cap, décote et instruments déjà émis doivent être simulés ensemble.`;
+      if (termsDesc) termsDesc.innerHTML = `Repères BSA-AIR au stade <strong style="color:var(--t-on-bg);">${label}</strong>. Le prix est reporté à la conversion ; cap, décote et instruments déjà émis doivent être simulés ensemble.`;
     }
 
     // Surbrillance de la ligne du stade choisi dans les tableaux « par stade »
