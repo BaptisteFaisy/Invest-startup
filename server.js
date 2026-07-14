@@ -24,6 +24,7 @@ const { google }       = require('googleapis');
 const { Dropbox }      = require('dropbox');
 const archiver         = require('archiver');
 const { createDocumentEncryption } = require('./lib/document-encryption');
+const { buildAdminDashboardStats, countUnreadAdminMessages } = require('./lib/admin-dashboard');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -1457,6 +1458,7 @@ app.post('/api/saas/feedback', requireAuth, async (req, res) => {
     {
       $push: { messages: message },
       $set: { unread_by_admin: true, updated_at: now, user_email: user?.email || req.user.email, user_name: user?.full_name || null },
+      $inc: { unread_admin_count: 1 },
       $setOnInsert: { id: crypto.randomUUID(), user_id: req.user.id, unread_by_user: false, created_at: now },
     },
     { upsert: true },
@@ -1506,7 +1508,7 @@ async function enrichFeedbackThreadIdentities(threads) {
 
 app.get('/api/admin/feedback', requireAdmin, async (req, res) => {
   const threads = await col('feedback_threads')
-    .find({}, { projection: { _id: 0, id: 1, user_id: 1, user_email: 1, user_name: 1, unread_by_admin: 1, updated_at: 1, messages: { $slice: -1 } } })
+    .find({}, { projection: { _id: 0, id: 1, user_id: 1, user_email: 1, user_name: 1, unread_by_admin: 1, unread_admin_count: 1, updated_at: 1, messages: { $slice: -1 } } })
     .sort({ updated_at: -1 })
     .toArray();
   res.json({ threads: await enrichFeedbackThreadIdentities(threads) });
@@ -1521,7 +1523,7 @@ app.get('/api/admin/feedback/:identifier', requireAdmin, async (req, res) => {
   const thread = await col('feedback_threads').findOne(filter, { projection: { _id: 0 } });
   if (!thread) return res.status(404).json({ error: 'Fil introuvable' });
   if (thread.unread_by_admin) {
-    await col('feedback_threads').updateOne(filter, { $set: { unread_by_admin: false } });
+    await col('feedback_threads').updateOne(filter, { $set: { unread_by_admin: false, unread_admin_count: 0 } });
   }
   res.json({ thread: (await enrichFeedbackThreadIdentities([thread]))[0] });
 });
@@ -4952,6 +4954,29 @@ app.patch('/api/admin/lawyers/:id/status', requireAdmin, async (req, res) => {
   const result = await col('users').updateOne({ id, account_types: 'avocat' }, { $set: { lawyer_status: status, lawyer_status_updated_at: new Date().toISOString() } });
   if (!result.matchedCount) return res.status(404).json({ error: 'Avocat introuvable' });
   res.json({ success: true, status });
+});
+
+app.get('/api/admin/dashboard', requireAdmin, async (_req, res) => {
+  const [founders, lawyers, payments, unreadThreads] = await Promise.all([
+    col('users').find(
+      { account_types: 'fondateur' },
+      { projection: { _id: 0, id: 1, subscription_status: 1 } },
+    ).toArray(),
+    col('users').find(
+      { account_types: 'avocat' },
+      { projection: { _id: 0, id: 1, lawyer_status: 1 } },
+    ).toArray(),
+    col('billing_payments').find(
+      { status: 'paid' },
+      { projection: { _id: 0, user_id: 1, status: 1, amount_total: 1, currency: 1, paid_at: 1 } },
+    ).toArray(),
+    col('feedback_threads').find(
+      { unread_by_admin: true },
+      { projection: { _id: 0, unread_by_admin: 1, unread_admin_count: 1 } },
+    ).toArray(),
+  ]);
+
+  res.json(buildAdminDashboardStats({ founders, lawyers, payments, unreadMessages: countUnreadAdminMessages(unreadThreads) }));
 });
 
 app.get('/api/admin/payments', requireAdmin, async (_req, res) => {

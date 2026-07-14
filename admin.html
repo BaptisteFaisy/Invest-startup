@@ -23,6 +23,40 @@
     .admin-section { margin-bottom: 56px; }
     .admin-section h2 { font-family: var(--font-heading); font-size: 1.2rem; font-weight: 400; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
 
+    /* ── Tableau de bord ── */
+    .dashboard-head { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:28px; }
+    .dashboard-eyebrow { margin:0 0 8px; color:#2563eb; font:700 .7rem 'Archivo',sans-serif; letter-spacing:.1em; text-transform:uppercase; }
+    .dashboard-title { margin:0; font:500 clamp(1.8rem,4vw,2.5rem) var(--font-heading); letter-spacing:-.035em; }
+    .dashboard-sub { max-width:610px; margin:9px 0 0; color:var(--muted); font-size:.88rem; line-height:1.55; }
+    .dashboard-updated { flex:none; margin:0 0 5px; color:var(--muted); font-size:.72rem; }
+    .dashboard-error { margin-bottom:18px; padding:11px 13px; border:1px solid #fecaca; border-radius:10px; color:#b91c1c; background:#fef2f2; font-size:.82rem; }
+    .dashboard-revenue-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin-bottom:18px; }
+    .dashboard-revenue { position:relative; min-height:170px; padding:23px; overflow:hidden; border-radius:16px; color:#fff; background:#111; box-shadow:0 12px 30px rgba(8,9,12,.13); }
+    .dashboard-revenue::after { content:''; position:absolute; right:-42px; bottom:-72px; width:190px; height:190px; border-radius:50%; background:rgba(37,99,235,.38); filter:blur(2px); }
+    .dashboard-revenue--month::after { background:rgba(34,197,94,.3); }
+    .dashboard-revenue__label { position:relative; z-index:1; display:block; color:rgba(255,255,255,.62); font:700 .7rem 'Archivo',sans-serif; letter-spacing:.08em; text-transform:uppercase; }
+    .dashboard-revenue__value { position:relative; z-index:1; display:block; margin-top:20px; font:600 clamp(2rem,5vw,3rem) var(--font-heading); letter-spacing:-.045em; }
+    .dashboard-revenue__period { position:relative; z-index:1; display:block; margin-top:12px; color:rgba(255,255,255,.56); font-size:.76rem; }
+    .dashboard-grid { display:grid; grid-template-columns:1.15fr 1.15fr .7fr; gap:18px; }
+    .dashboard-card { min-width:0; padding:21px; border:1px solid var(--line); border-radius:16px; color:var(--text); background:#fff; box-shadow:0 8px 24px rgba(8,9,12,.065); text-decoration:none; transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease; }
+    a.dashboard-card:hover { transform:translateY(-2px); border-color:#c9c3b8; box-shadow:0 12px 30px rgba(8,9,12,.1); }
+    .dashboard-card__head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:20px; }
+    .dashboard-card__title { font:700 .78rem 'Archivo',sans-serif; letter-spacing:.055em; text-transform:uppercase; }
+    .dashboard-card__arrow { color:var(--muted); font-size:1rem; }
+    .dashboard-metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+    .dashboard-metric { min-width:0; padding:13px 12px; border-radius:11px; background:#f5f4f1; }
+    .dashboard-metric__value { display:block; font:600 1.75rem var(--font-heading); letter-spacing:-.04em; }
+    .dashboard-metric__label { display:block; margin-top:5px; color:var(--muted); font-size:.68rem; line-height:1.35; }
+    .dashboard-lawyer-total { display:flex; align-items:baseline; gap:9px; margin-bottom:16px; }
+    .dashboard-lawyer-total strong { font:600 2rem var(--font-heading); letter-spacing:-.04em; }
+    .dashboard-lawyer-total span { color:var(--muted); font-size:.75rem; }
+    .dashboard-statuses { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+    .dashboard-status { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:9px 10px; border-radius:9px; background:#f5f4f1; font-size:.69rem; }
+    .dashboard-status strong { font-size:.92rem; }
+    .dashboard-messages { display:flex; flex-direction:column; justify-content:space-between; background:#eff6ff; border-color:#bfdbfe; }
+    .dashboard-messages__value { display:block; margin-top:4px; color:#1d4ed8; font:600 3.5rem var(--font-heading); letter-spacing:-.055em; }
+    .dashboard-messages__label { display:block; margin-top:8px; color:#1e3a8a; font-size:.76rem; line-height:1.45; }
+
     /* ── Messagerie feedback ── */
     .msg-layout { display: flex; min-height: 360px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: rgba(255,255,255,0.04); }
     .msg-list { width: 250px; flex: none; border-right: 1px solid var(--line); overflow-y: auto; max-height: 520px; }
@@ -142,7 +176,8 @@
     .admin-drawer { background:#f7f6f3; border-color:#ddd9d1; box-shadow:0 20px 50px rgba(8,9,12,.14); }
     .admin-drawer__link:hover { background:rgba(17,17,17,.06); }
     .admin-drawer-backdrop { background:rgba(8,9,12,.18); }
-    @media (max-width:760px) { .admin-grid, .assignment-grid { grid-template-columns:1fr; } }
+    @media (max-width:900px) { .dashboard-grid { grid-template-columns:1fr 1fr; } .dashboard-messages { grid-column:1 / -1; min-height:170px; } }
+    @media (max-width:760px) { .admin-grid, .assignment-grid, .dashboard-revenue-grid, .dashboard-grid { grid-template-columns:1fr; } .dashboard-head { align-items:flex-start; flex-direction:column; } .dashboard-updated { margin:0; } .dashboard-messages { grid-column:auto; } }
     @media (max-width: 640px) { .msg-layout { flex-direction: column; } .msg-list { width: 100%; max-height: 200px; border-right: 0; border-bottom: 1px solid var(--line); } }
   </style>
 </head>
@@ -162,7 +197,7 @@
   <div class="admin-drawer-backdrop" id="admin-menu-backdrop"></div>
   <aside class="admin-drawer admin-drawer--right" id="admin-menu-right" aria-label="Menu administrateur droit">
     <nav class="admin-drawer__body">
-      <a class="admin-drawer__link" href="/admin.html"><svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3Z"/><path d="M9 20v-6h6v6"/></svg>Tableau de bord</a>
+      <a class="admin-drawer__link" href="#dashboard" data-admin-view="dashboard"><svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3Z"/><path d="M9 20v-6h6v6"/></svg>Tableau de bord</a>
       <a class="admin-drawer__link" href="#administrators" data-admin-view="administrators"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-2.8 7.8-7 10-4.2-2.2-7-5.5-7-10V6Z"/><path d="M9 12l2 2 4-4"/></svg>Administrateurs</a>
       <a class="admin-drawer__link" href="#startups" data-admin-view="startups"><svg viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 13h14l2 8H3Z"/></svg>Startups</a>
       <a class="admin-drawer__link" href="#payments" data-admin-view="payments"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></svg>Paiements</a>
@@ -172,12 +207,65 @@
   </aside>
 
   <div class="admin-wrap">
+    <div class="admin-section" id="admin-dashboard" data-admin-view-panel="dashboard">
+      <header class="dashboard-head">
+        <div>
+          <p class="dashboard-eyebrow">Vue d’ensemble</p>
+          <h1 class="dashboard-title">Tableau de bord</h1>
+          <p class="dashboard-sub">Suivez les encaissements Liquid+, l’activité des startups, les inscriptions avocat et les messages qui demandent votre attention.</p>
+        </div>
+        <p class="dashboard-updated" id="dashboard-updated" role="status" aria-live="polite">Chargement des indicateurs…</p>
+      </header>
+
+      <p class="dashboard-error" id="dashboard-error" hidden></p>
+
+      <div class="dashboard-revenue-grid">
+        <article class="dashboard-revenue">
+          <span class="dashboard-revenue__label">Encaissé cette semaine</span>
+          <strong class="dashboard-revenue__value" id="dashboard-revenue-week">—</strong>
+          <span class="dashboard-revenue__period" id="dashboard-revenue-week-period">Paiements Liquid+ confirmés depuis lundi</span>
+        </article>
+        <article class="dashboard-revenue dashboard-revenue--month">
+          <span class="dashboard-revenue__label">Encaissé ce mois-ci</span>
+          <strong class="dashboard-revenue__value" id="dashboard-revenue-month">—</strong>
+          <span class="dashboard-revenue__period" id="dashboard-revenue-month-period">Paiements Liquid+ confirmés depuis le début du mois</span>
+        </article>
+      </div>
+
+      <div class="dashboard-grid">
+        <a class="dashboard-card" href="#startups" data-dashboard-view="startups">
+          <div class="dashboard-card__head"><span class="dashboard-card__title">Startups</span><span class="dashboard-card__arrow" aria-hidden="true">→</span></div>
+          <div class="dashboard-metrics">
+            <div class="dashboard-metric"><strong class="dashboard-metric__value" id="dashboard-startups-registered">—</strong><span class="dashboard-metric__label">inscrites</span></div>
+            <div class="dashboard-metric"><strong class="dashboard-metric__value" id="dashboard-startups-paid">—</strong><span class="dashboard-metric__label">ont payé</span></div>
+            <div class="dashboard-metric"><strong class="dashboard-metric__value" id="dashboard-startups-active">—</strong><span class="dashboard-metric__label">comptes actifs</span></div>
+          </div>
+        </a>
+
+        <a class="dashboard-card" href="#lawyers" data-dashboard-view="lawyers">
+          <div class="dashboard-card__head"><span class="dashboard-card__title">Avocats</span><span class="dashboard-card__arrow" aria-hidden="true">→</span></div>
+          <div class="dashboard-lawyer-total"><strong id="dashboard-lawyers-registered">—</strong><span>inscrits au total</span></div>
+          <div class="dashboard-statuses">
+            <div class="dashboard-status"><span>En validation</span><strong id="dashboard-lawyers-pending">—</strong></div>
+            <div class="dashboard-status"><span>Actifs</span><strong id="dashboard-lawyers-active">—</strong></div>
+            <div class="dashboard-status"><span>Refusés</span><strong id="dashboard-lawyers-rejected">—</strong></div>
+            <div class="dashboard-status"><span>Suspendus</span><strong id="dashboard-lawyers-suspended">—</strong></div>
+          </div>
+        </a>
+
+        <a class="dashboard-card dashboard-messages" href="#messages" data-dashboard-view="messages">
+          <div class="dashboard-card__head"><span class="dashboard-card__title">Messagerie</span><span class="dashboard-card__arrow" aria-hidden="true">→</span></div>
+          <div><strong class="dashboard-messages__value" id="dashboard-messages-unread">—</strong><span class="dashboard-messages__label">messages non lus</span></div>
+        </a>
+      </div>
+    </div>
+
     <div class="admin-section" id="admin-administrators" data-admin-view-panel="administrators" hidden>
       <h2>Comptes administrateurs</h2>
       <div class="admin-grid" id="administrator-list"><p class="notice">Chargement…</p></div>
     </div>
 
-    <div class="admin-section" id="admin-startups" data-admin-view-panel="startups">
+    <div class="admin-section" id="admin-startups" data-admin-view-panel="startups" hidden>
       <h2>Comptes startups</h2>
       <div class="admin-grid" id="startup-list"><p class="notice">Chargement…</p></div>
     </div>
@@ -272,21 +360,27 @@
       document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMenus(); });
     })();
 
-    const ADMIN_VIEWS = { administrators:'Administrateurs', startups:'Startups', payments:'Paiements', lawyers:'Avocats', messages:'Messages' };
+    let adminReady = false;
+    const ADMIN_VIEWS = { dashboard:'Tableau de bord', administrators:'Administrateurs', startups:'Startups', payments:'Paiements', lawyers:'Avocats', messages:'Messages' };
     function showAdminView(view, updateHash = true) {
-      if (!ADMIN_VIEWS[view]) view = 'startups';
+      if (!ADMIN_VIEWS[view]) view = 'dashboard';
       document.querySelectorAll('[data-admin-view-panel]').forEach(panel => { panel.hidden = panel.dataset.adminViewPanel !== view; });
       document.querySelectorAll('[data-admin-view]').forEach(link => link.classList.toggle('is-active', link.dataset.adminView === view));
       document.title = ADMIN_VIEWS[view] + ' — Admin Liquid+';
       if (updateHash && window.location.hash !== '#' + view) history.pushState(null, '', '#' + view);
       window.scrollTo({ top:0, behavior:'auto' });
+      if (view === 'dashboard' && adminReady) loadDashboard();
     }
     document.querySelectorAll('[data-admin-view]').forEach(link => link.addEventListener('click', event => {
       event.preventDefault();
       showAdminView(link.dataset.adminView);
     }));
+    document.querySelectorAll('[data-dashboard-view]').forEach(link => link.addEventListener('click', event => {
+      event.preventDefault();
+      showAdminView(link.dataset.dashboardView);
+    }));
     window.addEventListener('popstate', () => showAdminView(window.location.hash.slice(1), false));
-    showAdminView(window.location.hash.slice(1) || 'startups', false);
+    showAdminView(window.location.hash.slice(1) || 'dashboard', false);
 
     // ── Auth check ──────────────────────────────────────────────
     fetch('/api/admin/me', { credentials: 'include' })
@@ -312,6 +406,11 @@
           await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
           window.location.href = 'login.html?switch=1';
         });
+        adminReady = true;
+        loadDashboard();
+        window.setInterval(() => {
+          if (!document.getElementById('admin-dashboard').hidden) loadDashboard();
+        }, 60000);
         loadThreads();
         window.setInterval(loadThreads, 15000);
         loadLawyerManagement();
@@ -341,9 +440,15 @@
     let activeThreadUserId = null;
 
     function updateMessageNotifications() {
-      const hasUnread = threads.some(thread => thread.unread_by_admin);
+      const unreadCount = threads.reduce((total, thread) => {
+        if (!thread.unread_by_admin) return total;
+        const storedCount = Number(thread.unread_admin_count);
+        return total + (Number.isFinite(storedCount) && storedCount > 0 ? storedCount : 1);
+      }, 0);
+      const hasUnread = unreadCount > 0;
       document.getElementById('admin-menu-notification').hidden = !hasUnread;
       document.getElementById('messages-menu-notification').hidden = !hasUnread;
+      document.getElementById('dashboard-messages-unread').textContent = String(unreadCount);
     }
 
     async function loadThreads() {
@@ -405,6 +510,7 @@
         }
         const data = await r.json();
         threadSummary.unread_by_admin = false;
+        threadSummary.unread_admin_count = 0;
         updateMessageNotifications();
         renderThreadList();
         renderPanel(data.thread);
@@ -463,6 +569,61 @@
       const data = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(data.error || 'Erreur serveur');
       return data;
+    }
+    let dashboardLoading = false;
+    function setDashboardValue(id, value) {
+      document.getElementById(id).textContent = String(value ?? 0);
+    }
+    function formatDashboardDay(dayKey) {
+      const date = new Date(String(dayKey || '') + 'T12:00:00Z');
+      return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('fr-FR', { day:'numeric', month:'long', timeZone:'Europe/Paris' });
+    }
+    function formatDashboardMonth(monthKey) {
+      const date = new Date(String(monthKey || '') + '-01T12:00:00Z');
+      return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString('fr-FR', { month:'long', year:'numeric', timeZone:'Europe/Paris' });
+    }
+    function formatDashboardAmount(amountCents, currency) {
+      return new Intl.NumberFormat('fr-FR', {
+        style:'currency', currency:currency || 'EUR', minimumFractionDigits:0, maximumFractionDigits:2,
+      }).format((Number(amountCents) || 0) / 100);
+    }
+    async function loadDashboard() {
+      if (dashboardLoading) return;
+      dashboardLoading = true;
+      const section = document.getElementById('admin-dashboard');
+      const error = document.getElementById('dashboard-error');
+      section.setAttribute('aria-busy', 'true');
+      error.hidden = true;
+      try {
+        const data = await adminJson('/api/admin/dashboard');
+        const currency = data.revenue?.currency || 'EUR';
+        document.getElementById('dashboard-revenue-week').textContent = formatDashboardAmount(data.revenue?.week_amount_cents, currency);
+        document.getElementById('dashboard-revenue-month').textContent = formatDashboardAmount(data.revenue?.month_amount_cents, currency);
+        const weekStart = formatDashboardDay(data.periods?.week_start);
+        const month = formatDashboardMonth(data.periods?.month);
+        document.getElementById('dashboard-revenue-week-period').textContent = weekStart ? `Paiements Liquid+ confirmés depuis le ${weekStart}` : 'Paiements Liquid+ confirmés depuis lundi';
+        document.getElementById('dashboard-revenue-month-period').textContent = month ? `Paiements Liquid+ confirmés en ${month}` : 'Paiements Liquid+ confirmés ce mois-ci';
+        setDashboardValue('dashboard-startups-registered', data.startups?.registered);
+        setDashboardValue('dashboard-startups-paid', data.startups?.paid);
+        setDashboardValue('dashboard-startups-active', data.startups?.active);
+        setDashboardValue('dashboard-lawyers-registered', data.lawyers?.registered);
+        setDashboardValue('dashboard-lawyers-pending', data.lawyers?.pending);
+        setDashboardValue('dashboard-lawyers-active', data.lawyers?.active);
+        setDashboardValue('dashboard-lawyers-rejected', data.lawyers?.rejected);
+        setDashboardValue('dashboard-lawyers-suspended', data.lawyers?.suspended);
+        setDashboardValue('dashboard-messages-unread', data.messages?.unread);
+        const updatedAt = new Date(data.generated_at);
+        document.getElementById('dashboard-updated').textContent = Number.isNaN(updatedAt.getTime())
+          ? 'Indicateurs à jour'
+          : `Mis à jour à ${updatedAt.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit', timeZone:'Europe/Paris' })}`;
+      } catch (e) {
+        error.textContent = 'Impossible de charger les indicateurs : ' + e.message;
+        error.hidden = false;
+        document.getElementById('dashboard-updated').textContent = 'Mise à jour impossible';
+      } finally {
+        section.removeAttribute('aria-busy');
+        dashboardLoading = false;
+      }
     }
     async function loadLawyerManagement() {
       try {
