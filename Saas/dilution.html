@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Liquid+ — Simulation de dilution</title>
-  <meta name="description" content="Simulateur de dilution : anticipez l'impact d'un tour de financement (pre-money, post-money, fully diluted) sur la répartition du capital." />
+  <meta name="description" content="Simulateur de dilution : anticipez l'impact d'une levée classique ou en BSA AIR sur la répartition du capital." />
   <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
   <script>
     // Applique le thème mémorisé au plus tôt (anti-flash). Défaut : sombre (:root).
@@ -302,6 +302,38 @@
     .round-view-sel:focus { outline: none; border-color: var(--t-on-bg-70); }
     .round-view-sel option { color: #08090c; }
 
+    /* Type de levée : parcours classique ou BSA AIR autonome */
+    .raise-type { margin-bottom: 18px; padding: 14px; border: 1px solid var(--t-card-border); border-radius: 14px; background: var(--t-card); box-shadow: var(--t-card-shadow); }
+    .raise-type__top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .raise-type__lab { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #6b6b78; }
+    .raise-type__seg { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 4px; border-radius: 11px; background: #f0f0ee; }
+    .raise-type__btn { min-width: 126px; padding: 9px 13px; border: 0; border-radius: 8px; background: transparent; color: #6b6b78; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; transition: color .12s, background .12s, box-shadow .12s; }
+    .raise-type__btn:hover { color: #08090c; }
+    .raise-type__btn.is-on { color: #fff; background: #08090c; box-shadow: 0 2px 5px rgba(8,9,12,0.2); }
+    .raise-type__desc { margin: 11px 0 0; color: #8a8a95; font-size: 12.5px; line-height: 1.5; }
+
+    /* Levée BSA AIR autonome et hypothèse de conversion */
+    .air-card__badge { flex: none; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #fff; background: #2563eb; border-radius: 6px; padding: 4px 8px; }
+    .air-card__title { flex: 1; font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; color: #08090c; }
+    .air-slider { margin-top: 15px; padding: 15px; border: 1px solid rgba(37,99,235,0.16); border-radius: 12px; background: rgba(37,99,235,0.045); }
+    .air-slider__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 13px; }
+    .air-slider__lab { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: #4b4b56; }
+    .air-slider__hint { max-width: 300px; margin-top: 4px; color: #8a8a95; font-size: 11.5px; line-height: 1.45; }
+    .air-slider__output { flex: none; color: #08090c; font-family: 'Archivo', sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -0.025em; white-space: nowrap; }
+    .air-range { width: 100%; height: 22px; margin: 0; appearance: none; -webkit-appearance: none; background: transparent; cursor: pointer; }
+    .air-range::-webkit-slider-runnable-track { height: 7px; border-radius: 999px; background: linear-gradient(to right, #2563eb 0 var(--air-progress, 0%), #d9dee8 var(--air-progress, 0%) 100%); }
+    .air-range::-moz-range-track { height: 7px; border-radius: 999px; background: linear-gradient(to right, #2563eb 0 var(--air-progress, 0%), #d9dee8 var(--air-progress, 0%) 100%); }
+    .air-range::-webkit-slider-thumb { width: 21px; height: 21px; margin-top: -7px; appearance: none; -webkit-appearance: none; border: 3px solid #fff; border-radius: 50%; background: #2563eb; box-shadow: 0 1px 5px rgba(8,9,12,0.3); }
+    .air-range::-moz-range-thumb { width: 16px; height: 16px; border: 3px solid #fff; border-radius: 50%; background: #2563eb; box-shadow: 0 1px 5px rgba(8,9,12,0.3); }
+    .air-slider__bounds { display: flex; justify-content: space-between; margin-top: 1px; color: #8a8a95; font-size: 10.5px; font-variant-numeric: tabular-nums; }
+    .air-slider__exact { display: grid; grid-template-columns: 1fr 160px; align-items: end; gap: 12px; margin-top: 13px; padding-top: 12px; border-top: 1px dashed rgba(37,99,235,0.18); }
+    .air-slider__exact-copy { color: #6b6b78; font-size: 11.5px; line-height: 1.45; }
+    .air-conversion-summary { margin-top: 12px; color: #4b4b56; font-size: 12px; line-height: 1.55; }
+    .air-conversion-summary b { color: #08090c; }
+    .air-conversion-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .air-conversion-chip { padding: 5px 8px; border: 1px solid rgba(37,99,235,0.15); border-radius: 7px; background: #fff; color: #4b4b56; font-size: 10.5px; }
+    .air-conversion-chip b { color: #1d4ed8; }
+
     @media (max-width: 520px) {
       .dil { padding: 24px 14px 80px; }
       .dil__title { font-size: 25px; }
@@ -310,6 +342,10 @@
       .rows--inv .rows__head, .rows--inv .row { grid-template-columns: 1fr 100px 28px; gap: 6px; }
       .row .inp, .row .sel { padding: 8px 7px; font-size: 12.5px; }
       .kpi__val { font-size: 19px; }
+      .raise-type__top { align-items: stretch; flex-direction: column; }
+      .raise-type__btn { min-width: 0; }
+      .air-slider__top { flex-direction: column; }
+      .air-slider__exact { grid-template-columns: 1fr; }
     }
     /* Composants « accent sombre » (bouton IA, badge, KPI accentué, tooltip) :
        fond volontairement foncé dans les deux thèmes → texte clair conservé en clair. */
@@ -396,7 +432,7 @@
       <h1 class="dil__title">Simulation de dilution</h1>
       <div class="help-pop" hidden>
         <div class="help-pop__label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg> Comprendre cet outil</div>
-        <p>Renseignez votre <span class="term" data-term="cap-table" tabindex="0">cap table</span> actuelle — <b>en % suffit</b>, pas besoin du nombre exact d'actions — et les paramètres du tour. Le simulateur calcule le <span class="term" data-term="post-money" tabindex="0">post-money</span>, votre <span class="term" data-term="dilution" tabindex="0">dilution</span> et la répartition du capital, à lire au choix en <b><span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span></b> (pool et <span class="term" data-term="convertibles" tabindex="0">convertibles</span> inclus) ou en <b><span class="term" data-term="non-dilue" tabindex="0">non dilué</span></b> (actions émises seulement).</p>
+        <p id="tool-help-copy">Renseignez votre <span class="term" data-term="cap-table" tabindex="0">cap table</span> actuelle — <b>en % suffit</b>, pas besoin du nombre exact d'actions — puis choisissez une levée classique ou un BSA AIR autonome. Le simulateur calcule votre <span class="term" data-term="dilution" tabindex="0">dilution</span> et la répartition du capital.</p>
       </div>
       <p class="dil__link"><a class="dil__link-a" href="valorisation.html">Vous ne connaissez pas votre valorisation ? Utilisez l'estimateur de valorisation →</a></p>
 
@@ -407,8 +443,19 @@
             <div class="dil__col-num">1</div>
             <div>
               <div class="dil__col-lab">À remplir — vos données</div>
-              <p class="dil__col-sub">Les champs sont vides par défaut : entrez les infos de votre startup, ou chargez un exemple ci-dessous pour voir le simulateur en action.</p>
+              <p class="dil__col-sub" id="input-col-sub">Les champs sont vides par défaut : entrez les infos de votre startup, ou chargez un exemple ci-dessous pour voir le simulateur en action.</p>
             </div>
+          </div>
+
+          <div class="raise-type">
+            <div class="raise-type__top">
+              <div class="raise-type__lab">Type de levée</div>
+              <div class="raise-type__seg" id="raise-type-seg" role="radiogroup" aria-label="Type de levée">
+                <button type="button" class="raise-type__btn is-on" data-raise-type="classic" role="radio" aria-checked="true">Levée classique</button>
+                <button type="button" class="raise-type__btn" data-raise-type="air" role="radio" aria-checked="false">BSA AIR</button>
+              </div>
+            </div>
+            <p class="raise-type__desc" id="raise-type-desc">Tour en actions immédiat : valorisation pre-money, post-money ou pourcentage cédé, avec pool et convertibles éventuels.</p>
           </div>
 
           <div class="dil__actions">
@@ -422,6 +469,7 @@
                 <option value="3">Amorçage — BSA AIR qui se convertit</option>
                 <option value="4">Négociation — en % cédé</option>
                 <option value="5">Parcours Seed → Série A → Série B</option>
+                <option value="air">BSA AIR autonome — décote et plafond</option>
               </select>
             </div>
             <button type="button" class="btn" id="reset-btn">↺ Vider le formulaire</button>
@@ -453,12 +501,57 @@
             </div>
           </div>
 
-          <div style="margin:2px 0 12px">
-            <div class="card__h" style="color:var(--t-on-bg-60);margin-bottom:6px">Les tours de financement</div>
-            <p class="dil__basis-hint" style="margin:0">Ajoutez un ou plusieurs tours. <b>Chaque tour part de la cap table issue du précédent</b> : la dilution se cumule, comme dans la vraie vie (Seed → Série A → Série B…).</p>
+          <div id="classic-panel">
+            <div style="margin:2px 0 12px">
+              <div class="card__h" style="color:var(--t-on-bg-60);margin-bottom:6px">Les tours de financement</div>
+              <p class="dil__basis-hint" style="margin:0">Ajoutez un ou plusieurs tours. <b>Chaque tour part de la cap table issue du précédent</b> : la dilution se cumule, comme dans la vraie vie (Seed → Série A → Série B…).</p>
+            </div>
+            <div class="rounds-container" id="rounds-container"></div>
+            <button type="button" class="add-round" id="add-round">+ Ajouter un tour suivant</button>
           </div>
-          <div class="rounds-container" id="rounds-container"></div>
-          <button type="button" class="add-round" id="add-round">+ Ajouter un tour suivant</button>
+
+          <div id="air-panel" hidden>
+            <div class="round-card">
+              <div class="round-card__head">
+                <span class="air-card__badge">BSA AIR</span>
+                <div class="air-card__title">Levée autonome et conversion projetée</div>
+              </div>
+              <div class="round-card__body">
+                <div class="card__desc">L'argent entre maintenant, mais les actions ne seront créées qu'à la conversion. Saisissez les termes de chaque souscripteur, puis faites varier la valorisation supposée du futur tour.</div>
+                <div class="field" style="margin-bottom:0">
+                  <label class="field__lab">Souscripteurs BSA AIR</label>
+                  <div class="rows rows--conv">
+                    <div class="rows__head"><span>Investisseur</span><span class="r">Montant €</span><span class="r">Décote %</span><span class="r">Plafond €</span><span class="r">Plancher €</span><span></span></div>
+                    <div id="air-rows"></div>
+                  </div>
+                  <button type="button" class="addrow" id="add-air">+ Ajouter un souscripteur BSA AIR</button>
+                  <div class="rowsum"><span>Montant levé aujourd'hui</span><b id="air-total">—</b></div>
+                </div>
+
+                <div class="air-slider">
+                  <div class="air-slider__top">
+                    <div>
+                      <div class="air-slider__lab">Valorisation pre-money supposée à la conversion</div>
+                      <div class="air-slider__hint">Faites glisser la barre : la dilution se recalcule immédiatement, notamment lorsque le plafond commence à s'appliquer.</div>
+                    </div>
+                    <output class="air-slider__output" id="air-valuation-output" for="air-valuation-range">5 000 000 €</output>
+                  </div>
+                  <input class="air-range" id="air-valuation-range" type="range" min="250000" max="20000000" step="50000" value="5000000" aria-label="Valorisation pre-money supposée à la conversion" />
+                  <div class="air-slider__bounds"><span id="air-range-min">250 000 €</span><span id="air-range-max">20 000 000 €</span></div>
+                  <div class="air-slider__exact">
+                    <div class="air-slider__exact-copy">Vous pouvez aussi saisir une valeur précise ou dépasser la plage proposée : la barre s'adaptera automatiquement.</div>
+                    <div>
+                      <label class="field__lab" for="air-valuation-input">Valeur exacte</label>
+                      <div class="inp-wrap"><input class="inp inp--money" id="air-valuation-input" type="text" inputmode="numeric" value="5 000 000" /><span class="inp-wrap__suf">€</span></div>
+                    </div>
+                  </div>
+                  <div class="air-conversion-summary" id="air-conversion-summary"></div>
+                </div>
+
+                <p class="card__desc" style="margin:13px 0 0">Projection <b>du BSA AIR seul</b> : elle montre les actions créées par sa conversion, sans ajouter les actions des investisseurs du futur tour déclencheur.</p>
+              </div>
+            </div>
+          </div>
         </form>
 
         <!-- COLONNE RÉSULTATS -->
@@ -467,7 +560,7 @@
             <div class="dil__col-num">2</div>
             <div>
               <div class="dil__col-lab">Résultats</div>
-              <p class="dil__col-sub">Se met à jour automatiquement au fur et à mesure de votre saisie à gauche.</p>
+              <p class="dil__col-sub" id="results-col-sub">Se met à jour automatiquement au fur et à mesure de votre saisie à gauche.</p>
             </div>
           </div>
 
@@ -489,7 +582,7 @@
 
           <div class="kpis">
             <div class="kpi kpi--accent">
-              <div class="kpi__lab">Valorisation <span class="term" data-term="post-money" tabindex="0">post-money</span></div>
+              <div class="kpi__lab" id="k-post-lab">Valorisation <span class="term" data-term="post-money" tabindex="0">post-money</span></div>
               <div class="kpi__val" id="k-post">—</div>
               <div class="kpi__sub" id="k-post-sub">dernier tour</div>
             </div>
@@ -499,12 +592,12 @@
               <div class="kpi__sub" id="k-raised-sub">tous tours confondus</div>
             </div>
             <div class="kpi">
-              <div class="kpi__lab">Part des fondateurs — fin</div>
+              <div class="kpi__lab" id="k-fend-lab">Part des fondateurs — fin</div>
               <div class="kpi__val" id="k-fend">—</div>
               <div class="kpi__sub" id="k-fend-sub">après le dernier tour</div>
             </div>
             <div class="kpi">
-              <div class="kpi__lab"><span class="term" data-term="dilution" tabindex="0">Dilution</span> cumulée des fondateurs</div>
+              <div class="kpi__lab" id="k-fdil-lab"><span class="term" data-term="dilution" tabindex="0">Dilution</span> cumulée des fondateurs</div>
               <div class="kpi__val" id="k-fdil">—</div>
               <div class="kpi__sub" id="k-fdil-sub"></div>
             </div>
@@ -563,7 +656,7 @@
             </div>
           </div>
 
-          <p class="note">
+          <p class="note" id="method-note">
             <b><span class="term" data-term="fully-diluted" tabindex="0">Fully diluted</span></b> : la répartition intègre le <span class="term" data-term="pool" tabindex="0">pool d'options</span> et les <span class="term" data-term="convertibles" tabindex="0">instruments convertibles</span> comme s'ils étaient déjà des actions — c'est la base retenue par les investisseurs et la mesure la plus prudente de votre <span class="term" data-term="dilution" tabindex="0">dilution</span>.<br />
             <b><span class="term" data-term="non-dilue" tabindex="0">Non dilué</span></b> : la même opération sur les seules actions <b>déjà émises</b>. Votre part y paraît plus haute — l'écart avec le fully diluted mesure exactement le poids du pool à venir (l'« <i>overhang</i> »).<br />
             <b><span class="term" data-term="shuffle" tabindex="0">Option pool shuffle</span></b> : un pool créé « avant le tour » gonfle le pre-money en actions et ne dilue que les actionnaires existants — l'investisseur obtient son pourcentage « net de pool ». Créé « après », il dilue aussi l'investisseur. C'est un point de négociation à part entière.
@@ -584,7 +677,7 @@
         <div class="card__toprow" style="align-items:center">
           <div style="flex:1;min-width:0">
             <div class="card__h">Étape suivante — la revente</div>
-            <p class="card__desc" style="margin:4px 0 0">Reprenez la cap table <b>après le dernier tour</b> dans le simulateur d'exit — sans rien ressaisir — pour voir qui touche quoi le jour d'une vente (préférences de liquidation, cascade de distribution).</p>
+            <p class="card__desc" id="to-exit-desc" style="margin:4px 0 0">Reprenez la cap table <b>après le dernier tour</b> dans le simulateur d'exit — sans rien ressaisir — pour voir qui touche quoi le jour d'une vente (préférences de liquidation, cascade de distribution).</p>
           </div>
           <button type="button" class="btn btn--ai" id="to-exit-btn" style="white-space:nowrap">Simuler la revente →</button>
         </div>
@@ -630,6 +723,8 @@
 
     // Mode de saisie de la cap table de départ : 'pct' (défaut) ou 'shares'
     let mode = 'pct';
+    // Instrument simulé : tour classique ou levée BSA AIR autonome.
+    let raiseType = 'classic';
     // Base de lecture des résultats : 'fd' (pleinement dilué) ou 'issued' (non dilué / actions émises)
     let resultsBasis = 'fd';
     // Index du tour affiché (dans la liste des tours calculés). -1 = dernier.
@@ -639,6 +734,8 @@
     const fmtRowVal = (v) => (mode === 'pct' ? fmtPctInput(v) : (v ? nfInt.format(Math.round(v)) : ''));
     // Base notionnelle d'actions utilisée quand on passe de % vers nombre d'actions
     const NOTIONAL_BASE = 1000000;
+    const AIR_SLIDER_MIN = 250000;
+    const AIR_SLIDER_DEFAULT_MAX = 20000000;
 
     const CATS = {
       founder: { label: 'Fondateurs', cls: 'c-founder', color: '#111827' },
@@ -749,6 +846,20 @@
       },
     ];
 
+    // Exemple dédié à une levée BSA AIR autonome. À 6,25 M€ de valorisation
+    // supposée, le plafond de 5 M€ prend le relais de la décote de 20 % : le
+    // curseur rend ce « coude » immédiatement visible dans la dilution.
+    const AIR_EXAMPLE = {
+      valuation: 6000000,
+      start: [
+        { name: 'Fondateur A', shares: 600000, type: 'founder' },
+        { name: 'Fondateur B', shares: 400000, type: 'founder' },
+      ],
+      rows: [
+        { name: 'Business angels AIR', amount: 400000, discount: 20, cap: 5000000, floor: 2500000 },
+      ],
+    };
+
     const shRowsEl = document.getElementById('sh-rows');
     const roundsContainer = document.getElementById('rounds-container');
 
@@ -783,6 +894,16 @@
         <button type="button" class="row__del" title="Supprimer">×</button>
       </div>`;
     }
+    function airRowHTML(cv) {
+      return `<div class="row" data-role="air">
+        <input class="inp in-cname" type="text" value="${escAttr(cv.name || '')}" placeholder="Investisseur" />
+        <input class="inp inp--money in-camount" type="text" inputmode="numeric" value="${cv.amount ? nfInt.format(cv.amount) : ''}" placeholder="0" />
+        <input class="inp inp--money in-cdisc" type="text" inputmode="decimal" value="${cv.discount != null ? fmtPctInput(cv.discount) : ''}" placeholder="20" />
+        <input class="inp inp--money in-ccap" type="text" inputmode="numeric" value="${cv.cap ? nfInt.format(cv.cap) : ''}" placeholder="—" />
+        <input class="inp inp--money in-cfloor" type="text" inputmode="numeric" value="${cv.floor ? nfInt.format(cv.floor) : ''}" placeholder="—" />
+        <button type="button" class="row__del" title="Supprimer">×</button>
+      </div>`;
+    }
     function escAttr(s) { return String(s == null ? '' : s).replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
 
     // Un tour vierge
@@ -791,6 +912,9 @@
         investors: [{ name: '', amount: 0 }],
         pool: { on: false, pct: 10, timing: 'pre' },
         conv: { on: false, rows: [{}] } };
+    }
+    function defaultAir() {
+      return { valuation: 5000000, rows: [{ name: '', amount: 0, discount: 20, cap: 0, floor: 0 }] };
     }
     // Copie profonde d'un tour d'exemple (pour ne pas muter EXAMPLES)
     function cloneRound(rd) {
@@ -908,6 +1032,14 @@
       roundsContainer.innerHTML = rounds.map((rd, i) => roundCardHTML(rd, i)).join('');
       renumberRounds();
     }
+    function renderAirState(air) {
+      const state = air || defaultAir();
+      const rows = state.rows && state.rows.length ? state.rows : defaultAir().rows;
+      document.getElementById('air-rows').innerHTML = rows.map(airRowHTML).join('');
+      const valuation = state.valuation > 0 ? state.valuation : defaultAir().valuation;
+      document.getElementById('air-valuation-input').value = nfInt.format(Math.round(valuation));
+      document.getElementById('air-valuation-range').value = String(Math.round(valuation));
+    }
     // Renumérote les cartes après ajout/suppression
     function renumberRounds() {
       const cards = [...roundsContainer.querySelectorAll('[data-role="round"]')];
@@ -924,14 +1056,62 @@
       return startArr.map(s => ({ name: s.name, type: s.type, value: mode === 'pct' ? (s.shares / tot * 100) : s.shares }));
     }
 
+    function syncRaiseTypeUI() {
+      const isAir = raiseType === 'air';
+      document.querySelectorAll('#raise-type-seg [data-raise-type]').forEach(btn => {
+        const on = btn.dataset.raiseType === raiseType;
+        btn.classList.toggle('is-on', on);
+        btn.setAttribute('aria-checked', String(on));
+      });
+      document.getElementById('classic-panel').hidden = isAir;
+      document.getElementById('air-panel').hidden = !isAir;
+      CATS.convertN.label = isAir ? 'Investisseurs BSA AIR' : 'Conversion BSA AIR / OC';
+      document.getElementById('raise-type-desc').textContent = isAir
+        ? "L'argent entre aujourd'hui ; la dilution affichée est une projection à la conversion, pilotée par la valorisation supposée."
+        : 'Tour en actions immédiat : valorisation pre-money, post-money ou pourcentage cédé, avec pool et convertibles éventuels.';
+      document.getElementById('results-col-sub').textContent = isAir
+        ? 'Faites glisser la valorisation supposée : la conversion et la dilution se mettent à jour en direct.'
+        : 'Se met à jour automatiquement au fur et à mesure de votre saisie à gauche.';
+      document.getElementById('k-post-lab').innerHTML = isAir
+        ? 'Valorisation supposée à la conversion'
+        : 'Valorisation <span class="term" data-term="post-money" tabindex="0">post-money</span>';
+      document.getElementById('k-raised-lab').textContent = isAir ? 'Montant levé en BSA AIR' : 'Total levé (cumul)';
+      document.getElementById('k-fend-lab').textContent = isAir ? 'Part des fondateurs — après conversion' : 'Part des fondateurs — fin';
+      document.getElementById('k-fdil-lab').innerHTML = isAir
+        ? '<span class="term" data-term="dilution" tabindex="0">Dilution</span> projetée des fondateurs'
+        : '<span class="term" data-term="dilution" tabindex="0">Dilution</span> cumulée des fondateurs';
+      document.getElementById('method-note').innerHTML = isAir
+        ? '<b>Projection de conversion</b> : le BSA AIR ne dilue pas immédiatement le capital juridiquement émis. L\'outil simule sa conversion future au prix le plus favorable prévu par les termes : valorisation supposée après décote ou plafond, puis plancher éventuel.<br /><b>Levée AIR seule</b> : les actions des investisseurs du futur tour déclencheur ne sont pas ajoutées ; seule la dilution propre aux BSA AIR est représentée.<br /><b>Fully diluted / non dilué</b> : dans les deux vues, les AIR sont présentés après leur conversion projetée ; la différence vient du pool d\'options existant.'
+        : '<b><span class="term" data-term="fully-diluted" tabindex="0">Fully diluted</span></b> : la répartition intègre le <span class="term" data-term="pool" tabindex="0">pool d\'options</span> et les <span class="term" data-term="convertibles" tabindex="0">instruments convertibles</span> comme s\'ils étaient déjà des actions — c\'est la base retenue par les investisseurs et la mesure la plus prudente de votre <span class="term" data-term="dilution" tabindex="0">dilution</span>.<br /><b><span class="term" data-term="non-dilue" tabindex="0">Non dilué</span></b> : la même opération sur les seules actions <b>déjà émises</b>. Votre part y paraît plus haute — l\'écart avec le fully diluted mesure exactement le poids du pool à venir (l’« <i>overhang</i> »).<br /><b><span class="term" data-term="shuffle" tabindex="0">Option pool shuffle</span></b> : un pool créé « avant le tour » gonfle le pre-money en actions et ne dilue que les actionnaires existants — l\'investisseur obtient son pourcentage « net de pool ». Créé « après », il dilue aussi l\'investisseur.';
+      document.getElementById('to-exit-desc').innerHTML = isAir
+        ? 'Reprenez la cap table <b>après la conversion projetée des BSA AIR</b> dans le simulateur d\'exit — sans rien ressaisir.'
+        : 'Reprenez la cap table <b>après le dernier tour</b> dans le simulateur d\'exit — sans rien ressaisir — pour voir qui touche quoi le jour d\'une vente (préférences de liquidation, cascade de distribution).';
+      updateModeUI();
+      syncResultsBasisUI();
+    }
+
+    function setRaiseType(nextType, shouldRecompute = true) {
+      if (nextType !== 'classic' && nextType !== 'air') return;
+      raiseType = nextType;
+      viewRound = -1;
+      syncRaiseTypeUI();
+      if (shouldRecompute) recompute();
+    }
+
     function loadExample(idx) {
+      if (idx === 'air') {
+        document.getElementById('example-select').value = 'air';
+        shRowsEl.innerHTML = startShRows(AIR_EXAMPLE.start).map(shRowHTML).join('');
+        renderAirState({ valuation: AIR_EXAMPLE.valuation, rows: AIR_EXAMPLE.rows.map(row => ({ ...row })) });
+        setRaiseType('air');
+        return;
+      }
       const i = typeof idx === 'number' ? idx : Number(document.getElementById('example-select').value) || 0;
       const ex = EXAMPLES[i] || EXAMPLES[0];
       document.getElementById('example-select').value = String(i);
       shRowsEl.innerHTML = startShRows(ex.start).map(shRowHTML).join('');
       renderRounds(ex.rounds.map(cloneRound));
-      viewRound = -1;
-      recompute();
+      setRaiseType('classic');
     }
 
     // Formulaire vide, prêt à recevoir les données de l'utilisateur.
@@ -939,7 +1119,9 @@
       document.getElementById('example-select').value = '';
       shRowsEl.innerHTML = shRowHTML({ name: '', value: 0, type: 'founder' });
       renderRounds([defaultRound()]);
+      renderAirState(defaultAir());
       viewRound = -1;
+      syncRaiseTypeUI();
       recompute();
     }
 
@@ -1013,6 +1195,20 @@
     }
     function readRounds() {
       return [...roundsContainer.querySelectorAll('[data-role="round"]')].map((c, i) => readRound(c, i));
+    }
+    function readAir() {
+      const rows = [...document.querySelectorAll('#air-rows [data-role="air"]')].map((r, idx) => ({
+        name: r.querySelector('.in-cname').value.trim() || ('Investisseur AIR ' + (idx + 1)),
+        amount: parseNum(r.querySelector('.in-camount').value),
+        discount: parseNum(r.querySelector('.in-cdisc').value) / 100,
+        cap: parseNum(r.querySelector('.in-ccap').value),
+        floor: parseNum(r.querySelector('.in-cfloor').value),
+      }));
+      return {
+        name: 'BSA AIR — conversion projetée',
+        valuation: parseNum(document.getElementById('air-valuation-input').value),
+        instruments: rows.filter(row => row.amount > 0),
+      };
     }
 
     // ---------- Calcul ----------
@@ -1140,6 +1336,100 @@
       return res;
     }
 
+    // Projection d'une levée BSA AIR autonome. La valorisation choisie est celle
+    // du futur tour déclencheur, mais seules les actions issues des AIR sont créées :
+    // aucune action du futur tour n'est ajoutée à cette simulation.
+    function computeAir(st) {
+      const E = st.shareholders.reduce((a, s) => a + s.shares, 0);
+      const V = st.valuation;
+      const I = st.convertibles.reduce((a, cv) => a + cv.amount, 0);
+      const res = {
+        E, I, premoney: V, postV: V, referenceValuation: V,
+        pps: E > 0 ? V / E : 0,
+        poolShares: 0, poolPct: 0, error: null,
+      };
+
+      if (E <= 0 || V <= 0 || I <= 0) {
+        res.error = 'incomplete';
+        return res;
+      }
+      if (st.convertibles.some(cv => cv.cap > 0 && cv.floor > 0 && cv.floor > cv.cap)) {
+        res.error = 'airBounds';
+        return res;
+      }
+
+      let convShares = 0;
+      const convDetail = [];
+      st.convertibles.forEach(cv => {
+        const disc = Math.min(Math.max(cv.discount || 0, 0), 0.95);
+        const discountedValuation = V * (1 - disc);
+        let effectiveValuation = discountedValuation;
+        let rule = disc > 0 ? 'discount' : 'reference';
+        if (cv.cap > 0 && cv.cap < effectiveValuation) {
+          effectiveValuation = cv.cap;
+          rule = 'cap';
+        }
+        if (cv.floor > 0 && cv.floor > effectiveValuation) {
+          effectiveValuation = cv.floor;
+          rule = 'floor';
+        }
+        if (!(effectiveValuation > 0)) return;
+        const convPrice = effectiveValuation / E;
+        const shares = cv.amount / convPrice;
+        convShares += shares;
+        convDetail.push({
+          name: cv.name, amount: cv.amount, shares, convPrice, disc,
+          cap: cv.cap, floor: cv.floor, discountedValuation,
+          effectiveValuation, rule,
+        });
+      });
+
+      if (!(convShares > 0)) {
+        res.error = 'incomplete';
+        return res;
+      }
+
+      const T = E + convShares;
+      res.convShares = convShares;
+      res.convDetail = convDetail;
+      res.T = T;
+      res.invSharesTotal = convShares;
+      res.invPct = convShares / T;
+
+      const rows = st.shareholders.map(s => ({ name: s.name, cat: s.type, before: s.shares, after: s.shares }));
+      convDetail.forEach(cv => rows.push({ name: cv.name || 'Investisseur BSA AIR', cat: 'convertN', before: 0, after: cv.shares }));
+      res.rows = rows.map(row => ({
+        ...row,
+        pctBefore: row.before / E,
+        pctAfter: row.after / T,
+      }));
+
+      const fBefore = st.shareholders.filter(s => s.type === 'founder').reduce((a, s) => a + s.shares, 0);
+      res.founderPctBefore = fBefore / E;
+      res.founderPctAfter = fBefore / T;
+
+      const groups = ['founder', 'invest0', 'pool0', 'convertN'];
+      res.segBefore = groups.map(cat => ({ cat, val: res.rows.filter(row => row.cat === cat).reduce((a, row) => a + row.before, 0) })).filter(seg => seg.val > 0);
+      res.segAfter = groups.map(cat => ({ cat, val: res.rows.filter(row => row.cat === cat).reduce((a, row) => a + row.after, 0) })).filter(seg => seg.val > 0);
+      res.usedCats = groups.filter(cat => res.rows.some(row => row.cat === cat && (row.before > 0 || row.after > 0)));
+
+      const isPoolCat = (cat) => cat === 'pool0' || cat === 'poolN';
+      const poolBefore = res.rows.filter(row => isPoolCat(row.cat)).reduce((a, row) => a + row.before, 0);
+      res.Eiss = E - poolBefore;
+      res.Tiss = T - poolBefore;
+      res.rows.forEach(row => {
+        row.pctBeforeIss = isPoolCat(row.cat) ? null : (res.Eiss > 0 ? row.before / res.Eiss : 0);
+        row.pctAfterIss = isPoolCat(row.cat) ? null : (res.Tiss > 0 ? row.after / res.Tiss : 0);
+      });
+      res.founderPctBeforeIss = res.Eiss > 0 ? fBefore / res.Eiss : 0;
+      res.founderPctAfterIss = res.Tiss > 0 ? fBefore / res.Tiss : 0;
+      res.invPctIss = res.Tiss > 0 ? convShares / res.Tiss : 0;
+      res.segBeforeIss = res.segBefore.filter(seg => !isPoolCat(seg.cat));
+      res.segAfterIss = res.segAfter.filter(seg => !isPoolCat(seg.cat));
+      res.usedCatsIss = res.usedCats.filter(cat => !isPoolCat(cat));
+      return res;
+    }
+
     // ---------- Calcul en séquence (multi-tours) ----------
     // À partir du résultat d'un tour, reconstitue la cap table d'entrée du tour suivant :
     // les nouveaux entrants (investisseurs, convertis) deviennent des « existants »,
@@ -1163,12 +1453,30 @@
       return seq;
     }
 
+    function computeActiveSequence(startSh) {
+      if (raiseType !== 'air') return computeSequence(startSh, readRounds());
+      const air = readAir();
+      const st = { shareholders: startSh, valuation: air.valuation, convertibles: air.instruments };
+      const r = computeAir(st);
+      const rd = {
+        name: air.name,
+        kind: 'air',
+        valuation: air.valuation,
+        instruments: air.instruments,
+        investors: [],
+        pool: { on: false, pct: 0, timing: 'pre' },
+        convertibles: air.instruments,
+        roundError: null,
+      };
+      return [{ rd, st, r }];
+    }
+
     // ---------- Rendu ----------
     function setKpisEmpty() {
       ['k-post', 'k-raised', 'k-fend', 'k-fdil'].forEach(id => { document.getElementById(id).textContent = '—'; });
-      document.getElementById('k-post-sub').textContent = 'dernier tour';
-      document.getElementById('k-raised-sub').textContent = 'tous tours confondus';
-      document.getElementById('k-fend-sub').textContent = 'après le dernier tour';
+      document.getElementById('k-post-sub').textContent = raiseType === 'air' ? 'hypothèse du curseur' : 'dernier tour';
+      document.getElementById('k-raised-sub').textContent = raiseType === 'air' ? "encaissé aujourd'hui" : 'tous tours confondus';
+      document.getElementById('k-fend-sub').textContent = raiseType === 'air' ? 'à la conversion projetée' : 'après le dernier tour';
       document.getElementById('k-fdil-sub').textContent = '';
     }
 
@@ -1186,6 +1494,61 @@
       } else {
         help.textContent = '';
       }
+    }
+
+    function refreshAirCardInfo(air, r) {
+      const total = air.instruments.reduce((sum, cv) => sum + cv.amount, 0);
+      document.getElementById('air-total').textContent = total > 0 ? eur0(total) : '—';
+
+      const range = document.getElementById('air-valuation-range');
+      const valuation = air.valuation > 0 ? air.valuation : 0;
+      const thresholds = air.instruments.flatMap(cv => {
+        const disc = Math.min(Math.max(cv.discount || 0, 0), 0.95);
+        const denom = 1 - disc;
+        const values = [];
+        if (cv.cap > 0 && denom > 0) values.push(cv.cap / denom);
+        if (cv.floor > 0 && denom > 0) values.push(cv.floor / denom);
+        return values;
+      });
+      const adaptiveMin = valuation > 0 && valuation < AIR_SLIDER_MIN
+        ? Math.max(10000, Math.floor((valuation / 2) / 10000) * 10000)
+        : AIR_SLIDER_MIN;
+      const wantedMax = Math.max(AIR_SLIDER_DEFAULT_MAX, valuation * 1.25, ...thresholds.map(v => v * 1.5));
+      const adaptiveMax = Math.max(adaptiveMin + 100000, Math.ceil(wantedMax / 1000000) * 1000000);
+      const span = adaptiveMax - adaptiveMin;
+      const step = span <= 25000000 ? 25000 : span <= 60000000 ? 50000 : span <= 150000000 ? 100000 : 250000;
+      range.min = String(adaptiveMin);
+      range.max = String(adaptiveMax);
+      range.step = String(step);
+      range.value = String(Math.min(Math.max(valuation || adaptiveMin, adaptiveMin), adaptiveMax));
+      const progress = adaptiveMax > adaptiveMin ? ((Number(range.value) - adaptiveMin) / (adaptiveMax - adaptiveMin)) * 100 : 0;
+      range.style.setProperty('--air-progress', progress.toFixed(2) + '%');
+      range.setAttribute('aria-valuetext', valuation > 0 ? eur0(valuation) : 'Non renseignée');
+      document.getElementById('air-range-min').textContent = eur0(adaptiveMin);
+      document.getElementById('air-range-max').textContent = eur0(adaptiveMax);
+      document.getElementById('air-valuation-output').textContent = valuation > 0 ? eur0(valuation) : '—';
+
+      const summary = document.getElementById('air-conversion-summary');
+      if (!r || r.error || !r.convDetail) {
+        summary.innerHTML = total > 0
+          ? 'Complétez la cap table et la valorisation supposée pour afficher la conversion projetée.'
+          : 'Saisissez au moins un montant BSA AIR pour afficher la dilution projetée.';
+        return;
+      }
+      const airPct = r.T > 0 ? r.convShares / r.T : 0;
+      const ruleLabel = (cv) => {
+        if (cv.rule === 'cap') return 'plafond actif';
+        if (cv.rule === 'floor') return 'plancher actif';
+        if (cv.rule === 'discount') return `décote de ${pct1(cv.disc).replace(' %', '')} % active`;
+        return 'valorisation supposée retenue';
+      };
+      const chips = r.convDetail.map(cv => `<span class="air-conversion-chip">${escAttr(cv.name)} · <b>${eur0(cv.effectiveValuation)}</b> · ${ruleLabel(cv)}</span>`).join('');
+      const kink = air.instruments
+        .filter(cv => cv.cap > 0 && (1 - Math.min(Math.max(cv.discount || 0, 0), 0.95)) > 0)
+        .map(cv => ({ name: cv.name, value: cv.cap / (1 - Math.min(Math.max(cv.discount || 0, 0), 0.95)) }))[0];
+      summary.innerHTML = `<b>Part projetée des investisseurs AIR : ${pct1(airPct)}</b> après conversion.`
+        + (kink ? ` Le plafond de ${escAttr(kink.name)} prend le relais de la décote vers ${eur0(kink.value)} de valorisation supposée.` : '')
+        + `<div class="air-conversion-list">${chips}</div>`;
     }
 
     function renderCascade(valid, iss) {
@@ -1213,8 +1576,9 @@
 
     function recompute() {
       const startSh = readStartCap();
-      const rounds = readRounds();
-      const seq = computeSequence(startSh, rounds);
+      const rounds = raiseType === 'classic' ? readRounds() : [];
+      const air = raiseType === 'air' ? readAir() : null;
+      const seq = computeActiveSequence(startSh);
 
       // Total de la cap table de départ
       const sumVal = startSh.reduce((a, s) => a + s.shares, 0);
@@ -1231,9 +1595,13 @@
       }
       document.getElementById('rtable').classList.toggle('is-pct', mode === 'pct');
 
-      // Infos de chaque carte de tour (total levé + aide pre/post)
-      const cards = [...roundsContainer.querySelectorAll('[data-role="round"]')];
-      cards.forEach((card, i) => refreshRoundCardInfo(card, rounds[i]));
+      if (raiseType === 'classic') {
+        // Infos de chaque carte de tour (total levé + aide pre/post)
+        const cards = [...roundsContainer.querySelectorAll('[data-role="round"]')];
+        cards.forEach((card, i) => refreshRoundCardInfo(card, rounds[i]));
+      } else {
+        refreshAirCardInfo(air, seq[0] && seq[0].r);
+      }
 
       // Tours valides (calculés sans erreur), dans l'ordre. On s'arrête au premier tour bloquant.
       const warnBox = document.getElementById('warn-box');
@@ -1243,6 +1611,7 @@
         const e = seq[i];
         if (e.st.roundError === 'pctInvalid') { stopMsg = `Tour « ${e.rd.name} » : le pourcentage cédé est incohérent (entre 0 et 100 %, et supérieur à la taille du pool si celui-ci est inclus).`; break; }
         if (e.r.error === 'poolTooBig') { stopMsg = `Tour « ${e.rd.name} » : le pool demandé est trop grand par rapport au tour. Réduisez-le ou augmentez la valorisation.`; break; }
+        if (e.r.error === 'airBounds') { stopMsg = 'BSA AIR : le plancher de valorisation ne peut pas être supérieur au plafond. Corrigez les termes concernés.'; break; }
         if (e.r.error === 'incomplete') { break; }   // tour pas encore renseigné : on s'arrête, sans erreur
         valid.push(e);
       }
@@ -1251,7 +1620,9 @@
       if (!valid.length) {
         setKpisEmpty();
         document.getElementById('cascade-card').hidden = true;
-        document.getElementById('rtable-body').innerHTML = '<tr><td class="l" colspan="6" style="color:#a8a8b3;text-align:center;padding:20px 0">Renseignez la cap table de départ et au moins un tour (valorisation + investisseur).</td></tr>';
+        document.getElementById('rtable-body').innerHTML = `<tr><td class="l" colspan="6" style="color:#a8a8b3;text-align:center;padding:20px 0">${raiseType === 'air'
+          ? 'Renseignez la cap table de départ, un montant BSA AIR et la valorisation supposée de conversion.'
+          : 'Renseignez la cap table de départ et au moins un tour (valorisation + investisseur).'}</td></tr>`;
         renderBars(null);
         populateRoundViewSelect(valid);
         lastDil = null;
@@ -1264,21 +1635,25 @@
       const last = valid[valid.length - 1];
 
       // ---- KPIs parcours ----
-      document.getElementById('k-post').textContent = eur0(last.r.postV);
-      document.getElementById('k-post-sub').textContent = last.rd.name;
+      document.getElementById('k-post').textContent = eur0(raiseType === 'air' ? last.r.referenceValuation : last.r.postV);
+      document.getElementById('k-post-sub').textContent = raiseType === 'air' ? 'hypothèse du curseur' : last.rd.name;
       const totalRaised = valid.reduce((a, e) => a + e.r.I, 0);
       document.getElementById('k-raised').textContent = eur0(totalRaised);
-      document.getElementById('k-raised-sub').textContent = valid.length > 1 ? `sur ${valid.length} tours` : 'tous tours confondus';
+      document.getElementById('k-raised-sub').textContent = raiseType === 'air'
+        ? "encaissé aujourd'hui"
+        : (valid.length > 1 ? `sur ${valid.length} tours` : 'tous tours confondus');
       const fStart = iss ? first.r.founderPctBeforeIss : first.r.founderPctBefore;
       const fEnd = iss ? last.r.founderPctAfterIss : last.r.founderPctAfter;
       document.getElementById('k-fend').textContent = pct1(fEnd);
+      document.getElementById('k-fend-sub').textContent = raiseType === 'air' ? 'à la conversion projetée' : 'après le dernier tour';
       const fdil = fStart - fEnd;
       document.getElementById('k-fdil').textContent = '−' + pct1(fdil);
       const rel = fStart > 0 ? fdil / fStart : 0;
       document.getElementById('k-fdil-sub').textContent = `${pct1(fStart)} → ${pct1(fEnd)} (soit −${pct1(rel).replace(' %', '')} % relatif)`;
 
       // ---- Cascade (parcours) ----
-      renderCascade(valid, iss);
+      if (raiseType === 'air') document.getElementById('cascade-card').hidden = true;
+      else renderCascade(valid, iss);
 
       // ---- Vue détaillée d'un tour choisi (par défaut le dernier) ----
       populateRoundViewSelect(valid);
@@ -1286,13 +1661,15 @@
       if (vi < 0 || vi >= valid.length) vi = valid.length - 1;
       document.getElementById('round-view-sel').value = String(vi);
       const view = valid[vi];
-      document.getElementById('own-before-lab').textContent = 'Avant ' + view.rd.name;
-      document.getElementById('own-after-lab').textContent = 'Après ' + view.rd.name;
-      document.getElementById('rtable-card-h').innerHTML = `<span class="term" data-term="cap-table" tabindex="0">Cap table</span> — ${escAttr(view.rd.name)} (avant / après)`;
+      document.getElementById('own-before-lab').textContent = raiseType === 'air' ? 'Avant la levée AIR' : 'Avant ' + view.rd.name;
+      document.getElementById('own-after-lab').textContent = raiseType === 'air' ? 'Après conversion projetée' : 'Après ' + view.rd.name;
+      document.getElementById('rtable-card-h').innerHTML = raiseType === 'air'
+        ? '<span class="term" data-term="cap-table" tabindex="0">Cap table</span> — avant / après conversion projetée'
+        : `<span class="term" data-term="cap-table" tabindex="0">Cap table</span> — ${escAttr(view.rd.name)} (avant / après)`;
       renderBars(view.r);
       renderTable(view.r);
 
-      lastDil = { startSh, valid, iss };
+      lastDil = { startSh, valid, iss, raiseType };
       refreshExplainUI();
     }
 
@@ -1430,9 +1807,10 @@
       document.getElementById('sh-col-lab').textContent = mode === 'pct' ? '%' : 'Actions';
       document.getElementById('sh-total-lab').textContent = mode === 'pct' ? 'Total' : 'Total actions de départ';
       const fdTerms = '<span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span> : <span class="term" data-term="pool" tabindex="0">pool d\'options</span> existant et <span class="term" data-term="bsa" tabindex="0">BSA</span>/<span class="term" data-term="bspce" tabindex="0">BSPCE</span> déjà attribués inclus';
+      const beforeLabel = raiseType === 'air' ? 'avant la levée BSA AIR' : 'avant le premier tour';
       document.getElementById('sh-desc').innerHTML = mode === 'pct'
-        ? `Le capital <b>avant le premier tour</b>, en % du capital (${fdTerms}). Le total doit faire 100 %.`
-        : `Le capital <b>avant le premier tour</b>, en nombre d'actions (${fdTerms}).`;
+        ? `Le capital <b>${beforeLabel}</b>, en % du capital (${fdTerms}). Le total doit faire 100 %.`
+        : `Le capital <b>${beforeLabel}</b>, en nombre d'actions (${fdTerms}).`;
     }
 
     // Bascule de mode : convertit les valeurs de la cap table de départ pour ne rien perdre
@@ -1464,9 +1842,13 @@
       document.getElementById('own-card-h').innerHTML = iss
         ? 'Répartition du capital (<span class="term" data-term="non-dilue" tabindex="0">non dilué</span>)'
         : 'Répartition du capital (<span class="term" data-term="fully-diluted" tabindex="0">fully diluted</span>)';
-      document.getElementById('basis-hint').innerHTML = iss
-        ? "Ne compte que les <b>actions déjà émises</b> : pool d'options et titres non exercés exclus. Votre part y paraît plus haute — l'écart avec le pleinement dilué correspond au poids du pool."
-        : "Compte le <b>pool d'options</b> et les convertibles comme des actions : la base retenue par les investisseurs et la mesure la plus prudente de votre dilution.";
+      document.getElementById('basis-hint').innerHTML = raiseType === 'air'
+        ? (iss
+          ? "Projection <b>au moment de la conversion</b>, sur les actions alors émises ; le pool non exercé reste exclu."
+          : "Projection <b>fully diluted après conversion</b> : les BSA AIR sont traités comme convertis et le pool existant reste inclus.")
+        : (iss
+          ? "Ne compte que les <b>actions déjà émises</b> : pool d'options et titres non exercés exclus. Votre part y paraît plus haute — l'écart avec le pleinement dilué correspond au poids du pool."
+          : "Compte le <b>pool d'options</b> et les convertibles comme des actions : la base retenue par les investisseurs et la mesure la plus prudente de votre dilution.");
     }
 
     // Bascule pleinement dilué / non dilué
@@ -1497,6 +1879,7 @@
     function buildExplainPayload() {
       if (!lastDil || !lastDil.valid || !lastDil.valid.length) return null;
       const { valid } = lastDil;
+      const isAir = lastDil.raiseType === 'air';
       const iss = resultsBasis === 'issued';
       const basisLabel = iss ? 'non dilué (actions émises)' : 'pleinement dilué';
       const first = valid[0], last = valid[valid.length - 1];
@@ -1504,22 +1887,31 @@
       const fEnd = iss ? last.r.founderPctAfterIss : last.r.founderPctAfter;
       const totalRaised = valid.reduce((a, e) => a + e.r.I, 0);
       const figures = [
-        { label: 'Nombre de tours simulés', value: String(valid.length) },
-        { label: 'Valorisation post-money (dernier tour : ' + last.rd.name + ')', value: eur0(last.r.postV) },
-        { label: 'Total levé (cumul)', value: eur0(totalRaised) },
+        { label: isAir ? 'Instrument simulé' : 'Nombre de tours simulés', value: isAir ? 'BSA AIR autonome' : String(valid.length) },
+        { label: isAir ? 'Valorisation pre-money supposée à la conversion' : 'Valorisation post-money (dernier tour : ' + last.rd.name + ')', value: eur0(isAir ? last.r.referenceValuation : last.r.postV) },
+        { label: isAir ? 'Montant levé en BSA AIR' : 'Total levé (cumul)', value: eur0(totalRaised) },
         { label: 'Part des fondateurs', value: pct1(fStart) + ' au départ → ' + pct1(fEnd) + ' à la fin' + (fStart > 0 ? ' (−' + pct1((fStart - fEnd) / fStart).replace(' %', '') + ' % relatif)' : '') + ', base ' + basisLabel },
       ];
       // La table transmise est la cascade tour par tour (la plus parlante pour un parcours).
-      const columns = ['Tour', 'Post-money', 'Levé', '% fondateurs', 'Dilution du tour'];
+      const columns = isAir
+        ? ['Étape', 'Valo supposée', 'Levé AIR', '% fondateurs', 'Dilution projetée']
+        : ['Tour', 'Post-money', 'Levé', '% fondateurs', 'Dilution du tour'];
       const rows = [['Départ', '—', '—', pct1(fStart), '—']];
       let prevF = fStart;
       valid.forEach(e => {
         const fA = iss ? e.r.founderPctAfterIss : e.r.founderPctAfter;
         const d = prevF - fA;
-        rows.push([e.rd.name, eur0(e.r.postV), e.r.I > 0 ? eur0(e.r.I) : '—', pct1(fA), d > 0.0005 ? '−' + pct1(d) : '—']);
+        rows.push([e.rd.name, eur0(isAir ? e.r.referenceValuation : e.r.postV), e.r.I > 0 ? eur0(e.r.I) : '—', pct1(fA), d > 0.0005 ? '−' + pct1(d) : '—']);
         prevF = fA;
       });
       const notes = [];
+      if (isAir) {
+        notes.push('Projection du BSA AIR seul : les actions du futur tour déclencheur ne sont pas ajoutées. La dilution affichée correspond uniquement aux actions créées par la conversion des AIR.');
+        (last.r.convDetail || []).forEach(cv => {
+          const rule = cv.rule === 'cap' ? 'plafond' : cv.rule === 'floor' ? 'plancher' : cv.rule === 'discount' ? 'décote' : 'valorisation supposée';
+          notes.push(cv.name + ' : valorisation de conversion retenue ' + eur0(cv.effectiveValuation) + ' (' + rule + ').');
+        });
+      }
       if (valid.length > 1) notes.push('Parcours de ' + valid.length + ' tours : chaque tour part de la cap table issue du précédent, donc les dilutions se composent (elles ne s\'additionnent pas simplement).');
       valid.forEach(e => {
         if (e.rd.pool && e.rd.pool.on) {
@@ -1530,7 +1922,7 @@
         }
         if (e.r.convShares > 0.5) {
           const denom = iss ? e.r.Tiss : e.r.T;
-          if (denom > 0) notes.push('Tour ' + e.rd.name + ' : des convertibles (BSA AIR / OC) se convertissent et pèsent ' + pct1(e.r.convShares / denom) + ' du capital ' + basisLabel + ' après conversion.');
+          if (denom > 0) notes.push((isAir ? 'Les BSA AIR convertis' : 'Tour ' + e.rd.name + ' : des convertibles (BSA AIR / OC)') + ' pèsent ' + pct1(e.r.convShares / denom) + ' du capital ' + basisLabel + ' après conversion.');
         }
       });
       return { kind: 'dilution', figures, table: { columns, rows }, notes };
@@ -1597,6 +1989,9 @@
     form.addEventListener('input', (e) => {
       const card = e.target.closest && e.target.closest('[data-role="round"]');
       if (card && (e.target.classList.contains('r-pool-on') || e.target.classList.contains('r-conv-on'))) syncRoundCardBodies(card);
+      if (e.target.id === 'air-valuation-range') {
+        document.getElementById('air-valuation-input').value = nfInt.format(Number(e.target.value));
+      }
       recompute();
     });
     form.addEventListener('change', (e) => {
@@ -1628,8 +2023,19 @@
       } else if (t.classList.contains('in-cdisc')) {
         t.value = fmtPctInput(parseNum(t.value));
         recompute();
+      } else if (t.id === 'air-valuation-input') {
+        t.value = fmtLiveInt(t.value);
+        recompute();
       }
     }, true);
+
+    // Type de levée global : conserve les données de chaque mode lors d'un aller-retour.
+    document.getElementById('raise-type-seg').addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-raise-type]');
+      if (!btn || btn.dataset.raiseType === raiseType) return;
+      document.getElementById('example-select').value = '';
+      setRaiseType(btn.dataset.raiseType);
+    });
 
     // Bascule % / nombre d'actions (cap table de départ)
     document.getElementById('mode-seg').addEventListener('click', (e) => {
@@ -1664,6 +2070,11 @@
     // Ajout d'un actionnaire à la cap table de départ
     document.getElementById('add-sh').addEventListener('click', () => {
       shRowsEl.insertAdjacentHTML('beforeend', shRowHTML({ name: '', value: 0, type: 'invest0' }));
+      recompute();
+    });
+
+    document.getElementById('add-air').addEventListener('click', () => {
+      document.getElementById('air-rows').insertAdjacentHTML('beforeend', airRowHTML({ name: '', amount: 0, discount: 20, cap: 0, floor: 0 }));
       recompute();
     });
 
@@ -1709,11 +2120,11 @@
           invested: type === 'invest0' ? (investedByName[row.name] || 0) : 0,
         };
       });
-      return { savedAt: Date.now(), mode: 'pct', rows, meta: { rounds: valid.length, lastRound: last.rd.name, postV: last.r.postV } };
+      return { savedAt: Date.now(), mode: 'pct', rows, meta: { raiseType: lastDil.raiseType || 'classic', rounds: valid.length, lastRound: last.rd.name, postV: last.r.postV } };
     }
     document.getElementById('to-exit-btn').addEventListener('click', () => {
       const payload = buildExitHandoff();
-      if (!payload) { alert("Renseignez d'abord une cap table de départ et au moins un tour cohérent avant de passer à la revente."); return; }
+      if (!payload) { alert(raiseType === 'air' ? "Renseignez d'abord une cap table et un BSA AIR cohérent avant de passer à la revente." : "Renseignez d'abord une cap table de départ et au moins un tour cohérent avant de passer à la revente."); return; }
       try { localStorage.setItem(EXIT_HANDOFF_KEY, JSON.stringify(payload)); } catch {}
       window.location.href = 'exit.html?from=dilution';
     });
@@ -1722,7 +2133,7 @@
     document.getElementById('example-select').addEventListener('change', (e) => {
       const v = e.target.value;
       if (v === '') resetForm();
-      else loadExample(Number(v));
+      else loadExample(v === 'air' ? 'air' : Number(v));
     });
 
     // ---------- Historique des simulations (synchronisé avec le compte) ----------
@@ -1813,12 +2224,23 @@
           conv: { on: card.querySelector('.r-conv-on').checked, rows: convRows },
         };
       });
-      return { mode, start, rounds };
+      const air = {
+        valuation: parseNum(document.getElementById('air-valuation-input').value),
+        rows: [...document.querySelectorAll('#air-rows [data-role="air"]')].map(row => ({
+          name: row.querySelector('.in-cname').value.trim(),
+          amount: parseNum(row.querySelector('.in-camount').value),
+          discount: parseNum(row.querySelector('.in-cdisc').value),
+          cap: parseNum(row.querySelector('.in-ccap').value),
+          floor: parseNum(row.querySelector('.in-cfloor').value),
+        })),
+      };
+      return { version: 2, raiseType, mode, start, rounds, air };
     }
 
     // Restaure un état sauvegardé dans le formulaire (compatible avec l'ancien format mono-tour)
     function restoreSnapshot(s) {
       mode = s.mode || 'pct';
+      raiseType = s.raiseType === 'air' ? 'air' : 'classic';
       let start, rounds;
       if (s.rounds) {
         start = s.start || [];
@@ -1840,8 +2262,9 @@
         pool: rd.pool || { on: false, pct: 10, timing: 'pre' },
         conv: rd.conv || { on: false, rows: [{}] },
       })));
+      renderAirState(s.air || defaultAir());
       viewRound = -1;
-      updateModeUI();
+      syncRaiseTypeUI();
       recompute();
     }
 
@@ -1856,14 +2279,14 @@
         const d = new Date(entry.savedAt);
         const dateStr = `${d.toLocaleDateString('fr-FR')} · ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
         const s = entry.summary;
+        const isAir = !!(entry.state && entry.state.raiseType === 'air');
         return `<div class="hist-item" data-id="${entry.id}">
           <div class="hist-item__main">
             <div class="hist-item__name">${escAttr(entry.name)}</div>
             <div class="hist-item__meta">${dateStr}</div>
             <div class="hist-item__chips">
-              ${s.rounds && s.rounds > 1 ? `<span class="hist-chip">${s.rounds} tours</span>` : ''}
-              <span class="hist-chip">Pre-money ${eur0(s.premoney)}</span>
-              <span class="hist-chip">Post-money ${eur0(s.postV)}</span>
+              ${isAir ? '<span class="hist-chip">BSA AIR</span>' : (s.rounds && s.rounds > 1 ? `<span class="hist-chip">${s.rounds} tours</span>` : '')}
+              ${isAir ? `<span class="hist-chip">Valo supposée ${eur0(s.premoney)}</span>` : `<span class="hist-chip">Pre-money ${eur0(s.premoney)}</span><span class="hist-chip">Post-money ${eur0(s.postV)}</span>`}
               <span class="hist-chip">Levé ${eur0(s.raised)}</span>
               <span class="hist-chip">Dilution fondateurs −${pct1(s.founderDilution)}</span>
             </div>
@@ -1877,11 +2300,13 @@
     }
 
     async function saveCurrentSimulation() {
-      const seq = computeSequence(readStartCap(), readRounds());
+      const seq = computeActiveSequence(readStartCap());
       const valid = [];
       for (const e of seq) { if (e.st.roundError || e.r.error) break; valid.push(e); }
       if (!valid.length) {
-        alert("Impossible d'enregistrer : complétez d'abord une cap table de départ et au moins un tour cohérent.");
+        alert(raiseType === 'air'
+          ? "Impossible d'enregistrer : complétez la cap table, le montant BSA AIR et la valorisation supposée."
+          : "Impossible d'enregistrer : complétez d'abord une cap table de départ et au moins un tour cohérent.");
         return;
       }
       const first = valid[0], last = valid[valid.length - 1];
@@ -2091,6 +2516,7 @@
     // Valorisation reportée depuis l'estimateur (outil à part) : ?premoney=NNN → renseigne le 1er tour
     const urlPremoney = parseNum(new URLSearchParams(window.location.search).get('premoney'));
     if (urlPremoney > 0) {
+      setRaiseType('classic', false);
       const firstCard = roundsContainer.querySelector('[data-role="round"]');
       if (firstCard) {
         firstCard.dataset.basis = 'pre';
