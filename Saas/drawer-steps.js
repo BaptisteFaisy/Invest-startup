@@ -15,6 +15,38 @@
   const SNAPSHOT_KEY = 'liquid_nav_steps';
   const friseCheckPath = '<path d="M5 12l5 5l10 -10"/>';
 
+  // Le chevron des pages outils ne suit pas l'historique du navigateur : une
+  // page intermédiaire (connexion, autre outil, lien externe...) pourrait alors
+  // éloigner l'utilisateur de son parcours. Le tableau de bord sérialise déjà
+  // l'étape consultée dans l'instantané partagé ; on revient directement dessus.
+  function lastConsultedStepUrl() {
+    const snapshot = readSnapshot();
+    const type = snapshot && snapshot.raiseType === 'bsa-air' ? 'bsa-air' : 'classic';
+    const steps = snapshot && Array.isArray(snapshot.steps) ? snapshot.steps : [];
+    const step = steps.find(item => item && item.active)
+      || steps.find(item => item && item.current)
+      || steps[0];
+    const params = new URLSearchParams({ raise: type });
+    if (step && step.key) params.set('step', step.key);
+    return 'tableau-de-bord.html?' + params.toString();
+  }
+
+  function isToolBackButton(target) {
+    return !!(target && target.closest && target.closest(
+      '#page-back-btn, #account-back-btn, #fb-back-btn'
+    ));
+  }
+
+  // Capture l'événement avant les anciens gestionnaires propres à chaque page.
+  // stopImmediatePropagation évite notamment qu'un history.back() soit aussi
+  // exécuté après la redirection explicite.
+  document.addEventListener('click', event => {
+    if (!isToolBackButton(event.target)) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    window.location.href = lastConsultedStepUrl();
+  }, true);
+
   function esc(s) {
     return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   }
