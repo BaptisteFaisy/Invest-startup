@@ -5286,7 +5286,6 @@ const COND_SIMPLE = {
   const cmpAllBtn = document.getElementById('verpanel-compare-all');
   const linkModal = document.getElementById('version-link-modal');
   const linkFields = document.getElementById('version-link-fields');
-  const linkSearch = document.getElementById('version-link-search');
   const linkParent = document.getElementById('version-link-parent');
   const linkType = document.getElementById('version-link-type');
   const linkError = document.getElementById('version-link-error');
@@ -5327,17 +5326,6 @@ const COND_SIMPLE = {
     if (linkModal) linkModal.hidden = true;
   }
 
-  function filterLinkParents() {
-    if (!linkSearch || !linkParent) return;
-    const query = linkSearch.value.trim().toLocaleLowerCase();
-    Array.from(linkParent.options).forEach(option => {
-      if (!option.value) { option.hidden = false; return; }
-      option.hidden = !!query && !option.textContent.toLocaleLowerCase().includes(query);
-    });
-    const selected = linkParent.selectedOptions[0];
-    if (selected && selected.hidden) linkParent.value = '';
-  }
-
   function showLinkModal(documents, current) {
     if (!linkModal || !linkParent) { setOpen(true); return; }
     const currentRoot = Number(current && (current.lineage_id || current.id));
@@ -5348,7 +5336,6 @@ const COND_SIMPLE = {
       input.disabled = input.value === 'yes' && !candidates.length;
     });
     linkFields.hidden = true;
-    linkSearch.value = '';
     linkType.value = '';
     linkError.textContent = candidates.length ? '' : 'Aucun autre document n’est disponible sur Liquid+ : ce document sera nécessairement distinct.';
     linkParent.disabled = !candidates.length;
@@ -5406,14 +5393,8 @@ const COND_SIMPLE = {
         const yes = input.value === 'yes' && input.checked;
         linkFields.hidden = !yes;
         linkError.textContent = '';
-        if (yes) linkSearch.focus();
+        if (yes) linkParent.focus();
       });
-    });
-    linkSearch.addEventListener('input', filterLinkParents);
-    linkParent.addEventListener('change', () => {
-      const selected = linkParent.selectedOptions[0];
-      if (selected && selected.value) linkSearch.value = selected.textContent;
-      filterLinkParents();
     });
     linkModal.querySelectorAll('[data-version-link-close], #version-link-close, #version-link-cancel')
       .forEach(el => el.addEventListener('click', closeLinkModal));
