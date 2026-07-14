@@ -483,7 +483,6 @@
         .then(data => {
           if (!data?.user) return;
           const name = data.user.full_name ? data.user.full_name.split(' ')[0] : data.user.email;
-          document.getElementById('nav-signup')?.remove();
           document.getElementById('nav-links').innerHTML = `
             <span class="nav-divider" aria-hidden="true"></span>
             <a class="nav-link saas-nav-link" href="/saas/tableau-de-bord.html">MON ESPACE</a>
