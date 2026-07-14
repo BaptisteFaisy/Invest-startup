@@ -70,6 +70,8 @@ const DAILY_TOKEN_CAP      = Number(process.env.DAILY_TOKEN_CAP) || 5_000_000;
 const FREE_FOUNDER_TOKEN_CAP = 200_000;
 const FOUNDER_TRIAL_MS     = 2 * 60 * 60 * 1000;
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
+const LIQUID_PLUS_STANDARD_PRICE_EUR = 700;
+const LIQUID_PLUS_RAISE_SUMMIT_PRICE_EUR = 550;
 
 const ADMIN_EMAILS = ['baptiste.faisy@gmail.com', 'bg.fsg.invest@gmail.com', 'liquidplus.startups@gmail.com'];
 
@@ -799,7 +801,7 @@ app.get('/api/billing/status', requireAuth, async (req, res) => {
       status: user.subscription_status === 'active' ? 'active' : 'inactive',
       plan: user.subscription_plan || null,
       started_at: user.subscription_started_at || null,
-      price: { amount: 700, currency: 'EUR', tax: 'HT' },
+      price: { amount: LIQUID_PLUS_STANDARD_PRICE_EUR, currency: 'EUR', tax: 'HT' },
     } : null,
     lawyer_payments_enabled: false,
   });
@@ -4168,6 +4170,7 @@ app.post('/api/saas/avocat/requests', requireAuth, requireAssignedFounder2FA, as
     documents: orderedDocs.map(doc => ({ document_id: doc.id, name: doc.name || `Document #${doc.id}`, kind: doc.kind || 'file', mimetype: doc.mimetype || '', size: doc.size || 0, submitted_at: now })),
     title: shortText(body.title, 160) || (prestation?.label || 'Relecture juridique'),
     lawyer_fee_amount: prestation?.fee_amount || 0,
+    lawyer_payment_status: 'due',
     note: shortText(body.note, 3000),
     founder_personal_interest_flag: body.founder_personal_interest === true,
     founder_personal_interest_notice: body.founder_personal_interest === true ? FOUNDER_PERSONAL_INTEREST_NOTICE : null,
@@ -4949,6 +4952,75 @@ app.patch('/api/admin/lawyers/:id/status', requireAdmin, async (req, res) => {
   const result = await col('users').updateOne({ id, account_types: 'avocat' }, { $set: { lawyer_status: status, lawyer_status_updated_at: new Date().toISOString() } });
   if (!result.matchedCount) return res.status(404).json({ error: 'Avocat introuvable' });
   res.json({ success: true, status });
+});
+
+app.get('/api/admin/payments', requireAdmin, async (_req, res) => {
+  const founders = await col('users').find(
+    { account_types: 'fondateur' },
+    { projection: { _id: 0, id: 1, email: 1, full_name: 1, created_at: 1, subscription_status: 1, subscription_promotion: 1 } },
+  ).sort({ created_at: -1 }).toArray();
+  const userIds = founders.map(founder => founder.id);
+
+  const [profiles, liquidPayments, commitments, lawyerRequests] = await Promise.all([
+    col('saas_fundraising_profiles').find(
+      { user_id: { $in: userIds } },
+      { projection: { _id: 0, user_id: 1, company_name: 1 } },
+    ).toArray(),
+    col('billing_payments').find(
+      { user_id: { $in: userIds }, status: 'paid' },
+      { projection: { _id: 0, user_id: 1, amount_total: 1, currency: 1, paid_at: 1 } },
+    ).sort({ paid_at: -1 }).toArray(),
+    col('billing_commitments').find(
+      { user_id: { $in: userIds }, promotion: 'RAISE SUMMIT', review_commitment: true, linkedin_commitment: true },
+      { projection: { _id: 0, user_id: 1 } },
+    ).toArray(),
+    col('saas_avocat_requests').find(
+      { user_id: { $in: userIds }, status: { $ne: 'annule' } },
+      { projection: { _id: 0, user_id: 1, prestation_key: 1, lawyer_fee_amount: 1, lawyer_payment_status: 1 } },
+    ).toArray(),
+  ]);
+
+  const companiesByUser = new Map(profiles.map(profile => [profile.user_id, profile.company_name]));
+  const raiseSummitUsers = new Set(commitments.map(commitment => commitment.user_id));
+  const latestLiquidPaymentByUser = new Map();
+  liquidPayments.forEach(payment => {
+    if (!latestLiquidPaymentByUser.has(payment.user_id)) latestLiquidPaymentByUser.set(payment.user_id, payment);
+  });
+
+  const lawyerPaymentsByUser = new Map(userIds.map(userId => [userId, { paid_amount: 0, due_amount: 0, currency: 'EUR' }]));
+  lawyerRequests.forEach(request => {
+    const storedAmount = Number(request.lawyer_fee_amount);
+    const fallbackAmount = AVOCAT_PRESTATIONS.find(item => item.key === request.prestation_key)?.fee_amount || 0;
+    const amount = Number.isFinite(storedAmount) && storedAmount > 0 ? storedAmount : fallbackAmount;
+    if (!(amount > 0)) return;
+    const totals = lawyerPaymentsByUser.get(request.user_id);
+    if (!totals) return;
+    if (request.lawyer_payment_status === 'paid') totals.paid_amount += amount;
+    else totals.due_amount += amount;
+  });
+
+  res.json({ payments: founders.map(founder => {
+    const liquidPayment = latestLiquidPaymentByUser.get(founder.id);
+    const liquidIsPaid = !!liquidPayment || founder.subscription_status === 'active';
+    const hasRaiseSummitPrice = founder.subscription_promotion === 'RAISE SUMMIT'
+      || (!liquidIsPaid && raiseSummitUsers.has(founder.id));
+    const expectedLiquidAmount = hasRaiseSummitPrice ? LIQUID_PLUS_RAISE_SUMMIT_PRICE_EUR : LIQUID_PLUS_STANDARD_PRICE_EUR;
+    const paidAmountInCents = Number(liquidPayment?.amount_total);
+    const liquidAmount = liquidPayment && Number.isFinite(paidAmountInCents)
+      ? paidAmountInCents / 100
+      : expectedLiquidAmount;
+    return {
+      startup_id: founder.id,
+      startup_name: companiesByUser.get(founder.id) || founder.full_name || founder.email,
+      email: founder.email,
+      liquid_plus: {
+        paid_amount: liquidIsPaid ? liquidAmount : 0,
+        due_amount: liquidIsPaid ? 0 : liquidAmount,
+        currency: String(liquidPayment?.currency || 'EUR').toUpperCase(),
+      },
+      lawyer: lawyerPaymentsByUser.get(founder.id),
+    };
+  }) });
 });
 
 app.get('/api/admin/founders', requireAdmin, async (_req, res) => {

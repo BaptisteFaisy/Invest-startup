@@ -84,6 +84,20 @@
     .assigned-startups { margin-top:13px; padding-top:11px; border-top:1px solid var(--line); }
     .assigned-startups__title { margin-bottom:7px; color:var(--muted); font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; }
     .assigned-startups__item { display:block; margin-top:5px; font-size:.78rem; }
+    .payments-table-wrap { overflow-x:auto; border:1px solid var(--line); border-radius:14px; background:#fff; box-shadow:0 8px 24px rgba(8,9,12,.08); }
+    .payments-table { width:100%; min-width:680px; border-collapse:collapse; }
+    .payments-table th, .payments-table td { padding:16px 18px; border-bottom:1px solid var(--line); text-align:left; vertical-align:middle; }
+    .payments-table th { color:var(--muted); font-size:.72rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+    .payments-table tbody tr:last-child td { border-bottom:0; }
+    .payments-table tbody tr:hover { background:rgba(17,17,17,.025); }
+    .payments-startup__name { display:block; font-size:.9rem; font-weight:700; }
+    .payments-startup__email { display:block; margin-top:4px; color:var(--muted); font-size:.76rem; }
+    .payment-values { display:flex; flex-wrap:wrap; gap:8px; }
+    .payment-value { display:inline-flex; align-items:center; gap:7px; min-height:30px; padding:5px 9px; border-radius:8px; font-size:.88rem; font-weight:700; white-space:nowrap; }
+    .payment-value small { font-size:.65rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
+    .payment-value--due { color:#78716c; background:#f1f0ed; }
+    .payment-value--paid { color:#15803d; background:#dcfce7; }
+    .payment-value--empty { font-weight:500; }
     .admin-menu-btn { position:fixed; top:9px; left:18px; z-index:92; width:38px; height:38px; display:grid; place-items:center; flex:none; padding:0; border:1px solid var(--line); border-radius:10px; background:#000; color:var(--text); cursor:pointer; }
     .admin-notification-dot { width:9px; height:9px; border-radius:50%; background:#22c55e; box-shadow:0 0 0 3px #f7f6f3; }
     .admin-menu-btn .admin-notification-dot { position:absolute; top:-2px; right:-2px; }
@@ -151,6 +165,7 @@
       <a class="admin-drawer__link" href="/admin.html"><svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3Z"/><path d="M9 20v-6h6v6"/></svg>Tableau de bord</a>
       <a class="admin-drawer__link" href="#administrators" data-admin-view="administrators"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-2.8 7.8-7 10-4.2-2.2-7-5.5-7-10V6Z"/><path d="M9 12l2 2 4-4"/></svg>Administrateurs</a>
       <a class="admin-drawer__link" href="#startups" data-admin-view="startups"><svg viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M5 13h14l2 8H3Z"/></svg>Startups</a>
+      <a class="admin-drawer__link" href="#payments" data-admin-view="payments"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h3"/></svg>Paiements</a>
       <a class="admin-drawer__link" href="#lawyers" data-admin-view="lawyers"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-4 2-6 6-6s6 2 6 6M16 5a3 3 0 0 1 0 6M17 14c3 .3 4 2.3 4 6"/></svg>Avocats</a>
       <a class="admin-drawer__link" href="#messages" data-admin-view="messages"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 3Z"/><path d="M8 9h8M8 13h5"/></svg>Messages<span class="admin-notification-dot" id="messages-menu-notification" aria-label="Messages non lus" hidden></span></a>
     </nav>
@@ -165,6 +180,18 @@
     <div class="admin-section" id="admin-startups" data-admin-view-panel="startups">
       <h2>Comptes startups</h2>
       <div class="admin-grid" id="startup-list"><p class="notice">Chargement…</p></div>
+    </div>
+
+    <div class="admin-section" id="admin-payments" data-admin-view-panel="payments" hidden>
+      <h2>Paiements</h2>
+      <div class="payments-table-wrap">
+        <table class="payments-table">
+          <thead>
+            <tr><th>Startup</th><th>Paiements Liquid+</th><th>Paiements avocat</th></tr>
+          </thead>
+          <tbody id="payments-list"><tr><td colspan="3" class="notice">Chargement…</td></tr></tbody>
+        </table>
+      </div>
     </div>
 
     <div class="admin-section" id="admin-lawyers" data-admin-view-panel="lawyers" hidden>
@@ -245,7 +272,7 @@
       document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMenus(); });
     })();
 
-    const ADMIN_VIEWS = { administrators:'Administrateurs', startups:'Startups', lawyers:'Avocats', messages:'Messages' };
+    const ADMIN_VIEWS = { administrators:'Administrateurs', startups:'Startups', payments:'Paiements', lawyers:'Avocats', messages:'Messages' };
     function showAdminView(view, updateHash = true) {
       if (!ADMIN_VIEWS[view]) view = 'startups';
       document.querySelectorAll('[data-admin-view-panel]').forEach(panel => { panel.hidden = panel.dataset.adminViewPanel !== view; });
@@ -288,6 +315,7 @@
         loadThreads();
         window.setInterval(loadThreads, 15000);
         loadLawyerManagement();
+        loadPayments();
       })
       .catch(err => {
         document.querySelector('.admin-wrap').innerHTML = `
@@ -442,6 +470,29 @@
         adminAdministrators=a.administrators||[]; adminLawyers=l.lawyers||[]; adminFounders=f.founders||[]; adminProposals=p.proposals||[]; adminLawyerChangeRequests=c.requests||[]; adminCompanyVerifications=v.companies||[];
         renderAdministrators(); renderStartups(); renderLawyers(); renderProposalForm(); renderProposals(); renderLawyerChangeRequests(); renderCompanyVerifications();
       } catch(e) { document.getElementById('lawyer-list').innerHTML='<p class="notice">'+escHtml(e.message)+'</p>'; }
+    }
+    function formatPaymentAmount(amount, currency) {
+      return new Intl.NumberFormat('fr-FR', { style:'currency', currency:currency || 'EUR', minimumFractionDigits:0, maximumFractionDigits:2 }).format(Number(amount) || 0);
+    }
+    function paymentValues(payment) {
+      const paid = Number(payment?.paid_amount) || 0;
+      const due = Number(payment?.due_amount) || 0;
+      const currency = payment?.currency || 'EUR';
+      const values = [];
+      if (paid > 0) values.push(`<span class="payment-value payment-value--paid">${escHtml(formatPaymentAmount(paid, currency))}<small>Payé</small></span>`);
+      if (due > 0) values.push(`<span class="payment-value payment-value--due">${escHtml(formatPaymentAmount(due, currency))}<small>Dû</small></span>`);
+      return values.length ? values.join('') : '<span class="payment-value payment-value--due payment-value--empty">0 €</span>';
+    }
+    async function loadPayments() {
+      const el = document.getElementById('payments-list');
+      try {
+        const data = await adminJson('/api/admin/payments');
+        const payments = data.payments || [];
+        if (!payments.length) { el.innerHTML='<tr><td colspan="3" class="notice">Aucune startup.</td></tr>'; return; }
+        el.innerHTML = payments.map(payment => `<tr><td><span class="payments-startup__name">${escHtml(payment.startup_name||payment.email)}</span><span class="payments-startup__email">${escHtml(payment.email)}</span></td><td><div class="payment-values">${paymentValues(payment.liquid_plus)}</div></td><td><div class="payment-values">${paymentValues(payment.lawyer)}</div></td></tr>`).join('');
+      } catch(e) {
+        el.innerHTML='<tr><td colspan="3" class="notice">'+escHtml(e.message)+'</td></tr>';
+      }
     }
     function renderAdministrators() {
       const el=document.getElementById('administrator-list');
