@@ -66,6 +66,9 @@
     .account-status__badge--pending { background: #fef3c7; color: #92400e; }
     .account-status__badge--active { background: #dcfce7; color: #166534; }
     .account-status__badge--rejected { background: #fee2e2; color: #991b1b; }
+    .account-status__switch { margin-top: 6px; font-family: inherit; font-size: 0.78rem; font-weight: 700; color: #4b3fb0; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; }
+    .account-status__switch:hover { color: #3a3092; }
+    .account-status__switch:disabled { opacity: .5; cursor: default; }
 
     /* Réglage d'apparence (dans la carte blanche → styles foncés, valables dans les 2 thèmes) */
     .appearance { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -513,16 +516,60 @@
         rows.push(`<div class="account-status__row"><span class="account-status__label">Statut avocat</span><span class="account-status__values"><span class="account-status__badge account-status__badge--${lawyerStatus[1]}">${esc(lawyerStatus[0])}</span></span></div>`);
       }
 
+      let lockedRaiseType = null;
       if (types.includes('fondateur')) {
         let raiseType = 'unknown';
         try {
           const response = await fetch('/api/saas/fundraising-profile', { credentials: 'include' });
-          if (response.ok) raiseType = ((await response.json()).profile || {}).raise_type || 'unknown';
+          if (response.ok) {
+            const profile = (await response.json()).profile || {};
+            // Le type n'est affiché qu'une fois le choix verrouillé ; avant cela
+            // il reste « à définir », même si le serveur renvoie une valeur par défaut.
+            if (profile.raise_type_locked && profile.raise_type) { raiseType = profile.raise_type; lockedRaiseType = profile.raise_type; }
+          }
         } catch (_) {}
-        rows.push(`<div class="account-status__row"><span class="account-status__label">Type de levée</span><span class="account-status__values"><span class="account-status__badge">${esc(RAISE_TYPE_LABELS[raiseType] || raiseType)}</span></span></div>`);
+        const switchBtn = lockedRaiseType
+          ? '<button type="button" class="account-status__switch" data-switch-raise-type>Changer de type de levée</button>'
+          : '';
+        rows.push(`<div class="account-status__row"><span class="account-status__label">Type de levée</span><span class="account-status__values"><span class="account-status__badge">${esc(RAISE_TYPE_LABELS[raiseType] || raiseType)}</span>${switchBtn}</span></div>`);
       }
 
       root.innerHTML = rows.join('');
+
+      const switchEl = root.querySelector('[data-switch-raise-type]');
+      if (switchEl && lockedRaiseType) {
+        switchEl.addEventListener('click', async () => {
+          const next = lockedRaiseType === 'classic' ? 'bsa-air' : 'classic';
+          const nextLabel = RAISE_TYPE_LABELS[next];
+          const ok = window.confirm(
+            `Passer votre compte en « ${nextLabel} » ?\n\n`
+            + "Tous les documents et l'avancement du parcours de votre type de levée actuel seront définitivement supprimés. "
+            + 'Votre profil de levée, vos investisseurs, vos simulations et vos dossiers personnels sont conservés.\n\n'
+            + 'Cette action est irréversible.'
+          );
+          if (!ok) return;
+          switchEl.disabled = true;
+          switchEl.textContent = 'Changement en cours...';
+          try {
+            const r = await fetch('/api/saas/fundraising-profile/switch-type', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ raise_type: next }),
+            });
+            const data = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(data.error || 'Changement impossible.');
+            const savedType = ((data.profile || {}).raise_type) || next;
+            const params = new URLSearchParams({ raise: savedType });
+            if (savedType === 'classic') params.set('step', 'mise-en-ordre');
+            window.location.href = '/saas/tableau-de-bord.html?' + params.toString();
+          } catch (err) {
+            switchEl.disabled = false;
+            switchEl.textContent = 'Changer de type de levée';
+            window.alert(err.message || 'Changement impossible.');
+          }
+        });
+      }
     }
 
     // ── Apparence : choix du thème (appliqué à toutes les pages, mémorisé sur le compte) ──
