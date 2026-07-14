@@ -424,6 +424,7 @@
         <div class="nav-primary" aria-label="Navigation principale">
           <a class="nav-primary__link nav-primary__link--active" href="#top" aria-current="page">PILOTER MA LEVÉE</a>
           <a class="nav-primary__link" href="#tarifs">TARIFS</a>
+          <a class="nav-primary__link" href="#contact">NOUS CONTACTER</a>
         </div>
         <div class="nav-links" id="nav-links">
           <a class="button ghost" href="login.html">Se connecter</a>
@@ -436,6 +437,7 @@
       <button class="nav-hamburger" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><span></span><span></span><span></span></button>
       <a href="#top">PILOTER MA LEVÉE</a>
       <a href="#tarifs">TARIFS</a>
+      <a href="#contact">NOUS CONTACTER</a>
       <a href="login.html" style="margin-top:16px; font-size:1.1rem; color:rgba(255,255,255,0.5);">Se connecter</a>
       <a href="register.html" style="font-size:1.1rem; color:rgba(255,255,255,0.5);">Créer un compte</a>
     </div>
@@ -470,6 +472,7 @@
             <button class="nav-hamburger" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><span></span><span></span><span></span></button>
             <a href="#top">PILOTER MA LEVÉE</a>
             <a href="#tarifs">TARIFS</a>
+            <a href="#contact">NOUS CONTACTER</a>
             <a href="settings.html">Paramètres</a>
             <a href="/saas/tableau-de-bord.html">liquid+ SaaS</a>
             <button id="mobile-logout" style="margin-top:16px;font-size:1.1rem;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer;font-family:inherit;">Se déconnecter</button>
@@ -793,7 +796,7 @@
 
     </main>
 
-    <section class="footer-contact" aria-labelledby="footer-contact-title">
+    <section class="footer-contact" id="contact" aria-labelledby="footer-contact-title">
       <div class="footer-contact__intro">
         <h4 id="footer-contact-title">Nous contacter</h4>
         <p>Fondateurs, échangez avec l'équipe Liquid+ au sujet de votre levée de fonds.</p>
@@ -858,7 +861,8 @@
       (() => {
         const links = Array.from(document.querySelectorAll('.nav-primary__link'));
         const pricing = document.getElementById('tarifs');
-        if (!links.length || !pricing) return;
+        const contact = document.getElementById('contact');
+        if (!links.length || !pricing || !contact) return;
 
         const setActiveLink = href => {
           links.forEach(link => {
@@ -875,7 +879,8 @@
 
         let ticking = false;
         const syncActiveLink = () => {
-          setActiveLink(pricing.getBoundingClientRect().top <= 90 ? '#tarifs' : '#top');
+          const contactTop = contact.getBoundingClientRect().top;
+          setActiveLink(contactTop <= 90 ? '#contact' : (pricing.getBoundingClientRect().top <= 90 ? '#tarifs' : '#top'));
           ticking = false;
         };
         window.addEventListener('scroll', () => {
