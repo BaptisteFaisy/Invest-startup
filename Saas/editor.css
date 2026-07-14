@@ -63,6 +63,7 @@
 .tbtn i { font-style: italic; font-family: Georgia, serif; }
 .tbtn u { text-decoration: underline; }
 .tbtn s { text-decoration: line-through; }
+.tbtn__icon { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
 
 .tsel {
   height: 32px; border: 1px solid var(--line); border-radius: 7px; background: var(--card);
