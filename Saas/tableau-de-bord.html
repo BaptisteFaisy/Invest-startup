@@ -3392,6 +3392,13 @@
       if (selected.key === 'confidentialite') {
         // Étape « Investisseurs » : onglets Trouver / Pipeline.
         container.appendChild(investorSectionEl());
+        // Cette étape possède aussi sa propre checklist juridique (deck, NDA et
+        // engagement d'accès à la data room). La branche spéciale ci-dessus ne
+        // doit pas masquer le bloc de gestion des documents commun aux étapes.
+        container.appendChild(phaseCard(selected, idx, {
+          title: 'Documents', icon: 'DOC', hideStep: true,
+          documentActions: true, noAnchor: true,
+        }));
       } else if (CLASSIC_SOON_STEPS.has(selected.key)) {
         container.appendChild(stepSoonEl(selected));
       } else if (idx >= 2 && idx <= 7) {
