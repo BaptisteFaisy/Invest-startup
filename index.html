@@ -257,6 +257,7 @@
       .nav-primary { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 30px; height: 100%; }
       .nav-signup {
         margin-left: auto;
+        min-width: 174px;
         padding: 10px 16px;
         border: 1.5px solid rgba(0,0,0,.5);
         border-radius: 10px;
@@ -271,6 +272,8 @@
         white-space: nowrap;
         transition: border-color .15s, background .15s, transform .12s;
       }
+      .nav-signup__label { transition: opacity .18s ease; }
+      .nav-signup__label.is-changing { opacity: 0; }
       .nav-signup:hover, .nav-signup:focus-visible { border-color: #141414; background: #efece6; box-shadow: none; transform: none; }
       .nav-signup:active { transform: scale(.97); }
       .nav-primary__link { position: relative; color: #625f58; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
@@ -432,7 +435,7 @@
       }
       @media (max-width: 720px) {
         .nav-primary { display: none; }
-        .nav-signup { padding: 9px 12px; font-size: 10px; }
+        .nav-signup { min-width: 142px; padding: 9px 12px; font-size: 10px; }
       }
     </style>
   </head>
@@ -450,7 +453,7 @@
         <div class="nav-links" id="nav-links">
           <a class="button ghost" href="login.html">Se connecter</a>
         </div>
-        <a class="nav-signup" id="nav-signup" href="register.html">Créer un compte</a>
+        <a class="nav-signup" id="nav-signup" href="register.html"><span class="nav-signup__label">Créer un compte</span></a>
       <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button></nav>
     </header>
 
@@ -474,6 +477,23 @@
         btn.addEventListener('click', openMenu);
         if (close) close.addEventListener('click', closeMenu);
         menu.addEventListener('click', function(e) { if (e.target.tagName === 'A') closeMenu(); });
+      })();
+    </script>
+
+    <script>
+      (() => {
+        const label = document.querySelector('#nav-signup .nav-signup__label');
+        if (!label || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const messages = ['Créer un compte', 'Essayez gratuitement'];
+        let messageIndex = 0;
+        window.setInterval(() => {
+          label.classList.add('is-changing');
+          window.setTimeout(() => {
+            messageIndex = (messageIndex + 1) % messages.length;
+            label.textContent = messages[messageIndex];
+            label.classList.remove('is-changing');
+          }, 180);
+        }, 1500);
       })();
     </script>
 
