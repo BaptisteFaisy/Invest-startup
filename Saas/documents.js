@@ -477,9 +477,15 @@
     verInvestor.hidden = verOrigin.value !== 'investor';
     verRecipient.hidden = verOrigin.value !== 'founder';
   });
-  ['input', 'search', 'keyup'].forEach((eventName) => {
-    verParentSearch.addEventListener(eventName, filterVersionParents);
-  });
+  let versionSearchTimer = null;
+  const refreshVersionSearch = () => {
+    clearTimeout(versionSearchTimer);
+    versionSearchTimer = setTimeout(filterVersionParents, 0);
+  };
+  verParentSearch.addEventListener('input', refreshVersionSearch);
+  verParentSearch.addEventListener('search', refreshVersionSearch);
+  verParentSearch.addEventListener('change', refreshVersionSearch);
+  verParentSearch.addEventListener('keyup', refreshVersionSearch);
   nudgeOrigin.addEventListener('change', () => {
     nudgeInvestor.hidden = nudgeOrigin.value !== 'investor';
     nudgeRecipient.hidden = nudgeOrigin.value !== 'founder';
