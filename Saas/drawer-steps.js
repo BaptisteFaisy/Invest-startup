@@ -59,7 +59,8 @@
 
   // ---- Repli : recalcul autonome quand aucun instantané n'est disponible ----
   // (miroir de la logique du tableau de bord ; server.js définit les phases).
-  const CLASSIC_SOON = new Set(['confidentialite', 'gouvernance']);
+  const CLASSIC_UNAVAILABLE = new Set(['confidentialite', 'gouvernance']);
+  const CLASSIC_SOON_BADGES = new Set(['confidentialite', 'gouvernance', 'post-closing']);
   const FRISE_LABELS = {
     'mise-en-ordre': 'Ma levée',
     'confidentialite': 'Investisseurs',
@@ -152,11 +153,12 @@
       // « Ma levée » reste visuellement neutre, comme les autres entrées du menu.
       const isCurrent = i === currentIdx && f.key !== 'mise-en-ordre';
       const num = type === 'classic' ? friseStepNumber(f, i) : i + 1;
-      const soon = type === 'classic' && CLASSIC_SOON.has(f.key);
+      const soon = type === 'classic' && CLASSIC_SOON_BADGES.has(f.key);
+      const unavailable = type === 'classic' && CLASSIC_UNAVAILABLE.has(f.key);
       const stepFrac = s.total > 0 ? s.done / s.total : (done ? 1 : 0);
       const barFrac = f.key === 'mise-en-ordre' ? globalFrac : stepFrac;
       const pct = Math.max(0, Math.min(100, Math.round(barFrac * 100)));
-      steps.push({ key: f.key, label: friseLabel(f), num, done, current: isCurrent, soon, pct: soon ? null : pct });
+      steps.push({ key: f.key, label: friseLabel(f), num, done, current: isCurrent, soon, pct: unavailable ? null : pct });
     });
     return { raiseType: type, steps };
   }

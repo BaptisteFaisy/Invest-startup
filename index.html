@@ -748,12 +748,12 @@
           <div class="pricing-builder" aria-label="Comparateur de tarifs juridiques">
             <div class="pricing-grid" id="pricing-grid">
               <div class="pricing-cell pricing-head"><span class="pricing-head__eyebrow">Votre périmètre</span><strong>Que souhaitez-vous sécuriser ?</strong><small>Cochez ou décochez chaque prestation.</small></div>
-              <div class="pricing-cell pricing-head pricing-head--liquid"><span class="pricing-head__eyebrow">Recommandé</span><strong>Liquid+</strong><small>Pilotage, IA et avocat partenaire</small></div>
-              <div class="pricing-cell pricing-head"><span class="pricing-head__eyebrow">Comparatif</span><strong>Liquid+ + avocat indépendant</strong><small>Honoraires moyens estimés</small></div>
-              <div class="pricing-cell pricing-head"><span class="pricing-head__eyebrow">Comparatif</span><strong>Liquid+ + cabinet d'avocats</strong><small>Honoraires moyens estimés</small></div>
+              <div class="pricing-cell pricing-head pricing-head--liquid"><strong>Liquid+</strong><small>Pilotage, IA et avocat partenaire</small></div>
+              <div class="pricing-cell pricing-head"><strong>Avocat indépendant</strong><small>Honoraires moyens estimés</small></div>
+              <div class="pricing-cell pricing-head"><strong>Cabinet d'avocats</strong><small>Honoraires moyens estimés</small></div>
 
               <div class="pricing-cell pricing-service pricing-access"><span class="pricing-check" aria-hidden="true">✓</span><span class="pricing-service__text"><strong>Accès au pilote Liquid+</strong><small>Plateforme, IA, data room et suivi</small></span></div>
-              <div class="pricing-cell pricing-amount pricing-amount--liquid">700 €</div><div class="pricing-cell pricing-amount">700 €</div><div class="pricing-cell pricing-amount">700 €</div>
+              <div class="pricing-cell pricing-amount pricing-amount--liquid">700 €</div><div class="pricing-cell pricing-amount">—</div><div class="pricing-cell pricing-amount">—</div>
 
               <label class="pricing-cell pricing-service"><input type="checkbox" data-liquid="100" data-independent="490" data-firm="900" checked><span class="pricing-check" aria-hidden="true">✓</span><span class="pricing-service__text"><strong>Term sheet</strong><small>Relecture et validation des équilibres</small></span></label>
               <div class="pricing-cell pricing-amount pricing-amount--liquid">+ 100 €</div><div class="pricing-cell pricing-amount">+ 490 €</div><div class="pricing-cell pricing-amount">+ 900 €</div>
@@ -775,8 +775,8 @@
 
               <div class="pricing-cell pricing-total-label"><strong>Budget estimé</strong><small>Mis à jour selon votre sélection</small></div>
               <div class="pricing-cell pricing-total pricing-total--liquid"><span class="pricing-total__value" id="total-liquid">1 350 €</span><small>Accès Liquid+ inclus</small></div>
-              <div class="pricing-cell pricing-total"><span class="pricing-total__value" id="total-independent">3 620 €</span><small>accès Liquid+ inclus</small></div>
-              <div class="pricing-cell pricing-total"><span class="pricing-total__value" id="total-firm">6 100 €</span><small>accès Liquid+ inclus</small></div>
+              <div class="pricing-cell pricing-total"><span class="pricing-total__value" id="total-independent">2 920 €</span><small>hors accès Liquid+</small></div>
+              <div class="pricing-cell pricing-total"><span class="pricing-total__value" id="total-firm">5 400 €</span><small>hors accès Liquid+</small></div>
             </div>
           </div>
           <div class="pricing-actions"><a class="btn-plan" href="https://calendly.com/liquidplus-contact" target="_blank" rel="noopener">Parler de ma levée</a></div>
@@ -893,8 +893,8 @@
         const formatPrice = value => new Intl.NumberFormat('fr-FR').format(value) + ' €';
         const updatePricing = () => {
           let liquid = 700;
-          let independent = 700;
-          let firm = 700;
+          let independent = 0;
+          let firm = 0;
           grid.querySelectorAll('input[type="checkbox"]').forEach(input => {
             if (!input.checked) return;
             liquid += Number(input.dataset.liquid || 0);
