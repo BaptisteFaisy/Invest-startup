@@ -261,6 +261,8 @@
       .nav-primary__link--active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -13px; height: 2px; background: #22c55e; border-radius: 99px; }
       .logo-mark, .logo-wordmark, .nav-link { color: #111; }
       .nav-user-name { color: #57534a; background: rgba(17,17,17,.05); border-color: rgba(17,17,17,.12); }
+      .nav-divider { width: 1px; height: 20px; background: rgba(17,17,17,.15); flex: none; }
+      .mobile-divider { width: 120px; height: 1px; background: rgba(17,17,17,.15); border: 0; margin: 4px 0; }
       .button.ghost { color: #111; border-color: rgba(17,17,17,.2); }
       .button.ghost:hover { color: #111; border-color: rgba(17,17,17,.5); }
       .button.light { background: #111; color: #fff; }
@@ -463,6 +465,7 @@
           if (!data?.user) return;
           const name = data.user.full_name ? data.user.full_name.split(' ')[0] : data.user.email;
           document.getElementById('nav-links').innerHTML = `
+            <span class="nav-divider" aria-hidden="true"></span>
             <a class="nav-link saas-nav-link" href="/saas/tableau-de-bord.html">MON ESPACE</a>
             <span class="nav-link nav-user-name">${name}</span>
             <button class="button ghost" id="nav-logout">Se déconnecter</button>
@@ -472,6 +475,7 @@
             <a href="#top">PILOTER MA LEVÉE</a>
             <a href="#tarifs">TARIFS</a>
             <a href="#contact">NOUS CONTACTER</a>
+            <hr class="mobile-divider" aria-hidden="true" />
             <a href="/saas/tableau-de-bord.html">MON ESPACE</a>
             <button id="mobile-logout" style="margin-top:16px;font-size:1.1rem;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer;font-family:inherit;">Se déconnecter</button>
           `;
