@@ -517,7 +517,12 @@
         let raiseType = 'unknown';
         try {
           const response = await fetch('/api/saas/fundraising-profile', { credentials: 'include' });
-          if (response.ok) raiseType = ((await response.json()).profile || {}).raise_type || 'unknown';
+          if (response.ok) {
+            const profile = (await response.json()).profile || {};
+            // Le type n'est affiché qu'une fois le choix verrouillé ; avant cela
+            // il reste « à définir », même si le serveur renvoie une valeur par défaut.
+            if (profile.raise_type_locked && profile.raise_type) raiseType = profile.raise_type;
+          }
         } catch (_) {}
         rows.push(`<div class="account-status__row"><span class="account-status__label">Type de levée</span><span class="account-status__values"><span class="account-status__badge">${esc(RAISE_TYPE_LABELS[raiseType] || raiseType)}</span></span></div>`);
       }

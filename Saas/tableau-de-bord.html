@@ -887,6 +887,8 @@
     .raise-field--wide { grid-column:1 / -1; }
     .raise-field__label { font-family:'Archivo',sans-serif; font-size:11px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:#6b6b78; }
     .raise-field__label--required::after { content:' · obligatoire'; color:#dc2626; letter-spacing:0; text-transform:none; font-weight:700; }
+    .raise-field__lock-hint { display:block; margin-top:6px; font-size:12px; color:#6b6b78; line-height:1.4; }
+    .raise-select:disabled { background:#eeeef0; color:#6b6b78; cursor:not-allowed; }
     .raise-input, .raise-select, .raise-textarea { width:100%; font-family:'Libre Franklin',sans-serif; font-size:14px; color:#08090c; background:#f7f7f5; border:1px solid rgba(8,9,12,0.14); border-radius:9px; padding:10px 11px; outline:none; transition:border-color .15s, box-shadow .15s, background .15s; }
     .raise-input:focus, .raise-select:focus, .raise-textarea:focus { background:#fff; border-color:rgba(8,9,12,0.55); box-shadow:0 0 0 3px rgba(8,9,12,0.08); }
     .raise-textarea { min-height:96px; resize:vertical; line-height:1.5; }
@@ -1388,19 +1390,15 @@
       importInvestorChecklist(folderId, file, name.trim());
     });
 
-    /* ---- Type de levée : Levée classique / BSA-AIR / à définir ---- */
+    /* ---- Type de levée : Levée classique OU BSA-AIR (choix exclusif) ---- */
     let raiseUser = 'me';
+    // Deux instruments exclusifs : une levée classique OU des BSA-AIR. Aucun état
+    // « indéterminé » — le compte tranche à l'onboarding puis le choix est verrouillé.
     const RAISE_HINTS = {
       'classic': 'Classique · étapes 0 à 8',
       'bsa-air': 'BSA-AIR · page sans frise',
-      'unknown': 'À définir · tableau de bord adapté',
     };
     const RAISE_SOON = {
-      'unknown': {
-        badge: 'À décider',
-        title: 'Je ne sais pas encore',
-        text: 'Nous construirons ici un tableau de bord adapté pour clarifier le type de levée, les bons documents et les prochaines décisions.',
-      },
       'oc': {
         badge: 'OC',
         title: 'Obligations convertibles (OC)',
@@ -2898,6 +2896,7 @@
         company_name: String(p.company_name || ''),
         company_country: String(p.company_country || 'france'),
         raise_type: RAISE_HINTS[p.raise_type] ? p.raise_type : 'classic',
+        raise_type_locked: !!p.raise_type_locked,
         target_amount: p.target_amount == null ? '' : String(p.target_amount),
         target_valuation: p.target_valuation == null ? '' : String(p.target_valuation),
         max_dilution: p.max_dilution == null ? '' : String(p.max_dilution),
@@ -4127,11 +4126,11 @@
             </label>
             <label class="raise-field">
               <span class="raise-field__label raise-field__label--required">Type de levée de fonds</span>
-              <select class="raise-select" name="raise_type" required>
+              <select class="raise-select" name="raise_type" required${profile.raise_type_locked ? ' disabled' : ''}>
                 <option value="classic"${optionSelected('classic', profile.raise_type)}>Levée classique</option>
                 <option value="bsa-air"${optionSelected('bsa-air', profile.raise_type)}>BSA-AIR</option>
-                <option value="unknown"${optionSelected('unknown', profile.raise_type)}>Je ne sais pas encore</option>
               </select>
+              ${profile.raise_type_locked ? '<span class="raise-field__lock-hint">Type de levée verrouillé : une levée classique et des BSA-AIR ne se mélangent pas sur un même compte.</span>' : ''}
             </label>
             <label class="raise-field">
               <span class="raise-field__label">Montant visé</span>

@@ -3002,6 +3002,7 @@ const FUNDRAISING_PROFILE_DEFAULT = {
   company_name: '',
   company_country: 'france',
   raise_type: 'classic',
+  raise_type_locked: false,
   target_amount: '',
   target_valuation: '',
   max_dilution: '',
@@ -3013,7 +3014,10 @@ const FUNDRAISING_PROFILE_DEFAULT = {
   founders: [],
 };
 const FUNDRAISING_COUNTRIES = new Set(['france', 'us', 'uk', 'germany', 'other']);
-const FUNDRAISING_TYPES = new Set(['classic', 'bsa-air', 'unknown']);
+// Le type de levée est un choix exclusif : soit une levée classique (equity),
+// soit des BSA-AIR. Les deux instruments ne se mélangent jamais sur un même
+// compte, il n'existe donc pas d'état « indéterminé ».
+const FUNDRAISING_TYPES = new Set(['classic', 'bsa-air']);
 const FOUNDER_STATUSES = new Set(['cofounder', 'late-cofounder', 'investor']);
 function shortText(v, max = 240) {
   return String(v || '').trim().slice(0, max);
@@ -3082,10 +3086,18 @@ app.put('/api/saas/fundraising-profile', requireAuth, async (req, res) => {
   try { profile = sanitizeFundraisingProfile(req.body || {}); }
   catch (e) { return res.status(400).json({ error: e.message || 'Profil de levée invalide' }); }
 
+  // Verrouillage du type de levée : une fois classic ou bsa-air enregistré, le
+  // choix est définitif. On ignore silencieusement toute tentative de bascule
+  // vers l'autre instrument (le reste du profil reste modifiable).
+  const existing = await col('saas_fundraising_profiles').findOne({ user_id: req.user.id });
+  if (existing && existing.raise_type_locked && existing.raise_type) {
+    profile.raise_type = existing.raise_type;
+  }
+
   const now = new Date().toISOString();
   await col('saas_fundraising_profiles').updateOne(
     { user_id: req.user.id },
-    { $set: { ...profile, updated_at: now }, $setOnInsert: { user_id: req.user.id, created_at: now } },
+    { $set: { ...profile, raise_type_locked: true, updated_at: now }, $setOnInsert: { user_id: req.user.id, created_at: now } },
     { upsert: true },
   );
   const saved = await col('saas_fundraising_profiles').findOne({ user_id: req.user.id });
