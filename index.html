@@ -255,6 +255,7 @@
       .site-header { background: rgba(247,246,243,.96); border-bottom-color: #ddd9d1; backdrop-filter: blur(14px); }
       .nav { padding: 12px 0; }
       .nav-primary { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 30px; height: 100%; }
+      .nav-primary__signup { margin-right: 2px; }
       .nav-primary__link { position: relative; color: #625f58; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
       .nav-primary__link:hover { color: #111; }
       .nav-primary__link--active { color: #111; }
@@ -424,13 +425,13 @@
       <nav class="nav">
         <a class="logo" href="#top"><span class="logo-mark" aria-hidden="true"><svg viewBox="-10 -12 60 76" focusable="false"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/></svg></span><span class="logo-wordmark">LIQUID+</span></a>
         <div class="nav-primary" aria-label="Navigation principale">
+          <a class="button light nav-primary__signup" id="nav-signup" href="register.html">Créer un compte</a>
           <a class="nav-primary__link nav-primary__link--active" href="#top" aria-current="page">PILOTER MA LEVÉE</a>
           <a class="nav-primary__link" href="#tarifs">TARIFS</a>
           <a class="nav-primary__link" href="#contact">NOUS CONTACTER</a>
         </div>
         <div class="nav-links" id="nav-links">
           <a class="button ghost" href="login.html">Se connecter</a>
-          <a class="button light" href="register.html">Créer un compte</a>
         </div>
       <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button></nav>
     </header>
@@ -464,6 +465,7 @@
         .then(data => {
           if (!data?.user) return;
           const name = data.user.full_name ? data.user.full_name.split(' ')[0] : data.user.email;
+          document.getElementById('nav-signup')?.remove();
           document.getElementById('nav-links').innerHTML = `
             <span class="nav-divider" aria-hidden="true"></span>
             <a class="nav-link saas-nav-link" href="/saas/tableau-de-bord.html">MON ESPACE</a>
