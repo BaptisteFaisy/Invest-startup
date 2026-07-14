@@ -108,6 +108,8 @@ html.drawer-open body { overflow:hidden; }
 .drawer__link--step.is-done .drawer__step-num { background:rgba(16,185,129,0.20); color:#34d399; }
 .drawer__link--step.is-current { background:rgba(99,102,241,0.13); color:#fff; }
 .drawer__link--step.is-current .drawer__step-num { background:rgba(99,102,241,0.30); color:#a5b4fc; }
+.drawer__link--step.is-active { background:transparent; }
+.drawer__link--step.is-active .drawer__step-num { background:#fff; color:#111318; }
 .drawer__steps-loading, .drawer__steps-empty { margin:0; padding:10px 12px; color:rgba(255,255,255,0.56); font-family:'Libre Franklin',sans-serif; font-size:13px; line-height:1.5; }
 .drawer__steps-empty a { color:#a5b4fc; }
 
@@ -138,6 +140,8 @@ html.drawer-open body { overflow:hidden; }
 :root[data-theme="paper"] .drawer__step-bar { background:rgba(17,17,17,0.09); }
 :root[data-theme="paper"] .drawer__link--step.is-current { background:rgba(79,70,229,0.10); color:#312e81; }
 :root[data-theme="paper"] .drawer__link--step.is-current .drawer__step-num { background:rgba(79,70,229,0.16); color:#4338ca; }
+:root[data-theme="paper"] .drawer__link--step.is-active { background:rgba(17,17,17,0.055); color:#111; }
+:root[data-theme="paper"] .drawer__link--step.is-active .drawer__step-num { background:rgba(17,17,17,0.06); color:#57534a; }
 :root[data-theme="paper"] .drawer__steps-loading,
 :root[data-theme="paper"] .drawer__steps-empty { color:#57534a; }
 :root[data-theme="paper"] .drawer__steps-empty a { color:#4338ca; }

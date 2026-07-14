@@ -23,6 +23,7 @@
   function renderSteps(data) {
     const steps = data && Array.isArray(data.steps) ? data.steps : [];
     const type = (data && data.raiseType) || 'classic';
+    const displayedStep = new URLSearchParams(location.search).get('step');
     if (!steps.length) {
       host.innerHTML = '<p class="drawer__steps-empty">Ouvrez votre '
         + '<a href="tableau-de-bord.html">tableau de bord</a> pour afficher '
@@ -31,7 +32,8 @@
     }
     host.innerHTML = steps.map(s => {
       const cls = 'drawer__link drawer__link--step'
-        + (s.done ? ' is-done' : '') + (s.current ? ' is-current' : '');
+        + (s.done ? ' is-done' : '') + (s.current ? ' is-current' : '')
+        + (s.active || s.key === displayedStep ? ' is-active' : '');
       const badge = s.done
         ? '<svg viewBox="0 0 24 24" aria-hidden="true">' + friseCheckPath + '</svg>'
         : String(s.num);

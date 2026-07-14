@@ -711,7 +711,9 @@
     .drawer__link--step.is-done .drawer__step-num { background:rgba(16,185,129,0.20); color:#34d399; }
     .drawer__link--step.is-current { background:rgba(99,102,241,0.13); color:#fff; }
     .drawer__link--step.is-current .drawer__step-num { background:rgba(99,102,241,0.30); color:#a5b4fc; }
-    .drawer__link--step.is-active { background:rgba(255,255,255,0.10); color:#fff; }
+    /* Étape réellement affichée : en sombre, seul le carré du numéro ressort. */
+    .drawer__link--step.is-active { background:transparent; }
+    .drawer__link--step.is-active .drawer__step-num { background:#fff; color:#111318; }
     .drawer__soon-tag { margin-left:auto; flex:none; font-family:'Archivo',sans-serif; font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#22c55e; background:rgba(34,197,94,0.20); padding:2px 7px; border-radius:99px; }
     .drawer__unread-dot { margin-left:auto; flex:none; width:10px; height:10px; border-radius:50%; background:#86efac; }
     .drawer__mode { flex:none; margin-top:8px; padding:12px 10px 6px; border-top:1px solid rgba(255,255,255,0.08); direction:ltr; }
@@ -1000,6 +1002,7 @@
     :root[data-theme="paper"] .drawer__link { color:#3f3b34; }
     :root[data-theme="paper"] .drawer__link:hover,
     :root[data-theme="paper"] .drawer__link.is-active { background:var(--t-chip); color:var(--t-on-bg); }
+    :root[data-theme="paper"] .drawer__link--step.is-active .drawer__step-num { background:var(--t-chip); color:var(--t-on-bg-muted); }
     :root[data-theme="paper"] .drawer__sep { background:var(--t-divider); }
     :root[data-theme="paper"] .drawer__step-num { background:var(--t-chip); color:var(--t-on-bg-muted); }
     :root[data-theme="paper"] .drawer__step-bar { background:rgba(17,17,17,.09); }
@@ -4448,10 +4451,11 @@
       // suit l'avancement global, comme pour « Ma levée » côté classique.
       if (type === 'bsa-air') {
         const pct = Math.max(0, Math.min(100, Math.round(globalFrac * 100)));
+        const isActive = selectedBsaStep === 'bsa-profile';
         const btn = document.createElement('button');
         btn.type = 'button';
         // « Ma levée » conserve le même fond neutre que les autres étapes.
-        btn.className = 'drawer__link drawer__link--step';
+        btn.className = 'drawer__link drawer__link--step' + (isActive ? ' is-active' : '');
         btn.innerHTML =
           '<span class="drawer__step-row"><span class="drawer__step-num">0</span>Ma levée</span>'
           + '<span class="drawer__step-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><span style="width:' + pct + '%"></span></span>';
@@ -4459,7 +4463,7 @@
           openBsaStepCard('bsa-profile');
           if (navDrawer) navDrawer.close();
         });
-        snap.push({ key: 'bsa-profile', label: 'Ma levée', num: 0, done: false, current: false, soon: false, pct });
+        snap.push({ key: 'bsa-profile', label: 'Ma levée', num: 0, done: false, current: false, active: isActive, soon: false, pct });
         navStepsEl.appendChild(btn);
       }
 
@@ -4504,7 +4508,7 @@
           else openBsaStepCard(f.key);
           if (navDrawer) navDrawer.close();
         });
-        snap.push({ key: f.key, label: friseLabel(f), num, done, current: isCurrent, soon: isSoon, pct: isSoon ? null : pct });
+        snap.push({ key: f.key, label: friseLabel(f), num, done, current: isCurrent, active: isActive, soon: isSoon, pct: isSoon ? null : pct });
         navStepsEl.appendChild(btn);
       });
       persistNavStepsSnapshot(type, snap);
