@@ -123,10 +123,10 @@
     .docpick__empty { color: var(--t-on-bg-60); font-size: 14px; line-height: 1.6; }
 
     /* Bascule entre les deux modes du comparateur */
-    .cmp__tabs { display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap; }
-    .cmp__tab { font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.01em; padding: 9px 16px; border-radius: 99px; border: 1px solid var(--t-border); background: transparent; color: var(--t-on-bg-60); cursor: pointer; transition: background .15s, border-color .15s, color .15s; }
-    .cmp__tab:hover { border-color: rgba(34,197,94,0.20); color: var(--t-on-bg); }
-    .cmp__tab.is-active { background: rgba(34,197,94,0.20); border-color: rgba(34,197,94,0.20); color: var(--t-on-bg); }
+    .cmp__tabs { display: flex; gap: 0; border-bottom: 1px solid var(--t-border); margin: 20px 0 4px; flex-wrap: wrap; }
+    .cmp__tab { font-family: 'Archivo', sans-serif; font-size: 13.5px; font-weight: 700; padding: 11px 20px; border: none; background: none; color: var(--t-on-bg-60); border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; transition: color .15s, border-color .15s; }
+    .cmp__tab:hover { color: var(--t-on-bg); }
+    .cmp__tab.is-active { color: var(--t-on-bg); border-bottom-color: #16a34a; }
 
     /* Arbre déterministe des versions et échanges (aucune analyse IA). */
     .linhead { display:flex; align-items:center; gap:12px; margin-top:22px; padding:14px 16px; border:1px solid var(--t-surface-brd); border-radius:14px; background:var(--t-surface); }
