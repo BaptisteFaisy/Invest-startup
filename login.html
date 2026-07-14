@@ -20,6 +20,7 @@
       .auth-logo-text { font-family: "Archivo", sans-serif; font-weight: 600; font-size: 1.4rem; text-transform: uppercase; letter-spacing: 0.1em; color: #fff; }
       .auth-card { background: #fff; border-radius: 20px; padding: 40px 36px; width: 100%; box-shadow: 0 24px 60px rgba(0,0,0,0.5); box-sizing: border-box; }
       .auth-card h1 { font-size: 1.6rem; font-weight: 700; color: #080c14; margin: 0 0 6px; }
+      #login-title { margin-bottom: 24px; }
       .auth-lead { font-size: 0.92rem; color: #5e5e6a; margin: 0 0 24px; }
       .google-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 11px 20px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.12); background: #fff; color: #080c14; font-size: 0.9rem; font-weight: 600; text-decoration: none; transition: background .18s, box-shadow .18s; cursor: pointer; box-sizing: border-box; }
       .google-btn:hover { background: #f7f7f7; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
@@ -65,7 +66,6 @@
         <!-- ══ Panneau 1 : Email + mot de passe ══ -->
         <div id="panel-login" class="panel active">
           <h1 id="login-title">Connexion</h1>
-          <p class="auth-lead" id="login-lead">Accédez à votre espace investisseur.</p>
 
           <div id="switch-box" class="switch-box" hidden>
             <p class="switch-box__label">Choisissez un compte administrateur :</p>
@@ -74,6 +74,10 @@
 
           <div id="login-error" class="auth-alert auth-alert--error" role="alert" hidden></div>
           <div id="login-success" class="auth-alert auth-alert--success" role="status" hidden></div>
+          <p id="login-resend" class="auth-footer" hidden>
+            Email de confirmation non reçu ?
+            <a class="auth-link" href="#" id="login-resend-link" role="button">Renvoyer le lien</a>
+          </p>
 
           <a href="/auth/google" class="google-btn">
             <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
@@ -167,7 +171,6 @@
       const ADMIN_EMAILS = ['baptiste.faisy@gmail.com', 'bg.fsg.invest@gmail.com', 'liquidplus.startups@gmail.com'];
       if (new URLSearchParams(window.location.search).get('switch') === '1') {
         document.getElementById('login-title').textContent = 'Changer de compte';
-        document.getElementById('login-lead').textContent = 'Sélectionnez un compte administrateur puis saisissez son mot de passe.';
         const box = document.getElementById('switch-box');
         const list = document.getElementById('switch-accounts');
         const emailInput = document.querySelector('#login-form input[name="email"]');
@@ -196,8 +199,8 @@
       if (emailVerification) {
         const el = document.getElementById(emailVerification === 'success' ? 'login-success' : 'login-error');
         el.textContent = emailVerification === 'success'
-          ? 'Adresse email confirmee. Vous pouvez maintenant vous connecter.'
-          : 'Ce lien de confirmation est invalide ou a expire.';
+          ? 'Adresse email confirmée. Vous pouvez maintenant vous connecter.'
+          : 'Ce lien de confirmation est invalide ou a expiré.';
         el.hidden = false;
       }
 
@@ -224,10 +227,51 @@
       const loginForm = document.getElementById('login-form');
       const loginBtn  = document.getElementById('login-btn');
       const loginErr  = document.getElementById('login-error');
+      const loginSuccess = document.getElementById('login-success');
+      const loginResend = document.getElementById('login-resend');
+      const loginResendLink = document.getElementById('login-resend-link');
+
+      loginResendLink.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const email = loginForm.email.value.trim();
+        if (!email || loginResendLink.getAttribute('aria-disabled') === 'true') return;
+
+        loginErr.hidden = true;
+        loginSuccess.hidden = true;
+        loginResendLink.textContent = 'Envoi…';
+        loginResendLink.setAttribute('aria-disabled', 'true');
+        loginResendLink.style.pointerEvents = 'none';
+
+        try {
+          const res = await fetch('/api/auth/resend-verification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ email }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            loginErr.textContent = data.error || 'Envoi impossible pour le moment.';
+            loginErr.hidden = false;
+            return;
+          }
+          loginSuccess.textContent = data.message || 'Un nouvel email de confirmation vient d\'être envoyé.';
+          loginSuccess.hidden = false;
+        } catch {
+          loginErr.textContent = 'Impossible de joindre le serveur';
+          loginErr.hidden = false;
+        } finally {
+          loginResendLink.textContent = 'Renvoyer le lien';
+          loginResendLink.removeAttribute('aria-disabled');
+          loginResendLink.style.pointerEvents = '';
+        }
+      });
 
       loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         loginErr.hidden = true;
+        loginSuccess.hidden = true;
+        loginResend.hidden = true;
 
         const email    = loginForm.email.value.trim();
         const password = loginForm.password.value;
@@ -241,8 +285,13 @@
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             credentials: 'include', body: JSON.stringify({ email, password }),
           });
-          const data = await res.json();
-          if (!res.ok) { loginErr.textContent = data.error || 'Identifiants incorrects'; loginErr.hidden = false; return; }
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            loginErr.textContent = data.error || 'Identifiants incorrects';
+            loginErr.hidden = false;
+            loginResend.hidden = data.code !== 'EMAIL_NOT_VERIFIED';
+            return;
+          }
           if (data.requires2FA) { tempToken = data.tempToken; showPanel('panel-2fa'); document.getElementById('totp-input').focus(); }
           else redirectAfterAuth(data);
         } catch {

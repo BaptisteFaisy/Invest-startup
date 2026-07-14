@@ -25,6 +25,7 @@ const { Dropbox }      = require('dropbox');
 const archiver         = require('archiver');
 const { createDocumentEncryption } = require('./lib/document-encryption');
 const { buildAdminDashboardStats, countUnreadAdminMessages } = require('./lib/admin-dashboard');
+const { productionConfigurationProblems } = require('./lib/runtime-config');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -133,13 +134,7 @@ const cloudConvert = process.env.CLOUDCONVERT_API_KEY ? new CloudConvert(process
 // jetons d'authentification pourraient être forgés ou les données déchiffrées.
 function assertSecretsOrExit() {
   if (!IS_PROD) return;
-  const problems = [];
-  if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32)
-    problems.push('JWT_SECRET — absent ou < 32 caractères');
-  if (!process.env.MONGODB_URI)
-    problems.push('MONGODB_URI — absent');
-  if (!process.env.ENCRYPTION_KEY || process.env.ENCRYPTION_KEY.length < 32)
-    problems.push('ENCRYPTION_KEY — absent ou < 32 caractères');
+  const problems = productionConfigurationProblems(process.env);
   if (problems.length) {
     console.error('\n  ✗  Démarrage refusé — secrets manquants/faibles en production :');
     problems.forEach(p => console.error('       - ' + p));
@@ -654,8 +649,16 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
     return res.status(400).json({ error: 'Adresse email invalide' });
   if (password.length < 6)
     return res.status(400).json({ error: 'Le mot de passe doit faire au moins 6 caractères' });
-  if (await findByEmail(emailClean))
+  const existingUser = await findByEmail(emailClean);
+  if (existingUser) {
+    if (existingUser.email_verified === false) {
+      return res.status(409).json({
+        error: 'Ce compte existe déjà mais son adresse email n\'est pas encore confirmée.',
+        code: 'EMAIL_NOT_VERIFIED',
+      });
+    }
     return res.status(409).json({ error: 'Un compte existe déjà avec cet email' });
+  }
 
   const hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
   const user = await createUser({ email: emailClean, password: hash, full_name: full_name?.trim(), email_verified: false });
@@ -664,9 +667,38 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
   } catch (err) {
     await col('users').deleteOne({ id: user.id, email_verified: false });
     console.error('Email verification send error:', err.message);
-    return res.status(503).json({ error: 'Impossible d\'envoyer l\'email de verification. Reessayez dans quelques instants.' });
+    return res.status(503).json({
+      error: 'Impossible d\'envoyer l\'email de vérification. Réessayez dans quelques instants.',
+      code: 'EMAIL_DELIVERY_UNAVAILABLE',
+    });
   }
   res.status(201).json({ success: true, requiresEmailVerification: true, email: user.email });
+});
+
+// Renvoie un nouveau lien sans révéler si l'adresse correspond à un compte.
+// Le limiteur d'authentification protège également cette route contre les abus.
+app.post('/api/auth/resend-verification', authLimiter, async (req, res) => {
+  const emailClean = String(req.body?.email || '').trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailClean))
+    return res.status(400).json({ error: 'Adresse email invalide' });
+
+  const user = await findByEmail(emailClean);
+  if (user?.email_verified === false) {
+    try {
+      await sendVerificationEmail(user);
+    } catch (err) {
+      console.error('Email verification resend error:', err.message);
+      return res.status(503).json({
+        error: 'Impossible d\'envoyer l\'email de vérification. Réessayez dans quelques instants.',
+        code: 'EMAIL_DELIVERY_UNAVAILABLE',
+      });
+    }
+  }
+
+  return res.json({
+    success: true,
+    message: 'Si un compte non confirmé correspond à cette adresse, un nouvel email vient d\'être envoyé.',
+  });
 });
 
 app.get('/api/auth/verify-email', authLimiter, async (req, res) => {
@@ -3816,7 +3848,8 @@ async function sendVerificationEmail(user) {
       console.log(`  Email de verification pour ${user.email}: ${verificationUrl}`);
       return;
     }
-    throw new Error('Service d\'envoi d\'emails non configure');
+    const missing = [!RESEND_API_KEY && 'RESEND_API_KEY', !EMAIL_FROM && 'EMAIL_FROM'].filter(Boolean).join(', ');
+    throw new Error(`Service d'envoi d'emails non configuré (variable(s) manquante(s) : ${missing})`);
   }
 
   const response = await fetch('https://api.resend.com/emails', {
@@ -3832,7 +3865,8 @@ async function sendVerificationEmail(user) {
       html: `<p>Bonjour${user.full_name ? ` ${escapeEmailHtml(user.full_name)}` : ''},</p>
         <p>Confirmez votre adresse email pour activer votre compte Liquid Plus.</p>
         <p><a href="${verificationUrl}">Confirmer mon adresse email</a></p>
-        <p>Ce lien est valable pendant 24 heures. Si vous n'avez pas cree ce compte, ignorez cet email.</p>`,
+        <p>Ce lien est valable pendant 24 heures. Si vous n'avez pas créé ce compte, ignorez cet email.</p>`,
+      text: `Confirmez votre adresse email pour activer votre compte Liquid Plus : ${verificationUrl}\n\nCe lien est valable pendant 24 heures.`,
     }),
   });
   if (!response.ok) {

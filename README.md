@@ -550,6 +550,8 @@ CHECKOUT_URL_RAISE_SUMMIT   # Stripe Payment Link du tarif engagé à 550 € HT
 STRIPE_PAYMENT_LINK_ID_RAISE_SUMMIT # Identifiant plink_... correspondant
 STRIPE_WEBHOOK_SECRET       # Secret whsec_... du webhook /api/billing/stripe-webhook
 BASE_URL              # https://votre-domaine.railway.app ou domaine custom
+RESEND_API_KEY        # Clé API Resend (préfixe re_...)
+EMAIL_FROM            # Liquid Plus <comptes@domaine-verifie.fr>
 JWT_SECRET            # Longue chaîne aléatoire (openssl rand -hex 32)
 ENCRYPTION_KEY         # Clé racine du chiffrement applicatif (min. 32 caractères)
 NODE_ENV              # production
@@ -560,6 +562,20 @@ NODE_ENV              # production
 **Fichiers SaaS :** Les fichiers importés et exportés par les utilisateurs du SaaS sont stockés dans MongoDB Atlas (champ `data` Binary, 15 Mo max). Ils survivent aux redéploiements Railway sans configuration supplémentaire.
 
 **Fichiers portail startup :** Les uploads du portail startup (collection `documents`) utilisent encore `multer.diskStorage` → `uploads/`. Ces fichiers sont éphémères sur Railway. Si la feature devient critique, migrer vers S3/Cloudflare R2.
+
+### Emails de vérification (Resend)
+
+La création d'un compte par email est bloquée tant que l'adresse n'a pas été confirmée. En production, le serveur refuse donc de démarrer si `RESEND_API_KEY`, `EMAIL_FROM` ou `BASE_URL` manque.
+
+1. Dans Resend, ajouter le domaine d'envoi et recopier les enregistrements DNS SPF et DKIM fournis.
+2. Attendre que le domaine apparaisse comme vérifié, puis créer une clé API.
+3. Dans Railway → service → Variables, définir :
+   - `RESEND_API_KEY=re_...`
+   - `EMAIL_FROM=Liquid Plus <comptes@liquidplus.fr>` (le domaine doit correspondre au domaine vérifié)
+   - `BASE_URL=https://www.liquidplus.fr`
+4. Redéployer, créer un compte de test, puis vérifier que le lien reçu redirige vers `login.html?email_verification=success`.
+
+En développement, Resend reste facultatif : si ces variables sont absentes, le lien de confirmation est écrit dans la console du serveur.
 
 ### Domaine personnalisé
 Railway Settings → Networking → Custom Domain. Certificat TLS géré automatiquement. Penser à mettre à jour `BASE_URL` et la redirect URI dans la console Google OAuth.
@@ -596,7 +612,7 @@ res.cookie('auth_token', token, {
 | `CHECKOUT_URL_RAISE_SUMMIT` | Paiement Liquid+ | — | URL du Payment Link Stripe à 550 € HT réservé au code `RAISE SUMMIT` |
 | `STRIPE_PAYMENT_LINK_ID_RAISE_SUMMIT` | Paiement Liquid+ | — | Identifiant `plink_...` du Payment Link à 550 € HT |
 | `STRIPE_WEBHOOK_SECRET` | Paiement Liquid+ | — | Secret du webhook Stripe vers `${BASE_URL}/api/billing/stripe-webhook`, événement `checkout.session.completed` |
-| `BASE_URL` | — | `http://localhost:3000` | Utilisé dans les redirects OAuth |
+| `BASE_URL` | ✅ en production | `http://localhost:3000` | URL publique HTTPS utilisée dans les redirects OAuth et les liens de vérification |
 | `RESEND_API_KEY` | ✅ en production | — | Clé API Resend utilisée pour envoyer les liens de vérification des adresses email |
 | `EMAIL_FROM` | ✅ en production | — | Expéditeur vérifié, par exemple `Liquid Plus <comptes@votre-domaine.fr>` |
 | `JWT_SECRET` | — | `invest_bg_dev_secret_CHANGE_IN_PROD` | Changer en prod |

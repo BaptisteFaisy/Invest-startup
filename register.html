@@ -19,7 +19,7 @@
       .auth-logo img { height: 40px; width: auto; }
       .auth-logo-text { font-family: "Archivo", sans-serif; font-weight: 600; font-size: 1.4rem; text-transform: uppercase; letter-spacing: 0.1em; color: #fff; }
       .auth-card { background: #fff; border-radius: 20px; padding: 40px 36px; width: 100%; box-shadow: 0 24px 60px rgba(0,0,0,0.5); box-sizing: border-box; }
-      .auth-card h1 { font-size: 1.6rem; font-weight: 700; color: #080c14; margin: 0 0 6px; }
+      .auth-card h1 { font-size: 1.6rem; font-weight: 700; color: #080c14; margin: 0 0 24px; }
       .auth-lead { font-size: 0.92rem; color: #5e5e6a; margin: 0 0 24px; }
       .google-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 11px 20px; border-radius: 10px; border: 1px solid rgba(0,0,0,0.12); background: #fff; color: #080c14; font-size: 0.9rem; font-weight: 600; text-decoration: none; transition: background .18s, box-shadow .18s; cursor: pointer; box-sizing: border-box; }
       .google-btn:hover { background: #f7f7f7; box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
@@ -54,10 +54,13 @@
 
       <div class="auth-card">
         <h1>Créer un compte</h1>
-        <p class="auth-lead">Rejoignez nos investisseurs en quelques secondes.</p>
 
         <div id="auth-error"   class="auth-alert auth-alert--error"   role="alert"  hidden></div>
         <div id="auth-success" class="auth-alert auth-alert--success" role="status" hidden></div>
+        <p id="auth-resend" class="auth-footer" hidden>
+          Vous n'avez pas reçu l'email ?
+          <a class="auth-link" href="#" id="resend-link" role="button">Renvoyer le lien</a>
+        </p>
 
         <a href="/auth/google" class="google-btn">
           <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
@@ -139,11 +142,50 @@
       const form      = document.getElementById('register-form');
       const errEl     = document.getElementById('auth-error');
       const successEl = document.getElementById('auth-success');
+      const resendEl  = document.getElementById('auth-resend');
+      const resendLink = document.getElementById('resend-link');
       const submitBtn = document.getElementById('submit-btn');
+      let lastEmail = '';
+
+      resendLink.addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (!lastEmail || resendLink.getAttribute('aria-disabled') === 'true') return;
+
+        errEl.hidden = true;
+        successEl.hidden = true;
+        resendLink.textContent = 'Envoi…';
+        resendLink.setAttribute('aria-disabled', 'true');
+        resendLink.style.pointerEvents = 'none';
+
+        try {
+          const res = await fetch('/api/auth/resend-verification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ email: lastEmail }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            errEl.textContent = data.error || 'Envoi impossible pour le moment.';
+            errEl.hidden = false;
+            return;
+          }
+          successEl.textContent = data.message || 'Un nouvel email de confirmation vient d\'être envoyé.';
+          successEl.hidden = false;
+        } catch {
+          errEl.textContent = 'Impossible de joindre le serveur';
+          errEl.hidden = false;
+        } finally {
+          resendLink.textContent = 'Renvoyer le lien';
+          resendLink.removeAttribute('aria-disabled');
+          resendLink.style.pointerEvents = '';
+        }
+      });
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         errEl.hidden = true; successEl.hidden = true;
+        resendEl.hidden = true;
 
         const full_name        = form.full_name.value.trim();
         const email            = form.email.value.trim();
@@ -162,14 +204,17 @@
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             credentials: 'include', body: JSON.stringify({ email, password, full_name }),
           });
-          const data = await res.json();
+          const data = await res.json().catch(() => ({}));
+          lastEmail = email;
           if (!res.ok) {
             errEl.textContent = data.error || 'Une erreur est survenue';
             errEl.hidden = false;
+            resendEl.hidden = data.code !== 'EMAIL_NOT_VERIFIED';
           } else {
             form.hidden = true;
-            successEl.textContent = `Un email de confirmation a ete envoye a ${data.email || email}. Ouvrez-le pour activer votre compte.`;
+            successEl.textContent = `Un email de confirmation a été envoyé à ${data.email || email}. Ouvrez-le pour activer votre compte.`;
             successEl.hidden = false;
+            resendEl.hidden = false;
             return;
           }
         } catch {
