@@ -468,7 +468,7 @@
             <span class="nav-divider" aria-hidden="true"></span>
             <a class="nav-link saas-nav-link" href="/saas/tableau-de-bord.html">MON ESPACE</a>
             <span class="nav-link nav-user-name">${name}</span>
-            <button class="button ghost" id="nav-logout">Se déconnecter</button>
+            <button class="button ghost" id="nav-logout">Me déconnecter</button>
           `;
           document.getElementById('mobile-menu').innerHTML = `
             <button class="nav-hamburger" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><span></span><span></span><span></span></button>
@@ -477,7 +477,7 @@
             <a href="#contact">NOUS CONTACTER</a>
             <hr class="mobile-divider" aria-hidden="true" />
             <a href="/saas/tableau-de-bord.html">MON ESPACE</a>
-            <button id="mobile-logout" style="margin-top:16px;font-size:1.1rem;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer;font-family:inherit;">Se déconnecter</button>
+            <button id="mobile-logout" style="margin-top:16px;font-size:1.1rem;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer;font-family:inherit;">Me déconnecter</button>
           `;
           document.getElementById('nav-logout').addEventListener('click', async () => {
             await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
