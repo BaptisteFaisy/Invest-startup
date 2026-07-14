@@ -873,12 +873,20 @@
           });
         };
 
+        let suppressScrollSyncUntil = 0;
         links.forEach(link => link.addEventListener('click', () => {
+          // Le navigateur anime ensuite le défilement vers l'ancre. Pendant cette
+          // transition, l'ancien scrollTop ne doit pas annuler le nouvel onglet.
           setActiveLink(link.getAttribute('href'));
+          suppressScrollSyncUntil = performance.now() + 700;
         }));
 
         let ticking = false;
         const syncActiveLink = () => {
+          if (performance.now() < suppressScrollSyncUntil) {
+            ticking = false;
+            return;
+          }
           const contactTop = contact.getBoundingClientRect().top;
           setActiveLink(contactTop <= 90 ? '#contact' : (pricing.getBoundingClientRect().top <= 90 ? '#tarifs' : '#top'));
           ticking = false;
