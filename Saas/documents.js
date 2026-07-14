@@ -264,7 +264,13 @@
       option.textContent = title;
       categorySel.appendChild(option);
     });
-    categorySel.disabled = !folder || !categories.length;
+    if (folder) {
+      const uncategorized = document.createElement('option');
+      uncategorized.value = '__uncategorized__';
+      uncategorized.textContent = 'Non classés';
+      categorySel.appendChild(uncategorized);
+    }
+    categorySel.disabled = !folder;
     categoryBox.classList.toggle('is-shown', editorImport && !!folder);
     if (folder && !categories.length) showError('Aucun dossier n’est disponible dans cette étape.');
     updateSubmitState();
@@ -544,7 +550,7 @@
     // Étape de destination choisie (facultative) : le serveur range le document
     // dans ce dossier s'il appartient à l'utilisateur.
     if (destBox.classList.contains('is-shown') && destSel.value) fd.append('folder_id', destSel.value);
-    if (editorImport && categorySel.value) fd.append('category_key', categorySel.value);
+    if (editorImport && categorySel.value && categorySel.value !== '__uncategorized__') fd.append('category_key', categorySel.value);
     // Rattachement explicite « nouvelle version de… » (facultatif).
     const linking = versionRequested && verParent.value;
     if (linking) {
