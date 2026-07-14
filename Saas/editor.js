@@ -2012,19 +2012,15 @@ async function startBlankDocument() {
   );
 }
 async function openDocumentPlacementModal(initialFolderId = newDocumentFolderId, initialCategoryKey = newDocumentCategoryKey) {
-  let folders = [];
-  try {
-    const r = await fetch('/api/saas/folders', { credentials: 'include' });
-    const d = r.ok ? await r.json() : {};
-    folders = Array.isArray(d.folders) ? d.folders.filter(f => f.key !== 'mise-en-ordre' && !/^\s*0\s*[·.-]/.test(f.name || '')) : [];
-  } catch {}
+  // La modale s'ouvre immédiatement : le chargement des étapes se fait en
+  // arrière-plan pour que le bouton réponde au clic sans attendre le réseau.
   const old = document.getElementById('blank-placement-modal'); if (old) old.remove();
   const modal = document.createElement('div'); modal.id = 'blank-placement-modal'; modal.className = 'docmodal is-open';
   modal.innerHTML = `<div class="docmodal__backdrop" data-close></div><div class="docmodal__dialog" style="max-width:520px">
     <div class="docmodal__head"><h2 class="docmodal__title">Ranger le document</h2><button class="docmodal__close" data-close type="button">×</button></div>
     <div class="docmodal__body"><p style="margin-top:0">Choisissez où ranger ce document. Vous pourrez modifier son emplacement ensuite.</p>
       <label class="docmodal__dest-label" for="blank-placement-stage">Étape</label>
-      <select class="docmodal__dest-select" id="blank-placement-stage"><option value="">— Non classé —</option>${folders.map(f => `<option value="${String(f.id).replace(/"/g,'&quot;')}" data-key="${String(f.key||'').replace(/"/g,'&quot;')}">${String(f.name||'')}</option>`).join('')}</select>
+      <select class="docmodal__dest-select" id="blank-placement-stage" disabled><option value="">Chargement des étapes…</option></select>
       <label class="docmodal__dest-label" for="blank-placement-folder" style="margin-top:12px">Dossier</label>
       <select class="docmodal__dest-select" id="blank-placement-folder" disabled><option value="">— Choisir d’abord une étape —</option></select>
       <div class="docmodal__error" id="blank-placement-error"></div></div>
@@ -2033,9 +2029,21 @@ async function openDocumentPlacementModal(initialFolderId = newDocumentFolderId,
   const stage = modal.querySelector('#blank-placement-stage'), folder = modal.querySelector('#blank-placement-folder');
   const fill = () => { const key = stage.selectedOptions[0]?.dataset.key || ''; const defs = (window.liquidImportCategoryDefs || {})[key] || []; folder.innerHTML = '<option value="">— Sans dossier —</option>' + defs.map(([k,n]) => `<option value="${k}">${n}</option>`).join(''); folder.disabled = !stage.value; };
   stage.addEventListener('change', fill);
-  stage.value = initialFolderId == null ? '' : String(initialFolderId);
-  fill();
-  folder.value = initialCategoryKey || '';
+  // Charge les étapes puis remplit la liste, sans bloquer l'affichage de la modale.
+  (async () => {
+    let folders = [];
+    try {
+      const r = await fetch('/api/saas/folders', { credentials: 'include' });
+      const d = r.ok ? await r.json() : {};
+      folders = Array.isArray(d.folders) ? d.folders.filter(f => f.key !== 'mise-en-ordre' && !/^\s*0\s*[·.-]/.test(f.name || '')) : [];
+    } catch {}
+    if (!document.body.contains(modal)) return; // modale déjà fermée entre-temps
+    stage.innerHTML = '<option value="">— Non classé —</option>' + folders.map(f => `<option value="${String(f.id).replace(/"/g,'&quot;')}" data-key="${String(f.key||'').replace(/"/g,'&quot;')}">${String(f.name||'')}</option>`).join('');
+    stage.disabled = false;
+    stage.value = initialFolderId == null ? '' : String(initialFolderId);
+    fill();
+    folder.value = initialCategoryKey || '';
+  })();
   return new Promise((resolve) => {
     let settled = false;
     const close = (placement = null) => {
