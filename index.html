@@ -255,7 +255,24 @@
       .site-header { background: rgba(247,246,243,.96); border-bottom-color: #ddd9d1; backdrop-filter: blur(14px); }
       .nav { padding: 12px 0; }
       .nav-primary { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 30px; height: 100%; }
-      .nav-primary__signup { margin-right: 2px; }
+      .nav-signup {
+        margin-left: auto;
+        padding: 10px 16px;
+        border: 1.5px solid rgba(0,0,0,.5);
+        border-radius: 10px;
+        background: #f7f6f3;
+        color: #141414;
+        font-family: 'Archivo', sans-serif;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: .06em;
+        line-height: 1;
+        text-transform: uppercase;
+        white-space: nowrap;
+        transition: border-color .15s, background .15s, transform .12s;
+      }
+      .nav-signup:hover, .nav-signup:focus-visible { border-color: #141414; background: #efece6; box-shadow: none; transform: none; }
+      .nav-signup:active { transform: scale(.97); }
       .nav-primary__link { position: relative; color: #625f58; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
       .nav-primary__link:hover { color: #111; }
       .nav-primary__link--active { color: #111; }
@@ -415,6 +432,7 @@
       }
       @media (max-width: 720px) {
         .nav-primary { display: none; }
+        .nav-signup { padding: 9px 12px; font-size: 10px; }
       }
     </style>
   </head>
@@ -425,7 +443,6 @@
       <nav class="nav">
         <a class="logo" href="#top"><span class="logo-mark" aria-hidden="true"><svg viewBox="-10 -12 60 76" focusable="false"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/></svg></span><span class="logo-wordmark">LIQUID+</span></a>
         <div class="nav-primary" aria-label="Navigation principale">
-          <a class="button light nav-primary__signup" id="nav-signup" href="register.html">Créer un compte</a>
           <a class="nav-primary__link nav-primary__link--active" href="#top" aria-current="page">PILOTER MA LEVÉE</a>
           <a class="nav-primary__link" href="#tarifs">TARIFS</a>
           <a class="nav-primary__link" href="#contact">NOUS CONTACTER</a>
@@ -433,6 +450,7 @@
         <div class="nav-links" id="nav-links">
           <a class="button ghost" href="login.html">Se connecter</a>
         </div>
+        <a class="nav-signup" id="nav-signup" href="register.html">Créer un compte</a>
       <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button></nav>
     </header>
 
