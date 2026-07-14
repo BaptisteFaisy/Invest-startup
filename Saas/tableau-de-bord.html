@@ -890,8 +890,9 @@
     .raise-field__label { font-family:'Archivo',sans-serif; font-size:11px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:#6b6b78; }
     .raise-field__label--required::after { content:' · obligatoire'; color:#dc2626; letter-spacing:0; text-transform:none; font-weight:700; }
     .raise-field__lock-hint { display:block; margin-top:6px; font-size:12px; color:#6b6b78; line-height:1.4; }
-    .raise-type-switch { font-family:inherit; font-size:12px; font-weight:700; color:#4b3fb0; background:none; border:0; padding:0; cursor:pointer; text-decoration:underline; }
-    .raise-type-switch:hover { color:#3a3092; }
+    .raise-profile .folder__ic { background:#e7f4ea !important; color:#66b97f; }
+    .raise-type-switch { font-family:inherit; font-size:12px; font-weight:700; color:#66b97f; background:none; border:0; padding:0; cursor:pointer; text-decoration:underline; }
+    .raise-type-switch:hover { color:#4f9d68; }
     .raise-select:disabled { background:#eeeef0; color:#6b6b78; cursor:not-allowed; }
     .raise-input, .raise-select, .raise-textarea { width:100%; font-family:'Libre Franklin',sans-serif; font-size:14px; color:#08090c; background:#f7f7f5; border:1px solid rgba(8,9,12,0.14); border-radius:9px; padding:10px 11px; outline:none; transition:border-color .15s, box-shadow .15s, background .15s; }
     .raise-input:focus, .raise-select:focus, .raise-textarea:focus { background:#fff; border-color:rgba(8,9,12,0.55); box-shadow:0 0 0 3px rgba(8,9,12,0.08); }
@@ -4120,7 +4121,7 @@
       card.className = 'raise-profile folder folder--phase open';
       card.innerHTML = `
         <div class="folder__head" style="cursor:default">
-          <div class="folder__ic" style="color:#4b3fb0"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h4"/></svg></div>
+          <div class="folder__ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h4"/></svg></div>
           <div class="folder__main">
             <div class="folder__name">Profil de la levée</div>
             <div class="folder__count">Informations sur votre levée — facultatif</div>
