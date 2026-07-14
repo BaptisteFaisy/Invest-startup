@@ -68,6 +68,7 @@
     .lead { max-width:650px; margin:13px 0 0; color:rgba(255,255,255,.72); font-size:15px; line-height:1.6; }
     .status { flex:none; display:inline-flex; align-items:center; gap:8px; padding:9px 12px; border:1px solid rgba(255,255,255,.14); border-radius:9px; background:rgba(255,255,255,.05); color:#fff; font:700 11px 'Archivo',sans-serif; }
     .status::before { content:''; width:8px; height:8px; border-radius:50%; background:#f59e0b; box-shadow:0 0 0 3px rgba(245,158,11,.16); }
+    .status--active::before { background:var(--green); box-shadow:0 0 0 3px rgba(16,185,129,.16); }
     .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:34px; }
     .stat { padding:20px 22px; border:1px solid var(--line); border-radius:13px; background:var(--card); color:var(--ink); }
     .stat__label { color:var(--muted); font:700 11px 'Archivo',sans-serif; letter-spacing:.07em; text-transform:uppercase; }
@@ -320,6 +321,7 @@
         const active=user.lawyer_status==='active';
         const statusEl=document.querySelector('.status');
         statusEl.textContent=active?'Compte avocat actif':({suspended:'Compte suspendu',rejected:'Candidature refusée'}[user.lawyer_status]||'Candidature en cours d’évaluation');
+        statusEl.classList.toggle('status--active',active);
         profileEl.replaceChildren(
           profileRow('Nom', (displayProfile.first_name + ' ' + displayProfile.last_name).trim()),
           profileRow('Serment', displayProfile.oath_date ? new Date(displayProfile.oath_date + 'T12:00:00').toLocaleDateString('fr-FR') : ''),
