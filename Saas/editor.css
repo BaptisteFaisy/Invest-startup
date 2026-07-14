@@ -84,10 +84,11 @@
 
 /* ---------- Workspace ---------- */
 .workspace { flex: 1; display: grid; grid-template-columns: var(--lib-w, 290px) 10px minmax(0, 1fr) 10px var(--panel-w, 400px); min-height: 0; }
-/* Les comptes avocats n'ont pas accès au décryptage/à l'assistance IA dans
-   l'éditeur : le document occupe toute la largeur disponible à droite de la
-   bibliothèque. */
-.app.is-lawyer .workspace { grid-template-columns: var(--lib-w, 290px) 10px minmax(0, 1fr); }
+/* Les comptes avocats voient uniquement le document : les panneaux
+   d'assistance de gauche et de droite sont masqués. */
+.app.is-lawyer .workspace { grid-template-columns: minmax(0, 1fr); }
+.app.is-lawyer .library,
+.app.is-lawyer #gutter-left,
 .app.is-lawyer #gutter-right,
 .app.is-lawyer .panel,
 .app.is-lawyer #selx-btn,
