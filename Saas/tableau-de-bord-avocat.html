@@ -34,6 +34,8 @@
     .hamburger { flex:none; position:relative; z-index:62; width:38px; height:38px; display:grid; place-items:center; padding:0; border:1px solid rgba(255,255,255,.22); border-radius:10px; background:transparent; color:#fff; cursor:pointer; }
     .hamburger:hover { border-color:rgba(255,255,255,.55); background:rgba(255,255,255,.06); }
     .hamburger svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; }
+    .notification-dot { position:absolute; top:-4px; right:-4px; width:10px; height:10px; border:2px solid var(--ink); border-radius:50%; background:#ef4444; }
+    .notification-dot[hidden] { display:none; }
     .drawer-backdrop { position:fixed; inset:0; z-index:60; visibility:hidden; background:transparent; }
     .drawer-backdrop.is-open { visibility:visible; }
     .drawer { position:fixed; inset-block:0; z-index:61; width:var(--drawer-w,280px); min-width:220px; max-width:92vw; display:flex; flex-direction:column; background:#0c0d11; box-shadow:0 0 40px rgba(0,0,0,.5); transition:transform .22s ease; }
@@ -51,6 +53,9 @@
     .drawer__link { width:100%; display:flex; align-items:center; gap:12px; padding:11px 12px; border:0; border-radius:10px; background:transparent; color:rgba(255,255,255,.84); text-align:left; text-decoration:none; cursor:pointer; font-size:14px; }
     .drawer__link:hover, .drawer__link.is-current { background:rgba(255,255,255,.09); color:#fff; }
     .drawer__link svg { width:18px; height:18px; flex:none; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+    .drawer__count { min-width:22px; margin-left:auto; padding:3px 7px; border-radius:99px; background:rgba(255,255,255,.12); color:inherit; text-align:center; font:800 10px 'Archivo',sans-serif; }
+    .drawer__count--alert { background:#ef4444; color:#fff; }
+    .drawer__count[hidden] { display:none; }
     .drawer__sep { height:1px; margin:8px 4px; background:rgba(255,255,255,.08); }
     .drawer__soon { margin-left:auto; padding:2px 7px; border-radius:99px; background:rgba(34,197,94,0.20); color:#22c55e; font:800 9px 'Archivo',sans-serif; letter-spacing:.06em; text-transform:uppercase; }
     .drawer__resize { position:absolute; inset-block:0; z-index:2; width:10px; cursor:col-resize; touch-action:none; }
@@ -68,6 +73,7 @@
     .stat__label { color:var(--muted); font:700 11px 'Archivo',sans-serif; letter-spacing:.07em; text-transform:uppercase; }
     .stat__value { margin-top:10px; font:800 28px 'Archivo',sans-serif; letter-spacing:-.04em; }
     .section-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:30px 0 13px; }
+    .section-head[id] { scroll-margin-top:88px; }
     .section-title { margin:0; color:#fff; font:800 12px 'Archivo',sans-serif; letter-spacing:.1em; text-transform:uppercase; }
     .section-link { color:rgba(255,255,255,.66); font-size:12px; text-decoration:none; }
     .section-link:hover { color:#fff; }
@@ -150,12 +156,11 @@
   <div class="app" id="app">
     <header class="topbar">
       <div class="topbar__side">
-        <button type="button" class="hamburger" id="nav-menu-btn" aria-label="Ouvrir la navigation" aria-controls="nav-drawer" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+        <button type="button" class="hamburger" id="nav-menu-btn" aria-label="Ouvrir la navigation" aria-controls="nav-drawer" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span class="notification-dot" id="mission-notification-dot" aria-label="Nouvelle proposition de mission" hidden></span></button>
         <a class="brand" href="tableau-de-bord-avocat.html"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>LIQUID+</a>
         <span class="topbar__context">Espace avocat</span>
       </div>
       <div class="topbar__side topbar__side--right">
-        <span class="avatar" id="avatar" aria-hidden="true">AV</span>
         <button type="button" class="hamburger" id="actions-menu-btn" aria-label="Ouvrir le menu" aria-controls="actions-drawer" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button>
       </div>
     </header>
@@ -167,9 +172,9 @@
         <a class="drawer__link is-current" href="tableau-de-bord-avocat.html"><svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3Z"/><path d="M9 20v-6h6v6"/></svg>Tableau de bord</a>
         <div class="drawer__sep"></div>
         <div class="drawer__section-title">Mes missions</div>
-        <a class="drawer__link" href="#propositions-missions"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 3Z"/><path d="M8 9h8M8 13h5"/></svg>Propositions de missions</a>
-        <a class="drawer__link" href="#missions-en-cours"><svg viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v11H3Z"/><path d="M8 12h8M8 16h5"/></svg>Missions en cours</a>
-        <a class="drawer__link" href="#missions-passees"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Missions passées</a>
+        <a class="drawer__link" href="#propositions-missions" data-mission-target="propositions-missions"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 3Z"/><path d="M8 9h8M8 13h5"/></svg>Propositions de missions<span class="drawer__count drawer__count--alert" id="proposal-menu-count" hidden></span></a>
+        <a class="drawer__link" href="#missions-en-cours" data-mission-target="missions-en-cours"><svg viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v11H3Z"/><path d="M8 12h8M8 16h5"/></svg>Missions en cours<span class="drawer__count" id="current-menu-count" hidden></span></a>
+        <a class="drawer__link" href="#missions-passees" data-mission-target="missions-passees"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Missions passées<span class="drawer__count" id="past-menu-count" hidden></span></a>
       </nav>
       <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0"></div>
     </aside>
@@ -222,7 +227,7 @@
       <div class="section-head" id="missions-en-cours"><h2 class="section-title">Missions en cours</h2></div>
       <section class="card"><div class="work-list" id="client-work-list"><div class="empty"><p>Chargement des missions…</p></div></div></section>
       <div class="section-head" id="missions-passees"><h2 class="section-title">Missions passées</h2></div>
-      <section class="card"><div class="work-list"><div class="empty"><p>Aucune mission passée pour le moment.</p></div></div></section>
+      <section class="card"><div class="work-list" id="past-work-list"><div class="empty"><p>Chargement des missions passées…</p></div></div></section>
     </main>
   </div>
 
@@ -236,7 +241,6 @@
       const key = document.createElement('span'); const val = document.createElement('span');
       key.textContent = label; val.textContent = value || '—'; row.append(key, val); return row;
     }
-    function initials(profile) { return ((profile.first_name || '').charAt(0) + (profile.last_name || '').charAt(0)).toUpperCase() || 'AV'; }
     function esc(value) { const el=document.createElement('span'); el.textContent=value == null ? '' : String(value); return el.innerHTML; }
     function groupByStartup(items) {
       const groups = new Map();
@@ -257,6 +261,16 @@
     }
     const proposalLabels={proposed:'À répondre',accepted:'Acceptée — en attente d’attribution',declined:'Refusée',assigned:'Attribuée'};
     async function lawyerApi(path, opts) { const r=await fetch(path,Object.assign({credentials:'include'},opts||{})); const data=await r.json().catch(()=>({})); if(!r.ok) throw new Error(data.error||'Erreur serveur'); return data; }
+    function setMenuCount(id, count) { const el=document.getElementById(id); el.textContent=String(count); el.hidden=!count; }
+    function updateMissionNavigation(proposals, clients, requests) {
+      const actionable=proposals.filter(item=>item.status==='proposed').length;
+      const past=requests.filter(item=>['cloturee','annule'].includes(item.status)).length;
+      setMenuCount('proposal-menu-count', actionable);
+      setMenuCount('current-menu-count', clients.length);
+      setMenuCount('past-menu-count', past);
+      document.getElementById('mission-notification-dot').hidden=!actionable;
+      document.getElementById('nav-menu-btn').setAttribute('aria-label', actionable ? `Ouvrir la navigation, ${actionable} nouvelle${actionable>1?'s':''} proposition${actionable>1?'s':''} de mission` : 'Ouvrir la navigation');
+    }
     function renderProposals(items) {
       items = items.filter(item => item.status !== 'assigned');
       const el=document.getElementById('proposal-work-list');
@@ -268,9 +282,19 @@
       if(!items.length){el.innerHTML='<div class="empty"><p>Aucune mission ne vous a encore été attribuée.</p></div>';return;}
       el.innerHTML=groupByStartup(items).map(group => clientSegment(group, group.items.map(c=>`<div class="work-row"><div><div class="work-row__name">Mission en cours</div><div class="work-row__meta">Attribuée le ${new Date(c.assigned_at).toLocaleDateString('fr-FR')}</div></div></div>`).join(''))).join('');
     }
+    function renderReviewRequests(items) {
+      const card=document.getElementById('demandes');
+      const labels={soumise:'Nouvelle',en_cours:'En cours',attente_fondateur:'Réponse attendue',livree:'Remise effectuée',cloturee:'Clôturée',annule:'Annulée'};
+      const open=items.filter(r=>!['cloturee','annule'].includes(r.status));
+      card.innerHTML='<div class="card__head"><h3 class="card__title">Demandes de relecture</h3><span class="badge">'+open.length+' active'+(open.length>1?'s':'')+'</span></div>'+(open.length?'<div class="work-list">'+open.map(r=>`<div class="work-row"><div><div class="work-row__name">${esc(r.title||r.document_name||'Relecture juridique')}</div><div class="work-row__meta">${esc(r.client?.full_name||r.client?.email||'Fondateur')} · ${(r.documents||[]).length} document(s) · ${esc(labels[r.status]||r.status)}</div></div><div class="work-actions"><a class="work-btn work-btn--primary" href="dossier-avocat.html?id=${r.id}">Ouvrir</a></div></div>`).join('')+'</div>':'<div class="empty"><p>Aucune demande de relecture active.</p></div>');
+      const stats=document.querySelectorAll('.stat__value');stats[1].textContent=items.filter(r=>r.status==='soumise').length;stats[2].textContent=items.filter(r=>r.status==='attente_fondateur').length;
+      const past=items.filter(r=>['cloturee','annule'].includes(r.status));
+      const pastEl=document.getElementById('past-work-list');
+      pastEl.innerHTML=past.length?past.map(r=>`<div class="work-row"><div><div class="work-row__name">${esc(r.title||r.document_name||'Mission juridique')}</div><div class="work-row__meta">${esc(r.client?.full_name||r.client?.email||'Fondateur')} · ${esc(labels[r.status]||r.status)}</div></div><div class="work-actions"><a class="work-btn" href="dossier-avocat.html?id=${encodeURIComponent(r.id)}">Consulter</a></div></div>`).join(''):'<div class="empty"><p>Aucune mission passée pour le moment.</p></div>';
+    }
     async function loadClientTools(active) {
-      if(!active){renderProposals([]);renderClients([]);return;}
-      const [p,c]=await Promise.all([lawyerApi('/api/lawyer/client-proposals'),lawyerApi('/api/lawyer/clients')]); renderProposals(p.proposals||[]);renderClients(c.clients||[]);
+      if(!active){renderProposals([]);renderClients([]);renderReviewRequests([]);updateMissionNavigation([],[],[]);return;}
+      const [p,c,r]=await Promise.all([lawyerApi('/api/lawyer/client-proposals'),lawyerApi('/api/lawyer/clients'),lawyerApi('/api/lawyer/review-requests')]); const proposals=p.proposals||[],clients=c.clients||[],requests=r.requests||[];renderProposals(proposals);renderClients(clients);renderReviewRequests(requests);updateMissionNavigation(proposals,clients,requests);document.querySelector('.stat__value').textContent=clients.length;
     }
     async function logout() { await fetch('/api/auth/logout', { method:'POST', credentials:'include' }).catch(() => {}); location.href = 'login.html'; }
     async function load() {
@@ -293,7 +317,6 @@
           specialty: profile.specialty || '',
         };
         document.getElementById('welcome').textContent = 'Bienvenue, ' + displayProfile.first_name;
-        document.getElementById('avatar').textContent = initials(displayProfile);
         const active=user.lawyer_status==='active';
         const statusEl=document.querySelector('.status');
         statusEl.textContent=active?'Compte avocat actif':({suspended:'Compte suspendu',rejected:'Candidature refusée'}[user.lawyer_status]||'Candidature en cours d’évaluation');
@@ -308,7 +331,8 @@
       } catch { location.replace('login.html'); }
     }
     load();
-    document.getElementById('proposal-work-list').addEventListener('click',async(e)=>{const b=e.target.closest('[data-proposal]');if(!b)return;b.disabled=true;try{await lawyerApi('/api/lawyer/client-proposals/'+encodeURIComponent(b.dataset.proposal),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:b.dataset.answer})});const [p,c]=await Promise.all([lawyerApi('/api/lawyer/client-proposals'),lawyerApi('/api/lawyer/clients')]);renderProposals(p.proposals||[]);renderClients(c.clients||[]);}catch(err){alert(err.message);}finally{b.disabled=false;}});
+    document.querySelectorAll('[data-mission-target]').forEach(link=>link.addEventListener('click',e=>{e.preventDefault();const id=link.dataset.missionTarget;history.replaceState(null,'','#'+id);setTimeout(()=>document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'}),0);}));
+    document.getElementById('proposal-work-list').addEventListener('click',async(e)=>{const b=e.target.closest('[data-proposal]');if(!b)return;b.disabled=true;try{await lawyerApi('/api/lawyer/client-proposals/'+encodeURIComponent(b.dataset.proposal),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:b.dataset.answer})});await loadClientTools(true);}catch(err){alert(err.message);}finally{b.disabled=false;}});
   </script>
 </body>
 </html>
