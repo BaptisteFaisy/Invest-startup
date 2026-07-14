@@ -65,6 +65,7 @@ const DROPBOX_APP_SECRET         = process.env.DROPBOX_APP_SECRET         || '';
 // facture. Réglable via la variable d'environnement DAILY_TOKEN_CAP (Railway →
 // service → onglet Variables). Défaut : 5 000 000 tokens/jour.
 const DAILY_TOKEN_CAP      = Number(process.env.DAILY_TOKEN_CAP) || 5_000_000;
+const FREE_FOUNDER_TOKEN_CAP = 200_000;
 const FOUNDER_TRIAL_MS     = 2 * 60 * 60 * 1000;
 
 const ADMIN_EMAILS = ['baptiste.faisy@gmail.com', 'bg.fsg.invest@gmail.com', 'liquidplus.startups@gmail.com'];
@@ -1451,6 +1452,14 @@ async function globalTokensToday() {
 async function enforceDailyCap(req, res, next) {
   try {
     const used = await globalTokensToday();
+    const user = await col('users').findOne({ id: req.user.id }, { projection: { account_types: 1, subscription_status: 1 } });
+    if (user?.account_types?.includes('fondateur') && user.subscription_status !== 'active') {
+      const personal = await col('saas_claude_usage').findOne({ user_id: req.user.id }, { projection: { total_tokens: 1 } });
+      const personalUsed = personal?.total_tokens || 0;
+      if (personalUsed >= FREE_FOUNDER_TOKEN_CAP) {
+        return res.status(429).json({ error: `Plafond de ${FREE_FOUNDER_TOKEN_CAP.toLocaleString('fr-FR')} tokens atteint pour l'essai gratuit. Choisissez une offre pour continuer à utiliser l'assistant.`, cap: FREE_FOUNDER_TOKEN_CAP, used: personalUsed });
+      }
+    }
     if (used >= DAILY_TOKEN_CAP) {
       return res.status(429).json({
         error: `Plafond quotidien de l'assistant IA atteint (${DAILY_TOKEN_CAP.toLocaleString('fr-FR')} tokens/jour). L'assistant sera de nouveau disponible demain.`,
@@ -2375,6 +2384,8 @@ app.get('/api/saas/usage', requireAuth, async (req, res) => {
     { projection: { _id: 0, user_id: 0 } }
   );
   const dailyUsed = await globalTokensToday();
+  const account = await col('users').findOne({ id: req.user.id }, { projection: { account_types: 1, subscription_status: 1 } });
+  const isUnpaidFounder = account?.account_types?.includes('fondateur') && account.subscription_status !== 'active';
   res.json({
     requests:      u?.requests      || 0,
     input_tokens:  u?.input_tokens  || 0,
@@ -2385,6 +2396,8 @@ app.get('/api/saas/usage', requireAuth, async (req, res) => {
     daily_cap:     DAILY_TOKEN_CAP,
     daily_used:    dailyUsed,
     daily_day:     parisDay(),
+    founder_free_cap: isUnpaidFounder ? FREE_FOUNDER_TOKEN_CAP : null,
+    founder_free_used: isUnpaidFounder ? (u?.total_tokens || 0) : null,
   });
 });
 
