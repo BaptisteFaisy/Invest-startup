@@ -483,7 +483,7 @@
     <script>
       (() => {
         const label = document.querySelector('#nav-signup .nav-signup__label');
-        if (!label || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        if (!label) return;
         const messages = ['Créer un compte', 'Essayez gratuitement'];
         let messageIndex = 0;
         window.setInterval(() => {
