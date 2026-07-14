@@ -3588,7 +3588,7 @@
           <div class="ip-summary" data-el="summary" hidden>
             <div class="ip-stat"><div class="ip-stat__label">Investisseurs</div><div class="ip-stat__value" data-stat="count">0</div></div>
             <div class="ip-stat ip-stat--leve"><div class="ip-stat__label">Levé (sécurisé)</div><div class="ip-stat__value" data-stat="leve-amount">—</div></div>
-            <div class="ip-stat ip-stat--intent"><div class="ip-stat__label">Intentionné (≥ LOI)</div><div class="ip-stat__value" data-stat="intent-amount">—</div></div>
+            <div class="ip-stat ip-stat--intent"><div class="ip-stat__label">Intentionné (hors levé)</div><div class="ip-stat__value" data-stat="intent-amount">—</div></div>
             <div class="ip-stat"><div class="ip-stat__label">Pipeline total</div><div class="ip-stat__value" data-stat="total-amount">—</div></div>
           </div>
           <div class="ip-actions">
@@ -3920,7 +3920,7 @@
 
       function render() {
         let leveAmount = 0;       // ≥ contrats signés (sécurisé)
-        let intentAmount = 0;     // ≥ lettre d'intention (cumulatif, inclut le levé)
+        let intentAmount = 0;     // ≥ lettre d'intention et < contrats signés (hors levé)
         let totalAmount = 0;
         const counts = {};
         const stageAmounts = {};
@@ -3931,7 +3931,7 @@
           counts[inv.stage] = (counts[inv.stage] || 0) + 1;
           stageAmounts[inv.stage] = (stageAmounts[inv.stage] || 0) + amt;
           const tier = invTier(inv.stage);
-          if (tier === 'leve') { leveAmount += amt; intentAmount += amt; }
+          if (tier === 'leve') { leveAmount += amt; }
           else if (tier === 'intentionne') { intentAmount += amt; }
         });
 
