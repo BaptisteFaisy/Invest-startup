@@ -1977,13 +1977,20 @@ function hideEmptyState() {
   if (empty) empty.hidden = true;
 }
 // « Créer un document » : part d'une page blanche, prête à la saisie.
-function startBlankDocument() {
+async function startBlankDocument() {
   // Ouvrir immédiatement la page blanche : le chargement des étapes ne doit
   // jamais bloquer la création (réseau lent, session ou API indisponible).
+  newDocumentFolderId = '';
+  newDocumentCategoryKey = '';
   createBlankDocument();
-  openBlankPlacementModal();
+  const placement = await openDocumentPlacementModal();
+  if (!placement) return;
+  newDocumentFolderId = placement.folderId;
+  newDocumentCategoryKey = placement.categoryKey;
+  clearTimeout(_saveTimer);
+  await saveTermsheet();
 }
-async function openBlankPlacementModal() {
+async function openDocumentPlacementModal() {
   let folders = [];
   try {
     const r = await fetch('/api/saas/folders', { credentials: 'include' });
@@ -2005,14 +2012,20 @@ async function openBlankPlacementModal() {
   const stage = modal.querySelector('#blank-placement-stage'), folder = modal.querySelector('#blank-placement-folder');
   const fill = () => { const key = stage.selectedOptions[0]?.dataset.key || ''; const defs = (window.liquidImportCategoryDefs || {})[key] || []; folder.innerHTML = '<option value="">— Sans dossier —</option>' + defs.map(([k,n]) => `<option value="${k}">${n}</option>`).join(''); folder.disabled = !stage.value; };
   stage.addEventListener('change', fill);
-  const close = () => modal.remove(); modal.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', close));
-  modal.querySelector('#blank-placement-later').addEventListener('click', () => { close(); createBlankDocument(); });
-  modal.querySelector('#blank-placement-confirm').addEventListener('click', async () => {
-    newDocumentFolderId = stage.value;
-    newDocumentCategoryKey = folder.value;
-    close();
-    clearTimeout(_saveTimer);
-    await saveTermsheet();
+  return new Promise((resolve) => {
+    let settled = false;
+    const close = (placement = null) => {
+      if (settled) return;
+      settled = true;
+      modal.remove();
+      resolve(placement);
+    };
+    modal.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => close()));
+    modal.querySelector('#blank-placement-later').addEventListener('click', () => close());
+    modal.querySelector('#blank-placement-confirm').addEventListener('click', () => close({
+      folderId: stage.value,
+      categoryKey: folder.value,
+    }));
   });
 }
 function createBlankDocument() {
@@ -2366,7 +2379,7 @@ function closeTemplateModal() {
   _tplModal.classList.remove('is-open');
   document.body.classList.remove('tplmodal-open');
 }
-// Charge le modèle choisi dans l'éditeur et l'enregistre (document non classé).
+// Charge le modèle choisi, demande son emplacement puis l'enregistre.
 async function selectTemplate(slug, label) {
   if (!slug) return;
   const item = _tplModal ? _tplModal.querySelector(`.tplitem[data-slug="${slug}"]`) : null;
@@ -2377,8 +2390,13 @@ async function selectTemplate(slug, label) {
     const html = await res.text();
     closeTemplateModal();
     hideEmptyState();
+    newDocumentFolderId = '';
+    newDocumentCategoryKey = '';
     applyTermsheet(null, html, label);
-    saveTermsheet();               // persiste immédiatement (document non classé)
+    const placement = await openDocumentPlacementModal();
+    newDocumentFolderId = placement ? placement.folderId : '';
+    newDocumentCategoryKey = placement ? placement.categoryKey : '';
+    await saveTermsheet();
     page.focus();
   } catch {
     if (item) item.classList.remove('is-loading');
