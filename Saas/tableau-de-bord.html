@@ -11,6 +11,43 @@
     var t = 'paper';
     try { var savedTheme = localStorage.getItem('liquidTheme'); if (savedTheme === 'paper' || savedTheme === 'dark') t = savedTheme; } catch (e) {}
     document.documentElement.setAttribute('data-theme', t);
+    // Colonne « Document » redimensionnable dans les blocs éditoriaux.
+    /* DD resize handlers are installed after the dashboard has rendered. */
+    const DD_DOC_WIDTH_KEY = 'liquid_dd_document_column_width';
+    let ddDocWidth = Number(localStorage.getItem(DD_DOC_WIDTH_KEY)) || 250;
+    function applyDdDocWidth(root) {
+      if (!root) return;
+      root.style.setProperty('--dd-doc-px', Math.max(250, Math.min(900, ddDocWidth)) + 'px');
+    }
+    function initDdDocResize() {
+      document.querySelectorAll('.dd-editorial').forEach(applyDdDocWidth);
+    }
+    document.addEventListener('pointerdown', (e) => {
+      const handle = e.target.closest('.dd-editorial__resize');
+      if (!handle) return;
+      const root = handle.closest('.dd-editorial');
+      const startX = e.clientX, startWidth = ddDocWidth;
+      handle.classList.add('is-active');
+      document.body.classList.add('ip-resizing-columns');
+      const move = ev => { ddDocWidth = Math.max(250, Math.min(900, startWidth + ev.clientX - startX)); applyDdDocWidth(root); };
+      const up = () => {
+        handle.classList.remove('is-active'); document.body.classList.remove('ip-resizing-columns');
+        document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up);
+        localStorage.setItem(DD_DOC_WIDTH_KEY, String(Math.round(ddDocWidth)));
+      };
+      e.preventDefault(); document.addEventListener('pointermove', move); document.addEventListener('pointerup', up);
+    });
+    document.addEventListener('keydown', e => {
+      const handle = e.target.closest('.dd-editorial__resize');
+      if (!handle || !['ArrowLeft','ArrowRight'].includes(e.key)) return;
+      e.preventDefault(); ddDocWidth = Math.max(250, Math.min(900, ddDocWidth + (e.key === 'ArrowRight' ? 10 : -10)));
+      applyDdDocWidth(handle.closest('.dd-editorial')); localStorage.setItem(DD_DOC_WIDTH_KEY, String(ddDocWidth));
+    });
+    document.addEventListener('DOMContentLoaded', () => {
+      new MutationObserver(initDdDocResize).observe(document.body, { childList: true, subtree: true });
+      initDdDocResize();
+    });
+
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -206,8 +243,11 @@
     .dd-editorial__progress-text { margin-top:5px; color:#6b6b78; font-size:12.5px; }
     .dd-editorial__progress { width:min(360px,42vw); height:4px; border-radius:99px; background:#e5e7eb; overflow:hidden; }
     .dd-editorial__progress>span { display:block; height:100%; border-radius:inherit; background:#2563eb; }
-    .dd-editorial__columns,.dd-editorial .dd-editorial-item { display:grid; grid-template-columns:minmax(250px,1.7fr) 120px minmax(180px,.8fr) minmax(210px,auto); gap:18px; align-items:center; }
-    .dd-editorial__columns { padding:10px 22px; border-top:1px solid #eceef2; border-bottom:1px solid #eceef2; color:#64748b; font:700 9.5px 'Archivo',sans-serif; letter-spacing:.09em; text-transform:uppercase; }
+    .dd-editorial__columns,.dd-editorial .dd-editorial-item { display:grid; grid-template-columns:minmax(var(--dd-doc-px,250px),var(--dd-doc-width,1.7fr)) 120px minmax(180px,.8fr) minmax(210px,auto); gap:18px; align-items:center; }
+    .dd-editorial__columns { position:relative; padding:10px 22px; border-top:1px solid #eceef2; border-bottom:1px solid #eceef2; color:#64748b; font:700 9.5px 'Archivo',sans-serif; letter-spacing:.09em; text-transform:uppercase; }
+    .dd-editorial__resize { position:absolute; top:0; bottom:0; left:calc(var(--dd-doc-px, 250px) + 13px); width:10px; transform:translateX(-50%); cursor:col-resize; touch-action:none; z-index:2; }
+    .dd-editorial__resize::after { content:''; position:absolute; top:25%; bottom:25%; left:4px; width:2px; border-radius:2px; background:transparent; }
+    .dd-editorial__resize:hover::after,.dd-editorial__resize.is-active::after { background:#2563eb; }
     .dd-editorial__columns span:last-child { text-align:right; }
     .dd-editorial .bsa-list { margin:0; padding:0; list-style:none; }
     .dd-editorial .dd-editorial-item { margin:0; padding:15px 22px; border:0; border-bottom:1px solid #eceef2; border-radius:0; background:#fff; }
@@ -5403,7 +5443,7 @@
           </div>
         </div>
         <div class="doc-category__body">
-          ${isEditorialFolderStep(f) ? '<div class="dd-editorial__columns" aria-hidden="true"><span>Document</span><span>Statut</span><span></span><span>Actions</span></div>' : ''}
+          ${isEditorialFolderStep(f) ? '<div class="dd-editorial__columns" aria-hidden="true"><span>Document</span><span>Statut</span><span></span><span>Actions</span><span class="dd-editorial__resize" role="separator" aria-label="Redimensionner la colonne Document" tabindex="0"></span></div>' : ''}
           <ol class="bsa-list"></ol>
         </div>`;
       section.querySelector('[data-category-import]').addEventListener('click', () => openImport(f.id, category.key));
@@ -5483,7 +5523,7 @@
           </div>
         </div>
         <div class="doc-category__body">
-          ${isEditorialFolderStep(f) ? '<div class="dd-editorial__columns" aria-hidden="true"><span>Document</span><span>Statut</span><span>Investisseur</span><span>Actions</span></div>' : ''}
+          ${isEditorialFolderStep(f) ? '<div class="dd-editorial__columns" aria-hidden="true"><span>Document</span><span>Statut</span><span>Investisseur</span><span>Actions</span><span class="dd-editorial__resize" role="separator" aria-label="Redimensionner la colonne Document" tabindex="0"></span></div>' : ''}
           <ol class="bsa-list"></ol>
         </div>`;
       section.querySelector('[data-category-import]').addEventListener('click', () => openImport(f.id, catKey));
@@ -5541,7 +5581,7 @@
           </div>
         </div>
         <div class="doc-category__body">
-          ${editorialTS && histItems.length ? '<div class="dd-editorial__columns" aria-hidden="true"><span>Document</span><span>Statut</span><span>Investisseur</span><span>Actions</span></div>' : ''}
+          ${editorialTS && histItems.length ? '<div class="dd-editorial__columns" aria-hidden="true"><span>Document</span><span>Statut</span><span>Investisseur</span><span>Actions</span><span class="dd-editorial__resize" role="separator" aria-label="Redimensionner la colonne Document" tabindex="0"></span></div>' : ''}
           <ol class="bsa-list"></ol>
         </div>`;
       section.querySelector('[data-category-import]').addEventListener('click', () => openImport(f.id, catKey));
@@ -5609,7 +5649,7 @@
           <div><h3 class="dd-editorial__title">Documents demandés</h3><div class="dd-editorial__progress-text">${ready} sur ${list.length} prêt${ready > 1 ? 's' : ''}</div></div>
           <div class="dd-editorial__progress" role="progressbar" aria-label="Avancement des documents" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><span style="width:${percent}%"></span></div>
         </div>
-        <div class="dd-editorial__columns" aria-hidden="true"><span>Document</span><span>Statut</span><span>Investisseurs</span><span>Actions</span></div>
+        <div class="dd-editorial__columns" aria-hidden="true"><span>Document</span><span>Statut</span><span>Investisseurs</span><span>Actions</span><span class="dd-editorial__resize" role="separator" aria-label="Redimensionner la colonne Document" tabindex="0"></span></div>
         <ol class="bsa-list"></ol>
         <button type="button" class="dd-editorial__drop" data-dd-editorial-import><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7 9m5-5 5 5M5 14v5h14v-5"/></svg>Importer un document</button>`;
       const ol = shell.querySelector('.bsa-list');
