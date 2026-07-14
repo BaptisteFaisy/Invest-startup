@@ -255,6 +255,9 @@
     'air-suivi': [['reporting-suivi', 'Reporting et suivi des engagements']],
     'air-conversion': [['conversion-souscription', 'Conversion et souscription'], ['statuts-conversion', 'Statuts de conversion']],
   };
+  // Partagé avec l'éditeur pour que la création d'une page blanche propose
+  // exactement les mêmes dossiers que l'import.
+  window.liquidImportCategoryDefs = IMPORT_CATEGORY_DEFS;
 
   function populateCategories() {
     const folder = importFolders.find((item) => String(item.id) === destSel.value);

@@ -1607,6 +1607,8 @@ let documentDirty = false;
 const docNameEl = document.querySelector('.topbar__doc');
 const urlFolderId = new URLSearchParams(location.search).get('folder');
 const urlCategoryKey = new URLSearchParams(location.search).get('category');
+let newDocumentFolderId = urlFolderId || '';
+let newDocumentCategoryKey = urlCategoryKey || '';
 
 // Nom proposé pour le document (à partir du sous-titre LUMIO SAS, etc.).
 // Sans titre détecté dans la page (document importé), on garde le nom affiché
@@ -1659,8 +1661,8 @@ async function saveTermsheet() {
   const name = termsheetName();
   const html = termsheetHtml();
   const body = { name, html };
-  if (urlFolderId) body.folder_id = Number(urlFolderId);
-  if (urlCategoryKey) body.category_key = urlCategoryKey;
+  if (newDocumentFolderId) body.folder_id = Number(newDocumentFolderId);
+  if (newDocumentCategoryKey) body.category_key = newDocumentCategoryKey;
   try {
     const res = currentDocId
       ? await fetch('/api/saas/termsheets/' + currentDocId, {
@@ -1976,6 +1978,35 @@ function hideEmptyState() {
 }
 // « Créer un document » : part d'une page blanche, prête à la saisie.
 function startBlankDocument() {
+  openBlankPlacementModal();
+}
+async function openBlankPlacementModal() {
+  let folders = [];
+  try {
+    const r = await fetch('/api/saas/folders', { credentials: 'include' });
+    const d = r.ok ? await r.json() : {};
+    folders = Array.isArray(d.folders) ? d.folders.filter(f => f.key !== 'mise-en-ordre' && !/^\s*0\s*[·.-]/.test(f.name || '')) : [];
+  } catch {}
+  const old = document.getElementById('blank-placement-modal'); if (old) old.remove();
+  const modal = document.createElement('div'); modal.id = 'blank-placement-modal'; modal.className = 'docmodal';
+  modal.innerHTML = `<div class="docmodal__backdrop" data-close></div><div class="docmodal__dialog" style="max-width:520px">
+    <div class="docmodal__head"><h2 class="docmodal__title">Créer un document</h2><button class="docmodal__close" data-close type="button">×</button></div>
+    <div class="docmodal__body"><p style="margin-top:0">Choisissez où ranger ce document. Vous pourrez modifier son emplacement ensuite.</p>
+      <label class="docmodal__dest-label" for="blank-placement-stage">Étape</label>
+      <select class="docmodal__dest-select" id="blank-placement-stage"><option value="">— Non classé —</option>${folders.map(f => `<option value="${String(f.id).replace(/"/g,'&quot;')}" data-key="${String(f.key||'').replace(/"/g,'&quot;')}">${String(f.name||'')}</option>`).join('')}</select>
+      <label class="docmodal__dest-label" for="blank-placement-folder" style="margin-top:12px">Dossier</label>
+      <select class="docmodal__dest-select" id="blank-placement-folder" disabled><option value="">— Choisir d’abord une étape —</option></select>
+      <div class="docmodal__error" id="blank-placement-error"></div></div>
+    <div class="docmodal__foot"><button class="btn btn--ghost" id="blank-placement-later" type="button">Plus tard</button><button class="btn btn--primary" id="blank-placement-confirm" type="button">Créer</button></div></div>`;
+  document.body.appendChild(modal);
+  const stage = modal.querySelector('#blank-placement-stage'), folder = modal.querySelector('#blank-placement-folder');
+  const fill = () => { const key = stage.selectedOptions[0]?.dataset.key || ''; const defs = (window.liquidImportCategoryDefs || {})[key] || []; folder.innerHTML = '<option value="">— Sans dossier —</option>' + defs.map(([k,n]) => `<option value="${k}">${n}</option>`).join(''); folder.disabled = !stage.value; };
+  stage.addEventListener('change', fill);
+  const close = () => modal.remove(); modal.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', close));
+  modal.querySelector('#blank-placement-later').addEventListener('click', () => { close(); createBlankDocument(); });
+  modal.querySelector('#blank-placement-confirm').addEventListener('click', () => { newDocumentFolderId = stage.value; newDocumentCategoryKey = folder.value; close(); createBlankDocument(); });
+}
+function createBlankDocument() {
   hideEmptyState();
   page.innerHTML = '<p><br></p>';
   if (docNameEl) docNameEl.textContent = 'Nouveau document';
