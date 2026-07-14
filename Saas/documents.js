@@ -109,15 +109,21 @@
             <option value="">— Non classé —</option>
           </select>
         </div>
+        <div class="docmodal__dest" id="docmodal-category">
+          <label class="docmodal__dest-label" for="docmodal-category-select">Ranger dans un dossier</label>
+          <select class="docmodal__dest-select" id="docmodal-category-select">
+            <option value="">— Choisir d’abord une étape —</option>
+          </select>
+        </div>
         <div class="docmodal__ver" id="docmodal-ver">
           <label class="docmodal__ver-toggle">
             <input type="checkbox" id="docmodal-ver-check" />
             <span>Une ancienne version existe-t-elle déjà sur Liquid+ ?</span>
           </label>
           <div class="docmodal__ver-fields" id="docmodal-ver-fields">
-            <div class="docmodal__ver-callout">Oui : choisissez le document initial ci-dessous, puis indiquez la nature de cette nouvelle version. Non : le fichier sera ajouté comme document distinct.</div>
-            <label class="docmodal__dest-label" for="docmodal-ver-parent-search" style="margin-top:12px">Document initial de cette nouvelle version</label>
-            <input class="docmodal__dest-select docmodal__ver-search" id="docmodal-ver-parent-search" type="search" placeholder="Rechercher le document initial…" autocomplete="off" aria-label="Rechercher le document initial" />
+            <div class="docmodal__ver-callout">Oui : choisissez la version précédente ci-dessous, puis indiquez la nature de cette nouvelle version. Non : le fichier sera ajouté comme document distinct.</div>
+            <label class="docmodal__dest-label" for="docmodal-ver-parent-search" style="margin-top:12px">Version précédente de ce document</label>
+            <input class="docmodal__dest-select docmodal__ver-search" id="docmodal-ver-parent-search" type="search" placeholder="Rechercher la version précédente…" autocomplete="off" aria-label="Rechercher la version précédente" />
             <select class="docmodal__dest-select" id="docmodal-ver-parent"></select>
             <label class="docmodal__dest-label" for="docmodal-ver-type" style="margin-top:12px">Nature de cette nouvelle version</label>
             <select class="docmodal__dest-select" id="docmodal-ver-type">
@@ -178,6 +184,8 @@
   const submit   = modal.querySelector('#docmodal-submit');
   const destBox  = modal.querySelector('#docmodal-dest');
   const destSel  = modal.querySelector('#docmodal-dest-select');
+  const categoryBox = modal.querySelector('#docmodal-category');
+  const categorySel = modal.querySelector('#docmodal-category-select');
   const verBox   = modal.querySelector('#docmodal-ver');
   const verCheck = modal.querySelector('#docmodal-ver-check');
   const verFields = modal.querySelector('#docmodal-ver-fields');
@@ -198,6 +206,7 @@
 
   let selected = null;
   let busy = false;
+  let importFolders = [];
   let verCtxDocs = [];       // documents existants proposables comme parent
   let pendingNudge = null;   // { docId, suggestion } après un import non rattaché
 
@@ -224,20 +233,61 @@
   }
 
   function updateSubmitState() {
-    submit.disabled = busy || !selected || (editorImport && !destSel.value);
+    submit.disabled = busy || !selected || (editorImport && (!destSel.value || !categorySel.value));
+  }
+
+  const IMPORT_CATEGORY_DEFS = {
+    confidentialite: [['presentation', 'Présentation investisseurs'], ['confidentialite', 'Confidentialité et accès data room']],
+    'due-diligence-preliminaire': [['corporate-prelim', 'Corporate, capital et gouvernance'], ['strategie-prelim', 'Présentation, marché et organisation'], ['finance-prelim', 'Finance, comptabilité et dettes'], ['commercial-prelim', 'Clients, revenus et contrats commerciaux'], ['operations-prelim', 'Fournisseurs, partenaires et opérations'], ['social-prelim', 'Social, RH et management package'], ['ip-tech-prelim', 'Propriété intellectuelle, tech et données'], ['conformite-prelim', 'Réglementaire, conformité et risques'], ['actifs-prelim', 'Actifs, banques et engagements'], ['data-room-prelim', 'Data room, Q&A et suivi']],
+    'term-sheet': [['accord-principal', 'Accord principal'], ['clauses-annexes', 'Clauses annexes']],
+    'due-diligence': [['corporate', 'Corporate, capital et gouvernance'], ['finance', 'Finance, comptabilité et fiscalité'], ['social', 'Social, RH et management'], ['commercial', 'Clients, ventes et revenus'], ['operations', 'Fournisseurs, partenariats et opérations'], ['ip-tech', 'Propriété intellectuelle, produit et technologie'], ['data-security', 'RGPD, données et cybersécurité'], ['regulatory', 'Réglementaire et conformité sectorielle'], ['litigation', 'Contentieux, assurances et risques'], ['assets-esg', 'Immobilier, actifs matériels et ESG'], ['audit', 'Data room, Q&A et rapports d’audit'], ['autres', 'Autres documents demandés']],
+    documentation: [['pacte-statuts', 'Pacte, statuts et gouvernance'], ['garanties-valeurs', 'Garanties et valeurs mobilières'], ['accords-investisseurs', 'Accords investisseurs']],
+    closing: [['souscription-fonds', 'Souscription et versement des fonds'], ['decisions-sociales', 'Décisions sociales et autorisations'], ['statuts-pacte', 'Statuts, pacte et gouvernance'], ['registres-capital', 'Registres et capitalisation'], ['formalites', 'Formalités et dossier final']],
+    'post-closing': [['reporting-covenants', 'Reporting et engagements'], ['formalites-post', 'Formalités post-closing']],
+    gouvernance: [['gouvernance-sociale', 'Gouvernance sociale'], ['documents-reference', 'Documents de référence']],
+    'air-preparation': [['societe-capital', 'Société et capital'], ['ip-management', 'PI et management package']],
+    'air-termes': [['termes-economiques', 'Termes économiques et dilution']],
+    'air-emission': [['decisions-sociales', 'Décisions sociales'], ['instrument-air', 'Instrument BSA-AIR']],
+    'air-approche': [['confidentialite', 'Confidentialité'], ['presentation', 'Présentation investisseurs']],
+    'air-souscription': [['souscription-investisseurs', 'Souscription investisseurs'], ['versement-fonds', 'Versement des fonds'], ['constatation-registres', 'Constatation et registres']],
+    'air-suivi': [['reporting-suivi', 'Reporting et suivi des engagements']],
+    'air-conversion': [['conversion-souscription', 'Conversion et souscription'], ['statuts-conversion', 'Statuts de conversion']],
+  };
+
+  function populateCategories() {
+    const folder = importFolders.find((item) => String(item.id) === destSel.value);
+    const categories = folder ? (IMPORT_CATEGORY_DEFS[folder.key] || []) : [];
+    categorySel.innerHTML = '<option value="">— Choisir un dossier —</option>';
+    categories.forEach(([key, title]) => {
+      const option = document.createElement('option');
+      option.value = key;
+      option.textContent = title;
+      categorySel.appendChild(option);
+    });
+    categorySel.disabled = !folder || !categories.length;
+    categoryBox.classList.toggle('is-shown', editorImport && !!folder);
+    if (folder && !categories.length) showError('Aucun dossier n’est disponible dans cette étape.');
+    updateSubmitState();
   }
 
   function filterVersionParents() {
     const query = verParentSearch.value.trim().toLocaleLowerCase();
-    let exact = null;
-    Array.from(verParent.options).forEach((option) => {
-      if (!option.value) { option.hidden = false; return; }
-      const matches = !query || option.textContent.toLocaleLowerCase().includes(query);
-      option.hidden = !matches;
-      if (query && option.textContent.trim().toLocaleLowerCase() === query) exact = option;
+    const previousValue = verParent.value;
+    const matches = verCtxDocs.filter((doc) => !query || doc.searchText.includes(query));
+    verParent.innerHTML = '<option value="">— Choisir la version précédente —</option>';
+    matches.forEach((doc) => {
+      const option = document.createElement('option');
+      option.value = String(doc.id);
+      option.textContent = doc.label;
+      verParent.appendChild(option);
     });
-    if (exact) verParent.value = exact.value;
-    else if (query && verParent.selectedOptions[0] && verParent.selectedOptions[0].hidden) verParent.value = '';
+    if (matches.some((doc) => String(doc.id) === previousValue)) verParent.value = previousValue;
+    if (!matches.length) {
+      const option = document.createElement('option');
+      option.disabled = true;
+      option.textContent = 'Aucun document ne correspond à cette recherche';
+      verParent.appendChild(option);
+    }
   }
 
   function setFile(file) {
@@ -286,12 +336,13 @@
         ctx = {
           folders: (Array.isArray(foldersData.folders) ? foldersData.folders : [])
             .filter((folder) => !folder.track || folder.track === raiseType)
-            .map((folder) => ({ id: folder.id, name: folder.name })),
+            .map((folder) => ({ id: folder.id, name: folder.name, key: folder.key || '' })),
         };
       } catch { ctx = null; }
     }
 
-    const folders = (ctx && Array.isArray(ctx.folders)) ? ctx.folders : [];
+    const folders = (ctx && Array.isArray(ctx.folders)) ? ctx.folders.filter((folder) => folder.key !== 'mise-en-ordre' && !/^\s*0\s*[·.-]/.test(folder.name || '')) : [];
+    importFolders = folders;
     if (!folders.length) {
       destBox.classList.toggle('is-shown', editorImport);
       if (editorImport) showError('Impossible de charger les étapes. Fermez cette fenêtre puis réessayez.');
@@ -306,6 +357,7 @@
     });
     if (ctx && ctx.defaultFolderId != null) destSel.value = String(ctx.defaultFolderId);
     destBox.classList.add('is-shown');
+    populateCategories();
     updateSubmitState();
   }
 
@@ -322,27 +374,31 @@
     verParentSearch.value = '';
     let ctx = null;
     try { ctx = typeof window.liquidImportContext === 'function' ? window.liquidImportContext() : null; } catch { ctx = null; }
-    // La page Documents fournit déjà ce contexte. L'éditeur, lui, ne charge pas
-    // ces listes : on les récupère directement afin que les trois métadonnées de
-    // l'arbre des versions restent pleinement utilisables partout.
-    if (!ctx) {
-      try {
-        const [docsResponse, investorsResponse] = await Promise.all([
-          fetch('/api/saas/documents', { credentials: 'include' }),
-          fetch('/api/saas/investors', { credentials: 'include' }),
-        ]);
-        const docsData = docsResponse.ok ? await docsResponse.json() : {};
-        const investorsData = investorsResponse.ok ? await investorsResponse.json() : {};
-        ctx = {
-          documents: (Array.isArray(docsData.documents) ? docsData.documents : [])
-            .filter((d) => !d.is_version)
-            .map((d) => ({ id: d.id, name: d.name })),
-          investors: (Array.isArray(investorsData.investors) ? investorsData.investors : [])
-            .map((inv) => ({ id: inv.id, name: inv.name, firm: inv.firm || '' })),
-        };
-      } catch { ctx = null; }
-    }
-    verCtxDocs = (ctx && Array.isArray(ctx.documents)) ? ctx.documents : [];
+    // La version précédente peut être une version archivée ou appartenir à une
+    // autre étape. On recharge donc la liste complète du compte, même si la page
+    // courante fournit déjà un contexte filtré pour son propre affichage.
+    try {
+      const [docsResponse, investorsResponse] = await Promise.all([
+        fetch('/api/saas/documents', { credentials: 'include' }),
+        fetch('/api/saas/investors', { credentials: 'include' }),
+      ]);
+      const docsData = docsResponse.ok ? await docsResponse.json() : {};
+      const investorsData = investorsResponse.ok ? await investorsResponse.json() : {};
+      ctx = {
+        documents: Array.isArray(docsData.documents) ? docsData.documents : (ctx?.documents || []),
+        investors: Array.isArray(investorsData.investors) ? investorsData.investors : (ctx?.investors || []),
+      };
+    } catch { /* le contexte fourni par la page reste utilisable hors ligne */ }
+    verCtxDocs = ((ctx && Array.isArray(ctx.documents)) ? ctx.documents : [])
+      .slice()
+      .sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0))
+      .map((doc) => {
+        const dateValue = doc.updated_at || doc.created_at;
+        const date = dateValue ? new Date(dateValue).toLocaleDateString('fr-FR') : '';
+        const suffix = [doc.is_version ? 'ancienne version' : '', date].filter(Boolean).join(' · ');
+        const label = (doc.name || doc.originalname || 'Document sans titre') + (suffix ? ' — ' + suffix : '');
+        return { ...doc, label, searchText: label.toLocaleLowerCase() };
+      });
     const investors = (ctx && Array.isArray(ctx.investors)) ? ctx.investors : [];
 
     // Ces listes servent aussi au « nudge » affiché après l'import. Dans
@@ -375,20 +431,13 @@
       nudgeInvestor.appendChild(genericInvestor.cloneNode(true));
     }
 
-    verParent.innerHTML = '<option value="">— Choisir le document —</option>';
     if (!verCtxDocs.length) {
-      verParent.innerHTML = '<option value="">Aucun document initial disponible</option>';
+      verParent.innerHTML = '<option value="">Aucune version précédente disponible</option>';
       verParent.disabled = true;
       verBox.classList.add('is-shown');
       return;
     }
     verParent.disabled = false;
-    verCtxDocs.forEach((d) => {
-      const o = document.createElement('option');
-      o.value = String(d.id);
-      o.textContent = d.name;
-      verParent.appendChild(o);
-    });
     filterVersionParents();
     verBox.classList.add('is-shown');
   }
@@ -421,11 +470,6 @@
     verRecipient.hidden = verOrigin.value !== 'founder';
   });
   verParentSearch.addEventListener('input', filterVersionParents);
-  verParent.addEventListener('change', () => {
-    const selected = verParent.selectedOptions[0];
-    verParentSearch.value = selected && selected.value ? selected.textContent : '';
-    filterVersionParents();
-  });
   nudgeOrigin.addEventListener('change', () => {
     nudgeInvestor.hidden = nudgeOrigin.value !== 'investor';
     nudgeRecipient.hidden = nudgeOrigin.value !== 'founder';
@@ -451,8 +495,9 @@
   fileX.addEventListener('click', resetFile);
   destSel.addEventListener('change', () => {
     clearError();
-    updateSubmitState();
+    populateCategories();
   });
+  categorySel.addEventListener('change', () => { clearError(); updateSubmitState(); });
 
   /* ---- Glisser-déposer ---- */
   ['dragenter', 'dragover'].forEach((ev) =>
@@ -472,9 +517,14 @@
       destSel.focus();
       return;
     }
+    if (editorImport && !categorySel.value) {
+      showError('Choisissez le dossier de l’étape dans lequel ranger ce document.');
+      categorySel.focus();
+      return;
+    }
     const versionRequested = verBox.classList.contains('is-shown') && verCheck.checked;
     if (versionRequested && !verParent.value) {
-      showError('Choisissez le document dont ce fichier est une nouvelle version.');
+      showError('Choisissez la version précédente de ce document.');
       return;
     }
     if (versionRequested && !verType.value) {
@@ -494,6 +544,7 @@
     // Étape de destination choisie (facultative) : le serveur range le document
     // dans ce dossier s'il appartient à l'utilisateur.
     if (destBox.classList.contains('is-shown') && destSel.value) fd.append('folder_id', destSel.value);
+    if (editorImport && categorySel.value) fd.append('category_key', categorySel.value);
     // Rattachement explicite « nouvelle version de… » (facultatif).
     const linking = versionRequested && verParent.value;
     if (linking) {
