@@ -550,6 +550,58 @@ const DETAIL = {
 /* ---------- 1. Construction du document ---------- */
 const page = document.getElementById('page');
 
+/* ---------- Accès de l'IA aux documents ----------
+   Consentement explicite, désactivé à chaque ouverture de l'éditeur. Toutes les
+   requêtes IA susceptibles de contenir du texte juridique sont bloquées AVANT
+   l'appel réseau tant que l'utilisateur n'a pas activé le bouton. */
+let aiDocumentAccessEnabled = false;
+const aiAccessToggle = document.getElementById('ai-access-toggle');
+const aiAccessToggleLabel = document.getElementById('ai-access-toggle-label');
+const nativeEditorFetch = window.fetch.bind(window);
+const editorAiPostPaths = new Set([
+  '/api/saas/clause-chat', '/api/saas/clause-explain', '/api/saas/clause-verify',
+  '/api/saas/explain-selection', '/api/saas/doc-advice', '/api/saas/doc-clauses',
+  '/api/saas/doc-analyze', '/api/saas/autofill', '/api/saas/clauses-explain',
+  '/api/saas/jobs',
+]);
+
+function isEditorAiRequest(input, init) {
+  const raw = typeof input === 'string' ? input : (input && input.url) || '';
+  let path = raw;
+  try { path = new URL(raw, location.href).pathname; } catch {}
+  const method = String((init && init.method) || (input && input.method) || 'GET').toUpperCase();
+  return method === 'POST' && editorAiPostPaths.has(path);
+}
+
+window.fetch = function guardedEditorFetch(input, init) {
+  if (isEditorAiRequest(input, init) && !aiDocumentAccessEnabled) {
+    return Promise.reject(new DOMException("L'IA est désactivée : aucun contenu du document n'a été envoyé.", 'NotAllowedError'));
+  }
+  return nativeEditorFetch(input, init);
+};
+
+function syncAiDocumentAccess(cancelRunning) {
+  const app = document.querySelector('.app');
+  if (app) app.classList.toggle('ai-disabled', !aiDocumentAccessEnabled);
+  if (!aiAccessToggle) return;
+  aiAccessToggle.classList.toggle('is-on', aiDocumentAccessEnabled);
+  aiAccessToggle.setAttribute('aria-pressed', aiDocumentAccessEnabled ? 'true' : 'false');
+  aiAccessToggle.title = aiDocumentAccessEnabled
+    ? "L’IA peut accéder au document ouvert. Cliquez pour couper immédiatement cet accès."
+    : "L’IA est désactivée et n’a pas accès à vos documents. Cliquez pour l’activer.";
+  if (aiAccessToggleLabel) aiAccessToggleLabel.textContent = aiDocumentAccessEnabled ? 'IA activée' : 'IA désactivée';
+  if (!aiDocumentAccessEnabled && cancelRunning) {
+    [selxAbort, simpleAbort, chatAbort, adviceAbort, libAbort].forEach(ctrl => { try { ctrl && ctrl.abort(); } catch {} });
+    if (fullJobId && window.LiquidTasks) { try { LiquidTasks.cancel(fullJobId); } catch {} }
+  }
+}
+
+if (aiAccessToggle) aiAccessToggle.addEventListener('click', () => {
+  aiDocumentAccessEnabled = !aiDocumentAccessEnabled;
+  syncAiDocumentAccess(!aiDocumentAccessEnabled);
+});
+syncAiDocumentAccess(false);
+
 function buildDocument() {
   let html = `
     <h1 class="doc-title">LETTRE D'INTENTION</h1>

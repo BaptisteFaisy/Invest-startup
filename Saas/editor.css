@@ -31,6 +31,24 @@
 .topbar .brand__logo { display: block; flex: none; }
 .topbar__doc { font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 500; color: #fff; padding-left: 16px; border-left: 1px solid #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .topbar__actions { display: flex; gap: 8px; align-items: center; flex: none; }
+.ai-access-toggle { display:inline-flex; align-items:center; gap:7px; height:34px; padding:0 11px; border:1px solid #52525b; border-radius:8px; background:transparent; color:#e4e4e7; font:600 12px 'Archivo',sans-serif; cursor:pointer; white-space:nowrap; }
+.ai-access-toggle:hover { border-color:#a1a1aa; background:#18181b; }
+.ai-access-toggle__dot { width:8px; height:8px; border-radius:50%; background:#71717a; box-shadow:0 0 0 3px rgba(113,113,122,.16); }
+.ai-access-toggle.is-on { color:#fff; border-color:#16a34a; background:#15803d; }
+.ai-access-toggle.is-on:hover { background:#166534; }
+.ai-access-toggle.is-on .ai-access-toggle__dot { background:#bbf7d0; box-shadow:0 0 0 3px rgba(187,247,208,.2); }
+:root[data-theme="paper"] .topbar .ai-access-toggle { color:#52525b; border-color:#d4d4d8; background:#fff; }
+:root[data-theme="paper"] .topbar .ai-access-toggle:hover { border-color:#a1a1aa; background:#f4f4f5; }
+:root[data-theme="paper"] .topbar .ai-access-toggle.is-on { color:#fff; border-color:#16a34a; background:#15803d; }
+.app.ai-disabled #analyze-btn,
+.app.ai-disabled [data-aimax-toggle],
+.app.ai-disabled #chat-explain,
+.app.ai-disabled #chat-attach,
+.app.ai-disabled #chat-input,
+.app.ai-disabled #chat-send,
+.app.ai-disabled #selx-btn,
+.app.ai-disabled .advitem__apply,
+.app.ai-disabled #autofill-btn { opacity:.42; pointer-events:none; }
 .topbar .btn { padding: 8px 14px; font-size: 13px; color: #fff; border-color: #444; }
 .topbar .btn:hover { border-color: #888; background: #1a1a1a; }
 .topbar .btn--primary { background: #fff; border-color: #fff; color: #0a0a0a; }
