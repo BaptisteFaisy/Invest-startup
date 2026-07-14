@@ -232,6 +232,12 @@
     .docpick__row__inv { margin-left: auto; width: 180px; flex: none; font: inherit; font-size: 13px; padding: 7px 10px; border-radius: 8px; border: 1px solid #d8d8de; color: #08090c; cursor: text; }
     .docpick__row__inv:disabled { background: #f3f3f5; color: #9a9aa3; cursor: not-allowed; }
     .docpick__row__inv::placeholder { color: #9a9aa3; }
+    .docpick__group { display: flex; flex-direction: column; gap: 8px; }
+    .docpick__group + .docpick__group { margin-top: 18px; }
+    .docpick__group__head { display: flex; align-items: baseline; gap: 8px; padding: 0 2px; }
+    .docpick__group__name { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 800; color: var(--t-on-bg); }
+    .docpick__group__firm { font-size: 11.5px; color: var(--t-on-bg-50); }
+    .docpick__group__count { margin-left: auto; font-family: 'Archivo', sans-serif; font-size: 10.5px; color: var(--t-on-bg-40); }
 
     /* Tableau de comparaison critère par critère (term sheets de plusieurs investisseurs) */
     .cmptable-wrap { margin-top: 26px; }
@@ -456,7 +462,7 @@
            ni d'auteur, une comparaison critère par critère. -->
       <div id="panel-investors" hidden>
         <div class="docpick" id="docpick-inv">
-          <div class="docpick__h">Sélectionnez au moins deux documents à comparer, et indiquez l'investisseur de chacun</div>
+          <div class="docpick__h">Sélectionnez au moins deux documents, classés par investisseur</div>
           <div class="docpick__list" id="docpick-inv-list"></div>
         </div>
 
@@ -1085,15 +1091,70 @@
     // documents du fondateur, il en coche au moins deux et nomme l'investisseur
     // associé à chacun.
     let invCandidates = [];
+    let pipelineInvestors = [];
+
+    function investorDisplayName(inv) {
+      return (inv && (inv.name || inv.firm)) || '';
+    }
+
+    function appendInvDocRow(container, doc, i, investorName) {
+      const row = document.createElement('div');
+      row.className = 'docpick__row';
+      row.dataset.i = i;
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.addEventListener('change', () => { inp.disabled = !cb.checked; updateInvIntro(); });
+      const name = document.createElement('span');
+      name.className = 'docpick__row__name';
+      name.textContent = doc.name || 'Document';
+      name.title = doc.name || '';
+      const date = document.createElement('span');
+      date.className = 'docpick__row__date';
+      const when = doc.updated_at || doc.created_at;
+      date.textContent = when ? fmtDate(when) : '';
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.className = 'docpick__row__inv';
+      inp.placeholder = 'Nom de l\'investisseur';
+      inp.value = investorName || '';
+      inp.disabled = true;
+      inp.addEventListener('input', updateInvIntro);
+      row.append(cb, name, date, inp);
+      row.addEventListener('click', (e) => {
+        if (e.target === cb || e.target === inp) return;
+        cb.checked = !cb.checked;
+        cb.dispatchEvent(new Event('change'));
+      });
+      container.appendChild(row);
+    }
+
+    function appendInvGroup(list, label, firm, docs) {
+      if (!docs.length) return;
+      const group = document.createElement('section');
+      group.className = 'docpick__group';
+      const head = document.createElement('div');
+      head.className = 'docpick__group__head';
+      head.innerHTML = '<span class="docpick__group__name">' + esc(label) + '</span>'
+        + (firm ? '<span class="docpick__group__firm">' + esc(firm) + '</span>' : '')
+        + '<span class="docpick__group__count">' + docs.length + ' document' + (docs.length > 1 ? 's' : '') + '</span>';
+      group.appendChild(head);
+      docs.forEach(doc => appendInvDocRow(group, doc, invCandidates.indexOf(doc), label === 'Non classés' ? '' : label));
+      list.appendChild(group);
+    }
 
     async function initInvestorsPanel() {
       const list = document.getElementById('docpick-inv-list');
       list.innerHTML = '<div class="docpick__empty">Chargement…</div>';
       let docs = [];
       try {
-        const r = await fetch('/api/saas/documents', { credentials: 'include' });
-        const d = await r.json();
+        const [dr, ir] = await Promise.all([
+          fetch('/api/saas/documents', { credentials: 'include' }),
+          fetch('/api/saas/investors', { credentials: 'include' }),
+        ]);
+        const d = await dr.json();
+        const idata = ir.ok ? await ir.json() : { investors: [] };
         docs = (d.documents || []).filter(x => !x.is_investor_checklist);
+        pipelineInvestors = Array.isArray(idata.investors) ? idata.investors : [];
       } catch { /* liste vide */ }
       invCandidates = docs;
       if (!docs.length) {
@@ -1101,35 +1162,14 @@
         return;
       }
       list.innerHTML = '';
-      docs.forEach((doc, i) => {
-        const row = document.createElement('div');
-        row.className = 'docpick__row';
-        row.dataset.i = i;
-        const cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.addEventListener('change', () => { inp.disabled = !cb.checked; updateInvIntro(); });
-        const name = document.createElement('span');
-        name.className = 'docpick__row__name';
-        name.textContent = doc.name || 'Document';
-        name.title = doc.name || '';
-        const date = document.createElement('span');
-        date.className = 'docpick__row__date';
-        const when = doc.updated_at || doc.created_at;
-        date.textContent = when ? fmtDate(when) : '';
-        const inp = document.createElement('input');
-        inp.type = 'text';
-        inp.className = 'docpick__row__inv';
-        inp.placeholder = 'Nom de l\'investisseur';
-        inp.disabled = true;
-        inp.addEventListener('input', updateInvIntro);
-        row.append(cb, name, date, inp);
-        row.addEventListener('click', (e) => {
-          if (e.target === cb || e.target === inp) return;
-          cb.checked = !cb.checked;
-          cb.dispatchEvent(new Event('change'));
-        });
-        list.appendChild(row);
-      });
+      const knownIds = new Set(pipelineInvestors.map(inv => Number(inv.id)));
+      pipelineInvestors.forEach(inv => appendInvGroup(
+        list,
+        investorDisplayName(inv) || 'Investisseur',
+        inv.name && inv.firm ? inv.firm : '',
+        docs.filter(doc => Number(doc.investor_id) === Number(inv.id))
+      ));
+      appendInvGroup(list, 'Non classés', '', docs.filter(doc => !knownIds.has(Number(doc.investor_id))));
       introInvEl.hidden = false;
       updateInvIntro();
       // Historique des comparaisons entre investisseurs (masqué s'il est vide).
@@ -1153,7 +1193,7 @@
       const n = selectedInvEntries().length;
       analyzeInvBtn.disabled = n < 2 || !!currentInvJobId;
       introtextInvEl.textContent = n < 2
-        ? 'Sélectionnez au moins deux documents à comparer, et indiquez (facultatif) le nom de l\'investisseur pour chacun.'
+        ? 'Sélectionnez au moins deux documents à comparer. Les documents non classés peuvent être associés manuellement à un investisseur.'
         : 'Comparer les ' + n + ' propositions sélectionnées critère par critère avec l\'IA : ce qui diffère et laquelle est la plus favorable. Cela peut prendre quelques secondes.';
     }
 
