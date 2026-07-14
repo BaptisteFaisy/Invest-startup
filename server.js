@@ -65,6 +65,7 @@ const DROPBOX_APP_SECRET         = process.env.DROPBOX_APP_SECRET         || '';
 // facture. Réglable via la variable d'environnement DAILY_TOKEN_CAP (Railway →
 // service → onglet Variables). Défaut : 5 000 000 tokens/jour.
 const DAILY_TOKEN_CAP      = Number(process.env.DAILY_TOKEN_CAP) || 5_000_000;
+const FOUNDER_TRIAL_MS     = 2 * 60 * 60 * 1000;
 
 const ADMIN_EMAILS = ['baptiste.faisy@gmail.com', 'bg.fsg.invest@gmail.com', 'liquidplus.startups@gmail.com'];
 
@@ -455,6 +456,7 @@ function setAuthCookie(res, user) {
 }
 
 function publicAuthUser(user) {
+  const access = founderAccess(user);
   return {
     id: user.id,
     email: user.email,
@@ -465,7 +467,36 @@ function publicAuthUser(user) {
     lawyer_profile_completed: !!user.lawyer_profile_completed,
     lawyer_status: user.account_types?.includes('avocat') ? (user.lawyer_status || 'pending') : null,
     is_admin: ADMIN_EMAILS.includes(user.email),
+    access,
   };
+}
+
+function founderAccess(user, now = Date.now()) {
+  const isFounder = Array.isArray(user?.account_types) && user.account_types.includes('fondateur');
+  if (!isFounder || ADMIN_EMAILS.includes(user?.email)) return { status: 'active', blocked: false };
+  if (user.subscription_status === 'active') return { status: 'active', blocked: false, plan: user.subscription_plan || null };
+  // Les comptes fondateurs antérieurs à cette fonctionnalité restent actifs.
+  // L'essai est créé explicitement lors du choix du profil fondateur.
+  if (!user.trial_started_at) return { status: 'active', blocked: false, legacy: true };
+  const usedMs = Math.max(0, Number(user.trial_used_ms) || 0);
+  const remainingMs = Math.max(0, FOUNDER_TRIAL_MS - usedMs);
+  return {
+    status: remainingMs > 0 ? 'trial' : 'expired',
+    blocked: remainingMs <= 0,
+    remaining_ms: remainingMs,
+  };
+}
+
+async function touchFounderTrial(user, now = Date.now()) {
+  if (!user?.trial_started_at || user.subscription_status === 'active') return user;
+  const lastSeen = new Date(user.trial_last_seen_at || user.trial_started_at).getTime();
+  // Un battement toutes les 30 s comptabilise uniquement le temps connecté.
+  // Le plafond évite qu'une fermeture d'onglet consomme le temps hors ligne.
+  const elapsed = Number.isFinite(lastSeen) ? Math.min(Math.max(0, now - lastSeen), 60_000) : 0;
+  user.trial_used_ms = Math.min(FOUNDER_TRIAL_MS, Math.max(0, Number(user.trial_used_ms) || 0) + elapsed);
+  user.trial_last_seen_at = new Date(now).toISOString();
+  await updateUserById(user.id, { trial_used_ms: user.trial_used_ms, trial_last_seen_at: user.trial_last_seen_at });
+  return user;
 }
 
 function hasAccountTypes(user) {
@@ -565,7 +596,14 @@ app.post('/api/auth/account-type', requireAuth, async (req, res) => {
     : [];
   if (clean.length === 0)
     return res.status(400).json({ error: 'Sélectionnez au moins un type de compte' });
-  await updateUserById(req.user.id, { account_types: clean });
+  const current = await col('users').findOne({ id: req.user.id }, { projection: { trial_started_at: 1 } });
+  const updates = { account_types: clean };
+  if (clean.includes('fondateur') && !current?.trial_started_at) {
+    updates.trial_started_at = new Date().toISOString();
+    updates.trial_last_seen_at = updates.trial_started_at;
+    updates.trial_used_ms = 0;
+  }
+  await updateUserById(req.user.id, updates);
   res.json({ success: true, account_types: clean });
 });
 
@@ -620,8 +658,36 @@ app.get('/api/auth/me', requireAuth, async (req, res) => {
   const user = await col('users').findOne({ id: req.user.id }, { projection: { _id: 0, password: 0, totp_secret: 0 } });
   if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
   await ensureLawyerCompletion(user);
+  await touchFounderTrial(user);
   res.json({ user: publicAuthUser(user) });
 });
+
+// URL de paiement hébergée (Stripe Payment Link ou équivalent), configurée en
+// environnement. La plateforme ne considère jamais le simple clic comme payé :
+// `subscription_status: active` doit être posé après confirmation du paiement.
+app.post('/api/billing/checkout', requireAuth, async (req, res) => {
+  const plan = req.body?.plan === 'accompagnement' ? 'accompagnement' : 'plateforme';
+  const envName = plan === 'accompagnement' ? 'CHECKOUT_URL_ACCOMPAGNEMENT' : 'CHECKOUT_URL_PLATEFORME';
+  const checkoutUrl = process.env[envName];
+  if (!checkoutUrl) return res.status(503).json({ error: 'Le paiement en ligne est en cours d’activation. Contactez-nous pour choisir cette offre.' });
+  const user = await col('users').findOne({ id: req.user.id }, { projection: { email: 1 } });
+  const url = new URL(checkoutUrl);
+  if (user?.email && !url.searchParams.has('prefilled_email')) url.searchParams.set('prefilled_email', user.email);
+  if (!url.searchParams.has('client_reference_id')) url.searchParams.set('client_reference_id', String(req.user.id));
+  res.json({ checkout_url: url.toString() });
+});
+
+async function requireFounderAccess(req, res, next) {
+  const user = await col('users').findOne({ id: req.user.id }, { projection: { id: 1, email: 1, account_types: 1, trial_started_at: 1, trial_last_seen_at: 1, trial_used_ms: 1, subscription_status: 1, subscription_plan: 1 } });
+  await touchFounderTrial(user);
+  const access = founderAccess(user);
+  if (access.blocked) return res.status(402).json({ error: 'Vos 2 heures d’essai gratuit sont terminées. Choisissez une offre pour continuer.', code: 'TRIAL_EXPIRED', access });
+  next();
+}
+
+// Toutes les fonctions SaaS sont également protégées côté serveur : masquer
+// seulement l'interface ne suffirait pas à bloquer un essai expiré.
+app.use('/api/saas', requireAuth, requireFounderAccess);
 
 // ─── GET /api/auth/2fa/status ─────────────────────────────────────────────────
 app.get('/api/auth/2fa/status', requireAuth, async (req, res) => {
@@ -5349,6 +5415,7 @@ app.post('/api/saas/documents/:id/convert', requireAuth, async (req, res) => {
       converted_from: doc.id,
     };
     if (doc.folder_id != null) newDoc.folder_id = doc.folder_id;
+    if (doc.category_key) newDoc.category_key = doc.category_key;
     await col('saas_documents').insertOne(newDoc);
     res.status(201).json({ document: publicDoc(newDoc) });
   } catch (err) {
