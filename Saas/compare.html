@@ -184,6 +184,46 @@
       .linfamily__count { width:100%;margin-left:22px; }
     }
 
+    /* Vue en couloirs : chronologie des échanges par intervenant. */
+    #panel-lineage { width:min(1480px,calc(100vw - 40px)); margin-left:50%; transform:translateX(-50%); }
+    .lincontrols { position:sticky;top:58px;z-index:12;box-shadow:0 12px 30px rgba(0,0,0,.12); }
+    .linfilters { display:flex;gap:8px;align-items:center;flex-wrap:wrap; }
+    .linselect,.linbtn { height:38px;padding:0 12px;border:1px solid var(--t-outline);border-radius:10px;background:var(--t-card);color:#08090c;font:600 12px/1 'Archivo',sans-serif; }
+    .linbtn { cursor:pointer; }
+    .linzoom { display:inline-flex;align-items:center;gap:2px;margin-left:auto;border:1px solid var(--t-outline);border-radius:10px;background:var(--t-card);overflow:hidden; }
+    .linzoom button { width:36px;height:36px;border:0;background:transparent;color:#08090c;cursor:pointer;font-size:18px; }
+    .linzoom span { min-width:48px;text-align:center;color:#6b6b78;font:700 11px 'Archivo',sans-serif; }
+    .linfamily { overflow:visible; }
+    .linfamily__body { overflow:auto;border-top:1px solid var(--t-surface-brd);scrollbar-color:var(--t-outline) transparent; }
+    .linswim { --lane-label:190px;position:relative;min-width:980px;background:var(--t-card);transform-origin:left top; }
+    .lintimes { position:relative;height:58px;margin-left:var(--lane-label);border-bottom:1px solid #e5e7eb;background:#fafafa; }
+    .lintime { position:absolute;top:14px;transform:translateX(-50%);text-align:center;color:#6b7280;font:600 10.5px/1.35 'Archivo',sans-serif;white-space:nowrap; }
+    .linlane { position:relative;min-height:142px;border-bottom:1px solid #e5e7eb; }
+    .linlane:last-child { border-bottom:0; }
+    .linlane__label { position:absolute;left:0;top:0;bottom:0;width:var(--lane-label);display:flex;align-items:center;gap:10px;padding:18px;border-right:1px solid #e5e7eb;background:#fafafa;color:#111827;font:700 12.5px 'Archivo',sans-serif;box-sizing:border-box; }
+    .linavatar { width:34px;height:34px;display:grid;place-items:center;border-radius:50%;color:#fff;background:#16a34a;font:800 11px 'Archivo',sans-serif;flex:none; }
+    .linavatar--investor { background:#2563eb; }.linavatar--lawyer { background:#d97706; }
+    .linlane__sub { display:block;margin-top:3px;color:#6b7280;font:500 10.5px 'Libre Franklin',sans-serif; }
+    .linlane__track { position:absolute;left:var(--lane-label);right:0;top:0;bottom:0;background-image:linear-gradient(to right,rgba(148,163,184,.18) 1px,transparent 1px);background-size:180px 100%; }
+    .linlinks { position:absolute;left:var(--lane-label);top:58px;overflow:visible;pointer-events:none;z-index:1; }
+    .linlink { fill:none;stroke:#16a34a;stroke-width:2;vector-effect:non-scaling-stroke; }
+    .linlink--sent { stroke:#2563eb; }.linlink--received { stroke:#16a34a; }.linlink--counterproposal { stroke:#d97706;stroke-dasharray:6 5; }.linlink--signed { stroke:#7c3aed; }
+    .lincard { position:absolute;top:23px;width:176px;min-height:94px;padding:11px 12px 10px;border:1px solid #d8dce3;border-radius:10px;background:#fff;color:#111827;box-shadow:0 3px 10px rgba(15,23,42,.08);box-sizing:border-box;z-index:3;cursor:pointer;text-align:left; }
+    .lincard:hover { border-color:#60a5fa; }.lincard.is-selected { border:2px solid #2563eb;padding:10px 11px 9px;box-shadow:0 0 0 3px rgba(37,99,235,.12); }
+    .lincard__check { position:absolute;right:-9px;top:-9px;width:20px;height:20px;display:grid;place-items:center;border-radius:50%;background:#2563eb;color:#fff;font-size:11px;box-shadow:0 2px 6px rgba(0,0,0,.18); }
+    .lincard__top { display:flex;align-items:center;gap:6px;margin-bottom:7px; }
+    .lincard__ver { margin-left:auto;color:#6b7280;font:700 10px 'Archivo',sans-serif; }
+    .lincard__name { display:block;font-weight:750;font-size:12px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .lincard__meta { display:block;margin-top:6px;color:#6b7280;font-size:10.5px;line-height:1.3; }
+    .lincard__actions { display:flex;gap:10px;margin-top:8px; }
+    .lincard__actions a { color:#2563eb;font:700 10px 'Archivo',sans-serif;text-decoration:none; }
+    .linselection { position:sticky;bottom:16px;z-index:20;display:flex;align-items:center;gap:14px;width:max-content;max-width:calc(100vw - 70px);margin:18px auto 0;padding:10px 12px 10px 16px;border:1px solid rgba(255,255,255,.13);border-radius:13px;background:#101820;color:#fff;box-shadow:0 14px 36px rgba(0,0,0,.28); }
+    .linselection__text { font:700 12px 'Archivo',sans-serif; }.linselection__names { color:rgba(255,255,255,.6);font-size:11px;max-width:420px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .linselection__clear { border:0;background:transparent;color:rgba(255,255,255,.65);cursor:pointer; }
+    .linselection__go { padding:10px 16px;border:0;border-radius:9px;background:#22c55e;color:#07140b;font:800 12px 'Archivo',sans-serif;text-decoration:none; }
+    .linempty { padding:42px;text-align:center;color:var(--t-on-bg-60); }
+    @media(max-width:760px){#panel-lineage{width:calc(100vw - 20px)}.linswim{--lane-label:145px}.linlane__label{padding:12px}.linzoom{margin-left:0}}
+
     /* Sélecteur multi-documents (comparaison entre investisseurs) : case + nom + input investisseur */
     .docpick__row { display: flex; align-items: center; gap: 12px; width: 100%; background: var(--t-card); border: 1px solid var(--t-card-border); border-radius: 12px; padding: 11px 14px; cursor: pointer; }
     .docpick__row input[type=checkbox] { width: 17px; height: 17px; accent-color: #3b82f6; flex: none; cursor: pointer; }
@@ -468,8 +508,14 @@
         <div class="lincontrols">
           <div class="lincontrols__top">
             <input class="linsearch" id="lineage-search" type="search" placeholder="Rechercher un document, un investisseur ou une étape…" aria-label="Rechercher dans l’arbre des versions">
-            <span class="lincontrols__meta" id="lineage-overview-meta">Chargement…</span>
+            <div class="linfilters">
+              <select class="linselect" id="lineage-actor" aria-label="Filtrer par intervenant"><option value="">Tous les intervenants</option><option value="founder">Vous</option><option value="investor">Investisseurs</option><option value="lawyer">Avocat</option></select>
+              <select class="linselect" id="lineage-type" aria-label="Filtrer par type"><option value="">Tous les types</option><option value="root">Document d’origine</option><option value="snapshot">Version enregistrée</option><option value="revision">Révision</option><option value="counterproposal">Contreproposition</option><option value="signed">Version signée</option></select>
+              <button class="linbtn" id="lineage-collapse" type="button">Tout replier</button>
+            </div>
+            <div class="linzoom" aria-label="Zoom de la chronologie"><button id="lineage-zoom-out" type="button" aria-label="Réduire">−</button><span id="lineage-zoom-label">100%</span><button id="lineage-zoom-in" type="button" aria-label="Agrandir">+</button></div>
           </div>
+          <span class="lincontrols__meta" id="lineage-overview-meta">Chargement…</span>
           <div class="linlegend" aria-label="Types de versions">
             <span class="lintype">Document d’origine</span>
             <span class="lintype lintype--snapshot">Version enregistrée</span>
@@ -480,6 +526,12 @@
         </div>
         <div class="cmp__err" id="error-lineage" hidden></div>
         <div class="linforest" id="lineage-forest"></div>
+        <div class="linselection" id="lineage-selection" hidden>
+          <span class="linselection__text" id="lineage-selection-count">2 versions sélectionnées</span>
+          <span class="linselection__names" id="lineage-selection-names"></span>
+          <button class="linselection__clear" id="lineage-selection-clear" type="button">Réinitialiser</button>
+          <a class="linselection__go" id="lineage-selection-go" href="#">Comparer</a>
+        </div>
       </div>
 
     </main>
@@ -563,7 +615,7 @@
     // ── Arbre complet des filiations (sans IA) ───────────────────────────────
     function lineageInvestorLabel(id, investors, fallback) {
       const inv = investors.find(i => Number(i.id) === Number(id));
-      return inv ? (inv.firm ? inv.name + ' — ' + inv.firm : inv.name) : (fallback || 'un investisseur');
+      return inv ? (inv.firm ? inv.name + ' — ' + inv.firm : inv.name) : (fallback || 'Investisseur');
     }
     function lineageParty(node, investors) {
       if (node.node_type === 'snapshot') return 'Enregistrée par vous dans l’éditeur';
@@ -588,111 +640,50 @@
       const when = lineageDate(tx.date || tx.created_at);
       return (tx.direction === 'sent' ? 'Envoyé à ' : 'Reçu de ') + who + (when ? ' · ' + when : '');
     }
-    function makeLineageNode(node, investors, transmissions, isRoot) {
-      const snap = node.node_type === 'snapshot';
-      const card = document.createElement('div');
-      card.className = 'linnode' + (snap ? ' linnode--snap' : '') + (isRoot ? ' linnode--root' : '');
-      card.setAttribute('role', 'treeitem');
-      const tx = transmissions.filter(t => Number(t.document_id) === Number(node.doc_id));
-      const date = lineageDate(node.date || node.created_at);
-      const type = lineageType(node, isRoot);
-      const events = tx.map(t => '<span class="linevent linevent--' + (t.direction === 'sent' ? 'sent' : 'received') + '">' +
-        esc((t.direction === 'sent' ? '→ ' : '← ') + transmissionLabel(t, investors)) + '</span>').join('');
-      card.innerHTML = '<span class="linnode__ico">' + (snap ? '✎' : node.origin === 'investor' || node.origin === 'lawyer' ? '📥' : '📄') + '</span>' +
-        '<span class="linnode__main"><span class="linnode__type"><span class="lintype lintype--' + type.cls + '">' + esc(type.label) + '</span></span>' +
-        '<span class="linnode__name">' + esc(node.name || (snap ? 'Version enregistrée' : 'Document')) + '</span>' +
-        '<span class="linnode__meta">' + esc(lineageParty(node, investors) + (date ? ' · ' + date : '')) + '</span>' +
-        (events ? '<span class="linnode__events">' + events + '</span>' : '') + '</span>';
-      const actions = document.createElement('span');
-      actions.className = 'linnode__actions';
-      const open = document.createElement('a');
-      open.className = 'linnode__open'; open.target = '_blank'; open.rel = 'noopener'; open.textContent = 'Ouvrir';
-      open.href = snap ? '/api/saas/termsheets/' + node.doc_id + '/versions/' + node.version_id + '/preview'
-        : node.kind === 'termsheet' ? 'editor.html?doc=' + node.doc_id : '/api/saas/documents/' + node.doc_id + '/download';
-      actions.appendChild(open);
-      if (!snap && node.parent_document_id) {
-        const compare = document.createElement('a');
-        compare.className = 'linnode__open linnode__compare'; compare.textContent = 'Comparer';
-        compare.href = 'compare.html?old=' + encodeURIComponent(node.parent_document_id) + '&new=' + encodeURIComponent(node.doc_id);
-        actions.appendChild(compare);
+    let lineageDataset = null, lineageZoom = 1;
+    const lineageSelected = new Map();
+    function lineageActor(node) { return node.node_type === 'snapshot' ? 'founder' : (node.origin || 'founder'); }
+    function lineageActorKey(node) { return lineageActor(node) === 'investor' ? 'investor:' + (node.origin_party_id || 'generic') : lineageActor(node); }
+    function lineageNodeKey(node) { return node.node_type === 'snapshot' ? 'v:' + node.doc_id + ':' + node.version_id : 'd:' + node.doc_id; }
+    function lineageOpenHref(node) { return node.node_type === 'snapshot' ? '/api/saas/termsheets/' + node.doc_id + '/versions/' + node.version_id + '/preview' : node.kind === 'termsheet' ? 'editor.html?doc=' + node.doc_id : '/api/saas/documents/' + node.doc_id + '/download'; }
+    function lineageInitials(label) { return String(label || '?').split(/\s+/).filter(Boolean).slice(0,2).map(s => s[0]).join('').toUpperCase(); }
+    function updateLineageSelection() {
+      const bar = document.getElementById('lineage-selection'), picked = [...lineageSelected.values()];
+      bar.hidden = picked.length === 0;
+      document.getElementById('lineage-selection-count').textContent = picked.length + ' version' + (picked.length > 1 ? 's' : '') + ' sélectionnée' + (picked.length > 1 ? 's' : '');
+      document.getElementById('lineage-selection-names').textContent = picked.map(n => n.name || 'Version').join(' · ');
+      const go = document.getElementById('lineage-selection-go');
+      go.style.pointerEvents = picked.length === 2 ? 'auto' : 'none'; go.style.opacity = picked.length === 2 ? '1' : '.45';
+      if (picked.length === 2) {
+        const a = picked[0], b = picked[1];
+        go.href = a.node_type === 'snapshot' && b.node_type === 'snapshot' && Number(a.doc_id) === Number(b.doc_id)
+          ? 'compare.html?new=' + a.doc_id + '&oldv=' + a.version_id + '&newv=' + b.version_id
+          : 'compare.html?old=' + a.doc_id + '&new=' + b.doc_id;
       }
-      card.appendChild(actions); return card;
     }
-    function makeLineageTree(nodes, investors, transmissions) {
-      const docs = nodes.filter(n => n.node_type === 'document');
-      const snaps = nodes.filter(n => n.node_type === 'snapshot');
-      const byParent = new Map(), snapByDoc = new Map();
-      docs.forEach(n => { const p = n.parent_document_id || 0; if (!byParent.has(p)) byParent.set(p, []); byParent.get(p).push(n); });
-      snaps.forEach(n => { if (!snapByDoc.has(n.doc_id)) snapByDoc.set(n.doc_id, []); snapByDoc.get(n.doc_id).push(n); });
-      let roots = docs.filter(n => !n.parent_document_id || !docs.some(d => d.doc_id === n.parent_document_id));
-      if (!roots.length && docs.length) roots = [docs[0]];
-      const nodeDate = n => new Date(n.date || n.created_at || 0).getTime() || 0;
-      const canvas = document.createElement('div'); canvas.className = 'linmap'; canvas.setAttribute('role', 'tree');
-      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svg.classList.add('linmap__links'); svg.setAttribute('aria-hidden', 'true'); canvas.appendChild(svg);
-      const build = (node, root, ancestors) => {
-        const card = makeLineageNode(node, investors, transmissions, root);
-        canvas.appendChild(card);
-        const item = { node, card, children:[], height:0, subtreeHeight:0, x:0, y:0 };
-        if (node.node_type === 'snapshot') return item;
-        const nextAncestors = new Set(ancestors); nextAncestors.add(Number(node.doc_id));
-        const children = [...(snapByDoc.get(node.doc_id) || []), ...(byParent.get(node.doc_id) || [])]
-          .filter(child => child.node_type === 'snapshot' || !nextAncestors.has(Number(child.doc_id)))
-          .sort((a, b) => nodeDate(a) - nodeDate(b));
-        item.children = children.map(child => build(child, false, nextAncestors));
-        return item;
-      };
-      const models = roots.map(root => build(root, true, new Set()));
-      const tree = document.createElement('div'); tree.className = 'lintree';
-      tree.appendChild(canvas);
-      const layout = () => {
-        if (!canvas.isConnected || !models.length) return;
-        const narrow = window.matchMedia('(max-width:700px)').matches;
-        const nodeWidth = narrow ? 330 : 420;
-        const xGap = narrow ? 72 : 96;
-        const yGap = 22, rootGap = 34, pad = 18;
-        const measure = item => {
-          item.height = Math.max(70, Math.ceil(item.card.getBoundingClientRect().height));
-          const childHeights = item.children.map(measure);
-          const childrenHeight = childHeights.reduce((sum, h) => sum + h, 0) + Math.max(0, childHeights.length - 1) * yGap;
-          item.subtreeHeight = Math.max(item.height, childrenHeight);
-          return item.subtreeHeight;
-        };
-        models.forEach(measure);
-        let maxX = 0, maxY = 0;
-        const links = [];
-        const place = (item, depth, top) => {
-          item.x = pad + depth * (nodeWidth + xGap);
-          item.y = top + (item.subtreeHeight - item.height) / 2;
-          item.card.style.left = item.x + 'px'; item.card.style.top = item.y + 'px';
-          maxX = Math.max(maxX, item.x + nodeWidth); maxY = Math.max(maxY, item.y + item.height);
-          if (!item.children.length) return;
-          const total = item.children.reduce((sum, child) => sum + child.subtreeHeight, 0) + (item.children.length - 1) * yGap;
-          let childTop = top + (item.subtreeHeight - total) / 2;
-          item.children.forEach(child => {
-            place(child, depth + 1, childTop); links.push([item, child]);
-            childTop += child.subtreeHeight + yGap;
-          });
-        };
-        let top = pad;
-        models.forEach(model => { place(model, 0, top); top += model.subtreeHeight + rootGap; });
-        const width = maxX + pad, height = Math.max(120, maxY + pad);
-        canvas.style.width = width + 'px'; canvas.style.height = height + 'px';
-        svg.setAttribute('width', width); svg.setAttribute('height', height); svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-        svg.replaceChildren();
-        links.forEach(([parent, child]) => {
-          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-          const sx = parent.x + nodeWidth, sy = parent.y + parent.height / 2;
-          const tx = child.x, ty = child.y + child.height / 2;
-          const bend = Math.max(28, (tx - sx) * .48);
-          path.setAttribute('d', `M ${sx} ${sy} C ${sx + bend} ${sy}, ${tx - bend} ${ty}, ${tx} ${ty}`);
-          path.setAttribute('class', 'linmap__link' + (child.node.node_type === 'snapshot' ? ' linmap__link--snapshot' : ''));
-          svg.appendChild(path);
-        });
-      };
-      return { tree, root: roots[0] || docs[0], docs, snaps, layout };
+    function toggleLineageNode(node, card) {
+      const key = lineageNodeKey(node);
+      if (lineageSelected.has(key)) lineageSelected.delete(key); else { if (lineageSelected.size >= 2) lineageSelected.delete(lineageSelected.keys().next().value); lineageSelected.set(key,node); }
+      document.querySelectorAll('.lincard').forEach(el => { const on = lineageSelected.has(el.dataset.key); el.classList.toggle('is-selected',on); const mark=el.querySelector('.lincard__check'); if(mark) mark.hidden=!on; });
+      updateLineageSelection();
     }
-    let lineageDataset = null;
+    function buildSwimlane(group, investors, transmissions) {
+      const docs = group.filter(n => n.node_type === 'document'), root = docs.find(n => !n.parent_document_id) || docs[0] || group[0];
+      const sorted = group.slice().sort((a,b)=>new Date(a.date||a.created_at)-new Date(b.date||b.created_at));
+      const actorKeys = [...new Set(sorted.map(lineageActorKey))];
+      actorKeys.sort((a,b)=>({founder:0,lawyer:2}[a]??1)-({founder:0,lawyer:2}[b]??1));
+      const width = Math.max(900, sorted.length * 225 + 140), laneH = 142;
+      const swim = document.createElement('div'); swim.className='linswim'; swim.style.width=(width+190)+'px';
+      const times=document.createElement('div');times.className='lintimes';swim.appendChild(times);
+      const pos=new Map();
+      sorted.forEach((n,i)=>{ const x=90+i*225;pos.set(lineageNodeKey(n),{x,lane:actorKeys.indexOf(lineageActorKey(n))}); const tm=document.createElement('span');tm.className='lintime';tm.style.left=x+'px';tm.innerHTML=esc(lineageDate(n.date||n.created_at).replace(' à ','<br>'));times.appendChild(tm); });
+      actorKeys.forEach(key=>{ const actor=key.split(':')[0], invId=key.split(':')[1]; const inv=investors.find(i=>String(i.id)===invId); const label=actor==='founder'?'Vous':actor==='lawyer'?'Avocat':lineageInvestorLabel(invId,investors); const lane=document.createElement('div');lane.className='linlane';lane.dataset.actor=actor; lane.innerHTML='<div class="linlane__label"><span class="linavatar linavatar--'+actor+'">'+esc(lineageInitials(label))+'</span><span>'+esc(label)+'<small class="linlane__sub">'+(actor==='founder'?'Votre équipe':actor==='lawyer'?'Conseil juridique':esc(inv&&inv.firm||'Investisseur'))+'</small></span></div><div class="linlane__track"></div>'; swim.appendChild(lane);
+        sorted.filter(n=>lineageActorKey(n)===key).forEach(n=>{ const p=pos.get(lineageNodeKey(n)), type=lineageType(n,n===root); const card=document.createElement('article');card.className='lincard';card.dataset.key=lineageNodeKey(n);card.style.left=p.x+'px';card.innerHTML='<span class="lincard__check" hidden>✓</span><span class="lincard__top"><span class="lintype lintype--'+type.cls+'">'+esc(type.label)+'</span><span class="lincard__ver">v'+(sorted.indexOf(n)+1)+'</span></span><strong class="lincard__name">'+esc(n.name||'Version')+'</strong><span class="lincard__meta">'+esc(lineageParty(n,investors))+'</span><span class="lincard__actions"><a href="'+esc(lineageOpenHref(n))+'" target="_blank" rel="noopener">Ouvrir</a>'+(n.parent_document_id?'<a href="compare.html?old='+encodeURIComponent(n.parent_document_id)+'&new='+encodeURIComponent(n.doc_id)+'">Comparer</a>':'')+'</span>'; card.addEventListener('click',e=>{if(!e.target.closest('a'))toggleLineageNode(n,card)});lane.querySelector('.linlane__track').appendChild(card); });
+      });
+      const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.classList.add('linlinks');svg.setAttribute('width',width);svg.setAttribute('height',actorKeys.length*laneH);swim.appendChild(svg);
+      sorted.forEach(n=>{ if(!n.parent_document_id)return; const parent=sorted.find(p=>p.node_type==='document'&&Number(p.doc_id)===Number(n.parent_document_id));if(!parent)return;const a=pos.get(lineageNodeKey(parent)),b=pos.get(lineageNodeKey(n));if(!a||!b)return;const path=document.createElementNS('http://www.w3.org/2000/svg','path'),sx=a.x+176,sy=a.lane*laneH+70,tx=b.x,ty=b.lane*laneH+70,bend=Math.max(24,(tx-sx)*.45);path.setAttribute('d',`M ${sx} ${sy} C ${sx+bend} ${sy}, ${tx-bend} ${ty}, ${tx} ${ty}`);const txForNode=transmissions.find(t=>Number(t.document_id)===Number(n.doc_id));path.setAttribute('class','linlink linlink--'+(n.version_type==='counterproposal'?'counterproposal':n.version_type==='signed'?'signed':txForNode&&txForNode.direction==='sent'?'sent':'received'));svg.appendChild(path); });
+      return {swim,root,docs,snaps:group.filter(n=>n.node_type==='snapshot'),actors:actorKeys};
+    }
     function renderLineageForest(query) {
       const data = lineageDataset || {};
       const nodes = Array.isArray(data.nodes) ? data.nodes : [];
@@ -702,16 +693,19 @@
       const forest = document.getElementById('lineage-forest'); forest.innerHTML = '';
       const groups = new Map();
       nodes.forEach(n => { const key = n.lineage_id || n.doc_id; if (!groups.has(key)) groups.set(key, []); groups.get(key).push(n); });
+      const actorFilter=document.getElementById('lineage-actor').value, typeFilter=document.getElementById('lineage-type').value;
       const families = [...groups.values()].map(group => {
-        const built = makeLineageTree(group, investors, transmissions);
+        const visible=group.filter(n=>(!actorFilter||lineageActor(n)===actorFilter)&&(!typeFilter||lineageType(n,!n.parent_document_id).cls===typeFilter));
+        if ((actorFilter || typeFilter) && !visible.length) return null;
+        const built = buildSwimlane((actorFilter || typeFilter) ? visible : group, investors, transmissions);
         const tx = transmissions.filter(t => group.some(n => Number(n.doc_id) === Number(t.document_id)));
         const folderNames = group.map(n => folders.find(f => Number(f.id) === Number(n.folder_id))).filter(Boolean).map(f => f.name);
         const hay = [built.root && built.root.name, ...group.map(n => n.name), ...folderNames,
           ...tx.map(t => transmissionLabel(t, investors))].join(' ').toLowerCase();
         return { ...built, group, hay, tx };
-      }).sort((a,b) => new Date((b.root && (b.root.date || b.root.created_at)) || 0) - new Date((a.root && (a.root.date || a.root.created_at)) || 0));
+      }).filter(Boolean).sort((a,b) => new Date((b.root && (b.root.date || b.root.created_at)) || 0) - new Date((a.root && (a.root.date || a.root.created_at)) || 0));
       const needle = String(query || '').trim().toLowerCase();
-      let shown = 0; const layouts = [];
+      let shown = 0;
       families.forEach(family => {
         if (needle && !family.hay.includes(needle)) return;
         shown++;
@@ -719,14 +713,11 @@
         const summary = document.createElement('summary'); summary.className = 'linfamily__summary';
         summary.innerHTML = '<span class="linfamily__chev">›</span><span class="linfamily__name">' + esc((family.root && family.root.name) || 'Document') + '</span>' +
           '<span class="linfamily__count">' + family.docs.length + ' fichier' + (family.docs.length > 1 ? 's' : '') + ' · ' + family.snaps.length + ' version' + (family.snaps.length > 1 ? 's' : '') + ' enregistrée' + (family.snaps.length > 1 ? 's' : '') + ' · ' + family.tx.length + ' échange' + (family.tx.length > 1 ? 's' : '') + '</span>';
-        details.appendChild(summary); details.appendChild(family.tree); forest.appendChild(details);
-        details.addEventListener('toggle', () => { if (details.open) requestAnimationFrame(family.layout); });
-        layouts.push(family.layout);
+        const body=document.createElement('div');body.className='linfamily__body';body.appendChild(family.swim);details.appendChild(summary);details.appendChild(body);forest.appendChild(details);
       });
       if (!shown) forest.innerHTML = '<div class="docpick__empty">Aucune lignée ne correspond à cette recherche.</div>';
       document.getElementById('lineage-overview-meta').textContent = shown + ' document' + (shown > 1 ? 's' : '') + ' racine · ' + nodes.filter(n => n.node_type === 'document').length + ' fichiers au total';
-      requestAnimationFrame(() => layouts.forEach(layout => layout()));
-      if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => layouts.forEach(layout => layout()));
+      document.querySelectorAll('.linswim').forEach(el=>el.style.zoom=lineageZoom);
     }
     async function initLineagePanel() {
       const err = document.getElementById('error-lineage');
@@ -734,7 +725,14 @@
         const r = await fetch('/api/saas/document-lineages', { credentials:'include' });
         if (!r.ok) throw new Error();
         lineageDataset = await r.json(); renderLineageForest('');
-        document.getElementById('lineage-search').addEventListener('input', e => renderLineageForest(e.target.value));
+        const rerender=()=>renderLineageForest(document.getElementById('lineage-search').value);
+        document.getElementById('lineage-search').addEventListener('input', rerender);
+        document.getElementById('lineage-actor').addEventListener('change', rerender);
+        document.getElementById('lineage-type').addEventListener('change', rerender);
+        document.getElementById('lineage-collapse').addEventListener('click',()=>{const all=[...document.querySelectorAll('.linfamily')],open=all.some(d=>d.open);all.forEach(d=>d.open=!open);document.getElementById('lineage-collapse').textContent=open?'Tout déplier':'Tout replier';});
+        const setZoom=delta=>{lineageZoom=Math.min(1.3,Math.max(.7,lineageZoom+delta));document.getElementById('lineage-zoom-label').textContent=Math.round(lineageZoom*100)+'%';document.querySelectorAll('.linswim').forEach(el=>el.style.zoom=lineageZoom);};
+        document.getElementById('lineage-zoom-out').addEventListener('click',()=>setZoom(-.1));document.getElementById('lineage-zoom-in').addEventListener('click',()=>setZoom(.1));
+        document.getElementById('lineage-selection-clear').addEventListener('click',()=>{lineageSelected.clear();document.querySelectorAll('.lincard').forEach(c=>c.classList.remove('is-selected'));updateLineageSelection();});
       } catch { err.textContent = 'Impossible de charger la carte des documents.'; err.hidden = false; }
     }
 
