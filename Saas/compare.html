@@ -670,7 +670,7 @@
       document.querySelectorAll('.lincard').forEach(el => { const on = lineageSelected.has(el.dataset.key); el.classList.toggle('is-selected',on); const mark=el.querySelector('.lincard__check'); if(mark) mark.hidden=!on; });
       updateLineageSelection();
     }
-    function buildSwimlane(group, investors, transmissions) {
+    function buildSwimlane(group, investors, transmissions, startupName) {
       const docs = group.filter(n => n.node_type === 'document'), root = docs.find(n => !n.parent_document_id) || docs[0] || group[0];
       const sorted = group.slice().sort((a,b)=>new Date(a.date||a.created_at)-new Date(b.date||b.created_at));
       const actorKeys = [...new Set(sorted.map(lineageActorKey))];
@@ -680,7 +680,7 @@
       const times=document.createElement('div');times.className='lintimes';swim.appendChild(times);
       const pos=new Map();
       sorted.forEach((n,i)=>{ const x=90+i*225;pos.set(lineageNodeKey(n),{x,lane:actorKeys.indexOf(lineageActorKey(n))}); const tm=document.createElement('span');tm.className='lintime';tm.style.left=x+'px';tm.innerHTML=esc(lineageDate(n.date||n.created_at).replace(' à ','<br>'));times.appendChild(tm); });
-      actorKeys.forEach(key=>{ const actor=key.split(':')[0], invId=key.split(':')[1]; const inv=investors.find(i=>String(i.id)===invId); const label=actor==='founder'?'Vous':actor==='lawyer'?'Avocat':lineageInvestorLabel(invId,investors); const lane=document.createElement('div');lane.className='linlane';lane.dataset.actor=actor; lane.innerHTML='<div class="linlane__label"><span class="linavatar linavatar--'+actor+'">'+esc(lineageInitials(label))+'</span><span>'+esc(label)+'<small class="linlane__sub">'+(actor==='founder'?'Votre équipe':actor==='lawyer'?'Conseil juridique':esc(inv&&inv.firm||'Investisseur'))+'</small></span></div><div class="linlane__track"></div>'; swim.appendChild(lane);
+      actorKeys.forEach(key=>{ const actor=key.split(':')[0], invId=key.split(':')[1]; const inv=investors.find(i=>String(i.id)===invId); const label=actor==='founder'?'Vous':actor==='lawyer'?'Avocat':lineageInvestorLabel(invId,investors); const lane=document.createElement('div');lane.className='linlane';lane.dataset.actor=actor; lane.innerHTML='<div class="linlane__label"><span class="linavatar linavatar--'+actor+'">'+esc(lineageInitials(label))+'</span><span>'+esc(label)+'<small class="linlane__sub">'+(actor==='founder'?esc(startupName||'Votre startup'):actor==='lawyer'?'Conseil juridique':esc(inv&&inv.firm||'Investisseur'))+'</small></span></div><div class="linlane__track"></div>'; swim.appendChild(lane);
         sorted.filter(n=>lineageActorKey(n)===key).forEach(n=>{ const p=pos.get(lineageNodeKey(n)), type=lineageType(n,n===root); const card=document.createElement('article');card.className='lincard';card.dataset.key=lineageNodeKey(n);card.style.left=p.x+'px';card.innerHTML='<span class="lincard__check" hidden>✓</span><span class="lincard__top"><span class="lintype lintype--'+type.cls+'">'+esc(type.label)+'</span><span class="lincard__ver">v'+(sorted.indexOf(n)+1)+'</span></span><strong class="lincard__name">'+esc(n.name||'Version')+'</strong><span class="lincard__meta">'+esc(lineageParty(n,investors))+'</span><span class="lincard__actions"><a href="'+esc(lineageOpenHref(n))+'" target="_blank" rel="noopener">Ouvrir</a>'+(n.parent_document_id?'<a href="compare.html?old='+encodeURIComponent(n.parent_document_id)+'&new='+encodeURIComponent(n.doc_id)+'">Comparer</a>':'')+'</span>'; card.addEventListener('click',e=>{if(!e.target.closest('a'))toggleLineageNode(n,card)});lane.querySelector('.linlane__track').appendChild(card); });
       });
       const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.classList.add('linlinks');svg.setAttribute('width',width);svg.setAttribute('height',actorKeys.length*laneH);swim.appendChild(svg);
@@ -693,6 +693,7 @@
       const investors = Array.isArray(data.investors) ? data.investors : [];
       const transmissions = Array.isArray(data.transmissions) ? data.transmissions : [];
       const folders = Array.isArray(data.folders) ? data.folders : [];
+      const startupName = String(data.startup_name || '');
       const forest = document.getElementById('lineage-forest'); forest.innerHTML = '';
       const groups = new Map();
       nodes.forEach(n => { const key = n.lineage_id || n.doc_id; if (!groups.has(key)) groups.set(key, []); groups.get(key).push(n); });
@@ -701,7 +702,7 @@
         if (lineageFocus && !group.some(n => Number(n.lineage_id || n.doc_id) === lineageFocus)) return null;
         const visible=group.filter(n=>(!actorFilter||lineageActor(n)===actorFilter)&&(!typeFilter||lineageType(n,!n.parent_document_id).cls===typeFilter));
         if ((actorFilter || typeFilter) && !visible.length) return null;
-        const built = buildSwimlane((actorFilter || typeFilter) ? visible : group, investors, transmissions);
+        const built = buildSwimlane((actorFilter || typeFilter) ? visible : group, investors, transmissions, startupName);
         const tx = transmissions.filter(t => group.some(n => Number(n.doc_id) === Number(t.document_id)));
         const folderNames = group.map(n => folders.find(f => Number(f.id) === Number(n.folder_id))).filter(Boolean).map(f => f.name);
         const hay = [built.root && built.root.name, ...group.map(n => n.name), ...folderNames,
@@ -1101,9 +1102,14 @@
       const row = document.createElement('div');
       row.className = 'docpick__row';
       row.dataset.i = i;
+      row.dataset.investor = investorName || '';
       const cb = document.createElement('input');
       cb.type = 'checkbox';
-      cb.addEventListener('change', () => { inp.disabled = !cb.checked; updateInvIntro(); });
+      cb.addEventListener('change', () => {
+        const inp = row.querySelector('.docpick__row__inv');
+        if (inp) inp.disabled = !cb.checked;
+        updateInvIntro();
+      });
       const name = document.createElement('span');
       name.className = 'docpick__row__name';
       name.textContent = doc.name || 'Document';
@@ -1112,14 +1118,17 @@
       date.className = 'docpick__row__date';
       const when = doc.updated_at || doc.created_at;
       date.textContent = when ? fmtDate(when) : '';
-      const inp = document.createElement('input');
-      inp.type = 'text';
-      inp.className = 'docpick__row__inv';
-      inp.placeholder = 'Nom de l\'investisseur';
-      inp.value = investorName || '';
-      inp.disabled = true;
-      inp.addEventListener('input', updateInvIntro);
-      row.append(cb, name, date, inp);
+      row.append(cb, name, date);
+      let inp = null;
+      if (!investorName) {
+        inp = document.createElement('input');
+        inp.type = 'text';
+        inp.className = 'docpick__row__inv';
+        inp.placeholder = 'Nom de l\'investisseur';
+        inp.disabled = true;
+        inp.addEventListener('input', updateInvIntro);
+        row.appendChild(inp);
+      }
       row.addEventListener('click', (e) => {
         if (e.target === cb || e.target === inp) return;
         cb.checked = !cb.checked;
@@ -1185,7 +1194,8 @@
     function selectedInvEntries() {
       return invSelectedRows().map((x, idx) => {
         const doc = invCandidates[Number(x.row.dataset.i)];
-        return { docId: doc.id, investor: x.inp.value.trim() || ('Investisseur ' + (idx + 1)) };
+        const investor = x.row.dataset.investor || (x.inp && x.inp.value.trim()) || ('Investisseur ' + (idx + 1));
+        return { docId: doc.id, investor };
       });
     }
 

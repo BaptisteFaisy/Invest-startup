@@ -4654,7 +4654,7 @@ app.get('/api/saas/documents/:id/lineage', requireAuth, async (req, res) => {
 // leurs instantanés enregistrés et les événements d'envoi/réception. L'outil
 // Comparer l'utilise pour afficher une forêt complète en une seule requête.
 app.get('/api/saas/document-lineages', requireAuth, async (req, res) => {
-  const [documents, snapshots, transmissions, investors, folders] = await Promise.all([
+  const [documents, snapshots, transmissions, investors, folders, fundraisingProfile] = await Promise.all([
     col('saas_documents').find(
       { user_id: req.user.id },
       { projection: { _id: 0, user_id: 0, data: 0, html: 0, extracted_text: 0, filename: 0 } },
@@ -4671,6 +4671,9 @@ app.get('/api/saas/document-lineages', requireAuth, async (req, res) => {
     col('saas_folders').find(
       { user_id: req.user.id }, { projection: { _id: 0, id: 1, name: 1 } },
     ).toArray(),
+    col('saas_fundraising_profiles').findOne(
+      { user_id: req.user.id }, { projection: { _id: 0, company_name: 1 } },
+    ),
   ]);
   const docIds = new Set(documents.map(d => d.id));
   const docById = new Map(documents.map(d => [d.id, d]));
@@ -4696,6 +4699,7 @@ app.get('/api/saas/document-lineages', requireAuth, async (req, res) => {
   res.json({
     nodes: nodes.sort((a, b) => new Date(a.created_at || a.date) - new Date(b.created_at || b.date)),
     transmissions, investors, folders,
+    startup_name: fundraisingProfile?.company_name || '',
   });
 });
 
