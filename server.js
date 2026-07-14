@@ -3104,6 +3104,69 @@ app.put('/api/saas/fundraising-profile', requireAuth, async (req, res) => {
   res.json({ success: true, profile: publicFundraisingProfile(saved) });
 });
 
+// Changement de type de levée (classique <-> BSA-AIR) sur un même compte. Le type
+// étant exclusif et verrouillé, cette route est le seul moyen d'en changer : elle
+// bascule vers l'autre instrument et supprime définitivement le contenu de l'ancien
+// parcours (documents rangés dans les dossiers système de l'ancien type + leur
+// avancement). Le reste — profil de levée, investisseurs, simulations, documents
+// non classés et dossiers personnels — est conservé.
+app.post('/api/saas/fundraising-profile/switch-type', requireAuth, async (req, res) => {
+  const nextType = shortText(req.body?.raise_type, 32);
+  if (!FUNDRAISING_TYPES.has(nextType)) return res.status(400).json({ error: 'Type de levée cible invalide' });
+
+  const userId = req.user.id;
+  const existing = await col('saas_fundraising_profiles').findOne({ user_id: userId });
+  const currentType = (existing && existing.raise_type) || 'classic';
+  if (nextType === currentType) return res.status(400).json({ error: 'Ce compte est déjà sur ce type de levée' });
+
+  // On s'assure que les dossiers système existent, puis on cible ceux de l'ancien type.
+  await ensureUserFolders(userId);
+  const oldFolders = await col('saas_folders')
+    .find({ user_id: userId, system: true, track: currentType }, { projection: { id: 1 } })
+    .toArray();
+  const oldFolderIds = oldFolders.map(f => f.id);
+
+  if (oldFolderIds.length) {
+    // Documents rangés dans les dossiers de l'ancien parcours -> suppression + purge
+    // de leurs versions et échanges consignés.
+    const docs = await col('saas_documents')
+      .find({ user_id: userId, folder_id: { $in: oldFolderIds } }, { projection: { id: 1 } })
+      .toArray();
+    const docIds = docs.map(d => d.id);
+    if (docIds.length) {
+      await col('saas_documents').deleteMany({ user_id: userId, id: { $in: docIds } });
+      await col('saas_doc_versions').deleteMany({ user_id: userId, document_id: { $in: docIds } });
+      await col('saas_doc_transmissions').deleteMany({ user_id: userId, document_id: { $in: docIds } });
+      // Nettoie les références de lignée pointant vers les documents supprimés pour
+      // éviter des rattachements orphelins parmi les documents conservés.
+      await col('saas_documents').updateMany(
+        { user_id: userId, parent_document_id: { $in: docIds } },
+        { $unset: { parent_document_id: '' } },
+      );
+      const orphanLineage = await col('saas_documents')
+        .find({ user_id: userId, lineage_id: { $in: docIds } }, { projection: { id: 1 } })
+        .toArray();
+      for (const d of orphanLineage) {
+        await col('saas_documents').updateOne({ id: d.id, user_id: userId }, { $set: { lineage_id: d.id } });
+      }
+    }
+    // Supprime les dossiers système de l'ancien type : ensureUserFolders les recréera
+    // vierges (état d'avancement et checklists remis à zéro).
+    await col('saas_folders').deleteMany({ user_id: userId, system: true, track: currentType });
+  }
+
+  const now = new Date().toISOString();
+  await col('saas_fundraising_profiles').updateOne(
+    { user_id: userId },
+    { $set: { raise_type: nextType, raise_type_locked: true, updated_at: now }, $setOnInsert: { user_id: userId, created_at: now } },
+    { upsert: true },
+  );
+  await ensureUserFolders(userId); // recrée à neuf les dossiers du parcours choisi.
+
+  const saved = await col('saas_fundraising_profiles').findOne({ user_id: userId });
+  res.json({ success: true, profile: publicFundraisingProfile(saved) });
+});
+
 // Profil professionnel demandé aux avocats avant l'accès à leur espace.
 function publicLawyerProfile(profile) {
   if (!profile) return null;

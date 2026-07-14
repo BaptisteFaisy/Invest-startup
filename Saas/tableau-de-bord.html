@@ -888,6 +888,8 @@
     .raise-field__label { font-family:'Archivo',sans-serif; font-size:11px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:#6b6b78; }
     .raise-field__label--required::after { content:' · obligatoire'; color:#dc2626; letter-spacing:0; text-transform:none; font-weight:700; }
     .raise-field__lock-hint { display:block; margin-top:6px; font-size:12px; color:#6b6b78; line-height:1.4; }
+    .raise-type-switch { font-family:inherit; font-size:12px; font-weight:700; color:#4b3fb0; background:none; border:0; padding:0; cursor:pointer; text-decoration:underline; }
+    .raise-type-switch:hover { color:#3a3092; }
     .raise-select:disabled { background:#eeeef0; color:#6b6b78; cursor:not-allowed; }
     .raise-input, .raise-select, .raise-textarea { width:100%; font-family:'Libre Franklin',sans-serif; font-size:14px; color:#08090c; background:#f7f7f5; border:1px solid rgba(8,9,12,0.14); border-radius:9px; padding:10px 11px; outline:none; transition:border-color .15s, box-shadow .15s, background .15s; }
     .raise-input:focus, .raise-select:focus, .raise-textarea:focus { background:#fff; border-color:rgba(8,9,12,0.55); box-shadow:0 0 0 3px rgba(8,9,12,0.08); }
@@ -4130,7 +4132,7 @@
                 <option value="classic"${optionSelected('classic', profile.raise_type)}>Levée classique</option>
                 <option value="bsa-air"${optionSelected('bsa-air', profile.raise_type)}>BSA-AIR</option>
               </select>
-              ${profile.raise_type_locked ? '<span class="raise-field__lock-hint">Type de levée verrouillé : une levée classique et des BSA-AIR ne se mélangent pas sur un même compte.</span>' : ''}
+              ${profile.raise_type_locked ? `<span class="raise-field__lock-hint">Type de levée verrouillé : une levée classique et des BSA-AIR ne se mélangent pas sur un même compte. <button type="button" class="raise-type-switch" data-switch-raise-type>Changer de type de levée</button></span>` : ''}
             </label>
             <label class="raise-field">
               <span class="raise-field__label">Montant visé</span>
@@ -4219,6 +4221,47 @@
           setRaiseType(fundraisingProfile.raise_type);
         }
       });
+
+      const switchBtn = card.querySelector('[data-switch-raise-type]');
+      if (switchBtn) {
+        switchBtn.addEventListener('click', async () => {
+          const current = fundraisingProfile.raise_type;
+          const next = current === 'classic' ? 'bsa-air' : 'classic';
+          const nextLabel = next === 'classic' ? 'Levée classique' : 'BSA-AIR';
+          const ok = window.confirm(
+            `Passer votre compte en « ${nextLabel} » ?\n\n`
+            + "Tous les documents et l'avancement du parcours de votre type de levée actuel seront définitivement supprimés. "
+            + 'Votre profil de levée, vos investisseurs, vos simulations et vos dossiers personnels sont conservés.\n\n'
+            + 'Cette action est irréversible.'
+          );
+          if (!ok) return;
+          switchBtn.disabled = true;
+          status.className = 'raise-profile__status';
+          status.textContent = 'Changement de type en cours...';
+          try {
+            const r = await fetch('/api/saas/fundraising-profile/switch-type', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ raise_type: next }),
+            });
+            const data = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(data.error || 'Changement impossible.');
+            const saved = normalizeFundraisingProfile(data.profile || {});
+            storeFundraisingProfileLocal(saved);
+            try { localStorage.setItem(raiseKey(), saved.raise_type); } catch {}
+            // Rechargement complet sur le nouveau parcours : garantit un état propre
+            // (dossiers, étapes, documents) après la suppression côté serveur.
+            const params = new URLSearchParams({ raise: saved.raise_type });
+            if (saved.raise_type === 'classic') params.set('step', 'mise-en-ordre');
+            window.location.href = 'tableau-de-bord.html?' + params.toString();
+          } catch (err) {
+            switchBtn.disabled = false;
+            status.className = 'raise-profile__status is-error';
+            status.textContent = err.message || 'Changement impossible.';
+          }
+        });
+      }
       return card;
     }
 
