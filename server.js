@@ -449,7 +449,7 @@ app.get('/saas/login.html', (req, res) => {
 // Les rubriques de l'espace avocat ont chacune leur URL. Elles partagent le
 // même gabarit afin que le menu, les compteurs et les règles d'accès restent
 // parfaitement synchronisés d'une page à l'autre.
-for (const lawyerPage of ['propositions-avocat.html', 'missions-en-cours-avocat.html', 'missions-passees-avocat.html']) {
+for (const lawyerPage of ['propositions-avocat.html', 'clients-attribues-avocat.html', 'missions-en-cours-avocat.html', 'missions-passees-avocat.html']) {
   app.get(`/saas/${lawyerPage}`, (_req, res) => {
     res.set('Cache-Control', 'no-store');
     res.sendFile(path.join(__dirname, 'Saas', 'tableau-de-bord-avocat.html'));
