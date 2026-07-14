@@ -3510,11 +3510,11 @@ function avocatPartner(id) { return AVOCAT_PARTNERS.find(p => p.id === id) || nu
 // plus recommandé (engagement le plus fort des fondateurs). Les tarifs sont
 // indicatifs : ils s'appuient sur une grille négociée en amont avec les partenaires.
 const AVOCAT_PRESTATIONS = [
-  { key: 'garantie',  label: 'Déclarations & garanties (W&R)',   desc: 'Relecture avant signature du document le plus engageant pour les fondateurs.', critical: true,  price: 'à partir de 890 €',   delay: '72 h' },
-  { key: 'pacte',     label: 'Pacte d’associés',                 desc: 'Revue des clauses sensibles : gouvernance, liquidité, leaver, préférence.',    critical: true,  price: 'à partir de 1 190 €', delay: '3–4 j' },
-  { key: 'termsheet', label: 'Term sheet / lettre d’intention',  desc: 'Vérification avant de vous engager sur les grands équilibres de la levée.',     critical: false, price: 'à partir de 490 €',   delay: '48 h' },
-  { key: 'bsa-air',   label: 'BSA-AIR / convertible',            desc: 'Contrôle de l’instrument d’investissement convertible.',                       critical: false, price: 'à partir de 590 €',   delay: '48 h' },
-  { key: 'question',  label: 'Question juridique ponctuelle',    desc: 'Un point précis à sécuriser ? Échange court avec votre avocat.',                critical: false, price: 'à partir de 150 €',   delay: '24 h' },
+  { key: 'garantie',  label: 'Déclarations & garanties (W&R)',   desc: 'Relecture avant signature du document le plus engageant pour les fondateurs.', critical: true,  price: 'à partir de 890 €',   fee_amount: 890,  delay: '72 h' },
+  { key: 'pacte',     label: 'Pacte d’associés',                 desc: 'Revue des clauses sensibles : gouvernance, liquidité, leaver, préférence.',    critical: true,  price: 'à partir de 1 190 €', fee_amount: 1190, delay: '3–4 j' },
+  { key: 'termsheet', label: 'Term sheet / lettre d’intention',  desc: 'Vérification avant de vous engager sur les grands équilibres de la levée.',     critical: false, price: 'à partir de 490 €',   fee_amount: 490,  delay: '48 h' },
+  { key: 'bsa-air',   label: 'BSA-AIR / convertible',            desc: 'Contrôle de l’instrument d’investissement convertible.',                       critical: false, price: 'à partir de 590 €',   fee_amount: 590,  delay: '48 h' },
+  { key: 'question',  label: 'Question juridique ponctuelle',    desc: 'Un point précis à sécuriser ? Échange court avec votre avocat.',                critical: false, price: 'à partir de 150 €',   fee_amount: 150,  delay: '24 h' },
 ];
 const AVOCAT_PRESTATION_KEYS  = new Set(AVOCAT_PRESTATIONS.map(p => p.key));
 const AVOCAT_REQUEST_STATUSES = ['soumise', 'en_cours', 'attente_fondateur', 'livree', 'cloturee', 'annule'];
@@ -3813,13 +3813,15 @@ app.post('/api/saas/avocat/requests', requireAuth, async (req, res) => {
 
   const now = new Date().toISOString();
   const id  = await nextId('saas_avocat_requests');
+  const prestation = AVOCAT_PRESTATIONS.find(item => item.key === prestationKey);
   const request = {
     id, user_id: req.user.id,
     prestation_key: prestationKey,
     mode: 'platform', lawyer_user_id: lawyerUserId, partner_id: state.partner_id || null,
     document_id: orderedDocs[0].id, document_name: orderedDocs[0].name || null,
     documents: orderedDocs.map(doc => ({ document_id: doc.id, name: doc.name || `Document #${doc.id}`, kind: doc.kind || 'file', mimetype: doc.mimetype || '', size: doc.size || 0, submitted_at: now })),
-    title: shortText(body.title, 160) || (AVOCAT_PRESTATIONS.find(p => p.key === prestationKey)?.label || 'Relecture juridique'),
+    title: shortText(body.title, 160) || (prestation?.label || 'Relecture juridique'),
+    lawyer_fee_amount: prestation?.fee_amount || 0,
     note: shortText(body.note, 3000),
     due_date: /^\d{4}-\d{2}-\d{2}$/.test(String(body.due_date || '')) ? String(body.due_date) : null,
     status: 'soumise',
@@ -3881,6 +3883,19 @@ app.get('/api/lawyer/review-requests', requireAuth, requireLawyer, async (req, r
   const users = await col('users').find({ id: { $in: [...new Set(requests.map(r => r.user_id))] } }, { projection: { id: 1, full_name: 1, email: 1 } }).toArray();
   const byId = new Map(users.map(u => [u.id, u]));
   res.json({ requests: requests.map(r => ({ ...avocatPublicRequest(r), client: byId.get(r.user_id) || null })) });
+});
+
+app.get('/api/lawyer/earnings', requireAuth, requireLawyer, async (req, res) => {
+  const completed = await col('saas_avocat_requests').find(
+    { lawyer_user_id: req.user.id, status: { $in: ['livree', 'cloturee'] } },
+    { projection: { _id: 0, prestation_key: 1, lawyer_fee_amount: 1 } },
+  ).toArray();
+  const total = completed.reduce((sum, request) => {
+    const storedAmount = Number(request.lawyer_fee_amount);
+    const fallbackAmount = AVOCAT_PRESTATIONS.find(item => item.key === request.prestation_key)?.fee_amount || 0;
+    return sum + (Number.isFinite(storedAmount) && storedAmount > 0 ? storedAmount : fallbackAmount);
+  }, 0);
+  res.json({ total, currency: 'EUR', completed_missions: completed.length });
 });
 
 app.get('/api/lawyer/review-requests/:id', requireAuth, requireLawyer, async (req, res) => {

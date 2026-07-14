@@ -14,7 +14,7 @@
       <a class="drawer__link" href="tableau-de-bord-avocat.html"><svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3Z"/><path d="M9 20v-6h6v6"/></svg>Tableau de bord</a>
       <div class="drawer__sep"></div>
       <div class="drawer__section-title">Mes missions</div>
-      <a class="drawer__link" href="propositions-avocat.html"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 3Z"/><path d="M8 9h8M8 13h5"/></svg>Propositions de missions</a>
+      <a class="drawer__link" href="propositions-avocat.html"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 3Z"/><path d="M8 9h8M8 13h5"/></svg>Propositions de clients</a>
       <a class="drawer__link" href="clients-attribues-avocat.html"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2"/><path d="M3 20c0-4 2.5-7 6-7s6 3 6 7M15 14c3 0 5 2 5 5"/></svg>Clients attribués</a>
       <a class="drawer__link" href="missions-en-cours-avocat.html"><svg viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v11H3Z"/><path d="M8 12h8M8 16h5"/></svg>Missions en cours</a>
       <a class="drawer__link" href="missions-passees-avocat.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Missions passées</a>`;
