@@ -4187,10 +4187,6 @@ app.post('/api/saas/avocat/requests', requireAuth, requireAssignedFounder2FA, as
     `${req.user.full_name || req.user.email || 'Un client'} vous a envoyé la mission « ${request.title} ».`,
     { request_id: request.id, client_id: req.user.id },
   );
-  if (request.note) await col('saas_avocat_messages').insertOne({
-    id: await nextId('saas_avocat_messages'), request_id: id, client_id: req.user.id,
-    author_type: 'founder', author_id: req.user.id, body: request.note, created_at: now,
-  });
   res.status(201).json({ request: avocatPublicRequest(request) });
 });
 
@@ -4213,19 +4209,18 @@ app.put('/api/saas/avocat/requests/:id', requireAuth, requireAssignedFounder2FA,
 app.get('/api/saas/avocat/requests/:id/thread', requireAuth, requireAssignedFounder2FA, async (req, res) => {
   const request = await col('saas_avocat_requests').findOne({ id: Number(req.params.id), user_id: req.user.id });
   if (!request) return res.status(404).json({ error: 'Demande introuvable' });
-  const messages = await col('saas_avocat_messages').find({ request_id: request.id, client_id: req.user.id }, { projection: { _id: 0 } }).sort({ id: 1 }).toArray();
-  res.json({ request: avocatPublicRequest(request), messages });
+  // Messagerie Liquid+ retirée : les échanges se font par email et l'e-Partage CNB.
+  // On expose le contact de l'avocat attribué pour permettre l'email direct.
+  const lawyer = request.lawyer_user_id
+    ? await col('users').findOne({ id: request.lawyer_user_id }, { projection: { _id: 0, id: 1, full_name: 1, email: 1 } })
+    : null;
+  res.json({ request: { ...avocatPublicRequest(request), lawyer: lawyer || null }, messages: [] });
 });
 
-app.post('/api/saas/avocat/requests/:id/messages', requireAuth, requireAssignedFounder2FA, async (req, res) => {
-  const request = await col('saas_avocat_requests').findOne({ id: Number(req.params.id), user_id: req.user.id });
-  if (!request || request.status === 'annule') return res.status(404).json({ error: 'Demande indisponible' });
-  const body = shortText(req.body?.body, 4000);
-  if (!body) return res.status(422).json({ error: 'Le message est vide.' });
-  const message = { id: await nextId('saas_avocat_messages'), request_id: request.id, client_id: req.user.id, author_type: 'founder', author_id: req.user.id, body, created_at: new Date().toISOString() };
-  await col('saas_avocat_messages').insertOne(message);
-  await col('saas_avocat_requests').updateOne({ id: request.id }, { $set: { status: request.status === 'attente_fondateur' ? 'en_cours' : request.status, updated_at: message.created_at } });
-  res.status(201).json({ message });
+// Messagerie Liquid+ désactivée : aucun échange écrit n'est stocké sur la plateforme.
+// Les échanges passent par email direct et les documents par l'e-Partage sécurisé du CNB.
+app.post('/api/saas/avocat/requests/:id/messages', requireAuth, requireAssignedFounder2FA, (req, res) => {
+  res.status(410).json({ error: 'La messagerie Liquid+ a été désactivée. Les échanges se font par email et l’e-Partage sécurisé du CNB.' });
 });
 
 app.get('/api/saas/avocat/requests/:id/appointments', requireAuth, requireAssignedFounder2FA, async (req, res) => {
@@ -4298,12 +4293,13 @@ app.get('/api/lawyer/earnings', requireAuth, requireLawyer, async (req, res) => 
 app.get('/api/lawyer/review-requests/:id', requireAuth, requireLawyer, async (req, res) => {
   const request = await lawyerRequestFor(req.user.id, req.params.id);
   if (!request) return res.status(404).json({ error: 'Demande introuvable ou non attribuée' });
-  const [messages, client, profile] = await Promise.all([
-    col('saas_avocat_messages').find({ request_id: request.id, client_id: request.user_id }, { projection: { _id: 0 } }).sort({ id: 1 }).toArray(),
+  // Messagerie Liquid+ retirée : aucun échange écrit n'est renvoyé. Le contact du fondateur
+  // (client) permet l'email direct ; les documents passent par l'e-Partage sécurisé du CNB.
+  const [client, profile] = await Promise.all([
     col('users').findOne({ id: request.user_id }, { projection: { _id: 0, id: 1, full_name: 1, email: 1 } }),
     col('saas_fundraising_profiles').findOne({ user_id: request.user_id }, { projection: { _id: 0, company_name: 1, stage: 1, sector: 1 } }),
   ]);
-  res.json({ request: { ...avocatPublicRequest(request), client: client || null, client_profile: profile || null }, messages });
+  res.json({ request: { ...avocatPublicRequest(request), client: client || null, client_profile: profile || null }, messages: [] });
 });
 
 app.get('/api/lawyer/review-requests/:id/appointments', requireAuth, requireLawyer, async (req, res) => {
@@ -4395,24 +4391,10 @@ app.patch('/api/lawyer/review-requests/:id', requireAuth, requireLawyer, async (
   res.json({ success: true, status });
 });
 
-app.post('/api/lawyer/review-requests/:id/messages', requireAuth, requireLawyer, async (req, res) => {
-  const request = await lawyerRequestFor(req.user.id, req.params.id);
-  if (!request || request.status === 'annule') return res.status(404).json({ error: 'Demande indisponible' });
-  const body = shortText(req.body?.body, 4000);
-  let secureShareUrl = '';
-  if (req.body?.secure_share_url) {
-    try {
-      const parsed = new URL(String(req.body.secure_share_url));
-      if (parsed.protocol !== 'https:' || parsed.hostname !== 'partage.cnb.avocat.fr') throw new Error();
-      secureShareUrl = parsed.toString();
-    } catch { return res.status(422).json({ error: 'Le lien doit provenir de partage.cnb.avocat.fr.' }); }
-  }
-  if (!body && !secureShareUrl) return res.status(422).json({ error: 'Le message est vide.' });
-  const message = { id: await nextId('saas_avocat_messages'), request_id: request.id, client_id: request.user_id, author_type: 'lawyer', author_id: req.user.id, body, ...(secureShareUrl ? { secure_share_url: secureShareUrl, secure_share_provider: 'cnb_e_partage' } : {}), created_at: new Date().toISOString() };
-  await col('saas_avocat_messages').insertOne(message);
-  await col('saas_avocat_requests').updateOne({ id: request.id }, { $set: { status: 'attente_fondateur', updated_at: message.created_at } });
-  sendPortalNotificationEmail(request.user_id, 'Nouveau message dans votre dossier juridique', `/saas/dossier-avocat.html?id=${request.id}`).catch(error => console.error('founder notification email error:', error.message));
-  res.status(201).json({ message });
+// Messagerie Liquid+ désactivée : aucun échange écrit ni lien e-Partage n'est stocké sur la
+// plateforme. L'avocat communique par email et partage les documents via l'e-Partage du CNB.
+app.post('/api/lawyer/review-requests/:id/messages', requireAuth, requireLawyer, (req, res) => {
+  res.status(410).json({ error: 'La messagerie Liquid+ a été désactivée. Les échanges se font par email et l’e-Partage sécurisé du CNB.' });
 });
 
 app.get('/api/lawyer/review-requests/:id/documents/:docId/download', requireAuth, requireLawyer, async (req, res) => {
