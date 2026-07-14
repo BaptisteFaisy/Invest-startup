@@ -185,7 +185,7 @@
     }
 
     /* Vue en couloirs : chronologie des échanges par intervenant. */
-    #panel-lineage { width:min(1480px,calc(100vw - 40px)); margin-left:50%; transform:translateX(-50%); }
+    #panel-lineage { width:min(1080px,calc(100vw - 48px)); margin-left:50%; transform:translateX(-50%); }
     .lincontrols { position:sticky;top:58px;z-index:12;box-shadow:0 12px 30px rgba(0,0,0,.12); }
     .linfilters { display:flex;gap:8px;align-items:center;flex-wrap:wrap; }
     .linselect,.linbtn { height:38px;padding:0 12px;border:1px solid var(--t-outline);border-radius:10px;background:var(--t-card);color:#08090c;font:600 12px/1 'Archivo',sans-serif; }
@@ -396,12 +396,11 @@
       <!-- Ne s'affiche qu'à l'ouverture générale de l'outil (pas sur un lien direct
            « comparer ces 2 versions » venant de l'éditeur ou du tableau de bord). -->
       <div class="cmp__tabs" id="cmp-tabs" hidden>
-        <button type="button" class="cmp__tab is-active" data-tab="versions">Versions d'un même document</button>
+        <button type="button" class="cmp__tab is-active" data-tab="lineage">Arbre des versions</button>
         <button type="button" class="cmp__tab" data-tab="investors">Term sheets de plusieurs investisseurs</button>
-        <button type="button" class="cmp__tab" data-tab="lineage">Arbre des versions</button>
       </div>
 
-      <div id="panel-versions">
+      <div id="panel-versions" hidden>
         <!-- Choix du document (ouverture directe de l'outil, sans version pré-sélectionnée) -->
         <div class="docpick" id="docpick" hidden>
           <div class="docpick__h">Choisissez un document à analyser</div>
@@ -504,7 +503,7 @@
         </div>
       </div>
 
-      <div id="panel-lineage" hidden>
+      <div id="panel-lineage">
         <div class="lincontrols">
           <div class="lincontrols__top">
             <input class="linsearch" id="lineage-search" type="search" placeholder="Rechercher un document, un investisseur ou une étape…" aria-label="Rechercher dans l’arbre des versions">
@@ -558,6 +557,8 @@
     const newId  = Number(qp('new'));
     const oldVid = Number(qp('oldv'));
     const newVid = Number(qp('newv'));
+    const lineageSelection = qp('sel');
+    const lineageFocus = Number(qp('tree'));
 
     const loadingEl  = document.getElementById('loading');
     const errorEl    = document.getElementById('error');
@@ -653,17 +654,13 @@
       document.getElementById('lineage-selection-count').textContent = picked.length + ' version' + (picked.length > 1 ? 's' : '') + ' sélectionnée' + (picked.length > 1 ? 's' : '');
       document.getElementById('lineage-selection-names').textContent = picked.map(n => n.name || 'Version').join(' · ');
       const go = document.getElementById('lineage-selection-go');
-      go.style.pointerEvents = picked.length === 2 ? 'auto' : 'none'; go.style.opacity = picked.length === 2 ? '1' : '.45';
-      if (picked.length === 2) {
-        const a = picked[0], b = picked[1];
-        go.href = a.node_type === 'snapshot' && b.node_type === 'snapshot' && Number(a.doc_id) === Number(b.doc_id)
-          ? 'compare.html?new=' + a.doc_id + '&oldv=' + a.version_id + '&newv=' + b.version_id
-          : 'compare.html?old=' + a.doc_id + '&new=' + b.doc_id;
-      }
+      go.textContent = picked.length > 1 ? 'Comparer les ' + picked.length + ' versions' : 'Comparer';
+      go.style.pointerEvents = picked.length >= 2 ? 'auto' : 'none'; go.style.opacity = picked.length >= 2 ? '1' : '.45';
+      if (picked.length >= 2) go.href = 'compare.html?sel=' + encodeURIComponent(picked.map(n => n.node_type === 'snapshot' ? 'v:' + n.version_id : 'd:' + n.doc_id).join(','));
     }
     function toggleLineageNode(node, card) {
       const key = lineageNodeKey(node);
-      if (lineageSelected.has(key)) lineageSelected.delete(key); else { if (lineageSelected.size >= 2) lineageSelected.delete(lineageSelected.keys().next().value); lineageSelected.set(key,node); }
+      if (lineageSelected.has(key)) lineageSelected.delete(key); else lineageSelected.set(key,node);
       document.querySelectorAll('.lincard').forEach(el => { const on = lineageSelected.has(el.dataset.key); el.classList.toggle('is-selected',on); const mark=el.querySelector('.lincard__check'); if(mark) mark.hidden=!on; });
       updateLineageSelection();
     }
@@ -695,6 +692,7 @@
       nodes.forEach(n => { const key = n.lineage_id || n.doc_id; if (!groups.has(key)) groups.set(key, []); groups.get(key).push(n); });
       const actorFilter=document.getElementById('lineage-actor').value, typeFilter=document.getElementById('lineage-type').value;
       const families = [...groups.values()].map(group => {
+        if (lineageFocus && !group.some(n => Number(n.lineage_id || n.doc_id) === lineageFocus)) return null;
         const visible=group.filter(n=>(!actorFilter||lineageActor(n)===actorFilter)&&(!typeFilter||lineageType(n,!n.parent_document_id).cls===typeFilter));
         if ((actorFilter || typeFilter) && !visible.length) return null;
         const built = buildSwimlane((actorFilter || typeFilter) ? visible : group, investors, transmissions);
@@ -768,6 +766,15 @@
     let compareTitle = '';
 
     async function loadCandidates() {
+      if (lineageSelection) {
+        candidates = lineageSelection.split(',').map((token, i) => {
+          const [kind, rawId] = token.split(':'), id = Number(rawId);
+          if (!id || !['v','d'].includes(kind)) return null;
+          return { kind: kind === 'v' ? 'version' : 'doc', id, name: 'Version ' + (i + 1), date: null };
+        }).filter(Boolean);
+        compareTitle = 'Sélection depuis l’arbre des versions';
+        return;
+      }
       if (docId) {
         // Historique d'un term sheet éditable : versions validées (chronologique) + version actuelle.
         const [meta, vers] = await Promise.all([
@@ -1375,20 +1382,26 @@
       // Les tabs ne s'affichent qu'à l'ouverture générale de l'outil : un lien
       // direct « comparer ces 2 versions » (éditeur, tableau de bord) reste sur
       // le flux versions, sans distraire avec le second mode.
-      const genericEntry = !docId && !(oldId || oldVid) && !(newId || newVid);
+      const genericEntry = !docId && !lineageSelection && !(oldId || oldVid) && !(newId || newVid);
       if (genericEntry) {
         tabsEl.hidden = false;
         tabsEl.querySelectorAll('.cmp__tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+        switchTab('lineage');
+      } else {
+        panelVersionsEl.hidden = false;
+        panelLineageEl.hidden = true;
+        panelInvestorsEl.hidden = true;
       }
       analyzeInvBtn.addEventListener('click', analyzeInvestors);
       cancelInvBtn.addEventListener('click', (e) => { e.preventDefault(); cancelInvAnalyze(); });
 
       await loadCandidates();
 
-      // Aucune version ciblée : on propose de choisir un document éditable.
-      if (!candidates.length) {
-        if (genericEntry) await renderDocPicker();
-        else showError('Comparaison impossible : versions non spécifiées. Revenez aux dossiers ou à l\'éditeur et relancez la comparaison.');
+      // L’ouverture générale affiche l’arbre. Un lien direct affiche la sélection à analyser.
+      if (genericEntry) {
+        // L’arbre est initialisé par switchTab('lineage').
+      } else if (!candidates.length) {
+        showError('Comparaison impossible : versions non spécifiées. Revenez à l’arbre des versions et relancez la comparaison.');
       } else if (candidates.length < 2) {
         showError(docId
           ? 'Ce document n\'a qu\'une seule version. Validez d\'autres versions dans l\'éditeur (bouton « Valider la version ») pour retracer leur évolution, puis revenez ici.'
