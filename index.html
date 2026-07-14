@@ -371,6 +371,13 @@
         .footer-contact__details { grid-template-columns: 1fr; gap: 20px; }
         .cta { padding: 64px 20px; }
       }
+      /* Quand l'utilisateur est connecté, le groupe de droite est plus large
+         (Paramètres, SaaS, prénom, déconnexion). À ces largeurs, on le range
+         dans le menu pour préserver les deux onglets centraux sans collision. */
+      @media (min-width: 721px) and (max-width: 1500px) {
+        .nav-links { display: none; }
+        .nav-hamburger { display: flex; }
+      }
       @media (max-width: 720px) {
         .nav-primary { display: none; }
       }
