@@ -446,6 +446,15 @@ app.get('/saas/login.html', (req, res) => {
   const suffix = query.toString();
   res.redirect(302, `/login.html${suffix ? `?${suffix}` : ''}`);
 });
+// Les rubriques de l'espace avocat ont chacune leur URL. Elles partagent le
+// même gabarit afin que le menu, les compteurs et les règles d'accès restent
+// parfaitement synchronisés d'une page à l'autre.
+for (const lawyerPage of ['propositions-avocat.html', 'missions-en-cours-avocat.html', 'missions-passees-avocat.html']) {
+  app.get(`/saas/${lawyerPage}`, (_req, res) => {
+    res.set('Cache-Control', 'no-store');
+    res.sendFile(path.join(__dirname, 'Saas', 'tableau-de-bord-avocat.html'));
+  });
+}
 app.use('/saas', express.static(path.join(__dirname, 'Saas'), staticHtmlNoCache));
 app.use(express.static(__dirname, staticHtmlNoCache));
 

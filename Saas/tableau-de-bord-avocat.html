@@ -24,6 +24,7 @@
     button, input { font:inherit; }
     .app { visibility:hidden; }
     .app.ready { visibility:visible; }
+    [hidden] { display:none !important; }
     .topbar { position:sticky; top:0; z-index:70; height:70px; display:flex; align-items:center; gap:18px; padding:0 max(18px,4vw); background:var(--ink); border-bottom:1px solid rgba(255,255,255,.07); }
     .topbar__side { flex:1; display:flex; align-items:center; gap:14px; }
     .topbar__side--right { justify-content:flex-end; }
@@ -170,12 +171,12 @@
     <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Navigation avocat" data-hide-experience-mode>
       <div class="drawer__head"><span class="drawer__title">Navigation</span></div>
       <nav class="drawer__body">
-        <a class="drawer__link is-current" href="tableau-de-bord-avocat.html"><svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3Z"/><path d="M9 20v-6h6v6"/></svg>Tableau de bord</a>
+        <a class="drawer__link" href="tableau-de-bord-avocat.html" data-lawyer-view="dashboard"><svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3Z"/><path d="M9 20v-6h6v6"/></svg>Tableau de bord</a>
         <div class="drawer__sep"></div>
         <div class="drawer__section-title">Mes missions</div>
-        <a class="drawer__link" href="#propositions-missions" data-mission-target="propositions-missions"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 3Z"/><path d="M8 9h8M8 13h5"/></svg>Propositions de missions<span class="drawer__count drawer__count--alert" id="proposal-menu-count" hidden></span></a>
-        <a class="drawer__link" href="#missions-en-cours" data-mission-target="missions-en-cours"><svg viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v11H3Z"/><path d="M8 12h8M8 16h5"/></svg>Missions en cours<span class="drawer__count" id="current-menu-count" hidden></span></a>
-        <a class="drawer__link" href="#missions-passees" data-mission-target="missions-passees"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Missions passées<span class="drawer__count" id="past-menu-count" hidden></span></a>
+        <a class="drawer__link" href="propositions-avocat.html" data-lawyer-view="propositions"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 3Z"/><path d="M8 9h8M8 13h5"/></svg>Propositions de missions<span class="drawer__count drawer__count--alert" id="proposal-menu-count" hidden></span></a>
+        <a class="drawer__link" href="missions-en-cours-avocat.html" data-lawyer-view="en-cours"><svg viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v11H3Z"/><path d="M8 12h8M8 16h5"/></svg>Missions en cours<span class="drawer__count" id="current-menu-count" hidden></span></a>
+        <a class="drawer__link" href="missions-passees-avocat.html" data-lawyer-view="passees"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Missions passées<span class="drawer__count" id="past-menu-count" hidden></span></a>
       </nav>
       <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0"></div>
     </aside>
@@ -193,10 +194,11 @@
 
     <main class="dashboard">
       <section class="hero">
-        <div><p class="eyebrow">Tableau de bord avocat</p><h1 id="welcome">Bienvenue</h1><p class="lead">Retrouvez ici vos dossiers, les demandes de relecture reçues et vos échanges avec les fondateurs.</p></div>
+        <div id="hero-copy"><p class="eyebrow">Tableau de bord avocat</p><h1 id="welcome">Bienvenue</h1><p class="lead">Retrouvez ici vos dossiers, les demandes de relecture reçues et vos échanges avec les fondateurs.</p></div>
         <span class="status">Candidature en cours d’évaluation</span>
       </section>
 
+      <div data-page-content="dashboard">
       <section class="stats" aria-label="Vue d’ensemble">
         <article class="stat"><div class="stat__label">Dossiers actifs</div><div class="stat__value">0</div></article>
         <article class="stat"><div class="stat__label">À relire</div><div class="stat__value">0</div></article>
@@ -223,12 +225,19 @@
           </section>
         </div>
       </div>
+      </div>
+      <div data-page-content="propositions">
       <div class="section-head" id="propositions-missions"><h2 class="section-title">Propositions de missions</h2></div>
       <section class="card"><div class="work-list" id="proposal-work-list"><div class="empty"><p>Chargement des propositions…</p></div></div></section>
+      </div>
+      <div data-page-content="en-cours">
       <div class="section-head" id="missions-en-cours"><h2 class="section-title">Missions en cours</h2></div>
       <section class="card"><div class="work-list" id="client-work-list"><div class="empty"><p>Chargement des missions…</p></div></div></section>
+      </div>
+      <div data-page-content="passees">
       <div class="section-head" id="missions-passees"><h2 class="section-title">Missions passées</h2></div>
       <section class="card"><div class="work-list" id="past-work-list"><div class="empty"><p>Chargement des missions passées…</p></div></div></section>
+      </div>
     </main>
   </div>
 
@@ -237,6 +246,28 @@
   <script>
     const app = document.getElementById('app');
     const profileEl = document.getElementById('profile');
+    const viewByPage = {
+      'propositions-avocat.html': 'propositions',
+      'missions-en-cours-avocat.html': 'en-cours',
+      'missions-passees-avocat.html': 'passees',
+    };
+    const requestedView = viewByPage[location.pathname.split('/').pop()] || new URLSearchParams(location.search).get('page') || 'dashboard';
+    const lawyerView = ['dashboard','propositions','en-cours','passees'].includes(requestedView) ? requestedView : 'dashboard';
+    document.getElementById('hero-copy').hidden = lawyerView === 'dashboard';
+    const viewCopy = {
+      dashboard: ['Tableau de bord avocat', 'Retrouvez ici vos dossiers, les demandes de relecture reçues et vos échanges avec les fondateurs.'],
+      propositions: ['Propositions de missions', 'Consultez les nouvelles missions proposées et acceptez celles que vous souhaitez prendre en charge.'],
+      'en-cours': ['Missions en cours', 'Suivez les dossiers qui vous ont été attribués et accédez au travail à réaliser.'],
+      passees: ['Missions passées', 'Retrouvez l’historique de vos missions clôturées ou annulées.'],
+    };
+    document.querySelectorAll('[data-page-content]').forEach(el => { el.hidden = el.dataset.pageContent !== lawyerView; });
+    document.querySelectorAll('[data-lawyer-view]').forEach(link => {
+      link.classList.toggle('is-current', link.dataset.lawyerView === lawyerView);
+      if (link.dataset.lawyerView === lawyerView) link.setAttribute('aria-current', 'page');
+    });
+    document.querySelector('.eyebrow').textContent = viewCopy[lawyerView][0];
+    document.querySelector('.lead').textContent = viewCopy[lawyerView][1];
+    document.title = 'Liquid+ — ' + viewCopy[lawyerView][0];
     function profileRow(label, value) {
       const row = document.createElement('div'); row.className = 'profile__row';
       const key = document.createElement('span'); const val = document.createElement('span');
@@ -317,7 +348,7 @@
           city: profile.city || '',
           specialty: profile.specialty || '',
         };
-        document.getElementById('welcome').textContent = 'Bienvenue, ' + displayProfile.first_name;
+        document.getElementById('welcome').textContent = lawyerView === 'dashboard' ? 'Bienvenue, ' + displayProfile.first_name : viewCopy[lawyerView][0];
         const active=user.lawyer_status==='active';
         const statusEl=document.querySelector('.status');
         statusEl.textContent=active?'Compte avocat actif':({suspended:'Compte suspendu',rejected:'Candidature refusée'}[user.lawyer_status]||'Candidature en cours d’évaluation');
@@ -333,7 +364,6 @@
       } catch { location.replace('login.html'); }
     }
     load();
-    document.querySelectorAll('[data-mission-target]').forEach(link=>link.addEventListener('click',e=>{e.preventDefault();const id=link.dataset.missionTarget;history.replaceState(null,'','#'+id);setTimeout(()=>document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'}),0);}));
     document.getElementById('proposal-work-list').addEventListener('click',async(e)=>{const b=e.target.closest('[data-proposal]');if(!b)return;b.disabled=true;try{await lawyerApi('/api/lawyer/client-proposals/'+encodeURIComponent(b.dataset.proposal),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:b.dataset.answer})});await loadClientTools(true);}catch(err){alert(err.message);}finally{b.disabled=false;}});
   </script>
 </body>
