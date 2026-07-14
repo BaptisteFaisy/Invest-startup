@@ -404,7 +404,7 @@
         .cta { padding: 64px 20px; }
       }
       /* Quand l'utilisateur est connecté, le groupe de droite est plus large
-         (Paramètres, SaaS, prénom, déconnexion). À ces largeurs, on le range
+         (SaaS, prénom, déconnexion). À ces largeurs, on le range
          dans le menu pour préserver les deux onglets centraux sans collision. */
       @media (min-width: 721px) and (max-width: 1500px) {
         .nav-links { display: none; }
@@ -463,7 +463,6 @@
           if (!data?.user) return;
           const name = data.user.full_name ? data.user.full_name.split(' ')[0] : data.user.email;
           document.getElementById('nav-links').innerHTML = `
-            <a class="nav-link" href="settings.html">Paramètres</a>
             <a class="nav-link saas-nav-link" href="/saas/tableau-de-bord.html">MON ESPACE</a>
             <span class="nav-link nav-user-name">${name}</span>
             <button class="button ghost" id="nav-logout">Se déconnecter</button>
@@ -473,7 +472,6 @@
             <a href="#top">PILOTER MA LEVÉE</a>
             <a href="#tarifs">TARIFS</a>
             <a href="#contact">NOUS CONTACTER</a>
-            <a href="settings.html">Paramètres</a>
             <a href="/saas/tableau-de-bord.html">MON ESPACE</a>
             <button id="mobile-logout" style="margin-top:16px;font-size:1.1rem;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer;font-family:inherit;">Se déconnecter</button>
           `;
