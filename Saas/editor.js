@@ -393,6 +393,10 @@ const ORIGINAL_TS_KEYS = new Set(TERMSHEET.map(c => c.key));
 let isCustom = false;
 let docAdviceCache = null; // conseils IA spécifiques au document chargé
 let docAdviceIsBaked = false; // true si les conseils proviennent du modèle (data-advice)
+// Identifie le document actuellement affiché pour empêcher une réponse IA
+// lancée sur le document précédent de repeindre les panneaux du suivant.
+let documentContextVersion = 0;
+var adviceAbort = null; // applyTermsheet() peut être appelée avant la fin du script (pré-chargement)
 const AI_BIAS = {};   // { [key]: 1..5 } — niveau « Avantage pour les investisseurs » généré par l'IA
 const AI_COND = {};   // { [key]: [{id,label,preview,html}] } — conditions pré-écrites générées par l'IA
 let libSuggestLoading = false; // recherche IA des « clauses disponibles » en cours (bibliothèque)
@@ -407,6 +411,9 @@ const GROUP_ORDER = [
 ];
 // Présence dans le contrat : true par défaut, sauf inDoc:false explicite (clauses de la bibliothèque).
 TERMSHEET.forEach(c => { c.inDoc = c.inDoc !== false; });
+// TERMSHEET est remplacé par les clauses des documents libres. Cette copie permet
+// de restaurer le vrai catalogue lorsqu'une term sheet est ouverte ensuite.
+const ORIGINAL_TERMSHEET = TERMSHEET.map(c => ({ ...c }));
 const masterIndex = key => TERMSHEET.findIndex(c => c.key === key);
 
 /* Curseur d'avantage : 1 = équilibré / pro-fondateur … 5 = fortement pro-investisseurs. */
@@ -1472,8 +1479,8 @@ function applyExplanations(explanations) {
 }
 
 // Applique le résultat (partiel ou complet) d'une tâche d'analyse dans la page.
-function applyFullResult(result) {
-  if (!result) return;
+function applyFullResult(result, contextVersion) {
+  if (!result || (contextVersion != null && contextVersion !== documentContextVersion)) return;
   applyExplanations(result.explanations);
   if (result.suggested && !_fullSuggestedApplied) {
     _fullSuggestedApplied = true;
@@ -1495,14 +1502,15 @@ function finalizeFull(btn, status) {
 
 // Suit une analyse complète jusqu'à son terme et applique les résultats au fur et à
 // mesure. Robuste même si la tâche se termine avant le premier rafraîchissement du widget.
-async function watchFullAnalyze(id, btn) {
+async function watchFullAnalyze(id, btn, contextVersion) {
+  contextVersion = contextVersion == null ? documentContextVersion : contextVersion;
   fullJobId = id;
   for (;;) {
-    if (fullJobId !== id) return;   // remplacée par une nouvelle analyse
+    if (fullJobId !== id || contextVersion !== documentContextVersion) return;
     let job = null;
     try { job = await LiquidTasks.fetchResult(id); } catch { await _fullSleep(1500); continue; }
     if (!job) { finalizeFull(btn, 'error'); return; }
-    applyFullResult(job.result);
+    applyFullResult(job.result, contextVersion);
     if (job.status === 'done')      { finalizeFull(btn, 'done'); LiquidTasks.dismiss(id); return; }
     if (job.status === 'error')     { finalizeFull(btn, 'error'); return; }
     if (job.status === 'cancelled') { finalizeFull(btn, 'cancelled'); return; }
@@ -1542,7 +1550,7 @@ async function analyzeFull(btn) {
       location: { url: editorJobLoc() },
     });
     if (btn) btn.textContent = 'Analyse en cours…';
-    watchFullAnalyze(id, btn);
+    watchFullAnalyze(id, btn, documentContextVersion);
   } catch (e) {
     if (btn) { btn.disabled = false; btn.textContent = 'Analyser'; }
     if (typeof setSaveStatus === 'function') setSaveStatus(e && e.message ? e.message : 'Impossible de lancer l\'analyse.');
@@ -1563,12 +1571,12 @@ async function reconcileFullAnalyze() {
   if (job.status === 'running') {
     if (b) { b.disabled = true; b.textContent = 'Analyse en cours…'; }
     resetFullApplyState();
-    watchFullAnalyze(job.id, b);
+    watchFullAnalyze(job.id, b, documentContextVersion);
   } else {
     const full = await LiquidTasks.fetchResult(job.id);
     if (full && full.result) {
       resetFullApplyState();
-      applyFullResult(full.result);
+      applyFullResult(full.result, documentContextVersion);
       LiquidTasks.dismiss(job.id);
     }
   }
@@ -1692,15 +1700,36 @@ function syncModelFromDOM() {
   renderAdvice();
 }
 
+function restoreOriginalTermsheetModel() {
+  TERMSHEET = ORIGINAL_TERMSHEET.map(c => ({ ...c }));
+  EXPLAIN = Object.fromEntries(TERMSHEET.map(c => [c.key, c]));
+
+  const libTitle = document.querySelector('#view-library .library__title');
+  if (libTitle) libTitle.textContent = 'Clauses disponibles';
+  const advEyebrow = document.querySelector('#view-advice .library__eyebrow');
+  if (advEyebrow) advEyebrow.textContent = 'Conseils';
+  const advTitle = document.querySelector('#view-advice .library__title');
+  if (advTitle) advTitle.textContent = 'À faire';
+  const chatTitle = document.querySelector('.chat__title');
+  if (chatTitle) chatTitle.textContent = 'Assistant IA — modifier cette clause';
+  const chatExplainBtn = document.getElementById('chat-explain');
+  if (chatExplainBtn) chatExplainBtn.textContent = 'Expliquer la clause';
+}
+
 // Le document chargé est-il un autre type que la term sheet de démonstration ?
 // (au moins une clause sans clé connue de la term sheet)
 function isCustomDocument() {
   const cls = page.querySelectorAll('.ts-clause');
-  if (!cls.length) return false;
+  if (!cls.length) return !!page.innerText.trim();
+  const keys = new Set();
   for (const el of cls) {
     if (!el.dataset.key || !ORIGINAL_TS_KEYS.has(el.dataset.key)) return true;
+    keys.add(el.dataset.key);
   }
-  return false;
+  // Ces clauses sont non supprimables dans une term sheet. Un document libre
+  // réutilisant une clé générique comme « societe » ne doit pas être confondu
+  // avec elle et hériter de ses informations.
+  return ![...ESSENTIAL].every(key => keys.has(key));
 }
 
 // Reconstruit le modèle de clauses À PARTIR du document chargé : chaque type de
@@ -1729,6 +1758,15 @@ function adoptDocumentClauses() {
     const baked = el.getAttribute('data-plain');
     if (baked) SIMPLE_CACHE[key] = { sig: clauseSig(html), text: baked, baked: true };
   });
+  // Compatibilité avec d'anciens documents enregistrés comme HTML libre, sans
+  // wrappers .ts-clause : ils restent un document personnalisé et ne doivent
+  // surtout pas afficher les clauses de la term sheet de démonstration.
+  if (!derived.length && page.innerText.trim()) {
+    derived.push({
+      key: '__document__', group: 'Document', label: (docNameEl && docNameEl.textContent.trim()) || 'Document complet',
+      risk: 'low', html: page.innerHTML, plain: '', watch: '', inDoc: true, _virtual: true,
+    });
+  }
   if (!derived.length) return;
   isCustom = true;
   TERMSHEET = derived;
@@ -1789,6 +1827,11 @@ async function loadTermsheet(id) {
 // Rend une term sheet dans la page et (ré)initialise l'analyse codée en dur
 // (décrypteur, conseil et conditions embarqués dans le modèle).
 function applyTermsheet(id, html, name, savedAt) {
+  documentContextVersion += 1;
+  // Les tâches continuent éventuellement côté serveur, mais leurs résultats ne
+  // doivent plus modifier le document qui vient de prendre leur place.
+  fullJobId = null;
+  if (adviceAbort) { adviceAbort.abort(); adviceAbort = null; }
   page.innerHTML = html;
   currentDocId = id;
   documentDirty = false;
@@ -1807,7 +1850,10 @@ function applyTermsheet(id, html, name, savedAt) {
   // Mémorise le dernier document ouvert pour l'accès rapide « Reprendre » des dossiers.
   if (id != null) { try { localStorage.setItem('liquid_last_doc', JSON.stringify({ id, name: name || 'Term sheet' })); } catch {} }
   if (isCustomDocument()) adoptDocumentClauses();
-  else syncModelFromDOM();
+  else {
+    restoreOriginalTermsheetModel();
+    syncModelFromDOM();
+  }
 
   // Conseil + conditions codés en dur dans le modèle (blocs embarqués).
   const bakedAdvice = readBakedAdvice();
@@ -3028,7 +3074,7 @@ function renderLibrary() {
         <div class="libitem" data-jump="${c.key}">
           <div class="libitem__top"><span class="libitem__group">${advEsc(c.group)}</span></div>
           <div class="libitem__label">${advEsc(c.label)}</div>
-          <button class="libitem__add libitem__add--see" data-jump="${c.key}" type="button">Voir le paragraphe</button>
+          ${c._virtual ? '' : `<button class="libitem__add libitem__add--see" data-jump="${c.key}" type="button">Voir le paragraphe</button>`}
         </div>`).join('');
     }
     if (avail.length) {
@@ -3575,12 +3621,12 @@ function _paintDocAdvice() {
   adviceCount.textContent = nc ? `${nc} conseil${nc !== 1 ? 's' : ''}` : '';
 }
 
-let adviceAbort = null; // requête « À vérifier » en cours (annulable)
 async function renderDocAdvice(extSignal) {
   if (docAdviceCache) { _paintDocAdvice(); return; }
 
   if (adviceAbort) adviceAbort.abort();
   const ctrl = new AbortController();
+  const contextVersion = documentContextVersion;
   adviceAbort = ctrl;
   // Relayée par la fenêtre de progression : « Annuler l'analyse » annule aussi cet appel.
   if (extSignal) {
@@ -3602,11 +3648,13 @@ async function renderDocAdvice(extSignal) {
       credentials: 'include', signal: ctrl.signal, body: JSON.stringify({ title, text: page.innerText || '' }),
     });
     const data = await r.json().catch(() => ({}));
-    if (r.ok && Array.isArray(data.tips) && data.tips.length) docAdviceCache = data.tips;
+    if (contextVersion === documentContextVersion && r.ok && Array.isArray(data.tips) && data.tips.length) {
+      docAdviceCache = data.tips;
+    }
   } catch {}
 
   // Une requête plus récente a pris la main : on la laisse peindre le résultat.
-  if (adviceAbort !== ctrl) return;
+  if (adviceAbort !== ctrl || contextVersion !== documentContextVersion) return;
   adviceAbort = null;
   if (!isCustom) return;
   _paintDocAdvice();

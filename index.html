@@ -856,6 +856,38 @@
     <script src="nav.js"></script>
     <script>
       (() => {
+        const links = Array.from(document.querySelectorAll('.nav-primary__link'));
+        const pricing = document.getElementById('tarifs');
+        if (!links.length || !pricing) return;
+
+        const setActiveLink = href => {
+          links.forEach(link => {
+            const active = link.getAttribute('href') === href;
+            link.classList.toggle('nav-primary__link--active', active);
+            if (active) link.setAttribute('aria-current', 'page');
+            else link.removeAttribute('aria-current');
+          });
+        };
+
+        links.forEach(link => link.addEventListener('click', () => {
+          setActiveLink(link.getAttribute('href'));
+        }));
+
+        let ticking = false;
+        const syncActiveLink = () => {
+          setActiveLink(pricing.getBoundingClientRect().top <= 90 ? '#tarifs' : '#top');
+          ticking = false;
+        };
+        window.addEventListener('scroll', () => {
+          if (ticking) return;
+          ticking = true;
+          window.requestAnimationFrame(syncActiveLink);
+        }, { passive: true });
+        window.addEventListener('hashchange', syncActiveLink);
+        syncActiveLink();
+      })();
+
+      (() => {
         const grid = document.getElementById('pricing-grid');
         if (!grid) return;
         const formatPrice = value => new Intl.NumberFormat('fr-FR').format(value) + ' €';
