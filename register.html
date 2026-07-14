@@ -58,6 +58,10 @@
 
         <div id="auth-error"   class="auth-alert auth-alert--error"   role="alert"  hidden></div>
         <div id="auth-success" class="auth-alert auth-alert--success" role="status" hidden></div>
+        <p id="auth-resend" class="auth-footer" hidden>
+          Vous n'avez pas reçu l'email ?
+          <a class="auth-link" href="#" id="resend-link" role="button">Renvoyer le lien</a>
+        </p>
 
         <a href="/auth/google" class="google-btn">
           <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
@@ -139,7 +143,39 @@
       const form      = document.getElementById('register-form');
       const errEl     = document.getElementById('auth-error');
       const successEl = document.getElementById('auth-success');
+      const resendEl  = document.getElementById('auth-resend');
+      const resendLink = document.getElementById('resend-link');
       const submitBtn = document.getElementById('submit-btn');
+      let lastEmail = '';
+
+      // Renvoie un nouveau lien de confirmation à la dernière adresse saisie.
+      resendLink.addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (!lastEmail) return;
+        resendLink.textContent = 'Envoi…';
+        resendLink.style.pointerEvents = 'none';
+        try {
+          const res  = await fetch('/api/auth/resend-verification', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            credentials: 'include', body: JSON.stringify({ email: lastEmail }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (res.ok) {
+            errEl.hidden = true;
+            successEl.textContent = `Un nouvel email de confirmation a ete envoye a ${lastEmail}.`;
+            successEl.hidden = false;
+          } else {
+            errEl.textContent = data.error || 'Envoi impossible pour le moment.';
+            errEl.hidden = false;
+          }
+        } catch {
+          errEl.textContent = 'Impossible de joindre le serveur';
+          errEl.hidden = false;
+        } finally {
+          resendLink.textContent = 'Renvoyer le lien';
+          resendLink.style.pointerEvents = '';
+        }
+      });
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -163,13 +199,18 @@
             credentials: 'include', body: JSON.stringify({ email, password, full_name }),
           });
           const data = await res.json();
+          lastEmail = email;
           if (!res.ok) {
             errEl.textContent = data.error || 'Une erreur est survenue';
             errEl.hidden = false;
+            // Échec d'envoi de l'email : proposer un renvoi manuel plutôt que
+            // d'imposer une nouvelle inscription (le compte a pu être créé).
+            resendEl.hidden = res.status !== 503;
           } else {
             form.hidden = true;
             successEl.textContent = `Un email de confirmation a ete envoye a ${data.email || email}. Ouvrez-le pour activer votre compte.`;
             successEl.hidden = false;
+            resendEl.hidden = false;
             return;
           }
         } catch {

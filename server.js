@@ -612,19 +612,54 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
     return res.status(400).json({ error: 'Adresse email invalide' });
   if (password.length < 6)
     return res.status(400).json({ error: 'Le mot de passe doit faire au moins 6 caractères' });
-  if (await findByEmail(emailClean))
+
+  const existing = await findByEmail(emailClean);
+  if (existing && existing.email_verified !== false)
     return res.status(409).json({ error: 'Un compte existe déjà avec cet email' });
 
   const hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
-  const user = await createUser({ email: emailClean, password: hash, full_name: full_name?.trim(), email_verified: false });
+
+  // Un compte déjà présent mais dont l'email n'a jamais été confirmé n'a débloqué
+  // aucun accès : on rafraîchit ses identifiants et on renvoie un nouveau lien de
+  // vérification. L'inscription reste ainsi idempotente si le premier envoi a échoué.
+  let user;
+  if (existing) {
+    await updateUserById(existing.id, { password: hash, full_name: full_name?.trim() ?? existing.full_name ?? null });
+    user = { ...existing, password: hash, full_name: full_name?.trim() ?? existing.full_name ?? null };
+  } else {
+    user = await createUser({ email: emailClean, password: hash, full_name: full_name?.trim(), email_verified: false });
+  }
+
   try {
     await sendVerificationEmail(user);
   } catch (err) {
-    await col('users').deleteOne({ id: user.id, email_verified: false });
+    // On ne supprime qu'un compte fraîchement créé, jamais un compte préexistant.
+    if (!existing) await col('users').deleteOne({ id: user.id, email_verified: false });
     console.error('Email verification send error:', err.message);
     return res.status(503).json({ error: 'Impossible d\'envoyer l\'email de verification. Reessayez dans quelques instants.' });
   }
   res.status(201).json({ success: true, requiresEmailVerification: true, email: user.email });
+});
+
+// ─── POST /api/auth/resend-verification ───────────────────────────────────────
+// Renvoie le lien de confirmation pour une adresse dont le compte existe mais
+// n'est pas encore vérifié. Réponse générique dans tous les cas (hors échec
+// d'envoi) pour ne pas révéler quelles adresses sont enregistrées.
+app.post('/api/auth/resend-verification', authLimiter, async (req, res) => {
+  const emailClean = (req.body?.email || '').toString().trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailClean))
+    return res.status(400).json({ error: 'Adresse email invalide' });
+
+  const user = await findByEmail(emailClean);
+  if (user && user.email_verified === false) {
+    try {
+      await sendVerificationEmail(user);
+    } catch (err) {
+      console.error('Email verification resend error:', err.message);
+      return res.status(503).json({ error: 'Impossible d\'envoyer l\'email de verification. Reessayez dans quelques instants.' });
+    }
+  }
+  res.json({ success: true });
 });
 
 app.get('/api/auth/verify-email', authLimiter, async (req, res) => {
@@ -3747,7 +3782,8 @@ async function sendVerificationEmail(user) {
       console.log(`  Email de verification pour ${user.email}: ${verificationUrl}`);
       return;
     }
-    throw new Error('Service d\'envoi d\'emails non configure');
+    const missing = [!RESEND_API_KEY && 'RESEND_API_KEY', !EMAIL_FROM && 'EMAIL_FROM'].filter(Boolean).join(', ');
+    throw new Error(`Service d'envoi d'emails non configure (variable(s) manquante(s) : ${missing})`);
   }
 
   const response = await fetch('https://api.resend.com/emails', {
