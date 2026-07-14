@@ -1978,6 +1978,9 @@ function hideEmptyState() {
 }
 // « Créer un document » : part d'une page blanche, prête à la saisie.
 function startBlankDocument() {
+  // Ouvrir immédiatement la page blanche : le chargement des étapes ne doit
+  // jamais bloquer la création (réseau lent, session ou API indisponible).
+  createBlankDocument();
   openBlankPlacementModal();
 }
 async function openBlankPlacementModal() {
@@ -2004,7 +2007,13 @@ async function openBlankPlacementModal() {
   stage.addEventListener('change', fill);
   const close = () => modal.remove(); modal.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', close));
   modal.querySelector('#blank-placement-later').addEventListener('click', () => { close(); createBlankDocument(); });
-  modal.querySelector('#blank-placement-confirm').addEventListener('click', () => { newDocumentFolderId = stage.value; newDocumentCategoryKey = folder.value; close(); createBlankDocument(); });
+  modal.querySelector('#blank-placement-confirm').addEventListener('click', async () => {
+    newDocumentFolderId = stage.value;
+    newDocumentCategoryKey = folder.value;
+    close();
+    clearTimeout(_saveTimer);
+    await saveTermsheet();
+  });
 }
 function createBlankDocument() {
   hideEmptyState();
