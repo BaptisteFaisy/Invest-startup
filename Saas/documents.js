@@ -277,9 +277,11 @@
   }
 
   function filterVersionParents() {
-    const query = verParentSearch.value.trim().toLocaleLowerCase();
+    const normalize = (value) => String(value || '')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase().trim();
+    const query = normalize(verParentSearch.value);
     const previousValue = verParent.value;
-    const matches = verCtxDocs.filter((doc) => !query || doc.searchText.includes(query));
+    const matches = verCtxDocs.filter((doc) => !query || normalize(doc.searchText).includes(query));
     verParent.innerHTML = '<option value="">— Choisir la version précédente —</option>';
     matches.forEach((doc) => {
       const option = document.createElement('option');
@@ -475,7 +477,9 @@
     verInvestor.hidden = verOrigin.value !== 'investor';
     verRecipient.hidden = verOrigin.value !== 'founder';
   });
-  verParentSearch.addEventListener('input', filterVersionParents);
+  ['input', 'search', 'keyup'].forEach((eventName) => {
+    verParentSearch.addEventListener(eventName, filterVersionParents);
+  });
   nudgeOrigin.addEventListener('change', () => {
     nudgeInvestor.hidden = nudgeOrigin.value !== 'investor';
     nudgeRecipient.hidden = nudgeOrigin.value !== 'founder';
