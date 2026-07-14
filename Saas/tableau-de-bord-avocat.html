@@ -299,7 +299,7 @@
       const count = group.items.length;
       return `<section class="client-segment"><header class="client-segment__head"><div><div class="client-segment__name">${esc(group.name)}</div><div class="client-segment__meta">${esc(group.email)}</div></div><span class="client-segment__count">${count} mission${count > 1 ? 's' : ''}</span></header>${rows}</section>`;
     }
-    const proposalLabels={proposed:'À répondre',accepted:'Acceptée — en attente d’attribution',declined:'Refusée',assigned:'Attribuée'};
+    const proposalLabels={proposed:'À répondre',accepted:'Acceptée',declined:'Refusée',assigned:'Attribuée'};
     async function lawyerApi(path, opts) { const r=await fetch(path,Object.assign({credentials:'include'},opts||{})); const data=await r.json().catch(()=>({})); if(!r.ok) throw new Error(data.error||'Erreur serveur'); return data; }
     function setMenuCount(id, count) { const el=document.getElementById(id); el.textContent=String(count); el.hidden=!count; }
     function updateMissionNavigation(proposals, clients, requests) {

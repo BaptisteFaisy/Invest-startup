@@ -4535,9 +4535,46 @@ app.get('/api/lawyer/client-proposals', requireAuth, requireLawyer, async (req, 
 app.patch('/api/lawyer/client-proposals/:id', requireAuth, requireLawyer, async (req, res) => {
   const status = String(req.body?.status || '');
   if (!['accepted', 'declined'].includes(status)) return res.status(400).json({ error: 'Réponse invalide' });
-  const result = await col('lawyer_client_proposals').updateOne({ id: req.params.id, lawyer_id: req.user.id, status: 'proposed' }, { $set: { status, responded_at: new Date().toISOString(), updated_at: new Date().toISOString() } });
+  const now = new Date().toISOString();
+  const nextStatus = status === 'accepted' ? 'assigned' : 'declined';
+  const result = await col('lawyer_client_proposals').updateOne(
+    { id: req.params.id, lawyer_id: req.user.id, status: 'proposed' },
+    { $set: {
+      status: nextStatus,
+      responded_at: now,
+      updated_at: now,
+      ...(nextStatus === 'assigned' ? { assigned_at: now } : {}),
+    } },
+  );
   if (!result.matchedCount) return res.status(409).json({ error: 'Cette proposition a déjà été traitée' });
-  res.json({ success: true, status });
+
+  if (nextStatus === 'assigned') {
+    const proposal = await col('lawyer_client_proposals').findOne({ id: req.params.id, lawyer_id: req.user.id, status: 'assigned' });
+    try {
+      await Promise.all([
+        col('saas_avocat').updateOne(
+          { user_id: proposal.client_id },
+          {
+            $set: { mode: 'platform', lawyer_user_id: req.user.id, partner_id: null, own_lawyer: null, updated_at: now },
+            $setOnInsert: { created_at: now },
+          },
+          { upsert: true },
+        ),
+        col('lawyer_client_proposals').updateMany(
+          { id: { $ne: proposal.id }, client_id: proposal.client_id, status: { $in: ['proposed', 'accepted'] } },
+          { $set: { status: 'declined', updated_at: now, closed_at: now } },
+        ),
+      ]);
+    } catch (error) {
+      await col('lawyer_client_proposals').updateOne(
+        { id: req.params.id, lawyer_id: req.user.id, status: 'assigned' },
+        { $set: { status: 'proposed', updated_at: new Date().toISOString() }, $unset: { assigned_at: '' } },
+      );
+      throw error;
+    }
+  }
+
+  res.json({ success: true, status: nextStatus });
 });
 
 app.get('/api/lawyer/clients', requireAuth, requireLawyer, async (req, res) => {
