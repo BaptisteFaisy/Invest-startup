@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=6" />
-  <link rel="stylesheet" href="editor.css?v=42" />
+  <link rel="stylesheet" href="editor.css?v=44" />
   <link rel="stylesheet" href="drawer-menu.css?v=15" />
   <link rel="stylesheet" href="theme.css?v=3" />
   <style>.app{visibility:hidden}.app.ready{visibility:visible}</style>
@@ -374,6 +374,15 @@
         </div>
       </aside>
 
+      <aside class="lawyer-work" id="lawyer-work" aria-label="Espace de mission avocat">
+        <div class="lawyer-work__head">
+          <div class="lawyer-work__eyebrow" id="lawyer-work-eyebrow">Travail avocat</div>
+          <h2 class="lawyer-work__title" id="lawyer-work-title">Missions en cours</h2>
+          <p class="lawyer-work__sub" id="lawyer-work-sub">Uniquement les demandes qui nécessitent votre intervention.</p>
+        </div>
+        <div class="lawyer-work__body" id="lawyer-work-body"><p class="lawyer-work__empty">Chargement des missions…</p></div>
+      </aside>
+
       <!-- Poignée de redimensionnement (bibliothèque) -->
       <div class="gutter" id="gutter-left" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu Bibliothèque" tabindex="0" title="Glissez pour redimensionner. Flèches : 10 px, Maj + flèches : 50 px, double-clic : réinitialiser"></div>
 
@@ -531,7 +540,7 @@
     </div>
   </div>
 
-  <script src="editor.js?v=62"></script>
+  <script src="editor.js?v=64"></script>
   <script src="documents.js?v=35"></script>
   <script>
     // Garde d'accès : l'éditeur est réservé aux utilisateurs connectés.
@@ -539,6 +548,7 @@
       if (!user) return; // requireAuth a déjà redirigé vers login.html
       if (user.account_types?.includes('avocat')) {
         document.querySelector('.app')?.classList.add('is-lawyer');
+        window.initLawyerEditor?.(user);
       }
       document.querySelector('.app').classList.add('ready');
     });

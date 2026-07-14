@@ -203,9 +203,10 @@
     .av-req__doc { color: var(--av-ink-strong); font-weight: 600; }
     /* Statut encodé par le remplissage : plein (remis) → intermédiaire (en cours) → contour (envoyée/annulée). */
     .av-status { flex: none; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 4px 11px; border-radius: 99px; white-space: nowrap; }
-    .av-status--demande { color: var(--av-text-2); background: var(--av-bg-raise); }
+    .av-status--soumise { color: var(--av-text-2); background: var(--av-bg-raise); }
     .av-status--en_cours { color: var(--av-ink); background: var(--av-bg-raise-2); }
-    .av-status--relu { color: var(--av-on-solid); background: var(--av-solid); }
+    .av-status--livree, .av-status--cloturee { color: var(--av-on-solid); background: var(--av-solid); }
+    .av-status--attente_fondateur { color: #92400e; background: #fef3c7; }
     .av-status--annule { color: var(--av-text-3); background: transparent; box-shadow: inset 0 0 0 1px var(--av-line); }
     .av-empty { padding: 26px 20px; text-align: center; color: var(--av-text-3); font-size: 13.5px; }
     .av-empty a { color: var(--av-ink); text-decoration: underline; }
@@ -364,8 +365,17 @@
       <div class="av-dialog__h" id="req-title">Demander une relecture</div>
       <p class="av-dialog__p" id="req-desc"></p>
       <div class="av-field">
-        <label class="av-field__l" for="req-doc">Document à relire (facultatif)</label>
-        <select class="av-select" id="req-doc"><option value="">Aucun document rattaché pour l'instant</option></select>
+        <label class="av-field__l" for="req-doc">Documents à transmettre *</label>
+        <select class="av-select" id="req-doc" multiple size="6"></select>
+        <small>Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs documents.</small>
+      </div>
+      <div class="av-field">
+        <label class="av-field__l" for="req-title-input">Objet de la demande *</label>
+        <input class="av-select" id="req-title-input" maxlength="160" />
+      </div>
+      <div class="av-field">
+        <label class="av-field__l" for="req-due">Échéance souhaitée (facultatif)</label>
+        <input class="av-select" id="req-due" type="date" />
       </div>
       <div class="av-field">
         <label class="av-field__l" for="req-note">Précisions pour l'avocat (facultatif)</label>
@@ -455,7 +465,7 @@
     }
     function toggleTheme() { applyTheme(currentTheme() === 'dark' ? 'paper' : 'dark', true); }
 
-    const STATUS_LABELS = { demande: 'Demande envoyée', en_cours: 'Relecture en cours', relu: 'Relu — remis', annule: 'Annulée' };
+    const STATUS_LABELS = { soumise: 'Soumise', en_cours: 'Relecture en cours', attente_fondateur: 'Réponse attendue', livree: 'Documents remis', cloturee: 'Clôturée', annule: 'Annulée' };
 
     let STATE = { prestations: [], partners: [], requests: [], mode: 'assigned', partner: null, own_lawyer: null };
     let DOCS = [];
@@ -538,12 +548,12 @@
       }
       box.innerHTML = STATE.requests.map(r => {
         const lawyer = reqLawyerName(r);
-        const canCancel = r.status === 'demande' || r.status === 'en_cours';
+        const canCancel = ['soumise', 'en_cours', 'attente_fondateur'].includes(r.status);
         return '<div class="av-card av-req">' +
           '<div class="av-req__main">' +
-            '<div class="av-req__t">' + esc(prestaLabel(r.prestation_key)) + '</div>' +
+            '<div class="av-req__t"><a href="dossier-avocat.html?id=' + esc(r.id) + '">' + esc(r.title || prestaLabel(r.prestation_key)) + '</a></div>' +
             '<div class="av-req__sub">' +
-              (r.document_name ? '<span class="av-req__doc">' + esc(r.document_name) + '</span>' : '') +
+              ((r.documents || []).length ? '<span class="av-req__doc">' + (r.documents || []).length + ' document(s)</span>' : '') +
               (lawyer ? '<span>' + esc(lawyer) + '</span>' : '') +
               '<span>' + esc(fmtDate(r.created_at)) + '</span>' +
             '</div>' +
@@ -604,12 +614,13 @@
       document.getElementById('req-desc').textContent = (p.desc || '') + (p.price ? ' · ' + p.price + ' · délai ' + p.delay : '');
       document.getElementById('req-err').textContent = '';
       document.getElementById('req-note').value = '';
+      document.getElementById('req-title-input').value = p.label || 'Relecture juridique';
+      document.getElementById('req-due').value = '';
       const sel = document.getElementById('req-doc');
-      sel.innerHTML = '<option value="">Aucun document rattaché pour l\'instant</option>' +
-        DOCS.map(d => '<option value="' + esc(d.id) + '">' + esc(d.name || ('Document #' + d.id)) + '</option>').join('');
+      sel.innerHTML = DOCS.map(d => '<option value="' + esc(d.id) + '">' + esc(d.name || ('Document #' + d.id)) + '</option>').join('');
       // Pré-sélection du document (arrivée depuis « Faire relire » d'un document).
       if (preselectDocId != null && DOCS.some(d => String(d.id) === String(preselectDocId))) {
-        sel.value = String(preselectDocId);
+        [...sel.options].forEach(o => { o.selected = o.value === String(preselectDocId); });
       }
       openModal('request-modal');
     }
@@ -632,7 +643,9 @@
       try {
         await jsonPost('/api/saas/avocat/requests', {
           prestation_key: modalPrestaKey,
-          document_id: document.getElementById('req-doc').value || null,
+          document_ids: [...document.getElementById('req-doc').selectedOptions].map(o => Number(o.value)),
+          title: document.getElementById('req-title-input').value,
+          due_date: document.getElementById('req-due').value || null,
           note: document.getElementById('req-note').value,
         });
         closeModal('request-modal');

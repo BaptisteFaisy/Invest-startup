@@ -605,6 +605,105 @@ const openBlankEditor = (() => {
   const p = new URLSearchParams(location.search);
   return !p.get('doc') && !p.get('folder') && !p.get('category');
 })();
+
+/* ---------- Espace de travail avocat ---------- */
+(function lawyerWorkspace() {
+  const body = document.getElementById('lawyer-work-body');
+  const title = document.getElementById('lawyer-work-title');
+  const sub = document.getElementById('lawyer-work-sub');
+  const eyebrow = document.getElementById('lawyer-work-eyebrow');
+  if (!body) return;
+
+  const esc = value => {
+    const el = document.createElement('span');
+    el.textContent = value == null ? '' : String(value);
+    return el.innerHTML;
+  };
+  const labels = { soumise: 'À traiter', en_cours: 'En cours', attente_fondateur: 'En attente', livree: 'Livrée' };
+  const activeStatuses = new Set(['soumise', 'en_cours', 'attente_fondateur', 'livree']);
+  const taskSets = {
+    garantie: ['Identifier les déclarations et garanties sensibles', 'Vérifier les plafonds, franchises et durées', 'Proposer les réserves ou corrections nécessaires', 'Préparer une synthèse claire pour le client'],
+    pacte: ['Contrôler gouvernance, liquidité et clauses de sortie', 'Vérifier les clauses leaver et les prix de rachat', 'Identifier les engagements déséquilibrés', 'Proposer une rédaction alternative sur les points critiques'],
+    termsheet: ['Vérifier les grands équilibres économiques', 'Contrôler les clauses contraignantes', 'Identifier les points à négocier avant signature', 'Préparer les modifications et la synthèse client'],
+    'bsa-air': ['Contrôler plafond, décote et mécanisme de conversion', 'Vérifier les événements déclencheurs', 'Identifier les risques de dilution ou de blocage', 'Préparer les corrections nécessaires'],
+    question: ['Analyser la question précise du client', 'Vérifier les clauses et pièces concernées', 'Formuler une réponse opérationnelle', 'Signaler les décisions qui relèvent du client'],
+  };
+
+  async function api(path) {
+    const response = await fetch(path, { credentials: 'include' });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || 'Erreur serveur');
+    return data;
+  }
+
+  function renderMissionList(requests) {
+    const active = requests.filter(item => activeStatuses.has(item.status));
+    eyebrow.textContent = 'Travail avocat';
+    title.textContent = 'Missions en cours';
+    sub.textContent = 'Uniquement les demandes qui nécessitent votre intervention.';
+    if (!active.length) {
+      body.innerHTML = '<p class="lawyer-work__empty">Aucune mission active pour le moment.</p>';
+      return;
+    }
+    const groups = new Map();
+    active.forEach(item => {
+      const key = String(item.client?.id || item.client?.email || 'client');
+      if (!groups.has(key)) groups.set(key, { client: item.client || {}, items: [] });
+      groups.get(key).items.push(item);
+    });
+    body.innerHTML = [...groups.values()].map(group => {
+      const clientName = group.client.full_name || group.client.email || 'Client';
+      const missions = group.items.map(mission => {
+        const editable = (mission.documents || []).find(doc => doc.kind === 'termsheet');
+        const href = editable
+          ? `editor.html?doc=${encodeURIComponent(editable.document_id)}&mission=${encodeURIComponent(mission.id)}`
+          : `dossier-avocat.html?id=${encodeURIComponent(mission.id)}`;
+        const detail = mission.note || (mission.documents || []).map(doc => doc.name).join(', ') || 'Mission juridique';
+        const due = mission.due_date ? `<div class="lawyer-mission__due">Échéance : ${esc(new Date(mission.due_date + 'T12:00:00').toLocaleDateString('fr-FR'))}</div>` : '';
+        return `<a class="lawyer-mission" href="${href}"><div class="lawyer-mission__top"><span class="lawyer-mission__name">${esc(mission.title || mission.document_name || 'Mission juridique')}</span><span class="lawyer-mission__status">${esc(labels[mission.status] || mission.status)}</span></div><div class="lawyer-mission__detail">${esc(detail)}</div>${due}</a>`;
+      }).join('');
+      return `<section class="lawyer-client"><div class="lawyer-client__name">${esc(clientName)}</div><div class="lawyer-client__meta">${esc(group.client.email || '')}</div>${missions}</section>`;
+    }).join('');
+  }
+
+  function renderMissionContext(mission) {
+    const client = mission.client || {};
+    const profile = mission.client_profile || {};
+    const company = profile.company_name || client.full_name || 'Client';
+    const tasks = taskSets[mission.prestation_key] || taskSets.question;
+    eyebrow.textContent = 'Dossier de mission';
+    title.textContent = mission.title || mission.document_name || 'Mission juridique';
+    sub.textContent = `${company} · ${labels[mission.status] || mission.status}`;
+    const docs = (mission.documents || []).map(doc => {
+      const current = Number(doc.document_id) === Number(urlDocId || currentDocId);
+      const href = doc.kind === 'termsheet'
+        ? `editor.html?doc=${encodeURIComponent(doc.document_id)}&mission=${encodeURIComponent(mission.id)}`
+        : `/api/lawyer/review-requests/${encodeURIComponent(mission.id)}/documents/${encodeURIComponent(doc.document_id)}/download`;
+      return `<a class="lawyer-doc-link" href="${href}"${doc.kind === 'termsheet' ? '' : ' target="_blank"'}><span>${esc(doc.name)}</span><span>${current ? 'Ouvert' : (doc.kind === 'termsheet' ? 'Ouvrir' : 'Télécharger')}</span></a>`;
+    }).join('');
+    body.innerHTML = `
+      <section class="lawyer-section"><div class="lawyer-section__label">Client</div><div class="lawyer-section__value"><strong>${esc(company)}</strong><br>${esc(client.full_name || '')}${client.email ? `<br>${esc(client.email)}` : ''}${profile.sector ? `<br>Secteur : ${esc(profile.sector)}` : ''}${profile.stage ? `<br>Stade : ${esc(profile.stage)}` : ''}</div></section>
+      <section class="lawyer-section"><div class="lawyer-section__label">Demande précise</div><div class="lawyer-section__value">${esc(mission.note || 'Aucune précision complémentaire transmise par le client.')}</div>${mission.due_date ? `<div class="lawyer-mission__due">Échéance : ${esc(new Date(mission.due_date + 'T12:00:00').toLocaleDateString('fr-FR'))}</div>` : ''}</section>
+      <section class="lawyer-section"><div class="lawyer-section__label">Travail à effectuer</div>${tasks.map(task => `<div class="lawyer-task">${esc(task)}</div>`).join('')}</section>
+      <section class="lawyer-section"><div class="lawyer-section__label">Documents soumis</div>${docs}</section>`;
+  }
+
+  window.initLawyerEditor = async function initLawyerEditor() {
+    lawyerEditorActive = true;
+    try {
+      if (lawyerMissionId) {
+        const data = await api(`/api/lawyer/review-requests/${encodeURIComponent(lawyerMissionId)}`);
+        renderMissionContext(data.request);
+        if (urlDocId && /^\d+$/.test(urlDocId)) await loadTermsheet(Number(urlDocId));
+      } else {
+        const data = await api('/api/lawyer/review-requests');
+        renderMissionList(data.requests || []);
+      }
+    } catch (error) {
+      body.innerHTML = `<p class="lawyer-work__empty">${esc(error.message || 'Impossible de charger les missions.')}</p>`;
+    }
+  };
+})();
 if (!openBlankEditor) buildDocument();
 
 /* ---------- 2. Barre d'outils : commandes de mise en forme ---------- */
@@ -1604,6 +1703,8 @@ if (analyzeBtn) analyzeBtn.addEventListener('click', () => analyzeFull(analyzeBt
 /* ---------- 6 bis. Enregistrer / charger la term sheet (Mes documents) ------ */
 let currentDocId = null;
 let documentDirty = false;
+const lawyerMissionId = new URLSearchParams(location.search).get('mission');
+let lawyerEditorActive = false;
 const docNameEl = document.querySelector('.topbar__doc');
 const urlFolderId = new URLSearchParams(location.search).get('folder');
 const urlCategoryKey = new URLSearchParams(location.search).get('category');
@@ -1675,8 +1776,11 @@ async function saveTermsheet() {
   if (newDocumentFolderId) body.folder_id = Number(newDocumentFolderId);
   if (newDocumentCategoryKey) body.category_key = newDocumentCategoryKey;
   try {
+    const lawyerSaveUrl = lawyerEditorActive && lawyerMissionId && currentDocId
+      ? `/api/lawyer/review-requests/${encodeURIComponent(lawyerMissionId)}/documents/${currentDocId}/editor`
+      : '';
     const res = currentDocId
-      ? await fetch('/api/saas/termsheets/' + currentDocId, {
+      ? await fetch(lawyerSaveUrl || '/api/saas/termsheets/' + currentDocId, {
           method: 'PUT', headers: { 'Content-Type': 'application/json' },
           credentials: 'include', body: JSON.stringify(body) })
       : await fetch('/api/saas/termsheets', {
@@ -1815,7 +1919,10 @@ async function loadTermsheet(id) {
     }
   } catch { /* pas de pré-chargement : chargement réseau normal */ }
   try {
-    const res = await fetch('/api/saas/termsheets/' + id, { credentials: 'include' });
+    const loadUrl = lawyerEditorActive && lawyerMissionId
+      ? `/api/lawyer/review-requests/${encodeURIComponent(lawyerMissionId)}/documents/${id}/editor`
+      : '/api/saas/termsheets/' + id;
+    const res = await fetch(loadUrl, { credentials: 'include' });
     if (!res.ok) {
       setSaveStatus('Erreur : document introuvable (' + res.status + ')');
       return;
@@ -1941,6 +2048,10 @@ if (closeDocumentBtn) closeDocumentBtn.addEventListener('click', async () => {
   const saved = (documentDirty || hasUnsavedDocument) ? await saveTermsheet() : true;
   closeDocumentBtn.disabled = false;
   if (!saved) return;
+  if (lawyerEditorActive) {
+    window.location.href = 'editor.html';
+    return;
+  }
 
   currentDocId = null;
   documentDirty = false;
@@ -2500,9 +2611,9 @@ if (emptyTemplateBtn) emptyTemplateBtn.addEventListener('click', openTemplateMod
 
 // Ouvre la term sheet enregistrée passée dans l'URL (?doc=ID).
 const urlDocId = new URLSearchParams(location.search).get('doc');
-if (urlDocId && /^\d+$/.test(urlDocId)) loadTermsheet(Number(urlDocId));
+if (urlDocId && /^\d+$/.test(urlDocId) && !lawyerMissionId) loadTermsheet(Number(urlDocId));
 // Éditeur ouvert à blanc (menu → Éditeur) : aucun document, on propose l'état vide.
-else if (openBlankEditor) showEmptyState();
+else if (openBlankEditor || lawyerMissionId) showEmptyState();
 // Sans ?doc mais création dans un dossier (?folder/?category) : document par défaut
 // déjà présent dans la page ; réconcilie une éventuelle analyse en tâche de fond.
 else reconcileFullWhenReady(0);

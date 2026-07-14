@@ -186,7 +186,8 @@
 
     /* Vue en couloirs : chronologie des échanges par intervenant. */
     #panel-lineage { width:min(1080px,calc(100vw - 48px)); margin-left:50%; transform:translateX(-50%); }
-    .lincontrols { position:relative;top:auto;z-index:1;box-shadow:none; }
+    .lincontrols { position:sticky;top:58px;z-index:12;padding:10px 0;border:0;border-radius:0;background:var(--t-bg);box-shadow:none; }
+    .lincontrols > .lincontrols__meta { display:none; }
     .linfilters { display:flex;gap:8px;align-items:center;flex-wrap:wrap; }
     .linselect,.linbtn { height:38px;padding:0 12px;border:1px solid var(--t-outline);border-radius:10px;background:var(--t-card);color:#08090c;font:600 12px/1 'Archivo',sans-serif; }
     .linbtn { cursor:pointer; }

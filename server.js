@@ -214,6 +214,8 @@ async function deleteUserAccountById(id) {
     col('saas_dilution_simulations').deleteMany({ user_id: id }),
     col('saas_lawyer_profiles').deleteMany({ user_id: id }),
     col('saas_avocat').deleteMany({ $or: [{ user_id: id }, { lawyer_user_id: id }] }),
+    col('saas_avocat_requests').deleteMany({ $or: [{ user_id: id }, { lawyer_user_id: id }] }),
+    col('saas_avocat_messages').deleteMany({ $or: [{ client_id: id }, { author_id: id }] }),
     col('lawyer_client_proposals').deleteMany({ $or: [{ client_id: id }, { lawyer_id: id }] }),
     col('saas_valuation_estimations').deleteMany({ user_id: id }),
     col('saas_exit_simulations').deleteMany({ user_id: id }),
@@ -3477,7 +3479,22 @@ const AVOCAT_PRESTATIONS = [
   { key: 'question',  label: 'Question juridique ponctuelle',    desc: 'Un point précis à sécuriser ? Échange court avec votre avocat.',                critical: false, price: 'à partir de 150 €',   delay: '24 h' },
 ];
 const AVOCAT_PRESTATION_KEYS  = new Set(AVOCAT_PRESTATIONS.map(p => p.key));
-const AVOCAT_REQUEST_STATUSES = ['demande', 'en_cours', 'relu', 'annule'];
+const AVOCAT_REQUEST_STATUSES = ['soumise', 'en_cours', 'attente_fondateur', 'livree', 'cloturee', 'annule'];
+
+async function assignedLawyerForClient(clientId) {
+  const state = await col('saas_avocat').findOne({ user_id: Number(clientId), mode: 'platform' });
+  if (!state?.lawyer_user_id) return null;
+  const assignment = await col('lawyer_client_proposals').findOne({
+    client_id: Number(clientId), lawyer_id: Number(state.lawyer_user_id), status: 'assigned',
+  });
+  return assignment ? Number(state.lawyer_user_id) : null;
+}
+
+async function lawyerRequestFor(lawyerId, requestId) {
+  const request = await col('saas_avocat_requests').findOne({ id: Number(requestId), lawyer_user_id: Number(lawyerId) });
+  if (!request) return null;
+  return (await assignedLawyerForClient(request.user_id)) === Number(lawyerId) ? request : null;
+}
 
 // ── Classification de risque juridique par document ───────────────────────────
 // Pilote le badge couleur (Documents) et la recommandation de relecture avocat.
@@ -3680,31 +3697,37 @@ app.post('/api/saas/avocat/requests', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'Prestation inconnue' });
 
   const state = await getOrInitAvocatState(req.user.id);
-
-  // Document rattaché (optionnel) : on vérifie qu'il appartient bien au fondateur.
-  let documentId = null, documentName = null;
-  if (body.document_id != null && body.document_id !== '') {
-    const doc = await col('saas_documents').findOne(
-      { id: Number(body.document_id), user_id: req.user.id },
-      { projection: { id: 1, name: 1 } });
-    if (!doc) return res.status(404).json({ error: 'Document introuvable' });
-    documentId = doc.id; documentName = doc.name || null;
-  }
+  const lawyerUserId = await assignedLawyerForClient(req.user.id);
+  if (!lawyerUserId) return res.status(409).json({ error: 'Votre avocat doit avoir accepté puis reçu votre dossier avant toute soumission.' });
+  const requestedIds = Array.isArray(body.document_ids) ? body.document_ids : [body.document_id];
+  const documentIds = [...new Set(requestedIds.map(Number).filter(Number.isFinite))].slice(0, 20);
+  if (!documentIds.length) return res.status(422).json({ error: 'Sélectionnez au moins un document à soumettre.' });
+  const docs = await col('saas_documents').find(
+    { id: { $in: documentIds }, user_id: req.user.id },
+    { projection: { _id: 0, id: 1, name: 1, kind: 1, mimetype: 1, size: 1 } },
+  ).toArray();
+  if (docs.length !== documentIds.length) return res.status(404).json({ error: 'Un des documents sélectionnés est introuvable.' });
+  const orderedDocs = documentIds.map(id => docs.find(doc => doc.id === id));
 
   const now = new Date().toISOString();
   const id  = await nextId('saas_avocat_requests');
   const request = {
     id, user_id: req.user.id,
     prestation_key: prestationKey,
-    mode:       state.mode,
-    partner_id: state.mode === 'own' ? null : state.partner_id,
-    own_lawyer: state.mode === 'own' ? (state.own_lawyer || null) : null,
-    document_id: documentId, document_name: documentName,
-    note:   shortText(body.note, 1000),
-    status: 'demande',
+    mode: 'platform', lawyer_user_id: lawyerUserId, partner_id: state.partner_id || null,
+    document_id: orderedDocs[0].id, document_name: orderedDocs[0].name || null,
+    documents: orderedDocs.map(doc => ({ document_id: doc.id, name: doc.name || `Document #${doc.id}`, kind: doc.kind || 'file', mimetype: doc.mimetype || '', size: doc.size || 0, submitted_at: now })),
+    title: shortText(body.title, 160) || (AVOCAT_PRESTATIONS.find(p => p.key === prestationKey)?.label || 'Relecture juridique'),
+    note: shortText(body.note, 3000),
+    due_date: /^\d{4}-\d{2}-\d{2}$/.test(String(body.due_date || '')) ? String(body.due_date) : null,
+    status: 'soumise',
     created_at: now, updated_at: now,
   };
   await col('saas_avocat_requests').insertOne(request);
+  if (request.note) await col('saas_avocat_messages').insertOne({
+    id: await nextId('saas_avocat_messages'), request_id: id, client_id: req.user.id,
+    author_type: 'founder', author_id: req.user.id, body: request.note, created_at: now,
+  });
   res.status(201).json({ request: avocatPublicRequest(request) });
 });
 
@@ -3716,12 +3739,137 @@ app.put('/api/saas/avocat/requests/:id', requireAuth, async (req, res) => {
   // (les transitions en_cours / relu relèvent du poste avocat).
   if (req.body?.status !== 'annule')
     return res.status(400).json({ error: 'Seule l’annulation est possible' });
-  if (!['demande', 'en_cours'].includes(request.status))
+  if (!['soumise', 'en_cours', 'attente_fondateur'].includes(request.status))
     return res.status(409).json({ error: 'Cette demande ne peut plus être annulée' });
   await col('saas_avocat_requests').updateOne(
     { id, user_id: req.user.id },
     { $set: { status: 'annule', updated_at: new Date().toISOString() } });
   res.json({ success: true });
+});
+
+app.get('/api/saas/avocat/requests/:id/thread', requireAuth, async (req, res) => {
+  const request = await col('saas_avocat_requests').findOne({ id: Number(req.params.id), user_id: req.user.id });
+  if (!request) return res.status(404).json({ error: 'Demande introuvable' });
+  const messages = await col('saas_avocat_messages').find({ request_id: request.id, client_id: req.user.id }, { projection: { _id: 0 } }).sort({ id: 1 }).toArray();
+  res.json({ request: avocatPublicRequest(request), messages });
+});
+
+app.post('/api/saas/avocat/requests/:id/messages', requireAuth, async (req, res) => {
+  const request = await col('saas_avocat_requests').findOne({ id: Number(req.params.id), user_id: req.user.id });
+  if (!request || request.status === 'annule') return res.status(404).json({ error: 'Demande indisponible' });
+  const body = shortText(req.body?.body, 4000);
+  if (!body) return res.status(422).json({ error: 'Le message est vide.' });
+  const message = { id: await nextId('saas_avocat_messages'), request_id: request.id, client_id: req.user.id, author_type: 'founder', author_id: req.user.id, body, created_at: new Date().toISOString() };
+  await col('saas_avocat_messages').insertOne(message);
+  await col('saas_avocat_requests').updateOne({ id: request.id }, { $set: { status: request.status === 'attente_fondateur' ? 'en_cours' : request.status, updated_at: message.created_at } });
+  res.status(201).json({ message });
+});
+
+app.get('/api/lawyer/review-requests', requireAuth, requireLawyer, async (req, res) => {
+  const assigned = await col('lawyer_client_proposals').find({ lawyer_id: req.user.id, status: 'assigned' }, { projection: { client_id: 1 } }).toArray();
+  const clientIds = assigned.map(a => a.client_id);
+  const requests = await col('saas_avocat_requests').find({ lawyer_user_id: req.user.id, user_id: { $in: clientIds } }, { projection: { _id: 0 } }).sort({ updated_at: -1 }).toArray();
+  const users = await col('users').find({ id: { $in: [...new Set(requests.map(r => r.user_id))] } }, { projection: { id: 1, full_name: 1, email: 1 } }).toArray();
+  const byId = new Map(users.map(u => [u.id, u]));
+  res.json({ requests: requests.map(r => ({ ...avocatPublicRequest(r), client: byId.get(r.user_id) || null })) });
+});
+
+app.get('/api/lawyer/review-requests/:id', requireAuth, requireLawyer, async (req, res) => {
+  const request = await lawyerRequestFor(req.user.id, req.params.id);
+  if (!request) return res.status(404).json({ error: 'Demande introuvable ou non attribuée' });
+  const [messages, client, profile] = await Promise.all([
+    col('saas_avocat_messages').find({ request_id: request.id, client_id: request.user_id }, { projection: { _id: 0 } }).sort({ id: 1 }).toArray(),
+    col('users').findOne({ id: request.user_id }, { projection: { _id: 0, id: 1, full_name: 1, email: 1 } }),
+    col('saas_fundraising_profiles').findOne({ user_id: request.user_id }, { projection: { _id: 0, company_name: 1, stage: 1, sector: 1 } }),
+  ]);
+  res.json({ request: { ...avocatPublicRequest(request), client: client || null, client_profile: profile || null }, messages });
+});
+
+app.get('/api/lawyer/review-requests/:id/documents/:docId/editor', requireAuth, requireLawyer, async (req, res) => {
+  const request = await lawyerRequestFor(req.user.id, req.params.id);
+  const docId = Number(req.params.docId);
+  if (!request || !(request.documents || []).some(d => Number(d.document_id) === docId)) return res.status(404).json({ error: 'Document non soumis' });
+  const doc = await col('saas_documents').findOne({ id: docId, user_id: request.user_id, kind: 'termsheet' }, { projection: { _id: 0, user_id: 0 } });
+  if (!doc) return res.status(404).json({ error: 'Ce document ne peut pas être ouvert dans l’éditeur' });
+  res.json({ id: doc.id, name: doc.name, html: doc.html || '', created_at: doc.created_at, updated_at: doc.updated_at || doc.created_at });
+});
+
+app.put('/api/lawyer/review-requests/:id/documents/:docId/editor', requireAuth, requireLawyer, async (req, res) => {
+  const request = await lawyerRequestFor(req.user.id, req.params.id);
+  const docId = Number(req.params.docId);
+  if (!request || ['cloturee', 'annule'].includes(request.status) || !(request.documents || []).some(d => Number(d.document_id) === docId)) return res.status(404).json({ error: 'Document non modifiable' });
+  const doc = await col('saas_documents').findOne({ id: docId, user_id: request.user_id, kind: 'termsheet' });
+  if (!doc) return res.status(404).json({ error: 'Document introuvable' });
+  const html = req.body?.html;
+  const name = shortText(req.body?.name, 160);
+  if (typeof html !== 'string') return res.status(400).json({ error: 'html requis' });
+  const updatedAt = new Date().toISOString();
+  await col('saas_documents').updateOne({ id: docId, user_id: request.user_id }, { $set: { html, size: Buffer.byteLength(html, 'utf8'), ...(name ? { name } : {}), updated_at: updatedAt, last_lawyer_editor_id: req.user.id } });
+  await col('saas_avocat_requests').updateOne({ id: request.id }, { $set: { status: request.status === 'soumise' ? 'en_cours' : request.status, updated_at: updatedAt } });
+  res.json({ success: true, id: docId, updated_at: updatedAt });
+});
+
+app.patch('/api/lawyer/review-requests/:id', requireAuth, requireLawyer, async (req, res) => {
+  const request = await lawyerRequestFor(req.user.id, req.params.id);
+  if (!request) return res.status(404).json({ error: 'Demande introuvable ou non attribuée' });
+  const status = String(req.body?.status || '');
+  if (!['en_cours', 'attente_fondateur', 'cloturee'].includes(status)) return res.status(400).json({ error: 'Statut invalide' });
+  await col('saas_avocat_requests').updateOne({ id: request.id }, { $set: { status, updated_at: new Date().toISOString() } });
+  res.json({ success: true, status });
+});
+
+app.post('/api/lawyer/review-requests/:id/messages', requireAuth, requireLawyer, async (req, res) => {
+  const request = await lawyerRequestFor(req.user.id, req.params.id);
+  if (!request || request.status === 'annule') return res.status(404).json({ error: 'Demande indisponible' });
+  const body = shortText(req.body?.body, 4000);
+  if (!body) return res.status(422).json({ error: 'Le message est vide.' });
+  const message = { id: await nextId('saas_avocat_messages'), request_id: request.id, client_id: request.user_id, author_type: 'lawyer', author_id: req.user.id, body, created_at: new Date().toISOString() };
+  await col('saas_avocat_messages').insertOne(message);
+  await col('saas_avocat_requests').updateOne({ id: request.id }, { $set: { status: 'attente_fondateur', updated_at: message.created_at } });
+  res.status(201).json({ message });
+});
+
+app.get('/api/lawyer/review-requests/:id/documents/:docId/download', requireAuth, requireLawyer, async (req, res) => {
+  const request = await lawyerRequestFor(req.user.id, req.params.id);
+  const docId = Number(req.params.docId);
+  if (!request || !(request.documents || []).some(d => d.document_id === docId)) return res.status(404).json({ error: 'Document non soumis' });
+  const doc = await col('saas_documents').findOne({ id: docId, user_id: request.user_id });
+  if (!doc) return res.status(404).json({ error: 'Document introuvable' });
+  if (doc.kind === 'termsheet') {
+    const html = buildExportHtml(doc.html || '', (doc.name || 'document').replace(/\.[^.]+$/, ''));
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent((doc.name || 'document') + '.html')}`);
+    return res.send(html);
+  }
+  const buf = toBuffer(doc.data);
+  if (!buf) return res.status(404).json({ error: 'Fichier introuvable' });
+  res.setHeader('Content-Type', doc.mimetype || 'application/octet-stream');
+  res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(doc.originalname || doc.name || 'document')}`);
+  res.send(buf);
+});
+
+app.post('/api/lawyer/review-requests/:id/deliver', requireAuth, requireLawyer, saasUpload.single('file'), async (req, res) => {
+  const request = await lawyerRequestFor(req.user.id, req.params.id);
+  if (!request) return res.status(404).json({ error: 'Demande introuvable ou non attribuée' });
+  if (!req.file) return res.status(400).json({ error: 'Fichier manquant ou non supporté (15 Mo max)' });
+  const sourceId = Number(req.body?.source_document_id);
+  const source = await col('saas_documents').findOne({ id: sourceId, user_id: request.user_id });
+  if (!source || !(request.documents || []).some(d => d.document_id === sourceId)) return res.status(404).json({ error: 'Document source non soumis' });
+  const now = new Date().toISOString();
+  const sourceBuffer = source.kind === 'termsheet' ? null : toBuffer(source.data);
+  if (sourceBuffer && sourceBuffer.equals(req.file.buffer)) {
+    await col('saas_avocat_requests').updateOne({ id: request.id }, { $set: { status: 'livree', updated_at: now } });
+    return res.json({ unchanged: true, message: 'Le fichier est identique au document soumis : aucune nouvelle version n’a été créée.' });
+  }
+  const id = await nextId('saas_documents');
+  const doc = { id, user_id: request.user_id, name: (req.body.name || req.file.originalname).trim(), originalname: req.file.originalname, mimetype: req.file.mimetype, size: req.file.size, data: req.file.buffer, created_at: now, updated_at: now, parent_document_id: source.id, lineage_id: source.lineage_id || source.id, origin: 'lawyer', origin_party_id: req.user.id, version_type: 'revision', lawyer_request_id: request.id };
+  await col('saas_documents').insertOne(doc);
+  await recordReceivedTransmission(request.user_id, doc);
+  const delivery = { document_id: id, source_document_id: source.id, name: doc.name, size: doc.size, delivered_at: now, lawyer_user_id: req.user.id };
+  await col('saas_avocat_requests').updateOne({ id: request.id }, { $push: { deliveries: delivery }, $set: { status: 'livree', updated_at: now } });
+  const note = shortText(req.body?.message, 4000);
+  if (note) await col('saas_avocat_messages').insertOne({ id: await nextId('saas_avocat_messages'), request_id: request.id, client_id: request.user_id, author_type: 'lawyer', author_id: req.user.id, body: note, created_at: now });
+  res.status(201).json({ delivery, document: publicDoc(doc) });
 });
 
 // ─── Journal d'activité ───────────────────────────────────────────────────────
