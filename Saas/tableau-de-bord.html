@@ -4206,6 +4206,7 @@
     // Étapes de la levée classique dont le contenu détaillé n'est pas encore
     // construit : le menu et la page d'étape affichent « Bientôt » à la place.
     const CLASSIC_SOON_STEPS = new Set(['gouvernance']);
+    const CLASSIC_SOON_BADGES = new Set(['gouvernance', 'post-closing']);
 
     // Avancement d'une étape. Un document « si applicable » non fourni ne bloque pas ;
     // tout document fourni doit être validé. « complete » = tout ce qui doit l'être
@@ -4472,7 +4473,7 @@
         const done = s.complete;
         // « Ma levée » ne reçoit pas le fond indigo réservé à l'étape courante.
         const isCurrent = i === currentIdx && f.key !== 'mise-en-ordre';
-        const isActive = f.key !== 'mise-en-ordre' && (
+        const isActive = (
           (type === 'classic' && selectedClassicStep === f.key)
           || (type === 'bsa-air' && selectedBsaStep === f.key)
         );
@@ -4497,9 +4498,10 @@
         }
         const pct = Math.max(0, Math.min(100, Math.round(barFrac * 100)));
         const isSoon = type === 'classic' && CLASSIC_SOON_STEPS.has(f.key);
+        const hasSoonBadge = type === 'classic' && CLASSIC_SOON_BADGES.has(f.key);
         const bar = isSoon ? '' :
           '<span class="drawer__step-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><span style="width:' + pct + '%"></span></span>';
-        const soonTag = isSoon ? '<span class="drawer__soon-tag">Bientôt</span>' : '';
+        const soonTag = hasSoonBadge ? '<span class="drawer__soon-tag">Bientôt</span>' : '';
         btn.innerHTML =
           '<span class="drawer__step-row"><span class="drawer__step-num">' + badge + '</span>' + esc(friseLabel(f)) + soonTag + '</span>'
           + bar;
@@ -4508,7 +4510,7 @@
           else openBsaStepCard(f.key);
           if (navDrawer) navDrawer.close();
         });
-        snap.push({ key: f.key, label: friseLabel(f), num, done, current: isCurrent, active: isActive, soon: isSoon, pct: isSoon ? null : pct });
+        snap.push({ key: f.key, label: friseLabel(f), num, done, current: isCurrent, active: isActive, soon: hasSoonBadge, pct: isSoon ? null : pct });
         navStepsEl.appendChild(btn);
       });
       persistNavStepsSnapshot(type, snap);
