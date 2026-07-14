@@ -217,6 +217,7 @@ async function deleteUserAccountById(id) {
     col('saas_lawyer_profiles').deleteMany({ user_id: id }),
     col('saas_avocat').deleteMany({ $or: [{ user_id: id }, { lawyer_user_id: id }] }),
     col('saas_avocat_requests').deleteMany({ $or: [{ user_id: id }, { lawyer_user_id: id }] }),
+    col('lawyer_notifications').deleteMany({ lawyer_id: id }),
     col('saas_avocat_messages').deleteMany({ $or: [{ client_id: id }, { author_id: id }] }),
     col('lawyer_client_proposals').deleteMany({ $or: [{ client_id: id }, { lawyer_id: id }] }),
     col('saas_valuation_estimations').deleteMany({ user_id: id }),
@@ -3527,6 +3528,21 @@ async function assignedLawyerForClient(clientId) {
   return assignment ? Number(state.lawyer_user_id) : null;
 }
 
+async function createLawyerNotification(lawyerId, type, title, message, metadata = {}) {
+  const notification = {
+    id: crypto.randomUUID(),
+    lawyer_id: Number(lawyerId),
+    type,
+    title: shortText(title, 160),
+    message: shortText(message, 500),
+    metadata,
+    read_at: null,
+    created_at: new Date().toISOString(),
+  };
+  await col('lawyer_notifications').insertOne(notification);
+  return notification;
+}
+
 function emailVerificationToken(user) {
   return jwt.sign(
     { id: user.id, email: user.email, purpose: 'verify_email' },
@@ -3810,6 +3826,13 @@ app.post('/api/saas/avocat/requests', requireAuth, async (req, res) => {
     created_at: now, updated_at: now,
   };
   await col('saas_avocat_requests').insertOne(request);
+  await createLawyerNotification(
+    lawyerUserId,
+    'mission_received',
+    'Nouvelle mission reçue',
+    `${req.user.full_name || req.user.email || 'Un client'} vous a envoyé la mission « ${request.title} ».`,
+    { request_id: request.id, client_id: req.user.id },
+  );
   if (request.note) await col('saas_avocat_messages').insertOne({
     id: await nextId('saas_avocat_messages'), request_id: id, client_id: req.user.id,
     author_type: 'founder', author_id: req.user.id, body: request.note, created_at: now,
@@ -4565,6 +4588,13 @@ app.patch('/api/lawyer/client-proposals/:id', requireAuth, requireLawyer, async 
           { $set: { status: 'declined', updated_at: now, closed_at: now } },
         ),
       ]);
+      await createLawyerNotification(
+        req.user.id,
+        'client_assigned',
+        'Client attribué',
+        `${proposal.startup_name || proposal.client_name || proposal.client_email || 'Le client'} vous est désormais attribué.`,
+        { proposal_id: proposal.id, client_id: proposal.client_id },
+      );
     } catch (error) {
       await col('lawyer_client_proposals').updateOne(
         { id: req.params.id, lawyer_id: req.user.id, status: 'assigned' },
@@ -4580,6 +4610,24 @@ app.patch('/api/lawyer/client-proposals/:id', requireAuth, requireLawyer, async 
 app.get('/api/lawyer/clients', requireAuth, requireLawyer, async (req, res) => {
   const clients = await col('lawyer_client_proposals').find({ lawyer_id: req.user.id, status: 'assigned' }, { projection: { _id: 0 } }).sort({ assigned_at: -1 }).toArray();
   res.json({ clients: await proposalsWithStartupNames(clients) });
+});
+
+app.get('/api/lawyer/notifications', requireAuth, requireLawyer, async (req, res) => {
+  const notifications = await col('lawyer_notifications')
+    .find({ lawyer_id: req.user.id, read_at: null }, { projection: { _id: 0 } })
+    .sort({ created_at: -1 })
+    .limit(20)
+    .toArray();
+  res.json({ notifications });
+});
+
+app.patch('/api/lawyer/notifications/:id/read', requireAuth, requireLawyer, async (req, res) => {
+  const result = await col('lawyer_notifications').updateOne(
+    { id: req.params.id, lawyer_id: req.user.id, read_at: null },
+    { $set: { read_at: new Date().toISOString() } },
+  );
+  if (!result.matchedCount) return res.status(404).json({ error: 'Notification introuvable' });
+  res.json({ success: true });
 });
 
 // Enregistre / met à jour le document de travail (apparaît dans « Mes documents »).

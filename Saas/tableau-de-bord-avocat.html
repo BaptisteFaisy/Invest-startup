@@ -16,6 +16,7 @@
     document.documentElement.setAttribute('data-theme', t);
   </script>
   <link rel="stylesheet" href="theme.css?v=3" />
+  <link rel="stylesheet" href="help-bulb.css?v=2" />
   <style>
     :root { --ink:#08090c; --panel:#101116; --card:#fff; --paper:#f5f4f0; --line:rgba(8,9,12,.11); --muted:#6b6b78; --purple:#6366f1; --green:#10b981; }
     * { box-sizing:border-box; }
@@ -25,7 +26,7 @@
     .app { visibility:hidden; }
     .app.ready { visibility:visible; }
     [hidden] { display:none !important; }
-    .topbar { position:sticky; top:0; z-index:70; height:70px; display:flex; align-items:center; gap:18px; padding:0 max(18px,4vw); background:var(--ink); border-bottom:1px solid rgba(255,255,255,.07); }
+    .topbar { position:sticky; top:0; z-index:70; height:70px; display:flex; align-items:center; gap:18px; padding:0 10px; background:var(--ink); border-bottom:1px solid rgba(255,255,255,.07); }
     .topbar__side { flex:1; display:flex; align-items:center; gap:14px; }
     .topbar__side--right { justify-content:flex-end; }
     .brand { display:flex; align-items:center; gap:8px; color:#fff; text-decoration:none; font:600 1.05rem 'Archivo',sans-serif; letter-spacing:.09em; }
@@ -117,9 +118,15 @@
     .work-actions { display:flex; gap:7px; flex:none; }
     .work-btn { padding:8px 11px; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--ink); cursor:pointer; font-weight:700; font-size:11px; }
     .work-btn--primary { border-color:var(--ink); background:var(--ink); color:#fff; }
+    .proposal-tabs { display:flex; gap:8px; margin-bottom:14px; padding:5px; border:1px solid var(--line); border-radius:12px; background:var(--card); }
+    .proposal-tab { flex:1; display:flex; align-items:center; justify-content:center; gap:8px; min-height:42px; padding:9px 14px; border:0; border-radius:8px; background:transparent; color:var(--muted); cursor:pointer; font:700 12px 'Archivo',sans-serif; }
+    .proposal-tab:hover { background:#f5f5f1; color:var(--ink); }
+    .proposal-tab.is-active { background:var(--ink); color:#fff; }
+    .proposal-tab__count { min-width:22px; padding:3px 7px; border-radius:99px; background:rgba(8,9,12,.08); font-size:10px; }
+    .proposal-tab.is-active .proposal-tab__count { background:rgba(255,255,255,.18); }
     @media (max-width:760px) {
       .topbar__context, .avatar { display:none; }
-      .topbar { padding-inline:14px; }
+      .topbar { padding-inline:8px; }
       .dashboard { width:min(100% - 28px,1080px); padding-top:34px; }
       .hero { display:block; }
       .status { margin-top:20px; }
@@ -134,7 +141,7 @@
     :root[data-theme="paper"] body { background:var(--t-bg); color:var(--t-on-bg); }
     :root[data-theme="paper"] .topbar { background:var(--t-topbar-bg); border-bottom-color:var(--t-topbar-border); }
     :root[data-theme="paper"] .brand { color:var(--t-on-bg); }
-    :root[data-theme="paper"] .topbar__context { color:var(--t-on-bg-muted); border-left-color:var(--t-divider); }
+    :root[data-theme="paper"] .topbar__context { color:#000; border-left-color:var(--t-divider); }
     :root[data-theme="paper"] .avatar { background:var(--t-solid); color:var(--t-on-solid); }
     :root[data-theme="paper"] .eyebrow,
     :root[data-theme="paper"] h1,
@@ -194,7 +201,12 @@
       <div class="drawer__resize" role="separator" aria-orientation="vertical" aria-label="Redimensionner le menu" tabindex="0"></div>
     </aside>
 
-    <main class="dashboard">
+    <main class="dashboard tool-has-help">
+      <button type="button" class="help-bulb" id="lawyer-view-help" aria-label="Comprendre cette rubrique" title="Comprendre cette rubrique" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg></button>
+      <div class="help-pop" id="lawyer-view-help-pop" hidden>
+        <div class="help-pop__label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg>Comprendre cette rubrique</div>
+        <p id="lawyer-view-help-copy"></p>
+      </div>
       <section class="hero">
         <div id="hero-copy"><p class="eyebrow">Tableau de bord avocat</p><h1 id="welcome">Bienvenue</h1><p class="lead">Retrouvez ici vos dossiers, les demandes de relecture reçues et vos échanges avec les fondateurs.</p></div>
         <span class="status">Candidature en cours d’évaluation</span>
@@ -229,19 +241,19 @@
       </div>
       </div>
       <div data-page-content="propositions">
-      <div class="section-head" id="propositions-missions"><h2 class="section-title">Propositions de missions</h2></div>
+      <div class="proposal-tabs" role="tablist" aria-label="Filtrer les propositions de missions">
+        <button type="button" class="proposal-tab is-active" role="tab" aria-selected="true" data-proposal-tab="pending">Propositions à traiter <span class="proposal-tab__count" id="pending-proposal-count">0</span></button>
+        <button type="button" class="proposal-tab" role="tab" aria-selected="false" data-proposal-tab="treated">Propositions traitées <span class="proposal-tab__count" id="treated-proposal-count">0</span></button>
+      </div>
       <section class="card"><div class="work-list" id="proposal-work-list"><div class="empty"><p>Chargement des propositions…</p></div></div></section>
       </div>
       <div data-page-content="clients">
-      <div class="section-head" id="clients-attribues"><h2 class="section-title">Clients attribués</h2></div>
       <section class="card"><div class="work-list" id="client-work-list"><div class="empty"><p>Chargement des clients…</p></div></div></section>
       </div>
       <div data-page-content="en-cours">
-      <div class="section-head" id="missions-en-cours"><h2 class="section-title">Missions en cours</h2></div>
       <section class="card"><div class="work-list" id="current-work-list"><div class="empty"><p>Chargement des missions…</p></div></div></section>
       </div>
       <div data-page-content="passees">
-      <div class="section-head" id="missions-passees"><h2 class="section-title">Missions passées</h2></div>
       <section class="card"><div class="work-list" id="past-work-list"><div class="empty"><p>Chargement des missions passées…</p></div></div></section>
       </div>
     </main>
@@ -249,6 +261,7 @@
 
   <script src="drawer-menu.js?v=14"></script>
   <script src="theme.js?v=3"></script>
+  <script src="help-bulb.js?v=1"></script>
   <script>
     const app = document.getElementById('app');
     const profileEl = document.getElementById('profile');
@@ -260,7 +273,7 @@
     };
     const requestedView = viewByPage[location.pathname.split('/').pop()] || new URLSearchParams(location.search).get('page') || 'dashboard';
     const lawyerView = ['dashboard','propositions','clients','en-cours','passees'].includes(requestedView) ? requestedView : 'dashboard';
-    document.getElementById('hero-copy').hidden = lawyerView === 'dashboard';
+    document.getElementById('hero-copy').hidden = true;
     const viewCopy = {
       dashboard: ['Tableau de bord avocat', 'Retrouvez ici vos dossiers, les demandes de relecture reçues et vos échanges avec les fondateurs.'],
       propositions: ['Propositions de missions', 'Consultez les nouvelles missions proposées et acceptez celles que vous souhaitez prendre en charge.'],
@@ -268,6 +281,10 @@
       'en-cours': ['Missions en cours', 'Suivez les dossiers qui vous ont été attribués et accédez au travail à réaliser.'],
       passees: ['Missions passées', 'Retrouvez l’historique de vos missions clôturées ou annulées.'],
     };
+    const helpButton = document.getElementById('lawyer-view-help');
+    helpButton.hidden = lawyerView === 'dashboard';
+    document.getElementById('lawyer-view-help-copy').textContent = viewCopy[lawyerView][1];
+    document.querySelector('.hero').hidden = lawyerView !== 'dashboard';
     document.querySelectorAll('[data-page-content]').forEach(el => { el.hidden = el.dataset.pageContent !== lawyerView; });
     document.querySelectorAll('[data-lawyer-view]').forEach(link => {
       link.classList.toggle('is-current', link.dataset.lawyerView === lawyerView);
@@ -299,7 +316,9 @@
       const count = group.items.length;
       return `<section class="client-segment"><header class="client-segment__head"><div><div class="client-segment__name">${esc(group.name)}</div><div class="client-segment__meta">${esc(group.email)}</div></div><span class="client-segment__count">${count} mission${count > 1 ? 's' : ''}</span></header>${rows}</section>`;
     }
-    const proposalLabels={proposed:'À répondre',accepted:'Acceptée',declined:'Refusée',assigned:'Attribuée'};
+    const proposalLabels={proposed:'À répondre',accepted:'Acceptée',declined:'Refusée',assigned:'Acceptée'};
+    let proposalItems=[];
+    let activeProposalTab='pending';
     async function lawyerApi(path, opts) { const r=await fetch(path,Object.assign({credentials:'include'},opts||{})); const data=await r.json().catch(()=>({})); if(!r.ok) throw new Error(data.error||'Erreur serveur'); return data; }
     function setMenuCount(id, count) { const el=document.getElementById(id); el.textContent=String(count); el.hidden=!count; }
     function updateMissionNavigation(proposals, clients, requests) {
@@ -313,9 +332,19 @@
       document.getElementById('nav-menu-btn').setAttribute('aria-label', actionable ? `Ouvrir la navigation, ${actionable} nouvelle${actionable>1?'s':''} proposition${actionable>1?'s':''} de mission` : 'Ouvrir la navigation');
     }
     function renderProposals(items) {
-      items = items.filter(item => item.status !== 'assigned');
+      proposalItems=items;
+      const pending=items.filter(item=>item.status==='proposed');
+      const treated=items.filter(item=>item.status!=='proposed');
+      document.getElementById('pending-proposal-count').textContent=String(pending.length);
+      document.getElementById('treated-proposal-count').textContent=String(treated.length);
+      document.querySelectorAll('[data-proposal-tab]').forEach(tab=>{
+        const active=tab.dataset.proposalTab===activeProposalTab;
+        tab.classList.toggle('is-active',active);
+        tab.setAttribute('aria-selected',String(active));
+      });
+      items=activeProposalTab==='pending'?pending:treated;
       const el=document.getElementById('proposal-work-list');
-      if(!items.length){el.innerHTML='<div class="empty"><p>Aucune proposition de mission pour le moment.</p></div>';return;}
+      if(!items.length){el.innerHTML=`<div class="empty"><p>${activeProposalTab==='pending'?'Aucune proposition de mission à traiter.':'Aucune proposition de mission traitée pour le moment.'}</p></div>`;return;}
       el.innerHTML=groupByStartup(items).map(group => clientSegment(group, group.items.map(p=>`<div class="work-row"><div><div class="work-row__name">Proposition de mission</div><div class="work-row__meta">${p.message?esc(p.message)+'<br>':''}${esc(proposalLabels[p.status]||p.status)}</div></div>${p.status==='proposed'?`<div class="work-actions"><button class="work-btn work-btn--primary" data-proposal="${esc(p.id)}" data-answer="accepted">Accepter</button><button class="work-btn" data-proposal="${esc(p.id)}" data-answer="declined">Refuser</button></div>`:''}</div>`).join(''))).join('');
     }
     function renderClients(items) {
@@ -377,6 +406,7 @@
     }
     load();
     document.getElementById('logout-btn').addEventListener('click', logout);
+    document.querySelectorAll('[data-proposal-tab]').forEach(tab=>tab.addEventListener('click',()=>{activeProposalTab=tab.dataset.proposalTab;renderProposals(proposalItems);}));
     document.getElementById('proposal-work-list').addEventListener('click',async(e)=>{const b=e.target.closest('[data-proposal]');if(!b)return;b.disabled=true;try{await lawyerApi('/api/lawyer/client-proposals/'+encodeURIComponent(b.dataset.proposal),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:b.dataset.answer})});await loadClientTools(true);}catch(err){alert(err.message);}finally{b.disabled=false;}});
   </script>
 </body>

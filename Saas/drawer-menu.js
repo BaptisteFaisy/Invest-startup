@@ -33,6 +33,19 @@
       if (typeof logout === 'function') logout(); else location.href = 'login.html';
     });
   };
+
+  // Le menu détermine aussi lui-même le type de compte. Cette vérification
+  // rend la navigation avocat indépendante de l'ordre de chargement propre à
+  // chaque page outil (notamment l'éditeur, dont les scripts sont différés).
+  const userRequest = typeof fetchMe === 'function'
+    ? fetchMe()
+    : fetch('/api/auth/me', { credentials: 'include' })
+        .then(response => response.ok ? response.json() : null)
+        .then(data => data?.user || null)
+        .catch(() => null);
+  Promise.resolve(userRequest).then(user => {
+    if (user?.account_types?.includes('avocat')) window.applyLawyerDrawers();
+  });
 })();
 
 (function () {
