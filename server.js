@@ -4285,10 +4285,17 @@ app.get('/api/saas/termsheets/:id', requireAuth, async (req, res) => {
     { projection: { _id: 0, user_id: 0 } }
   );
   if (!doc) return res.status(404).json({ error: 'Term sheet introuvable' });
+  const folder = doc.folder_id == null ? null : await col('saas_folders').findOne(
+    { id: doc.folder_id, user_id: req.user.id },
+    { projection: { name: 1 } },
+  );
   res.json({
     id: doc.id,
     name: doc.name,
     html: doc.html || '',
+    folder_id: doc.folder_id ?? null,
+    category_key: doc.category_key || '',
+    folder_name: folder?.name || '',
     created_at: doc.created_at,
     updated_at: doc.updated_at || doc.created_at,
   });

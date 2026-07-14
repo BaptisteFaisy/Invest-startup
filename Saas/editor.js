@@ -1609,6 +1609,17 @@ const urlFolderId = new URLSearchParams(location.search).get('folder');
 const urlCategoryKey = new URLSearchParams(location.search).get('category');
 let newDocumentFolderId = urlFolderId || '';
 let newDocumentCategoryKey = urlCategoryKey || '';
+const documentPlacementBtn = document.getElementById('document-placement-btn');
+
+function updateDocumentPlacementLabel(folderName = '', categoryName = '') {
+  if (!documentPlacementBtn) return;
+  documentPlacementBtn.textContent = folderName
+    ? `Rangé dans : ${categoryName || folderName}`
+    : 'Ranger le document';
+  documentPlacementBtn.title = folderName
+    ? `${folderName}${categoryName ? ' — ' + categoryName : ''}`
+    : 'Choisir une étape et un dossier';
+}
 
 // Nom proposé pour le document (à partir du sous-titre LUMIO SAS, etc.).
 // Sans titre détecté dans la page (document importé), on garde le nom affiché
@@ -1810,17 +1821,22 @@ async function loadTermsheet(id) {
       return;
     }
     const data = await res.json();
+    newDocumentFolderId = data.folder_id == null ? '' : String(data.folder_id);
+    newDocumentCategoryKey = data.category_key || '';
     if (!data.html) {
       setSaveStatus('Erreur : document vide ou illisible');
+      updateDocumentPlacementLabel(data.folder_name || '', data.category_name || '');
       return;
     }
     // Déjà affiché à l'identique via le pré-chargement : rien à refaire.
     if (preHtml !== null && data.html === preHtml) {
       currentDocId = data.id;
       setLastSavedAt(data.updated_at || data.created_at);
+      updateDocumentPlacementLabel(data.folder_name || '', '');
       return;
     }
     applyTermsheet(data.id, data.html, data.name, data.updated_at || data.created_at);
+    updateDocumentPlacementLabel(data.folder_name || '', data.category_name || '');
   } catch (err) {
     setSaveStatus('Erreur de chargement : ' + (err.message || 'réseau'));
   }
@@ -1949,6 +1965,7 @@ function showEmptyState() {
   if (canvas) canvas.classList.add('is-empty');
   if (empty) empty.hidden = false;
   if (docNameEl) docNameEl.textContent = 'Éditeur';
+  updateDocumentPlacementLabel();
   documentDirty = false;
   setLastSavedAt(null);
   const cs = document.getElementById('caret-clause');
@@ -1989,8 +2006,12 @@ async function startBlankDocument() {
   newDocumentCategoryKey = placement.categoryKey;
   clearTimeout(_saveTimer);
   await saveTermsheet();
+  updateDocumentPlacementLabel(
+    placement.folderId ? placement.folderName : '',
+    placement.categoryKey ? placement.categoryName : '',
+  );
 }
-async function openDocumentPlacementModal() {
+async function openDocumentPlacementModal(initialFolderId = newDocumentFolderId, initialCategoryKey = newDocumentCategoryKey) {
   let folders = [];
   try {
     const r = await fetch('/api/saas/folders', { credentials: 'include' });
@@ -1998,20 +2019,23 @@ async function openDocumentPlacementModal() {
     folders = Array.isArray(d.folders) ? d.folders.filter(f => f.key !== 'mise-en-ordre' && !/^\s*0\s*[·.-]/.test(f.name || '')) : [];
   } catch {}
   const old = document.getElementById('blank-placement-modal'); if (old) old.remove();
-  const modal = document.createElement('div'); modal.id = 'blank-placement-modal'; modal.className = 'docmodal';
+  const modal = document.createElement('div'); modal.id = 'blank-placement-modal'; modal.className = 'docmodal is-open';
   modal.innerHTML = `<div class="docmodal__backdrop" data-close></div><div class="docmodal__dialog" style="max-width:520px">
-    <div class="docmodal__head"><h2 class="docmodal__title">Créer un document</h2><button class="docmodal__close" data-close type="button">×</button></div>
+    <div class="docmodal__head"><h2 class="docmodal__title">Ranger le document</h2><button class="docmodal__close" data-close type="button">×</button></div>
     <div class="docmodal__body"><p style="margin-top:0">Choisissez où ranger ce document. Vous pourrez modifier son emplacement ensuite.</p>
       <label class="docmodal__dest-label" for="blank-placement-stage">Étape</label>
       <select class="docmodal__dest-select" id="blank-placement-stage"><option value="">— Non classé —</option>${folders.map(f => `<option value="${String(f.id).replace(/"/g,'&quot;')}" data-key="${String(f.key||'').replace(/"/g,'&quot;')}">${String(f.name||'')}</option>`).join('')}</select>
       <label class="docmodal__dest-label" for="blank-placement-folder" style="margin-top:12px">Dossier</label>
       <select class="docmodal__dest-select" id="blank-placement-folder" disabled><option value="">— Choisir d’abord une étape —</option></select>
       <div class="docmodal__error" id="blank-placement-error"></div></div>
-    <div class="docmodal__foot"><button class="btn btn--ghost" id="blank-placement-later" type="button">Plus tard</button><button class="btn btn--primary" id="blank-placement-confirm" type="button">Créer</button></div></div>`;
+    <div class="docmodal__foot"><button class="btn btn--ghost" id="blank-placement-later" type="button">Plus tard</button><button class="btn btn--primary" id="blank-placement-confirm" type="button">Enregistrer l’emplacement</button></div></div>`;
   document.body.appendChild(modal);
   const stage = modal.querySelector('#blank-placement-stage'), folder = modal.querySelector('#blank-placement-folder');
   const fill = () => { const key = stage.selectedOptions[0]?.dataset.key || ''; const defs = (window.liquidImportCategoryDefs || {})[key] || []; folder.innerHTML = '<option value="">— Sans dossier —</option>' + defs.map(([k,n]) => `<option value="${k}">${n}</option>`).join(''); folder.disabled = !stage.value; };
   stage.addEventListener('change', fill);
+  stage.value = initialFolderId == null ? '' : String(initialFolderId);
+  fill();
+  folder.value = initialCategoryKey || '';
   return new Promise((resolve) => {
     let settled = false;
     const close = (placement = null) => {
@@ -2025,9 +2049,46 @@ async function openDocumentPlacementModal() {
     modal.querySelector('#blank-placement-confirm').addEventListener('click', () => close({
       folderId: stage.value,
       categoryKey: folder.value,
+      folderName: stage.selectedOptions[0]?.textContent || '',
+      categoryName: folder.selectedOptions[0]?.textContent || '',
     }));
   });
 }
+
+if (documentPlacementBtn) documentPlacementBtn.addEventListener('click', async () => {
+  const placement = await openDocumentPlacementModal();
+  if (!placement) return;
+  documentPlacementBtn.disabled = true;
+  try {
+    newDocumentFolderId = placement.folderId;
+    newDocumentCategoryKey = placement.categoryKey;
+    if (!currentDocId) {
+      clearTimeout(_saveTimer);
+      if (!(await saveTermsheet())) return;
+    } else {
+      const response = await fetch('/api/saas/documents/' + currentDocId + '/folder', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          folder_id: placement.folderId || null,
+          category_key: placement.categoryKey || '',
+        }),
+      });
+      if (!response.ok) throw new Error('placement');
+    }
+    updateDocumentPlacementLabel(
+      placement.folderId ? placement.folderName : '',
+      placement.categoryKey ? placement.categoryName : '',
+    );
+    setSaveStatus('Emplacement enregistré');
+    setTimeout(() => setSaveStatus(''), 2000);
+  } catch {
+    setSaveStatus('Échec du classement');
+  } finally {
+    documentPlacementBtn.disabled = false;
+  }
+});
 function createBlankDocument() {
   hideEmptyState();
   page.innerHTML = '<p><br></p>';
@@ -2397,6 +2458,10 @@ async function selectTemplate(slug, label) {
     newDocumentFolderId = placement ? placement.folderId : '';
     newDocumentCategoryKey = placement ? placement.categoryKey : '';
     await saveTermsheet();
+    if (placement) updateDocumentPlacementLabel(
+      placement.folderId ? placement.folderName : '',
+      placement.categoryKey ? placement.categoryName : '',
+    );
     page.focus();
   } catch {
     if (item) item.classList.remove('is-loading');
