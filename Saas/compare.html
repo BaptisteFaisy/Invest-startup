@@ -186,15 +186,15 @@
 
     /* Vue en couloirs : chronologie des échanges par intervenant. */
     #panel-lineage { width:min(1080px,calc(100vw - 48px)); margin-left:50%; transform:translateX(-50%); }
-    .lincontrols { position:sticky;top:58px;z-index:12;box-shadow:0 12px 30px rgba(0,0,0,.12); }
+    .lincontrols { position:relative;top:auto;z-index:1;box-shadow:none; }
     .linfilters { display:flex;gap:8px;align-items:center;flex-wrap:wrap; }
     .linselect,.linbtn { height:38px;padding:0 12px;border:1px solid var(--t-outline);border-radius:10px;background:var(--t-card);color:#08090c;font:600 12px/1 'Archivo',sans-serif; }
     .linbtn { cursor:pointer; }
     .linzoom { display:inline-flex;align-items:center;gap:2px;margin-left:auto;border:1px solid var(--t-outline);border-radius:10px;background:var(--t-card);overflow:hidden; }
     .linzoom button { width:36px;height:36px;border:0;background:transparent;color:#08090c;cursor:pointer;font-size:18px; }
     .linzoom span { min-width:48px;text-align:center;color:#6b6b78;font:700 11px 'Archivo',sans-serif; }
-    .linfamily { overflow:visible; }
-    .linfamily__body { overflow:auto;border-top:1px solid var(--t-surface-brd);scrollbar-color:var(--t-outline) transparent; }
+    .linfamily { width:100%;max-width:100%;overflow:hidden; }
+    .linfamily__body { width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;border-top:1px solid var(--t-surface-brd);scrollbar-color:var(--t-outline) transparent;box-sizing:border-box; }
     .linswim { --lane-label:190px;position:relative;min-width:980px;background:var(--t-card);transform-origin:left top; }
     .lintimes { position:relative;height:58px;margin-left:var(--lane-label);border-bottom:1px solid #e5e7eb;background:#fafafa; }
     .lintime { position:absolute;top:14px;transform:translateX(-50%);text-align:center;color:#6b7280;font:600 10.5px/1.35 'Archivo',sans-serif;white-space:nowrap; }
@@ -232,12 +232,16 @@
     .docpick__row__inv { margin-left: auto; width: 180px; flex: none; font: inherit; font-size: 13px; padding: 7px 10px; border-radius: 8px; border: 1px solid #d8d8de; color: #08090c; cursor: text; }
     .docpick__row__inv:disabled { background: #f3f3f5; color: #9a9aa3; cursor: not-allowed; }
     .docpick__row__inv::placeholder { color: #9a9aa3; }
-    .docpick__group { display: flex; flex-direction: column; gap: 8px; }
+    .docpick__group { display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--t-card-border); border-radius: 12px; background: var(--t-card); padding: 10px; }
     .docpick__group + .docpick__group { margin-top: 18px; }
-    .docpick__group__head { display: flex; align-items: baseline; gap: 8px; padding: 0 2px; }
+    .docpick__group__head { display: flex; align-items: baseline; gap: 8px; padding: 3px 4px; cursor: pointer; list-style: none; }
+    .docpick__group__head::-webkit-details-marker { display: none; }
+    .docpick__group__head::after { content: '⌄'; margin-left: 8px; color: var(--t-on-bg-40); transition: transform .15s; }
+    .docpick__group:not([open]) .docpick__group__head::after { transform: rotate(-90deg); }
     .docpick__group__name { font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 800; color: var(--t-on-bg); }
     .docpick__group__firm { font-size: 11.5px; color: var(--t-on-bg-50); }
     .docpick__group__count { margin-left: auto; font-family: 'Archivo', sans-serif; font-size: 10.5px; color: var(--t-on-bg-40); }
+    .docpick__group__empty { padding: 10px 4px 4px; font-size: 12.5px; color: var(--t-on-bg-50); }
 
     /* Tableau de comparaison critère par critère (term sheets de plusieurs investisseurs) */
     .cmptable-wrap { margin-top: 26px; }
@@ -1134,18 +1138,47 @@
       container.appendChild(row);
     }
 
-    function appendInvGroup(list, label, firm, docs) {
-      if (!docs.length) return;
-      const group = document.createElement('section');
+    function appendInvGroup(list, label, firm, docs, emptyText) {
+      const group = document.createElement('details');
       group.className = 'docpick__group';
-      const head = document.createElement('div');
+      group.open = docs.length > 0;
+      const head = document.createElement('summary');
       head.className = 'docpick__group__head';
       head.innerHTML = '<span class="docpick__group__name">' + esc(label) + '</span>'
         + (firm ? '<span class="docpick__group__firm">' + esc(firm) + '</span>' : '')
         + '<span class="docpick__group__count">' + docs.length + ' document' + (docs.length > 1 ? 's' : '') + '</span>';
       group.appendChild(head);
-      docs.forEach(doc => appendInvDocRow(group, doc, invCandidates.indexOf(doc), label === 'Non classés' ? '' : label));
+      const rowInvestor = label === 'Documents non attribués' ? '' : label;
+      docs.forEach(doc => appendInvDocRow(group, doc, invCandidates.indexOf(doc), rowInvestor));
+      if (!docs.length) {
+        const empty = document.createElement('div');
+        empty.className = 'docpick__group__empty';
+        empty.textContent = emptyText || 'Aucun document dans ce dossier.';
+        group.appendChild(empty);
+      }
       list.appendChild(group);
+    }
+
+    const INV_STAGE_ORDER = [
+      'a_contacter', 'contacte', 'interesse', 'due_diligence_preliminaire',
+      'lettre_intention_negociation', 'lettre_intention_signee', 'due_diligence_poussee',
+      'contrats_negociation', 'contrats_signes', 'gouvernance',
+    ];
+    function invStageIndex(stage) {
+      const i = INV_STAGE_ORDER.indexOf(stage);
+      return i < 0 ? 0 : i;
+    }
+
+    function termSheetInvestorDocIds(folder, investorId) {
+      const ids = new Set();
+      const prefix = 'inv' + investorId + '::';
+      Object.entries((folder && folder.items_state) || {}).forEach(([key, state]) => {
+        if (key.startsWith(prefix) && state && state.document_id != null) ids.add(Number(state.document_id));
+      });
+      invCandidates.forEach(doc => {
+        if (Number(doc.folder_id) === Number(folder && folder.id) && doc.category_key === 'inv' + investorId) ids.add(Number(doc.id));
+      });
+      return ids;
     }
 
     async function initInvestorsPanel() {
@@ -1153,14 +1186,36 @@
       list.innerHTML = '<div class="docpick__empty">Chargement…</div>';
       let docs = [];
       try {
-        const [dr, ir] = await Promise.all([
+        const [dr, ir, fr] = await Promise.all([
           fetch('/api/saas/documents', { credentials: 'include' }),
           fetch('/api/saas/investors', { credentials: 'include' }),
+          fetch('/api/saas/folders', { credentials: 'include' }),
         ]);
         const d = await dr.json();
         const idata = ir.ok ? await ir.json() : { investors: [] };
-        docs = (d.documents || []).filter(x => !x.is_investor_checklist);
+        const fdata = fr.ok ? await fr.json() : { folders: [] };
+        const termFolder = (fdata.folders || []).find(f => f.key === 'term-sheet');
+        const linkedIds = new Set(Object.values((termFolder && termFolder.items_state) || {})
+          .map(state => state && state.document_id).filter(id => id != null).map(Number));
+        docs = (d.documents || []).filter(x => !x.is_investor_checklist && termFolder
+          && (Number(x.folder_id) === Number(termFolder.id) || linkedIds.has(Number(x.id))));
         pipelineInvestors = Array.isArray(idata.investors) ? idata.investors : [];
+        invCandidates = docs;
+        list.innerHTML = '';
+        const eligible = pipelineInvestors.filter(inv => invStageIndex(inv.stage) >= invStageIndex('lettre_intention_negociation'));
+        const assignedIds = new Set();
+        eligible.forEach(inv => {
+          const ids = termSheetInvestorDocIds(termFolder, inv.id);
+          ids.forEach(id => assignedIds.add(id));
+          appendInvGroup(list, investorDisplayName(inv) || 'Investisseur', inv.name && inv.firm ? inv.firm : '',
+            docs.filter(doc => ids.has(Number(doc.id))), 'Aucun document préparé pour cet investisseur.');
+        });
+        appendInvGroup(list, 'Documents non attribués', '', docs.filter(doc => !assignedIds.has(Number(doc.id))),
+          'Aucun document commun ou non rattaché à un investisseur.');
+        introInvEl.hidden = false;
+        updateInvIntro();
+        refreshHistory('investors');
+        return;
       } catch { /* liste vide */ }
       invCandidates = docs;
       if (!docs.length) {
@@ -1168,14 +1223,7 @@
         return;
       }
       list.innerHTML = '';
-      const knownIds = new Set(pipelineInvestors.map(inv => Number(inv.id)));
-      pipelineInvestors.forEach(inv => appendInvGroup(
-        list,
-        investorDisplayName(inv) || 'Investisseur',
-        inv.name && inv.firm ? inv.firm : '',
-        docs.filter(doc => Number(doc.investor_id) === Number(inv.id))
-      ));
-      appendInvGroup(list, 'Non classés', '', docs.filter(doc => !knownIds.has(Number(doc.investor_id))));
+      appendInvGroup(list, 'Documents non attribués', '', docs);
       introInvEl.hidden = false;
       updateInvIntro();
       // Historique des comparaisons entre investisseurs (masqué s'il est vide).
