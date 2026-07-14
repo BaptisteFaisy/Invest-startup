@@ -84,6 +84,14 @@
 
 /* ---------- Workspace ---------- */
 .workspace { flex: 1; display: grid; grid-template-columns: var(--lib-w, 290px) 10px minmax(0, 1fr) 10px var(--panel-w, 400px); min-height: 0; }
+/* Les comptes avocats n'ont pas accès au décryptage/à l'assistance IA dans
+   l'éditeur : le document occupe toute la largeur disponible à droite de la
+   bibliothèque. */
+.app.is-lawyer .workspace { grid-template-columns: var(--lib-w, 290px) 10px minmax(0, 1fr); }
+.app.is-lawyer #gutter-right,
+.app.is-lawyer .panel,
+.app.is-lawyer #selx-btn,
+.app.is-lawyer #selx-pop { display: none !important; }
 /* Chaque zone est épinglée à SA colonne : sans cela, masquer la bibliothèque
    (repli à gauche, display:none) décalait tous les enfants d'une colonne —
    le document tombait dans la piste de 6px et la poignée droite s'étalait
