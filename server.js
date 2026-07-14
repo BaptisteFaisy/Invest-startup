@@ -430,6 +430,18 @@ const staticHtmlNoCache = {
 // Le SaaS (dossier interne au site) est servi sous /saas → même origine que l'API,
 // donc le cookie de session et les appels /api/auth/* fonctionnent sans CORS.
 app.get('/saas/index.html', (_req, res) => res.redirect(302, '/index.html'));
+// Une seule page de connexion doit exister. Les pages SaaS utilisent encore des
+// liens relatifs vers login.html : on les ramène vers la page canonique tout en
+// conservant return_to, switch et les éventuelles erreurs OAuth.
+app.get('/saas/login.html', (req, res) => {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(req.query)) {
+    if (Array.isArray(value)) value.forEach((item) => query.append(key, String(item)));
+    else if (value != null) query.set(key, String(value));
+  }
+  const suffix = query.toString();
+  res.redirect(302, `/login.html${suffix ? `?${suffix}` : ''}`);
+});
 app.use('/saas', express.static(path.join(__dirname, 'Saas'), staticHtmlNoCache));
 app.use(express.static(__dirname, staticHtmlNoCache));
 

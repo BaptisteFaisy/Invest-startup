@@ -191,6 +191,25 @@
         document.getElementById(id).classList.add('active');
       }
 
+      // Autorise uniquement un retour interne au SaaS, jamais une URL externe.
+      function requestedDestination() {
+        const value = new URLSearchParams(window.location.search).get('return_to');
+        if (!value) return null;
+        try {
+          const target = new URL(value, window.location.origin);
+          if (target.origin !== window.location.origin || !target.pathname.startsWith('/saas/')) return null;
+          return target.pathname + target.search + target.hash;
+        } catch {
+          return null;
+        }
+      }
+
+      function redirectAfterAuth(data) {
+        window.location.href = requestedDestination()
+          || data.redirect
+          || (data.user?.is_admin ? '/admin.html' : '/saas/tableau-de-bord.html');
+      }
+
       // ── Connexion ────────────────────────────────────────────────────────────
       const loginForm = document.getElementById('login-form');
       const loginBtn  = document.getElementById('login-btn');
@@ -215,7 +234,7 @@
           const data = await res.json();
           if (!res.ok) { loginErr.textContent = data.error || 'Identifiants incorrects'; loginErr.hidden = false; return; }
           if (data.requires2FA) { tempToken = data.tempToken; showPanel('panel-2fa'); document.getElementById('totp-input').focus(); }
-          else window.location.href = data.redirect || (data.user?.is_admin ? '/admin.html' : '/saas/tableau-de-bord.html');
+          else redirectAfterAuth(data);
         } catch {
           loginErr.textContent = 'Impossible de joindre le serveur';
           loginErr.hidden = false;
@@ -245,7 +264,7 @@
           });
           const data = await res.json();
           if (!res.ok) { twofaErr.textContent = data.error || 'Code incorrect'; twofaErr.hidden = false; return; }
-          window.location.href = data.redirect || (data.user?.is_admin ? '/admin.html' : '/saas/tableau-de-bord.html');
+          redirectAfterAuth(data);
         } catch {
           twofaErr.textContent = 'Impossible de joindre le serveur';
           twofaErr.hidden = false;
