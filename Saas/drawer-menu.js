@@ -1,5 +1,40 @@
 // Menus hamburger partagés par les pages outils : tiroir gauche (navigation)
 // et tiroir droit (compte & outils), repris du tableau de bord.
+(function exposeLawyerDrawers() {
+  window.applyLawyerDrawers = function applyLawyerDrawers() {
+    const navDrawer = document.getElementById('nav-drawer');
+    const actionsDrawer = document.getElementById('actions-drawer');
+    if (!navDrawer || !actionsDrawer || navDrawer.dataset.accountMenu === 'lawyer') return;
+
+    navDrawer.dataset.accountMenu = 'lawyer';
+    navDrawer.setAttribute('data-hide-experience-mode', '');
+    navDrawer.setAttribute('aria-label', 'Navigation avocat');
+    navDrawer.querySelector('.drawer__head').innerHTML = '<span class="drawer__title">Navigation</span>';
+    navDrawer.querySelector('.drawer__body').innerHTML = `
+      <a class="drawer__link" href="tableau-de-bord-avocat.html"><svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3Z"/><path d="M9 20v-6h6v6"/></svg>Tableau de bord</a>
+      <div class="drawer__sep"></div>
+      <div class="drawer__section-title">Mes missions</div>
+      <a class="drawer__link" href="propositions-avocat.html"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 3Z"/><path d="M8 9h8M8 13h5"/></svg>Propositions de missions</a>
+      <a class="drawer__link" href="clients-attribues-avocat.html"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2"/><path d="M3 20c0-4 2.5-7 6-7s6 3 6 7M15 14c3 0 5 2 5 5"/></svg>Clients attribués</a>
+      <a class="drawer__link" href="missions-en-cours-avocat.html"><svg viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v11H3Z"/><path d="M8 12h8M8 16h5"/></svg>Missions en cours</a>
+      <a class="drawer__link" href="missions-passees-avocat.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Missions passées</a>`;
+
+    actionsDrawer.dataset.accountMenu = 'lawyer';
+    actionsDrawer.setAttribute('aria-label', 'Menu avocat');
+    actionsDrawer.querySelector('.drawer__head').innerHTML = '<span class="drawer__title">Menu</span>';
+    actionsDrawer.querySelector('.drawer__body').innerHTML = `
+      <a class="drawer__link is-current" href="editor.html"><svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Éditeur</a>
+      <a class="drawer__link" href="feedback.html"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 3Z"/><path d="M8 9h8M8 13h5"/></svg>Feedback</a>
+      <a class="drawer__link" href="compte.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-5 3-8 8-8s8 3 8 8"/></svg>Mon compte</a>
+      <div class="drawer__sep"></div>
+      <button class="drawer__link" type="button" id="drawer-logout"><svg viewBox="0 0 24 24"><path d="M10 4H5v16h5M14 8l4 4-4 4M8 12h10"/></svg>Me déconnecter</button>`;
+
+    actionsDrawer.querySelector('#drawer-logout')?.addEventListener('click', () => {
+      if (typeof logout === 'function') logout(); else location.href = 'login.html';
+    });
+  };
+})();
+
 (function () {
   let lockedScrollY = 0;
 

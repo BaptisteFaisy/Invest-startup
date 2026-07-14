@@ -87,7 +87,7 @@
   <script src="auth.js?v=4"></script>
   <script src="theme.js?v=3" defer></script>
   <script src="tasks.js?v=2" defer></script>
-  <script src="drawer-menu.js?v=13" defer></script>
+  <script src="drawer-menu.js?v=14" defer></script>
   <script src="drawer-steps.js?v=2" defer></script>
 </head>
 <body>
@@ -547,6 +547,8 @@
     requireAuth().then((user) => {
       if (!user) return; // requireAuth a déjà redirigé vers login.html
       if (user.account_types?.includes('avocat')) {
+        if (window.applyLawyerDrawers) window.applyLawyerDrawers();
+        else document.addEventListener('DOMContentLoaded', () => window.applyLawyerDrawers?.(), { once: true });
         document.querySelector('.app')?.classList.add('is-lawyer');
         window.initLawyerEditor?.(user);
       }
