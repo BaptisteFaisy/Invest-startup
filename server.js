@@ -6039,6 +6039,21 @@ function clauseBlock(key, label, bodyHtml) {
          `<div class="ts-content">${bodyHtml || '<p></p>'}</div></div>`;
 }
 
+// Transforme du texte brut (PDF, ODT, TXT) en HTML de paragraphes exploitable
+// par docxHtmlToEditorPage : les lignes vides séparent les paragraphes, les
+// retours simples deviennent des <br>. Le texte est échappé (sécurité).
+function plainTextToEditorHtml(text) {
+  const paragraphs = String(text || '')
+    .replace(/\r\n?/g, '\n')
+    .split(/\n{2,}/)
+    .map(p => p.trim())
+    .filter(Boolean);
+  if (!paragraphs.length) return '';
+  return paragraphs
+    .map(p => '<p>' + escapeHtml(p).replace(/\n/g, '<br>') + '</p>')
+    .join('\n');
+}
+
 function docxHtmlToEditorPage(rawHtml, docName) {
   const baseName = String(docName || 'Document').replace(/\.[^.]+$/, '').trim() || 'Document';
   const blocks = topLevelBlocks(rawHtml).filter(b => stripHtml(b) || /<(img|table)/i.test(b));
@@ -6101,8 +6116,9 @@ app.post('/api/saas/documents/:id/to-editor', requireAuth, async (req, res) => {
   if (!doc) return res.status(404).json({ error: 'Document introuvable' });
 
   const srcExt = path.extname(doc.originalname || doc.name || '').toLowerCase();
-  if (srcExt !== '.docx' && srcExt !== '.doc')
-    return res.status(400).json({ error: 'Seuls les fichiers Word (.docx / .doc) peuvent être édités. Convertissez d\'abord le document en DOCX.' });
+  const EDITABLE_EXTS = ['.docx', '.doc', '.pdf', '.odt', '.txt'];
+  if (!EDITABLE_EXTS.includes(srcExt))
+    return res.status(400).json({ error: 'Ce format ne peut pas être ouvert dans l\'éditeur. Formats acceptés : Word (.doc, .docx), PDF, OpenDocument (.odt) et texte (.txt).' });
   if (!doc.data) return res.status(400).json({ error: 'Ce document n\'est pas éditable.' });
 
   // Déjà ouvert dans l'éditeur ? On rouvre la term sheet existante (pas de doublon).
@@ -6116,16 +6132,28 @@ app.post('/api/saas/documents/:id/to-editor', requireAuth, async (req, res) => {
   try {
     let rawHtml = '';
 
-    // Détecter si le fichier est en réalité du HTML (export .doc de secours sans CloudConvert).
-    const sample = docBuf.slice(0, 300).toString('utf8');
-    if (/<html|<!DOCTYPE/i.test(sample)) {
-      const fullHtml = docBuf.toString('utf8');
-      const m = /<body[^>]*>([\s\S]*?)<\/body>/i.exec(fullHtml);
-      rawHtml = m ? m[1] : fullHtml;
+    if (srcExt === '.pdf') {
+      // PDF → texte brut (mise en forme perdue), transformé en paragraphes.
+      rawHtml = plainTextToEditorHtml((await pdfParse(docBuf)).text || '');
+    } else if (srcExt === '.odt') {
+      // OpenDocument → texte brut → paragraphes.
+      rawHtml = plainTextToEditorHtml(await odtToText(docBuf));
+    } else if (srcExt === '.txt') {
+      // Fichier texte → paragraphes.
+      rawHtml = plainTextToEditorHtml(docBuf.toString('utf8'));
     } else {
-      // Vrai DOCX/DOC binaire → conversion via mammoth.
-      const result = await mammoth.convertToHtml({ buffer: docBuf });
-      rawHtml = result.value || '';
+      // Word (.docx / .doc). Détecter si le fichier est en réalité du HTML
+      // (export .doc de secours sans CloudConvert).
+      const sample = docBuf.slice(0, 300).toString('utf8');
+      if (/<html|<!DOCTYPE/i.test(sample)) {
+        const fullHtml = docBuf.toString('utf8');
+        const m = /<body[^>]*>([\s\S]*?)<\/body>/i.exec(fullHtml);
+        rawHtml = m ? m[1] : fullHtml;
+      } else {
+        // Vrai DOCX/DOC binaire → conversion via mammoth.
+        const result = await mammoth.convertToHtml({ buffer: docBuf });
+        rawHtml = result.value || '';
+      }
     }
 
     if (!rawHtml.trim())

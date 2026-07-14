@@ -2120,8 +2120,16 @@ function openDocEsc(value) {
   }[char]));
 }
 
-function openDocIsWord(doc) {
-  return /\.docx?$/i.test(String(doc.originalname || doc.name || ''));
+// Formats qu'un document importé peut prendre pour être ouvert dans l'éditeur
+// (voir /api/saas/documents/:id/to-editor côté serveur).
+function openDocIsEditable(doc) {
+  return /\.(docx?|pdf|odt|txt)$/i.test(String(doc.originalname || doc.name || ''));
+}
+
+// Libellé lisible du type de fichier importé, d'après son extension.
+function openDocTypeLabel(doc) {
+  const ext = (String(doc.originalname || doc.name || '').match(/\.([^.]+)$/) || [, ''])[1].toLowerCase();
+  return { doc: 'Fichier Word', docx: 'Fichier Word', pdf: 'Fichier PDF', odt: 'Fichier OpenDocument', txt: 'Fichier texte' }[ext] || 'Document';
 }
 
 function openDocDate(doc) {
@@ -2189,7 +2197,7 @@ function renderOpenDocModal() {
     .filter((doc) => doc.kind === 'termsheet' && doc.editor_source != null)
     .map((doc) => Number(doc.editor_source)));
   const documents = openDocModalData.documents.filter((doc) => {
-    const editable = doc.kind === 'termsheet' || (openDocIsWord(doc) && !editorSources.has(Number(doc.id)));
+    const editable = doc.kind === 'termsheet' || (openDocIsEditable(doc) && !editorSources.has(Number(doc.id)));
     const inActiveRaise = doc.folder_id == null || activeFolderIds.has(Number(doc.folder_id));
     const matches = !query || String(doc.name || doc.originalname || '').toLocaleLowerCase('fr').includes(query);
     return editable && inActiveRaise && matches && !doc.is_version;
@@ -2217,7 +2225,7 @@ function renderOpenDocModal() {
       .sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0))
       .map((doc) => {
         const date = openDocDate(doc);
-        const type = doc.kind === 'termsheet' ? 'Document Liquid+' : 'Fichier Word';
+        const type = doc.kind === 'termsheet' ? 'Document Liquid+' : openDocTypeLabel(doc);
         return `<button class="open-doc-row" type="button" data-doc-id="${openDocEsc(doc.id)}">
           <span class="open-doc-row__icon">${documentIcon}</span>
           <span class="open-doc-row__main">
