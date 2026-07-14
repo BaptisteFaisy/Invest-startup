@@ -73,6 +73,7 @@
           </div>
 
           <div id="login-error" class="auth-alert auth-alert--error" role="alert" hidden></div>
+          <div id="login-success" class="auth-alert auth-alert--success" role="status" hidden></div>
 
           <a href="/auth/google" class="google-btn">
             <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
@@ -189,6 +190,15 @@
       function showPanel(id) {
         document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
+      }
+
+      const emailVerification = new URLSearchParams(window.location.search).get('email_verification');
+      if (emailVerification) {
+        const el = document.getElementById(emailVerification === 'success' ? 'login-success' : 'login-error');
+        el.textContent = emailVerification === 'success'
+          ? 'Adresse email confirmee. Vous pouvez maintenant vous connecter.'
+          : 'Ce lien de confirmation est invalide ou a expire.';
+        el.hidden = false;
       }
 
       // Autorise uniquement un retour interne au SaaS, jamais une URL externe.

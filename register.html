@@ -167,7 +167,9 @@
             errEl.textContent = data.error || 'Une erreur est survenue';
             errEl.hidden = false;
           } else {
-            window.location.href = '/saas/onboarding.html';
+            form.hidden = true;
+            successEl.textContent = `Un email de confirmation a ete envoye a ${data.email || email}. Ouvrez-le pour activer votre compte.`;
+            successEl.hidden = false;
             return;
           }
         } catch {

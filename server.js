@@ -54,6 +54,8 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
 const BASE_URL             = process.env.BASE_URL             || 'http://localhost:3000';
 const MONGODB_URI          = process.env.MONGODB_URI          || 'mongodb://localhost:27017';
 const STARTUP_SECRET       = process.env.STARTUP_SECRET       || 'startup_post_secret_2026';
+const RESEND_API_KEY       = process.env.RESEND_API_KEY       || '';
+const EMAIL_FROM           = process.env.EMAIL_FROM           || '';
 // Data room externe (Google Drive / Dropbox) : OAuth self-service séparé du login.
 // Google Drive réutilise par défaut le client OAuth du login (même projet Google
 // Cloud) — surchargeable par des variables dédiées si un client séparé est créé.
@@ -191,9 +193,9 @@ async function nextId(colName) {
 // Users
 async function readUsers()        { return col('users').find({}, { projection: { _id: 0 } }).toArray(); }
 async function findByEmail(email) { return col('users').findOne({ email }, { projection: { _id: 0 } }); }
-async function createUser({ email, password, full_name }) {
+async function createUser({ email, password, full_name, email_verified = true }) {
   const id   = await nextId('users');
-  const user = { id, email, password: password || '', full_name: full_name || null, created_at: new Date().toISOString() };
+  const user = { id, email, password: password || '', full_name: full_name || null, email_verified, created_at: new Date().toISOString() };
   await col('users').insertOne(user);
   return user;
 }
@@ -475,6 +477,7 @@ function publicAuthUser(user) {
   return {
     id: user.id,
     email: user.email,
+    email_verified: user.email_verified !== false,
     name: user.full_name,
     created_at: user.created_at,
     account_types: Array.isArray(user.account_types) ? user.account_types : [],
@@ -595,9 +598,30 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
     return res.status(409).json({ error: 'Un compte existe déjà avec cet email' });
 
   const hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
-  const user = await createUser({ email: emailClean, password: hash, full_name: full_name?.trim() });
-  const token = setAuthCookie(res, user);
-  res.status(201).json({ success: true, token, user: publicAuthUser(user) });
+  const user = await createUser({ email: emailClean, password: hash, full_name: full_name?.trim(), email_verified: false });
+  try {
+    await sendVerificationEmail(user);
+  } catch (err) {
+    await col('users').deleteOne({ id: user.id, email_verified: false });
+    console.error('Email verification send error:', err.message);
+    return res.status(503).json({ error: 'Impossible d\'envoyer l\'email de verification. Reessayez dans quelques instants.' });
+  }
+  res.status(201).json({ success: true, requiresEmailVerification: true, email: user.email });
+});
+
+app.get('/api/auth/verify-email', authLimiter, async (req, res) => {
+  try {
+    const payload = jwt.verify(String(req.query.token || ''), JWT_SECRET);
+    if (payload.purpose !== 'verify_email') throw new Error('Invalid purpose');
+    const user = await col('users').findOne({ id: payload.id, email: payload.email });
+    if (!user) return res.redirect('/login.html?email_verification=invalid');
+    if (user.email_verified === false) {
+      await updateUserById(user.id, { email_verified: true, email_verified_at: new Date().toISOString() });
+    }
+    return res.redirect('/login.html?email_verification=success');
+  } catch {
+    return res.redirect('/login.html?email_verification=invalid');
+  }
 });
 
 // ─── POST /api/auth/account-type ──────────────────────────────────────────────
@@ -634,6 +658,8 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
 
   const valid = await bcrypt.compare(password, user.password);
   if (!valid) return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
+  if (user.email_verified === false)
+    return res.status(403).json({ error: 'Confirmez votre adresse email avant de vous connecter.', code: 'EMAIL_NOT_VERIFIED' });
 
   if (!user.twofa_method) {
     await ensureLawyerCompletion(user);
@@ -955,7 +981,8 @@ app.post('/api/auth/google/token', async (req, res) => {
     if (!profile.email) return res.status(401).json({ error: 'Email non récupérable via Google' });
     const emailClean = profile.email.toLowerCase();
     let user         = await findByEmail(emailClean);
-    if (!user) user  = await createUser({ email: emailClean, password: '', full_name: profile.name || emailClean.split('@')[0] });
+    if (!user) user  = await createUser({ email: emailClean, password: '', full_name: profile.name || emailClean.split('@')[0], email_verified: true });
+    else if (user.email_verified === false) { await updateUserById(user.id, { email_verified: true, email_verified_at: new Date().toISOString() }); user.email_verified = true; }
     const token      = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ success: true, token, user: publicAuthUser(user) });
   } catch (err) {
@@ -995,7 +1022,8 @@ app.get('/auth/google/callback', async (req, res) => {
     if (!profile.email) return res.redirect('/login.html?error=google_email');
     const emailClean = profile.email.toLowerCase();
     let user         = await findByEmail(emailClean);
-    if (!user) user  = await createUser({ email: emailClean, password: '', full_name: profile.name || emailClean.split('@')[0] });
+    if (!user) user  = await createUser({ email: emailClean, password: '', full_name: profile.name || emailClean.split('@')[0], email_verified: true });
+    else if (user.email_verified === false) { await updateUserById(user.id, { email_verified: true, email_verified_at: new Date().toISOString() }); user.email_verified = true; }
     setAuthCookie(res, user);
     if (fromApp) {
       const appToken = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
@@ -3488,6 +3516,55 @@ async function assignedLawyerForClient(clientId) {
     client_id: Number(clientId), lawyer_id: Number(state.lawyer_user_id), status: 'assigned',
   });
   return assignment ? Number(state.lawyer_user_id) : null;
+}
+
+function emailVerificationToken(user) {
+  return jwt.sign(
+    { id: user.id, email: user.email, purpose: 'verify_email' },
+    JWT_SECRET,
+    { expiresIn: '24h' },
+  );
+}
+
+function escapeEmailHtml(value) {
+  return String(value).replace(/[&<>"']/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[char]);
+}
+
+async function sendVerificationEmail(user) {
+  const token = emailVerificationToken(user);
+  const verificationUrl = `${BASE_URL.replace(/\/$/, '')}/api/auth/verify-email?token=${encodeURIComponent(token)}`;
+
+  // En local, le lien reste utilisable sans imposer la configuration d'un service mail.
+  if (!RESEND_API_KEY || !EMAIL_FROM) {
+    if (!IS_PROD) {
+      console.log(`  Email de verification pour ${user.email}: ${verificationUrl}`);
+      return;
+    }
+    throw new Error('Service d\'envoi d\'emails non configure');
+  }
+
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: EMAIL_FROM,
+      to: [user.email],
+      subject: 'Confirmez votre adresse email - Liquid Plus',
+      html: `<p>Bonjour${user.full_name ? ` ${escapeEmailHtml(user.full_name)}` : ''},</p>
+        <p>Confirmez votre adresse email pour activer votre compte Liquid Plus.</p>
+        <p><a href="${verificationUrl}">Confirmer mon adresse email</a></p>
+        <p>Ce lien est valable pendant 24 heures. Si vous n'avez pas cree ce compte, ignorez cet email.</p>`,
+    }),
+  });
+  if (!response.ok) {
+    const details = await response.text();
+    throw new Error(`Echec de l'envoi de l'email (${response.status}): ${details.slice(0, 300)}`);
+  }
 }
 
 async function lawyerRequestFor(lawyerId, requestId) {

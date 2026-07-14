@@ -587,6 +587,8 @@ res.cookie('auth_token', token, {
 | `DROPBOX_APP_KEY` | Data room | — | Si absent, connexion Dropbox indisponible (503). Ajouter `${BASE_URL}/api/saas/dataroom/dropbox/callback` comme redirect URI dans la console Dropbox |
 | `DROPBOX_APP_SECRET` | Data room | — | |
 | `BASE_URL` | — | `http://localhost:3000` | Utilisé dans les redirects OAuth |
+| `RESEND_API_KEY` | ✅ en production | — | Clé API Resend utilisée pour envoyer les liens de vérification des adresses email |
+| `EMAIL_FROM` | ✅ en production | — | Expéditeur vérifié, par exemple `Liquid Plus <comptes@votre-domaine.fr>` |
 | `JWT_SECRET` | — | `invest_bg_dev_secret_CHANGE_IN_PROD` | Changer en prod |
 | `ENCRYPTION_KEY` | ✅ en production | `JWT_SECRET` en développement | Chiffrement AES-256-GCM des documents et secrets ; ne jamais changer sans rotation |
 | `STARTUP_SECRET` | — | `startup_post_secret_2026` | Auth portail startup |
