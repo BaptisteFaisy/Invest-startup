@@ -123,7 +123,8 @@
           <div class="docmodal__ver-fields" id="docmodal-ver-fields">
             <div class="docmodal__ver-callout">Oui : choisissez la version précédente ci-dessous, puis indiquez la nature de cette nouvelle version. Non : le fichier sera ajouté comme document distinct.</div>
             <label class="docmodal__dest-label" for="docmodal-ver-parent-search" style="margin-top:12px">Version précédente de ce document</label>
-            <input class="docmodal__dest-select docmodal__ver-search" id="docmodal-ver-parent-search" type="search" placeholder="Rechercher la version précédente…" autocomplete="off" aria-label="Rechercher la version précédente" />
+            <input class="docmodal__dest-select docmodal__ver-search" id="docmodal-ver-parent-search" type="search" placeholder="Rechercher la version précédente…" autocomplete="off" list="docmodal-ver-parent-list" aria-label="Rechercher la version précédente" />
+            <datalist id="docmodal-ver-parent-list"></datalist>
             <select class="docmodal__dest-select" id="docmodal-ver-parent"></select>
             <label class="docmodal__dest-label" for="docmodal-ver-type" style="margin-top:12px">Nature de cette nouvelle version</label>
             <select class="docmodal__dest-select" id="docmodal-ver-type">
@@ -191,6 +192,7 @@
   const verFields = modal.querySelector('#docmodal-ver-fields');
   const verType = modal.querySelector('#docmodal-ver-type');
   const verParentSearch = modal.querySelector('#docmodal-ver-parent-search');
+  const verParentList = modal.querySelector('#docmodal-ver-parent-list');
   const verParent = modal.querySelector('#docmodal-ver-parent');
   const verOrigin = modal.querySelector('#docmodal-ver-origin');
   const verInvestor = modal.querySelector('#docmodal-ver-investor');
@@ -283,11 +285,15 @@
     const previousValue = verParent.value;
     const matches = verCtxDocs.filter((doc) => !query || normalize(doc.searchText).includes(query));
     verParent.innerHTML = '<option value="">— Choisir la version précédente —</option>';
+    verParentList.innerHTML = '';
     matches.forEach((doc) => {
       const option = document.createElement('option');
       option.value = String(doc.id);
       option.textContent = doc.label;
       verParent.appendChild(option);
+      const suggestion = document.createElement('option');
+      suggestion.value = doc.label;
+      verParentList.appendChild(suggestion);
     });
     if (matches.some((doc) => String(doc.id) === previousValue)) verParent.value = previousValue;
     if (!matches.length) {
@@ -486,6 +492,11 @@
   verParentSearch.addEventListener('search', refreshVersionSearch);
   verParentSearch.addEventListener('change', refreshVersionSearch);
   verParentSearch.addEventListener('keyup', refreshVersionSearch);
+  verParentSearch.addEventListener('change', () => {
+    const value = verParentSearch.value.trim();
+    const match = verCtxDocs.find((doc) => doc.label === value);
+    if (match) verParent.value = String(match.id);
+  });
   nudgeOrigin.addEventListener('change', () => {
     nudgeInvestor.hidden = nudgeOrigin.value !== 'investor';
     nudgeRecipient.hidden = nudgeOrigin.value !== 'founder';
