@@ -175,7 +175,7 @@
         }
       }
 
-      async function redirectAfterAuth(user = null) {
+      async function redirectAfterAuth(user = null, serverRedirect = null) {
         if (!user) {
           try {
             const res = await fetch('/api/auth/me', { credentials: 'include' });
@@ -185,7 +185,7 @@
             }
           } catch {}
         }
-        window.location.href = requestedDestination() || accountDestination(user);
+        window.location.href = requestedDestination() || serverRedirect || accountDestination(user);
       }
 
       const loginForm = document.getElementById('login-form');
@@ -211,7 +211,7 @@
           const data = await res.json();
           if (!res.ok) { loginErr.textContent = data.error || 'Identifiants incorrects'; loginErr.hidden = false; return; }
           if (data.requires2FA) { tempToken = data.tempToken; showPanel('panel-2fa'); document.getElementById('totp-input').focus(); }
-          else { await redirectAfterAuth(data.user); return; }
+          else { await redirectAfterAuth(data.user, data.redirect); return; }
         } catch {
           loginErr.textContent = 'Impossible de joindre le serveur';
           loginErr.hidden = false;
@@ -240,7 +240,7 @@
           });
           const data = await res.json();
           if (!res.ok) { twofaErr.textContent = data.error || 'Code incorrect'; twofaErr.hidden = false; return; }
-          await redirectAfterAuth(data.user);
+          await redirectAfterAuth(data.user, data.redirect);
           return;
         } catch {
           twofaErr.textContent = 'Impossible de joindre le serveur';
