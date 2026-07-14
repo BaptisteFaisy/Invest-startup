@@ -2033,9 +2033,20 @@ async function openDocumentPlacementModal(initialFolderId = newDocumentFolderId,
   (async () => {
     let folders = [];
     try {
-      const r = await fetch('/api/saas/folders', { credentials: 'include' });
+      const [r, pr] = await Promise.all([
+        fetch('/api/saas/folders', { credentials: 'include' }),
+        fetch('/api/saas/fundraising-profile', { credentials: 'include' }),
+      ]);
       const d = r.ok ? await r.json() : {};
-      folders = Array.isArray(d.folders) ? d.folders.filter(f => f.key !== 'mise-en-ordre' && !/^\s*0\s*[·.-]/.test(f.name || '')) : [];
+      const pd = pr.ok ? await pr.json() : {};
+      const raiseType = (pd.profile || {}).raise_type || 'classic';
+      // On ne propose que les étapes du parcours de levée choisi par l'utilisateur
+      // (« classique » ou « BSA-AIR ») ; les étapes sans track restent visibles.
+      folders = Array.isArray(d.folders)
+        ? d.folders.filter(f => f.key !== 'mise-en-ordre'
+            && !/^\s*0\s*[·.-]/.test(f.name || '')
+            && (!f.track || f.track === raiseType))
+        : [];
     } catch {}
     if (!document.body.contains(modal)) return; // modale déjà fermée entre-temps
     stage.innerHTML = '<option value="">— Non classé —</option>' + folders.map(f => `<option value="${String(f.id).replace(/"/g,'&quot;')}" data-key="${String(f.key||'').replace(/"/g,'&quot;')}">${String(f.name||'')}</option>`).join('');
