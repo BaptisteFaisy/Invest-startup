@@ -223,6 +223,8 @@ async function deleteUserAccountById(id) {
     col('saas_valuation_estimations').deleteMany({ user_id: id }),
     col('saas_exit_simulations').deleteMany({ user_id: id }),
     col('saas_fundraising_profiles').deleteMany({ user_id: id }),
+    col('saas_company_legal_profiles').deleteMany({ user_id: id }),
+    col('saas_company_verification_documents').deleteMany({ user_id: id }),
     col('saas_claude_usage').deleteMany({ user_id: id }),
     col('saas_compare_history').deleteMany({ user_id: id }),
   ]);
@@ -494,6 +496,7 @@ function publicAuthUser(user) {
     theme: (user.theme === 'dark' || user.theme === 'paper') ? user.theme : null,
     lawyer_profile_completed: !!user.lawyer_profile_completed,
     lawyer_status: user.account_types?.includes('avocat') ? (user.lawyer_status || 'pending') : null,
+    twofa_enabled: !!user.twofa_method,
     is_admin: ADMIN_EMAILS.includes(user.email),
     access,
   };
@@ -547,14 +550,18 @@ async function ensureLawyerCompletion(user) {
   return user;
 }
 
-function authLandingPath(user) {
+async function authLandingPath(user) {
   if (ADMIN_EMAILS.includes(user.email)) return '/admin.html';
   if (!hasAccountTypes(user)) return '/saas/onboarding.html';
   const types = user.account_types;
   // Le rôle avocat est prioritaire pour les anciens comptes qui auraient gardé
   // simultanément les valeurs « avocat » et « fondateur ».
   if (types.includes('avocat')) {
+    if (!user.twofa_method) return '/saas/compte.html?setup2fa=required';
     return '/saas/tableau-de-bord-avocat.html';
+  }
+  if (types.includes('fondateur') && !user.twofa_method && await assignedLawyerForClient(user.id)) {
+    return '/saas/compte.html?setup2fa=founder-lawyer';
   }
   return '/saas/tableau-de-bord.html';
 }
@@ -580,9 +587,10 @@ function requireAdmin(req, res, next) {
 }
 
 async function requireLawyer(req, res, next) {
-  const user = await col('users').findOne({ id: req.user.id }, { projection: { account_types: 1, lawyer_status: 1 } });
+  const user = await col('users').findOne({ id: req.user.id }, { projection: { account_types: 1, lawyer_status: 1, twofa_method: 1, lawyer_catalog_version: 1 } });
   if (!user?.account_types?.includes('avocat')) return res.status(403).json({ error: 'Accès réservé aux avocats' });
   if ((user.lawyer_status || 'pending') !== 'active') return res.status(403).json({ error: 'Votre compte avocat doit être activé par un administrateur' });
+  if (!user.twofa_method) return res.status(428).json({ error: 'Activez la double authentification pour accéder à votre espace avocat.', code: 'LAWYER_2FA_REQUIRED' });
   req.lawyer = user;
   next();
 }
@@ -674,7 +682,7 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
   if (!user.twofa_method) {
     await ensureLawyerCompletion(user);
     const token = setAuthCookie(res, user);
-    return res.json({ success: true, token, user: publicAuthUser(user), redirect: authLandingPath(user) });
+    return res.json({ success: true, token, user: publicAuthUser(user), redirect: await authLandingPath(user) });
   }
 
   const tempToken = jwt.sign({ id: user.id, email: user.email, purpose: 'verify_2fa' }, JWT_SECRET, { expiresIn: '5m' });
@@ -710,7 +718,11 @@ app.get('/api/auth/me', requireAuth, async (req, res) => {
   if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
   await ensureLawyerCompletion(user);
   await touchFounderTrial(user);
-  res.json({ user: publicAuthUser(user) });
+  const publicUser = publicAuthUser(user);
+  publicUser.founder_lawyer_2fa_required = user.account_types?.includes('fondateur')
+    ? !!(await assignedLawyerForClient(user.id))
+    : false;
+  res.json({ user: publicUser });
 });
 
 // URL de paiement hébergée (Stripe Payment Link ou équivalent), configurée en
@@ -777,6 +789,8 @@ app.post('/api/auth/2fa/confirm', requireAuth, async (req, res) => {
 app.delete('/api/auth/2fa', requireAuth, async (req, res) => {
   const user = await col('users').findOne({ id: req.user.id });
   if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
+  if (user.account_types?.includes('avocat')) return res.status(403).json({ error: 'La double authentification est obligatoire pour les comptes avocat.' });
+  if (user.account_types?.includes('fondateur') && await assignedLawyerForClient(user.id)) return res.status(403).json({ error: 'La double authentification est obligatoire tant qu’un avocat est attribué à votre société.' });
   await unsetUserFields(req.user.id, ['twofa_method', 'totp_secret']);
   res.json({ success: true });
 });
@@ -797,7 +811,7 @@ app.post('/api/auth/2fa/verify', authLimiter, async (req, res) => {
 
   await ensureLawyerCompletion(user);
   const token = setAuthCookie(res, user);
-  res.json({ success: true, token, user: publicAuthUser(user), redirect: authLandingPath(user) });
+  res.json({ success: true, token, user: publicAuthUser(user), redirect: await authLandingPath(user) });
 });
 
 // ─── PUT /api/auth/profile ────────────────────────────────────────────────────
@@ -1040,7 +1054,7 @@ app.get('/auth/google/callback', async (req, res) => {
       return res.redirect(`liquidplus://auth?token=${encodeURIComponent(appToken)}`);
     }
     await ensureLawyerCompletion(user);
-    res.redirect(authLandingPath(user));
+    res.redirect(await authLandingPath(user));
   } catch (err) {
     console.error('Google OAuth error:', err.message);
     fromApp  ? res.redirect('liquidplus://auth?error=google_failed')
@@ -2136,6 +2150,61 @@ async function docPlainText(doc) {
   }
   return await extractImportedText(doc);
 }
+
+// Contrôle transversal de plusieurs pièces d'un même dossier : les versions
+// sont comparées par Comparer ; Cohérence cherche au contraire les informations
+// qui devraient concorder entre des documents différents.
+app.post('/api/saas/coherence', requireAuth, enforceDailyCap, async (req, res) => {
+  if (!zaiClient) return res.status(503).json({ error: 'Assistant IA non configuré.' });
+  const ids = [...new Set((Array.isArray(req.body?.document_ids) ? req.body.document_ids : [])
+    .map(Number).filter(Number.isFinite))].slice(0, 8);
+  if (ids.length < 2) return res.status(400).json({ error: 'Sélectionnez au moins deux documents.' });
+
+  const docs = await col('saas_documents').find({ user_id: req.user.id, id: { $in: ids } }).toArray();
+  if (docs.length !== ids.length) return res.status(404).json({ error: 'Un document est introuvable.' });
+  const sources = [];
+  for (const doc of docs) {
+    const text = await docPlainText(doc);
+    if (text) sources.push({ id: doc.id, name: doc.name || doc.originalname || 'Document', text: text.slice(0, 12000) });
+  }
+  if (sources.length < 2) return res.status(422).json({ error: 'Le texte d’au moins deux documents doit pouvoir être extrait (PDF, Word, texte ou document éditable).' });
+
+  const joined = sources.map((source, index) => `=== DOCUMENT ${index + 1} : ${source.name} ===\n${source.text}`).join('\n\n');
+  const cacheHash = aiHash('document-coherence', sources.map(source => `${source.name}\n${source.text}`));
+  const cached = await aiCacheGet(cacheHash);
+  if (cached) return res.json({ ...cached, documents: sources.map(({ id, name }) => ({ id, name })), cached: true });
+
+  const system = `Tu es l'assistant juridique de « liquid + » pour les fondateurs de startup. Tu contrôles la cohérence de plusieurs documents différents appartenant au même dossier.\n\n${joined}\n\nRègles :\n- Ne compare pas la mise en page. Vérifie les faits qui devraient concorder : identités, dates, montants, capital, nombres de titres, pourcentages, valorisation, gouvernance, droits, obligations, délais, définitions et renvois.\n- N'invente rien. Une information absente n'est pas une contradiction ; classe-la comme point à vérifier uniquement si son absence est utile.\n- Chaque constat cite les documents concernés et les valeurs ou formulations exactes, brièvement.\n- severity vaut "haute", "moyenne" ou "basse". status vaut "contradiction", "a_verifier" ou "coherent".\n- verdict vaut exactement "Cohérent", "Points à vérifier" ou "Incohérences détectées".\n- Réponds en JSON.`;
+  try {
+    const response = await glmChat({
+      system,
+      messages: [{ role: 'user', content: 'Analyse la cohérence transversale de ces documents.' }],
+      maxTokens: 7000, thinking: false, json: true,
+      jsonHint: '{"verdict":"Points à vérifier","summary":"...","findings":[{"title":"...","status":"contradiction","severity":"haute","documents":["Statuts","Pacte"],"detail":"...","recommendation":"..."}]}'
+    });
+    await recordClaudeUsage(req.user.id, response);
+    const data = glmJson(response);
+    const statuses = new Set(['contradiction', 'a_verifier', 'coherent']);
+    const severities = new Set(['haute', 'moyenne', 'basse']);
+    const result = {
+      verdict: ['Cohérent', 'Points à vérifier', 'Incohérences détectées'].includes(data.verdict) ? data.verdict : 'Points à vérifier',
+      summary: String(data.summary || '').slice(0, 1200),
+      findings: Array.isArray(data.findings) ? data.findings.slice(0, 40).map(item => ({
+        title: String(item?.title || 'Point de contrôle').slice(0, 160),
+        status: statuses.has(item?.status) ? item.status : 'a_verifier',
+        severity: severities.has(item?.severity) ? item.severity : 'moyenne',
+        documents: Array.isArray(item?.documents) ? item.documents.map(String).slice(0, 8) : [],
+        detail: String(item?.detail || '').slice(0, 1000),
+        recommendation: String(item?.recommendation || '').slice(0, 700),
+      })) : [],
+    };
+    if (result.summary || result.findings.length) await aiCacheSet(cacheHash, result);
+    res.json({ ...result, documents: sources.map(({ id, name }) => ({ id, name })) });
+  } catch (error) {
+    console.error('Document coherence error:', error.message);
+    res.status(502).json({ error: 'L’analyse de cohérence est momentanément indisponible.' });
+  }
+});
 
 // Reçoit la liste des champs [entre crochets] du document en cours d'édition,
 // lit les documents importés de l'utilisateur, et demande à l'IA la valeur
@@ -3510,14 +3579,89 @@ function avocatPartner(id) { return AVOCAT_PARTNERS.find(p => p.id === id) || nu
 // plus recommandé (engagement le plus fort des fondateurs). Les tarifs sont
 // indicatifs : ils s'appuient sur une grille négociée en amont avec les partenaires.
 const AVOCAT_PRESTATIONS = [
-  { key: 'garantie',  label: 'Déclarations & garanties (W&R)',   desc: 'Relecture avant signature du document le plus engageant pour les fondateurs.', critical: true,  price: 'à partir de 890 €',   fee_amount: 890,  delay: '72 h' },
-  { key: 'pacte',     label: 'Pacte d’associés',                 desc: 'Revue des clauses sensibles : gouvernance, liquidité, leaver, préférence.',    critical: true,  price: 'à partir de 1 190 €', fee_amount: 1190, delay: '3–4 j' },
-  { key: 'termsheet', label: 'Term sheet / lettre d’intention',  desc: 'Vérification avant de vous engager sur les grands équilibres de la levée.',     critical: false, price: 'à partir de 490 €',   fee_amount: 490,  delay: '48 h' },
-  { key: 'bsa-air',   label: 'BSA-AIR / convertible',            desc: 'Contrôle de l’instrument d’investissement convertible.',                       critical: false, price: 'à partir de 590 €',   fee_amount: 590,  delay: '48 h' },
-  { key: 'question',  label: 'Question juridique ponctuelle',    desc: 'Un point précis à sécuriser ? Échange court avec votre avocat.',                critical: false, price: 'à partir de 150 €',   fee_amount: 150,  delay: '24 h' },
+  { key: 'garantie',  label: 'Déclarations & garanties (W&R)',   desc: 'Relecture avant signature du document le plus engageant pour les fondateurs.', critical: true,  price: '890 € HT',   fee_amount: 890,  delay: '72 h' },
+  { key: 'pacte',     label: 'Pacte d’associés',                 desc: 'Revue des clauses sensibles : gouvernance, liquidité, leaver, préférence.',    critical: true,  price: '1 190 € HT', fee_amount: 1190, delay: '3–4 j' },
+  { key: 'termsheet', label: 'Term sheet / lettre d’intention',  desc: 'Vérification avant de vous engager sur les grands équilibres de la levée.',     critical: false, price: '490 € HT',   fee_amount: 490,  delay: '48 h' },
+  { key: 'bsa-air',   label: 'BSA-AIR / convertible',            desc: 'Contrôle de l’instrument d’investissement convertible.',                       critical: false, price: '590 € HT',   fee_amount: 590,  delay: '48 h' },
+  { key: 'question',  label: 'Question juridique ponctuelle',    desc: 'Un point précis à sécuriser ? Échange court avec votre avocat.',                critical: false, price: '150 € HT',   fee_amount: 150,  delay: '24 h' },
 ];
+const LAWYER_CATALOG_VERSION = 1;
 const AVOCAT_PRESTATION_KEYS  = new Set(AVOCAT_PRESTATIONS.map(p => p.key));
 const AVOCAT_REQUEST_STATUSES = ['soumise', 'en_cours', 'attente_fondateur', 'livree', 'cloturee', 'annule'];
+const COMPANY_LEGAL_FORMS = new Set(['sas', 'sasu', 'sarl', 'eurl', 'sa', 'sca', 'snc', 'scop', 'other']);
+const COMPANY_USER_ROLES = new Set(['legal_representative', 'authorized_user']);
+const FOUNDER_PERSONAL_INTEREST_NOTICE = 'Cette question concerne vos intérêts personnels et n’est pas incluse dans la mission confiée par la société. Un conseil distinct peut être nécessaire.';
+const LAWYER_APPOINTMENT_PROVIDERS = new Set(['zoom_e2ee', 'google_meet_managed', 'phone']);
+const LAWYER_APPOINTMENT_STATUSES = new Set(['requested', 'scheduled', 'cancelled', 'completed']);
+
+function validAppointmentStart(value) {
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) && date.getTime() > Date.now() - 5 * 60 * 1000 ? date.toISOString() : null;
+}
+
+function validateMeetingUrl(provider, value) {
+  if (provider === 'phone') return '';
+  try {
+    const url = new URL(String(value || ''));
+    if (url.protocol !== 'https:') return null;
+    const host = url.hostname.toLowerCase();
+    if (provider === 'zoom_e2ee' && (host === 'zoom.us' || host.endsWith('.zoom.us'))) return url.toString();
+    if (provider === 'google_meet_managed' && host === 'meet.google.com') return url.toString();
+  } catch {}
+  return null;
+}
+
+function publicAppointment(item) {
+  if (!item) return null;
+  const { _id, client_id, lawyer_user_id, ...safe } = item;
+  return safe;
+}
+
+function sanitizeSiren(value) {
+  const siren = String(value || '').replace(/\s+/g, '');
+  if (!/^\d{9}$/.test(siren)) return '';
+  return siren;
+}
+
+function publicCompanyLegalProfile(profile) {
+  if (!profile) return {
+    company_name: '', siren: '', legal_form: '', registered_office: '',
+    legal_representative_name: '', legal_representative_title: '', user_role: '',
+    user_authority_confirmed: false, registered_confirmed: false,
+    beneficial_owners_required: false, beneficial_owners_confirmed: false,
+    company_client_terms_accepted: false, verification_status: 'incomplete',
+    registration_evidence: null,
+  };
+  const { _id, user_id, registration_evidence_document_id, verified_by, verification_note, ...safe } = profile;
+  return safe;
+}
+
+function companyEligibility(profile) {
+  const missing = [];
+  if (!shortText(profile?.company_name, 160)) missing.push('company_name');
+  if (!sanitizeSiren(profile?.siren)) missing.push('siren');
+  if (!COMPANY_LEGAL_FORMS.has(profile?.legal_form)) missing.push('legal_form');
+  if (!shortText(profile?.registered_office, 300)) missing.push('registered_office');
+  if (!shortText(profile?.legal_representative_name, 160)) missing.push('legal_representative_name');
+  if (!shortText(profile?.legal_representative_title, 120)) missing.push('legal_representative_title');
+  if (!COMPANY_USER_ROLES.has(profile?.user_role)) missing.push('user_role');
+  if (profile?.user_authority_confirmed !== true) missing.push('user_authority_confirmed');
+  if (profile?.registered_confirmed !== true) missing.push('registered_confirmed');
+  if (profile?.company_client_terms_accepted !== true) missing.push('company_client_terms_accepted');
+  if (!profile?.registration_evidence_document_id) missing.push('registration_evidence');
+  if (profile?.beneficial_owners_required === true && profile?.beneficial_owners_confirmed !== true) missing.push('beneficial_owners_confirmed');
+  const complete = missing.length === 0;
+  const verified = complete && profile?.verification_status === 'verified';
+  return { complete, verified, missing, status: verified ? 'verified' : (complete ? 'pending_review' : 'incomplete') };
+}
+
+async function companyProfileForUser(userId) {
+  const profile = await col('saas_company_legal_profiles').findOne({ user_id: Number(userId) });
+  if (!profile || profile.id) return profile;
+  const id = crypto.randomUUID();
+  await col('saas_company_legal_profiles').updateOne({ user_id: Number(userId), id: { $exists: false } }, { $set: { id } });
+  return { ...profile, id };
+}
 
 async function assignedLawyerForClient(clientId) {
   const state = await col('saas_avocat').findOne({ user_id: Number(clientId), mode: 'platform' });
@@ -3526,6 +3670,18 @@ async function assignedLawyerForClient(clientId) {
     client_id: Number(clientId), lawyer_id: Number(state.lawyer_user_id), status: 'assigned',
   });
   return assignment ? Number(state.lawyer_user_id) : null;
+}
+
+async function requireAssignedFounder2FA(req, res, next) {
+  const lawyerId = await assignedLawyerForClient(req.user.id);
+  if (!lawyerId) return next();
+  const user = await col('users').findOne({ id: req.user.id }, { projection: { twofa_method: 1 } });
+  if (!user?.twofa_method) return res.status(428).json({
+    error: 'Activez la double authentification pour accéder aux échanges avec votre avocat.',
+    code: 'FOUNDER_2FA_REQUIRED',
+    setup_url: '/saas/compte.html?setup2fa=founder-lawyer',
+  });
+  next();
 }
 
 async function createLawyerNotification(lawyerId, type, title, message, metadata = {}) {
@@ -3540,7 +3696,31 @@ async function createLawyerNotification(lawyerId, type, title, message, metadata
     created_at: new Date().toISOString(),
   };
   await col('lawyer_notifications').insertOne(notification);
+  sendPortalNotificationEmail(lawyerId, 'Nouvelle activité dans votre espace avocat', '/saas/tableau-de-bord-avocat.html').catch(error => {
+    console.error('lawyer notification email error:', error.message);
+  });
   return notification;
+}
+
+async function sendPortalNotificationEmail(userId, subject, relativePath) {
+  if (!RESEND_API_KEY || !EMAIL_FROM) return;
+  const user = await col('users').findOne({ id: Number(userId) }, { projection: { email: 1, full_name: 1 } });
+  if (!user?.email) return;
+  const url = `${BASE_URL.replace(/\/$/, '')}${relativePath}`;
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from: EMAIL_FROM,
+      to: [user.email],
+      subject,
+      html: `<p>Bonjour${user.full_name ? ` ${escapeEmailHtml(user.full_name)}` : ''},</p>
+        <p>Une nouvelle activité vous attend dans votre espace sécurisé Liquid+.</p>
+        <p><a href="${url}">Ouvrir Liquid+</a></p>
+        <p>Pour préserver la confidentialité, cet email ne contient ni message juridique, ni nom de document, ni pièce jointe.</p>`,
+    }),
+  });
+  if (!response.ok) throw new Error(`Échec notification email (${response.status})`);
 }
 
 function emailVerificationToken(user) {
@@ -3704,6 +3884,82 @@ function avocatPublicState(state) {
   };
 }
 
+app.get('/api/saas/avocat/company-eligibility', requireAuth, requireAssignedFounder2FA, async (req, res) => {
+  const profile = await companyProfileForUser(req.user.id);
+  res.json({
+    profile: publicCompanyLegalProfile(profile),
+    eligibility: companyEligibility(profile),
+    client_policy: {
+      liquid_plus_client: 'company', lawyer_client: 'company', payer: 'company',
+      workspace_owner: 'company', user_capacity: 'legal_representative_or_authorized_user',
+    },
+    personal_interest_notice: FOUNDER_PERSONAL_INTEREST_NOTICE,
+    personal_advice_offer: { available: false, label: 'Conseil personnel fondateur' },
+    constitution_offer: { available: false, label: 'Constitution', client: 'future_shareholders' },
+  });
+});
+
+app.put('/api/saas/avocat/company-eligibility', requireAuth, requireAssignedFounder2FA, async (req, res) => {
+  const body = req.body || {};
+  const siren = sanitizeSiren(body.siren);
+  if (!siren) return res.status(422).json({ error: 'Le SIREN doit contenir exactement 9 chiffres.' });
+  if (!COMPANY_LEGAL_FORMS.has(body.legal_form)) return res.status(422).json({ error: 'Forme juridique invalide.' });
+  if (!COMPANY_USER_ROLES.has(body.user_role)) return res.status(422).json({ error: 'Qualité de l’utilisateur invalide.' });
+  const requiredText = {
+    company_name: shortText(body.company_name, 160),
+    registered_office: shortText(body.registered_office, 300),
+    legal_representative_name: shortText(body.legal_representative_name, 160),
+    legal_representative_title: shortText(body.legal_representative_title, 120),
+  };
+  if (Object.values(requiredText).some(value => !value)) return res.status(422).json({ error: 'Complétez tous les champs obligatoires de la société.' });
+  if (body.user_authority_confirmed !== true || body.registered_confirmed !== true || body.company_client_terms_accepted !== true)
+    return res.status(422).json({ error: 'Les attestations obligatoires doivent être acceptées.' });
+  if (body.beneficial_owners_required === true && body.beneficial_owners_confirmed !== true)
+    return res.status(422).json({ error: 'Confirmez que les informations sur les bénéficiaires effectifs sont à jour.' });
+  const existing = await companyProfileForUser(req.user.id);
+  const now = new Date().toISOString();
+  const set = {
+    ...requiredText, siren, legal_form: body.legal_form, user_role: body.user_role,
+    user_authority_confirmed: true, registered_confirmed: true,
+    beneficial_owners_required: body.beneficial_owners_required === true,
+    beneficial_owners_confirmed: body.beneficial_owners_required === true ? body.beneficial_owners_confirmed === true : false,
+    company_client_terms_accepted: true,
+    verification_status: existing?.verification_status === 'verified' ? 'verified' : 'pending_review',
+    submitted_at: now, updated_at: now,
+  };
+  // Une modification d'identité après validation impose une nouvelle vérification.
+  if (existing?.verification_status === 'verified' && ['company_name','siren','legal_form','registered_office','legal_representative_name','legal_representative_title'].some(key => existing[key] !== set[key])) {
+    set.verification_status = 'pending_review'; set.verified_at = null; set.verified_by = null;
+  }
+  await col('saas_company_legal_profiles').updateOne(
+    { user_id: req.user.id },
+    { $set: set, $setOnInsert: { id: crypto.randomUUID(), user_id: req.user.id, created_at: now } },
+    { upsert: true },
+  );
+  const saved = await companyProfileForUser(req.user.id);
+  res.json({ profile: publicCompanyLegalProfile(saved), eligibility: companyEligibility(saved) });
+});
+
+app.post('/api/saas/avocat/company-eligibility/evidence', requireAuth, requireAssignedFounder2FA, saasUpload.single('file'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Ajoutez un justificatif d’immatriculation.' });
+  const allowed = new Set(['application/pdf', 'image/png', 'image/jpeg']);
+  if (!allowed.has(req.file.mimetype)) return res.status(422).json({ error: 'Formats acceptés : PDF, PNG ou JPEG.' });
+  const now = new Date().toISOString();
+  const existing = await companyProfileForUser(req.user.id);
+  const documentId = crypto.randomUUID();
+  await col('saas_company_verification_documents').insertOne({
+    id: documentId, user_id: req.user.id, name: shortText(req.file.originalname, 180),
+    mimetype: req.file.mimetype, size: req.file.size, data: req.file.buffer, created_at: now,
+  });
+  await col('saas_company_legal_profiles').updateOne(
+    { user_id: req.user.id },
+    { $set: { registration_evidence_document_id: documentId, registration_evidence: { name: shortText(req.file.originalname, 180), size: req.file.size, uploaded_at: now }, verification_status: 'pending_review', updated_at: now }, $setOnInsert: { id: crypto.randomUUID(), user_id: req.user.id, created_at: now } },
+    { upsert: true },
+  );
+  if (existing?.registration_evidence_document_id) await col('saas_company_verification_documents').deleteOne({ id: existing.registration_evidence_document_id, user_id: req.user.id });
+  res.status(201).json({ success: true, registration_evidence: { name: shortText(req.file.originalname, 180), size: req.file.size, uploaded_at: now } });
+});
+
 async function platformLawyerPublic(userId) {
   const state = await col('saas_avocat').findOne({ user_id: userId });
   if (!state?.lawyer_user_id || state.mode !== 'platform') return null;
@@ -3715,9 +3971,10 @@ async function platformLawyerPublic(userId) {
   return { id: `platform-${state.lawyer_user_id}`, lead: user.full_name || user.email, name: profile?.city ? `Avocat à ${profile.city}` : 'Avocat Liquid+', barreau: profile?.city || '', speciality: profile?.specialty || '', bio: 'Avocat attribué à votre dossier par Liquid+.', email: user.email };
 }
 
-app.get('/api/saas/avocat/overview', requireAuth, async (req, res) => {
+app.get('/api/saas/avocat/overview', requireAuth, requireAssignedFounder2FA, async (req, res) => {
   const state = await getOrInitAvocatState(req.user.id);
   const platformLawyer = await platformLawyerPublic(req.user.id);
+  const companyProfile = await companyProfileForUser(req.user.id);
   const requests = await col('saas_avocat_requests')
     .find({ user_id: req.user.id }, { projection: { _id: 0, user_id: 0 } })
     .sort({ id: -1 }).toArray();
@@ -3727,19 +3984,21 @@ app.get('/api/saas/avocat/overview', requireAuth, async (req, res) => {
     statuses:    AVOCAT_REQUEST_STATUSES,
     ...(platformLawyer ? { mode: 'assigned', partner: platformLawyer, own_lawyer: null } : avocatPublicState(state)),
     requests,
+    company: { profile: publicCompanyLegalProfile(companyProfile), eligibility: companyEligibility(companyProfile) },
+    personal_interest_notice: FOUNDER_PERSONAL_INTEREST_NOTICE,
   });
 });
 
 // Liste seule des demandes de relecture (sans initialiser d'état avocat : utilisé
 // par la page Documents pour savoir quels documents ont été soumis à un avocat).
-app.get('/api/saas/avocat/requests', requireAuth, async (req, res) => {
+app.get('/api/saas/avocat/requests', requireAuth, requireAssignedFounder2FA, async (req, res) => {
   const requests = await col('saas_avocat_requests')
     .find({ user_id: req.user.id }, { projection: { _id: 0, user_id: 0 } })
     .sort({ id: -1 }).toArray();
   res.json({ requests });
 });
 
-app.post('/api/saas/avocat/change-request', requireAuth, async (req, res) => {
+app.post('/api/saas/avocat/change-request', requireAuth, requireAssignedFounder2FA, async (req, res) => {
   const state = await col('saas_avocat').findOne({ user_id: req.user.id, mode: 'platform' });
   if (!state?.lawyer_user_id) return res.status(409).json({ error: 'Aucun avocat Liquid+ ne vous est actuellement attribué' });
   const existing = await col('lawyer_change_requests').findOne({ client_id: req.user.id, status: 'pending' });
@@ -3761,7 +4020,7 @@ app.post('/api/saas/avocat/change-request', requireAuth, async (req, res) => {
   res.status(201).json({ request });
 });
 
-app.put('/api/saas/avocat/preference', requireAuth, async (req, res) => {
+app.put('/api/saas/avocat/preference', requireAuth, requireAssignedFounder2FA, async (req, res) => {
   const body = req.body || {};
   const mode = ['assigned', 'chosen', 'own'].includes(body.mode) ? body.mode : null;
   if (!mode) return res.status(400).json({ error: 'Mode invalide' });
@@ -3792,11 +4051,26 @@ app.put('/api/saas/avocat/preference', requireAuth, async (req, res) => {
   res.json(avocatPublicState(updated));
 });
 
-app.post('/api/saas/avocat/requests', requireAuth, async (req, res) => {
+app.post('/api/saas/avocat/requests', requireAuth, requireAssignedFounder2FA, async (req, res) => {
   const body = req.body || {};
   const prestationKey = shortText(body.prestation_key, 40);
   if (!AVOCAT_PRESTATION_KEYS.has(prestationKey))
     return res.status(400).json({ error: 'Prestation inconnue' });
+
+  const companyProfile = await companyProfileForUser(req.user.id);
+  const eligibility = companyEligibility(companyProfile);
+  if (!eligibility.verified) return res.status(409).json({
+    error: eligibility.complete
+      ? 'La vérification de la société par Liquid+ est encore en attente.'
+      : 'Complétez et faites vérifier le dossier société avant toute mission avocat standard.',
+    code: eligibility.complete ? 'COMPANY_VERIFICATION_PENDING' : 'COMPANY_PROFILE_REQUIRED',
+    eligibility,
+  });
+  if (body.founder_personal_interest === true) return res.status(409).json({
+    error: FOUNDER_PERSONAL_INTEREST_NOTICE,
+    code: 'FOUNDER_PERSONAL_ADVICE_REQUIRED',
+    personal_advice_offer: { available: false, label: 'Conseil personnel fondateur' },
+  });
 
   const state = await getOrInitAvocatState(req.user.id);
   const lawyerUserId = await assignedLawyerForClient(req.user.id);
@@ -3816,6 +4090,13 @@ app.post('/api/saas/avocat/requests', requireAuth, async (req, res) => {
   const prestation = AVOCAT_PRESTATIONS.find(item => item.key === prestationKey);
   const request = {
     id, user_id: req.user.id,
+    client_type: 'company', company_client_id: companyProfile.id,
+    company_snapshot: {
+      company_name: companyProfile.company_name, siren: companyProfile.siren,
+      legal_form: companyProfile.legal_form, registered_office: companyProfile.registered_office,
+      legal_representative_name: companyProfile.legal_representative_name,
+      legal_representative_title: companyProfile.legal_representative_title,
+    },
     prestation_key: prestationKey,
     mode: 'platform', lawyer_user_id: lawyerUserId, partner_id: state.partner_id || null,
     document_id: orderedDocs[0].id, document_name: orderedDocs[0].name || null,
@@ -3823,10 +4104,16 @@ app.post('/api/saas/avocat/requests', requireAuth, async (req, res) => {
     title: shortText(body.title, 160) || (prestation?.label || 'Relecture juridique'),
     lawyer_fee_amount: prestation?.fee_amount || 0,
     note: shortText(body.note, 3000),
+    founder_personal_interest_flag: body.founder_personal_interest === true,
+    founder_personal_interest_notice: body.founder_personal_interest === true ? FOUNDER_PERSONAL_INTEREST_NOTICE : null,
     due_date: /^\d{4}-\d{2}-\d{2}$/.test(String(body.due_date || '')) ? String(body.due_date) : null,
     status: 'soumise',
     created_at: now, updated_at: now,
   };
+  await col('saas_documents').updateMany(
+    { id: { $in: documentIds }, user_id: req.user.id },
+    { $set: { company_id: companyProfile.id, workspace_owner_type: 'company', updated_at: now } },
+  );
   await col('saas_avocat_requests').insertOne(request);
   await createLawyerNotification(
     lawyerUserId,
@@ -3842,7 +4129,7 @@ app.post('/api/saas/avocat/requests', requireAuth, async (req, res) => {
   res.status(201).json({ request: avocatPublicRequest(request) });
 });
 
-app.put('/api/saas/avocat/requests/:id', requireAuth, async (req, res) => {
+app.put('/api/saas/avocat/requests/:id', requireAuth, requireAssignedFounder2FA, async (req, res) => {
   const id      = Number(req.params.id);
   const request = await col('saas_avocat_requests').findOne({ id, user_id: req.user.id });
   if (!request) return res.status(404).json({ error: 'Demande introuvable' });
@@ -3858,14 +4145,14 @@ app.put('/api/saas/avocat/requests/:id', requireAuth, async (req, res) => {
   res.json({ success: true });
 });
 
-app.get('/api/saas/avocat/requests/:id/thread', requireAuth, async (req, res) => {
+app.get('/api/saas/avocat/requests/:id/thread', requireAuth, requireAssignedFounder2FA, async (req, res) => {
   const request = await col('saas_avocat_requests').findOne({ id: Number(req.params.id), user_id: req.user.id });
   if (!request) return res.status(404).json({ error: 'Demande introuvable' });
   const messages = await col('saas_avocat_messages').find({ request_id: request.id, client_id: req.user.id }, { projection: { _id: 0 } }).sort({ id: 1 }).toArray();
   res.json({ request: avocatPublicRequest(request), messages });
 });
 
-app.post('/api/saas/avocat/requests/:id/messages', requireAuth, async (req, res) => {
+app.post('/api/saas/avocat/requests/:id/messages', requireAuth, requireAssignedFounder2FA, async (req, res) => {
   const request = await col('saas_avocat_requests').findOne({ id: Number(req.params.id), user_id: req.user.id });
   if (!request || request.status === 'annule') return res.status(404).json({ error: 'Demande indisponible' });
   const body = shortText(req.body?.body, 4000);
@@ -3946,10 +4233,19 @@ app.post('/api/lawyer/review-requests/:id/messages', requireAuth, requireLawyer,
   const request = await lawyerRequestFor(req.user.id, req.params.id);
   if (!request || request.status === 'annule') return res.status(404).json({ error: 'Demande indisponible' });
   const body = shortText(req.body?.body, 4000);
-  if (!body) return res.status(422).json({ error: 'Le message est vide.' });
-  const message = { id: await nextId('saas_avocat_messages'), request_id: request.id, client_id: request.user_id, author_type: 'lawyer', author_id: req.user.id, body, created_at: new Date().toISOString() };
+  let secureShareUrl = '';
+  if (req.body?.secure_share_url) {
+    try {
+      const parsed = new URL(String(req.body.secure_share_url));
+      if (parsed.protocol !== 'https:' || parsed.hostname !== 'partage.cnb.avocat.fr') throw new Error();
+      secureShareUrl = parsed.toString();
+    } catch { return res.status(422).json({ error: 'Le lien doit provenir de partage.cnb.avocat.fr.' }); }
+  }
+  if (!body && !secureShareUrl) return res.status(422).json({ error: 'Le message est vide.' });
+  const message = { id: await nextId('saas_avocat_messages'), request_id: request.id, client_id: request.user_id, author_type: 'lawyer', author_id: req.user.id, body, ...(secureShareUrl ? { secure_share_url: secureShareUrl, secure_share_provider: 'cnb_e_partage' } : {}), created_at: new Date().toISOString() };
   await col('saas_avocat_messages').insertOne(message);
   await col('saas_avocat_requests').updateOne({ id: request.id }, { $set: { status: 'attente_fondateur', updated_at: message.created_at } });
+  sendPortalNotificationEmail(request.user_id, 'Nouveau message dans votre dossier juridique', `/saas/dossier-avocat.html?id=${request.id}`).catch(error => console.error('founder notification email error:', error.message));
   res.status(201).json({ message });
 });
 
@@ -3983,16 +4279,18 @@ app.post('/api/lawyer/review-requests/:id/deliver', requireAuth, requireLawyer, 
   const sourceBuffer = source.kind === 'termsheet' ? null : toBuffer(source.data);
   if (sourceBuffer && sourceBuffer.equals(req.file.buffer)) {
     await col('saas_avocat_requests').updateOne({ id: request.id }, { $set: { status: 'livree', updated_at: now } });
+    sendPortalNotificationEmail(request.user_id, 'Votre avocat a terminé une remise', `/saas/dossier-avocat.html?id=${request.id}`).catch(error => console.error('founder notification email error:', error.message));
     return res.json({ unchanged: true, message: 'Le fichier est identique au document soumis : aucune nouvelle version n’a été créée.' });
   }
   const id = await nextId('saas_documents');
-  const doc = { id, user_id: request.user_id, name: (req.body.name || req.file.originalname).trim(), originalname: req.file.originalname, mimetype: req.file.mimetype, size: req.file.size, data: req.file.buffer, created_at: now, updated_at: now, parent_document_id: source.id, lineage_id: source.lineage_id || source.id, origin: 'lawyer', origin_party_id: req.user.id, version_type: 'revision', lawyer_request_id: request.id };
+  const doc = { id, user_id: request.user_id, company_id: request.company_client_id || source.company_id || null, workspace_owner_type: 'company', name: (req.body.name || req.file.originalname).trim(), originalname: req.file.originalname, mimetype: req.file.mimetype, size: req.file.size, data: req.file.buffer, created_at: now, updated_at: now, parent_document_id: source.id, lineage_id: source.lineage_id || source.id, origin: 'lawyer', origin_party_id: req.user.id, version_type: 'revision', lawyer_request_id: request.id };
   await col('saas_documents').insertOne(doc);
   await recordReceivedTransmission(request.user_id, doc);
   const delivery = { document_id: id, source_document_id: source.id, name: doc.name, size: doc.size, delivered_at: now, lawyer_user_id: req.user.id };
   await col('saas_avocat_requests').updateOne({ id: request.id }, { $push: { deliveries: delivery }, $set: { status: 'livree', updated_at: now } });
   const note = shortText(req.body?.message, 4000);
   if (note) await col('saas_avocat_messages').insertOne({ id: await nextId('saas_avocat_messages'), request_id: request.id, client_id: request.user_id, author_type: 'lawyer', author_id: req.user.id, body: note, created_at: now });
+  sendPortalNotificationEmail(request.user_id, 'Un document est disponible dans votre espace sécurisé', `/saas/dossier-avocat.html?id=${request.id}`).catch(error => console.error('founder notification email error:', error.message));
   res.status(201).json({ delivery, document: publicDoc(doc) });
 });
 
@@ -4545,6 +4843,8 @@ app.post('/api/admin/client-proposals', requireAdmin, async (req, res) => {
   ]);
   if (!lawyer) return res.status(404).json({ error: 'Avocat actif introuvable' });
   if (!client) return res.status(404).json({ error: 'Client fondateur introuvable' });
+  const companyProfile = await companyProfileForUser(clientId);
+  if (!companyEligibility(companyProfile).verified) return res.status(409).json({ error: 'La société doit être vérifiée avant toute proposition à un avocat.', code: 'COMPANY_VERIFICATION_REQUIRED' });
   const duplicate = await col('lawyer_client_proposals').findOne({ lawyer_id: lawyerId, client_id: clientId, status: { $in: ['proposed', 'accepted', 'assigned'] } });
   if (duplicate) return res.status(409).json({ error: 'Une proposition est déjà ouverte pour ce binôme' });
   const now = new Date().toISOString();
@@ -4557,6 +4857,7 @@ app.post('/api/admin/client-proposals/:id/assign', requireAdmin, async (req, res
   const proposal = await col('lawyer_client_proposals').findOne({ id: req.params.id });
   if (!proposal) return res.status(404).json({ error: 'Proposition introuvable' });
   if (proposal.status !== 'accepted') return res.status(409).json({ error: "L’avocat doit accepter la proposition avant l’attribution" });
+  if (!companyEligibility(await companyProfileForUser(proposal.client_id)).verified) return res.status(409).json({ error: 'La société n’est pas vérifiée.', code: 'COMPANY_VERIFICATION_REQUIRED' });
   const now = new Date().toISOString();
   await Promise.all([
     col('lawyer_client_proposals').updateOne({ id: proposal.id }, { $set: { status: 'assigned', assigned_at: now, updated_at: now } }),
@@ -4570,9 +4871,75 @@ app.get('/api/lawyer/client-proposals', requireAuth, requireLawyer, async (req, 
   res.json({ proposals: await proposalsWithStartupNames(proposals) });
 });
 
+app.get('/api/admin/company-verifications', requireAdmin, async (_req, res) => {
+  const profiles = await col('saas_company_legal_profiles').find({}, { projection: { _id: 0 } }).sort({ updated_at: -1 }).toArray();
+  res.json({ companies: profiles.map(profile => ({
+    ...publicCompanyLegalProfile(profile), user_id: profile.user_id,
+    eligibility: companyEligibility(profile),
+  })) });
+});
+
+app.patch('/api/admin/company-verifications/:userId', requireAdmin, async (req, res) => {
+  const userId = Number(req.params.userId);
+  const status = String(req.body?.status || '');
+  if (!['verified', 'rejected'].includes(status)) return res.status(422).json({ error: 'Statut de vérification invalide.' });
+  const profile = await companyProfileForUser(userId);
+  if (!profile) return res.status(404).json({ error: 'Dossier société introuvable.' });
+  const eligibility = companyEligibility(profile);
+  if (status === 'verified' && !eligibility.complete) return res.status(409).json({ error: 'Le dossier société est incomplet.', eligibility });
+  const now = new Date().toISOString();
+  await col('saas_company_legal_profiles').updateOne({ user_id: userId }, { $set: {
+    verification_status: status, verification_note: shortText(req.body?.note, 1000),
+    verified_at: status === 'verified' ? now : null, verified_by: req.user.id, updated_at: now,
+  } });
+  res.json({ success: true, status });
+});
+
+app.get('/api/admin/company-verifications/:userId/evidence', requireAdmin, async (req, res) => {
+  const profile = await companyProfileForUser(req.params.userId);
+  if (!profile?.registration_evidence_document_id) return res.status(404).json({ error: 'Justificatif introuvable.' });
+  const document = await col('saas_company_verification_documents').findOne({ id: profile.registration_evidence_document_id, user_id: Number(req.params.userId) });
+  if (!document) return res.status(404).json({ error: 'Justificatif introuvable.' });
+  const data = toBuffer(document.data);
+  if (!data) return res.status(404).json({ error: 'Fichier indisponible.' });
+  res.setHeader('Content-Type', document.mimetype || 'application/octet-stream');
+  res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(document.name || 'justificatif')}`);
+  res.send(data);
+});
+
+app.get('/api/lawyer/catalogue', requireAuth, requireLawyer, async (req, res) => {
+  res.json({
+    version: LAWYER_CATALOG_VERSION,
+    accepted: Number(req.lawyer.lawyer_catalog_version) === LAWYER_CATALOG_VERSION,
+    prestations: AVOCAT_PRESTATIONS,
+    rules: [
+      'Les prix affichés sont des forfaits fermes hors taxes.',
+      'Aucun supplément ne peut être facturé sans commande expresse d’une prestation complémentaire par le client.',
+      'L’avocat conserve son indépendance juridique et peut refuser une mission pour un motif légal, déontologique, de conflit ou de capacité.',
+      'Les documents et échanges confidentiels restent dans l’espace sécurisé Liquid+ ou utilisent e-Partage du CNB ; les emails ne contiennent aucune pièce jointe.',
+    ],
+  });
+});
+
+app.post('/api/lawyer/catalogue/accept', requireAuth, requireLawyer, async (req, res) => {
+  if (Number(req.body?.version) !== LAWYER_CATALOG_VERSION || req.body?.accepted !== true)
+    return res.status(422).json({ error: 'Vous devez accepter la version actuelle du catalogue.' });
+  const now = new Date().toISOString();
+  await col('users').updateOne({ id: req.user.id }, { $set: { lawyer_catalog_version: LAWYER_CATALOG_VERSION, lawyer_catalog_accepted_at: now } });
+  res.json({ success: true, version: LAWYER_CATALOG_VERSION, accepted_at: now });
+});
+
 app.patch('/api/lawyer/client-proposals/:id', requireAuth, requireLawyer, async (req, res) => {
   const status = String(req.body?.status || '');
   if (!['accepted', 'declined'].includes(status)) return res.status(400).json({ error: 'Réponse invalide' });
+  if (status === 'accepted' && Number(req.lawyer.lawyer_catalog_version) !== LAWYER_CATALOG_VERSION)
+    return res.status(409).json({ error: 'Acceptez d’abord le catalogue Liquid+ et ses prix forfaitaires fermes.', code: 'CATALOG_ACCEPTANCE_REQUIRED' });
+  if (status === 'accepted') {
+    const proposal = await col('lawyer_client_proposals').findOne({ id: req.params.id, lawyer_id: req.user.id, status: 'proposed' });
+    if (!proposal) return res.status(409).json({ error: 'Cette proposition a déjà été traitée' });
+    if (!companyEligibility(await companyProfileForUser(proposal.client_id)).verified)
+      return res.status(409).json({ error: 'Liquid+ doit vérifier la société avant son attribution.', code: 'COMPANY_VERIFICATION_REQUIRED' });
+  }
   const now = new Date().toISOString();
   const nextStatus = status === 'accepted' ? 'assigned' : 'declined';
   const result = await col('lawyer_client_proposals').updateOne(

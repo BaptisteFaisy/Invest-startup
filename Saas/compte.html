@@ -159,7 +159,7 @@
   <script src="auth.js?v=4"></script>
   <script src="theme.js?v=3" defer></script>
   <script src="tasks.js?v=2" defer></script>
-  <script src="drawer-menu.js?v=13" defer></script>
+  <script src="drawer-menu.js?v=14" defer></script>
   <script src="drawer-steps.js?v=3" defer></script>
 </head>
 <body>
@@ -353,6 +353,7 @@
             <div style="flex:1;min-width:0">
               <h3 class="card__title">Authentification à deux facteurs (2FA)</h3>
               <p class="card__desc" style="margin-bottom:0">Protégez votre compte avec Google Authenticator. À chaque connexion, un code à 6 chiffres vous sera demandé en plus de votre mot de passe.</p>
+              <div id="lawyer-2fa-required" class="alert alert--error" hidden style="margin-top:12px"></div>
               <div id="status-badge"></div>
 
               <!-- Flow de configuration -->
@@ -494,6 +495,18 @@
       document.getElementById('profile-email').value = user.email || '';
       if (user.account_types?.includes('avocat')) {
         document.querySelector('.brand').href = '/saas/tableau-de-bord-avocat.html';
+        const notice = document.getElementById('lawyer-2fa-required');
+        notice.textContent = 'La double authentification est obligatoire pour accéder à l’espace avocat. Configurez-la maintenant ; elle ne pourra pas être désactivée tant que votre compte conserve le rôle avocat.';
+        notice.hidden = user.twofa_enabled;
+        document.getElementById('disable-btn').dataset.lockedForLawyer = 'true';
+        if (new URLSearchParams(location.search).get('setup2fa') === 'required') document.querySelector('[data-tab="security"]').click();
+      }
+      if (user.founder_lawyer_2fa_required) {
+        const notice = document.getElementById('lawyer-2fa-required');
+        notice.textContent = 'Votre avocat est attribué. Pour protéger vos documents et vos échanges, activez maintenant la double authentification.';
+        notice.hidden = user.twofa_enabled;
+        document.getElementById('disable-btn').dataset.lockedForLawyer = 'true';
+        if (new URLSearchParams(location.search).get('setup2fa') === 'founder-lawyer') document.querySelector('[data-tab="security"]').click();
       }
       loadAccountStatus(user);
       document.querySelector('.app').classList.add('ready');
@@ -806,7 +819,7 @@
         if (data.enabled) {
           badge.innerHTML = '<span class="badge-on"><svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="#16a34a"/></svg>Activé</span>';
           toggleBtn.style.display  = 'none';
-          disableBtn.style.display = 'inline-flex';
+          disableBtn.style.display = disableBtn.dataset.lockedForLawyer === 'true' ? 'none' : 'inline-flex';
           flow.classList.remove('open');
         } else {
           badge.innerHTML = '<span class="badge-off">Non activé</span>';
@@ -849,7 +862,12 @@
         if (!res.ok) { showAlert('setup-alert', 'error', data.error || 'Code incorrect'); return; }
         showAlert('setup-alert', 'success', '2FA activé avec succès !');
         document.getElementById('totp-confirm-input').value = '';
-        setTimeout(() => { document.getElementById('setup-flow').classList.remove('open'); load2FAStatus(); }, 1200);
+        setTimeout(() => {
+          const setupReason = new URLSearchParams(location.search).get('setup2fa');
+          if (setupReason === 'founder-lawyer') { location.replace('/saas/avocat.html'); return; }
+          if (setupReason === 'required') { location.replace('/saas/tableau-de-bord-avocat.html'); return; }
+          document.getElementById('setup-flow').classList.remove('open'); load2FAStatus();
+        }, 900);
       } catch { showAlert('setup-alert', 'error', 'Impossible de joindre le serveur'); }
       finally { btn.disabled = false; btn.textContent = 'Activer'; }
     });

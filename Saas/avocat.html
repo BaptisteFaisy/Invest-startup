@@ -255,7 +255,7 @@
     .help-pop__label { color: var(--av-text-3); }
   </style>
   <script src="auth.js?v=4"></script>
-  <script src="drawer-menu.js?v=13" defer></script>
+  <script src="drawer-menu.js?v=14" defer></script>
   <script src="drawer-steps.js?v=3" defer></script>
   <script src="help-bulb.js?v=1" defer></script>
 </head>
@@ -335,6 +335,11 @@
         <div class="av-card av-lawyer" id="lawyer-card"><div class="av-empty">Chargement…</div></div>
       </section>
 
+      <section class="av-sec">
+        <div class="av-sec__h"><span class="av-sec__t">Société cliente</span></div>
+        <div class="av-card" id="company-eligibility" style="padding:18px 20px"><div class="av-empty">Chargement…</div></div>
+      </section>
+
       <!-- Vos documents à sécuriser -->
       <section class="av-sec">
         <div class="av-sec__h"><span class="av-sec__t">Vos documents à sécuriser</span></div>
@@ -381,6 +386,8 @@
         <label class="av-field__l" for="req-note">Précisions pour l'avocat (facultatif)</label>
         <textarea class="av-textarea" id="req-note" maxlength="1000" placeholder="Points d'attention, échéance, contexte de la négociation…"></textarea>
       </div>
+      <label class="av-note" style="display:block;margin:12px 0"><input type="checkbox" id="req-personal-interest" /> Cette demande concerne-t-elle personnellement un fondateur (garantie personnelle, cession de titres, vesting/leaver, non-concurrence…) ?</label>
+      <p class="av-note" id="personal-interest-warning" hidden><strong>Hors mission société.</strong> Cette question concerne vos intérêts personnels et n’est pas incluse dans la mission confiée par la société. Un conseil distinct peut être nécessaire.</p>
       <div class="av-err" id="req-err"></div>
       <div class="av-dialog__act">
         <button type="button" class="av-btn av-btn--ghost" data-close-modal="request-modal">Annuler</button>
@@ -423,6 +430,28 @@
     </div>
   </div>
 
+  <div class="av-modal" id="company-modal" hidden>
+    <div class="av-dialog" role="dialog" aria-modal="true" aria-labelledby="company-title">
+      <div class="av-dialog__h" id="company-title">Identifier la société cliente</div>
+      <p class="av-dialog__p">Pour une mission standard, le client de Liquid+, le client de l’avocat, le payeur et le titulaire de l’espace documentaire sont toujours la société.</p>
+      <div class="av-field"><label class="av-field__l" for="company-name">Dénomination *</label><input class="av-input" id="company-name" maxlength="160" /></div>
+      <div class="av-field"><label class="av-field__l" for="company-siren">SIREN *</label><input class="av-input" id="company-siren" inputmode="numeric" maxlength="9" placeholder="9 chiffres" /></div>
+      <div class="av-field"><label class="av-field__l" for="company-form">Forme juridique *</label><select class="av-select" id="company-form"><option value="">Choisir</option><option value="sas">SAS</option><option value="sasu">SASU</option><option value="sarl">SARL</option><option value="eurl">EURL</option><option value="sa">SA</option><option value="sca">SCA</option><option value="snc">SNC</option><option value="scop">SCOP</option><option value="other">Autre</option></select></div>
+      <div class="av-field"><label class="av-field__l" for="company-office">Siège social *</label><input class="av-input" id="company-office" maxlength="300" /></div>
+      <div class="av-field"><label class="av-field__l" for="company-representative">Représentant légal *</label><input class="av-input" id="company-representative" maxlength="160" /></div>
+      <div class="av-field"><label class="av-field__l" for="company-representative-title">Qualité du représentant *</label><input class="av-input" id="company-representative-title" maxlength="120" placeholder="Président, gérant…" /></div>
+      <div class="av-field"><label class="av-field__l" for="company-user-role">Votre qualité *</label><select class="av-select" id="company-user-role"><option value="legal_representative">Je suis le représentant légal</option><option value="authorized_user">Je suis autorisé par le représentant légal</option></select></div>
+      <div class="av-field"><label class="av-field__l" for="company-evidence">Justificatif d’immatriculation *</label><input class="av-input" id="company-evidence" type="file" accept="application/pdf,image/png,image/jpeg" /><small id="company-evidence-current"></small></div>
+      <label class="av-note" style="display:block"><input type="checkbox" id="company-registered" /> Je confirme que la société est immatriculée.</label>
+      <label class="av-note" style="display:block"><input type="checkbox" id="company-authority" /> Je confirme disposer du pouvoir nécessaire pour engager et représenter la société.</label>
+      <label class="av-note" style="display:block"><input type="checkbox" id="company-bo-required" /> Les bénéficiaires effectifs doivent être contrôlés pour cette mission.</label>
+      <label class="av-note" style="display:block"><input type="checkbox" id="company-bo-confirmed" /> Je confirme que les informations relatives aux bénéficiaires effectifs sont exactes et à jour.</label>
+      <label class="av-note" style="display:block"><input type="checkbox" id="company-client-terms" /> J’accepte que la société soit seule cliente de Liquid+ et de l’avocat, seule payeuse et titulaire de l’espace documentaire.</label>
+      <div class="av-err" id="company-err"></div>
+      <div class="av-dialog__act"><button type="button" class="av-btn av-btn--ghost" data-close-modal="company-modal">Annuler</button><button type="button" class="av-btn av-btn--primary" id="company-submit">Soumettre à vérification</button></div>
+    </div>
+  </div>
+
   <script>
     /* ── Utilitaires ─────────────────────────────────────────────── */
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
@@ -436,7 +465,7 @@
       const r = await fetch(path, Object.assign({ credentials: 'include' }, opts || {}));
       let data = {};
       try { data = await r.json(); } catch {}
-      if (!r.ok) throw new Error(data.error || 'Une erreur est survenue.');
+      if (!r.ok) { const error = new Error(data.error || 'Une erreur est survenue.'); error.code = data.code; error.setup_url = data.setup_url; throw error; }
       return data;
     }
     function jsonPut(path, body)  { return api(path, { method: 'PUT',  headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); }
@@ -467,7 +496,7 @@
 
     const STATUS_LABELS = { soumise: 'Soumise', en_cours: 'Relecture en cours', attente_fondateur: 'Réponse attendue', livree: 'Documents remis', cloturee: 'Clôturée', annule: 'Annulée' };
 
-    let STATE = { prestations: [], partners: [], requests: [], mode: 'assigned', partner: null, own_lawyer: null };
+    let STATE = { prestations: [], partners: [], requests: [], mode: 'assigned', partner: null, own_lawyer: null, company: { profile: {}, eligibility: { status: 'incomplete', verified: false } } };
     let DOCS = [];
     let modalPrestaKey = null;
 
@@ -528,7 +557,7 @@
             '<span class="av-presta__price">' + esc(p.price) + '</span>' +
             '<span class="av-presta__delay"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>' + esc(p.delay) + '</span>' +
           '</div>' +
-          '<button type="button" class="av-btn av-btn--primary av-presta__cta" data-presta="' + esc(p.key) + '">Demander une relecture</button>' +
+          '<button type="button" class="av-btn av-btn--primary av-presta__cta" data-presta="' + esc(p.key) + '"' + (STATE.company?.eligibility?.verified ? '' : ' disabled title="Société non vérifiée"') + '>Demander une relecture</button>' +
         '</div>'
       ).join('');
     }
@@ -586,16 +615,34 @@
         return '<div class="av-card av-doc">' +
           '<div class="av-doc__main"><div class="av-doc__name" title="' + esc(d.name) + '">' + esc(d.name) + '</div></div>' +
           '<span class="av-docrisk av-docrisk--' + esc(rk.cls) + '"><span class="av-docrisk__dot"></span>' + esc(rk.label) + '</span>' +
-          '<button type="button" class="av-btn av-btn--ghost av-btn--sm" data-review-doc="' + esc(d.id) + '" data-review-presta="' + esc(d.avocat_presta || 'question') + '">Faire relire</button>' +
+          '<button type="button" class="av-btn av-btn--ghost av-btn--sm" data-review-doc="' + esc(d.id) + '" data-review-presta="' + esc(d.avocat_presta || 'question') + '"' + (STATE.company?.eligibility?.verified ? '' : ' disabled title="Société non vérifiée"') + '>Faire relire</button>' +
         '</div>';
       }).join('');
     }
 
-    function renderAll() { renderLawyer(); renderPrestations(); renderRequests(); }
+    function renderCompanyEligibility() {
+      const box = document.getElementById('company-eligibility');
+      const profile = STATE.company?.profile || {};
+      const eligibility = STATE.company?.eligibility || {};
+      const labels = { verified: 'Vérifiée', pending_review: 'Vérification en attente', incomplete: 'Dossier incomplet' };
+      box.innerHTML = '<div style="display:flex;gap:16px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap"><div><strong>' + esc(profile.company_name || 'Société à identifier') + '</strong>' +
+        (profile.siren ? '<div class="av-note">SIREN ' + esc(profile.siren) + ' · ' + esc(labels[eligibility.status] || eligibility.status) + '</div>' : '<div class="av-note">Aucune mission standard ne peut être transmise avant vérification.</div>') +
+        '<div class="av-note" style="margin-top:8px">Client Liquid+ et avocat : société · payeur : société · documents : espace société.</div></div>' +
+        '<button type="button" class="av-btn ' + (eligibility.verified ? 'av-btn--ghost' : 'av-btn--primary') + ' av-btn--sm" id="edit-company">' + (profile.company_name ? 'Mettre à jour' : 'Compléter le dossier') + '</button></div>' +
+        '<p class="av-note" style="margin-top:12px"><strong>Questions personnelles exclues.</strong> Une garantie personnelle, une cession de titres, le vesting/leaver ou une non-concurrence peuvent nécessiter une convention et un avocat distincts.</p>' +
+        (!profile.siren ? '<p class="av-note"><strong>Société non immatriculée :</strong> les missions avocat standard sont temporairement indisponibles. L’offre distincte « Constitution » sera proposée séparément.</p>' : '');
+      document.getElementById('edit-company').addEventListener('click', openCompanyModal);
+    }
+
+    function renderAll() { renderLawyer(); renderCompanyEligibility(); renderPrestations(); renderRequests(); }
 
     /* ── Chargement ──────────────────────────────────────────────── */
     async function loadOverview() {
-      STATE = await api('/api/saas/avocat/overview');
+      try { STATE = await api('/api/saas/avocat/overview'); }
+      catch (error) {
+        if (error.code === 'FOUNDER_2FA_REQUIRED') { location.replace(error.setup_url || 'compte.html?setup2fa=founder-lawyer'); return; }
+        throw error;
+      }
       renderAll();
     }
     async function loadDocs() {
@@ -608,6 +655,7 @@
     function closeModal(id) { document.getElementById(id).hidden = true; }
 
     function openRequestModal(key, preselectDocId) {
+      if (!STATE.company?.eligibility?.verified) { openCompanyModal(); return; }
       modalPrestaKey = key;
       const p = STATE.prestations.find(x => x.key === key) || {};
       document.getElementById('req-title').textContent = 'Relecture — ' + (p.label || '');
@@ -616,6 +664,9 @@
       document.getElementById('req-note').value = '';
       document.getElementById('req-title-input').value = p.label || 'Relecture juridique';
       document.getElementById('req-due').value = '';
+      document.getElementById('req-personal-interest').checked = false;
+      document.getElementById('personal-interest-warning').hidden = true;
+      document.getElementById('req-submit').disabled = false;
       const sel = document.getElementById('req-doc');
       sel.innerHTML = DOCS.map(d => '<option value="' + esc(d.id) + '">' + esc(d.name || ('Document #' + d.id)) + '</option>').join('');
       // Pré-sélection du document (arrivée depuis « Faire relire » d'un document).
@@ -647,6 +698,7 @@
           title: document.getElementById('req-title-input').value,
           due_date: document.getElementById('req-due').value || null,
           note: document.getElementById('req-note').value,
+          founder_personal_interest: document.getElementById('req-personal-interest').checked,
         });
         closeModal('request-modal');
         await loadOverview();
@@ -672,6 +724,55 @@
       } catch (e) {
         alert(e.message);
       }
+    }
+
+    function openCompanyModal() {
+      const p = STATE.company?.profile || {};
+      document.getElementById('company-name').value = p.company_name || '';
+      document.getElementById('company-siren').value = p.siren || '';
+      document.getElementById('company-form').value = p.legal_form || '';
+      document.getElementById('company-office').value = p.registered_office || '';
+      document.getElementById('company-representative').value = p.legal_representative_name || '';
+      document.getElementById('company-representative-title').value = p.legal_representative_title || '';
+      document.getElementById('company-user-role').value = p.user_role || 'legal_representative';
+      document.getElementById('company-registered').checked = p.registered_confirmed === true;
+      document.getElementById('company-authority').checked = p.user_authority_confirmed === true;
+      document.getElementById('company-bo-required').checked = p.beneficial_owners_required === true;
+      document.getElementById('company-bo-confirmed').checked = p.beneficial_owners_confirmed === true;
+      document.getElementById('company-client-terms').checked = p.company_client_terms_accepted === true;
+      document.getElementById('company-evidence').value = '';
+      document.getElementById('company-evidence-current').textContent = p.registration_evidence?.name ? 'Document actuel : ' + p.registration_evidence.name : '';
+      document.getElementById('company-err').textContent = '';
+      openModal('company-modal');
+    }
+
+    async function submitCompanyProfile() {
+      const btn = document.getElementById('company-submit');
+      const err = document.getElementById('company-err');
+      err.textContent = ''; btn.disabled = true; btn.textContent = 'Transmission…';
+      try {
+        const file = document.getElementById('company-evidence').files[0];
+        if (file) {
+          const form = new FormData(); form.append('file', file);
+          await api('/api/saas/avocat/company-eligibility/evidence', { method: 'POST', body: form });
+        }
+        await jsonPut('/api/saas/avocat/company-eligibility', {
+          company_name: document.getElementById('company-name').value,
+          siren: document.getElementById('company-siren').value,
+          legal_form: document.getElementById('company-form').value,
+          registered_office: document.getElementById('company-office').value,
+          legal_representative_name: document.getElementById('company-representative').value,
+          legal_representative_title: document.getElementById('company-representative-title').value,
+          user_role: document.getElementById('company-user-role').value,
+          registered_confirmed: document.getElementById('company-registered').checked,
+          user_authority_confirmed: document.getElementById('company-authority').checked,
+          beneficial_owners_required: document.getElementById('company-bo-required').checked,
+          beneficial_owners_confirmed: document.getElementById('company-bo-confirmed').checked,
+          company_client_terms_accepted: document.getElementById('company-client-terms').checked,
+        });
+        closeModal('company-modal'); await loadOverview();
+      } catch (e) { err.textContent = e.message; }
+      finally { btn.disabled = false; btn.textContent = 'Soumettre à vérification'; }
     }
 
     function openChooser(focusOwn) {
@@ -770,6 +871,11 @@
         document.getElementById('own-fields').hidden = !document.getElementById('pick-own').checked;
       });
       document.getElementById('req-submit').addEventListener('click', submitRequest);
+      document.getElementById('req-personal-interest').addEventListener('change', (e) => {
+        document.getElementById('personal-interest-warning').hidden = !e.target.checked;
+        document.getElementById('req-submit').disabled = e.target.checked;
+      });
+      document.getElementById('company-submit').addEventListener('click', submitCompanyProfile);
       document.getElementById('chooser-save').addEventListener('click', savePreference);
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') document.querySelectorAll('.av-modal').forEach(m => m.hidden = true);
@@ -784,6 +890,7 @@
     async function init() {
       const user = await requireAuth();
       if (!user) return;
+      if (user.founder_lawyer_2fa_required && !user.twofa_enabled) { location.replace('compte.html?setup2fa=founder-lawyer'); return; }
       // Le compte fait foi (le thème suit l'utilisateur d'un appareil à l'autre) ;
       // sinon on conserve le choix local déjà appliqué par le script du <head>.
       applyTheme((user.theme === 'dark' || user.theme === 'paper') ? user.theme : currentTheme(), false);

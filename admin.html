@@ -171,6 +171,7 @@
         <button type="button" class="lawyer-tab is-active" role="tab" aria-selected="true" data-lawyer-tab="accounts">Comptes</button>
         <button type="button" class="lawyer-tab" role="tab" aria-selected="false" data-lawyer-tab="assignment">Attribution des startups</button>
         <button type="button" class="lawyer-tab" role="tab" aria-selected="false" data-lawyer-tab="changes">Demandes de changement</button>
+        <button type="button" class="lawyer-tab" role="tab" aria-selected="false" data-lawyer-tab="companies">Vérification sociétés</button>
       </div>
 
       <section class="lawyer-panel" data-lawyer-panel="accounts">
@@ -199,6 +200,9 @@
 
       <section class="lawyer-panel" data-lawyer-panel="changes" hidden>
         <div class="proposal-list" id="lawyer-change-request-list"><p class="notice">Chargement…</p></div>
+      </section>
+      <section class="lawyer-panel" data-lawyer-panel="companies" hidden>
+        <div class="proposal-list" id="company-verification-list"><p class="notice">Chargement…</p></div>
       </section>
     </div>
 
@@ -424,7 +428,7 @@
     }
 
     const LAWYER_STATUS_LABELS = { pending:'À valider', active:'Actif', suspended:'Suspendu', rejected:'Refusé' };
-    let adminAdministrators = [], adminLawyers = [], adminFounders = [], adminProposals = [], adminLawyerChangeRequests = [];
+    let adminAdministrators = [], adminLawyers = [], adminFounders = [], adminProposals = [], adminLawyerChangeRequests = [], adminCompanyVerifications = [];
     async function adminJson(url, opts) {
       const r = await fetch(url, Object.assign({ credentials:'include' }, opts || {}));
       const data = await r.json().catch(() => ({}));
@@ -433,9 +437,9 @@
     }
     async function loadLawyerManagement() {
       try {
-        const [a,l,f,p,c] = await Promise.all([adminJson('/api/admin/administrators'), adminJson('/api/admin/lawyers'), adminJson('/api/admin/founders'), adminJson('/api/admin/client-proposals'), adminJson('/api/admin/lawyer-change-requests')]);
-        adminAdministrators=a.administrators||[]; adminLawyers=l.lawyers||[]; adminFounders=f.founders||[]; adminProposals=p.proposals||[]; adminLawyerChangeRequests=c.requests||[];
-        renderAdministrators(); renderStartups(); renderLawyers(); renderProposalForm(); renderProposals(); renderLawyerChangeRequests();
+        const [a,l,f,p,c,v] = await Promise.all([adminJson('/api/admin/administrators'), adminJson('/api/admin/lawyers'), adminJson('/api/admin/founders'), adminJson('/api/admin/client-proposals'), adminJson('/api/admin/lawyer-change-requests'), adminJson('/api/admin/company-verifications')]);
+        adminAdministrators=a.administrators||[]; adminLawyers=l.lawyers||[]; adminFounders=f.founders||[]; adminProposals=p.proposals||[]; adminLawyerChangeRequests=c.requests||[]; adminCompanyVerifications=v.companies||[];
+        renderAdministrators(); renderStartups(); renderLawyers(); renderProposalForm(); renderProposals(); renderLawyerChangeRequests(); renderCompanyVerifications();
       } catch(e) { document.getElementById('lawyer-list').innerHTML='<p class="notice">'+escHtml(e.message)+'</p>'; }
     }
     function renderAdministrators() {
@@ -471,6 +475,14 @@
       if(!adminLawyerChangeRequests.length){el.innerHTML='<p class="notice">Aucune demande de changement d\'avocat.</p>';return;}
       el.innerHTML=adminLawyerChangeRequests.map(r=>`<div class="proposal-row"><div><strong>${escHtml(r.startup_name||r.client_name||r.client_email||'Startup')}</strong><small>Avocat actuel : ${escHtml(r.current_lawyer_name||'Non renseigné')} · ${escHtml(r.reason||'Aucun motif indiqué')} · ${escHtml(r.status||'pending')}</small></div></div>`).join('');
     }
+    function renderCompanyVerifications(){
+      const el=document.getElementById('company-verification-list');
+      if(!adminCompanyVerifications.length){el.innerHTML='<p class="notice">Aucun dossier société soumis.</p>';return;}
+      el.innerHTML=adminCompanyVerifications.map(c=>`<div class="proposal-row"><div><strong>${escHtml(c.company_name||'Société sans nom')}</strong><small>SIREN ${escHtml(c.siren||'—')} · ${escHtml(c.legal_form||'—')} · ${escHtml(c.legal_representative_name||'Représentant non renseigné')} · ${escHtml(c.eligibility?.status||c.verification_status||'incomplete')}</small></div><div class="admin-actions">${c.registration_evidence?`<a class="button" href="/api/admin/company-verifications/${c.user_id}/evidence">Justificatif</a>`:''}<button class="button primary" data-company-verify="${c.user_id}" ${c.verification_status==='verified'?'disabled':''}>Valider</button><button class="button" data-company-reject="${c.user_id}">Refuser</button></div></div>`).join('');
+      el.querySelectorAll('[data-company-verify]').forEach(b=>b.addEventListener('click',()=>reviewCompany(b.dataset.companyVerify,'verified')));
+      el.querySelectorAll('[data-company-reject]').forEach(b=>b.addEventListener('click',()=>reviewCompany(b.dataset.companyReject,'rejected')));
+    }
+    async function reviewCompany(userId,status){const note=prompt(status==='verified'?'Note de validation (facultative)':'Motif du refus');if(note===null)return;try{await adminJson('/api/admin/company-verifications/'+encodeURIComponent(userId),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status,note})});await loadLawyerManagement();}catch(e){alert(e.message);}}
     document.querySelectorAll('[data-lawyer-tab]').forEach(tab=>tab.addEventListener('click',()=>{
       document.querySelectorAll('[data-lawyer-tab]').forEach(item=>{const active=item===tab;item.classList.toggle('is-active',active);item.setAttribute('aria-selected',String(active));});
       document.querySelectorAll('[data-lawyer-panel]').forEach(panel=>{panel.hidden=panel.dataset.lawyerPanel!==tab.dataset.lawyerTab;});
