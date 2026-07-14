@@ -182,8 +182,10 @@
     phases.forEach((f, i) => {
       const s = stats[i];
       const done = s.complete;
-      // « Ma levée » reste visuellement neutre, comme les autres entrées du menu.
-      const isCurrent = i === currentIdx && f.key !== 'mise-en-ordre';
+      // « Ma levée » (classique) et « Préparation » (BSA-AIR) restent visuellement
+      // neutres : pas de fond indigo « étape courante », comme les autres entrées.
+      const isCurrent = i === currentIdx
+        && f.key !== 'mise-en-ordre' && f.key !== 'air-preparation';
       const num = type === 'classic' ? friseStepNumber(f, i) : i + 1;
       const soon = type === 'classic' && CLASSIC_SOON_BADGES.has(f.key);
       const unavailable = type === 'classic' && CLASSIC_UNAVAILABLE.has(f.key);

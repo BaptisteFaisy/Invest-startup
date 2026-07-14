@@ -69,6 +69,7 @@ const DROPBOX_APP_SECRET         = process.env.DROPBOX_APP_SECRET         || '';
 const DAILY_TOKEN_CAP      = Number(process.env.DAILY_TOKEN_CAP) || 5_000_000;
 const FREE_FOUNDER_TOKEN_CAP = 200_000;
 const FOUNDER_TRIAL_MS     = 2 * 60 * 60 * 1000;
+const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 
 const ADMIN_EMAILS = ['baptiste.faisy@gmail.com', 'bg.fsg.invest@gmail.com', 'liquidplus.startups@gmail.com'];
 
@@ -219,6 +220,7 @@ async function deleteUserAccountById(id) {
     col('saas_avocat_requests').deleteMany({ $or: [{ user_id: id }, { lawyer_user_id: id }] }),
     col('lawyer_notifications').deleteMany({ lawyer_id: id }),
     col('saas_avocat_messages').deleteMany({ $or: [{ client_id: id }, { author_id: id }] }),
+    col('saas_avocat_appointments').deleteMany({ $or: [{ client_id: id }, { lawyer_user_id: id }] }),
     col('lawyer_client_proposals').deleteMany({ $or: [{ client_id: id }, { lawyer_id: id }] }),
     col('saas_valuation_estimations').deleteMany({ user_id: id }),
     col('saas_exit_simulations').deleteMany({ user_id: id }),
@@ -421,6 +423,43 @@ app.use(helmet({
 // Limite relevée à 12 Mo : les documents de l'éditeur peuvent embarquer des images
 // en data-URI (signatures manuscrites, images d'un DOCX importé). La valeur par
 // défaut (100 Ko) ferait échouer l'enregistrement de ces documents.
+// Stripe signe le corps HTTP exact : le webhook doit précéder express.json().
+app.post('/api/billing/stripe-webhook', express.raw({ type: 'application/json', limit: '1mb' }), async (req, res) => {
+  if (!STRIPE_WEBHOOK_SECRET) return res.status(503).json({ error: 'Webhook de paiement non configuré' });
+  const signature = String(req.headers['stripe-signature'] || '');
+  const parts = Object.fromEntries(signature.split(',').map(part => part.split('=', 2)));
+  const timestamp = Number(parts.t);
+  if (!timestamp || !parts.v1 || Math.abs(Date.now() / 1000 - timestamp) > 300) return res.status(400).send('Signature invalide');
+  const expected = crypto.createHmac('sha256', STRIPE_WEBHOOK_SECRET).update(`${timestamp}.${req.body.toString('utf8')}`).digest('hex');
+  const received = Buffer.from(parts.v1, 'hex');
+  const wanted = Buffer.from(expected, 'hex');
+  if (received.length !== wanted.length || !crypto.timingSafeEqual(received, wanted)) return res.status(400).send('Signature invalide');
+  let event;
+  try { event = JSON.parse(req.body.toString('utf8')); } catch { return res.status(400).send('Corps invalide'); }
+  const confirmsPayment = event.type === 'checkout.session.completed' || event.type === 'checkout.session.async_payment_succeeded';
+  if (confirmsPayment && event.data?.object?.payment_status === 'paid') {
+    const session = event.data.object;
+    const allowedPaymentLinks = [process.env.STRIPE_PAYMENT_LINK_ID, process.env.STRIPE_PAYMENT_LINK_ID_RAISE_SUMMIT].filter(Boolean);
+    if (allowedPaymentLinks.length && !allowedPaymentLinks.includes(session.payment_link)) return res.status(400).send('Lien de paiement inattendu');
+    const promotion = session.payment_link && session.payment_link === process.env.STRIPE_PAYMENT_LINK_ID_RAISE_SUMMIT ? 'RAISE SUMMIT' : null;
+    const userId = Number(session.client_reference_id || session.metadata?.user_id);
+    if (Number.isInteger(userId) && userId > 0) {
+      const now = new Date().toISOString();
+      if (promotion === 'RAISE SUMMIT') {
+        const commitment = await col('billing_commitments').findOne({ user_id: userId, promotion: 'RAISE SUMMIT', review_commitment: true, linkedin_commitment: true });
+        if (!commitment) return res.status(409).send('Engagement promotionnel introuvable');
+      }
+      await col('billing_payments').updateOne(
+        { provider: 'stripe', provider_event_id: event.id },
+        { $setOnInsert: { provider: 'stripe', provider_event_id: event.id, provider_session_id: session.id, user_id: userId, amount_total: session.amount_total, currency: session.currency, promotion, status: 'paid', paid_at: now } },
+        { upsert: true }
+      );
+      await updateUserById(userId, { subscription_status: 'active', subscription_plan: 'plateforme', subscription_promotion: promotion, subscription_started_at: now, stripe_customer_id: session.customer || null });
+    }
+  }
+  res.json({ received: true });
+});
+
 app.use(express.json({ limit: '12mb' }));
 app.use(cookieParser());
 app.use('/uploads/public', express.static(PUBLIC_IMG_DIR));
@@ -729,15 +768,41 @@ app.get('/api/auth/me', requireAuth, async (req, res) => {
 // environnement. La plateforme ne considère jamais le simple clic comme payé :
 // `subscription_status: active` doit être posé après confirmation du paiement.
 app.post('/api/billing/checkout', requireAuth, async (req, res) => {
-  const plan = req.body?.plan === 'accompagnement' ? 'accompagnement' : 'plateforme';
-  const envName = plan === 'accompagnement' ? 'CHECKOUT_URL_ACCOMPAGNEMENT' : 'CHECKOUT_URL_PLATEFORME';
-  const checkoutUrl = process.env[envName];
+  const user = await col('users').findOne({ id: req.user.id }, { projection: { email: 1, account_types: 1, subscription_status: 1 } });
+  if (!user?.account_types?.includes('fondateur')) return res.status(403).json({ error: 'Le paiement Liquid+ est réservé aux comptes fondateurs.' });
+  if (user.subscription_status === 'active') return res.status(409).json({ error: 'Votre offre Liquid+ est déjà active.' });
+  const promotionCode = String(req.body?.code || '').trim().replace(/\s+/g, ' ').toUpperCase();
+  const usesRaiseSummit = promotionCode === 'RAISE SUMMIT';
+  if (promotionCode && !usesRaiseSummit) return res.status(422).json({ error: 'Code promotionnel invalide.' });
+  if (usesRaiseSummit && (req.body?.review_commitment !== true || req.body?.linkedin_commitment !== true))
+    return res.status(422).json({ error: 'Les deux engagements doivent être acceptés pour utiliser le code RAISE SUMMIT.' });
+  const checkoutUrl = usesRaiseSummit ? process.env.CHECKOUT_URL_RAISE_SUMMIT : process.env.CHECKOUT_URL_PLATEFORME;
   if (!checkoutUrl) return res.status(503).json({ error: 'Le paiement en ligne est en cours d’activation. Contactez-nous pour choisir cette offre.' });
-  const user = await col('users').findOne({ id: req.user.id }, { projection: { email: 1 } });
+  if (usesRaiseSummit) {
+    const acceptedAt = new Date().toISOString();
+    await col('billing_commitments').insertOne({ user_id: req.user.id, promotion: 'RAISE SUMMIT', review_commitment: true, linkedin_commitment: true, accepted_at: acceptedAt });
+    await updateUserById(req.user.id, { raise_summit_commitment_accepted_at: acceptedAt });
+  }
   const url = new URL(checkoutUrl);
   if (user?.email && !url.searchParams.has('prefilled_email')) url.searchParams.set('prefilled_email', user.email);
   if (!url.searchParams.has('client_reference_id')) url.searchParams.set('client_reference_id', String(req.user.id));
   res.json({ checkout_url: url.toString() });
+});
+
+app.get('/api/billing/status', requireAuth, async (req, res) => {
+  const user = await col('users').findOne({ id: req.user.id }, { projection: { account_types: 1, subscription_status: 1, subscription_plan: 1, subscription_started_at: 1 } });
+  if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
+  const isFounder = user.account_types?.includes('fondateur');
+  res.json({
+    role: user.account_types?.includes('avocat') ? 'avocat' : isFounder ? 'fondateur' : 'autre',
+    liquid_plus: isFounder ? {
+      status: user.subscription_status === 'active' ? 'active' : 'inactive',
+      plan: user.subscription_plan || null,
+      started_at: user.subscription_started_at || null,
+      price: { amount: 700, currency: 'EUR', tax: 'HT' },
+    } : null,
+    lawyer_payments_enabled: false,
+  });
 });
 
 async function requireFounderAccess(req, res, next) {
@@ -4163,6 +4228,51 @@ app.post('/api/saas/avocat/requests/:id/messages', requireAuth, requireAssignedF
   res.status(201).json({ message });
 });
 
+app.get('/api/saas/avocat/requests/:id/appointments', requireAuth, requireAssignedFounder2FA, async (req, res) => {
+  const request = await col('saas_avocat_requests').findOne({ id: Number(req.params.id), user_id: req.user.id });
+  if (!request) return res.status(404).json({ error: 'Demande introuvable' });
+  const appointments = await col('saas_avocat_appointments').find(
+    { request_id: request.id, client_id: req.user.id }, { projection: { _id: 0 } },
+  ).sort({ start_at: 1, created_at: 1 }).toArray();
+  res.json({ appointments: appointments.map(publicAppointment), policy: { recording: false, ai_assistant: false, audio_video_stored_by_liquid_plus: false } });
+});
+
+app.post('/api/saas/avocat/requests/:id/appointments', requireAuth, requireAssignedFounder2FA, async (req, res) => {
+  const request = await col('saas_avocat_requests').findOne({ id: Number(req.params.id), user_id: req.user.id });
+  if (!request || request.status === 'annule') return res.status(404).json({ error: 'Demande indisponible' });
+  const provider = String(req.body?.provider || '');
+  if (!LAWYER_APPOINTMENT_PROVIDERS.has(provider)) return res.status(422).json({ error: 'Canal de rendez-vous invalide.' });
+  const startAt = validAppointmentStart(req.body?.start_at);
+  if (!startAt) return res.status(422).json({ error: 'Choisissez une date et une heure futures.' });
+  const duration = Math.min(120, Math.max(15, Number(req.body?.duration_minutes) || 30));
+  if (req.body?.recording_enabled === true || req.body?.ai_assistant_enabled === true)
+    return res.status(422).json({ error: 'L’enregistrement et les assistants IA sont désactivés pour les rendez-vous avocat.' });
+  const now = new Date().toISOString();
+  const appointment = {
+    id: crypto.randomUUID(), request_id: request.id, client_id: req.user.id,
+    lawyer_user_id: request.lawyer_user_id, provider, start_at: startAt,
+    duration_minutes: duration, status: 'requested', created_by: 'founder',
+    recording_enabled: false, ai_assistant_enabled: false, media_stored_by_liquid_plus: false,
+    created_at: now, updated_at: now,
+  };
+  await col('saas_avocat_appointments').insertOne(appointment);
+  await createLawyerNotification(request.lawyer_user_id, 'appointment_requested', 'Nouveau rendez-vous demandé', 'Une société cliente propose un créneau dans son dossier sécurisé.', { request_id: request.id, appointment_id: appointment.id });
+  res.status(201).json({ appointment: publicAppointment(appointment) });
+});
+
+app.patch('/api/saas/avocat/requests/:id/appointments/:appointmentId', requireAuth, requireAssignedFounder2FA, async (req, res) => {
+  const request = await col('saas_avocat_requests').findOne({ id: Number(req.params.id), user_id: req.user.id });
+  if (!request) return res.status(404).json({ error: 'Demande introuvable' });
+  if (req.body?.status !== 'cancelled') return res.status(422).json({ error: 'Seule l’annulation est autorisée.' });
+  const now = new Date().toISOString();
+  const result = await col('saas_avocat_appointments').updateOne(
+    { id: req.params.appointmentId, request_id: request.id, client_id: req.user.id, status: { $in: ['requested', 'scheduled'] } },
+    { $set: { status: 'cancelled', cancelled_by: 'founder', updated_at: now } },
+  );
+  if (!result.matchedCount) return res.status(409).json({ error: 'Ce rendez-vous ne peut plus être annulé.' });
+  res.json({ success: true, status: 'cancelled' });
+});
+
 app.get('/api/lawyer/review-requests', requireAuth, requireLawyer, async (req, res) => {
   const assigned = await col('lawyer_client_proposals').find({ lawyer_id: req.user.id, status: 'assigned' }, { projection: { client_id: 1 } }).toArray();
   const clientIds = assigned.map(a => a.client_id);
@@ -4194,6 +4304,62 @@ app.get('/api/lawyer/review-requests/:id', requireAuth, requireLawyer, async (re
     col('saas_fundraising_profiles').findOne({ user_id: request.user_id }, { projection: { _id: 0, company_name: 1, stage: 1, sector: 1 } }),
   ]);
   res.json({ request: { ...avocatPublicRequest(request), client: client || null, client_profile: profile || null }, messages });
+});
+
+app.get('/api/lawyer/review-requests/:id/appointments', requireAuth, requireLawyer, async (req, res) => {
+  const request = await lawyerRequestFor(req.user.id, req.params.id);
+  if (!request) return res.status(404).json({ error: 'Demande introuvable ou non attribuée' });
+  const appointments = await col('saas_avocat_appointments').find(
+    { request_id: request.id, lawyer_user_id: req.user.id }, { projection: { _id: 0 } },
+  ).sort({ start_at: 1, created_at: 1 }).toArray();
+  res.json({ appointments: appointments.map(publicAppointment), policy: { recording: false, ai_assistant: false, audio_video_stored_by_liquid_plus: false } });
+});
+
+app.post('/api/lawyer/review-requests/:id/appointments', requireAuth, requireLawyer, async (req, res) => {
+  const request = await lawyerRequestFor(req.user.id, req.params.id);
+  if (!request || request.status === 'annule') return res.status(404).json({ error: 'Demande indisponible' });
+  const provider = String(req.body?.provider || '');
+  if (!LAWYER_APPOINTMENT_PROVIDERS.has(provider)) return res.status(422).json({ error: 'Canal de rendez-vous invalide.' });
+  const startAt = validAppointmentStart(req.body?.start_at);
+  if (!startAt) return res.status(422).json({ error: 'Choisissez une date et une heure futures.' });
+  const duration = Math.min(120, Math.max(15, Number(req.body?.duration_minutes) || 30));
+  const joinUrl = validateMeetingUrl(provider, req.body?.join_url);
+  if (joinUrl === null || (provider !== 'phone' && !joinUrl)) return res.status(422).json({ error: provider === 'zoom_e2ee' ? 'Ajoutez un lien Zoom valide.' : 'Ajoutez un lien Google Meet valide.' });
+  if (req.body?.recording_enabled === true || req.body?.ai_assistant_enabled === true)
+    return res.status(422).json({ error: 'L’enregistrement et les assistants IA sont interdits par défaut.' });
+  if (req.body?.security_confirmed !== true) return res.status(422).json({ error: 'Confirmez les paramètres de sécurité du rendez-vous.' });
+  const now = new Date().toISOString();
+  const appointment = {
+    id: crypto.randomUUID(), request_id: request.id, client_id: request.user_id,
+    lawyer_user_id: req.user.id, provider, start_at: startAt, duration_minutes: duration,
+    status: 'scheduled', created_by: 'lawyer', join_url: joinUrl,
+    security_confirmed: true, recording_enabled: false, ai_assistant_enabled: false,
+    media_stored_by_liquid_plus: false, created_at: now, updated_at: now,
+  };
+  await col('saas_avocat_appointments').insertOne(appointment);
+  sendPortalNotificationEmail(request.user_id, 'Un rendez-vous est planifié dans votre dossier juridique', `/saas/dossier-avocat.html?id=${request.id}`).catch(error => console.error('appointment email error:', error.message));
+  res.status(201).json({ appointment: publicAppointment(appointment) });
+});
+
+app.patch('/api/lawyer/review-requests/:id/appointments/:appointmentId', requireAuth, requireLawyer, async (req, res) => {
+  const request = await lawyerRequestFor(req.user.id, req.params.id);
+  if (!request) return res.status(404).json({ error: 'Demande introuvable ou non attribuée' });
+  const appointment = await col('saas_avocat_appointments').findOne({ id: req.params.appointmentId, request_id: request.id, lawyer_user_id: req.user.id });
+  if (!appointment) return res.status(404).json({ error: 'Rendez-vous introuvable.' });
+  const status = String(req.body?.status || '');
+  if (!['scheduled', 'cancelled', 'completed'].includes(status)) return res.status(422).json({ error: 'Statut invalide.' });
+  const set = { status, updated_at: new Date().toISOString() };
+  if (status === 'scheduled') {
+    const provider = String(req.body?.provider || appointment.provider);
+    const startAt = validAppointmentStart(req.body?.start_at || appointment.start_at);
+    const joinUrl = validateMeetingUrl(provider, req.body?.join_url ?? appointment.join_url);
+    if (!LAWYER_APPOINTMENT_PROVIDERS.has(provider) || !startAt || joinUrl === null || (provider !== 'phone' && !joinUrl) || req.body?.security_confirmed !== true)
+      return res.status(422).json({ error: 'Complétez le créneau, le lien et la confirmation de sécurité.' });
+    Object.assign(set, { provider, start_at: startAt, join_url: joinUrl, duration_minutes: Math.min(120, Math.max(15, Number(req.body?.duration_minutes) || appointment.duration_minutes || 30)), security_confirmed: true, recording_enabled: false, ai_assistant_enabled: false, media_stored_by_liquid_plus: false });
+  }
+  await col('saas_avocat_appointments').updateOne({ id: appointment.id }, { $set: set });
+  sendPortalNotificationEmail(request.user_id, 'Un rendez-vous a été mis à jour dans votre dossier juridique', `/saas/dossier-avocat.html?id=${request.id}`).catch(error => console.error('appointment email error:', error.message));
+  res.json({ success: true, status });
 });
 
 app.get('/api/lawyer/review-requests/:id/documents/:docId/editor', requireAuth, requireLawyer, async (req, res) => {

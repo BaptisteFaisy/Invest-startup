@@ -544,6 +544,11 @@ GOOGLE_DRIVE_CLIENT_ID      # Data room : par défaut = GOOGLE_CLIENT_ID (même 
 GOOGLE_DRIVE_CLIENT_SECRET  # Data room : par défaut = GOOGLE_CLIENT_SECRET
 DROPBOX_APP_KEY             # Data room : App key Dropbox (console Dropbox)
 DROPBOX_APP_SECRET          # Data room : App secret Dropbox
+CHECKOUT_URL_PLATEFORME     # Stripe Payment Link du forfait Liquid+ à 700 € HT
+STRIPE_PAYMENT_LINK_ID      # Identifiant plink_... correspondant
+CHECKOUT_URL_RAISE_SUMMIT   # Stripe Payment Link du tarif engagé à 550 € HT
+STRIPE_PAYMENT_LINK_ID_RAISE_SUMMIT # Identifiant plink_... correspondant
+STRIPE_WEBHOOK_SECRET       # Secret whsec_... du webhook /api/billing/stripe-webhook
 BASE_URL              # https://votre-domaine.railway.app ou domaine custom
 JWT_SECRET            # Longue chaîne aléatoire (openssl rand -hex 32)
 ENCRYPTION_KEY         # Clé racine du chiffrement applicatif (min. 32 caractères)
@@ -586,6 +591,11 @@ res.cookie('auth_token', token, {
 | `GOOGLE_DRIVE_CLIENT_SECRET` | Data room | `GOOGLE_CLIENT_SECRET` | |
 | `DROPBOX_APP_KEY` | Data room | — | Si absent, connexion Dropbox indisponible (503). Ajouter `${BASE_URL}/api/saas/dataroom/dropbox/callback` comme redirect URI dans la console Dropbox |
 | `DROPBOX_APP_SECRET` | Data room | — | |
+| `CHECKOUT_URL_PLATEFORME` | Paiement Liquid+ | — | URL du Payment Link Stripe du forfait plateforme |
+| `STRIPE_PAYMENT_LINK_ID` | Paiement Liquid+ | — | Identifiant `plink_...` du même Payment Link, utilisé pour refuser l’activation depuis un autre lien |
+| `CHECKOUT_URL_RAISE_SUMMIT` | Paiement Liquid+ | — | URL du Payment Link Stripe à 550 € HT réservé au code `RAISE SUMMIT` |
+| `STRIPE_PAYMENT_LINK_ID_RAISE_SUMMIT` | Paiement Liquid+ | — | Identifiant `plink_...` du Payment Link à 550 € HT |
+| `STRIPE_WEBHOOK_SECRET` | Paiement Liquid+ | — | Secret du webhook Stripe vers `${BASE_URL}/api/billing/stripe-webhook`, événement `checkout.session.completed` |
 | `BASE_URL` | — | `http://localhost:3000` | Utilisé dans les redirects OAuth |
 | `RESEND_API_KEY` | ✅ en production | — | Clé API Resend utilisée pour envoyer les liens de vérification des adresses email |
 | `EMAIL_FROM` | ✅ en production | — | Expéditeur vérifié, par exemple `Liquid Plus <comptes@votre-domaine.fr>` |
