@@ -12,6 +12,11 @@ data/startups.json
 .kombai/
 design-proposals/
 Saas/_drawer-bar-test.html
+# Scripts de vérification jetables et fichiers générés (visuels, exports Word).
+# Ils n'étaient non suivis que par défaut : listés ici, un `git add -A` ne les
+# embarque plus par mégarde.
+tmp/
+output/
 
 # Config de preview locale (chemins absolus propres à la machine)
 .claude/launch.json
