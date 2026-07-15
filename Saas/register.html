@@ -20,7 +20,9 @@
       .auth-logo span { color:#3b82f6; }
       .auth-card { background:#fff; border-radius:20px; padding:40px 36px; width:100%; box-shadow:0 24px 60px rgba(0,0,0,0.5); }
       .auth-card h1 { font-family:'Libre Franklin',sans-serif; font-size:1.6rem; font-weight:800; letter-spacing:-0.02em; color:#08090c; margin:0 0 6px; }
-      .auth-lead { font-size:0.92rem; color:#6b6b78; margin:0 0 24px; }
+      .auth-lead { font-size:0.92rem; color:#6b6b78; margin:0 0 16px; }
+      .auth-note { background:#d1fae5; border:1px solid rgba(21,128,61,0.22); color:#14532d; border-radius:10px; padding:11px 14px; font-size:0.84rem; line-height:1.5; margin:0 0 24px; }
+      .auth-hint { font-size:0.8rem; font-weight:400; color:#6b6b78; line-height:1.45; }
       .google-btn { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:11px 20px; border-radius:10px; border:1px solid rgba(0,0,0,0.12); background:#fff; color:#08090c; font-family:'Archivo',sans-serif; font-size:0.9rem; font-weight:600; text-decoration:none; transition:background .18s, box-shadow .18s; cursor:pointer; }
       .google-btn:hover { background:#f7f7f7; box-shadow:0 4px 16px rgba(0,0,0,0.08); }
       .auth-divider { display:flex; align-items:center; gap:12px; margin:20px 0; color:#b0b0b8; font-size:0.82rem; }
@@ -52,6 +54,12 @@
       <div class="auth-card">
         <h1>Créer un compte</h1>
         <p class="auth-lead">Rejoignez les fondateurs qui gèrent leur juridique en autonomie.</p>
+
+        <p class="auth-note">
+          Un compte correspond à <strong>une startup</strong>, pas à une personne.
+          Si vous avez des co-fondateurs, nous vous recommandons de choisir un mot de passe
+          que vous acceptez de partager avec eux : vous vous connecterez tous au même compte.
+        </p>
 
         <div id="auth-error"   class="auth-alert auth-alert--error"   role="alert"  hidden></div>
         <div id="auth-success" class="auth-alert auth-alert--success" role="status" hidden></div>
@@ -86,6 +94,7 @@
               </button>
             </div>
             <div class="pw-strength" id="pw-strength" aria-live="polite"></div>
+            <span class="auth-hint">À partager avec vos co-fondateurs s'il y en a.</span>
           </label>
           <label class="auth-field">
             <span>Confirmer le mot de passe</span>
