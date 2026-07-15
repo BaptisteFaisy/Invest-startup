@@ -179,6 +179,9 @@ async function connectDB() {
   const migrated = await documentEncryption.migrateExistingDocuments(db);
   const migratedCount = Object.values(migrated).reduce((sum, count) => sum + count, 0);
   if (migratedCount) console.log(`  ✓  ${migratedCount} document(s) existant(s) chiffré(s)`);
+  // Registre d'essai fondateur : persiste au-delà de la suppression du compte
+  // pour empêcher qu'un même email récupère 2 h gratuites en se réinscrivant.
+  await db.collection('founder_trial_ledger').createIndex({ email_hash: 1 }, { unique: true });
   console.log('  ✓  MongoDB connecté');
 }
 
@@ -541,6 +544,38 @@ function publicAuthUser(user) {
   };
 }
 
+// ─── Registre d'essai fondateur (anti-réinscription) ──────────────────────────
+// Un fondateur qui supprime son compte puis se réinscrit avec le même email ne
+// doit PAS récupérer 2 h neuves. On garde donc, hors du document `users`
+// (supprimé avec le compte), une trace du temps d'essai déjà consommé, indexée
+// par un hash de l'email (aucun email en clair conservé après suppression).
+function founderTrialEmailHash(email) {
+  return crypto.createHmac('sha256', JWT_SECRET)
+    .update('founder-trial:' + String(email || '').trim().toLowerCase())
+    .digest('hex');
+}
+
+async function getFounderTrialLedger(email) {
+  if (!email) return null;
+  return col('founder_trial_ledger').findOne({ email_hash: founderTrialEmailHash(email) });
+}
+
+// Enregistre le temps consommé de façon monotone ($max) : la réinscription
+// reprend toujours au pire cumul déjà atteint pour cet email.
+async function syncFounderTrialLedger(email, { trial_started_at, trial_used_ms, trial_last_seen_at } = {}) {
+  if (!email) return;
+  const now = new Date().toISOString();
+  await col('founder_trial_ledger').updateOne(
+    { email_hash: founderTrialEmailHash(email) },
+    {
+      $max: { trial_used_ms: Math.min(FOUNDER_TRIAL_MS, Math.max(0, Number(trial_used_ms) || 0)) },
+      $set: { trial_last_seen_at: trial_last_seen_at || now, updated_at: now },
+      $setOnInsert: { trial_started_at: trial_started_at || now, first_seen_at: now },
+    },
+    { upsert: true },
+  );
+}
+
 function founderAccess(user, now = Date.now()) {
   const isFounder = Array.isArray(user?.account_types) && user.account_types.includes('fondateur');
   if (!isFounder || ADMIN_EMAILS.includes(user?.email)) return { status: 'active', blocked: false };
@@ -566,6 +601,11 @@ async function touchFounderTrial(user, now = Date.now()) {
   user.trial_used_ms = Math.min(FOUNDER_TRIAL_MS, Math.max(0, Number(user.trial_used_ms) || 0) + elapsed);
   user.trial_last_seen_at = new Date(now).toISOString();
   await updateUserById(user.id, { trial_used_ms: user.trial_used_ms, trial_last_seen_at: user.trial_last_seen_at });
+  await syncFounderTrialLedger(user.email, {
+    trial_started_at: user.trial_started_at,
+    trial_used_ms: user.trial_used_ms,
+    trial_last_seen_at: user.trial_last_seen_at,
+  });
   return user;
 }
 
@@ -729,14 +769,24 @@ app.post('/api/auth/account-type', requireAuth, async (req, res) => {
     : [];
   if (clean.length === 0)
     return res.status(400).json({ error: 'Sélectionnez au moins un type de compte' });
-  const current = await col('users').findOne({ id: req.user.id }, { projection: { trial_started_at: 1 } });
+  const current = await col('users').findOne({ id: req.user.id }, { projection: { trial_started_at: 1, email: 1 } });
   const updates = { account_types: clean };
   if (clean.includes('fondateur') && !current?.trial_started_at) {
-    updates.trial_started_at = new Date().toISOString();
-    updates.trial_last_seen_at = updates.trial_started_at;
-    updates.trial_used_ms = 0;
+    const email = current?.email || req.user.email;
+    // Réinscription : on repart du temps déjà consommé (0 h restante si l'essai
+    // avait été épuisé sous un compte précédent portant le même email).
+    const ledger = await getFounderTrialLedger(email);
+    const now = new Date().toISOString();
+    updates.trial_started_at = ledger?.trial_started_at || now;
+    updates.trial_last_seen_at = now;
+    updates.trial_used_ms = Math.min(FOUNDER_TRIAL_MS, Math.max(0, Number(ledger?.trial_used_ms) || 0));
     // Affichée après l'onboarding de levée, lors de la première arrivée dans le SaaS.
     updates.welcome_offer_pending = true;
+    await syncFounderTrialLedger(email, {
+      trial_started_at: updates.trial_started_at,
+      trial_used_ms: updates.trial_used_ms,
+      trial_last_seen_at: now,
+    });
   }
   await updateUserById(req.user.id, updates);
   res.json({ success: true, account_types: clean });
