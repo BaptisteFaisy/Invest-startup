@@ -53,6 +53,9 @@ test('la configuration email de production complète est acceptée', () => {
     BASE_URL: 'https://www.liquidplus.fr',
     RESEND_API_KEY: 're_test',
     EMAIL_FROM: 'Liquid Plus <comptes@liquidplus.fr>',
+    STRIPE_SECRET_KEY: 'sk_test_example',
+    STRIPE_WEBHOOK_SECRET: 'whsec_platform',
+    STRIPE_CONNECT_WEBHOOK_SECRET: 'whsec_connect',
   });
 
   assert.deepEqual(problems, []);

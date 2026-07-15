@@ -23,10 +23,22 @@ const ExcelJS          = require('exceljs');
 const { google }       = require('googleapis');
 const { Dropbox }      = require('dropbox');
 const archiver         = require('archiver');
+const Stripe           = require('stripe');
 const { createDocumentEncryption } = require('./lib/document-encryption');
 const { buildAdminDashboardStats, countUnreadAdminMessages } = require('./lib/admin-dashboard');
 const { adminLiquidPayment, adminTrialProgress } = require('./lib/admin-payments');
 const { productionConfigurationProblems } = require('./lib/runtime-config');
+const {
+  LIQUID_PLUS_STANDARD_PRICE_CENTS,
+  LIQUID_PLUS_PROMO_PRICE_CENTS,
+  LIQUID_PLUS_ACCESS_CURRENCY,
+  liquidPlusAccessAmountCents,
+  parseEuroAmountToCents,
+  isValidLawyerAmountCents,
+  publicLawyerPayment,
+  isPaidStripeCheckoutSession,
+  stripeObjectId,
+} = require('./lib/payments');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -72,8 +84,14 @@ const DROPBOX_APP_SECRET         = process.env.DROPBOX_APP_SECRET         || '';
 const DAILY_TOKEN_CAP      = Number(process.env.DAILY_TOKEN_CAP) || 5_000_000;
 const FREE_FOUNDER_TOKEN_CAP = 200_000;
 const FOUNDER_TRIAL_MS     = 2 * 60 * 60 * 1000;
+const STRIPE_SECRET_KEY    = process.env.STRIPE_SECRET_KEY || '';
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
-const LIQUID_PLUS_STANDARD_PRICE_EUR = 600;
+// Webhook DISTINCT (secret différent) pour les événements des comptes connectés
+// des cabinets d'avocats (paiements directs des honoraires — voir Stripe Connect).
+const STRIPE_CONNECT_WEBHOOK_SECRET = process.env.STRIPE_CONNECT_WEBHOOK_SECRET || '';
+const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
+const LIQUID_PLUS_STANDARD_PRICE_EUR = LIQUID_PLUS_STANDARD_PRICE_CENTS / 100;
+const LIQUID_PLUS_PROMO_PRICE_EUR = LIQUID_PLUS_PROMO_PRICE_CENTS / 100;
 
 const ADMIN_EMAILS = ['baptiste.faisy@gmail.com', 'bg.fsg.invest@gmail.com', 'liquidplus.startups@gmail.com'];
 
@@ -187,7 +205,33 @@ async function connectDB() {
   // Registre d'essai fondateur : persiste au-delà de la suppression du compte
   // pour empêcher qu'un même email récupère 2 h gratuites en se réinscrivant.
   await db.collection('founder_trial_ledger').createIndex({ email_hash: 1 }, { unique: true });
+  await ensurePaymentIndexes();
   console.log('  ✓  MongoDB connecté');
+}
+
+// Index garantissant l'unicité des sessions/paiements Stripe : un même paiement ne
+// peut jamais être comptabilisé deux fois, même si Stripe rejoue un webhook.
+async function ensurePaymentIndexes() {
+  await Promise.all([
+    db.collection('billing_checkout_sessions').createIndex(
+      { provider_session_id: 1 },
+      { unique: true, partialFilterExpression: { provider_session_id: { $type: 'string' } }, name: 'stripe_session_unique' },
+    ),
+    db.collection('billing_payments').createIndex(
+      { provider: 1, provider_session_id: 1 },
+      { unique: true, partialFilterExpression: { provider_session_id: { $type: 'string' } }, name: 'stripe_payment_session_unique' },
+    ),
+    db.collection('lawyer_payment_requests').createIndex(
+      { id: 1 }, { unique: true, name: 'lawyer_payment_id_unique' },
+    ),
+    db.collection('lawyer_payment_requests').createIndex(
+      { request_id: 1 }, { unique: true, name: 'lawyer_payment_request_unique' },
+    ),
+    db.collection('saas_lawyer_profiles').createIndex(
+      { stripe_connect_account_id: 1 },
+      { unique: true, partialFilterExpression: { stripe_connect_account_id: { $type: 'string' } }, name: 'stripe_connect_account_unique' },
+    ),
+  ]);
 }
 
 function col(name) { return documentEncryption.wrapCollection(name, db.collection(name)); }
@@ -430,40 +474,245 @@ app.use(helmet({
 // en data-URI (signatures manuscrites, images d'un DOCX importé). La valeur par
 // défaut (100 Ko) ferait échouer l'enregistrement de ces documents.
 // Stripe signe le corps HTTP exact : le webhook doit précéder express.json().
-app.post('/api/billing/stripe-webhook', express.raw({ type: 'application/json', limit: '1mb' }), async (req, res) => {
-  if (!STRIPE_WEBHOOK_SECRET) return res.status(503).json({ error: 'Webhook de paiement non configuré' });
-  const signature = String(req.headers['stripe-signature'] || '');
-  const parts = Object.fromEntries(signature.split(',').map(part => part.split('=', 2)));
-  const timestamp = Number(parts.t);
-  if (!timestamp || !parts.v1 || Math.abs(Date.now() / 1000 - timestamp) > 300) return res.status(400).send('Signature invalide');
-  const expected = crypto.createHmac('sha256', STRIPE_WEBHOOK_SECRET).update(`${timestamp}.${req.body.toString('utf8')}`).digest('hex');
-  const received = Buffer.from(parts.v1, 'hex');
-  const wanted = Buffer.from(expected, 'hex');
-  if (received.length !== wanted.length || !crypto.timingSafeEqual(received, wanted)) return res.status(400).send('Signature invalide');
-  let event;
-  try { event = JSON.parse(req.body.toString('utf8')); } catch { return res.status(400).send('Corps invalide'); }
-  const confirmsPayment = event.type === 'checkout.session.completed' || event.type === 'checkout.session.async_payment_succeeded';
-  if (confirmsPayment && event.data?.object?.payment_status === 'paid') {
-    const session = event.data.object;
+// La vérification de signature utilise le SDK officiel (constructEvent), qui
+// contrôle aussi la fraîcheur de l'horodatage.
+function stripeEventFromRequest(req, secret) {
+  if (!stripe || !secret) return null;
+  return stripe.webhooks.constructEvent(
+    req.body,
+    String(req.headers['stripe-signature'] || ''),
+    secret,
+  );
+}
+
+// Active l'accès Liquid+ après un paiement confirmé. Le montant est revalidé
+// contre la session en attente enregistrée à la création du Checkout : une
+// altération du montant côté client rendrait le paiement invalide.
+async function handleLiquidPlusStripeEvent(event) {
+  const session = event.data?.object;
+  const confirmsPayment = event.type === 'checkout.session.completed'
+    || event.type === 'checkout.session.async_payment_succeeded';
+
+  if (confirmsPayment && isPaidStripeCheckoutSession(session)) {
+    const isServerAccess = session.metadata?.payment_kind === 'liquid_plus_access';
+    // Rétro-compatibilité : d'anciens Payment Links restent acceptés s'ils sont
+    // explicitement configurés dans l'environnement.
     const allowedPaymentLinks = [process.env.STRIPE_PAYMENT_LINK_ID, process.env.STRIPE_PAYMENT_LINK_ID_RAISE_SUMMIT].filter(Boolean);
-    if (allowedPaymentLinks.length && !allowedPaymentLinks.includes(session.payment_link)) return res.status(400).send('Lien de paiement inattendu');
-    const promotion = session.payment_link && session.payment_link === process.env.STRIPE_PAYMENT_LINK_ID_RAISE_SUMMIT ? 'RAISE SUMMIT' : null;
+    const isLegacyPaymentLink = !!session.payment_link && allowedPaymentLinks.includes(session.payment_link);
+    if (!isServerAccess && !isLegacyPaymentLink) throw new Error('Checkout Liquid+ inattendu');
+
     const userId = Number(session.client_reference_id || session.metadata?.user_id);
-    if (Number.isInteger(userId) && userId > 0) {
-      const now = new Date().toISOString();
-      if (promotion === 'RAISE SUMMIT') {
-        const commitment = await col('billing_commitments').findOne({ user_id: userId, promotion: 'RAISE SUMMIT', review_commitment: true, linkedin_commitment: true });
-        if (!commitment) return res.status(409).send('Engagement promotionnel introuvable');
-      }
-      await col('billing_payments').updateOne(
-        { provider: 'stripe', provider_event_id: event.id },
-        { $setOnInsert: { provider: 'stripe', provider_event_id: event.id, provider_session_id: session.id, user_id: userId, amount_total: session.amount_total, currency: session.currency, promotion, status: 'paid', paid_at: now } },
-        { upsert: true }
+    if (!Number.isInteger(userId) || userId <= 0) throw new Error('Utilisateur Liquid+ invalide');
+
+    let promotion = null;
+    if (isServerAccess) {
+      const pending = await col('billing_checkout_sessions').findOne({
+        provider: 'stripe', provider_session_id: session.id, user_id: userId,
+      });
+      if (!pending) throw new Error('Checkout Liquid+ non enregistré');
+      if (session.amount_total !== pending.amount_total
+        || String(session.currency).toLowerCase() !== LIQUID_PLUS_ACCESS_CURRENCY)
+        throw new Error('Montant Liquid+ inattendu');
+      promotion = pending.promotion || null;
+    } else {
+      promotion = session.payment_link === process.env.STRIPE_PAYMENT_LINK_ID_RAISE_SUMMIT ? 'RAISE SUMMIT' : null;
+    }
+
+    if (promotion === 'RAISE SUMMIT') {
+      const commitment = await col('billing_commitments').findOne({
+        user_id: userId, promotion: 'RAISE SUMMIT', review_commitment: true, linkedin_commitment: true,
+      });
+      if (!commitment) throw new Error('Engagement promotionnel introuvable');
+    }
+
+    const now = new Date().toISOString();
+    await col('billing_payments').updateOne(
+      { provider: 'stripe', provider_session_id: session.id },
+      {
+        $setOnInsert: {
+          provider: 'stripe', provider_session_id: session.id, user_id: userId,
+          payment_kind: 'liquid_plus_access', amount_total: session.amount_total,
+          currency: String(session.currency).toLowerCase(), promotion,
+        },
+        $set: {
+          provider_event_id: event.id,
+          provider_payment_intent_id: stripeObjectId(session.payment_intent),
+          status: 'paid', paid_at: now, updated_at: now,
+        },
+      },
+      { upsert: true },
+    );
+    if (isServerAccess) {
+      await col('billing_checkout_sessions').updateOne(
+        { provider_session_id: session.id },
+        { $set: { status: 'paid', paid_at: now, updated_at: now } },
       );
-      await updateUserById(userId, { subscription_status: 'active', subscription_plan: 'plateforme', subscription_promotion: promotion, subscription_started_at: now, stripe_customer_id: session.customer || null });
+    }
+    await updateUserById(userId, {
+      liquid_plus_access_status: 'paid',
+      liquid_plus_access_paid_at: now,
+      subscription_status: 'active', // compat avec founderAccess() existant
+      subscription_plan: 'plateforme',
+      subscription_promotion: promotion,
+      subscription_started_at: now,
+      stripe_customer_id: session.customer || null,
+    });
+  }
+
+  if (event.type === 'checkout.session.expired' || event.type === 'checkout.session.async_payment_failed') {
+    await col('billing_checkout_sessions').updateOne(
+      { provider_session_id: session?.id, status: 'pending' },
+      { $set: { status: event.type === 'checkout.session.expired' ? 'expired' : 'failed', updated_at: new Date().toISOString() } },
+    );
+  }
+
+  if (event.type === 'charge.refunded' || event.type === 'charge.dispute.created') {
+    const charge = event.data?.object;
+    const payment = await col('billing_payments').findOne({
+      provider: 'stripe', provider_payment_intent_id: stripeObjectId(charge?.payment_intent),
+    });
+    if (payment) {
+      const now = new Date().toISOString();
+      const fullyRefunded = charge?.refunded === true;
+      const status = event.type === 'charge.refunded'
+        ? (fullyRefunded ? 'refunded' : 'partially_refunded')
+        : 'disputed';
+      await col('billing_payments').updateOne(
+        { provider: 'stripe', provider_session_id: payment.provider_session_id },
+        { $set: { status, [`${status}_at`]: now, updated_at: now } },
+      );
+      // Un remboursement total ou un litige suspend l'accès ; un remboursement
+      // partiel laisse l'accès actif.
+      if (status !== 'partially_refunded') {
+        await updateUserById(payment.user_id, {
+          liquid_plus_access_status: status,
+          subscription_status: 'inactive',
+          subscription_suspended_at: now,
+        });
+      }
     }
   }
-  res.json({ received: true });
+}
+
+app.post('/api/billing/stripe-webhook', express.raw({ type: 'application/json', limit: '1mb' }), async (req, res) => {
+  if (!stripe || !STRIPE_WEBHOOK_SECRET) return res.status(503).send('Webhook de paiement non configuré');
+  let event;
+  try { event = stripeEventFromRequest(req, STRIPE_WEBHOOK_SECRET); }
+  catch { return res.status(400).send('Signature Stripe invalide'); }
+  try { await handleLiquidPlusStripeEvent(event); }
+  catch (error) {
+    console.error('Stripe Liquid+ webhook:', error.message);
+    return res.status(400).send('Événement Stripe refusé');
+  }
+  return res.json({ received: true });
+});
+
+// ─── Webhook Stripe Connect (comptes connectés des cabinets d'avocats) ──────────
+// Événements des comptes connectés : mise à jour du statut d'onboarding et
+// confirmation des paiements d'honoraires (charge directe sur le compte du
+// cabinet, sans commission Liquid+). Secret DISTINCT du webhook plateforme.
+async function handleConnectedStripeEvent(event) {
+  const connectedAccountId = String(event.account || '');
+  const object = event.data?.object;
+  if (!connectedAccountId) throw new Error('Compte connecté absent');
+
+  if (event.type === 'account.updated') {
+    const accountId = String(object?.id || connectedAccountId);
+    await col('saas_lawyer_profiles').updateOne(
+      { stripe_connect_account_id: accountId },
+      { $set: {
+        stripe_charges_enabled: object?.charges_enabled === true,
+        stripe_payouts_enabled: object?.payouts_enabled === true,
+        stripe_details_submitted: object?.details_submitted === true,
+        stripe_requirements_currently_due: object?.requirements?.currently_due || [],
+        stripe_connect_updated_at: new Date().toISOString(),
+      } },
+    );
+  }
+
+  const confirmsPayment = event.type === 'checkout.session.completed'
+    || event.type === 'checkout.session.async_payment_succeeded';
+  if (confirmsPayment && isPaidStripeCheckoutSession(object) && object.metadata?.payment_kind === 'lawyer_fee') {
+    const payment = await col('lawyer_payment_requests').findOne({
+      id: object.metadata?.lawyer_payment_id,
+      request_id: Number(object.metadata?.request_id),
+      stripe_connect_account_id: connectedAccountId,
+    });
+    if (!payment
+      || payment.stripe_checkout_session_id !== object.id
+      || payment.amount_total !== object.amount_total
+      || payment.currency !== String(object.currency).toLowerCase())
+      throw new Error('Paiement avocat incohérent');
+    const now = new Date().toISOString();
+    const paid = await col('lawyer_payment_requests').updateOne(
+      { id: payment.id, status: { $in: ['awaiting_payment', 'checkout_open', 'paid'] } },
+      { $set: {
+        status: 'paid', paid_at: now, updated_at: now,
+        stripe_payment_intent_id: stripeObjectId(object.payment_intent),
+        stripe_checkout_session_id: object.id, provider_event_id: event.id,
+      } },
+    );
+    if (paid.matchedCount) {
+      await col('saas_avocat_requests').updateOne(
+        { id: payment.request_id, user_id: payment.client_id, lawyer_user_id: payment.lawyer_id },
+        { $set: { lawyer_payment_status: 'paid', lawyer_payment_paid_at: now, updated_at: now } },
+      );
+    }
+  }
+
+  if (event.type === 'checkout.session.expired' || event.type === 'checkout.session.async_payment_failed') {
+    const payment = await col('lawyer_payment_requests').findOne({
+      stripe_checkout_session_id: object?.id, stripe_connect_account_id: connectedAccountId,
+    });
+    if (payment?.status === 'checkout_open') {
+      const now = new Date().toISOString();
+      await col('lawyer_payment_requests').updateOne(
+        { id: payment.id, status: 'checkout_open' },
+        { $set: { status: 'awaiting_payment', updated_at: now }, $unset: { stripe_checkout_session_id: '' } },
+      );
+      await col('saas_avocat_requests').updateOne(
+        { id: payment.request_id },
+        { $set: { lawyer_payment_status: 'awaiting_payment', updated_at: now } },
+      );
+    }
+  }
+
+  if (event.type === 'charge.refunded' || event.type === 'charge.dispute.created') {
+    const payment = await col('lawyer_payment_requests').findOne({
+      stripe_payment_intent_id: stripeObjectId(object?.payment_intent), stripe_connect_account_id: connectedAccountId,
+    });
+    if (payment) {
+      const now = new Date().toISOString();
+      const status = event.type === 'charge.refunded'
+        ? (object?.refunded === true ? 'refunded' : 'partially_refunded')
+        : 'disputed';
+      await col('lawyer_payment_requests').updateOne(
+        { id: payment.id },
+        { $set: {
+          status,
+          amount_refunded: event.type === 'charge.refunded' ? (Number(object?.amount_refunded) || 0) : (payment.amount_refunded || 0),
+          [`${status}_at`]: now, updated_at: now, provider_event_id: event.id,
+        } },
+      );
+      await col('saas_avocat_requests').updateOne(
+        { id: payment.request_id },
+        { $set: { lawyer_payment_status: status, updated_at: now } },
+      );
+    }
+  }
+}
+
+app.post('/api/payments/stripe-connect-webhook', express.raw({ type: 'application/json', limit: '1mb' }), async (req, res) => {
+  if (!stripe || !STRIPE_CONNECT_WEBHOOK_SECRET) return res.status(503).send('Webhook Stripe Connect non configuré');
+  let event;
+  try { event = stripeEventFromRequest(req, STRIPE_CONNECT_WEBHOOK_SECRET); }
+  catch { return res.status(400).send('Signature Stripe invalide'); }
+  try { await handleConnectedStripeEvent(event); }
+  catch (error) {
+    console.error('Stripe Connect webhook:', error.message);
+    return res.status(400).send('Événement Stripe Connect refusé');
+  }
+  return res.json({ received: true });
 });
 
 app.use(express.json({ limit: '12mb' }));
@@ -873,47 +1122,128 @@ app.post('/api/billing/welcome-offer/dismiss', requireAuth, async (req, res) => 
 });
 
 app.post('/api/billing/checkout', requireAuth, async (req, res) => {
-  const user = await col('users').findOne({ id: req.user.id }, { projection: { email: 1, account_types: 1, subscription_status: 1 } });
+  const user = await col('users').findOne({ id: req.user.id }, {
+    projection: { email: 1, account_types: 1, subscription_status: 1, liquid_plus_access_status: 1, stripe_customer_id: 1 },
+  });
   if (!user?.account_types?.includes('fondateur')) return res.status(403).json({ error: 'Le paiement Liquid+ est réservé aux comptes fondateurs.' });
-  if (user.subscription_status === 'active') return res.status(409).json({ error: 'Votre offre Liquid+ est déjà active.' });
+  if (user.subscription_status === 'active' || user.liquid_plus_access_status === 'paid')
+    return res.status(409).json({ error: 'Votre accès Liquid+ est déjà actif.' });
+  if (['refunded', 'disputed'].includes(user.liquid_plus_access_status))
+    return res.status(409).json({ error: 'Votre paiement Liquid+ doit être régularisé avec notre équipe avant une nouvelle tentative.' });
+
   const promotionCode = String(req.body?.code || '').trim().replace(/\s+/g, ' ').toUpperCase();
   const usesRaiseSummit = promotionCode === 'RAISE SUMMIT';
   if (promotionCode && !usesRaiseSummit) return res.status(422).json({ error: 'Code promotionnel invalide.' });
   if (usesRaiseSummit && (req.body?.review_commitment !== true || req.body?.linkedin_commitment !== true))
     return res.status(422).json({ error: 'Les deux engagements doivent être acceptés pour utiliser le code RAISE SUMMIT.' });
-  const checkoutUrl = usesRaiseSummit ? process.env.CHECKOUT_URL_RAISE_SUMMIT : process.env.CHECKOUT_URL_PLATEFORME;
-  if (!checkoutUrl) return res.status(503).json({ error: 'Le paiement en ligne est en cours d’activation. Contactez-nous pour choisir cette offre.' });
+
+  if (!stripe || !STRIPE_WEBHOOK_SECRET)
+    return res.status(503).json({ error: 'Le paiement en ligne est en cours d’activation. Contactez-nous pour choisir cette offre.' });
+
+  const promotion = usesRaiseSummit ? 'RAISE SUMMIT' : null;
+  const amountCents = liquidPlusAccessAmountCents({ promotion });
+
   if (usesRaiseSummit) {
     const acceptedAt = new Date().toISOString();
     await col('billing_commitments').insertOne({ user_id: req.user.id, promotion: 'RAISE SUMMIT', review_commitment: true, linkedin_commitment: true, accepted_at: acceptedAt });
     await updateUserById(req.user.id, { raise_summit_commitment_accepted_at: acceptedAt });
   }
-  const url = new URL(checkoutUrl);
-  if (user?.email && !url.searchParams.has('prefilled_email')) url.searchParams.set('prefilled_email', user.email);
-  if (!url.searchParams.has('client_reference_id')) url.searchParams.set('client_reference_id', String(req.user.id));
-  // Le checkout est disponible pendant l'essai ; une redirection réussie clôt
-  // simplement la proposition de bienvenue, même si le paiement est abandonné.
-  await updateUserById(req.user.id, { welcome_offer_pending: false, welcome_offer_checkout_at: new Date().toISOString() });
-  res.json({ checkout_url: url.toString() });
+
+  // Réutilise une session ouverte si son montant correspond encore (évite d'en
+  // multiplier lors de clics répétés) ; sinon la marque périmée avant d'en créer.
+  const existing = await col('billing_checkout_sessions').findOne(
+    { user_id: req.user.id, payment_kind: 'liquid_plus_access', status: 'pending' },
+    { sort: { created_at: -1 } },
+  );
+  if (existing?.provider_session_id) {
+    try {
+      const openSession = await stripe.checkout.sessions.retrieve(existing.provider_session_id);
+      if (openSession.status === 'open' && openSession.url && openSession.amount_total === amountCents)
+        return res.json({ checkout_url: openSession.url });
+      if (openSession.payment_status === 'paid')
+        return res.status(409).json({ error: 'Paiement reçu, activation de votre accès en cours.' });
+      await col('billing_checkout_sessions').updateOne(
+        { provider_session_id: existing.provider_session_id, status: 'pending' },
+        { $set: { status: 'superseded', updated_at: new Date().toISOString() } },
+      );
+    } catch {
+      await col('billing_checkout_sessions').updateOne(
+        { provider_session_id: existing.provider_session_id, status: 'pending' },
+        { $set: { status: 'unavailable', updated_at: new Date().toISOString() } },
+      );
+    }
+  }
+
+  const now = new Date().toISOString();
+  const metadata = { payment_kind: 'liquid_plus_access', user_id: String(req.user.id), promotion: promotion || '' };
+  const session = await stripe.checkout.sessions.create({
+    mode: 'payment',
+    locale: 'fr',
+    client_reference_id: String(req.user.id),
+    ...(user.stripe_customer_id ? { customer: user.stripe_customer_id } : { customer_email: user.email }),
+    line_items: [{
+      quantity: 1,
+      price_data: {
+        currency: LIQUID_PLUS_ACCESS_CURRENCY,
+        unit_amount: amountCents,
+        tax_behavior: 'inclusive',
+        product_data: {
+          name: 'Accès Liquid+ — levée de fonds',
+          description: 'Accès unique du démarrage de la levée jusqu’au closing. Honoraires d’avocat exclus.',
+        },
+      },
+    }],
+    billing_address_collection: 'required',
+    invoice_creation: { enabled: true },
+    metadata,
+    payment_intent_data: { metadata },
+    success_url: new URL('/saas/compte.html?tab=billing&payment=success', BASE_URL).toString(),
+    cancel_url: new URL('/saas/compte.html?tab=billing&payment=cancelled', BASE_URL).toString(),
+  });
+  await col('billing_checkout_sessions').insertOne({
+    id: crypto.randomUUID(), provider: 'stripe', provider_session_id: session.id,
+    payment_kind: 'liquid_plus_access', user_id: req.user.id,
+    amount_total: amountCents, currency: LIQUID_PLUS_ACCESS_CURRENCY,
+    promotion, status: 'pending', created_at: now, updated_at: now,
+  });
+  // Une redirection réussie clôt simplement la proposition de bienvenue, même si
+  // le paiement est ensuite abandonné.
+  await updateUserById(req.user.id, { welcome_offer_pending: false, welcome_offer_checkout_at: now });
+  return res.json({ checkout_url: session.url });
 });
 
 app.get('/api/billing/status', requireAuth, async (req, res) => {
-  const user = await col('users').findOne({ id: req.user.id }, { projection: { account_types: 1, subscription_status: 1, subscription_plan: 1, subscription_started_at: 1 } });
+  const user = await col('users').findOne({ id: req.user.id }, { projection: { account_types: 1, subscription_status: 1, subscription_plan: 1, subscription_started_at: 1, liquid_plus_access_status: 1, liquid_plus_access_paid_at: 1 } });
   if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
   const isFounder = user.account_types?.includes('fondateur');
+  const accessPaid = user.liquid_plus_access_status === 'paid' || user.subscription_status === 'active';
   res.json({
     role: user.account_types?.includes('avocat') ? 'avocat' : isFounder ? 'fondateur' : 'autre',
     liquid_plus: isFounder ? {
-      status: user.subscription_status === 'active' ? 'active' : 'inactive',
+      status: accessPaid ? 'active' : 'inactive',
+      payment_type: 'one_time',
       plan: user.subscription_plan || null,
-      started_at: user.subscription_started_at || null,
-      price: { amount: LIQUID_PLUS_STANDARD_PRICE_EUR, currency: 'EUR', tax: 'TTC' },
+      paid_at: user.liquid_plus_access_paid_at || user.subscription_started_at || null,
+      price: { amount: LIQUID_PLUS_STANDARD_PRICE_EUR, amount_cents: LIQUID_PLUS_STANDARD_PRICE_CENTS, currency: 'EUR', tax: 'TTC' },
+      promo_price: { amount: LIQUID_PLUS_PROMO_PRICE_EUR, amount_cents: LIQUID_PLUS_PROMO_PRICE_CENTS, currency: 'EUR', tax: 'TTC', code: 'RAISE SUMMIT' },
     } : null,
-    lawyer_payments_enabled: false,
+    lawyer_payments_enabled: !!(stripe && STRIPE_CONNECT_WEBHOOK_SECRET),
   });
 });
 
+// Un dossier avocat déjà ouvert reste consultable, et un honoraire déjà facturé reste
+// payable, même si l'accès Liquid+ a expiré : l'avocat est un tiers, il a fourni le
+// travail et sa facture est due au titre de la convention signée avec la société. Un
+// accès expiré ferme l'entrée de l'outil (nouvelle mission), pas le règlement d'une
+// dette déjà née. Chemins relatifs au montage '/api/saas'.
+const FOUNDER_ACCESS_EXEMPT_PATHS = [
+  /^\/avocat\/requests\/\d+\/thread$/,
+  /^\/avocat\/requests\/\d+\/payment$/,
+  /^\/avocat\/requests\/\d+\/payment\/checkout$/,
+];
+
 async function requireFounderAccess(req, res, next) {
+  if (FOUNDER_ACCESS_EXEMPT_PATHS.some(exempt => exempt.test(req.path))) return next();
   const user = await col('users').findOne({ id: req.user.id }, { projection: { id: 1, email: 1, account_types: 1, trial_started_at: 1, trial_last_seen_at: 1, trial_used_ms: 1, subscription_status: 1, subscription_plan: 1 } });
   await touchFounderTrial(user);
   const access = founderAccess(user);
@@ -3475,7 +3805,12 @@ app.post('/api/saas/fundraising-profile/switch-type', requireAuth, async (req, r
 // Profil professionnel demandé aux avocats avant l'accès à leur espace.
 function publicLawyerProfile(profile) {
   if (!profile) return null;
-  const { _id, user_id, ...rest } = profile;
+  const {
+    _id, user_id, stripe_connect_account_id,
+    stripe_charges_enabled, stripe_payouts_enabled, stripe_details_submitted,
+    stripe_requirements_currently_due, stripe_connect_created_at, stripe_connect_updated_at,
+    ...rest
+  } = profile;
   return rest;
 }
 
@@ -3762,14 +4097,19 @@ function avocatPartner(id) { return AVOCAT_PARTNERS.find(p => p.id === id) || nu
 // Prestations forfaitisées. `critical` = documents où le recours à l'avocat est le
 // plus recommandé (engagement le plus fort des fondateurs). Les tarifs sont
 // indicatifs : ils s'appuient sur une grille négociée en amont avec les partenaires.
+// Catalogue fonctionnel. Aucun tarif avocat n'est publié tant qu'une grille
+// commune n'est pas arrêtée : les honoraires sont fixés dans la convention
+// d'honoraires signée entre la société et l'avocat. `fee_cap_cents` permettra
+// plus tard d'appliquer un plafond identique à tous les avocats sans modifier le
+// parcours de paiement direct du cabinet.
 const AVOCAT_PRESTATIONS = [
-  { key: 'garantie',  label: 'Déclarations & garanties (W&R)',   desc: 'Relecture avant signature du document le plus engageant pour les fondateurs.', critical: true,  price: '890 € HT',   fee_amount: 890,  delay: '72 h' },
-  { key: 'pacte',     label: 'Pacte d’associés',                 desc: 'Revue des clauses sensibles : gouvernance, liquidité, leaver, préférence.',    critical: true,  price: '1 190 € HT', fee_amount: 1190, delay: '3–4 j' },
-  { key: 'termsheet', label: 'Term sheet / lettre d’intention',  desc: 'Vérification avant de vous engager sur les grands équilibres de la levée.',     critical: false, price: '490 € HT',   fee_amount: 490,  delay: '48 h' },
-  { key: 'bsa-air',   label: 'BSA-AIR / convertible',            desc: 'Contrôle de l’instrument d’investissement convertible.',                       critical: false, price: '590 € HT',   fee_amount: 590,  delay: '48 h' },
-  { key: 'question',  label: 'Question juridique ponctuelle',    desc: 'Un point précis à sécuriser ? Échange court avec votre avocat.',                critical: false, price: '150 € HT',   fee_amount: 150,  delay: '24 h' },
+  { key: 'garantie',  label: 'Déclarations & garanties (W&R)',  desc: 'Relecture avant signature du document le plus engageant pour les fondateurs.', critical: true,  price: null, fee_cap_cents: null, delay: 'À convenir' },
+  { key: 'pacte',     label: 'Pacte d’associés',                desc: 'Revue des clauses sensibles : gouvernance, liquidité, leaver, préférence.',    critical: true,  price: null, fee_cap_cents: null, delay: 'À convenir' },
+  { key: 'termsheet', label: 'Term sheet / lettre d’intention', desc: 'Vérification avant de vous engager sur les grands équilibres de la levée.',     critical: false, price: null, fee_cap_cents: null, delay: 'À convenir' },
+  { key: 'bsa-air',   label: 'BSA-AIR / convertible',           desc: 'Contrôle de l’instrument d’investissement convertible.',                       critical: false, price: null, fee_cap_cents: null, delay: 'À convenir' },
+  { key: 'question',  label: 'Question juridique ponctuelle',   desc: 'Un point précis à sécuriser ? Échange court avec votre avocat.',                critical: false, price: null, fee_cap_cents: null, delay: 'À convenir' },
 ];
-const LAWYER_CATALOG_VERSION = 1;
+const LAWYER_CATALOG_VERSION = 2;
 const AVOCAT_PRESTATION_KEYS  = new Set(AVOCAT_PRESTATIONS.map(p => p.key));
 const AVOCAT_REQUEST_STATUSES = ['soumise', 'en_cours', 'attente_fondateur', 'livree', 'cloturee', 'annule'];
 const COMPANY_LEGAL_FORMS = new Set(['sas', 'sasu', 'sarl', 'eurl', 'sa', 'sca', 'snc', 'scop', 'other']);
@@ -3868,6 +4208,17 @@ async function requireAssignedFounder2FA(req, res, next) {
   next();
 }
 
+// ── Pastille « du nouveau chez votre avocat » (côté fondateur) ────────────────
+// `lawyer_activity_at` n'est écrit que par les routes /api/lawyer/* : c'est ce
+// qui le distingue d'`updated_at`, écrit par les deux camps (le fondateur y
+// touche en annulant ou en ouvrant son paiement), et qui ferait donc clignoter
+// la pastille sur les propres actions du fondateur. `founder_seen_at` est remis
+// à l'heure courante dès que le fondateur ouvre le dossier concerné — même
+// principe que `unread_by_user` sur les fils de feedback.
+async function markLawyerActivity(requestId, at) {
+  await col('saas_avocat_requests').updateOne({ id: Number(requestId) }, { $set: { lawyer_activity_at: at } });
+}
+
 async function createLawyerNotification(lawyerId, type, title, message, metadata = {}) {
   const notification = {
     id: crypto.randomUUID(),
@@ -3964,6 +4315,57 @@ async function lawyerRequestFor(lawyerId, requestId) {
   return (await assignedLawyerForClient(request.user_id)) === Number(lawyerId) ? request : null;
 }
 
+// ── Stripe Connect : état du compte de paiement d'un cabinet ───────────────────
+// Le cabinet encaisse ses honoraires sur son PROPRE compte Stripe Standard.
+// Liquid+ ne perçoit pas les fonds et n'applique aucune commission.
+function publicLawyerConnectStatus(profile) {
+  const connected = !!profile?.stripe_connect_account_id;
+  const chargesEnabled = profile?.stripe_charges_enabled === true;
+  const payoutsEnabled = profile?.stripe_payouts_enabled === true;
+  const detailsSubmitted = profile?.stripe_details_submitted === true;
+  return {
+    provider: 'stripe',
+    connected,
+    details_submitted: detailsSubmitted,
+    charges_enabled: chargesEnabled,
+    payouts_enabled: payoutsEnabled,
+    ready_for_payments: connected && detailsSubmitted && chargesEnabled && payoutsEnabled,
+    requirements_currently_due: Array.isArray(profile?.stripe_requirements_currently_due)
+      ? profile.stripe_requirements_currently_due
+      : [],
+  };
+}
+
+// Rafraîchit l'état Connect depuis Stripe (source de vérité) et le mémorise.
+async function refreshLawyerConnectProfile(lawyerId) {
+  let profile = await col('saas_lawyer_profiles').findOne({ user_id: Number(lawyerId) });
+  if (!profile?.stripe_connect_account_id || !stripe) return profile;
+  const account = await stripe.accounts.retrieve(profile.stripe_connect_account_id);
+  const now = new Date().toISOString();
+  const updates = {
+    stripe_charges_enabled: account.charges_enabled === true,
+    stripe_payouts_enabled: account.payouts_enabled === true,
+    stripe_details_submitted: account.details_submitted === true,
+    stripe_requirements_currently_due: account.requirements?.currently_due || [],
+    stripe_connect_updated_at: now,
+  };
+  await col('saas_lawyer_profiles').updateOne(
+    { user_id: Number(lawyerId), stripe_connect_account_id: account.id },
+    { $set: updates },
+  );
+  return { ...profile, ...updates };
+}
+
+// Lien d'onboarding Stripe à usage unique pour finaliser l'activation du compte.
+async function createLawyerConnectAccountLink(accountId) {
+  return stripe.accountLinks.create({
+    account: accountId,
+    type: 'account_onboarding',
+    refresh_url: new URL('/api/lawyer/payments/connect/refresh', BASE_URL).toString(),
+    return_url: new URL('/saas/compte.html?tab=billing&connect=returned', BASE_URL).toString(),
+  });
+}
+
 // ── Classification de risque juridique par document ───────────────────────────
 // Pilote le badge couleur (Documents) et la recommandation de relecture avocat.
 // Règle : responsabilité personnelle du fondateur OU document difficilement
@@ -4040,7 +4442,11 @@ function documentAvocatPresta(doc) {
 
 function avocatPublicRequest(r) {
   if (!r) return null;
-  const { _id, user_id, ...rest } = r;
+  const {
+    _id, user_id, lawyer_fee_amount,
+    stripe_connect_account_id, stripe_checkout_session_id, stripe_payment_intent_id,
+    ...rest
+  } = r;
   return rest;
 }
 
@@ -4207,30 +4613,32 @@ app.post('/api/saas/avocat/change-request', requireAuth, requireAssignedFounder2
 });
 
 app.put('/api/saas/avocat/preference', requireAuth, requireAssignedFounder2FA, async (req, res) => {
+  // Un avocat attribué ne se retire pas via les préférences : aucun des modes acceptés
+  // ici n'est 'platform', donc l'écriture détacherait le cabinet de ses missions en
+  // cours (assignedLawyerForClient exige mode: 'platform'). L'attribution fait foi tant
+  // que Liquid+ ne l'a pas levée ; le changement passe par /change-request.
+  const assignment = await col('lawyer_client_proposals').findOne({ client_id: req.user.id, status: 'assigned' });
+  if (assignment) return res.status(409).json({
+    error: 'Un avocat Liquid+ vous est attribué. Adressez une demande de changement à Liquid+ pour en changer.',
+    code: 'PLATFORM_LAWYER_ASSIGNED',
+  });
+
   const body = req.body || {};
-  const mode = ['assigned', 'chosen', 'own'].includes(body.mode) ? body.mode : null;
+  // Déclarer son propre avocat n'est plus proposé : l'avocat est attribué par Liquid+,
+  // ou choisi dans le réseau partenaire. Le mode 'own' n'est donc plus acceptable.
+  const mode = ['assigned', 'chosen'].includes(body.mode) ? body.mode : null;
   if (!mode) return res.status(400).json({ error: 'Mode invalide' });
 
   const state = await getOrInitAvocatState(req.user.id);
-  const set   = { mode, updated_at: new Date().toISOString() };
+  const set   = { mode, own_lawyer: null, updated_at: new Date().toISOString() };
 
   if (mode === 'assigned') {
-    // On conserve l'avocat déjà attribué (ou on en attribue un si l'état venait de « own »).
+    // On conserve l'avocat déjà attribué (ou on en attribue un si l'état n'en avait pas).
     if (!avocatPartner(state.partner_id)) set.partner_id = AVOCAT_PARTNERS[0].id;
-    set.own_lawyer = null;
-  } else if (mode === 'chosen') {
+  } else {
     const partner = avocatPartner(body.partner_id);
     if (!partner) return res.status(400).json({ error: 'Avocat inconnu' });
     set.partner_id = partner.id;
-    set.own_lawyer = null;
-  } else { // own : le fondateur déclare son propre avocat
-    const name = shortText(body?.own_lawyer?.name, 120);
-    if (!name) return res.status(400).json({ error: 'Nom de l’avocat requis' });
-    set.own_lawyer = {
-      name,
-      firm:  shortText(body?.own_lawyer?.firm, 120),
-      email: shortText(body?.own_lawyer?.email, 160),
-    };
   }
   await col('saas_avocat').updateOne({ user_id: req.user.id }, { $set: set });
   const updated = await col('saas_avocat').findOne({ user_id: req.user.id });
@@ -4288,8 +4696,7 @@ app.post('/api/saas/avocat/requests', requireAuth, requireAssignedFounder2FA, as
     document_id: orderedDocs[0].id, document_name: orderedDocs[0].name || null,
     documents: orderedDocs.map(doc => ({ document_id: doc.id, name: doc.name || `Document #${doc.id}`, kind: doc.kind || 'file', mimetype: doc.mimetype || '', size: doc.size || 0, submitted_at: now })),
     title: shortText(body.title, 160) || (prestation?.label || 'Relecture juridique'),
-    lawyer_fee_amount: prestation?.fee_amount || 0,
-    lawyer_payment_status: 'due',
+    lawyer_payment_status: 'not_requested',
     note: shortText(body.note, 3000),
     founder_personal_interest_flag: body.founder_personal_interest === true,
     founder_personal_interest_notice: body.founder_personal_interest === true ? FOUNDER_PERSONAL_INTEREST_NOTICE : null,
@@ -4328,15 +4735,113 @@ app.put('/api/saas/avocat/requests/:id', requireAuth, requireAssignedFounder2FA,
   res.json({ success: true });
 });
 
+// Pastille verte côté fondateur : y a-t-il du nouveau de la part de l'avocat ?
+// Volontairement sans requireAssignedFounder2FA, contrairement au reste de
+// /api/saas/avocat/* : la réponse ne contient aucun contenu du dossier, juste
+// des identifiants de demandes, et la garde priverait de pastille exactement
+// les fondateurs qui ont un avocat — les seuls à pouvoir avoir du nouveau.
+app.get('/api/saas/avocat/activity', requireAuth, async (req, res) => {
+  const requests = await col('saas_avocat_requests')
+    .find({ user_id: req.user.id, lawyer_activity_at: { $exists: true } },
+      { projection: { _id: 0, id: 1, lawyer_activity_at: 1, founder_seen_at: 1 } })
+    .toArray();
+  // Horodatages ISO/UTC des deux côtés : la comparaison lexicographique suffit.
+  const ids = requests
+    .filter(r => r.lawyer_activity_at && (!r.founder_seen_at || r.lawyer_activity_at > r.founder_seen_at))
+    .map(r => r.id);
+  res.json({ unread: ids.length > 0, request_ids: ids });
+});
+
 app.get('/api/saas/avocat/requests/:id/thread', requireAuth, requireAssignedFounder2FA, async (req, res) => {
   const request = await col('saas_avocat_requests').findOne({ id: Number(req.params.id), user_id: req.user.id });
   if (!request) return res.status(404).json({ error: 'Demande introuvable' });
+  // Le fondateur ouvre le dossier : ce qu'il contient est vu, la pastille de
+  // cette demande s'éteint (celles des autres demandes restent).
+  await col('saas_avocat_requests').updateOne({ id: request.id }, { $set: { founder_seen_at: new Date().toISOString() } });
   // Messagerie Liquid+ retirée : les échanges se font par email et l'e-Partage CNB.
   // On expose le contact de l'avocat attribué pour permettre l'email direct.
   const lawyer = request.lawyer_user_id
     ? await col('users').findOne({ id: request.lawyer_user_id }, { projection: { _id: 0, id: 1, full_name: 1, email: 1 } })
     : null;
   res.json({ request: { ...avocatPublicRequest(request), lawyer: lawyer || null }, messages: [] });
+});
+
+// ── Honoraires avocat côté fondateur : consulter le montant et payer le cabinet ─
+app.get('/api/saas/avocat/requests/:id/payment', requireAuth, requireAssignedFounder2FA, async (req, res) => {
+  const request = await col('saas_avocat_requests').findOne({ id: Number(req.params.id), user_id: req.user.id });
+  if (!request) return res.status(404).json({ error: 'Demande introuvable' });
+  const payment = await col('lawyer_payment_requests').findOne({
+    request_id: request.id, client_id: req.user.id, lawyer_id: request.lawyer_user_id,
+  });
+  return res.json({ payment: publicLawyerPayment(payment) });
+});
+
+app.post('/api/saas/avocat/requests/:id/payment/checkout', requireAuth, requireAssignedFounder2FA, async (req, res) => {
+  if (!stripe || !STRIPE_CONNECT_WEBHOOK_SECRET) return res.status(503).json({ error: 'Le paiement des honoraires n’est pas encore configuré.' });
+  const request = await col('saas_avocat_requests').findOne({ id: Number(req.params.id), user_id: req.user.id });
+  if (!request || request.status === 'annule') return res.status(404).json({ error: 'Demande indisponible' });
+  const payment = await col('lawyer_payment_requests').findOne({
+    request_id: request.id, client_id: req.user.id, lawyer_id: request.lawyer_user_id,
+  });
+  if (!payment) return res.status(409).json({ error: 'Le cabinet n’a pas encore défini ses honoraires pour cette mission.' });
+  if (payment.status === 'paid') return res.status(409).json({ error: 'Ces honoraires sont déjà payés.' });
+  if (['partially_refunded', 'refunded', 'disputed', 'cancelled'].includes(payment.status))
+    return res.status(409).json({ error: 'Ce paiement nécessite une régularisation directe avec le cabinet.' });
+  if (!isValidLawyerAmountCents(payment.amount_total))
+    return res.status(409).json({ error: 'Le montant enregistré est invalide.' });
+
+  const profile = await refreshLawyerConnectProfile(payment.lawyer_id);
+  const connectStatus = publicLawyerConnectStatus(profile);
+  if (!connectStatus.ready_for_payments || profile.stripe_connect_account_id !== payment.stripe_connect_account_id)
+    return res.status(409).json({ error: 'Le compte de paiement du cabinet n’est pas prêt. Contactez votre avocat.' });
+
+  // Réutilise la page de paiement si elle est encore ouverte sur le compte connecté.
+  if (payment.stripe_checkout_session_id) {
+    try {
+      const openSession = await stripe.checkout.sessions.retrieve(
+        payment.stripe_checkout_session_id, {}, { stripeAccount: payment.stripe_connect_account_id },
+      );
+      if (openSession.status === 'open' && openSession.url) return res.json({ checkout_url: openSession.url });
+      if (openSession.payment_status === 'paid') return res.status(409).json({ error: 'Paiement reçu par le cabinet, confirmation en cours.' });
+    } catch { /* session expirée : on en crée une nouvelle ci-dessous */ }
+  }
+
+  const client = await col('users').findOne({ id: req.user.id }, { projection: { email: 1 } });
+  const metadata = {
+    payment_kind: 'lawyer_fee', lawyer_payment_id: payment.id, request_id: String(request.id),
+    client_id: String(req.user.id), lawyer_id: String(payment.lawyer_id),
+  };
+  const checkoutSession = await stripe.checkout.sessions.create({
+    mode: 'payment', locale: 'fr', client_reference_id: String(req.user.id),
+    customer_email: client?.email || undefined,
+    line_items: [{
+      quantity: 1,
+      price_data: {
+        currency: payment.currency, unit_amount: payment.amount_total, tax_behavior: 'inclusive',
+        product_data: {
+          name: `Honoraires avocat — ${shortText(request.title, 100) || 'mission juridique'}`,
+          description: payment.description || 'Honoraires prévus par la convention signée avec le cabinet.',
+        },
+      },
+    }],
+    billing_address_collection: 'required',
+    invoice_creation: { enabled: true },
+    metadata, payment_intent_data: { metadata },
+    success_url: new URL(`/saas/dossier-avocat.html?id=${request.id}&payment=success`, BASE_URL).toString(),
+    cancel_url: new URL(`/saas/dossier-avocat.html?id=${request.id}&payment=cancelled`, BASE_URL).toString(),
+  }, { stripeAccount: payment.stripe_connect_account_id });
+
+  const now = new Date().toISOString();
+  const updated = await col('lawyer_payment_requests').updateOne(
+    { id: payment.id, status: { $in: ['awaiting_payment', 'checkout_open'] }, updated_at: payment.updated_at },
+    { $set: { status: 'checkout_open', stripe_checkout_session_id: checkoutSession.id, updated_at: now } },
+  );
+  if (!updated.matchedCount) {
+    try { await stripe.checkout.sessions.expire(checkoutSession.id, {}, { stripeAccount: payment.stripe_connect_account_id }); } catch {}
+    return res.status(409).json({ error: 'Le montant a changé. Rechargez la page avant de payer.' });
+  }
+  await col('saas_avocat_requests').updateOne({ id: request.id }, { $set: { lawyer_payment_status: 'checkout_open', updated_at: now } });
+  return res.json({ checkout_url: checkoutSession.url });
 });
 
 // Messagerie Liquid+ désactivée : aucun échange écrit n'est stocké sur la plateforme.
@@ -4390,6 +4895,147 @@ app.patch('/api/saas/avocat/requests/:id/appointments/:appointmentId', requireAu
   res.json({ success: true, status: 'cancelled' });
 });
 
+// ── Stripe Connect : activation du compte de paiement du cabinet ───────────────
+app.get('/api/lawyer/payments/connect/status', requireAuth, requireLawyer, async (req, res) => {
+  let profile;
+  try { profile = await refreshLawyerConnectProfile(req.user.id); }
+  catch (error) {
+    console.error('Stripe Connect status:', error.message);
+    profile = await col('saas_lawyer_profiles').findOne({ user_id: req.user.id });
+  }
+  return res.json({ connect: publicLawyerConnectStatus(profile) });
+});
+
+app.post('/api/lawyer/payments/connect/onboard', requireAuth, requireLawyer, async (req, res) => {
+  if (!stripe || !STRIPE_CONNECT_WEBHOOK_SECRET) return res.status(503).json({ error: 'Stripe Connect n’est pas configuré.' });
+  const [user, existingProfile] = await Promise.all([
+    col('users').findOne({ id: req.user.id }, { projection: { email: 1, full_name: 1 } }),
+    col('saas_lawyer_profiles').findOne({ user_id: req.user.id }),
+  ]);
+  if (!existingProfile) return res.status(409).json({ error: 'Complétez d’abord votre profil avocat.' });
+
+  let accountId = existingProfile.stripe_connect_account_id;
+  if (!accountId) {
+    const account = await stripe.accounts.create({
+      type: 'standard', country: 'FR', email: user?.email || undefined,
+      metadata: { liquid_plus_lawyer_id: String(req.user.id), liquid_plus_role: 'independent_lawyer' },
+    }, { idempotencyKey: `lawyer-connect-account-${req.user.id}` });
+    accountId = account.id;
+    const now = new Date().toISOString();
+    await col('saas_lawyer_profiles').updateOne(
+      { user_id: req.user.id, $or: [{ stripe_connect_account_id: { $exists: false } }, { stripe_connect_account_id: null }] },
+      { $set: {
+        stripe_connect_account_id: account.id,
+        stripe_charges_enabled: account.charges_enabled === true,
+        stripe_payouts_enabled: account.payouts_enabled === true,
+        stripe_details_submitted: account.details_submitted === true,
+        stripe_requirements_currently_due: account.requirements?.currently_due || [],
+        stripe_connect_created_at: now, stripe_connect_updated_at: now,
+      } },
+    );
+  }
+
+  const profile = await refreshLawyerConnectProfile(req.user.id);
+  const status = publicLawyerConnectStatus(profile);
+  if (status.ready_for_payments) return res.json({ connect: status, dashboard_url: 'https://dashboard.stripe.com/' });
+  const accountLink = await createLawyerConnectAccountLink(accountId);
+  return res.json({ connect: status, onboarding_url: accountLink.url });
+});
+
+app.get('/api/lawyer/payments/connect/refresh', requireAuth, requireLawyer, async (req, res) => {
+  if (!stripe || !STRIPE_CONNECT_WEBHOOK_SECRET) return res.redirect(302, '/saas/compte.html?tab=billing&connect=unavailable');
+  const profile = await col('saas_lawyer_profiles').findOne({ user_id: req.user.id });
+  if (!profile?.stripe_connect_account_id) return res.redirect(302, '/saas/compte.html?tab=billing&connect=missing');
+  const accountLink = await createLawyerConnectAccountLink(profile.stripe_connect_account_id);
+  return res.redirect(303, accountLink.url);
+});
+
+// ── Honoraires : le cabinet publie le montant TTC de sa convention signée ───────
+app.get('/api/lawyer/review-requests/:id/payment', requireAuth, requireLawyer, async (req, res) => {
+  const request = await lawyerRequestFor(req.user.id, req.params.id);
+  if (!request) return res.status(404).json({ error: 'Demande introuvable ou non attribuée' });
+  const [payment, profile] = await Promise.all([
+    col('lawyer_payment_requests').findOne({ request_id: request.id, lawyer_id: req.user.id }),
+    col('saas_lawyer_profiles').findOne({ user_id: req.user.id }),
+  ]);
+  const prestation = AVOCAT_PRESTATIONS.find(item => item.key === request.prestation_key);
+  return res.json({
+    payment: publicLawyerPayment(payment),
+    connect: publicLawyerConnectStatus(profile),
+    pricing: { fee_cap_cents: prestation?.fee_cap_cents ?? null },
+  });
+});
+
+app.put('/api/lawyer/review-requests/:id/payment', requireAuth, requireLawyer, async (req, res) => {
+  if (!stripe || !STRIPE_CONNECT_WEBHOOK_SECRET) return res.status(503).json({ error: 'Stripe Connect n’est pas configuré.' });
+  const request = await lawyerRequestFor(req.user.id, req.params.id);
+  if (!request || request.status === 'annule') return res.status(404).json({ error: 'Demande indisponible' });
+  if (req.body?.fee_agreement_confirmed !== true)
+    return res.status(422).json({ error: 'Confirmez que la convention d’honoraires est signée par la société et fixe ce montant.' });
+  const feeAgreementReference = shortText(req.body?.fee_agreement_reference, 160);
+  if (!feeAgreementReference)
+    return res.status(422).json({ error: 'Indiquez la référence ou la date de la convention d’honoraires signée.' });
+  const amountTotal = parseEuroAmountToCents(req.body?.amount_eur);
+  if (!isValidLawyerAmountCents(amountTotal))
+    return res.status(422).json({ error: 'Indiquez un montant total TTC valide, compris entre 1 € et 100 000 €.' });
+  const prestation = AVOCAT_PRESTATIONS.find(item => item.key === request.prestation_key);
+  if (prestation?.fee_cap_cents != null && amountTotal > prestation.fee_cap_cents)
+    return res.status(422).json({ error: 'Ce montant dépasse le plafond de la grille Liquid+ applicable à cette mission.' });
+
+  const profile = await refreshLawyerConnectProfile(req.user.id);
+  const connectStatus = publicLawyerConnectStatus(profile);
+  if (!connectStatus.ready_for_payments)
+    return res.status(409).json({ error: 'Terminez d’abord l’activation de votre compte de paiement Stripe.' });
+
+  const existing = await col('lawyer_payment_requests').findOne({ request_id: request.id, lawyer_id: req.user.id });
+  if (existing?.status === 'paid') return res.status(409).json({ error: 'Ces honoraires sont déjà payés et ne peuvent plus être modifiés.' });
+  if (['partially_refunded', 'refunded', 'disputed'].includes(existing?.status))
+    return res.status(409).json({ error: 'Ce paiement doit être régularisé avec le client avant toute nouvelle demande.' });
+  if (existing?.stripe_checkout_session_id) {
+    let checkoutSession;
+    try {
+      checkoutSession = await stripe.checkout.sessions.retrieve(
+        existing.stripe_checkout_session_id, {}, { stripeAccount: existing.stripe_connect_account_id },
+      );
+    } catch { return res.status(503).json({ error: 'Impossible de vérifier le paiement existant. Réessayez dans quelques instants.' }); }
+    if (checkoutSession.payment_status === 'paid') return res.status(409).json({ error: 'Le paiement a été reçu et sa confirmation est en cours.' });
+    if (checkoutSession.status === 'open')
+      await stripe.checkout.sessions.expire(checkoutSession.id, {}, { stripeAccount: existing.stripe_connect_account_id });
+  }
+
+  const now = new Date().toISOString();
+  const paymentId = existing?.id || crypto.randomUUID();
+  const description = shortText(req.body?.description, 300)
+    || `Honoraires — ${request.title || prestation?.label || 'mission juridique'}`;
+  await col('lawyer_payment_requests').updateOne(
+    { request_id: request.id, lawyer_id: req.user.id },
+    {
+      $set: {
+        id: paymentId, request_id: request.id, client_id: request.user_id, lawyer_id: req.user.id,
+        company_client_id: request.company_client_id || null,
+        amount_total: amountTotal, currency: 'eur', description, status: 'awaiting_payment',
+        fee_agreement_reference: feeAgreementReference, fee_agreement_confirmed_at: now,
+        fee_agreement_confirmed_by: req.user.id, stripe_connect_account_id: profile.stripe_connect_account_id,
+        updated_at: now,
+      },
+      $setOnInsert: { created_at: now },
+      $unset: { stripe_checkout_session_id: '', stripe_payment_intent_id: '', paid_at: '', refunded_at: '', disputed_at: '', amount_refunded: '' },
+    },
+    { upsert: true },
+  );
+  await col('saas_avocat_requests').updateOne(
+    { id: request.id, lawyer_user_id: req.user.id },
+    { $set: { lawyer_payment_status: 'awaiting_payment', updated_at: now, lawyer_activity_at: now } },
+  );
+  sendPortalNotificationEmail(
+    request.user_id,
+    'Les honoraires de votre cabinet sont prêts à être réglés',
+    `/saas/dossier-avocat.html?id=${request.id}`,
+  ).catch(error => console.error('lawyer payment email error:', error.message));
+  const saved = await col('lawyer_payment_requests').findOne({ id: paymentId });
+  return res.json({ payment: publicLawyerPayment(saved), connect: connectStatus });
+});
+
 app.get('/api/lawyer/review-requests', requireAuth, requireLawyer, async (req, res) => {
   const assigned = await col('lawyer_client_proposals').find({ lawyer_id: req.user.id, status: 'assigned' }, { projection: { client_id: 1 } }).toArray();
   const clientIds = assigned.map(a => a.client_id);
@@ -4400,16 +5046,22 @@ app.get('/api/lawyer/review-requests', requireAuth, requireLawyer, async (req, r
 });
 
 app.get('/api/lawyer/earnings', requireAuth, requireLawyer, async (req, res) => {
-  const completed = await col('saas_avocat_requests').find(
-    { lawyer_user_id: req.user.id, status: { $in: ['livree', 'cloturee'] } },
-    { projection: { _id: 0, prestation_key: 1, lawyer_fee_amount: 1 } },
+  // Gains réellement encaissés sur le compte du cabinet, nets des remboursements.
+  const payments = await col('lawyer_payment_requests').find(
+    { lawyer_id: req.user.id, status: { $in: ['paid', 'partially_refunded'] } },
+    { projection: { _id: 0, request_id: 1, amount_total: 1, amount_refunded: 1 } },
   ).toArray();
-  const total = completed.reduce((sum, request) => {
-    const storedAmount = Number(request.lawyer_fee_amount);
-    const fallbackAmount = AVOCAT_PRESTATIONS.find(item => item.key === request.prestation_key)?.fee_amount || 0;
-    return sum + (Number.isFinite(storedAmount) && storedAmount > 0 ? storedAmount : fallbackAmount);
-  }, 0);
-  res.json({ total, currency: 'EUR', completed_missions: completed.length });
+  const totalCents = payments.reduce((sum, payment) => sum + Math.max(
+    0,
+    (Number.isSafeInteger(payment.amount_total) ? payment.amount_total : 0)
+      - (Number.isSafeInteger(payment.amount_refunded) ? payment.amount_refunded : 0),
+  ), 0);
+  res.json({
+    total: totalCents / 100,
+    total_cents: totalCents,
+    currency: 'EUR',
+    paid_missions: new Set(payments.map(payment => payment.request_id)).size,
+  });
 });
 
 app.get('/api/lawyer/review-requests/:id', requireAuth, requireLawyer, async (req, res) => {
@@ -4455,6 +5107,9 @@ app.post('/api/lawyer/review-requests/:id/appointments', requireAuth, requireLaw
     media_stored_by_liquid_plus: false, created_at: now, updated_at: now,
   };
   await col('saas_avocat_appointments').insertOne(appointment);
+  // Le rendez-vous vit dans sa propre collection : on remonte l'activité sur la
+  // demande parente, seul objet que la pastille du fondateur observe.
+  await markLawyerActivity(request.id, now);
   sendPortalNotificationEmail(request.user_id, 'Un rendez-vous est planifié dans votre dossier juridique', `/saas/dossier-avocat.html?id=${request.id}`).catch(error => console.error('appointment email error:', error.message));
   res.status(201).json({ appointment: publicAppointment(appointment) });
 });
@@ -4476,6 +5131,7 @@ app.patch('/api/lawyer/review-requests/:id/appointments/:appointmentId', require
     Object.assign(set, { provider, start_at: startAt, join_url: joinUrl, duration_minutes: Math.min(120, Math.max(15, Number(req.body?.duration_minutes) || appointment.duration_minutes || 30)), security_confirmed: true, recording_enabled: false, ai_assistant_enabled: false, media_stored_by_liquid_plus: false });
   }
   await col('saas_avocat_appointments').updateOne({ id: appointment.id }, { $set: set });
+  await markLawyerActivity(request.id, set.updated_at);
   sendPortalNotificationEmail(request.user_id, 'Un rendez-vous a été mis à jour dans votre dossier juridique', `/saas/dossier-avocat.html?id=${request.id}`).catch(error => console.error('appointment email error:', error.message));
   res.json({ success: true, status });
 });
@@ -4500,7 +5156,7 @@ app.put('/api/lawyer/review-requests/:id/documents/:docId/editor', requireAuth, 
   if (typeof html !== 'string') return res.status(400).json({ error: 'html requis' });
   const updatedAt = new Date().toISOString();
   await col('saas_documents').updateOne({ id: docId, user_id: request.user_id }, { $set: { html, size: Buffer.byteLength(html, 'utf8'), ...(name ? { name } : {}), updated_at: updatedAt, last_lawyer_editor_id: req.user.id } });
-  await col('saas_avocat_requests').updateOne({ id: request.id }, { $set: { status: request.status === 'soumise' ? 'en_cours' : request.status, updated_at: updatedAt } });
+  await col('saas_avocat_requests').updateOne({ id: request.id }, { $set: { status: request.status === 'soumise' ? 'en_cours' : request.status, updated_at: updatedAt, lawyer_activity_at: updatedAt } });
   res.json({ success: true, id: docId, updated_at: updatedAt });
 });
 
@@ -4509,7 +5165,8 @@ app.patch('/api/lawyer/review-requests/:id', requireAuth, requireLawyer, async (
   if (!request) return res.status(404).json({ error: 'Demande introuvable ou non attribuée' });
   const status = String(req.body?.status || '');
   if (!['en_cours', 'attente_fondateur', 'cloturee'].includes(status)) return res.status(400).json({ error: 'Statut invalide' });
-  await col('saas_avocat_requests').updateOne({ id: request.id }, { $set: { status, updated_at: new Date().toISOString() } });
+  const statusChangedAt = new Date().toISOString();
+  await col('saas_avocat_requests').updateOne({ id: request.id }, { $set: { status, updated_at: statusChangedAt, lawyer_activity_at: statusChangedAt } });
   res.json({ success: true, status });
 });
 
@@ -4548,7 +5205,7 @@ app.post('/api/lawyer/review-requests/:id/deliver', requireAuth, requireLawyer, 
   const now = new Date().toISOString();
   const sourceBuffer = source.kind === 'termsheet' ? null : toBuffer(source.data);
   if (sourceBuffer && sourceBuffer.equals(req.file.buffer)) {
-    await col('saas_avocat_requests').updateOne({ id: request.id }, { $set: { status: 'livree', updated_at: now } });
+    await col('saas_avocat_requests').updateOne({ id: request.id }, { $set: { status: 'livree', updated_at: now, lawyer_activity_at: now } });
     sendPortalNotificationEmail(request.user_id, 'Votre avocat a terminé une remise', `/saas/dossier-avocat.html?id=${request.id}`).catch(error => console.error('founder notification email error:', error.message));
     return res.json({ unchanged: true, message: 'Le fichier est identique au document soumis : aucune nouvelle version n’a été créée.' });
   }
@@ -4557,7 +5214,7 @@ app.post('/api/lawyer/review-requests/:id/deliver', requireAuth, requireLawyer, 
   await col('saas_documents').insertOne(doc);
   await recordReceivedTransmission(request.user_id, doc);
   const delivery = { document_id: id, source_document_id: source.id, name: doc.name, size: doc.size, delivered_at: now, lawyer_user_id: req.user.id };
-  await col('saas_avocat_requests').updateOne({ id: request.id }, { $push: { deliveries: delivery }, $set: { status: 'livree', updated_at: now } });
+  await col('saas_avocat_requests').updateOne({ id: request.id }, { $push: { deliveries: delivery }, $set: { status: 'livree', updated_at: now, lawyer_activity_at: now } });
   const note = shortText(req.body?.message, 4000);
   if (note) await col('saas_avocat_messages').insertOne({ id: await nextId('saas_avocat_messages'), request_id: request.id, client_id: request.user_id, author_type: 'lawyer', author_id: req.user.id, body: note, created_at: now });
   sendPortalNotificationEmail(request.user_id, 'Un document est disponible dans votre espace sécurisé', `/saas/dossier-avocat.html?id=${request.id}`).catch(error => console.error('founder notification email error:', error.message));
@@ -5103,37 +5760,41 @@ app.get('/api/admin/payments', requireAdmin, async (_req, res) => {
   ).sort({ created_at: -1 }).toArray();
   const userIds = founders.map(founder => founder.id);
 
-  const [profiles, liquidPayments, lawyerRequests] = await Promise.all([
+  const [profiles, liquidPayments, lawyerPayments] = await Promise.all([
     col('saas_fundraising_profiles').find(
       { user_id: { $in: userIds } },
       { projection: { _id: 0, user_id: 1, company_name: 1 } },
     ).toArray(),
     col('billing_payments').find(
-      { user_id: { $in: userIds }, status: 'paid' },
-      { projection: { _id: 0, user_id: 1, amount_total: 1, currency: 1, paid_at: 1 } },
+      { user_id: { $in: userIds }, status: { $in: ['paid', 'partially_refunded'] } },
+      { projection: { _id: 0, user_id: 1, amount_total: 1, amount_refunded: 1, currency: 1, paid_at: 1 } },
     ).sort({ paid_at: -1 }).toArray(),
-    col('saas_avocat_requests').find(
-      { user_id: { $in: userIds }, status: { $ne: 'annule' } },
-      { projection: { _id: 0, user_id: 1, prestation_key: 1, lawyer_fee_amount: 1, lawyer_payment_status: 1 } },
+    col('lawyer_payment_requests').find(
+      { client_id: { $in: userIds } },
+      { projection: { _id: 0, client_id: 1, amount_total: 1, amount_refunded: 1, status: 1 } },
     ).toArray(),
   ]);
 
   const companiesByUser = new Map(profiles.map(profile => [profile.user_id, profile.company_name]));
   const latestLiquidPaymentByUser = new Map();
   liquidPayments.forEach(payment => {
-    if (!latestLiquidPaymentByUser.has(payment.user_id)) latestLiquidPaymentByUser.set(payment.user_id, payment);
+    if (!latestLiquidPaymentByUser.has(payment.user_id)) latestLiquidPaymentByUser.set(payment.user_id, {
+      ...payment,
+      amount_total: Math.max(0, (Number(payment.amount_total) || 0) - (Number(payment.amount_refunded) || 0)),
+    });
   });
 
+  // Montants d'honoraires exprimés en centimes → euros ; nets des remboursements.
   const lawyerPaymentsByUser = new Map(userIds.map(userId => [userId, { paid_amount: 0, due_amount: 0, currency: 'EUR' }]));
-  lawyerRequests.forEach(request => {
-    const storedAmount = Number(request.lawyer_fee_amount);
-    const fallbackAmount = AVOCAT_PRESTATIONS.find(item => item.key === request.prestation_key)?.fee_amount || 0;
-    const amount = Number.isFinite(storedAmount) && storedAmount > 0 ? storedAmount : fallbackAmount;
+  lawyerPayments.forEach(payment => {
+    const amount = Number.isSafeInteger(payment.amount_total)
+      ? Math.max(0, payment.amount_total - (Number.isSafeInteger(payment.amount_refunded) ? payment.amount_refunded : 0)) / 100
+      : 0;
     if (!(amount > 0)) return;
-    const totals = lawyerPaymentsByUser.get(request.user_id);
+    const totals = lawyerPaymentsByUser.get(payment.client_id);
     if (!totals) return;
-    if (request.lawyer_payment_status === 'paid') totals.paid_amount += amount;
-    else totals.due_amount += amount;
+    if (['paid', 'partially_refunded'].includes(payment.status)) totals.paid_amount += amount;
+    else if (['awaiting_payment', 'checkout_open'].includes(payment.status)) totals.due_amount += amount;
   });
 
   res.json({ payments: founders.map(founder => {
@@ -5199,18 +5860,9 @@ app.post('/api/admin/client-proposals', requireAdmin, async (req, res) => {
   res.status(201).json({ proposal });
 });
 
-app.post('/api/admin/client-proposals/:id/assign', requireAdmin, async (req, res) => {
-  const proposal = await col('lawyer_client_proposals').findOne({ id: req.params.id });
-  if (!proposal) return res.status(404).json({ error: 'Proposition introuvable' });
-  if (proposal.status !== 'accepted') return res.status(409).json({ error: "L’avocat doit accepter la proposition avant l’attribution" });
-  if (!companyEligibility(await companyProfileForUser(proposal.client_id)).verified) return res.status(409).json({ error: 'La société n’est pas vérifiée.', code: 'COMPANY_VERIFICATION_REQUIRED' });
-  const now = new Date().toISOString();
-  await Promise.all([
-    col('lawyer_client_proposals').updateOne({ id: proposal.id }, { $set: { status: 'assigned', assigned_at: now, updated_at: now } }),
-    col('saas_avocat').updateOne({ user_id: proposal.client_id }, { $set: { mode: 'platform', lawyer_user_id: proposal.lawyer_id, partner_id: null, own_lawyer: null, updated_at: now }, $setOnInsert: { created_at: now } }, { upsert: true }),
-  ]);
-  res.json({ success: true });
-});
+// L'attribution se fait quand l'avocat accepte la proposition (PATCH
+// /api/lawyer/client-proposals/:id) : elle passe directement de 'proposed' à
+// 'assigned'. Aucune étape d'attribution par l'admin n'existe donc plus.
 
 app.get('/api/lawyer/client-proposals', requireAuth, requireLawyer, async (req, res) => {
   const proposals = await col('lawyer_client_proposals').find({ lawyer_id: req.user.id }, { projection: { _id: 0 } }).sort({ created_at: -1 }).toArray();
@@ -5259,10 +5911,10 @@ app.get('/api/lawyer/catalogue', requireAuth, requireLawyer, async (req, res) =>
     accepted: Number(req.lawyer.lawyer_catalog_version) === LAWYER_CATALOG_VERSION,
     prestations: AVOCAT_PRESTATIONS,
     rules: [
-      'Les prix affichés sont des forfaits fermes hors taxes.',
-      'Aucun supplément ne peut être facturé sans commande expresse d’une prestation complémentaire par le client.',
+      'Les honoraires sont fixés dans la convention d’honoraires signée directement entre la société cliente et l’avocat.',
+      'Le montant total TTC saisi dans Liquid+ doit être celui prévu par la convention signée ; aucun montant n’est imposé ou modifié par Liquid+.',
       'L’avocat conserve son indépendance juridique et peut refuser une mission pour un motif légal, déontologique, de conflit ou de capacité.',
-      'Les documents et échanges confidentiels restent dans l’espace sécurisé Liquid+ ou utilisent e-Partage du CNB ; les emails ne contiennent aucune pièce jointe.',
+      'Les documents confidentiels utilisent l’e-Partage du CNB ; Liquid+ ne conserve pas les échanges écrits entre la société et l’avocat.',
     ],
   });
 });
@@ -5279,7 +5931,7 @@ app.patch('/api/lawyer/client-proposals/:id', requireAuth, requireLawyer, async 
   const status = String(req.body?.status || '');
   if (!['accepted', 'declined'].includes(status)) return res.status(400).json({ error: 'Réponse invalide' });
   if (status === 'accepted' && Number(req.lawyer.lawyer_catalog_version) !== LAWYER_CATALOG_VERSION)
-    return res.status(409).json({ error: 'Acceptez d’abord le catalogue Liquid+ et ses prix forfaitaires fermes.', code: 'CATALOG_ACCEPTANCE_REQUIRED' });
+    return res.status(409).json({ error: 'Acceptez d’abord le cadre de mission Liquid+.', code: 'CATALOG_ACCEPTANCE_REQUIRED' });
   if (status === 'accepted') {
     const proposal = await col('lawyer_client_proposals').findOne({ id: req.params.id, lawyer_id: req.user.id, status: 'proposed' });
     if (!proposal) return res.status(409).json({ error: 'Cette proposition a déjà été traitée' });

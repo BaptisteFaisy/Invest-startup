@@ -343,35 +343,65 @@
     if (typeof logout === 'function') logout(); else location.href = 'login.html';
   });
 
+  // Pastille du hamburger droit : plusieurs sources peuvent l'allumer (feedback,
+  // avocat). On les combine, sinon la dernière rafraîchie éteindrait l'autre.
+  const notifySources = {};
+  function setHamburgerNotify(source, on) {
+    notifySources[source] = !!on;
+    const btn = document.getElementById('actions-menu-btn');
+    if (btn) btn.classList.toggle('hamburger--notify', Object.keys(notifySources).some(k => notifySources[k]));
+  }
+
+  // Interroge `url` toutes les 20 s (et au retour sur l'onglet) et allume la
+  // pastille `dotId` + celle du hamburger. `read` extrait le booléen. La
+  // pastille est relue à chaque tour : applyLawyerDrawers remplace le tiroir
+  // fondateur après coup, et écrire dans le nœud détaché ne servirait à rien.
+  function pollUnread(source, url, dotId, read) {
+    async function refresh() {
+      const dot = document.getElementById(dotId);
+      if (!dot) { setHamburgerNotify(source, false); return; }
+      try {
+        const res = await fetch(url, { credentials: 'include' });
+        if (!res.ok) return;
+        const unread = !!read(await res.json());
+        dot.hidden = !unread;
+        setHamburgerNotify(source, unread);
+      } catch {}
+    }
+    refresh();
+    setInterval(refresh, 20000);
+    // Retour sur l'onglet (après avoir lu ailleurs) : on revérifie.
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') refresh();
+    });
+  }
+
   // Notification « feedback » : tant qu'une réponse du fondateur n'a pas été
-  // lue, une pastille rouge s'affiche sur le hamburger droit (visible menu
+  // lue, une pastille verte s'affiche sur le hamburger droit (visible menu
   // fermé) et sur le lien Feedback (visible menu ouvert). L'état vient de
   // /api/saas/feedback/unread ; il se vide côté serveur dès que la page
   // Feedback est ouverte, donc la pastille disparaît au prochain rafraîchissement.
   (function setupFeedbackNotification() {
-    const dot = document.getElementById('feedback-unread-dot');
-    if (!dot) return; // pages sans lien Feedback (ex. tableau de bord avocat)
-    const btn = document.getElementById('actions-menu-btn');
+    if (!document.getElementById('feedback-unread-dot')) return; // pages sans lien Feedback
+    pollUnread('feedback', '/api/saas/feedback/unread', 'feedback-unread-dot', d => d && d.unread);
+  })();
 
-    function apply(unread) {
-      dot.hidden = !unread;
-      if (btn) btn.classList.toggle('hamburger--notify', unread);
+  // Notification « avocat » : allumée dès que l'avocat a fait quelque chose que
+  // le fondateur n'a pas vu (remise, statut, honoraires, rendez-vous). La
+  // pastille du lien est injectée ici plutôt qu'ajoutée aux 14 pages qui
+  // recopient le tiroir. Elle s'éteint dossier par dossier, à leur ouverture.
+  (function setupAvocatNotification() {
+    const link = document.querySelector('.drawer__link[href="avocat.html"]');
+    if (!link) return; // tiroir avocat (applyLawyerDrawers) ou page sans tiroir
+    let dot = document.getElementById('avocat-unread-dot');
+    if (!dot) {
+      dot = document.createElement('span');
+      dot.className = 'drawer__unread-dot';
+      dot.id = 'avocat-unread-dot';
+      dot.hidden = true;
+      link.appendChild(dot);
     }
-    async function refresh() {
-      try {
-        const res = await fetch('/api/saas/feedback/unread', { credentials: 'include' });
-        if (!res.ok) return;
-        const data = await res.json();
-        apply(!!(data && data.unread));
-      } catch {}
-    }
-
-    refresh();
-    setInterval(refresh, 20000);
-    // Retour sur l'onglet (après avoir lu le fil dans un autre onglet) : recheck.
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') refresh();
-    });
+    pollUnread('avocat', '/api/saas/avocat/activity', 'avocat-unread-dot', d => d && d.unread);
   })();
 })();
 

@@ -710,8 +710,9 @@
     function renderProposals(){
       const el=document.getElementById('proposal-list');
       if(!adminProposals.length){el.innerHTML='<p class="notice">Aucune proposition.</p>';return;}
-      el.innerHTML=adminProposals.map(p=>`<div class="proposal-row"><div><strong>${escHtml(p.startup_name||p.client_name)}</strong> → ${escHtml(p.lawyer_name)}<small>${escHtml(p.message||'Sans message')} · ${escHtml(p.status)}</small></div>${p.status==='accepted'?`<button class="button primary" data-assign="${escHtml(p.id)}">Attribuer</button>`:''}</div>`).join('');
-      el.querySelectorAll('[data-assign]').forEach(b=>b.addEventListener('click',async()=>{try{await adminJson('/api/admin/client-proposals/'+encodeURIComponent(b.dataset.assign)+'/assign',{method:'POST'});await loadLawyerManagement();}catch(e){alert(e.message);}}));
+      // L'attribution est prononcée par l'avocat lui-même en acceptant la proposition :
+      // l'admin la propose puis en suit l'état, il ne l'attribue pas.
+      el.innerHTML=adminProposals.map(p=>`<div class="proposal-row"><div><strong>${escHtml(p.startup_name||p.client_name)}</strong> → ${escHtml(p.lawyer_name)}<small>${escHtml(p.message||'Sans message')} · ${escHtml(p.status)}</small></div></div>`).join('');
     }
     function renderLawyerChangeRequests(){
       const el=document.getElementById('lawyer-change-request-list');

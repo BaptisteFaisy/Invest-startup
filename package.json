@@ -30,7 +30,8 @@
     "openai": "^6.45.0",
     "pdf-parse": "^1.1.4",
     "qrcode": "^1.5.4",
-    "speakeasy": "^2.0.0"
+    "speakeasy": "^2.0.0",
+    "stripe": "^22.0.0"
   },
   "devDependencies": {
     "electron": "^43.0.0",
