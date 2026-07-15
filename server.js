@@ -1680,7 +1680,7 @@ Règles :
 // ─── SaaS : clauses disponibles à ajouter (bibliothèque de l'éditeur) ──────────
 // Reçoit les clauses actuelles du document ; l'IA propose des clauses MANQUANTES
 // typiques de ce type de document, rédigées et prêtes à insérer.
-app.post('/api/saas/doc-clauses', requireAuth, enforceDailyCap, gateAIQuota, async (req, res) => {
+app.post('/api/saas/doc-clauses', requireAuth, enforceDailyCap, async (req, res) => {
   if (!zaiClient)
     return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
@@ -1742,7 +1742,7 @@ Règles :
 });
 
 // ─── SaaS : analyse d'un document → liste des « choses à faire » ───────────────
-app.post('/api/saas/doc-analyze', requireAuth, enforceDailyCap, gateAIQuota, async (req, res) => {
+app.post('/api/saas/doc-analyze', requireAuth, enforceDailyCap, async (req, res) => {
   if (!zaiClient)
     return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 

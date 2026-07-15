@@ -56,7 +56,16 @@
       + '.lgm__btn--primary{background:#fff;color:#08090c;} .lgm__btn--primary:hover{background:#e9edf2;}'
       + '.lgm__btn--ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,0.28);}'
       + '.lgm__btn--ghost:hover{border-color:rgba(255,255,255,0.55);}'
-      + '.lgm__foot{font-size:11.5px;color:rgba(255,255,255,0.4);margin-top:14px;line-height:1.5;text-align:center;}';
+      + '.lgm__foot{font-size:11.5px;color:rgba(255,255,255,0.4);margin-top:14px;line-height:1.5;text-align:center;}'
+      // Hook « teaser flou » : on voit qu'il y a des points à corriger (nombre visible),
+      // mais le texte est flouté et cliquer ouvre l'offre. Le niveau de risque reste, lui,
+      // affiché en clair (gratuit) ailleurs.
+      + '.cli-todos li{filter:blur(4.5px)!important;-webkit-user-select:none;user-select:none;}'
+      + '.cli-todos{position:relative;cursor:pointer;padding-bottom:42px!important;}'
+      + '.cli-todos::after{content:"🔒 Activez LIQUID+ pour voir comment corriger";position:absolute;'
+      + 'left:8px;right:8px;bottom:8px;text-align:center;font:700 11px/1.4 system-ui,-apple-system,sans-serif;'
+      + 'color:#fff;background:rgba(17,19,24,0.88);border:1px solid rgba(96,165,250,0.55);border-radius:8px;'
+      + 'padding:7px 8px;pointer-events:none;}';
     var s = document.createElement('style');
     s.textContent = css;
     document.head.appendChild(s);
@@ -153,11 +162,18 @@
 
     // Boutons d'export connus (avant que window.print() / le fetch ne parte) → offre.
     document.addEventListener('click', function (e) {
-      var t = e.target.closest && e.target.closest('#export-pdf-item,#export-docx-item,[data-requires-active]');
-      if (t) {
+      if (!e.target.closest) return;
+      if (e.target.closest('#export-pdf-item,#export-docx-item,[data-requires-active]')) {
         e.preventDefault();
         e.stopPropagation();
         showUpgrade('L\'export de vos documents est réservé aux comptes activés.');
+        return;
+      }
+      // Hook : clic sur les points à corriger floutés → offre.
+      if (e.target.closest('.cli-todos')) {
+        e.preventDefault();
+        e.stopPropagation();
+        showUpgrade('Activez LIQUID+ pour voir les points à corriger et comment les traiter.');
       }
     }, true);
   }
