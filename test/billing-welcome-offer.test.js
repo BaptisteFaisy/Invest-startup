@@ -18,7 +18,7 @@ test('la proposition de bienvenue reste fermable et son script est valide', () =
   assert.match(authScript, /RAISE SUMMIT/);
   assert.match(authScript, /témoignage publié sur notre site/);
   assert.match(authScript, /post LinkedIn de votre part parlant de Liquid\+/);
-  assert.match(authScript, /Payer 700 € HT maintenant/);
+  assert.match(authScript, /Payer 600 € TTC maintenant/);
 });
 
 test('la facturation permet le paiement et préremplit le code de bienvenue', () => {
@@ -27,11 +27,11 @@ test('la facturation permet le paiement et préremplit le code de bienvenue', ()
   inlineScripts.forEach((match, index) => {
     assert.doesNotThrow(() => new vm.Script(match[1], { filename: `Saas/compte.html#script-${index + 1}` }));
   });
-  assert.match(accountHtml, /Payer 700 € HT/);
+  assert.match(accountHtml, /Payer 600 € TTC/);
   assert.match(accountHtml, /sans attendre la fin de vos 2 heures d’essai gratuit/);
   assert.match(accountHtml, /data\.role === 'avocat' && !data\.liquid_plus/);
   assert.match(accountHtml, /accountParams\.get\('promo'\)/);
-  assert.match(accountHtml, /Accepter et payer 550 € HT/);
+  assert.match(accountHtml, /Accepter et payer 450 € TTC/);
 });
 
 test('le serveur ne propose la fenêtre qu’au premier essai fondateur', () => {

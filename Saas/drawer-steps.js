@@ -103,9 +103,10 @@
     'closing': 'Closing',
     'post-closing': 'Post-closing',
     'gouvernance': 'Gouvernance',
-    'air-preparation': 'Préparation', 'air-termes': 'Termes des BSA-AIR',
-    'air-emission': 'Émission', 'air-approche': 'Approche investisseurs',
-    'air-souscription': 'Souscription', 'air-suivi': 'Suivi', 'air-conversion': 'Conversion',
+    'air-preparation': 'Ma levée', 'air-approche': 'Investisseurs',
+    'air-termes': 'Rédaction des BSA-AIR', 'air-emission': "Autorisation de l'émission",
+    'air-souscription': 'Émission des BSA-AIR', 'air-postemission': 'Post-émission',
+    'air-suivi': 'Suivi des bons', 'air-conversion': 'Conversion',
   };
   function slugify(s) {
     return String(s).toLowerCase()
@@ -176,21 +177,20 @@
     const currentIdx = stats.findIndex(s => !s.complete);
     const globalFrac = stats.length ? stats.filter(s => s.complete).length / stats.length : 0;
     const steps = [];
-    if (type === 'bsa-air') {
-      steps.push({ key: 'bsa-profile', label: 'Ma levée', num: 0, done: false, current: false, soon: false, pct: Math.round(globalFrac * 100) });
-    }
+    // BSA-AIR : « 0 · Ma levée » (air-preparation) est une vraie étape, rendue par la
+    // boucle comme les autres ; son numéro (0) vient du nom de la phase.
     phases.forEach((f, i) => {
       const s = stats[i];
       const done = s.complete;
-      // « Ma levée » (classique) et « Préparation » (BSA-AIR) restent visuellement
-      // neutres : pas de fond indigo « étape courante », comme les autres entrées.
+      // « Ma levée » (classique : mise-en-ordre ; BSA-AIR : air-preparation) reste
+      // visuellement neutre : pas de fond indigo « étape courante ».
       const isCurrent = i === currentIdx
         && f.key !== 'mise-en-ordre' && f.key !== 'air-preparation';
-      const num = type === 'classic' ? friseStepNumber(f, i) : i + 1;
+      const num = friseStepNumber(f, i);
       const soon = type === 'classic' && CLASSIC_SOON_BADGES.has(f.key);
       const unavailable = type === 'classic' && CLASSIC_UNAVAILABLE.has(f.key);
       const stepFrac = s.total > 0 ? s.done / s.total : (done ? 1 : 0);
-      const barFrac = f.key === 'mise-en-ordre' ? globalFrac : stepFrac;
+      const barFrac = (f.key === 'mise-en-ordre' || f.key === 'air-preparation') ? globalFrac : stepFrac;
       const pct = Math.max(0, Math.min(100, Math.round(barFrac * 100)));
       steps.push({ key: f.key, label: friseLabel(f), num, done, current: isCurrent, soon, pct: unavailable ? null : pct });
     });

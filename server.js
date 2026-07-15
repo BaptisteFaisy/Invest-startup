@@ -73,7 +73,7 @@ const DAILY_TOKEN_CAP      = Number(process.env.DAILY_TOKEN_CAP) || 5_000_000;
 const FREE_FOUNDER_TOKEN_CAP = 200_000;
 const FOUNDER_TRIAL_MS     = 2 * 60 * 60 * 1000;
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
-const LIQUID_PLUS_STANDARD_PRICE_EUR = 700;
+const LIQUID_PLUS_STANDARD_PRICE_EUR = 600;
 
 const ADMIN_EMAILS = ['baptiste.faisy@gmail.com', 'bg.fsg.invest@gmail.com', 'liquidplus.startups@gmail.com'];
 
@@ -907,7 +907,7 @@ app.get('/api/billing/status', requireAuth, async (req, res) => {
       status: user.subscription_status === 'active' ? 'active' : 'inactive',
       plan: user.subscription_plan || null,
       started_at: user.subscription_started_at || null,
-      price: { amount: LIQUID_PLUS_STANDARD_PRICE_EUR, currency: 'EUR', tax: 'HT' },
+      price: { amount: LIQUID_PLUS_STANDARD_PRICE_EUR, currency: 'EUR', tax: 'TTC' },
     } : null,
     lawyer_payments_enabled: false,
   });
@@ -2707,7 +2707,7 @@ app.get('/api/saas/usage', requireAuth, async (req, res) => {
 // concrètement l'opération au fil de l'eau.
 // `FOLDERS_SEED_VERSION` est incrémentée à chaque évolution de cette liste pour
 // re-synchroniser automatiquement les dossiers système des utilisateurs.
-const FOLDERS_SEED_VERSION = 16;
+const FOLDERS_SEED_VERSION = 17;
 const ddDoc = (label, mark = 'req') => ({ label, mark });
 const ddLabels = items => items.map(item => item.label);
 const ddMarks = items => items.map(item => item.mark || '');
@@ -3185,14 +3185,16 @@ const FUNDRAISING_PHASES = [
 
 // Parcours BSA-AIR (Bon de Souscription d'Actions — Accord d'Investissement Rapide).
 // Même structure que FUNDRAISING_PHASES.
-// Ordre réel d'un BSA-AIR « au fil de l'eau » en France : le fondateur fixe les
-// termes puis ÉMET les BSA-AIR (décision collective, au profit d'une catégorie de
-// personnes) AVANT de rechercher les investisseurs, qui souscrivent ensuite à un
-// instrument déjà émis. L'émission précède donc la recherche d'investisseurs.
+// Ossature en 8 étapes, du point de vue du fondateur : Ma levée → Investisseurs →
+// Rédaction → Autorisation → Émission → Post-émission → Suivi → Conversion.
+// L'ordre (Investisseurs avant Autorisation) est compatible avec les deux modèles
+// juridiques d'émission : « personnes dénommées » (l'AGE nomme les souscripteurs,
+// connus d'avance) ET « catégorie de personnes » (vote unique, souscriptions au fil
+// de l'eau). Le choix se fait à l'étape « Autorisation de l'émission », pas ici.
 const BSA_AIR_PHASES = [
   {
     key: 'air-preparation',
-    name: '1 · Préparation & mise en ordre juridique (pré-levée)',
+    name: '0 · Ma levée (préalables, profil & objectifs)',
     checklist: [
       'Statuts à jour',
       'Table de capitalisation (cap table) actuelle',
@@ -3200,48 +3202,55 @@ const BSA_AIR_PHASES = [
       'Registre des bénéficiaires effectifs (RBE)',
       'Cessions de propriété intellectuelle & dépôts (marques, brevets)',
       'BSPCE / BSA / management package existants',
-    ],
-  },
-  {
-    key: 'air-termes',
-    name: '2 · Structuration & fixation des termes du BSA-AIR',
-    checklist: [
       'Term sheet BSA-AIR (montant, décote, plafond et/ou plancher de valorisation)',
       'Tableau de simulation de la conversion et de la dilution',
     ],
   },
   {
-    key: 'air-emission',
-    name: '3 · Émission des BSA-AIR (décision collective)',
-    checklist: [
-      "Rapport du président et du commissaire aux comptes (le cas échéant) sur l'émission de BSA avec suppression du DPS",
-      "PV de la décision collective (AGE) autorisant l'émission des BSA-AIR",
-      "Contrat d'émission de BSA-AIR (termes et conditions des bons)",
-    ],
-  },
-  {
     key: 'air-approche',
-    name: '4 · Confidentialité & recherche des investisseurs',
+    name: '1 · Investisseurs',
     checklist: [
       'Accord de confidentialité (NDA)',
       'Support de présentation (deck) investisseurs',
     ],
   },
   {
+    key: 'air-termes',
+    name: '2 · Rédaction des BSA-AIR',
+    checklist: [
+      "Contrat d'émission de BSA-AIR (termes et conditions des bons)",
+    ],
+  },
+  {
+    key: 'air-emission',
+    name: "3 · Autorisation de l'émission des BSA-AIR",
+    checklist: [
+      "Rapport du président et du commissaire aux comptes (le cas échéant) sur l'émission de BSA avec suppression du DPS",
+      "PV de la décision collective (AGE) autorisant l'émission des BSA-AIR",
+    ],
+  },
+  {
     key: 'air-souscription',
-    name: '5 · Souscription & versement des fonds (au fil de l’eau)',
+    name: '4 · Émission des BSA-AIR (souscription & versement)',
     checklist: [
       'Bulletin de souscription des BSA-AIR',
       "Lettre d'investissement / side letter",
       'Convention entre investisseurs',
       'Attestation de versement des fonds par le(s) souscripteur(s)',
       'Constatation de la souscription des BSA-AIR par le président',
+    ],
+  },
+  {
+    key: 'air-postemission',
+    name: '5 · Post-émission (inscription & registres)',
+    checklist: [
       'Inscription des BSA-AIR au registre des valeurs mobilières / mouvements de titres',
+      'Table de capitalisation (cap table) mise à jour',
     ],
   },
   {
     key: 'air-suivi',
-    name: '6 · Suivi jusqu’à la conversion',
+    name: '6 · Suivi des bons',
     checklist: [
       'Information / reporting des investisseurs (info rights)',
       'Suivi des engagements BSA-AIR en cours (échéances, événements déclencheurs)',
@@ -3249,7 +3258,7 @@ const BSA_AIR_PHASES = [
   },
   {
     key: 'air-conversion',
-    name: '7 · Conversion au tour qualifié (ou échéance / liquidité)',
+    name: '7 · Conversion (tour qualifié, échéance ou liquidité)',
     checklist: [
       'Calcul du prix de conversion (application de la décote et/ou du plafond)',
       'Bulletins de souscription des actions issues de la conversion',
@@ -3271,11 +3280,12 @@ const PHASE_MARKS = {
   'closing':           CLOSING_MARKS,
   'post-closing':      ['req', '', 'req'],
   'gouvernance':       ['req', '', ''],
-  'air-preparation':   ['req', 'req', '', '', '', 'opt'],
-  'air-termes':        ['req', ''],
-  'air-emission':      ['req', 'req', 'req'],
+  'air-preparation':   ['req', 'req', '', '', '', 'opt', 'req', ''],
   'air-approche':      ['req', ''],
-  'air-souscription':  ['req', 'opt', 'opt', 'req', 'req', 'req'],
+  'air-termes':        ['req'],
+  'air-emission':      ['req', 'req'],
+  'air-souscription':  ['req', 'opt', 'opt', 'req', 'req'],
+  'air-postemission':  ['req', 'req'],
   'air-suivi':         ['req', ''],
   'air-conversion':    ['req', 'req', 'opt'],
 };

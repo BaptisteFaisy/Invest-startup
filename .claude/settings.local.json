@@ -7,7 +7,16 @@
       "Bash(git add *)",
       "Bash(git reset *)",
       "Bash(git commit -m ' *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(git rev-list *)",
+      "Bash(curl -sI \"https://www.liquidplus.fr/\")",
+      "Bash(curl -s \"https://www.liquidplus.fr/\")",
+      "Bash(node --check server.js)",
+      "Bash(node --check Saas/drawer-steps.js)",
+      "Bash(node --check Saas/documents.js)",
+      "PowerShell($c = Get-Command node -ErrorAction SilentlyContinue; if \\($c\\) { $c.Source } else { \"not in PATH\" }; @\\(\"$env:ProgramFiles\\\\nodejs\\\\node.exe\",\"$env:LOCALAPPDATA\\\\Programs\\\\nodejs\\\\node.exe\",\"$env:APPDATA\\\\npm\\\\node.exe\",\"C:\\\\Program Files\\\\nodejs\\\\node.exe\"\\) | ForEach-Object { if \\(Test-Path $_\\) { \"FOUND: $_\" } }; Get-ChildItem package.json -ErrorAction SilentlyContinue | Select-Object FullName)",
+      "mcp__visualize__read_me",
+      "Bash(echo \"=== jeanp accessible ? ===\" && ls -d \"C:/Users/jeanp/Documents/invest-startup-gaia/Invest-startup\" 2>&1 | head -1; echo \"=== payments.js là-bas ? ===\" && ls -la \"C:/Users/jeanp/Documents/invest-startup-gaia/Invest-startup/lib/payments.js\" 2>&1 | head -1; echo \"=== docs là-bas ? ===\" && ls \"C:/Users/jeanp/Documents/invest-startup-gaia/Invest-startup/docs/\" 2>&1 | head)"
     ],
     "defaultMode": "bypassPermissions"
   },

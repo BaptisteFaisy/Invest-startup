@@ -75,7 +75,7 @@
     .status { flex:none; display:inline-flex; align-items:center; gap:8px; padding:9px 12px; border:1px solid rgba(255,255,255,.14); border-radius:9px; background:rgba(255,255,255,.05); color:#fff; font:700 11px 'Archivo',sans-serif; }
     .status::before { content:''; width:8px; height:8px; border-radius:50%; background:#f59e0b; box-shadow:0 0 0 3px rgba(245,158,11,.16); }
     .status--active::before { background:var(--green); box-shadow:0 0 0 3px rgba(16,185,129,.16); }
-    .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:34px; }
+    .stats { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; margin-bottom:34px; }
     .stat { padding:20px 22px; border:1px solid var(--line); border-radius:13px; background:var(--card); color:var(--ink); }
     .stat__label { color:var(--muted); font:700 11px 'Archivo',sans-serif; letter-spacing:.07em; text-transform:uppercase; }
     .stat__value { margin-top:10px; font:800 28px 'Archivo',sans-serif; letter-spacing:-.04em; }
@@ -143,7 +143,7 @@
       .dashboard > .help-pop { top:38px; }
       .hero { display:block; }
       .status { margin-top:20px; }
-      .stats { grid-template-columns:1fr; }
+      .stats { grid-template-columns:repeat(2,minmax(0,1fr)); }
       .main-grid { grid-template-columns:1fr; }
     }
 
@@ -228,10 +228,11 @@
 
       <div data-page-content="dashboard">
       <section class="stats" aria-label="Vue d’ensemble">
-        <article class="stat"><div class="stat__label">Dossiers actifs</div><div class="stat__value">0</div></article>
-        <article class="stat"><div class="stat__label">À relire</div><div class="stat__value">0</div></article>
-        <article class="stat"><div class="stat__label">Messages non lus</div><div class="stat__value">0</div></article>
-        <article class="stat"><div class="stat__label">Gains via Liquid+</div><div class="stat__value" id="lawyer-earnings">0 €</div></article>
+        <article class="stat"><div class="stat__label">Propositions de clients</div><div class="stat__value" id="stat-proposals">0</div></article>
+        <article class="stat"><div class="stat__label">Clients attribués</div><div class="stat__value" id="stat-clients">0</div></article>
+        <article class="stat"><div class="stat__label">Demandes de missions</div><div class="stat__value" id="stat-requests">0</div></article>
+        <article class="stat"><div class="stat__label">Missions acceptées</div><div class="stat__value" id="stat-accepted">0</div></article>
+        <article class="stat"><div class="stat__label">Missions passées</div><div class="stat__value" id="stat-past">0</div></article>
       </section>
 
       <div class="section-head" id="dossiers"><h2 class="section-title">Dossiers récents</h2><a class="section-link" href="#demandes">Voir les demandes</a></div>
@@ -390,14 +391,22 @@
       const openRows=open.map(r=>`<div class="work-row"><div><div class="work-row__name">${esc(r.title||r.document_name||'Relecture juridique')}</div><div class="work-row__meta">${esc(r.client?.full_name||r.client?.email||'Fondateur')} · ${(r.documents||[]).length} document(s) · ${esc(labels[r.status]||r.status)}</div></div><div class="work-actions"><a class="work-btn work-btn--primary" href="dossier-avocat.html?id=${r.id}">Ouvrir</a></div></div>`).join('');
       card.innerHTML='<div class="card__head"><h3 class="card__title">Demandes de relecture</h3><span class="badge">'+open.length+' active'+(open.length>1?'s':'')+'</span></div>'+(open.length?'<div class="work-list">'+openRows+'</div>':'<div class="empty"><p>Aucune demande de relecture active.</p></div>');
       currentEl.innerHTML=open.length?openRows:'<div class="empty"><p>Aucune mission en cours pour le moment.</p></div>';
-      const stats=document.querySelectorAll('.stat__value');stats[1].textContent=items.filter(r=>r.status==='soumise').length;stats[2].textContent=items.filter(r=>r.status==='attente_fondateur').length;
       const past=items.filter(r=>['cloturee','annule'].includes(r.status));
       const pastEl=document.getElementById('past-work-list');
       pastEl.innerHTML=past.length?past.map(r=>`<div class="work-row"><div><div class="work-row__name">${esc(r.title||r.document_name||'Mission juridique')}</div><div class="work-row__meta">${esc(r.client?.full_name||r.client?.email||'Fondateur')} · ${esc(labels[r.status]||r.status)}</div></div><div class="work-actions"><a class="work-btn" href="dossier-avocat.html?id=${encodeURIComponent(r.id)}">Consulter</a></div></div>`).join(''):'<div class="empty"><p>Aucune mission passée pour le moment.</p></div>';
     }
+    function updateDashboardStats(proposals, clients, requests) {
+      const accepted=requests.filter(r=>!['cloturee','annule'].includes(r.status)).length;
+      const past=requests.filter(r=>['cloturee','annule'].includes(r.status)).length;
+      document.getElementById('stat-proposals').textContent=proposals.length;
+      document.getElementById('stat-clients').textContent=clients.length;
+      document.getElementById('stat-requests').textContent=requests.length;
+      document.getElementById('stat-accepted').textContent=accepted;
+      document.getElementById('stat-past').textContent=past;
+    }
     async function loadClientTools(active) {
-      if(!active){renderProposals([]);renderClients([]);renderReviewRequests([]);renderNotifications([]);updateMissionNavigation([],[],[],[]);return;}
-      const [p,c,r,n,e]=await Promise.all([lawyerApi('/api/lawyer/client-proposals'),lawyerApi('/api/lawyer/clients'),lawyerApi('/api/lawyer/review-requests'),lawyerApi('/api/lawyer/notifications'),lawyerApi('/api/lawyer/earnings')]); const proposals=p.proposals||[],clients=c.clients||[],requests=r.requests||[],notifications=n.notifications||[];renderProposals(proposals);renderClients(clients);renderReviewRequests(requests);renderNotifications(notifications);updateMissionNavigation(proposals,clients,requests,notifications);document.querySelector('.stat__value').textContent=clients.length;document.getElementById('lawyer-earnings').textContent=new Intl.NumberFormat('fr-FR',{style:'currency',currency:e.currency||'EUR',maximumFractionDigits:0}).format(Number(e.total)||0);
+      if(!active){renderProposals([]);renderClients([]);renderReviewRequests([]);renderNotifications([]);updateMissionNavigation([],[],[],[]);updateDashboardStats([],[],[]);return;}
+      const [p,c,r,n]=await Promise.all([lawyerApi('/api/lawyer/client-proposals'),lawyerApi('/api/lawyer/clients'),lawyerApi('/api/lawyer/review-requests'),lawyerApi('/api/lawyer/notifications')]); const proposals=p.proposals||[],clients=c.clients||[],requests=r.requests||[],notifications=n.notifications||[];renderProposals(proposals);renderClients(clients);renderReviewRequests(requests);renderNotifications(notifications);updateMissionNavigation(proposals,clients,requests,notifications);updateDashboardStats(proposals,clients,requests);
     }
     async function logout() { await fetch('/api/auth/logout', { method:'POST', credentials:'include' }).catch(() => {}); location.href = 'login.html'; }
     async function load() {

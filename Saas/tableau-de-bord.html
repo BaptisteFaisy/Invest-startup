@@ -439,7 +439,7 @@
     .ip-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--line); margin: 0 0 4px; }
     .ip-tab { padding: 11px 20px; font-family: 'Archivo', sans-serif; font-size: 13.5px; font-weight: 700; color: rgba(255,255,255,.62); cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; }
     .ip-tab:hover { color: rgba(255,255,255,.88); }
-    .ip-tab.is-active { color: #fff; border-bottom-color: #16a34a; }
+    .ip-tab.is-active { color: #fff; border-bottom-color: #15803d; }
     .ip-panel { display: none; }
     .ip-panel.is-active { display: block; }
 
@@ -2648,22 +2648,25 @@
       'air-preparation': [
         { key: 'societe-capital', title: 'Société et capital', indexes: [0, 1, 2, 3] },
         { key: 'ip-management', title: 'PI et management package', indexes: [4, 5] },
-      ],
-      'air-termes': [
-        { key: 'termes-economiques', title: 'Termes économiques et dilution', indexes: [0, 1] },
-      ],
-      'air-emission': [
-        { key: 'decisions-sociales', title: 'Décisions sociales', indexes: [0, 1] },
-        { key: 'instrument-air', title: 'Instrument BSA-AIR', indexes: [2] },
+        { key: 'termes-economiques', title: 'Termes économiques et simulation', indexes: [6, 7] },
       ],
       'air-approche': [
         { key: 'confidentialite', title: 'Confidentialité', indexes: [0] },
         { key: 'presentation', title: 'Présentation investisseurs', indexes: [1] },
       ],
+      'air-termes': [
+        { key: 'instrument-air', title: "Contrat d'émission", indexes: [0] },
+      ],
+      'air-emission': [
+        { key: 'decisions-sociales', title: 'Rapports et décision collective', indexes: [0, 1] },
+      ],
       'air-souscription': [
         { key: 'souscription-investisseurs', title: 'Souscription investisseurs', indexes: [0, 1, 2] },
         { key: 'versement-fonds', title: 'Versement des fonds', indexes: [3] },
-        { key: 'constatation-registres', title: 'Constatation et registres', indexes: [4, 5] },
+        { key: 'constatation', title: 'Constatation', indexes: [4] },
+      ],
+      'air-postemission': [
+        { key: 'registres-capital', title: 'Registres et capitalisation', indexes: [0, 1] },
       ],
       'air-suivi': [
         { key: 'reporting-suivi', title: 'Reporting et suivi des engagements', indexes: [0, 1] },
@@ -3051,7 +3054,7 @@
       const prof = fundraisingProfile || {};
       const noProfile = !String(prof.company_name || '').trim() && !((prof.founders || []).length);
       if (noProfile) {
-        actions.push({ text: 'Renseignez le profil de votre levée', step: 'Ma levée', key: isClassic ? 'mise-en-ordre' : 'bsa-profile' });
+        actions.push({ text: 'Renseignez le profil de votre levée', step: 'Ma levée', key: isClassic ? 'mise-en-ordre' : 'air-preparation' });
       }
 
       // 2) Documents manquants puis documents à valider, étape par étape.
@@ -3161,7 +3164,7 @@
       // les prochaines priorités. Elle reste visible même quand il n'y a aucune
       // priorité à afficher.
       const onRaiseStep = (type === 'classic' && selectedClassicStep === 'mise-en-ordre')
-        || (type === 'bsa-air' && selectedBsaStep === 'bsa-profile');
+        || (type === 'bsa-air' && (selectedBsaStep === 'air-preparation' || selectedBsaStep === 'bsa-profile'));
       const progressEl = onRaiseStep ? fundraiseProgressEl() : null;
       // Le calcul ne dépend pas de l'étape affichée : on le persiste toujours
       // pour la page Tâches, même quand le bandeau est masqué dans cette vue.
@@ -3189,7 +3192,7 @@
 
       const isClassic = type === 'classic';
       const openStep = (key) => {
-        if (key === 'bsa-profile') return openBsaStepCard('bsa-profile');
+        if (key === 'bsa-profile') return openBsaStepCard('air-preparation');
         return isClassic ? openClassicStepPage(key) : openBsaStepCard(key);
       };
 
@@ -3361,18 +3364,22 @@
         syncClassicActions(-1);
         selectedClassicStep = null;
         const selectedKey = ensureBsaStep(phases);
-        if (selectedKey === 'bsa-profile') {
-          setTopbarStepLabel('Ma levée');
-          updateStepGuideButton(null);
-          const bsaProfileCard = fundraisingProfileEl();
-          bsaProfileCard.id = 'phase-bsa-profile';
-          container.appendChild(bsaProfileCard);
-        } else {
-          const selected = phases.find(f => f.key === selectedKey);
-          const idx = phases.findIndex(f => f.key === selectedKey);
-          setTopbarStepLabel(selected ? friseLabel(selected) : '');
-          updateStepGuideButton(selected || null);
-          if (selected) container.appendChild(phaseCard(selected, idx));
+        // Étape 0 « Ma levée » (air-preparation) : formulaire de profil de la levée,
+        // suivi des documents préalables (statuts, cap table, registres, term sheet,
+        // simulation). 'bsa-profile' est l'ancienne clé synthétique du profil : on la
+        // rabat sur air-preparation, devenue une vraie étape.
+        const isMaLevee = selectedKey === 'air-preparation' || selectedKey === 'bsa-profile';
+        const selected = phases.find(f => f.key === (isMaLevee ? 'air-preparation' : selectedKey));
+        const idx = phases.findIndex(f => f === selected);
+        setTopbarStepLabel(selected ? friseLabel(selected) : 'Ma levée');
+        updateStepGuideButton(selected || null);
+        if (isMaLevee && selected) {
+          const profileCard = fundraisingProfileEl();
+          profileCard.id = 'phase-air-preparation-profile';
+          container.appendChild(profileCard);
+          container.appendChild(phaseCard(selected, idx, { title: 'Documents préalables', icon: 'DOC', hideStep: true, documentActions: true }));
+        } else if (selected) {
+          container.appendChild(phaseCard(selected, idx));
         }
       }
 
@@ -4294,9 +4301,10 @@
       'closing': 'Closing',
       'post-closing': 'Post-closing',
       'gouvernance': 'Gouvernance',
-      'air-preparation': 'Préparation', 'air-termes': 'Termes des BSA-AIR',
-      'air-emission': 'Émission', 'air-approche': 'Approche investisseurs',
-      'air-souscription': 'Souscription', 'air-suivi': 'Suivi', 'air-conversion': 'Conversion',
+      'air-preparation': 'Ma levée', 'air-approche': 'Investisseurs',
+      'air-termes': 'Rédaction des BSA-AIR', 'air-emission': "Autorisation de l'émission",
+      'air-souscription': 'Émission des BSA-AIR', 'air-postemission': 'Post-émission',
+      'air-suivi': 'Suivi des bons', 'air-conversion': 'Conversion',
     };
     function friseLabel(f) {
       if (FRISE_LABELS[f.key]) return FRISE_LABELS[f.key];
@@ -4547,26 +4555,9 @@
       // Avancement global de la levée : proportion d'étapes terminées.
       const globalFrac = stats.length ? stats.filter(s => s.complete).length / stats.length : 0;
 
-      // BSA-AIR : « 0 · Ma levée » ouvre le profil de la levée (comme côté classique),
-      // avant les étapes documentaires. Ce n'est pas un dossier système : la barre
-      // suit l'avancement global, comme pour « Ma levée » côté classique.
-      if (type === 'bsa-air') {
-        const pct = Math.max(0, Math.min(100, Math.round(globalFrac * 100)));
-        const isActive = selectedBsaStep === 'bsa-profile';
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        // « Ma levée » conserve le même fond neutre que les autres étapes.
-        btn.className = 'drawer__link drawer__link--step' + (isActive ? ' is-active' : '');
-        btn.innerHTML =
-          '<span class="drawer__step-row"><span class="drawer__step-num">0</span>Ma levée</span>'
-          + '<span class="drawer__step-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><span style="width:' + pct + '%"></span></span>';
-        btn.addEventListener('click', () => {
-          openBsaStepCard('bsa-profile');
-          if (navDrawer) navDrawer.close();
-        });
-        snap.push({ key: 'bsa-profile', label: 'Ma levée', num: 0, done: false, current: false, active: isActive, soon: false, pct });
-        navStepsEl.appendChild(btn);
-      }
+      // BSA-AIR : « 0 · Ma levée » (air-preparation) est désormais une vraie étape,
+      // rendue par la boucle ci-dessous comme les autres. Son numéro (0) vient du nom
+      // de la phase (friseStepNumber) et sa barre suit l'avancement global.
 
       phases.forEach((f, i) => {
         const s = stats[i];
@@ -4583,14 +4574,16 @@
         btn.type = 'button';
         btn.className = 'drawer__link drawer__link--step'
           + (done ? ' is-done' : '') + (isCurrent ? ' is-current' : '') + (isActive ? ' is-active' : '');
-        const num = type === 'classic' ? friseStepNumber(f, i) : i + 1;
+        const num = friseStepNumber(f, i);
         const badge = done
           ? '<svg viewBox="0 0 24 24" aria-hidden="true">' + friseCheckPath + '</svg>'
           : String(num);
         // « Ma levée » (mise-en-ordre) : la barre suit l'avancement global.
         // Sinon : proportion de documents validés dans l'étape.
         const stepFrac = s.total > 0 ? s.done / s.total : (done ? 1 : 0);
-        let barFrac = f.key === 'mise-en-ordre' ? globalFrac : stepFrac;
+        // « Ma levée » (mise-en-ordre côté classique, air-preparation côté BSA-AIR) :
+        // la barre suit l'avancement global de la levée.
+        let barFrac = (f.key === 'mise-en-ordre' || f.key === 'air-preparation') ? globalFrac : stepFrac;
         // Étape « Investisseurs » : la barre suit l'avancement de la levée
         // (montant engagé par les investisseurs signés / objectif de levée),
         // et non un décompte de documents.
@@ -4868,50 +4861,57 @@
       },
       // ── Parcours BSA-AIR ─────────────────────────────────────────────
       'air-preparation': {
-        objectif: "Mettre la société au propre juridiquement avant d'émettre les BSA-AIR.",
-        explication: "Comme pour une levée classique, on commence par un grand ménage : statuts à jour, cap table exacte, registres, PI cédée. Le BSA-AIR ira vite ensuite, donc mieux vaut une base saine dès le départ. C'est aussi le moment de vérifier que vos statuts autorisent bien ce type d'émission.",
+        objectif: "Poser des bases juridiques saines et fixer vous-même les conditions de vos BSA-AIR (montant, décote, plafond, plancher) avant d'aller voir les investisseurs.",
+        explication: "« Ma levée » réunit trois choses : le profil de votre société et de vos fondateurs, la mise en ordre juridique (statuts à jour, cap table exacte, registres, PI cédée) et surtout vos TERMES. C'est LA particularité du BSA-AIR : le fondateur fixe lui-même la décote, le plafond (cap) et l'éventuel plancher, puis présente ces conditions déjà arrêtées. Simulez la dilution avant de figer ces chiffres.",
         eviter: [
-          "Se dire « le BSA-AIR est simple, on verra le juridique plus tard » : les trous ressortent à la conversion, au pire moment.",
           "Démarrer avec une cap table fausse : c'est sur elle que se calcule la dilution future du BSA-AIR.",
-          "Oublier les cessions de PI et les registres obligatoires (RBE, mouvements de titres).",
-        ],
-      },
-      'air-termes': {
-        objectif: "Fixer vous-même les conditions de l'instrument (montant de l'enveloppe, décote, plafond, plancher) avant d'aller voir les investisseurs.",
-        explication: "C'est LA particularité du BSA-AIR : contrairement à une levée classique négociée avec un investisseur lead, ici c'est le fondateur qui fixe les termes en amont. Vous définissez le montant maximum de l'enveloppe, la décote (rabais offert à la conversion), le plafond (cap) et éventuellement le plancher de valorisation. Les investisseurs souscriront ensuite à ces conditions déjà arrêtées. Simulez la dilution avant de figer ces chiffres.",
-        eviter: [
-          "Fixer une décote ou un plafond au hasard : simulez la conversion pour voir votre dilution réelle au tour suivant.",
-          "Empiler des BSA-AIR à des conditions différentes sans vision d'ensemble : la dilution cumulée devient vite ingérable.",
-          "Négliger le plafond (cap) : trop haut, il protège mal l'investisseur ; trop bas, il vous dilue énormément.",
-        ],
-      },
-      'air-emission': {
-        objectif: "Créer juridiquement l'instrument : faire voter l'émission des BSA-AIR par les associés, AVANT de chercher les souscripteurs.",
-        explication: "C'est ici que l'ordre du BSA-AIR surprend : on émet les bons avant d'avoir tous les investisseurs. Les associés votent en assemblée (décision collective / AGE) l'émission des BSA-AIR, avec suppression du droit préférentiel de souscription au profit d'une CATÉGORIE de personnes (et non de personnes nommées). N'importe quel investisseur correspondant à cette catégorie pourra alors souscrire « au fil de l'eau », sans revoter à chaque fois. Le président (et le commissaire aux comptes s'il en existe un) établit un rapport justifiant l'émission.",
-        eviter: [
-          "Émettre au profit de « personnes dénommées » si vous voulez souscrire au fil de l'eau : préférez l'émission au profit d'une catégorie de personnes.",
-          "Oublier le rapport du président (et du CAC le cas échéant) sur la suppression du DPS : son absence fragilise l'émission.",
-          "Rédiger un contrat d'émission flou sur la conversion : c'est lui qui fera foi le jour du tour qualifié.",
-          "Sauter les majorités et formalités statutaires de l'AGE : une émission mal votée est attaquable.",
+          "Oublier les registres obligatoires (RBE, mouvements de titres) et les cessions de PI : les trous ressortent à la conversion, au pire moment.",
+          "Fixer une décote ou un plafond au hasard : trop haut, le cap protège mal l'investisseur ; trop bas, il vous dilue énormément.",
         ],
       },
       'air-approche': {
-        objectif: "Aller chercher des investisseurs pour souscrire à un instrument déjà émis et prêt.",
-        explication: "Maintenant que les BSA-AIR existent et que leurs conditions sont figées, vous présentez l'opportunité aux investisseurs. Votre argument : la simplicité — les termes sont déjà fixés, pas de longue négociation, on souscrit et on verse. Un deck et un cadre de confidentialité léger suffisent souvent.",
+        objectif: "Présenter votre BSA-AIR à des investisseurs ciblés et recueillir leurs engagements.",
+        explication: "Vos termes sont posés : vous les présentez à des investisseurs ciblés. Votre argument, c'est la simplicité — conditions déjà fixées, pas de longue négociation. Un deck et un cadre de confidentialité léger suffisent souvent. Les engagements recueillis ici déterminent qui souscrira, et — si vous optez pour une émission au profit de personnes dénommées — qui devra être nommé dans la décision d'autorisation.",
         eviter: [
           "Renégocier les termes investisseur par investisseur : cela casse tout l'intérêt du BSA-AIR (des conditions uniformes).",
-          "Promettre des side letters contradictoires avec le contrat d'émission.",
-          "Sur-formaliser la confidentialité au point de ralentir des souscriptions rapides.",
+          "Attendre d'avoir besoin d'argent pour contacter les investisseurs : le rapport de force se construit en amont.",
+          "Promettre des side letters contradictoires avec le futur contrat d'émission.",
+        ],
+      },
+      'air-termes': {
+        objectif: "Mettre au propre le contrat d'émission définitif des bons, une fois les investisseurs engagés.",
+        explication: "Le BSA-AIR est un instrument standardisé : vous ne rédigez pas un contrat sur-mesure par investisseur, vous partez d'un modèle et vous ne remplissez que les variables économiques (montant, décote, plafond, plancher, déclencheurs, échéance). Le projet peut circuler dès l'étape Investisseurs ; ici on fige la version définitive, qui servira de base à l'autorisation puis à la conversion.",
+        eviter: [
+          "Rédiger un contrat d'émission flou sur la conversion : c'est lui qui fera foi le jour du tour qualifié.",
+          "Laisser diverger la term sheet montrée aux investisseurs et le contrat d'émission signé.",
+          "Réinventer les clauses juridiques à chaque tour : partez d'un modèle éprouvé.",
+        ],
+      },
+      'air-emission': {
+        objectif: "Faire autoriser l'émission des BSA-AIR par les associés, en supprimant le droit préférentiel de souscription au profit des souscripteurs.",
+        explication: "Les associés votent en assemblée (décision collective / AGE) l'émission des BSA-AIR, avec suppression du DPS. C'est ICI que se choisit le modèle : au profit de PERSONNES DÉNOMMÉES (souscripteurs connus et nommés) OU d'une CATÉGORIE de personnes répondant à des caractéristiques définies (qui permet des souscriptions « au fil de l'eau » sans revoter). Le président — et le commissaire aux comptes s'il en existe un — établit un rapport justifiant la suppression du DPS.",
+        eviter: [
+          "Choisir « personnes dénommées » si vous voulez faire entrer des investisseurs au fil de l'eau : préférez alors une catégorie de personnes.",
+          "Oublier le rapport du président (et du CAC le cas échéant) sur la suppression du DPS : son absence fragilise l'émission.",
+          "Sauter les majorités et formalités statutaires de l'AGE : une émission mal votée est attaquable.",
         ],
       },
       'air-souscription': {
-        objectif: "Faire souscrire et payer chaque investisseur, puis accomplir les formalités qui rendent l'émission opposable.",
-        explication: "Chaque investisseur signe un bulletin de souscription et verse les fonds. Le président constate la souscription, on inscrit les BSA-AIR au registre des mouvements de titres et on dépose la formalité d'émission au greffe. Comme c'est « au fil de l'eau », vous répétez ces étapes à chaque nouvel entrant pendant la fenêtre d'émission. L'attestation de versement matérialise le paiement.",
+        objectif: "Faire souscrire et payer chaque investisseur : les bons sont créés et les fonds versés.",
+        explication: "Chaque investisseur signe un bulletin de souscription et verse l'intégralité de son investissement — l'argent arrive dès maintenant, avant toute création d'actions. Le président constate la souscription. Si l'émission a été votée « par catégorie », vous répétez ces étapes à chaque nouvel entrant pendant la fenêtre d'émission ; en « personnes dénommées », les souscripteurs sont ceux nommés au vote. L'attestation de versement matérialise le paiement.",
         eviter: [
           "Considérer l'argent comme acquis avant le versement effectif et l'attestation : une souscription non payée n'est pas une souscription.",
-          "Oublier d'inscrire les bons au registre et de déposer au greffe : sans cela, l'émission n'est pas pleinement opposable.",
           "Laisser filer la fenêtre de souscription prévue par la décision d'émission (souvent 18 mois) : au-delà, il faut revoter.",
           "Perdre le suivi de qui a souscrit combien, et à quelles conditions.",
+        ],
+      },
+      'air-postemission': {
+        objectif: "Rendre l'émission opposable : inscrire les bons aux registres et mettre la cap table à jour.",
+        explication: "Une fois les bons souscrits, on les inscrit au registre des valeurs mobilières / mouvements de titres et on met à jour la cap table (ligne BSA-AIR). Point important : à ce stade le capital social N'EST PAS modifié — il n'y a donc PAS de dépôt au greffe ni d'annonce légale. Le greffe n'interviendra qu'à la conversion, quand les bons deviendront des actions.",
+        eviter: [
+          "Oublier d'inscrire les bons au registre : sans cela, l'émission n'est pas pleinement opposable.",
+          "Déposer une formalité de modification du capital au greffe : à l'émission, le capital ne bouge pas encore.",
+          "Ne pas faire figurer les BSA-AIR en cours dans la cap table fully diluted.",
         ],
       },
       'air-suivi': {
@@ -5747,7 +5747,9 @@
       const categories = documentCategoriesFor(f);
 
       const card = document.createElement('div');
-      const stepNum = (f.track || 'classic') === 'classic' ? pi : pi + 1;
+      // BSA-AIR : le numéro d'étape vient du nom de la phase (0 · Ma levée … 7 ·
+      // Conversion), pour coller au menu de gauche. Levée classique : inchangé.
+      const stepNum = (f.track || 'classic') === 'classic' ? pi : friseStepNumber(f, pi);
       const title = opts.title || f.name;
       const icon = opts.icon || stepNum;
       const stepLabel = opts.hideStep ? '' : `<div class="folder__step">Étape ${stepNum}</div>`;

@@ -47,7 +47,7 @@
     .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--t-divider); margin: 32px 0 28px; }
     .tab { padding: 11px 20px; font-family: 'Archivo', sans-serif; font-size: 13.5px; font-weight: 700; color: var(--t-on-bg-faint); cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; }
     .tab:hover { color: var(--t-on-bg); }
-    .tab.active { color: var(--t-on-bg); border-bottom-color: #22c55e; }
+    .tab.active { color: var(--t-on-bg); border-bottom-color: #15803d; }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
     .billing-plan { display:flex; align-items:flex-start; justify-content:space-between; gap:24px; padding:18px; border:1px solid rgba(8,9,12,.1); border-radius:14px; background:#f8f8f6; }
@@ -430,9 +430,26 @@
   </div>
 
   <script>
+    // Tableau de bord de repli selon le type de compte (ajusté après requireAuth).
+    let accountHomeUrl = 'tableau-de-bord.html';
+
     document.getElementById('account-back-btn').addEventListener('click', () => {
-      if (window.history.length > 1) window.history.back();
-      else window.location.href = 'tableau-de-bord.html';
+      // On revient vers la page d'où l'on vient (ex. le tableau de bord ouvert
+      // depuis le menu de droite) plutôt que de rejouer l'historique du navigateur,
+      // qui contient le formulaire de candidature avocat et y ramènerait par erreur.
+      const ref = document.referrer;
+      if (ref) {
+        try {
+          const refUrl = new URL(ref);
+          const here = new URL(window.location.href);
+          const isCandidature = /(?:onboarding-avocat|avocat|login)\.html$/.test(refUrl.pathname);
+          if (refUrl.origin === here.origin && refUrl.pathname !== here.pathname && !isCandidature) {
+            window.location.href = ref;
+            return;
+          }
+        } catch { /* referrer non exploitable : on utilise le repli ci-dessous */ }
+      }
+      window.location.href = accountHomeUrl;
     });
 
     // ── Onglets ───────────────────────────────────────────────────────────────
@@ -532,6 +549,7 @@
       document.getElementById('profile-email').value = user.email || '';
       if (user.account_types?.includes('avocat')) {
         document.querySelector('.brand').href = '/saas/tableau-de-bord-avocat.html';
+        accountHomeUrl = '/saas/tableau-de-bord-avocat.html';
         const notice = document.getElementById('lawyer-2fa-required');
         notice.textContent = 'La double authentification est obligatoire pour accéder à l’espace avocat. Configurez-la maintenant ; elle ne pourra pas être désactivée tant que votre compte conserve le rôle avocat.';
         notice.hidden = user.twofa_enabled;
@@ -575,8 +593,8 @@
         description.textContent = active
           ? 'Votre offre Liquid+ est active.'
           : 'Activez Liquid+ dès maintenant, sans attendre la fin de vos 2 heures d’essai gratuit.';
-        content.innerHTML = '<div class="billing-plan"><div><div class="billing-plan__price">700 € <small>HT · forfait Liquid+</small></div><div class="billing-plan__meta">Plateforme, assistant IA, documents, simulations, exports et suivi jusqu’au closing.</div></div><div class="billing-plan__action">' +
-          (active ? '<span class="account-status__badge account-status__badge--active">Offre active</span>' : '<button type="button" class="btn btn--primary" id="billing-checkout">Payer 700 € HT</button>') +
+        content.innerHTML = '<div class="billing-plan"><div><div class="billing-plan__price">600 € <small>TTC · forfait Liquid+</small></div><div class="billing-plan__meta">Plateforme, assistant IA, documents, simulations, exports et suivi jusqu’au closing.</div></div><div class="billing-plan__action">' +
+          (active ? '<span class="account-status__badge account-status__badge--active">Offre active</span>' : '<button type="button" class="btn btn--primary" id="billing-checkout">Payer 600 € TTC</button>') +
           '</div></div>' + (active ? '' : '<div class="billing-code"><input class="input" id="billing-promo-code" placeholder="Code promotionnel" autocomplete="off"><button type="button" class="btn btn--ghost" id="billing-apply-code">Appliquer</button></div><div id="billing-promo-details"></div>') + '<p class="billing-note">La société est cliente et payeuse de Liquid+. Les prestations éventuelles d’un avocat sont facturées séparément et ne sont pas incluses dans ce paiement.</p>';
         const button = document.getElementById('billing-checkout');
         if (button) button.addEventListener('click', () => startLiquidCheckout());
@@ -600,7 +618,7 @@
         return;
       }
       document.getElementById('billing-alert').hidden = true;
-      document.getElementById('billing-promo-details').innerHTML = '<div class="billing-commitment"><p class="billing-commitment__title">Offre Liquid+ à 550 € HT</p><p class="billing-commitment__text">Ce tarif réduit est accordé en contrepartie des deux engagements suivants :</p><label><input type="checkbox" id="raise-review"> <span>J’accepte de fournir un témoignage pouvant être publié sur le site de Liquid+.</span></label><label><input type="checkbox" id="raise-linkedin"> <span>J’accepte de publier de mon côté un post LinkedIn parlant de Liquid+.</span></label><button type="button" class="btn btn--primary" id="billing-discount-checkout" style="margin-top:14px">Accepter et payer 550 € HT</button></div>';
+      document.getElementById('billing-promo-details').innerHTML = '<div class="billing-commitment"><p class="billing-commitment__title">Offre Liquid+ à 450 € TTC</p><p class="billing-commitment__text">Ce tarif réduit est accordé en contrepartie des deux engagements suivants :</p><label><input type="checkbox" id="raise-review"> <span>J’accepte de fournir un témoignage pouvant être publié sur le site de Liquid+.</span></label><label><input type="checkbox" id="raise-linkedin"> <span>J’accepte de publier de mon côté un post LinkedIn parlant de Liquid+.</span></label><button type="button" class="btn btn--primary" id="billing-discount-checkout" style="margin-top:14px">Accepter et payer 450 € TTC</button></div>';
       document.getElementById('billing-discount-checkout').addEventListener('click', () => {
         if (!document.getElementById('raise-review').checked || !document.getElementById('raise-linkedin').checked) {
           showAlert('billing-alert', 'error', 'Vous devez accepter les deux engagements pour utiliser le code RAISE SUMMIT.');
@@ -624,7 +642,7 @@
       } catch (error) {
         showAlert('billing-alert', 'error', error.message || 'Paiement indisponible.');
         activeButton.disabled = false;
-        activeButton.textContent = promotion.code ? 'Accepter et payer 550 € HT' : 'Payer 700 € HT';
+        activeButton.textContent = promotion.code ? 'Accepter et payer 450 € TTC' : 'Payer 600 € TTC';
       }
     }
 
