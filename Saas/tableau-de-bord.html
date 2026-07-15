@@ -120,14 +120,14 @@
     .folder.is-drag { border-color: var(--blue, #3b82f6); box-shadow: 0 0 0 2px rgba(59,130,246,0.25); }
     .folder.is-drag .folder__head { background: rgba(59,130,246,0.06); }
     .folder__head { display: flex; align-items: center; gap: 14px; padding: 15px 18px; cursor: pointer; }
-    .folder__chevron { font-size: 12px; color: #fff; transition: transform .15s; flex: none; width: 14px; }
+    .folder__chevron { font-size: 12px; color: #fff; transition: transform .15s; flex: none; width: 14px; margin-left: auto; text-align: right; }
     .folder.open .folder__chevron { transform: rotate(90deg); }
     .folder__ic { width: 38px; height: 38px; flex: none; display: grid; place-items: center; border-radius: 10px; background: #eef0ff; font-size: 18px; }
     .folder__main { flex: 1; min-width: 0; }
     .folder__name { font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
     .folder__count { font-family: 'Archivo', sans-serif; font-size: 12.5px; color: #fff; margin-top: 2px; }
     .folder__actions { display: flex; gap: 8px; flex: none; }
-    .documents-card__actions { display:flex; align-items:center; gap:8px; flex:none; flex-wrap:wrap; justify-content:flex-end; }
+    .documents-card__actions { display:flex; align-items:center; gap:8px; flex:none; flex-wrap:wrap; justify-content:flex-end; cursor:default; }
     .documents-action-btn { display:inline-flex; align-items:center; font-family:'Archivo',sans-serif; font-size:12px; font-weight:700; color:#08090c; background:#fff; border:1px solid rgba(8,9,12,0.18); border-radius:8px; padding:8px 10px; cursor:pointer; white-space:nowrap; text-decoration:none; }
     .documents-action-btn:hover { background:#f0f0ee; border-color:rgba(8,9,12,0.34); }
     .folder__body { display: none; padding: 4px 14px 16px; }
@@ -913,7 +913,7 @@
        qu'il ne l'est pas, l'outil Avocat ne transmet aucune mission standard.
        Reprend la chrome et les champs du profil de la levée (.raise-*), replié
        par défaut une fois la société vérifiée. */
-    .company-legal .folder__ic { background:#eef0ff !important; color:#4a5bd0; }
+    .company-legal .folder__ic { background:#d1fae5 !important; color:#15803d; }
     .company-legal__id { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; margin:4px 0 16px; }
     .company-legal__name { font-family:'Archivo',sans-serif; font-size:16px; font-weight:800; color:#08090c; }
     .company-legal__note { font-size:12.5px; color:#6b6b78; line-height:1.5; margin-top:5px; }
@@ -930,7 +930,7 @@
     .company-legal__check { display:flex; gap:9px; align-items:flex-start; font-size:13px; color:#3a3a45; line-height:1.45; cursor:pointer; }
     .company-legal__check input { margin:2px 0 0; flex:none; }
     .company-legal__evidence-current { font-size:12px; color:#6b6b78; margin-top:6px; display:block; }
-    .company-legal__link { color:#4a5bd0; font-weight:700; }
+    .company-legal__link { color:#15803d; font-weight:700; }
 
     /* Barre d'avancement de la levée — affichée au-dessus des « prochaines
        priorités » sur l'étape « Ma levée ». Montre le montant levé (contrats
@@ -2034,6 +2034,11 @@
     // L'état survit aux re-rendus, pour ne pas se refermer en cours de saisie.
     let companyLegalOpen = false;
     let companyLegalScrollPending = false;
+    // Repli des autres cartes de la levée. Ouvertes par défaut : elles portent le
+    // travail courant, à la différence de « Société cliente ». L'état vit hors du
+    // DOM pour survivre aux re-rendus (clé : id de phase + titre de la carte).
+    let raiseProfileOpen = true;
+    const phaseCardOpen = {};
     (function readCompanyLegalFocus() {
       const url = currentUrlState();
       if (!url || url.searchParams.get('focus') !== 'societe') return;
@@ -4208,16 +4213,17 @@
       // Même habillage que le bloc « Documents » (carte .folder--phase) : en-tête
       // à icône + titre + sous-titre, puis corps. On ne reprend que le style, le
       // contenu reste le formulaire de profil de la levée.
-      card.className = 'raise-profile folder folder--phase open';
+      card.className = 'raise-profile folder folder--phase' + (raiseProfileOpen ? ' open' : '');
       card.innerHTML = `
-        <div class="folder__head" style="cursor:default">
+        <div class="folder__head">
           <div class="folder__ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h4"/></svg></div>
           <div class="folder__main">
             <div class="folder__name">Profil de la levée</div>
             <div class="folder__count">Informations sur votre levée — facultatif</div>
           </div>
+          <span class="folder__chevron">▸</span>
         </div>
-        <div class="folder__body" style="display:block">
+        <div class="folder__body">
         <form class="raise-profile__form" id="raise-profile-form">
           <div class="raise-profile__grid">
             <label class="raise-field">
@@ -4288,6 +4294,10 @@
           </div>
         </form>
         </div>`;
+
+      card.querySelector('.folder__head').addEventListener('click', () => {
+        raiseProfileOpen = card.classList.toggle('open');
+      });
 
       const form = card.querySelector('#raise-profile-form');
       const list = card.querySelector('.raise-founders__list');
@@ -4419,7 +4429,6 @@
         + (companyLegalOpen || companyLegalFlash ? ' open' : '');
       const head = `
         <div class="folder__head">
-          <span class="folder__chevron">▸</span>
           <div class="folder__ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18"/><path d="M5 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16"/><path d="M16 9h3a2 2 0 0 1 2 2v10"/><path d="M9 7h3M9 11h3M9 15h3"/></svg></div>
           <div class="folder__main">
             <div class="folder__name">Société cliente</div>
@@ -4427,6 +4436,7 @@
               ? esc(name) + ' — ' + esc(statusLabel)
               : 'Nécessaire seulement pour confier un document à un avocat'}</div>
           </div>
+          <span class="folder__chevron">▸</span>
         </div>`;
 
       if (companyLegal.twofa_required) {
@@ -6056,12 +6066,15 @@
           <button class="documents-action-btn" type="button" data-import-folder>Importer des fichiers</button>
           ${categories && categories.length ? '<button class="documents-action-btn" type="button" data-collapse-categories>Fermer tous les dossiers</button>' : ''}
         </div>` : '';
-      card.className = 'folder folder--phase open';
+      // Une même phase peut porter deux cartes de documents (titres distincts) :
+      // la clé de pli les sépare.
+      const openKey = f.id + ':' + title;
+      card.className = 'folder folder--phase' + (phaseCardOpen[openKey] !== false ? ' open' : '');
       // opts.noAnchor : évite un doublon d'id quand l'étape possède déjà une autre
       // carte porteuse de #phase-<clé> (ex. « Ma levée » = profil + documents).
       if (f.key && !opts.noAnchor) card.id = 'phase-' + f.key;
       card.innerHTML = `
-        <div class="folder__head" style="cursor:default">
+        <div class="folder__head">
           <div class="folder__ic">${esc(icon)}</div>
           <div class="folder__main">
             ${stepLabel}
@@ -6069,8 +6082,15 @@
             <div class="folder__count">${list.length} document${list.length > 1 ? 's' : ''}</div>
           </div>
           ${actions}
+          <span class="folder__chevron">▸</span>
         </div>
-        <div class="folder__body" style="display:block"></div>`;
+        <div class="folder__body"></div>`;
+      // Les boutons de l'en-tête (créer, importer, fermer les dossiers) gardent
+      // leur action propre : seul le reste de l'en-tête plie la carte.
+      card.querySelector('.folder__head').addEventListener('click', (e) => {
+        if (e.target.closest('.documents-card__actions')) return;
+        phaseCardOpen[openKey] = card.classList.toggle('open');
+      });
       const body = card.querySelector('.folder__body');
       const newFolderBtn = card.querySelector('[data-new-folder]');
       const importFolderBtn = card.querySelector('[data-import-folder]');
