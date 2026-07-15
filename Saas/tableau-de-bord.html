@@ -919,8 +919,7 @@
     .company-legal__note { font-size:12.5px; color:#6b6b78; line-height:1.5; margin-top:5px; }
     .company-legal__note strong { color:#3a3a45; }
     .company-legal__badge { flex:none; font-family:'Archivo',sans-serif; font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; border-radius:999px; padding:5px 10px; }
-    .company-legal__badge--verified { background:#d1fae5; color:#15803d; }
-    .company-legal__badge--pending_review { background:#fef3c7; color:#92400e; }
+    .company-legal__badge--complete { background:#d1fae5; color:#15803d; }
     .company-legal__badge--incomplete { background:#eeeef0; color:#6b6b78; }
     /* Encadré informatif (société non immatriculée, délai de vérification) : ton
        neutre volontaire — ce dossier n'est requis que pour confier un document à
@@ -2028,7 +2027,7 @@
     // « Ma levée »). Sert aussi l'outil Avocat, qui ne peut transmettre aucune
     // mission tant que Liquid+ n'a pas vérifié ce dossier. `twofa_required` :
     // l'API renvoie 428 quand un avocat est assigné et que la 2FA est absente.
-    let companyLegal = { profile: {}, eligibility: { status: 'incomplete', verified: false }, twofa_required: false, setup_url: '' };
+    let companyLegal = { profile: {}, eligibility: { status: 'incomplete', complete: false }, twofa_required: false, setup_url: '' };
     // Ce dossier n'est nécessaire que pour confier un document à un avocat : la
     // carte reste repliée tant que le fondateur ne l'ouvre pas lui-même ou
     // n'arrive pas depuis l'outil avocat (lien « Compléter le dossier »).
@@ -3005,7 +3004,7 @@
       const data = await response.json().catch(() => ({}));
       if (response.status === 428) {
         companyLegal = {
-          profile: {}, eligibility: { status: 'incomplete', verified: false },
+          profile: {}, eligibility: { status: 'incomplete', complete: false },
           twofa_required: true, setup_url: data.setup_url || 'compte.html?setup2fa=founder-lawyer',
         };
         return;
@@ -4379,8 +4378,11 @@
        d'immatriculation. Liquid+ le vérifie ; l'outil Avocat s'y adosse et ne
        transmet aucune mission standard tant qu'il n'est pas vérifié. La carte
        est repliée par défaut une fois la société vérifiée. */
+    // Deux états seulement : le dossier est renseigné, ou il ne l'est pas. Il n'y
+    // a plus de « vérifiée » — Liquid+ ne valide pas l'identité du client de
+    // l'avocat, c'est l'avocat qui la contrôle et l'atteste avant d'accepter.
     const COMPANY_STATUS_LABELS = {
-      verified: 'Vérifiée', pending_review: 'Vérification en attente', incomplete: 'Dossier incomplet',
+      complete: 'Dossier complet', incomplete: 'Dossier incomplet',
     };
     const COMPANY_LEGAL_FORM_OPTIONS = [
       ['sas', 'SAS'], ['sasu', 'SASU'], ['sarl', 'SARL'], ['eurl', 'EURL'],
@@ -4455,8 +4457,8 @@
           ${!p.siren ? `
           <div class="company-legal__warn">
             <strong>À remplir seulement si vous confiez un document à un avocat.</strong>
-            Liquid+ vérifie ensuite la société, ce qui prend un peu de temps : aucune mission ne
-            peut partir avant. Autant s'y prendre avant d'en avoir besoin.
+            Ces informations lui sont transmises : c'est lui, et lui seul, qui vérifie l'identité
+            de la société avant d'accepter une mission. Liquid+ ne les valide pas.
             <br />Société non encore immatriculée : les missions avocat standard sont indisponibles.
             L'offre distincte « Constitution » sera proposée séparément.
           </div>` : ''}
@@ -4568,12 +4570,12 @@
           if (!r.ok) throw new Error(data.error || 'Enregistrement impossible.');
           companyLegal = {
             profile: data.profile || {},
-            eligibility: data.eligibility || { status: 'incomplete', verified: false },
+            eligibility: data.eligibility || { status: 'incomplete', complete: false },
             twofa_required: false, setup_url: '',
           };
-          companyLegalFlash = companyLegal.eligibility.verified
-            ? 'Enregistré.'
-            : 'Dossier transmis. Liquid+ vérifie la société avant toute mission avocat.';
+          companyLegalFlash = companyLegal.eligibility.complete
+            ? 'Enregistré. Votre avocat vérifiera lui-même l’identité de la société.'
+            : 'Enregistré. Le dossier reste incomplet.';
           render();
         } catch (err) {
           submitBtn.disabled = false;

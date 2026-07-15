@@ -390,6 +390,16 @@
         <label class="av-field__l" for="req-note">Précisions pour l'avocat (facultatif)</label>
         <textarea class="av-textarea" id="req-note" maxlength="1000" placeholder="Points d'attention, échéance, contexte de la négociation…"></textarea>
       </div>
+      <div class="av-field">
+        <label class="av-field__l">Parties en présence *</label>
+        <p class="av-note" style="margin:0 0 10px">Votre avocat doit contrôler qu'il n'a pas de conflit d'intérêts avant d'accepter la mission. Il ne peut le faire que contre des noms. Cette liste est pré-remplie à partir de votre dossier société, de vos fondateurs et de votre suivi investisseurs — vérifiez-la et complétez ce qui manque.</p>
+        <div id="req-parties"></div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <input class="av-select" id="req-party-add" maxlength="160" placeholder="Ajouter une partie (investisseur, contrepartie, co-fondateur…)" style="flex:1" />
+          <button type="button" class="av-btn av-btn--sm" id="req-party-add-btn">Ajouter</button>
+        </div>
+        <label class="av-note" style="display:block;margin:12px 0 0"><input type="checkbox" id="req-parties-confirm" /> Je confirme que cette liste est exacte et complète à ma connaissance.</label>
+      </div>
       <label class="av-note" style="display:block;margin:12px 0"><input type="checkbox" id="req-personal-interest" /> Cette demande concerne-t-elle personnellement un fondateur (garantie personnelle, cession de titres, vesting/leaver, non-concurrence…) ?</label>
       <p class="av-note" id="personal-interest-warning" hidden><strong>Hors mission société.</strong> Cette question concerne vos intérêts personnels et n’est pas incluse dans la mission confiée par la société. Un conseil distinct peut être nécessaire.</p>
       <div class="av-err" id="req-err"></div>
@@ -456,7 +466,7 @@
     }
     function toggleTheme() { applyTheme(currentTheme() === 'dark' ? 'paper' : 'dark', true); }
 
-    const STATUS_LABELS = { soumise: 'Soumise', en_cours: 'Relecture en cours', attente_fondateur: 'Réponse attendue', livree: 'Documents remis', cloturee: 'Clôturée', annule: 'Annulée' };
+    const STATUS_LABELS = { soumise: 'En attente d\'acceptation', acceptee: 'Mission acceptée', refusee: 'Mission refusée', en_cours: 'Relecture en cours', attente_fondateur: 'Réponse attendue', livree: 'Documents remis', cloturee: 'Clôturée', annule: 'Annulée' };
 
     let STATE = { prestations: [], partners: [], requests: [], mode: 'assigned', partner: null, own_lawyer: null, company: { profile: {}, eligibility: { status: 'incomplete', verified: false } } };
     let DOCS = [];
@@ -549,7 +559,7 @@
             '<span class="av-presta__price">' + esc(p.price) + '</span>' +
             '<span class="av-presta__delay"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>' + esc(p.delay) + '</span>' +
           '</div>' +
-          '<button type="button" class="av-btn av-btn--primary av-presta__cta" data-presta="' + esc(p.key) + '"' + (STATE.company?.eligibility?.verified ? '' : ' disabled title="Société non vérifiée"') + '>Demander une relecture</button>' +
+          '<button type="button" class="av-btn av-btn--primary av-presta__cta" data-presta="' + esc(p.key) + '"' + (STATE.company?.eligibility?.complete ? '' : ' disabled title="Dossier société incomplet"') + '>Demander une relecture</button>' +
         '</div>'
       ).join('');
     }
@@ -569,7 +579,7 @@
       }
       box.innerHTML = STATE.requests.map(r => {
         const lawyer = reqLawyerName(r);
-        const canCancel = ['soumise', 'en_cours', 'attente_fondateur'].includes(r.status);
+        const canCancel = ['soumise', 'acceptee', 'en_cours', 'attente_fondateur'].includes(r.status);
         // Du nouveau de l'avocat sur cette demande : la pastille s'éteint côté
         // serveur dès que le dossier est ouvert, donc au prochain rendu.
         const isNew = UNREAD_REQUESTS.has(r.id);
@@ -612,7 +622,7 @@
         return '<div class="av-card av-doc">' +
           '<div class="av-doc__main"><div class="av-doc__name" title="' + esc(d.name) + '">' + esc(d.name) + '</div></div>' +
           '<span class="av-docrisk av-docrisk--' + esc(rk.cls) + '"><span class="av-docrisk__dot"></span>' + esc(rk.label) + '</span>' +
-          '<button type="button" class="av-btn av-btn--ghost av-btn--sm" data-review-doc="' + esc(d.id) + '" data-review-presta="' + esc(d.avocat_presta || 'question') + '"' + (STATE.company?.eligibility?.verified ? '' : ' disabled title="Société non vérifiée"') + '>Faire relire</button>' +
+          '<button type="button" class="av-btn av-btn--ghost av-btn--sm" data-review-doc="' + esc(d.id) + '" data-review-presta="' + esc(d.avocat_presta || 'question') + '"' + (STATE.company?.eligibility?.complete ? '' : ' disabled title="Dossier société incomplet"') + '>Faire relire</button>' +
         '</div>';
       }).join('');
     }
@@ -620,16 +630,22 @@
     /* ── Rendu : société cliente ─────────────────────────────────────
        Le dossier légal de la société se remplit dans « Ma levée » (tableau de
        bord), où il fait partie de la mise en ordre juridique. L'outil avocat
-       n'en montre que le statut : il conditionne toute demande de relecture. */
+       n'en montre que le statut : le dossier doit être complet pour qu'une
+       mission parte, car c'est sur lui que l'avocat fonde sa vigilance. Liquid+
+       ne le « valide » pas : ce contrôle appartient à l'avocat, qui l'atteste au
+       moment d'accepter la mission. */
     function renderCompanyEligibility() {
       const box = document.getElementById('company-eligibility');
       const profile = STATE.company?.profile || {};
       const eligibility = STATE.company?.eligibility || {};
-      const labels = { verified: 'Vérifiée', pending_review: 'Vérification en attente', incomplete: 'Dossier incomplet' };
+      const complete = eligibility.complete === true;
       box.innerHTML = '<div style="display:flex;gap:16px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap"><div><strong>' + esc(profile.company_name || 'Société à identifier') + '</strong>' +
-        (profile.siren ? '<div class="av-note">SIREN ' + esc(profile.siren) + ' · ' + esc(labels[eligibility.status] || eligibility.status) + '</div>' : '<div class="av-note">Aucune mission standard ne peut être transmise avant vérification.</div>') +
+        (profile.siren ? '<div class="av-note">SIREN ' + esc(profile.siren) + '</div>' : '') +
+        '<div class="av-note" style="margin-top:8px">' + (complete
+          ? 'Dossier complet. Votre avocat vérifie lui-même l’identité de la société avant d’accepter une mission.'
+          : 'Aucune mission standard ne peut être transmise tant que le dossier est incomplet.') + '</div>' +
         '<div class="av-note" style="margin-top:8px">Identité, attestations et justificatif d’immatriculation se renseignent dans « Ma levée ».</div></div>' +
-        '<a class="av-btn ' + (eligibility.verified ? 'av-btn--ghost' : 'av-btn--primary') + ' av-btn--sm" href="' + esc(maLeveeHref()) + '">' + (eligibility.verified ? 'Voir le dossier' : 'Compléter le dossier') + '</a></div>';
+        '<a class="av-btn ' + (complete ? 'av-btn--ghost' : 'av-btn--primary') + ' av-btn--sm" href="' + esc(maLeveeHref()) + '">' + (complete ? 'Voir le dossier' : 'Compléter le dossier') + '</a></div>';
     }
 
     function renderAll() { renderLawyer(); renderCompanyEligibility(); renderPrestations(); renderRequests(); }
@@ -653,9 +669,10 @@
     function closeModal(id) { document.getElementById(id).hidden = true; }
 
     function openRequestModal(key, preselectDocId) {
-      // Sans société vérifiée, aucune mission ne peut partir : on renvoie le
-      // fondateur sur « Ma levée », qui porte le dossier société.
-      if (!STATE.company?.eligibility?.verified) { location.href = maLeveeHref(); return; }
+      // Dossier société incomplet : aucune mission ne peut partir, l'avocat n'a
+      // pas de quoi identifier son client. On renvoie le fondateur sur
+      // « Ma levée », qui porte le dossier.
+      if (!STATE.company?.eligibility?.complete) { location.href = maLeveeHref(); return; }
       modalPrestaKey = key;
       const p = STATE.prestations.find(x => x.key === key) || {};
       document.getElementById('req-title').textContent = 'Relecture — ' + (p.label || '');
@@ -667,6 +684,11 @@
       document.getElementById('req-personal-interest').checked = false;
       document.getElementById('personal-interest-warning').hidden = true;
       document.getElementById('req-submit').disabled = false;
+      // La confirmation des parties ne doit jamais être collante : le fondateur
+      // engage sa déclaration à chaque demande.
+      document.getElementById('req-parties-confirm').checked = false;
+      document.getElementById('req-party-add').value = '';
+      loadPartySuggestions();
       const sel = document.getElementById('req-doc');
       sel.innerHTML = DOCS.map(d => '<option value="' + esc(d.id) + '">' + esc(d.name || ('Document #' + d.id)) + '</option>').join('');
       // Pré-sélection du document (arrivée depuis « Faire relire » d'un document).
@@ -674,6 +696,51 @@
         [...sel.options].forEach(o => { o.selected = o.value === String(preselectDocId); });
       }
       openModal('request-modal');
+    }
+
+    /* ── Parties en présence ────────────────────────────────────────────────
+       Le contrôle des conflits d'intérêts de l'avocat n'a de sens que contre des
+       noms. Liquid+ pré-remplit ce qu'il sait déjà — dossier société vérifié,
+       fondateurs déclarés, pipeline investisseurs — mais c'est le fondateur qui
+       arrête la liste : d'où les cases à cocher et la confirmation explicite
+       plutôt qu'un envoi silencieux.
+       Les documents importés ne sont volontairement pas une source : une
+       extraction automatique omet ce qu'elle ne trouve pas, et une liste qui
+       paraît exhaustive sans l'être ferait manquer un conflit. */
+    let PARTIES = [];
+
+    function renderParties() {
+      const box = document.getElementById('req-parties');
+      if (!PARTIES.length) {
+        box.innerHTML = '<p class="av-note" style="margin:0">Aucune partie connue de Liquid+ : ajoutez-les ci-dessous.</p>';
+        return;
+      }
+      box.innerHTML = PARTIES.map((p, i) => '<label class="av-note" style="display:flex;gap:8px;align-items:flex-start;padding:6px 0">'
+        + '<input type="checkbox" data-party-index="' + i + '"' + (p.prechecked ? ' checked' : '') + ' />'
+        + '<span><strong>' + esc(p.name) + '</strong> — ' + esc([p.role, p.detail].filter(Boolean).join(' · '))
+        + (p.verified ? ' <em>(identité vérifiée)</em>' : '') + '</span></label>').join('');
+      box.querySelectorAll('[data-party-index]').forEach(cb => {
+        cb.addEventListener('change', () => { PARTIES[Number(cb.dataset.partyIndex)].prechecked = cb.checked; });
+      });
+    }
+
+    async function loadPartySuggestions() {
+      try {
+        const data = await api('/api/saas/avocat/parties-suggestions');
+        PARTIES = data.parties || [];
+      } catch { PARTIES = []; }
+      renderParties();
+    }
+
+    function addPartyManually() {
+      const input = document.getElementById('req-party-add');
+      const name = input.value.trim();
+      if (!name) return;
+      if (!PARTIES.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+        PARTIES.push({ key: '', name, detail: '', role: 'Partie déclarée', source: 'ajout_fondateur', verified: false, prechecked: true });
+      }
+      input.value = '';
+      renderParties();
     }
 
     // Ouverture directe de la demande depuis un lien « avocat.html?doc=<id> ».
@@ -699,6 +766,8 @@
           due_date: document.getElementById('req-due').value || null,
           note: document.getElementById('req-note').value,
           founder_personal_interest: document.getElementById('req-personal-interest').checked,
+          parties: PARTIES.filter(p => p.prechecked).map(p => ({ name: p.name, detail: p.detail, role: p.role, source: p.source })),
+          parties_confirmed: document.getElementById('req-parties-confirm').checked,
         });
         closeModal('request-modal');
         await loadOverview();
@@ -792,6 +861,11 @@
       document.querySelectorAll('.av-modal').forEach(m =>
         m.addEventListener('click', (e) => { if (e.target === m) m.hidden = true; }));
       document.getElementById('req-submit').addEventListener('click', submitRequest);
+      document.getElementById('req-party-add-btn').addEventListener('click', addPartyManually);
+      document.getElementById('req-party-add').addEventListener('keydown', (e) => {
+        // Entrée ajoute la partie au lieu de soumettre la demande.
+        if (e.key === 'Enter') { e.preventDefault(); addPartyManually(); }
+      });
       document.getElementById('req-personal-interest').addEventListener('change', (e) => {
         document.getElementById('personal-interest-warning').hidden = !e.target.checked;
         document.getElementById('req-submit').disabled = e.target.checked;

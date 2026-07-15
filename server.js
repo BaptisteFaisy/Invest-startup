@@ -39,6 +39,17 @@ const {
   isPaidStripeCheckoutSession,
   stripeObjectId,
 } = require('./lib/payments');
+const {
+  MISSION_DECLINE_REASONS,
+  CONFLICT_OUTCOMES,
+  buildPartyCandidates,
+  sanitizeParties,
+  missionGate,
+  publicMissionAcceptance,
+  validateConflictInput,
+  validateFeeAgreementInput,
+  validateDecisionInput,
+} = require('./lib/mission-acceptance');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -206,7 +217,65 @@ async function connectDB() {
   // pour empêcher qu'un même email récupère 2 h gratuites en se réinscrivant.
   await db.collection('founder_trial_ledger').createIndex({ email_hash: 1 }, { unique: true });
   await ensurePaymentIndexes();
+  await ensureMissionIndexes();
+  await backfillMissionAcceptances();
   console.log('  ✓  MongoDB connecté');
+}
+
+// Reprise de l'existant. Les missions créées avant la mise en place du process
+// n'ont pas de dossier d'acceptation : sans reprise, le verrou les bloquerait
+// toutes. La règle distingue deux cas, et jamais au détriment d'un dossier en
+// cours :
+//   • « soumise » = rien n'a commencé → l'avocat fait le contrôle et tranche,
+//     comme pour une mission neuve ;
+//   • déjà engagée → on ne coupe pas un avocat au milieu d'un dossier : la
+//     mission est marquée `legacy`, ce qui lève l'exigence de convention dans
+//     Liquid+ (la convention existe hors plateforme). Les missions suivantes
+//     du même cabinet suivent le process complet.
+async function backfillMissionAcceptances() {
+  const requests = await col('saas_avocat_requests').find(
+    { status: { $in: ['soumise', 'en_cours', 'attente_fondateur', 'livree'] } },
+    { projection: { id: 1, user_id: 1, lawyer_user_id: 1, company_client_id: 1, status: 1, created_at: 1 } },
+  ).toArray();
+  if (!requests.length) return;
+  const existing = await col('lawyer_mission_acceptances').find(
+    { request_id: { $in: requests.map(r => r.id) } }, { projection: { request_id: 1 } },
+  ).toArray();
+  const known = new Set(existing.map(a => a.request_id));
+  const missing = requests.filter(r => !known.has(r.id));
+  if (!missing.length) return;
+  const now = new Date().toISOString();
+  await col('lawyer_mission_acceptances').insertMany(missing.map(r => {
+    const started = r.status !== 'soumise';
+    return {
+      id: crypto.randomUUID(),
+      request_id: r.id, lawyer_id: r.lawyer_user_id || null, client_id: r.user_id,
+      company_client_id: r.company_client_id || null,
+      status: started ? 'accepted' : 'pending',
+      legacy: started,
+      conflict_outcome: null, conflict_parties: [], conflict_note: '',
+      ...(started ? { decided_at: r.created_at || now } : {}),
+      created_at: now, updated_at: now,
+    };
+  }));
+  console.log(`  ✓  ${missing.length} mission(s) reprise(s) dans le process d'acceptation`);
+}
+
+// Une mission ne peut porter qu'une seule acceptation : c'est elle qui fait foi
+// du contrôle des conflits et de la convention. Le journal, lui, est append-only
+// et se lit toujours par dossier.
+async function ensureMissionIndexes() {
+  await Promise.all([
+    db.collection('lawyer_mission_acceptances').createIndex(
+      { request_id: 1 }, { unique: true, name: 'mission_acceptance_request_unique' },
+    ),
+    db.collection('lawyer_mission_acceptances').createIndex(
+      { id: 1 }, { unique: true, name: 'mission_acceptance_id_unique' },
+    ),
+    db.collection('lawyer_mission_events').createIndex(
+      { request_id: 1, at: 1 }, { name: 'mission_event_request' },
+    ),
+  ]);
 }
 
 // Index garantissant l'unicité des sessions/paiements Stripe : un même paiement ne
@@ -4111,7 +4180,11 @@ const AVOCAT_PRESTATIONS = [
 ];
 const LAWYER_CATALOG_VERSION = 2;
 const AVOCAT_PRESTATION_KEYS  = new Set(AVOCAT_PRESTATIONS.map(p => p.key));
-const AVOCAT_REQUEST_STATUSES = ['soumise', 'en_cours', 'attente_fondateur', 'livree', 'cloturee', 'annule'];
+// `soumise` = en attente de la décision de l'avocat. `acceptee` = mission acceptée
+// mais diligences pas encore commencées (la convention d'honoraires reste à
+// confirmer). `refusee` est terminal et distinct de `annule` : l'un vient de
+// l'avocat, l'autre du fondateur.
+const AVOCAT_REQUEST_STATUSES = ['soumise', 'acceptee', 'refusee', 'en_cours', 'attente_fondateur', 'livree', 'cloturee', 'annule'];
 const COMPANY_LEGAL_FORMS = new Set(['sas', 'sasu', 'sarl', 'eurl', 'sa', 'sca', 'snc', 'scop', 'other']);
 const COMPANY_USER_ROLES = new Set(['legal_representative', 'authorized_user']);
 const FOUNDER_PERSONAL_INTEREST_NOTICE = 'Cette question concerne vos intérêts personnels et n’est pas incluse dans la mission confiée par la société. Un conseil distinct peut être nécessaire.';
@@ -4153,10 +4226,10 @@ function publicCompanyLegalProfile(profile) {
     legal_representative_name: '', legal_representative_title: '', user_role: '',
     user_authority_confirmed: false, registered_confirmed: false,
     beneficial_owners_required: false, beneficial_owners_confirmed: false,
-    company_client_terms_accepted: false, verification_status: 'incomplete',
+    company_client_terms_accepted: false,
     registration_evidence: null,
   };
-  const { _id, user_id, registration_evidence_document_id, verified_by, verification_note, ...safe } = profile;
+  const { _id, user_id, registration_evidence_document_id, verification_status, verified_at, verified_by, verification_note, ...safe } = profile;
   return safe;
 }
 
@@ -4174,9 +4247,16 @@ function companyEligibility(profile) {
   if (profile?.company_client_terms_accepted !== true) missing.push('company_client_terms_accepted');
   if (!profile?.registration_evidence_document_id) missing.push('registration_evidence');
   if (profile?.beneficial_owners_required === true && profile?.beneficial_owners_confirmed !== true) missing.push('beneficial_owners_confirmed');
+  // `complete` est un calcul mécanique : le dossier est renseigné, ou il ne
+  // l'est pas. Il n'existe plus de « vérifié » : identifier le client et son
+  // bénéficiaire effectif est une obligation de vigilance PERSONNELLE de
+  // l'avocat (art. L561-2 CMF), et L561-7 ne permet de s'en remettre qu'à un
+  // tiers lui-même assujetti — ce que Liquid+ n'est pas. Liquid+ collecte et
+  // transmet ; l'avocat contrôle, atteste, et c'est `missionGate` qui verrouille
+  // (lib/mission-acceptance.js). Une validation par Liquid+ ne déchargeait
+  // personne et retardait l'avocat sans rien garantir.
   const complete = missing.length === 0;
-  const verified = complete && profile?.verification_status === 'verified';
-  return { complete, verified, missing, status: verified ? 'verified' : (complete ? 'pending_review' : 'incomplete') };
+  return { complete, missing, status: complete ? 'complete' : 'incomplete' };
 }
 
 async function companyProfileForUser(userId) {
@@ -4313,6 +4393,60 @@ async function lawyerRequestFor(lawyerId, requestId) {
   const request = await col('saas_avocat_requests').findOne({ id: Number(requestId), lawyer_user_id: Number(lawyerId) });
   if (!request) return null;
   return (await assignedLawyerForClient(request.user_id)) === Number(lawyerId) ? request : null;
+}
+
+// ── Acceptation de mission ────────────────────────────────────────────────────
+// Accepter un CLIENT (lawyer_client_proposals) et accepter une MISSION sont deux
+// décisions distinctes : la première ouvre la relation, la seconde engage le
+// cabinet sur un dossier précis, avec ses propres parties adverses. Le contrôle
+// des conflits d'intérêts doit donc être refait à chaque mission.
+async function missionAcceptanceFor(request) {
+  return col('lawyer_mission_acceptances').findOne({ request_id: request.id });
+}
+
+// Le journal est append-only : c'est lui qui permet à l'avocat de prouver, des
+// années plus tard, qu'il a contrôlé les conflits avant d'accepter. Il ne porte
+// AUCUN contenu juridique — même posture que les emails de notification.
+async function recordMissionEvent(request, { type, actorId, actorRole, metadata = {} }) {
+  const event = {
+    id: crypto.randomUUID(),
+    request_id: request.id,
+    lawyer_id: request.lawyer_user_id || null,
+    client_id: request.user_id,
+    actor_id: actorId ?? null,
+    actor_role: actorRole,
+    type,
+    at: new Date().toISOString(),
+    metadata,
+  };
+  await col('lawyer_mission_events').insertOne(event);
+  return event;
+}
+
+function publicMissionEvent(event) {
+  const { _id, ...rest } = event;
+  return rest;
+}
+
+// Verrou commun à tous les endroits où l'avocat produit un acte sur le dossier.
+// Renvoie null si le passage est autorisé, sinon la réponse d'erreur à renvoyer.
+async function missionWorkBlock(request) {
+  const acceptance = await missionAcceptanceFor(request);
+  const gate = missionGate(request, acceptance);
+  if (gate.can_work) return null;
+  const MESSAGES = {
+    CONFLICT_CHECK_REQUIRED: 'Contrôlez d’abord les conflits d’intérêts sur cette mission.',
+    VIGILANCE_ATTESTATION_REQUIRED: 'Attestez d’abord avoir effectué votre vigilance sur ce client.',
+    MISSION_ACCEPTANCE_REQUIRED: 'Acceptez d’abord cette mission.',
+    FEE_AGREEMENT_REQUIRED: 'Confirmez d’abord la convention d’honoraires signée : elle doit précéder toute diligence.',
+    MISSION_DECLINED: 'Vous avez refusé cette mission.',
+  };
+  return {
+    status: gate.code === 'MISSION_DECLINED' ? 409 : 428,
+    body: { error: MESSAGES[gate.code] || 'Cette mission n’est pas ouverte aux diligences.', code: gate.code || 'MISSION_NOT_OPEN' },
+    gate,
+    acceptance,
+  };
 }
 
 // ── Stripe Connect : état du compte de paiement d'un cabinet ───────────────────
@@ -4508,7 +4642,6 @@ app.put('/api/saas/avocat/company-eligibility', requireAuth, requireAssignedFoun
     return res.status(422).json({ error: 'Les attestations obligatoires doivent être acceptées.' });
   if (body.beneficial_owners_required === true && body.beneficial_owners_confirmed !== true)
     return res.status(422).json({ error: 'Confirmez que les informations sur les bénéficiaires effectifs sont à jour.' });
-  const existing = await companyProfileForUser(req.user.id);
   const now = new Date().toISOString();
   const set = {
     ...requiredText, siren, legal_form: body.legal_form, user_role: body.user_role,
@@ -4516,13 +4649,12 @@ app.put('/api/saas/avocat/company-eligibility', requireAuth, requireAssignedFoun
     beneficial_owners_required: body.beneficial_owners_required === true,
     beneficial_owners_confirmed: body.beneficial_owners_required === true ? body.beneficial_owners_confirmed === true : false,
     company_client_terms_accepted: true,
-    verification_status: existing?.verification_status === 'verified' ? 'verified' : 'pending_review',
     submitted_at: now, updated_at: now,
   };
-  // Une modification d'identité après validation impose une nouvelle vérification.
-  if (existing?.verification_status === 'verified' && ['company_name','siren','legal_form','registered_office','legal_representative_name','legal_representative_title'].some(key => existing[key] !== set[key])) {
-    set.verification_status = 'pending_review'; set.verified_at = null; set.verified_by = null;
-  }
+  // Plus de statut de vérification à entretenir : personne chez Liquid+ ne valide
+  // ce dossier. Si l'identité change après qu'un avocat a attesté sa vigilance,
+  // c'est à lui de la refaire — son attestation porte sur une mission donnée
+  // (voir missionGate), pas sur le dossier en général.
   await col('saas_company_legal_profiles').updateOne(
     { user_id: req.user.id },
     { $set: set, $setOnInsert: { id: crypto.randomUUID(), user_id: req.user.id, created_at: now } },
@@ -4545,7 +4677,7 @@ app.post('/api/saas/avocat/company-eligibility/evidence', requireAuth, requireAs
   });
   await col('saas_company_legal_profiles').updateOne(
     { user_id: req.user.id },
-    { $set: { registration_evidence_document_id: documentId, registration_evidence: { name: shortText(req.file.originalname, 180), size: req.file.size, uploaded_at: now }, verification_status: 'pending_review', updated_at: now }, $setOnInsert: { id: crypto.randomUUID(), user_id: req.user.id, created_at: now } },
+    { $set: { registration_evidence_document_id: documentId, registration_evidence: { name: shortText(req.file.originalname, 180), size: req.file.size, uploaded_at: now }, updated_at: now }, $setOnInsert: { id: crypto.randomUUID(), user_id: req.user.id, created_at: now } },
     { upsert: true },
   );
   if (existing?.registration_evidence_document_id) await col('saas_company_verification_documents').deleteOne({ id: existing.registration_evidence_document_id, user_id: req.user.id });
@@ -4653,11 +4785,12 @@ app.post('/api/saas/avocat/requests', requireAuth, requireAssignedFounder2FA, as
 
   const companyProfile = await companyProfileForUser(req.user.id);
   const eligibility = companyEligibility(companyProfile);
-  if (!eligibility.verified) return res.status(409).json({
-    error: eligibility.complete
-      ? 'La vérification de la société par Liquid+ est encore en attente.'
-      : 'Complétez et faites vérifier le dossier société avant toute mission avocat standard.',
-    code: eligibility.complete ? 'COMPANY_VERIFICATION_PENDING' : 'COMPANY_PROFILE_REQUIRED',
+  // Le dossier doit être renseigné : l'avocat en a besoin pour sa vigilance. Il
+  // n'y a plus d'attente de validation Liquid+ — c'est l'avocat qui contrôle,
+  // puis accepte ou refuse la mission.
+  if (!eligibility.complete) return res.status(409).json({
+    error: 'Complétez le dossier société avant toute mission avocat standard.',
+    code: 'COMPANY_PROFILE_REQUIRED',
     eligibility,
   });
   if (body.founder_personal_interest === true) return res.status(409).json({
@@ -4678,6 +4811,16 @@ app.post('/api/saas/avocat/requests', requireAuth, requireAssignedFounder2FA, as
   ).toArray();
   if (docs.length !== documentIds.length) return res.status(404).json({ error: 'Un des documents sélectionnés est introuvable.' });
   const orderedDocs = documentIds.map(id => docs.find(doc => doc.id === id));
+
+  // Les parties en présence conditionnent le contrôle des conflits de l'avocat :
+  // sans elles, il contrôlerait contre une liste vide. Le fondateur valide une
+  // liste pré-remplie, mais c'est bien lui qui l'arrête — d'où la confirmation
+  // explicite plutôt qu'un pré-remplissage silencieux.
+  const parties = sanitizeParties(body.parties);
+  if (!parties.length)
+    return res.status(422).json({ error: 'Indiquez les parties en présence : votre avocat doit contrôler les conflits d’intérêts.', code: 'PARTIES_REQUIRED' });
+  if (body.parties_confirmed !== true)
+    return res.status(422).json({ error: 'Confirmez que la liste des parties est exacte et complète à votre connaissance.', code: 'PARTIES_CONFIRMATION_REQUIRED' });
 
   const now = new Date().toISOString();
   const id  = await nextId('saas_avocat_requests');
@@ -4701,6 +4844,8 @@ app.post('/api/saas/avocat/requests', requireAuth, requireAssignedFounder2FA, as
     founder_personal_interest_flag: body.founder_personal_interest === true,
     founder_personal_interest_notice: body.founder_personal_interest === true ? FOUNDER_PERSONAL_INTEREST_NOTICE : null,
     due_date: /^\d{4}-\d{2}-\d{2}$/.test(String(body.due_date || '')) ? String(body.due_date) : null,
+    parties,
+    parties_confirmed_at: now,
     status: 'soumise',
     created_at: now, updated_at: now,
   };
@@ -4709,6 +4854,25 @@ app.post('/api/saas/avocat/requests', requireAuth, requireAssignedFounder2FA, as
     { $set: { company_id: companyProfile.id, workspace_owner_type: 'company', updated_at: now } },
   );
   await col('saas_avocat_requests').insertOne(request);
+  // La mission naît en attente de décision : tant que l'avocat n'a pas contrôlé
+  // les conflits et tranché, aucune diligence n'est possible.
+  await col('lawyer_mission_acceptances').insertOne({
+    id: crypto.randomUUID(),
+    request_id: request.id,
+    lawyer_id: lawyerUserId,
+    client_id: req.user.id,
+    company_client_id: companyProfile.id,
+    status: 'pending',
+    conflict_outcome: null,
+    conflict_parties: [],
+    conflict_note: '',
+    created_at: now, updated_at: now,
+  });
+  await recordMissionEvent(request, { type: 'mission_soumise', actorId: req.user.id, actorRole: 'founder' });
+  await recordMissionEvent(request, {
+    type: 'parties_declarees', actorId: req.user.id, actorRole: 'founder',
+    metadata: { parties_count: parties.length },
+  });
   await createLawyerNotification(
     lawyerUserId,
     'mission_received',
@@ -4727,12 +4891,50 @@ app.put('/api/saas/avocat/requests/:id', requireAuth, requireAssignedFounder2FA,
   // (les transitions en_cours / relu relèvent du poste avocat).
   if (req.body?.status !== 'annule')
     return res.status(400).json({ error: 'Seule l’annulation est possible' });
-  if (!['soumise', 'en_cours', 'attente_fondateur'].includes(request.status))
+  if (!['soumise', 'acceptee', 'en_cours', 'attente_fondateur'].includes(request.status))
     return res.status(409).json({ error: 'Cette demande ne peut plus être annulée' });
   await col('saas_avocat_requests').updateOne(
     { id, user_id: req.user.id },
     { $set: { status: 'annule', updated_at: new Date().toISOString() } });
   res.json({ success: true });
+});
+
+// Parties en présence proposées au fondateur, à partir de ce que Liquid+ sait
+// déjà. Volontairement limité aux trois sources STRUCTURÉES : dossier société
+// vérifié, fondateurs déclarés, pipeline investisseurs. Les documents importés en
+// sont exclus — une extraction automatique omet ce qu'elle ne trouve pas, et une
+// liste qui paraît exhaustive sans l'être ferait manquer un conflit. Le fondateur
+// complète à la main ce qui manque.
+app.get('/api/saas/avocat/parties-suggestions', requireAuth, requireAssignedFounder2FA, async (req, res) => {
+  const [companyProfile, investors, fundraisingProfile] = await Promise.all([
+    companyProfileForUser(req.user.id),
+    col('saas_investors').find({ user_id: req.user.id }, { projection: { _id: 0 } }).sort({ order: 1 }).toArray(),
+    col('saas_fundraising_profiles').findOne({ user_id: req.user.id }),
+  ]);
+  res.json({
+    parties: buildPartyCandidates({
+      companySnapshot: companyProfile,
+      investors,
+      founders: fundraisingProfile?.founders || [],
+    }),
+  });
+});
+
+app.get('/api/saas/avocat/requests/:id/acceptance', requireAuth, requireAssignedFounder2FA, async (req, res) => {
+  const request = await col('saas_avocat_requests').findOne({ id: Number(req.params.id), user_id: req.user.id });
+  if (!request) return res.status(404).json({ error: 'Demande introuvable' });
+  const acceptance = await missionAcceptanceFor(request);
+  res.json({
+    acceptance: publicMissionAcceptance(acceptance, 'founder'),
+    parties: Array.isArray(request.parties) ? request.parties : [],
+  });
+});
+
+app.get('/api/saas/avocat/requests/:id/journal', requireAuth, requireAssignedFounder2FA, async (req, res) => {
+  const request = await col('saas_avocat_requests').findOne({ id: Number(req.params.id), user_id: req.user.id });
+  if (!request) return res.status(404).json({ error: 'Demande introuvable' });
+  const events = await col('lawyer_mission_events').find({ request_id: request.id }).sort({ at: 1 }).toArray();
+  res.json({ events: events.map(publicMissionEvent) });
 });
 
 // Pastille verte côté fondateur : y a-t-il du nouveau de la part de l'avocat ?
@@ -4970,17 +5172,21 @@ app.put('/api/lawyer/review-requests/:id/payment', requireAuth, requireLawyer, a
   if (!stripe || !STRIPE_CONNECT_WEBHOOK_SECRET) return res.status(503).json({ error: 'Stripe Connect n’est pas configuré.' });
   const request = await lawyerRequestFor(req.user.id, req.params.id);
   if (!request || request.status === 'annule') return res.status(404).json({ error: 'Demande indisponible' });
-  if (req.body?.fee_agreement_confirmed !== true)
-    return res.status(422).json({ error: 'Confirmez que la convention d’honoraires est signée par la société et fixe ce montant.' });
-  const feeAgreementReference = shortText(req.body?.fee_agreement_reference, 160);
-  if (!feeAgreementReference)
-    return res.status(422).json({ error: 'Indiquez la référence ou la date de la convention d’honoraires signée.' });
-  const amountTotal = parseEuroAmountToCents(req.body?.amount_eur);
+  // La convention d'honoraires n'est plus collectée ici : elle est confirmée à
+  // l'acceptation de la mission, sans exiger Stripe. Cet endpoint ne fait que la
+  // LIRE — encaisser par carte est une commodité, pas un préalable au travail.
+  const acceptance = await missionAcceptanceFor(request);
+  const gate = missionGate(request, acceptance);
+  if (!gate.can_work)
+    return res.status(428).json({
+      error: 'Acceptez la mission et confirmez la convention d’honoraires avant de demander leur règlement.',
+      code: gate.code || 'MISSION_NOT_OPEN',
+    });
+  const feeAgreementReference = acceptance.fee_agreement_reference;
+  const amountTotal = acceptance.fee_agreement_amount_cents;
   if (!isValidLawyerAmountCents(amountTotal))
-    return res.status(422).json({ error: 'Indiquez un montant total TTC valide, compris entre 1 € et 100 000 €.' });
+    return res.status(409).json({ error: 'Le montant de la convention d’honoraires est invalide : corrigez-la avant d’en demander le règlement.', code: 'FEE_AGREEMENT_REQUIRED' });
   const prestation = AVOCAT_PRESTATIONS.find(item => item.key === request.prestation_key);
-  if (prestation?.fee_cap_cents != null && amountTotal > prestation.fee_cap_cents)
-    return res.status(422).json({ error: 'Ce montant dépasse le plafond de la grille Liquid+ applicable à cette mission.' });
 
   const profile = await refreshLawyerConnectProfile(req.user.id);
   const connectStatus = publicLawyerConnectStatus(profile);
@@ -5043,6 +5249,182 @@ app.get('/api/lawyer/review-requests', requireAuth, requireLawyer, async (req, r
   const users = await col('users').find({ id: { $in: [...new Set(requests.map(r => r.user_id))] } }, { projection: { id: 1, full_name: 1, email: 1 } }).toArray();
   const byId = new Map(users.map(u => [u.id, u]));
   res.json({ requests: requests.map(r => ({ ...avocatPublicRequest(r), client: byId.get(r.user_id) || null })) });
+});
+
+// ─── Acceptation de mission (côté avocat) ─────────────────────────────────────
+// L'ordre est imposé par `missionGate` : conflits → vigilance → décision →
+// convention d'honoraires → diligences. Chaque endpoint ci-dessous écrit une
+// étape et refuse de sauter la précédente.
+
+app.get('/api/lawyer/review-requests/:id/acceptance', requireAuth, requireLawyer, async (req, res) => {
+  const request = await lawyerRequestFor(req.user.id, req.params.id);
+  if (!request) return res.status(404).json({ error: 'Demande introuvable ou non attribuée' });
+  const acceptance = await missionAcceptanceFor(request);
+  res.json({
+    acceptance: publicMissionAcceptance(acceptance, 'lawyer'),
+    gate: missionGate(request, acceptance),
+    // Les parties telles que le fondateur les a validées à la soumission : c'est
+    // la liste que l'avocat doit contrôler, figée, pas une donnée qui bouge.
+    parties: Array.isArray(request.parties) ? request.parties : [],
+    decline_reasons: MISSION_DECLINE_REASONS,
+    conflict_outcomes: CONFLICT_OUTCOMES,
+  });
+});
+
+app.put('/api/lawyer/review-requests/:id/acceptance/conflict', requireAuth, requireLawyer, async (req, res) => {
+  const request = await lawyerRequestFor(req.user.id, req.params.id);
+  if (!request) return res.status(404).json({ error: 'Demande introuvable ou non attribuée' });
+  const acceptance = await missionAcceptanceFor(request);
+  if (acceptance?.status !== 'pending')
+    return res.status(409).json({ error: 'Cette mission a déjà été tranchée : le contrôle ne peut plus être modifié.' });
+  const parsed = validateConflictInput(req.body);
+  if (!parsed.ok) return res.status(422).json({ error: parsed.error });
+  const now = new Date().toISOString();
+  await col('lawyer_mission_acceptances').updateOne(
+    { request_id: request.id },
+    { $set: {
+      conflict_outcome: parsed.value.outcome,
+      conflict_parties: parsed.value.parties,
+      conflict_note: parsed.value.note,
+      conflict_checked_at: now,
+      conflict_checked_by: req.user.id,
+      updated_at: now,
+    } },
+  );
+  await recordMissionEvent(request, {
+    type: 'conflit_controle', actorId: req.user.id, actorRole: 'lawyer',
+    metadata: { outcome: parsed.value.outcome, parties_count: parsed.value.parties.length },
+  });
+  const saved = await missionAcceptanceFor(request);
+  res.json({ acceptance: publicMissionAcceptance(saved, 'lawyer'), gate: missionGate(request, saved) });
+});
+
+app.post('/api/lawyer/review-requests/:id/acceptance/vigilance', requireAuth, requireLawyer, async (req, res) => {
+  const request = await lawyerRequestFor(req.user.id, req.params.id);
+  if (!request) return res.status(404).json({ error: 'Demande introuvable ou non attribuée' });
+  const acceptance = await missionAcceptanceFor(request);
+  if (acceptance?.status !== 'pending')
+    return res.status(409).json({ error: 'Cette mission a déjà été tranchée.' });
+  // La vigilance LCB-FT est une obligation personnelle de l'avocat : Liquid+ ne
+  // la réalise pas et n'en conserve aucun contenu (ni origine des fonds, ni
+  // classement de risque). Seule l'attestation est horodatée.
+  if (req.body?.attested !== true)
+    return res.status(422).json({ error: 'Confirmez avoir effectué votre vigilance sur ce client.' });
+  const now = new Date().toISOString();
+  await col('lawyer_mission_acceptances').updateOne(
+    { request_id: request.id },
+    { $set: { vigilance_attested_at: now, vigilance_attested_by: req.user.id, updated_at: now } },
+  );
+  await recordMissionEvent(request, { type: 'vigilance_attestee', actorId: req.user.id, actorRole: 'lawyer' });
+  const saved = await missionAcceptanceFor(request);
+  res.json({ acceptance: publicMissionAcceptance(saved, 'lawyer'), gate: missionGate(request, saved) });
+});
+
+// La convention d'honoraires est un fait juridique entre la société et l'avocat.
+// Elle ne dépend PAS du moyen de paiement : un cabinet qui facture par virement
+// et n'a jamais ouvert de compte Stripe doit pouvoir la confirmer et travailler.
+// C'est pourquoi cette étape est séparée de PUT /payment, qui exige Stripe Connect.
+app.put('/api/lawyer/review-requests/:id/acceptance/fee-agreement', requireAuth, requireLawyer, async (req, res) => {
+  const request = await lawyerRequestFor(req.user.id, req.params.id);
+  if (!request || ['annule', 'refusee'].includes(request.status))
+    return res.status(404).json({ error: 'Demande indisponible' });
+  const amountCents = parseEuroAmountToCents(req.body?.amount_eur);
+  const parsed = validateFeeAgreementInput(req.body, amountCents);
+  if (!parsed.ok) return res.status(422).json({ error: parsed.error });
+  if (!isValidLawyerAmountCents(parsed.value.amount_cents))
+    return res.status(422).json({ error: 'Indiquez un montant total TTC valide, compris entre 1 € et 100 000 €.' });
+  const prestation = AVOCAT_PRESTATIONS.find(item => item.key === request.prestation_key);
+  if (prestation?.fee_cap_cents != null && parsed.value.amount_cents > prestation.fee_cap_cents)
+    return res.status(422).json({ error: 'Ce montant dépasse le plafond de la grille Liquid+ applicable à cette mission.' });
+  const payment = await col('lawyer_payment_requests').findOne({ request_id: request.id, lawyer_id: req.user.id });
+  if (payment?.status === 'paid')
+    return res.status(409).json({ error: 'Ces honoraires sont déjà payés : la convention ne peut plus être modifiée ici.' });
+  const now = new Date().toISOString();
+  await col('lawyer_mission_acceptances').updateOne(
+    { request_id: request.id },
+    { $set: {
+      fee_agreement_reference: parsed.value.reference,
+      fee_agreement_signed_on: parsed.value.signed_on,
+      fee_agreement_amount_cents: parsed.value.amount_cents,
+      fee_agreement_confirmed_at: now,
+      fee_agreement_confirmed_by: req.user.id,
+      updated_at: now,
+    } },
+  );
+  await recordMissionEvent(request, {
+    type: 'convention_confirmee', actorId: req.user.id, actorRole: 'lawyer',
+    metadata: { signed_on: parsed.value.signed_on },
+  });
+  const saved = await missionAcceptanceFor(request);
+  res.json({ acceptance: publicMissionAcceptance(saved, 'lawyer'), gate: missionGate(request, saved) });
+});
+
+app.post('/api/lawyer/review-requests/:id/acceptance/decision', requireAuth, requireLawyer, async (req, res) => {
+  const request = await lawyerRequestFor(req.user.id, req.params.id);
+  if (!request) return res.status(404).json({ error: 'Demande introuvable ou non attribuée' });
+  if (request.status !== 'soumise')
+    return res.status(409).json({ error: 'Cette mission a déjà été tranchée.' });
+  const acceptance = await missionAcceptanceFor(request);
+  const gate = missionGate(request, acceptance);
+  if (!gate.can_decide)
+    return res.status(428).json({
+      error: 'Contrôlez les conflits d’intérêts et attestez votre vigilance avant de décider.',
+      code: gate.code || 'MISSION_DECISION_BLOCKED',
+    });
+  const parsed = validateDecisionInput(req.body, acceptance);
+  if (!parsed.ok) return res.status(422).json({ error: parsed.error, ...(parsed.code ? { code: parsed.code } : {}) });
+
+  const now = new Date().toISOString();
+  const accepted = parsed.value.decision === 'accepted';
+  // Compare-and-set : deux onglets ouverts ne peuvent pas trancher deux fois.
+  const claimed = await col('lawyer_mission_acceptances').updateOne(
+    { request_id: request.id, status: 'pending' },
+    { $set: {
+      status: accepted ? 'accepted' : 'declined',
+      decided_at: now,
+      decided_by: req.user.id,
+      decline_reason_code: accepted ? null : parsed.value.reason_code,
+      decline_reason_note: accepted ? '' : parsed.value.reason_note,
+      updated_at: now,
+    } },
+  );
+  if (!claimed.matchedCount) return res.status(409).json({ error: 'Cette mission a déjà été tranchée.' });
+
+  try {
+    await col('saas_avocat_requests').updateOne(
+      { id: request.id, lawyer_user_id: req.user.id },
+      { $set: { status: accepted ? 'acceptee' : 'refusee', updated_at: now, lawyer_activity_at: now } },
+    );
+    await recordMissionEvent(request, {
+      type: accepted ? 'mission_acceptee' : 'mission_refusee',
+      actorId: req.user.id, actorRole: 'lawyer',
+      metadata: accepted ? {} : { reason_code: parsed.value.reason_code },
+    });
+  } catch (error) {
+    // Rollback compensatoire : sans lui, l'acceptation serait tranchée alors que
+    // la mission resterait affichée « soumise » au fondateur.
+    await col('lawyer_mission_acceptances').updateOne(
+      { request_id: request.id },
+      { $set: { status: 'pending', updated_at: now }, $unset: { decided_at: '', decided_by: '', decline_reason_code: '', decline_reason_note: '' } },
+    );
+    throw error;
+  }
+
+  sendPortalNotificationEmail(
+    request.user_id,
+    accepted ? 'Votre avocat a accepté votre mission' : 'Votre avocat n’a pas pu accepter votre mission',
+    `/saas/dossier-avocat.html?id=${request.id}`,
+  ).catch(error => console.error('mission decision email error:', error.message));
+
+  const saved = await missionAcceptanceFor(request);
+  res.json({ acceptance: publicMissionAcceptance(saved, 'lawyer'), gate: missionGate({ ...request, status: accepted ? 'acceptee' : 'refusee' }, saved) });
+});
+
+app.get('/api/lawyer/review-requests/:id/journal', requireAuth, requireLawyer, async (req, res) => {
+  const request = await lawyerRequestFor(req.user.id, req.params.id);
+  if (!request) return res.status(404).json({ error: 'Demande introuvable ou non attribuée' });
+  const events = await col('lawyer_mission_events').find({ request_id: request.id }).sort({ at: 1 }).toArray();
+  res.json({ events: events.map(publicMissionEvent) });
 });
 
 app.get('/api/lawyer/earnings', requireAuth, requireLawyer, async (req, res) => {
@@ -5151,12 +5533,21 @@ app.put('/api/lawyer/review-requests/:id/documents/:docId/editor', requireAuth, 
   if (!request || ['cloturee', 'annule'].includes(request.status) || !(request.documents || []).some(d => Number(d.document_id) === docId)) return res.status(404).json({ error: 'Document non modifiable' });
   const doc = await col('saas_documents').findOne({ id: docId, user_id: request.user_id, kind: 'termsheet' });
   if (!doc) return res.status(404).json({ error: 'Document introuvable' });
+  // Éditer un document EST une diligence : le verrou s'applique ici avant toute
+  // écriture. Auparavant, cette route faisait passer la mission de « soumise » à
+  // « en cours » toute seule — c'était la seule acceptation de mission existante,
+  // et elle était implicite.
+  const blocked = await missionWorkBlock(request);
+  if (blocked) return res.status(blocked.status).json(blocked.body);
   const html = req.body?.html;
   const name = shortText(req.body?.name, 160);
   if (typeof html !== 'string') return res.status(400).json({ error: 'html requis' });
   const updatedAt = new Date().toISOString();
   await col('saas_documents').updateOne({ id: docId, user_id: request.user_id }, { $set: { html, size: Buffer.byteLength(html, 'utf8'), ...(name ? { name } : {}), updated_at: updatedAt, last_lawyer_editor_id: req.user.id } });
-  await col('saas_avocat_requests').updateOne({ id: request.id }, { $set: { status: request.status === 'soumise' ? 'en_cours' : request.status, updated_at: updatedAt, lawyer_activity_at: updatedAt } });
+  await col('saas_avocat_requests').updateOne({ id: request.id }, { $set: { status: request.status === 'acceptee' ? 'en_cours' : request.status, updated_at: updatedAt, lawyer_activity_at: updatedAt } });
+  if (request.status === 'acceptee') {
+    await recordMissionEvent(request, { type: 'travaux_commences', actorId: req.user.id, actorRole: 'lawyer' });
+  }
   res.json({ success: true, id: docId, updated_at: updatedAt });
 });
 
@@ -5165,8 +5556,25 @@ app.patch('/api/lawyer/review-requests/:id', requireAuth, requireLawyer, async (
   if (!request) return res.status(404).json({ error: 'Demande introuvable ou non attribuée' });
   const status = String(req.body?.status || '');
   if (!['en_cours', 'attente_fondateur', 'cloturee'].includes(status)) return res.status(400).json({ error: 'Statut invalide' });
+  // Faire avancer l'état d'un dossier suppose de l'avoir accepté : sans ce
+  // verrou, l'avocat pourrait ouvrir le suivi d'une mission qu'il n'a pas tranchée.
+  // Clôturer, en revanche, n'est pas une diligence : un avocat qui a accepté doit
+  // toujours pouvoir fermer son dossier, même s'il s'arrête avant la convention.
+  // Mais clôturer une mission jamais acceptée reviendrait à la refuser sans
+  // motif : celle-là doit passer par la décision.
+  if (status === 'cloturee') {
+    const acceptance = await missionAcceptanceFor(request);
+    if (acceptance?.status !== 'accepted')
+      return res.status(428).json({ error: 'Acceptez ou refusez d’abord cette mission.', code: 'MISSION_ACCEPTANCE_REQUIRED' });
+  } else {
+    const blocked = await missionWorkBlock(request);
+    if (blocked) return res.status(blocked.status).json(blocked.body);
+  }
   const statusChangedAt = new Date().toISOString();
   await col('saas_avocat_requests').updateOne({ id: request.id }, { $set: { status, updated_at: statusChangedAt, lawyer_activity_at: statusChangedAt } });
+  if (status === 'cloturee' && request.status !== 'cloturee') {
+    await recordMissionEvent(request, { type: 'mission_cloturee', actorId: req.user.id, actorRole: 'lawyer' });
+  }
   res.json({ success: true, status });
 });
 
@@ -5199,6 +5607,10 @@ app.post('/api/lawyer/review-requests/:id/deliver', requireAuth, requireLawyer, 
   const request = await lawyerRequestFor(req.user.id, req.params.id);
   if (!request) return res.status(404).json({ error: 'Demande introuvable ou non attribuée' });
   if (!req.file) return res.status(400).json({ error: 'Fichier manquant ou non supporté (15 Mo max)' });
+  // Remettre un document est l'aboutissement d'une diligence : même verrou, posé
+  // avant d'écrire quoi que ce soit.
+  const blocked = await missionWorkBlock(request);
+  if (blocked) return res.status(blocked.status).json(blocked.body);
   const sourceId = Number(req.body?.source_document_id);
   const source = await col('saas_documents').findOne({ id: sourceId, user_id: request.user_id });
   if (!source || !(request.documents || []).some(d => d.document_id === sourceId)) return res.status(404).json({ error: 'Document source non soumis' });
@@ -5215,6 +5627,7 @@ app.post('/api/lawyer/review-requests/:id/deliver', requireAuth, requireLawyer, 
   await recordReceivedTransmission(request.user_id, doc);
   const delivery = { document_id: id, source_document_id: source.id, name: doc.name, size: doc.size, delivered_at: now, lawyer_user_id: req.user.id };
   await col('saas_avocat_requests').updateOne({ id: request.id }, { $push: { deliveries: delivery }, $set: { status: 'livree', updated_at: now, lawyer_activity_at: now } });
+  await recordMissionEvent(request, { type: 'documents_remis', actorId: req.user.id, actorRole: 'lawyer' });
   const note = shortText(req.body?.message, 4000);
   if (note) await col('saas_avocat_messages').insertOne({ id: await nextId('saas_avocat_messages'), request_id: request.id, client_id: request.user_id, author_type: 'lawyer', author_id: req.user.id, body: note, created_at: now });
   sendPortalNotificationEmail(request.user_id, 'Un document est disponible dans votre espace sécurisé', `/saas/dossier-avocat.html?id=${request.id}`).catch(error => console.error('founder notification email error:', error.message));
@@ -5851,7 +6264,7 @@ app.post('/api/admin/client-proposals', requireAdmin, async (req, res) => {
   if (!lawyer) return res.status(404).json({ error: 'Avocat actif introuvable' });
   if (!client) return res.status(404).json({ error: 'Client fondateur introuvable' });
   const companyProfile = await companyProfileForUser(clientId);
-  if (!companyEligibility(companyProfile).verified) return res.status(409).json({ error: 'La société doit être vérifiée avant toute proposition à un avocat.', code: 'COMPANY_VERIFICATION_REQUIRED' });
+  if (!companyEligibility(companyProfile).complete) return res.status(409).json({ error: 'Le dossier société doit être complet avant toute proposition à un avocat.', code: 'COMPANY_PROFILE_REQUIRED' });
   const duplicate = await col('lawyer_client_proposals').findOne({ lawyer_id: lawyerId, client_id: clientId, status: { $in: ['proposed', 'accepted', 'assigned'] } });
   if (duplicate) return res.status(409).json({ error: 'Une proposition est déjà ouverte pour ce binôme' });
   const now = new Date().toISOString();
@@ -5869,34 +6282,21 @@ app.get('/api/lawyer/client-proposals', requireAuth, requireLawyer, async (req, 
   res.json({ proposals: await proposalsWithStartupNames(proposals) });
 });
 
-app.get('/api/admin/company-verifications', requireAdmin, async (_req, res) => {
-  const profiles = await col('saas_company_legal_profiles').find({}, { projection: { _id: 0 } }).sort({ updated_at: -1 }).toArray();
-  res.json({ companies: profiles.map(profile => ({
-    ...publicCompanyLegalProfile(profile), user_id: profile.user_id,
-    eligibility: companyEligibility(profile),
-  })) });
-});
+// Liquid+ ne valide plus aucun dossier société : il n'y a donc plus d'écran de
+// vérification côté admin, ni de statut « vérifiée » à poser. Le justificatif
+// d'immatriculation va désormais à l'avocat (ci-dessous), seul tenu de vérifier
+// l'identité du client et de son bénéficiaire effectif.
 
-app.patch('/api/admin/company-verifications/:userId', requireAdmin, async (req, res) => {
-  const userId = Number(req.params.userId);
-  const status = String(req.body?.status || '');
-  if (!['verified', 'rejected'].includes(status)) return res.status(422).json({ error: 'Statut de vérification invalide.' });
-  const profile = await companyProfileForUser(userId);
-  if (!profile) return res.status(404).json({ error: 'Dossier société introuvable.' });
-  const eligibility = companyEligibility(profile);
-  if (status === 'verified' && !eligibility.complete) return res.status(409).json({ error: 'Le dossier société est incomplet.', eligibility });
-  const now = new Date().toISOString();
-  await col('saas_company_legal_profiles').updateOne({ user_id: userId }, { $set: {
-    verification_status: status, verification_note: shortText(req.body?.note, 1000),
-    verified_at: status === 'verified' ? now : null, verified_by: req.user.id, updated_at: now,
-  } });
-  res.json({ success: true, status });
-});
-
-app.get('/api/admin/company-verifications/:userId/evidence', requireAdmin, async (req, res) => {
-  const profile = await companyProfileForUser(req.params.userId);
+// Justificatif d'immatriculation du client, pour l'avocat à qui la mission est
+// attribuée. C'est la pièce sur laquelle il fonde sa vigilance : la déclaration
+// du fondateur (`company_snapshot`) ne se vérifie pas toute seule. Réservé à
+// l'avocat de CETTE demande — lawyerRequestFor contrôle l'attribution.
+app.get('/api/lawyer/review-requests/:id/company-evidence', requireAuth, requireLawyer, async (req, res) => {
+  const request = await lawyerRequestFor(req.user.id, req.params.id);
+  if (!request) return res.status(404).json({ error: 'Demande introuvable ou non attribuée' });
+  const profile = await companyProfileForUser(request.user_id);
   if (!profile?.registration_evidence_document_id) return res.status(404).json({ error: 'Justificatif introuvable.' });
-  const document = await col('saas_company_verification_documents').findOne({ id: profile.registration_evidence_document_id, user_id: Number(req.params.userId) });
+  const document = await col('saas_company_verification_documents').findOne({ id: profile.registration_evidence_document_id, user_id: Number(request.user_id) });
   if (!document) return res.status(404).json({ error: 'Justificatif introuvable.' });
   const data = toBuffer(document.data);
   if (!data) return res.status(404).json({ error: 'Fichier indisponible.' });
@@ -5935,8 +6335,11 @@ app.patch('/api/lawyer/client-proposals/:id', requireAuth, requireLawyer, async 
   if (status === 'accepted') {
     const proposal = await col('lawyer_client_proposals').findOne({ id: req.params.id, lawyer_id: req.user.id, status: 'proposed' });
     if (!proposal) return res.status(409).json({ error: 'Cette proposition a déjà été traitée' });
-    if (!companyEligibility(await companyProfileForUser(proposal.client_id)).verified)
-      return res.status(409).json({ error: 'Liquid+ doit vérifier la société avant son attribution.', code: 'COMPANY_VERIFICATION_REQUIRED' });
+    // L'avocat reçoit un dossier renseigné, pas un dossier estampillé : c'est
+    // lui qui identifie le client et le bénéficiaire effectif avant d'entrer en
+    // relation d'affaires, et lui seul peut le faire.
+    if (!companyEligibility(await companyProfileForUser(proposal.client_id)).complete)
+      return res.status(409).json({ error: 'Le dossier société est incomplet : le client doit le compléter avant l’attribution.', code: 'COMPANY_PROFILE_REQUIRED' });
   }
   const now = new Date().toISOString();
   const nextStatus = status === 'accepted' ? 'assigned' : 'declined';

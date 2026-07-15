@@ -68,14 +68,50 @@ test('le dossier avocat expose les honoraires et son script reste valide', () =>
   const scripts = [...caseHtml.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(match => match[1]);
   assert.equal(scripts.length, 1);
   assert.doesNotThrow(() => new vm.Script(scripts[0], { filename: 'dossier-avocat.html' }));
-  for (const id of ['payment-card', 'payment-body', 'payment-error', 'fee-form', 'fee-amount',
-    'fee-reference', 'fee-description', 'fee-confirm', 'fee-submit']) {
+  for (const id of ['payment-card', 'payment-body', 'payment-error', 'fee-form', 'fee-source',
+    'fee-description', 'fee-submit']) {
     assert.ok(caseHtml.includes(`id="${id}"`), `identifiant absent du markup : ${id}`);
   }
   // Chaque rôle appelle sa propre route : le fondateur paie, le cabinet publie le montant.
   assert.match(scripts[0], /\/api\/saas\/avocat\/requests\/'\+id\+'\/payment\/checkout/);
   assert.match(scripts[0], /\/api\/lawyer\/payments\/connect\/onboard/);
   assert.match(scripts[0], /method:'PUT'/);
+});
+
+test('le montant des honoraires vient de la convention, jamais d’une saisie libre au paiement', () => {
+  // La convention d'honoraires est un fait juridique entre la société et l'avocat.
+  // La saisir dans le formulaire de paiement la soudait à Stripe Connect : un
+  // cabinet sans compte Stripe n'aurait jamais pu la confirmer, donc jamais
+  // travailler. Elle appartient à l'acceptation de la mission.
+  for (const id of ['convention-form', 'convention-reference', 'convention-date',
+    'convention-amount', 'convention-confirm', 'convention-submit']) {
+    assert.ok(caseHtml.includes(`id="${id}"`), `identifiant absent du markup : ${id}`);
+  }
+  // Le formulaire de paiement ne collecte plus ni montant, ni référence, ni confirmation.
+  assert.equal(caseHtml.includes('id="fee-amount"'), false);
+  assert.equal(caseHtml.includes('id="fee-reference"'), false);
+  assert.equal(caseHtml.includes('id="fee-confirm"'), false);
+
+  // Côté serveur, PUT /payment LIT la convention au lieu de la collecter.
+  const paymentRoute = serverSource.indexOf("app.put('/api/lawyer/review-requests/:id/payment'");
+  const nextRoute = serverSource.indexOf('app.get(', paymentRoute);
+  const body = serverSource.slice(paymentRoute, nextRoute);
+  assert.match(body, /acceptance\.fee_agreement_amount_cents/);
+  assert.match(body, /acceptance\.fee_agreement_reference/);
+  assert.doesNotMatch(body, /req\.body\?\.amount_eur/);
+  assert.doesNotMatch(body, /req\.body\?\.fee_agreement_confirmed/);
+  // Et le verrou de mission est consulté AVANT toute écriture du paiement.
+  assert.ok(body.indexOf('missionGate') < body.indexOf("col('lawyer_payment_requests').updateOne"));
+});
+
+test('confirmer la convention d’honoraires n’exige pas Stripe Connect', () => {
+  // Sinon un cabinet qui facture par virement serait interdit de travail.
+  const route = serverSource.indexOf("app.put('/api/lawyer/review-requests/:id/acceptance/fee-agreement'");
+  assert.ok(route > 0, 'route de convention introuvable');
+  const nextRoute = serverSource.indexOf('app.post(', route);
+  const body = serverSource.slice(route, nextRoute);
+  assert.doesNotMatch(body, /ready_for_payments/);
+  assert.doesNotMatch(body, /refreshLawyerConnectProfile/);
 });
 
 test('le fondateur ne peut pas payer tant que le cabinet n’a pas publié de montant', () => {
