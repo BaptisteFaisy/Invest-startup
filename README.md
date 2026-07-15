@@ -565,7 +565,7 @@ NODE_ENV              # production
 
 ### Emails de vérification (Resend)
 
-La création d'un compte par email est bloquée tant que l'adresse n'a pas été confirmée. En production, le serveur refuse donc de démarrer si `RESEND_API_KEY`, `EMAIL_FROM` ou `BASE_URL` manque.
+La création d'un compte par email est bloquée tant que l'adresse n'a pas été confirmée. En production, `BASE_URL` reste obligatoire au démarrage. Si `RESEND_API_KEY` ou `EMAIL_FROM` manque, le site reste disponible, mais les routes d'inscription et de renvoi du lien répondent avec une erreur contrôlée jusqu'à la configuration de Resend.
 
 1. Dans Resend, ajouter le domaine d'envoi et recopier les enregistrements DNS SPF et DKIM fournis.
 2. Attendre que le domaine apparaisse comme vérifié, puis créer une clé API.
