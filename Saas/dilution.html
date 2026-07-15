@@ -229,6 +229,8 @@
     .hist-chip { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 600; color: #4b4b56; background: #f2f2f0; border-radius: 6px; padding: 3px 8px; white-space: nowrap; }
     .hist-item__actions { display: flex; flex-direction: column; gap: 6px; flex: none; }
     .hist-btn { font-family: 'Archivo', sans-serif; font-size: 11.5px; font-weight: 600; border-radius: 8px; padding: 6px 10px; cursor: pointer; border: 1px solid rgba(8,9,12,0.14); background: #fff; color: #08090c; transition: .12s; white-space: nowrap; }
+    .hist-pdf { color: #2563eb; }
+    .hist-pdf:hover { border-color: #2563eb; background: #eff6ff; }
     .hist-load:hover { border-color: #08090c; color: #08090c; }
     .hist-del { color: #b0b0bb; padding: 6px 9px; }
     .hist-del:hover { border-color: #ef4444; color: #ef4444; }
@@ -364,6 +366,7 @@
   <script src="drawer-menu.js?v=14" defer></script>
   <script src="drawer-steps.js?v=3" defer></script>
   <script src="help-bulb.js?v=1" defer></script>
+  <script src="simulation-pdf.js?v=1"></script>
 </head>
 <body>
   <div class="app">
@@ -2268,6 +2271,235 @@
       recompute();
     }
 
+    function dilutionSequenceFromSnapshot(snapshot) {
+      const state = snapshot || {};
+      const sourceStart = Array.isArray(state.start) ? state.start : (Array.isArray(state.shareholders) ? state.shareholders : []);
+      const start = sourceStart.map(row => ({
+        name: String(row.name || 'Sans nom'),
+        shares: Number(row.value != null ? row.value : row.shares) || 0,
+        type: row.type || 'founder',
+      }));
+
+      if (state.raiseType === 'air') {
+        const air = state.air || {};
+        const instruments = (Array.isArray(air.rows) ? air.rows : []).map((row, index) => ({
+          name: String(row.name || `Investisseur AIR ${index + 1}`),
+          amount: Number(row.amount) || 0,
+          discount: (Number(row.discount) || 0) / 100,
+          cap: Number(row.cap) || 0,
+          floor: Number(row.floor) || 0,
+        })).filter(row => row.amount > 0);
+        const st = { shareholders: start, valuation: Number(air.valuation) || 0, convertibles: instruments };
+        const r = computeAir(st);
+        return [{
+          rd: {
+            name: 'BSA AIR — conversion projetée',
+            kind: 'air',
+            valuation: st.valuation,
+            investors: [],
+            pool: { on: false, pct: 0, timing: 'pre' },
+            convertibles: instruments,
+            roundError: null,
+          },
+          st,
+          r,
+        }];
+      }
+
+      const sourceRounds = Array.isArray(state.rounds) ? state.rounds : [{
+        name: '',
+        basis: state.basis || 'pre',
+        valoRaw: state.valoRaw || 0,
+        interp: state.pctInterp || 'net',
+        investors: state.investors || [],
+        pool: state.pool || { on: false, pct: 0, timing: 'pre' },
+        conv: state.conv || { on: false, rows: [] },
+      }];
+      const rounds = sourceRounds.map((source, index) => {
+        const investors = (Array.isArray(source.investors) ? source.investors : []).map(investor => ({
+          name: String(investor.name || 'Investisseur'),
+          amount: Number(investor.amount) || 0,
+        }));
+        const poolSource = source.pool || {};
+        const pool = {
+          on: !!poolSource.on,
+          pct: (Number(poolSource.pct) || 0) / 100,
+          timing: poolSource.timing === 'post' ? 'post' : 'pre',
+        };
+        const basis = ['pre', 'post', 'pct'].includes(source.basis) ? source.basis : 'pre';
+        const raw = Number(source.valoRaw != null ? source.valoRaw : source.raw) || 0;
+        const interp = source.interp === 'total' ? 'total' : 'net';
+        const invested = investors.reduce((sum, investor) => sum + investor.amount, 0);
+        const resolved = resolvePremoney(basis, raw, invested, pool, interp);
+        const convSource = source.conv || {};
+        const convertibles = convSource.on
+          ? (Array.isArray(convSource.rows) ? convSource.rows : []).map(row => ({
+              name: String(row.name || 'BSA AIR'),
+              amount: Number(row.amount) || 0,
+              discount: (Number(row.discount) || 0) / 100,
+              cap: Number(row.cap) || 0,
+              floor: Number(row.floor) || 0,
+            })).filter(row => row.amount > 0)
+          : [];
+        return {
+          name: String(source.name || `Tour ${index + 1}`),
+          basis,
+          raw,
+          interp,
+          investors,
+          pool,
+          convertibles,
+          premoney: resolved.premoney,
+          roundError: resolved.error,
+        };
+      });
+      return computeSequence(start, rounds);
+    }
+
+    function buildDilutionPdfReport(entry) {
+      const pdf = window.SimulationPdf;
+      if (!pdf) throw new Error('Le module PDF n’est pas disponible.');
+      const state = entry.state || {};
+      const summary = entry.summary || {};
+      const sequence = dilutionSequenceFromSnapshot(state);
+      const valid = [];
+      for (const step of sequence) {
+        if (step.st.roundError || step.r.error) break;
+        valid.push(step);
+      }
+      const first = valid[0];
+      const last = valid[valid.length - 1];
+      const isAir = state.raiseType === 'air';
+      const firstResult = first && first.r;
+      const lastResult = last && last.r;
+      const raised = valid.length
+        ? valid.reduce((total, step) => total + (Number(step.r.I) || 0), 0)
+        : Number(summary.raised) || 0;
+      const founderBefore = firstResult ? firstResult.founderPctBefore : null;
+      const founderAfter = lastResult ? lastResult.founderPctAfter : null;
+      const founderDilution = founderBefore != null && founderAfter != null
+        ? founderBefore - founderAfter
+        : Number(summary.founderDilution) || 0;
+      const reportSummary = [
+        { label: 'Type de financement', value: isAir ? 'BSA AIR — conversion projetée' : 'Levée en actions' },
+        { label: isAir ? 'Valorisation supposée' : 'Valorisation pre-money initiale', value: pdf.formatCurrency(firstResult ? firstResult.premoney : summary.premoney) },
+        { label: 'Montant total levé', value: pdf.formatCurrency(raised) },
+        { label: isAir ? 'Part des fondateurs après conversion' : 'Part des fondateurs après le dernier tour', value: founderAfter == null ? '—' : pdf.formatPercent(founderAfter) },
+        { label: 'Dilution cumulée des fondateurs', value: pdf.formatPercent(founderDilution) },
+      ];
+      if (!isAir) {
+        reportSummary.splice(2, 0, {
+          label: 'Valorisation post-money finale',
+          value: pdf.formatCurrency(lastResult ? lastResult.postV : summary.postV),
+        });
+      }
+
+      const typeLabels = {
+        founder: 'Fondateur',
+        invest0: 'Investisseur existant',
+        pool0: 'Pool / BSPCE',
+        investN: 'Nouvel investisseur',
+        convertN: isAir ? 'Investisseur BSA AIR' : 'Convertible',
+        poolN: 'Nouveau pool',
+      };
+      const sourceStart = Array.isArray(state.start) ? state.start : (Array.isArray(state.shareholders) ? state.shareholders : []);
+      const inputMode = state.mode === 'shares' ? 'shares' : 'pct';
+      const sections = [{
+        title: 'Cap table de départ',
+        table: {
+          columns: [
+            { label: 'Associé', width: 0.5 },
+            { label: 'Catégorie', width: 0.3 },
+            { label: inputMode === 'shares' ? 'Actions' : 'Capital', width: 0.2, align: 'right' },
+          ],
+          rows: sourceStart.map(row => [
+            row.name || 'Sans nom',
+            typeLabels[row.type] || 'Associé',
+            inputMode === 'shares'
+              ? pdf.formatNumber(row.value != null ? row.value : row.shares, 0)
+              : pdf.formatPercent((Number(row.value != null ? row.value : row.shares) || 0) / 100),
+          ]),
+        },
+      }];
+
+      valid.forEach((step, index) => {
+        const rd = step.rd;
+        const r = step.r;
+        const roundTitle = isAir ? 'Conversion projetée des BSA AIR' : `${index + 1}. ${rd.name || `Tour ${index + 1}`}`;
+        const items = isAir ? [
+          { label: 'Valorisation de référence', value: pdf.formatCurrency(r.referenceValuation) },
+          { label: 'Montant BSA AIR', value: pdf.formatCurrency(r.I) },
+          { label: 'Part des investisseurs AIR après conversion', value: pdf.formatPercent(r.invPct) },
+          { label: 'Fondateurs avant / après', value: `${pdf.formatPercent(r.founderPctBefore)} → ${pdf.formatPercent(r.founderPctAfter)}` },
+        ] : [
+          { label: 'Valorisation pre-money', value: pdf.formatCurrency(r.premoney) },
+          { label: 'Montant investi au tour', value: pdf.formatCurrency(r.I) },
+          { label: 'Valorisation post-money', value: pdf.formatCurrency(r.postV) },
+          { label: 'Part des nouveaux investisseurs', value: pdf.formatPercent(r.invPct) },
+          { label: 'Fondateurs avant / après', value: `${pdf.formatPercent(r.founderPctBefore)} → ${pdf.formatPercent(r.founderPctAfter)}` },
+        ];
+        if (!isAir && inputMode === 'shares') items.splice(3, 0, { label: 'Prix par action', value: pdf.formatCurrency(r.pps) });
+        if (r.poolPct > 0) items.push({ label: 'Nouveau pool après le tour', value: pdf.formatPercent(r.poolPct) });
+
+        const paragraphs = [];
+        if (rd.investors && rd.investors.length) {
+          paragraphs.push(`Investisseurs : ${rd.investors.map(investor => `${investor.name} (${pdf.formatCurrency(investor.amount)})`).join(' ; ')}.`);
+        }
+        if (rd.pool && rd.pool.on) {
+          paragraphs.push(`Pool cible de ${pdf.formatPercent(rd.pool.pct)}, créé ${rd.pool.timing === 'post' ? 'après' : 'avant'} le tour.`);
+        }
+        if (rd.convertibles && rd.convertibles.length) {
+          paragraphs.push(`Instruments convertibles : ${rd.convertibles.map(instrument => `${instrument.name} (${pdf.formatCurrency(instrument.amount)}, décote ${pdf.formatPercent(instrument.discount)})`).join(' ; ')}.`);
+        }
+        sections.push({
+          title: roundTitle,
+          items,
+          paragraphs,
+          table: {
+            columns: [
+              { label: 'Associé', width: 0.34 },
+              { label: 'Catégorie', width: 0.24 },
+              { label: 'Avant', width: 0.14, align: 'right' },
+              { label: 'Après', width: 0.14, align: 'right' },
+              { label: 'Variation', width: 0.14, align: 'right' },
+            ],
+            rows: (r.rows || []).map(row => [
+              row.name,
+              typeLabels[row.cat] || 'Associé',
+              pdf.formatPercent(row.pctBefore || 0),
+              pdf.formatPercent(row.pctAfter || 0),
+              `${(row.pctAfter || 0) - (row.pctBefore || 0) >= 0 ? '+' : ''}${pdf.formatPercent((row.pctAfter || 0) - (row.pctBefore || 0))}`,
+            ]),
+          },
+        });
+      });
+
+      if (!valid.length) {
+        sections.push({
+          title: 'Résultat enregistré',
+          paragraphs: ['Les données historiques ne permettent pas de recalculer le détail de cette ancienne simulation. Les indicateurs enregistrés restent reproduits dans la synthèse ci-dessus.'],
+        });
+      }
+
+      return {
+        kicker: 'Dilution',
+        title: entry.name || 'Simulation de dilution',
+        subtitle: isAir
+          ? 'Projection de la dilution à la conversion des BSA AIR.'
+          : `Simulation enregistrée sur ${valid.length || Number(summary.rounds) || 1} tour(s).`,
+        savedAt: entry.savedAt,
+        summary: reportSummary,
+        sections,
+        disclaimer: 'Cette simulation repose sur les hypothèses enregistrées. Elle est fournie à titre indicatif et ne remplace pas une cap table juridique vérifiée ni un conseil financier, fiscal ou juridique.',
+      };
+    }
+
+    function downloadDilutionPdf(entry) {
+      const pdf = window.SimulationPdf;
+      pdf.download(buildDilutionPdfReport(entry), pdf.safeFilename('dilution', entry));
+      setHistoryStatus('Téléchargement du PDF lancé.', 'ok');
+    }
+
     function renderHistory() {
       const list = historyEntries;
       const body = document.getElementById('hist-list');
@@ -2292,6 +2524,7 @@
             </div>
           </div>
           <div class="hist-item__actions">
+            <button type="button" class="hist-btn hist-pdf" title="Télécharger en PDF" aria-label="Télécharger cette simulation en PDF">PDF</button>
             <button type="button" class="hist-btn hist-load">Charger</button>
             <button type="button" class="hist-btn hist-del" title="Supprimer">×</button>
           </div>
@@ -2349,8 +2582,16 @@
       const item = e.target.closest('.hist-item');
       if (!item) return;
       const id = item.dataset.id;
-      if (e.target.closest('.hist-load')) {
-        const entry = historyEntries.find(x => x.id === id);
+      const entry = historyEntries.find(x => x.id === id);
+      if (e.target.closest('.hist-pdf')) {
+        if (!entry) return;
+        try {
+          downloadDilutionPdf(entry);
+        } catch (error) {
+          console.error('Dilution PDF export error:', error);
+          setHistoryStatus('Le PDF n’a pas pu être généré. Réessayez.', 'warn');
+        }
+      } else if (e.target.closest('.hist-load')) {
         if (entry) restoreSnapshot(entry.state);
       } else if (e.target.closest('.hist-del')) {
         if (!confirm('Supprimer cette simulation de l\'historique ?')) return;

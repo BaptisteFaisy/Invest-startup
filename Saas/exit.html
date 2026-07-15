@@ -226,6 +226,8 @@
     .hist-chip--type { color: #2563eb; background: rgba(37,99,235,0.09); }
     .hist-item__actions { display: flex; flex-direction: column; gap: 6px; flex: none; }
     .hist-btn { font-family: 'Archivo', sans-serif; font-size: 11.5px; font-weight: 600; border-radius: 8px; padding: 6px 10px; cursor: pointer; border: 1px solid rgba(8,9,12,0.14); background: #fff; color: #08090c; transition: .12s; white-space: nowrap; }
+    .hist-pdf { color: #2563eb; }
+    .hist-pdf:hover { border-color: #2563eb; background: #eff6ff; }
     .hist-load:hover { border-color: #08090c; color: #08090c; }
     .hist-del { color: #b0b0bb; padding: 6px 9px; }
     .hist-del:hover { border-color: #ef4444; color: #ef4444; }
@@ -274,6 +276,7 @@
   <script src="drawer-menu.js?v=14" defer></script>
   <script src="drawer-steps.js?v=3" defer></script>
   <script src="help-bulb.js?v=1" defer></script>
+  <script src="simulation-pdf.js?v=1"></script>
 </head>
 <body>
   <div class="app">
@@ -1371,6 +1374,187 @@
       };
     }
 
+    function exitStateFromSnapshot(snapshot) {
+      const state = snapshot || {};
+      const rows = (Array.isArray(state.rows) ? state.rows : []).map((row, index) => {
+        const type = ['founder', 'invest0', 'pool0'].includes(row.type) ? row.type : 'invest0';
+        const pref = row.pref || {};
+        return {
+          rid: `pdf_${index}`,
+          name: String(row.name || (type === 'founder' ? 'Fondateur' : type === 'pool0' ? 'Pool' : 'Investisseur')),
+          type,
+          value: Number(row.value) || 0,
+          sellPct: Math.max(0, Math.min(100, Number(row.sellPct) || 0)) / 100,
+          pref: type === 'invest0' ? {
+            invested: Number(pref.invested) || 0,
+            multiple: Number(pref.multiple) || 1,
+            participating: !!pref.participating,
+            cap: Number(pref.cap) || 0,
+            rank: parseInt(pref.rank, 10) || 1,
+            convert: !!pref.convert,
+          } : null,
+        };
+      });
+      return {
+        rows,
+        E: rows.reduce((total, row) => total + row.value, 0),
+        salePrice: Number(state.salePrice) || 0,
+        fees: Math.max(0, Number(state.fees) || 0) / 100,
+        debt: Math.max(0, Number(state.debt) || 0),
+        partValo: Number(state.partValo) || 0,
+        buyer: String(state.buyer || 'Acheteur'),
+      };
+    }
+
+    function buildExitPdfReport(entry) {
+      const pdf = window.SimulationPdf;
+      if (!pdf) throw new Error('Le module PDF n’est pas disponible.');
+      const state = entry.state || {};
+      const summary = entry.summary || {};
+      const exitKind = state.exitType === 'partial' || summary.exitType === 'partial' ? 'partial' : 'total';
+      const st = exitStateFromSnapshot(state);
+      const result = exitKind === 'partial' ? computePartial(st) : computeTotal(st);
+      const valid = !result.error;
+      const typeLabels = { founder: 'Fondateur', invest0: 'Investisseur', pool0: 'Pool / BSPCE' };
+      const sections = [];
+      let reportSummary;
+
+      if (exitKind === 'partial') {
+        const amount = valid ? result.totalProceeds : Number(summary.amount) || 0;
+        const buyerPct = valid ? result.buyerPct : Number(summary.buyerPct) || 0;
+        reportSummary = [
+          { label: 'Type de sortie', value: 'Cession secondaire partielle' },
+          { label: 'Valorisation retenue', value: pdf.formatCurrency(st.partValo) },
+          { label: 'Montant total de la cession', value: pdf.formatCurrency(amount) },
+          { label: 'Capital transféré à l’acheteur', value: pdf.formatPercent(buyerPct) },
+          { label: 'Acheteur', value: st.buyer },
+        ];
+        sections.push({
+          title: 'Détail de la cession',
+          table: {
+            columns: [
+              { label: 'Cédant', width: 0.27 },
+              { label: 'Catégorie', width: 0.18 },
+              { label: 'Avant', width: 0.13, align: 'right' },
+              { label: 'Part cédée', width: 0.13, align: 'right' },
+              { label: 'Produit', width: 0.17, align: 'right' },
+              { label: 'Après', width: 0.12, align: 'right' },
+            ],
+            rows: valid ? (result.rows || []).map(row => [
+              row.name,
+              typeLabels[row.type] || 'Associé',
+              pdf.formatPercent(row.pctBefore),
+              pdf.formatPercent(row.sellPct),
+              pdf.formatCurrency(row.proceeds),
+              pdf.formatPercent(row.pctAfter),
+            ]) : st.rows.map(row => [
+              row.name,
+              typeLabels[row.type] || 'Associé',
+              '—',
+              pdf.formatPercent(row.sellPct),
+              '—',
+              '—',
+            ]),
+          },
+        });
+      } else {
+        const net = valid ? result.net : Number(summary.amount) || 0;
+        const founderAmount = valid ? result.founderTotal : Number(summary.founderAmount) || 0;
+        const investorAmount = valid ? result.investTotal : Number(summary.investAmount) || 0;
+        const moic = valid ? result.moicGlobal : (summary.moic == null ? null : Number(summary.moic));
+        reportSummary = [
+          { label: 'Type de sortie', value: 'Cession totale — waterfall' },
+          { label: 'Prix de cession', value: pdf.formatCurrency(st.salePrice) },
+          { label: 'Produit net à distribuer', value: pdf.formatCurrency(net) },
+          { label: 'Montant revenant aux fondateurs', value: pdf.formatCurrency(founderAmount) },
+          { label: 'Montant revenant aux investisseurs', value: pdf.formatCurrency(investorAmount) },
+          { label: 'MOIC global des investisseurs', value: moic == null || !Number.isFinite(moic) ? '—' : `${pdf.formatNumber(moic, 2)}×` },
+        ];
+        sections.push({
+          title: 'Hypothèses de la cession',
+          items: [
+            { label: 'Prix de vente', value: pdf.formatCurrency(st.salePrice) },
+            { label: 'Frais de transaction', value: pdf.formatPercent(st.fees) },
+            { label: 'Dette remboursée au closing', value: pdf.formatCurrency(st.debt) },
+            { label: 'Produit net', value: pdf.formatCurrency(net) },
+          ],
+        });
+        const preferred = st.rows.filter(row => row.type === 'invest0');
+        if (preferred.length) {
+          sections.push({
+            title: 'Préférences de liquidation',
+            table: {
+              columns: [
+                { label: 'Investisseur', width: 0.25 },
+                { label: 'Investi', width: 0.17, align: 'right' },
+                { label: 'Préférence', width: 0.14, align: 'right' },
+                { label: 'Participation', width: 0.18 },
+                { label: 'Cap', width: 0.12, align: 'right' },
+                { label: 'Rang', width: 0.14, align: 'right' },
+              ],
+              rows: preferred.map(row => [
+                row.name,
+                pdf.formatCurrency(row.pref.invested),
+                `${pdf.formatNumber(row.pref.multiple, 2)}×`,
+                row.pref.convert ? 'Conversion en ordinaires' : row.pref.participating ? 'Participative' : 'Non participative',
+                row.pref.cap > 0 ? `${pdf.formatNumber(row.pref.cap, 2)}×` : 'Sans cap',
+                pdf.formatNumber(row.pref.rank, 0),
+              ]),
+            },
+          });
+        }
+        sections.push({
+          title: 'Distribution du produit de cession',
+          table: {
+            columns: [
+              { label: 'Bénéficiaire', width: 0.29 },
+              { label: 'Catégorie', width: 0.18 },
+              { label: 'Capital', width: 0.13, align: 'right' },
+              { label: 'Produit reçu', width: 0.2, align: 'right' },
+              { label: 'Part du net', width: 0.12, align: 'right' },
+              { label: 'MOIC', width: 0.08, align: 'right' },
+            ],
+            rows: valid ? (result.rows || []).map(row => [
+              row.name,
+              typeLabels[row.type] || 'Associé',
+              pdf.formatPercent(row.pctBefore),
+              pdf.formatCurrency(row.proceeds),
+              pdf.formatPercent(row.pctOfNet),
+              row.moic == null ? '—' : `${pdf.formatNumber(row.moic, 2)}×`,
+            ]) : st.rows.map(row => [row.name, typeLabels[row.type] || 'Associé', '—', '—', '—', '—']),
+          },
+          paragraphs: valid && result.shortfall
+            ? ['Le produit disponible ne couvre pas intégralement toutes les préférences de liquidation. La distribution est effectuée par rang puis au prorata au sein du rang concerné.']
+            : [],
+        });
+      }
+
+      if (!valid) {
+        sections.push({
+          title: 'Résultat enregistré',
+          paragraphs: ['Les données historiques ne permettent pas de recalculer le détail de cette ancienne simulation. Les indicateurs enregistrés restent reproduits dans la synthèse ci-dessus.'],
+        });
+      }
+
+      return {
+        kicker: 'Exit',
+        title: entry.name || 'Simulation d’exit',
+        subtitle: exitKind === 'partial'
+          ? 'Synthèse d’une cession secondaire partielle enregistrée.'
+          : 'Synthèse du waterfall de distribution enregistré.',
+        savedAt: entry.savedAt,
+        summary: reportSummary,
+        sections,
+        disclaimer: 'Cette simulation est indicative et repose sur les paramètres enregistrés. Les droits attachés aux titres, le pacte et la documentation juridique doivent être vérifiés avant toute décision.',
+      };
+    }
+
+    function downloadExitPdf(entry) {
+      const pdf = window.SimulationPdf;
+      pdf.download(buildExitPdfReport(entry), pdf.safeFilename('exit', entry));
+      setHistoryStatus('Téléchargement du PDF lancé.', 'ok');
+    }
+
     function renderHistory() {
       const list = historyEntries;
       const body = document.getElementById('hist-list');
@@ -1397,6 +1581,7 @@
             <div class="hist-item__chips">${chips}</div>
           </div>
           <div class="hist-item__actions">
+            <button type="button" class="hist-btn hist-pdf" title="Télécharger en PDF" aria-label="Télécharger cette simulation en PDF">PDF</button>
             <button type="button" class="hist-btn hist-load">Charger</button>
             <button type="button" class="hist-btn hist-del" title="Supprimer">×</button>
           </div>
@@ -1445,8 +1630,16 @@
       const item = e.target.closest('.hist-item');
       if (!item) return;
       const id = item.dataset.id;
-      if (e.target.closest('.hist-load')) {
-        const entry = historyEntries.find(x => x.id === id);
+      const entry = historyEntries.find(x => x.id === id);
+      if (e.target.closest('.hist-pdf')) {
+        if (!entry) return;
+        try {
+          downloadExitPdf(entry);
+        } catch (error) {
+          console.error('Exit PDF export error:', error);
+          setHistoryStatus('Le PDF n’a pas pu être généré. Réessayez.', 'warn');
+        }
+      } else if (e.target.closest('.hist-load')) {
         if (entry) restoreSnapshot(entry.state);
       } else if (e.target.closest('.hist-del')) {
         if (!confirm('Supprimer cette simulation de l\'historique ?')) return;

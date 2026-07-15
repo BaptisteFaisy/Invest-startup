@@ -173,7 +173,7 @@
       .billing-code { flex-direction: column; }
     }
   </style>
-  <script src="auth.js?v=4"></script>
+  <script src="auth.js?v=5"></script>
   <script src="theme.js?v=3" defer></script>
   <script src="tasks.js?v=2" defer></script>
   <script src="drawer-menu.js?v=14" defer></script>
@@ -436,15 +436,24 @@
     });
 
     // ── Onglets ───────────────────────────────────────────────────────────────
+    function activateTab(name) {
+      const tab = document.querySelector(`.tab[data-tab="${name}"]`);
+      const panel = document.getElementById('tab-' + name);
+      if (!tab || !panel) return;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      panel.classList.add('active');
+    }
+
     document.querySelectorAll('.tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-        tab.classList.add('active');
-        const panel = document.getElementById('tab-' + tab.dataset.tab);
-        if (panel) panel.classList.add('active');
-      });
+      tab.addEventListener('click', () => activateTab(tab.dataset.tab));
     });
+
+    const accountParams = new URLSearchParams(window.location.search);
+    if (['profile', 'billing', 'security', 'dataroom'].includes(accountParams.get('tab'))) {
+      activateTab(accountParams.get('tab'));
+    }
 
     // ── Boutons œil (afficher / masquer le mot de passe) ──────────────────────
     document.querySelectorAll('.input-eye').forEach(btn => {
@@ -552,7 +561,7 @@
         const response = await fetch('/api/billing/status', { credentials: 'include' });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error || 'Impossible de charger la facturation.');
-        if (data.role === 'avocat') {
+        if (data.role === 'avocat' && !data.liquid_plus) {
           description.textContent = 'Retrouvez ici les informations de facturation liées à votre compte avocat.';
           content.innerHTML = '<div class="billing-plan"><div><div class="billing-plan__price">Paiements avocat</div><div class="billing-plan__meta">Le paiement des honoraires avocat n’est pas encore activé dans Liquid+.</div></div><span class="account-status__badge">Bientôt disponible</span></div>';
           return;
@@ -563,7 +572,9 @@
           return;
         }
         const active = data.liquid_plus.status === 'active';
-        description.textContent = 'Gérez l’accès Liquid+ de votre société.';
+        description.textContent = active
+          ? 'Votre offre Liquid+ est active.'
+          : 'Activez Liquid+ dès maintenant, sans attendre la fin de vos 2 heures d’essai gratuit.';
         content.innerHTML = '<div class="billing-plan"><div><div class="billing-plan__price">700 € <small>HT · forfait Liquid+</small></div><div class="billing-plan__meta">Plateforme, assistant IA, documents, simulations, exports et suivi jusqu’au closing.</div></div><div class="billing-plan__action">' +
           (active ? '<span class="account-status__badge account-status__badge--active">Offre active</span>' : '<button type="button" class="btn btn--primary" id="billing-checkout">Payer 700 € HT</button>') +
           '</div></div>' + (active ? '' : '<div class="billing-code"><input class="input" id="billing-promo-code" placeholder="Code promotionnel" autocomplete="off"><button type="button" class="btn btn--ghost" id="billing-apply-code">Appliquer</button></div><div id="billing-promo-details"></div>') + '<p class="billing-note">La société est cliente et payeuse de Liquid+. Les prestations éventuelles d’un avocat sont facturées séparément et ne sont pas incluses dans ce paiement.</p>';
@@ -571,6 +582,10 @@
         if (button) button.addEventListener('click', () => startLiquidCheckout());
         const applyCode = document.getElementById('billing-apply-code');
         if (applyCode) applyCode.addEventListener('click', revealRaiseSummitOffer);
+        if (!active && accountParams.get('promo')?.trim().replace(/\s+/g, ' ').toUpperCase() === 'RAISE SUMMIT') {
+          document.getElementById('billing-promo-code').value = 'RAISE SUMMIT';
+          revealRaiseSummitOffer();
+        }
       } catch (error) {
         content.innerHTML = '';
         showAlert('billing-alert', 'error', error.message || 'Impossible de charger la facturation.');
@@ -585,7 +600,7 @@
         return;
       }
       document.getElementById('billing-alert').hidden = true;
-      document.getElementById('billing-promo-details').innerHTML = '<div class="billing-commitment"><p class="billing-commitment__title">Offre Liquid+ à 550 € HT</p><p class="billing-commitment__text">Ce tarif réduit est accordé en contrepartie des deux engagements suivants :</p><label><input type="checkbox" id="raise-review"> <span>J’accepte de fournir un avis pouvant être publié sur la homepage de Liquid+.</span></label><label><input type="checkbox" id="raise-linkedin"> <span>J’accepte de publier sur LinkedIn un post parlant de Liquid+ et remerciant Liquid+ pour son accompagnement.</span></label><button type="button" class="btn btn--primary" id="billing-discount-checkout" style="margin-top:14px">Accepter et payer 550 € HT</button></div>';
+      document.getElementById('billing-promo-details').innerHTML = '<div class="billing-commitment"><p class="billing-commitment__title">Offre Liquid+ à 550 € HT</p><p class="billing-commitment__text">Ce tarif réduit est accordé en contrepartie des deux engagements suivants :</p><label><input type="checkbox" id="raise-review"> <span>J’accepte de fournir un témoignage pouvant être publié sur le site de Liquid+.</span></label><label><input type="checkbox" id="raise-linkedin"> <span>J’accepte de publier de mon côté un post LinkedIn parlant de Liquid+.</span></label><button type="button" class="btn btn--primary" id="billing-discount-checkout" style="margin-top:14px">Accepter et payer 550 € HT</button></div>';
       document.getElementById('billing-discount-checkout').addEventListener('click', () => {
         if (!document.getElementById('raise-review').checked || !document.getElementById('raise-linkedin').checked) {
           showAlert('billing-alert', 'error', 'Vous devez accepter les deux engagements pour utiliser le code RAISE SUMMIT.');

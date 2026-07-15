@@ -155,6 +155,8 @@
     .hist-chip { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 600; color: #4b4b56; background: #f2f2f0; border-radius: 6px; padding: 3px 8px; white-space: nowrap; }
     .hist-item__actions { display: flex; flex-direction: column; gap: 6px; flex: none; }
     .hist-btn { font-family: 'Archivo', sans-serif; font-size: 11.5px; font-weight: 600; border-radius: 8px; padding: 6px 10px; cursor: pointer; border: 1px solid rgba(8,9,12,0.14); background: #fff; color: #08090c; transition: .12s; white-space: nowrap; }
+    .hist-pdf { color: #2563eb; }
+    .hist-pdf:hover { border-color: #2563eb; background: #eff6ff; }
     .hist-load:hover { border-color: #2563eb; color: #2563eb; }
     .hist-del { color: #b0b0bb; padding: 6px 9px; }
     .hist-del:hover { border-color: #ef4444; color: #ef4444; }
@@ -191,6 +193,7 @@
   <script src="drawer-menu.js?v=14" defer></script>
   <script src="drawer-steps.js?v=3" defer></script>
   <script src="help-bulb.js?v=1" defer></script>
+  <script src="simulation-pdf.js?v=1"></script>
 </head>
 <body>
   <div class="app">
@@ -739,6 +742,109 @@
       veRender();
     }
 
+    function buildValuationPdfReport(entry) {
+      const pdf = window.SimulationPdf;
+      if (!pdf) throw new Error('Le module PDF n’est pas disponible.');
+      const summary = entry.summary || {};
+      const state = entry.state || {};
+      const method = summary.method || state.method || 'rev';
+      const methodLabel = summary.methodLabel || VE_METHOD_LABELS[method] || 'Méthode de valorisation';
+      const reportSummary = [
+        { label: 'Méthode', value: methodLabel },
+        { label: 'Valorisation pre-money estimée', value: pdf.formatCurrency(summary.valo) },
+      ];
+      if (summary.low != null && summary.high != null) {
+        reportSummary.push({
+          label: 'Fourchette indicative',
+          value: `${pdf.formatCurrency(summary.low)} – ${pdf.formatCurrency(summary.high)}`,
+        });
+      }
+
+      const sections = [];
+      if (method === 'rev') {
+        const growthLabels = {
+          low: 'Prudente (< 30 % / an)',
+          mid: 'Solide (30 à 80 % / an)',
+          high: 'Forte (> 80 % / an)',
+          custom: 'Taux de croissance personnalisé',
+        };
+        const items = [
+          { label: 'Chiffre d’affaires annuel', value: pdf.formatCurrency(state.arr) },
+          { label: 'Profil de croissance', value: growthLabels[state.growth] || growthLabels.low },
+        ];
+        if (state.growth === 'custom') {
+          items.push({ label: 'Croissance annuelle saisie', value: `${pdf.formatNumber(state.growthRate, 1)} %` });
+        }
+        if (Number(state.arr) > 0 && Number(summary.valo) > 0) {
+          items.push({ label: 'Multiple central implicite', value: `× ${pdf.formatNumber(Number(summary.valo) / Number(state.arr), 2)}` });
+        }
+        sections.push({ title: 'Hypothèses de calcul', items });
+      } else if (method === 'berkus') {
+        const labels = [
+          'Idée et proposition de valeur',
+          'Prototype / technologie',
+          'Équipe dirigeante',
+          'Traction et relations marché',
+          'Produit lancé / premières ventes',
+        ];
+        sections.push({
+          title: 'Contribution des leviers Berkus',
+          table: {
+            columns: [
+              { label: 'Levier', width: 0.7 },
+              { label: 'Contribution', width: 0.3, align: 'right' },
+            ],
+            rows: labels.map((label, index) => [label, pdf.formatCurrency((state.berkus || [])[index])]),
+          },
+        });
+      } else {
+        const criteria = [
+          ['Solidité de l’équipe', '30 %'],
+          ['Taille de l’opportunité de marché', '25 %'],
+          ['Produit / technologie', '15 %'],
+          ['Environnement concurrentiel', '10 %'],
+          ['Marketing / ventes / partenariats', '10 %'],
+          ['Besoin de financement à venir', '5 %'],
+          ['Autres facteurs', '5 %'],
+        ];
+        sections.push({
+          title: 'Hypothèse de comparaison',
+          items: [{ label: 'Valorisation moyenne des comparables', value: pdf.formatCurrency(state.base) }],
+        });
+        sections.push({
+          title: 'Ajustements Scorecard',
+          table: {
+            columns: [
+              { label: 'Critère', width: 0.62 },
+              { label: 'Poids', width: 0.18, align: 'right' },
+              { label: 'Score', width: 0.2, align: 'right' },
+            ],
+            rows: criteria.map((criterion, index) => [
+              criterion[0],
+              criterion[1],
+              `${pdf.formatNumber((state.scorecard || [])[index], 0)} %`,
+            ]),
+          },
+        });
+      }
+
+      return {
+        kicker: 'Valorisation',
+        title: entry.name || 'Estimation de valorisation',
+        subtitle: 'Synthèse de l’estimation enregistrée et de ses hypothèses.',
+        savedAt: entry.savedAt,
+        summary: reportSummary,
+        sections,
+        disclaimer: 'Cette estimation est indicative et ne constitue ni un prix ferme, ni un conseil financier ou juridique. La valorisation finale dépend de la négociation et des conditions de marché.',
+      };
+    }
+
+    function downloadValuationPdf(entry) {
+      const pdf = window.SimulationPdf;
+      pdf.download(buildValuationPdfReport(entry), pdf.safeFilename('valorisation', entry));
+      setHistoryStatus('Téléchargement du PDF lancé.', 'ok');
+    }
+
     function renderHistory() {
       const list = historyEntries;
       const body = document.getElementById('hist-list');
@@ -764,6 +870,7 @@
             </div>
           </div>
           <div class="hist-item__actions">
+            <button type="button" class="hist-btn hist-pdf" title="Télécharger en PDF" aria-label="Télécharger cette estimation en PDF">PDF</button>
             <button type="button" class="hist-btn hist-load">Charger</button>
             <button type="button" class="hist-btn hist-del" title="Supprimer">×</button>
           </div>
@@ -816,8 +923,16 @@
       const item = e.target.closest('.hist-item');
       if (!item) return;
       const id = item.dataset.id;
-      if (e.target.closest('.hist-load')) {
-        const entry = historyEntries.find(x => x.id === id);
+      const entry = historyEntries.find(x => x.id === id);
+      if (e.target.closest('.hist-pdf')) {
+        if (!entry) return;
+        try {
+          downloadValuationPdf(entry);
+        } catch (error) {
+          console.error('Valuation PDF export error:', error);
+          setHistoryStatus('Le PDF n’a pas pu être généré. Réessayez.', 'warn');
+        }
+      } else if (e.target.closest('.hist-load')) {
         if (entry) restoreSnapshot(entry.state);
       } else if (e.target.closest('.hist-del')) {
         if (!confirm('Supprimer cette estimation de l\'historique ?')) return;

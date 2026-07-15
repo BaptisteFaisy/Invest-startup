@@ -523,6 +523,7 @@ function setAuthCookie(res, user) {
 
 function publicAuthUser(user) {
   const access = founderAccess(user);
+  const isFounder = Array.isArray(user.account_types) && user.account_types.includes('fondateur');
   return {
     id: user.id,
     email: user.email,
@@ -535,6 +536,7 @@ function publicAuthUser(user) {
     lawyer_status: user.account_types?.includes('avocat') ? (user.lawyer_status || 'pending') : null,
     twofa_enabled: !!user.twofa_method,
     is_admin: ADMIN_EMAILS.includes(user.email),
+    welcome_offer_pending: isFounder && access.status === 'trial' && user.welcome_offer_pending === true,
     access,
   };
 }
@@ -733,6 +735,8 @@ app.post('/api/auth/account-type', requireAuth, async (req, res) => {
     updates.trial_started_at = new Date().toISOString();
     updates.trial_last_seen_at = updates.trial_started_at;
     updates.trial_used_ms = 0;
+    // Affichée après l'onboarding de levée, lors de la première arrivée dans le SaaS.
+    updates.welcome_offer_pending = true;
   }
   await updateUserById(req.user.id, updates);
   res.json({ success: true, account_types: clean });
@@ -802,6 +806,17 @@ app.get('/api/auth/me', requireAuth, async (req, res) => {
 // URL de paiement hébergée (Stripe Payment Link ou équivalent), configurée en
 // environnement. La plateforme ne considère jamais le simple clic comme payé :
 // `subscription_status: active` doit être posé après confirmation du paiement.
+app.post('/api/billing/welcome-offer/dismiss', requireAuth, async (req, res) => {
+  const user = await col('users').findOne({ id: req.user.id }, { projection: { account_types: 1 } });
+  if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
+  if (!user.account_types?.includes('fondateur')) return res.status(403).json({ error: 'Cette offre est réservée aux comptes fondateurs.' });
+  await updateUserById(req.user.id, {
+    welcome_offer_pending: false,
+    welcome_offer_dismissed_at: new Date().toISOString(),
+  });
+  res.json({ success: true });
+});
+
 app.post('/api/billing/checkout', requireAuth, async (req, res) => {
   const user = await col('users').findOne({ id: req.user.id }, { projection: { email: 1, account_types: 1, subscription_status: 1 } });
   if (!user?.account_types?.includes('fondateur')) return res.status(403).json({ error: 'Le paiement Liquid+ est réservé aux comptes fondateurs.' });
@@ -821,6 +836,9 @@ app.post('/api/billing/checkout', requireAuth, async (req, res) => {
   const url = new URL(checkoutUrl);
   if (user?.email && !url.searchParams.has('prefilled_email')) url.searchParams.set('prefilled_email', user.email);
   if (!url.searchParams.has('client_reference_id')) url.searchParams.set('client_reference_id', String(req.user.id));
+  // Le checkout est disponible pendant l'essai ; une redirection réussie clôt
+  // simplement la proposition de bienvenue, même si le paiement est abandonné.
+  await updateUserById(req.user.id, { welcome_offer_pending: false, welcome_offer_checkout_at: new Date().toISOString() });
   res.json({ checkout_url: url.toString() });
 });
 
