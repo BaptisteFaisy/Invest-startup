@@ -77,6 +77,11 @@ const LIQUID_PLUS_STANDARD_PRICE_EUR = 700;
 
 const ADMIN_EMAILS = ['baptiste.faisy@gmail.com', 'bg.fsg.invest@gmail.com', 'liquidplus.startups@gmail.com'];
 
+// Comptes bénéficiant d'un accès Liquid+ offert : aucun paiement requis, pas de
+// plafond d'essai ni de plafond de tokens fondateur (sans privilèges admin).
+const FREE_EMAILS = ['ahumanbeing@outlook.fr'];
+const hasComplimentaryAccess = (email) => ADMIN_EMAILS.includes(email) || FREE_EMAILS.includes(email);
+
 // ─── Assistant IA du SaaS (GLM-5.2 via Z.AI, API OpenAI-compatible) ───────────
 // L'assistant juridique du term sheet utilise GLM-5.2 sur la plateforme Z.AI.
 // Endpoint Coding Plan (abonnement) : https://api.z.ai/api/coding/paas/v4 —
@@ -578,7 +583,7 @@ async function syncFounderTrialLedger(email, { trial_started_at, trial_used_ms, 
 
 function founderAccess(user, now = Date.now()) {
   const isFounder = Array.isArray(user?.account_types) && user.account_types.includes('fondateur');
-  if (!isFounder || ADMIN_EMAILS.includes(user?.email)) return { status: 'active', blocked: false };
+  if (!isFounder || hasComplimentaryAccess(user?.email)) return { status: 'active', blocked: false };
   if (user.subscription_status === 'active') return { status: 'active', blocked: false, plan: user.subscription_plan || null };
   // Les comptes fondateurs antérieurs à cette fonctionnalité restent actifs.
   // L'essai est créé explicitement lors du choix du profil fondateur.
@@ -1687,8 +1692,8 @@ async function globalTokensToday() {
 async function enforceDailyCap(req, res, next) {
   try {
     const used = await globalTokensToday();
-    const user = await col('users').findOne({ id: req.user.id }, { projection: { account_types: 1, subscription_status: 1 } });
-    if (user?.account_types?.includes('fondateur') && user.subscription_status !== 'active') {
+    const user = await col('users').findOne({ id: req.user.id }, { projection: { email: 1, account_types: 1, subscription_status: 1 } });
+    if (user?.account_types?.includes('fondateur') && user.subscription_status !== 'active' && !hasComplimentaryAccess(user.email)) {
       const personal = await col('saas_claude_usage').findOne({ user_id: req.user.id }, { projection: { total_tokens: 1 } });
       const personalUsed = personal?.total_tokens || 0;
       if (personalUsed >= FREE_FOUNDER_TOKEN_CAP) {
@@ -2674,8 +2679,8 @@ app.get('/api/saas/usage', requireAuth, async (req, res) => {
     { projection: { _id: 0, user_id: 0 } }
   );
   const dailyUsed = await globalTokensToday();
-  const account = await col('users').findOne({ id: req.user.id }, { projection: { account_types: 1, subscription_status: 1 } });
-  const isUnpaidFounder = account?.account_types?.includes('fondateur') && account.subscription_status !== 'active';
+  const account = await col('users').findOne({ id: req.user.id }, { projection: { email: 1, account_types: 1, subscription_status: 1 } });
+  const isUnpaidFounder = account?.account_types?.includes('fondateur') && account.subscription_status !== 'active' && !hasComplimentaryAccess(account.email);
   res.json({
     requests:      u?.requests      || 0,
     input_tokens:  u?.input_tokens  || 0,
