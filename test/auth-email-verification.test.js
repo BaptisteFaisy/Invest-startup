@@ -31,7 +31,7 @@ test('les deux pages permettent de renvoyer un lien de confirmation', () => {
   assert.match(login, /fetch\('\/api\/auth\/resend-verification'/);
 });
 
-test('la production reste disponible sans configuration email', () => {
+test('la production reste disponible sans intégrations externes', () => {
   const problems = productionConfigurationProblems({
     JWT_SECRET: 'j'.repeat(32),
     ENCRYPTION_KEY: 'e'.repeat(32),
@@ -39,9 +39,9 @@ test('la production reste disponible sans configuration email', () => {
     BASE_URL: 'https://www.liquidplus.fr',
     RESEND_API_KEY: '',
     EMAIL_FROM: '',
-    STRIPE_SECRET_KEY: 'sk_test_example',
-    STRIPE_WEBHOOK_SECRET: 'whsec_platform',
-    STRIPE_CONNECT_WEBHOOK_SECRET: 'whsec_connect',
+    STRIPE_SECRET_KEY: '',
+    STRIPE_WEBHOOK_SECRET: '',
+    STRIPE_CONNECT_WEBHOOK_SECRET: '',
   });
 
   assert.deepEqual(problems, []);
