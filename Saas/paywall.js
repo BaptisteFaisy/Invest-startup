@@ -105,11 +105,34 @@
     if (m) m.classList.remove('show');
   }
 
+  // Interception globale : toute réponse 402 { code:'PAYWALL' } → modale d'offre (au lieu
+  // d'une erreur), sur n'importe quelle page (IA, data room, création de doc, avocat…).
+  function wrapFetch() {
+    if (window.__lgFetchWrapped) return;
+    window.__lgFetchWrapped = true;
+    var _fetch = window.fetch;
+    window.fetch = function () {
+      return _fetch.apply(this, arguments).then(function (res) {
+        if (res && res.status === 402) {
+          res.clone().json().then(function (d) {
+            if (d && d.code === 'PAYWALL') showUpgrade(d.error);
+          }).catch(function () {});
+        }
+        return res;
+      });
+    };
+  }
+
   function install() {
     injectStyles();
-    var wm = document.createElement('div');
-    wm.id = 'liquid-gate-wm';
-    document.body.appendChild(wm);
+    wrapFetch();
+    // Filigrane uniquement là où le contenu d'un document est affiché (éditeur / aperçu),
+    // pas sur les pages de liste ou les simulateurs (qui restent gratuits et « propres »).
+    if (document.querySelector('[contenteditable]') || document.documentElement.hasAttribute('data-gate-watermark') || document.body.hasAttribute('data-gate-watermark')) {
+      var wm = document.createElement('div');
+      wm.id = 'liquid-gate-wm';
+      document.body.appendChild(wm);
+    }
 
     // Copier / couper → offre.
     ['copy', 'cut'].forEach(function (ev) {

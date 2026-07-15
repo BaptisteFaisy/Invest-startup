@@ -532,6 +532,47 @@ async function gatePaidExtraction(req, res, next) {
   return res.status(402).json({ error: 'Activez LIQUID+ pour exporter, télécharger ou copier vos documents.', code: 'PAYWALL' });
 }
 
+// Renvoie true si le compte peut tout faire (paywall off, plan actif, ou admin).
+async function accountIsActive(userId) {
+  const user = await col('users').findOne({ id: userId }, { projection: { plan: 1, email: 1 } });
+  return !PAYWALL_ENABLED || (user && (user.plan === 'active' || ADMIN_EMAILS.includes(user.email)));
+}
+
+// Réservé aux comptes activés (actions premium : engager un avocat, etc.).
+async function gatePaidActive(req, res, next) {
+  if (await accountIsActive(req.user.id)) return next();
+  return res.status(402).json({ error: 'Activez LIQUID+ pour accéder à cette fonctionnalité.', code: 'PAYWALL' });
+}
+
+// Assistant d'édition IA (modifier / négocier une clause) : premium.
+async function gatePaidAI(req, res, next) {
+  if (await accountIsActive(req.user.id)) return next();
+  return res.status(402).json({ error: "L'assistant d'édition IA est réservé aux comptes activés.", code: 'PAYWALL' });
+}
+
+// Quota d'analyses IA gratuites (le « 1er document » gratuit, puis activation).
+const FREE_AI_QUOTA = Number(process.env.FREE_AI_QUOTA || 5);
+async function gateAIQuota(req, res, next) {
+  if (!PAYWALL_ENABLED) return next();
+  if (await accountIsActive(req.user.id)) return next();
+  const usage = await col('saas_claude_usage').findOne({ user_id: req.user.id }, { projection: { requests: 1 } });
+  if ((usage?.requests || 0) >= FREE_AI_QUOTA) {
+    return res.status(402).json({ error: `Vous avez utilisé vos ${FREE_AI_QUOTA} analyses IA gratuites. Activez LIQUID+ pour continuer.`, code: 'PAYWALL' });
+  }
+  next();
+}
+
+// Compte gratuit limité à 1 document produit ; au-delà → activation.
+async function gateDocCount(req, res, next) {
+  if (!PAYWALL_ENABLED) return next();
+  if (await accountIsActive(req.user.id)) return next();
+  const count = await col('saas_documents').countDocuments({ user_id: req.user.id, kind: 'termsheet' });
+  if (count >= 1) {
+    return res.status(402).json({ error: 'Le compte gratuit permet de préparer 1 document. Activez LIQUID+ pour en créer d’autres.', code: 'PAYWALL' });
+  }
+  next();
+}
+
 function requireStartupAuth(req, res, next) {
   const token = req.cookies.startup_token;
   if (!token) return res.status(401).json({ error: 'Non authentifié en tant que startup' });
@@ -1365,7 +1406,7 @@ async function aiCacheSet(hash, data) {
   catch (e) { console.error('aiCacheSet error:', e.message); }
 }
 
-app.post('/api/saas/clause-chat', requireAuth, enforceDailyCap, async (req, res) => {
+app.post('/api/saas/clause-chat', requireAuth, enforceDailyCap, gatePaidAI, async (req, res) => {
   if (!zaiClient)
     return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
@@ -1490,7 +1531,7 @@ Règles :
 });
 
 // ─── SaaS : vérification d'UNE clause + de ses contenus pédagogiques ────────────
-app.post('/api/saas/clause-verify', requireAuth, enforceDailyCap, async (req, res) => {
+app.post('/api/saas/clause-verify', requireAuth, enforceDailyCap, gateAIQuota, async (req, res) => {
   if (!zaiClient)
     return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
@@ -1589,7 +1630,7 @@ Règles :
 });
 
 // ─── SaaS : conseils d'amélioration SPÉCIFIQUES à un document ──────────────────
-app.post('/api/saas/doc-advice', requireAuth, enforceDailyCap, async (req, res) => {
+app.post('/api/saas/doc-advice', requireAuth, enforceDailyCap, gateAIQuota, async (req, res) => {
   if (!zaiClient)
     return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
@@ -1639,7 +1680,7 @@ Règles :
 // ─── SaaS : clauses disponibles à ajouter (bibliothèque de l'éditeur) ──────────
 // Reçoit les clauses actuelles du document ; l'IA propose des clauses MANQUANTES
 // typiques de ce type de document, rédigées et prêtes à insérer.
-app.post('/api/saas/doc-clauses', requireAuth, enforceDailyCap, async (req, res) => {
+app.post('/api/saas/doc-clauses', requireAuth, enforceDailyCap, gateAIQuota, async (req, res) => {
   if (!zaiClient)
     return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
@@ -1701,7 +1742,7 @@ Règles :
 });
 
 // ─── SaaS : analyse d'un document → liste des « choses à faire » ───────────────
-app.post('/api/saas/doc-analyze', requireAuth, enforceDailyCap, async (req, res) => {
+app.post('/api/saas/doc-analyze', requireAuth, enforceDailyCap, gateAIQuota, async (req, res) => {
   if (!zaiClient)
     return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
@@ -1747,7 +1788,7 @@ Règles :
 // Reçoit l'id d'une ANCIENNE et d'une NOUVELLE version (documents de l'utilisateur),
 // extrait le texte de chacune et demande à l'IA ce qui a changé, du point de vue
 // du fondateur. Résultat mis en cache par empreinte des deux contenus.
-app.post('/api/saas/doc-compare', requireAuth, enforceDailyCap, async (req, res) => {
+app.post('/api/saas/doc-compare', requireAuth, enforceDailyCap, gateAIQuota, async (req, res) => {
   if (!zaiClient)
     return res.status(503).json({ error: 'Assistant IA non configuré : ajoutez ZAI_API_KEY dans le .env du serveur.' });
 
@@ -3411,7 +3452,7 @@ app.put('/api/saas/avocat/preference', requireAuth, async (req, res) => {
   res.json(avocatPublicState(updated));
 });
 
-app.post('/api/saas/avocat/requests', requireAuth, async (req, res) => {
+app.post('/api/saas/avocat/requests', requireAuth, gatePaidActive, async (req, res) => {
   const body = req.body || {};
   const prestationKey = shortText(body.prestation_key, 40);
   if (!AVOCAT_PRESTATION_KEYS.has(prestationKey))
@@ -4003,7 +4044,7 @@ app.get('/api/lawyer/clients', requireAuth, requireLawyer, async (req, res) => {
 });
 
 // Enregistre / met à jour le document de travail (apparaît dans « Mes documents »).
-app.post('/api/saas/termsheets', requireAuth, async (req, res) => {
+app.post('/api/saas/termsheets', requireAuth, gateDocCount, async (req, res) => {
   const { name, html } = req.body ?? {};
   if (typeof html !== 'string') return res.status(400).json({ error: 'html requis' });
   const now = new Date().toISOString();
@@ -5424,7 +5465,7 @@ async function pushDocumentToDataroom(userId, provider, doc, pathParts) {
   return link;
 }
 
-app.post('/api/saas/dataroom/:provider/push/document/:id', requireAuth, async (req, res) => {
+app.post('/api/saas/dataroom/:provider/push/document/:id', requireAuth, gatePaidExtraction, async (req, res) => {
   const provider = req.params.provider;
   if (!DATAROOM_PROVIDERS.has(provider)) return res.status(400).json({ error: 'Fournisseur inconnu' });
   if (!dataroomProviderConfigured(provider))
@@ -5452,7 +5493,7 @@ app.post('/api/saas/dataroom/:provider/push/document/:id', requireAuth, async (r
   }
 });
 
-app.post('/api/saas/dataroom/:provider/push/category', requireAuth, async (req, res) => {
+app.post('/api/saas/dataroom/:provider/push/category', requireAuth, gatePaidExtraction, async (req, res) => {
   const provider = req.params.provider;
   if (!DATAROOM_PROVIDERS.has(provider)) return res.status(400).json({ error: 'Fournisseur inconnu' });
   if (!dataroomProviderConfigured(provider))
@@ -5481,7 +5522,7 @@ app.post('/api/saas/dataroom/:provider/push/category', requireAuth, async (req, 
 });
 
 // ─── Export ZIP (fallback data room « pro » sans API self-service) ───────────
-app.get('/api/saas/dataroom/zip', requireAuth, async (req, res) => {
+app.get('/api/saas/dataroom/zip', requireAuth, gatePaidExtraction, async (req, res) => {
   const folderId    = Number(req.query.folder_id);
   const folder = await col('saas_folders').findOne({ id: folderId, user_id: req.user.id });
   if (!folder) return res.status(404).json({ error: 'Dossier introuvable' });
