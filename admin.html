@@ -119,18 +119,28 @@
     .assigned-startups__title { margin-bottom:7px; color:var(--muted); font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; }
     .assigned-startups__item { display:block; margin-top:5px; font-size:.78rem; }
     .payments-table-wrap { overflow-x:auto; border:1px solid var(--line); border-radius:14px; background:#fff; box-shadow:0 8px 24px rgba(8,9,12,.08); }
-    .payments-table { width:100%; min-width:680px; border-collapse:collapse; }
+    .payments-table { width:100%; min-width:900px; border-collapse:collapse; }
     .payments-table th, .payments-table td { padding:16px 18px; border-bottom:1px solid var(--line); text-align:left; vertical-align:middle; }
     .payments-table th { color:var(--muted); font-size:.72rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
     .payments-table tbody tr:last-child td { border-bottom:0; }
     .payments-table tbody tr:hover { background:rgba(17,17,17,.025); }
     .payments-startup__name { display:block; font-size:.9rem; font-weight:700; }
     .payments-startup__email { display:block; margin-top:4px; color:var(--muted); font-size:.76rem; }
+    .trial-progress { min-width:190px; }
+    .trial-progress__head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+    .trial-progress__value { font-size:.84rem; font-weight:700; white-space:nowrap; }
+    .trial-progress__status { color:var(--muted); font-size:.66rem; white-space:nowrap; }
+    .trial-progress__track { height:6px; margin-top:9px; overflow:hidden; border-radius:99px; background:#e7e5e4; }
+    .trial-progress__fill { display:block; height:100%; border-radius:inherit; background:#2563eb; }
+    .trial-progress--converted .trial-progress__fill { background:#16a34a; }
+    .trial-progress--expired .trial-progress__fill { background:#78716c; }
+    .trial-progress--legacy { color:var(--muted); font-size:.76rem; }
     .payment-values { display:flex; flex-wrap:wrap; gap:8px; }
     .payment-value { display:inline-flex; align-items:center; gap:7px; min-height:30px; padding:5px 9px; border-radius:8px; font-size:.88rem; font-weight:700; white-space:nowrap; }
     .payment-value small { font-size:.65rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
     .payment-value--due { color:#78716c; background:#f1f0ed; }
     .payment-value--paid { color:#15803d; background:#dcfce7; }
+    .payment-value--none { color:#78716c; background:#f1f0ed; font-weight:500; }
     .payment-value--empty { font-weight:500; }
     .admin-menu-btn { position:fixed; top:9px; left:18px; z-index:92; width:38px; height:38px; display:grid; place-items:center; flex:none; padding:0; border:1px solid var(--line); border-radius:10px; background:#000; color:var(--text); cursor:pointer; }
     .admin-notification-dot { width:9px; height:9px; border-radius:50%; background:#22c55e; box-shadow:0 0 0 3px #f7f6f3; }
@@ -275,9 +285,9 @@
       <div class="payments-table-wrap">
         <table class="payments-table">
           <thead>
-            <tr><th>Startup</th><th>Paiements Liquid+</th><th>Paiements avocat</th></tr>
+            <tr><th>Startup</th><th>Essai gratuit de 2 h</th><th>Paiements Liquid+</th><th>Paiements avocat</th></tr>
           </thead>
-          <tbody id="payments-list"><tr><td colspan="3" class="notice">Chargement…</td></tr></tbody>
+          <tbody id="payments-list"><tr><td colspan="4" class="notice">Chargement…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -644,15 +654,35 @@
       if (due > 0) values.push(`<span class="payment-value payment-value--due">${escHtml(formatPaymentAmount(due, currency))}<small>Dû</small></span>`);
       return values.length ? values.join('') : '<span class="payment-value payment-value--due payment-value--empty">0 €</span>';
     }
+    function liquidPaymentValue(payment) {
+      if (payment?.status !== 'paid') return '<span class="payment-value payment-value--none">Aucun paiement</span>';
+      return `<span class="payment-value payment-value--paid">${escHtml(formatPaymentAmount(payment.paid_amount, payment.currency))}<small>Payé</small></span>`;
+    }
+    function formatTrialDuration(milliseconds) {
+      const totalMinutes = Math.max(0, Math.floor((Number(milliseconds) || 0) / 60000));
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      if (!hours) return `${minutes} min`;
+      return minutes ? `${hours} h ${String(minutes).padStart(2, '0')} min` : `${hours} h`;
+    }
+    function freeTrialValue(trial) {
+      if (!trial?.tracked) return '<div class="trial-progress trial-progress--legacy">Non suivi · compte antérieur</div>';
+      const used = Math.max(0, Number(trial.used_ms) || 0);
+      const total = Math.max(1, Number(trial.total_ms) || 1);
+      const percentage = Math.min(100, Math.round(used / total * 100));
+      const labels = { active:'En cours', converted:'Arrêté après paiement', expired:'2 h consommées' };
+      const status = labels[trial.status] || 'En cours';
+      return `<div class="trial-progress trial-progress--${escHtml(trial.status||'active')}"><div class="trial-progress__head"><strong class="trial-progress__value">${escHtml(formatTrialDuration(used))} / 2 h</strong><span class="trial-progress__status">${escHtml(status)}</span></div><div class="trial-progress__track" role="progressbar" aria-label="Temps d'essai consommé" aria-valuemin="0" aria-valuemax="120" aria-valuenow="${Math.round(used/60000)}"><span class="trial-progress__fill" style="width:${percentage}%"></span></div></div>`;
+    }
     async function loadPayments() {
       const el = document.getElementById('payments-list');
       try {
         const data = await adminJson('/api/admin/payments');
         const payments = data.payments || [];
-        if (!payments.length) { el.innerHTML='<tr><td colspan="3" class="notice">Aucune startup.</td></tr>'; return; }
-        el.innerHTML = payments.map(payment => `<tr><td><span class="payments-startup__name">${escHtml(payment.startup_name||payment.email)}</span><span class="payments-startup__email">${escHtml(payment.email)}</span></td><td><div class="payment-values">${paymentValues(payment.liquid_plus)}</div></td><td><div class="payment-values">${paymentValues(payment.lawyer)}</div></td></tr>`).join('');
+        if (!payments.length) { el.innerHTML='<tr><td colspan="4" class="notice">Aucune startup.</td></tr>'; return; }
+        el.innerHTML = payments.map(payment => `<tr><td><span class="payments-startup__name">${escHtml(payment.startup_name||payment.email)}</span><span class="payments-startup__email">${escHtml(payment.email)}</span></td><td>${freeTrialValue(payment.free_trial)}</td><td><div class="payment-values">${liquidPaymentValue(payment.liquid_plus)}</div></td><td><div class="payment-values">${paymentValues(payment.lawyer)}</div></td></tr>`).join('');
       } catch(e) {
-        el.innerHTML='<tr><td colspan="3" class="notice">'+escHtml(e.message)+'</td></tr>';
+        el.innerHTML='<tr><td colspan="4" class="notice">'+escHtml(e.message)+'</td></tr>';
       }
     }
     function renderAdministrators() {

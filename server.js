@@ -25,6 +25,7 @@ const { Dropbox }      = require('dropbox');
 const archiver         = require('archiver');
 const { createDocumentEncryption } = require('./lib/document-encryption');
 const { buildAdminDashboardStats, countUnreadAdminMessages } = require('./lib/admin-dashboard');
+const { adminLiquidPayment, adminTrialProgress } = require('./lib/admin-payments');
 const { productionConfigurationProblems } = require('./lib/runtime-config');
 
 const app  = express();
@@ -73,7 +74,6 @@ const FREE_FOUNDER_TOKEN_CAP = 200_000;
 const FOUNDER_TRIAL_MS     = 2 * 60 * 60 * 1000;
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 const LIQUID_PLUS_STANDARD_PRICE_EUR = 700;
-const LIQUID_PLUS_RAISE_SUMMIT_PRICE_EUR = 550;
 
 const ADMIN_EMAILS = ['baptiste.faisy@gmail.com', 'bg.fsg.invest@gmail.com', 'liquidplus.startups@gmail.com'];
 
@@ -5016,11 +5016,11 @@ app.get('/api/admin/dashboard', requireAdmin, async (_req, res) => {
 app.get('/api/admin/payments', requireAdmin, async (_req, res) => {
   const founders = await col('users').find(
     { account_types: 'fondateur' },
-    { projection: { _id: 0, id: 1, email: 1, full_name: 1, created_at: 1, subscription_status: 1, subscription_promotion: 1 } },
+    { projection: { _id: 0, id: 1, email: 1, full_name: 1, created_at: 1, subscription_status: 1, trial_started_at: 1, trial_used_ms: 1 } },
   ).sort({ created_at: -1 }).toArray();
   const userIds = founders.map(founder => founder.id);
 
-  const [profiles, liquidPayments, commitments, lawyerRequests] = await Promise.all([
+  const [profiles, liquidPayments, lawyerRequests] = await Promise.all([
     col('saas_fundraising_profiles').find(
       { user_id: { $in: userIds } },
       { projection: { _id: 0, user_id: 1, company_name: 1 } },
@@ -5029,10 +5029,6 @@ app.get('/api/admin/payments', requireAdmin, async (_req, res) => {
       { user_id: { $in: userIds }, status: 'paid' },
       { projection: { _id: 0, user_id: 1, amount_total: 1, currency: 1, paid_at: 1 } },
     ).sort({ paid_at: -1 }).toArray(),
-    col('billing_commitments').find(
-      { user_id: { $in: userIds }, promotion: 'RAISE SUMMIT', review_commitment: true, linkedin_commitment: true },
-      { projection: { _id: 0, user_id: 1 } },
-    ).toArray(),
     col('saas_avocat_requests').find(
       { user_id: { $in: userIds }, status: { $ne: 'annule' } },
       { projection: { _id: 0, user_id: 1, prestation_key: 1, lawyer_fee_amount: 1, lawyer_payment_status: 1 } },
@@ -5040,7 +5036,6 @@ app.get('/api/admin/payments', requireAdmin, async (_req, res) => {
   ]);
 
   const companiesByUser = new Map(profiles.map(profile => [profile.user_id, profile.company_name]));
-  const raiseSummitUsers = new Set(commitments.map(commitment => commitment.user_id));
   const latestLiquidPaymentByUser = new Map();
   liquidPayments.forEach(payment => {
     if (!latestLiquidPaymentByUser.has(payment.user_id)) latestLiquidPaymentByUser.set(payment.user_id, payment);
@@ -5060,23 +5055,12 @@ app.get('/api/admin/payments', requireAdmin, async (_req, res) => {
 
   res.json({ payments: founders.map(founder => {
     const liquidPayment = latestLiquidPaymentByUser.get(founder.id);
-    const liquidIsPaid = !!liquidPayment || founder.subscription_status === 'active';
-    const hasRaiseSummitPrice = founder.subscription_promotion === 'RAISE SUMMIT'
-      || (!liquidIsPaid && raiseSummitUsers.has(founder.id));
-    const expectedLiquidAmount = hasRaiseSummitPrice ? LIQUID_PLUS_RAISE_SUMMIT_PRICE_EUR : LIQUID_PLUS_STANDARD_PRICE_EUR;
-    const paidAmountInCents = Number(liquidPayment?.amount_total);
-    const liquidAmount = liquidPayment && Number.isFinite(paidAmountInCents)
-      ? paidAmountInCents / 100
-      : expectedLiquidAmount;
     return {
       startup_id: founder.id,
       startup_name: companiesByUser.get(founder.id) || founder.full_name || founder.email,
       email: founder.email,
-      liquid_plus: {
-        paid_amount: liquidIsPaid ? liquidAmount : 0,
-        due_amount: liquidIsPaid ? 0 : liquidAmount,
-        currency: String(liquidPayment?.currency || 'EUR').toUpperCase(),
-      },
+      free_trial: adminTrialProgress(founder, FOUNDER_TRIAL_MS),
+      liquid_plus: adminLiquidPayment(liquidPayment),
       lawyer: lawyerPaymentsByUser.get(founder.id),
     };
   }) });
