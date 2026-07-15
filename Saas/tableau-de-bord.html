@@ -912,8 +912,8 @@
        attestations et justificatif d'immatriculation. Vérifié par Liquid+ ; tant
        qu'il ne l'est pas, l'outil Avocat ne transmet aucune mission standard.
        Reprend la chrome et les champs du profil de la levée (.raise-*), replié
-       par défaut une fois la société vérifiée. */
-    .company-legal .folder__ic { background:#d1fae5 !important; color:#15803d; }
+       par défaut une fois la société vérifiée. Le logo n'a pas de règle propre :
+       la carte porte aussi .raise-profile, dont le vert s'applique tel quel. */
     .company-legal__id { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; margin:4px 0 16px; }
     .company-legal__name { font-family:'Archivo',sans-serif; font-size:16px; font-weight:800; color:#08090c; }
     .company-legal__note { font-size:12.5px; color:#6b6b78; line-height:1.5; margin-top:5px; }
@@ -2038,6 +2038,7 @@
     // travail courant, à la différence de « Société cliente ». L'état vit hors du
     // DOM pour survivre aux re-rendus (clé : id de phase + titre de la carte).
     let raiseProfileOpen = true;
+    let importCardOpen = true;
     const phaseCardOpen = {};
     (function readCompanyLegalFocus() {
       const url = currentUrlState();
@@ -6186,16 +6187,20 @@
       const pendings = pendingUploads.filter(p => p.folderId == null);
       const total = unclassified.length + pendings.length;
       const card = document.createElement('div');
-      card.className = 'folder folder--import open';
+      card.className = 'folder folder--import' + (importCardOpen ? ' open' : '');
       card.innerHTML = `
-        <div class="folder__head" style="cursor:default">
+        <div class="folder__head">
           <div class="folder__ic">⬆</div>
           <div class="folder__main">
             <div class="folder__name">Fichiers importés</div>
             <div class="folder__count">${total} fichier${total > 1 ? 's' : ''}</div>
           </div>
+          <span class="folder__chevron">▸</span>
         </div>
-        <div class="folder__body" style="display:block"></div>`;
+        <div class="folder__body"></div>`;
+      card.querySelector('.folder__head').addEventListener('click', () => {
+        importCardOpen = card.classList.toggle('open');
+      });
       const body = card.querySelector('.folder__body');
       if (!total) {
         body.innerHTML = '<div class="folder__drop">⬆ Glissez-déposez vos fichiers ici, ou cliquez sur « Importer des fichiers »<br /><span>(PDF, Word, OpenDocument, Google Docs, Excel, images…)</span><br /><span>Astuce : glissez ensuite un fichier sur un document de la roadlist pour le rattacher.</span></div>';
