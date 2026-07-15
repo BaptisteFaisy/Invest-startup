@@ -442,8 +442,13 @@
         try {
           const refUrl = new URL(ref);
           const here = new URL(window.location.href);
-          const isCandidature = /(?:onboarding-avocat|avocat|login)\.html$/.test(refUrl.pathname);
-          if (refUrl.origin === here.origin && refUrl.pathname !== here.pathname && !isCandidature) {
+          // On exclut le formulaire de candidature et la connexion : y revenir
+          // renverrait l'avocat vers l'onboarding au lieu de son espace.
+          // Comparaison sur le nom de fichier exact (ne PAS matcher
+          // « tableau-de-bord-avocat.html » qui se termine aussi par « avocat.html »).
+          const refPage = refUrl.pathname.split('/').pop();
+          const isExcluded = ['onboarding-avocat.html', 'avocat.html', 'login.html'].includes(refPage);
+          if (refUrl.origin === here.origin && refUrl.pathname !== here.pathname && !isExcluded) {
             window.location.href = ref;
             return;
           }
