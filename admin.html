@@ -55,6 +55,11 @@
     .admin-card textarea { min-height:74px; resize:vertical; }
     .admin-actions { display:flex; gap:8px; align-items:center; margin-top:12px; }
     .admin-pill { display:inline-flex; padding:4px 8px; border:1px solid var(--line); border-radius:99px; font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; }
+    .founder-btn { border:1px solid var(--line); border-radius:99px; padding:8px 16px; font:600 .82rem 'Archivo',sans-serif; cursor:pointer; white-space:nowrap; }
+    .founder-btn--on { background:#fff; color:#0a0a0a; border-color:#fff; }
+    .founder-btn--on:hover { background:#e9edf2; }
+    .founder-btn--off { background:transparent; color:var(--text); }
+    .founder-btn--off:hover { border-color:var(--muted); }
     .proposal-list { display:grid; gap:10px; margin-top:18px; }
     .proposal-row { display:flex; justify-content:space-between; align-items:center; gap:15px; padding:13px 15px; border:1px solid var(--line); border-radius:11px; font-size:.84rem; }
     .proposal-row small { display:block; color:var(--muted); margin-top:4px; }
@@ -77,11 +82,16 @@
 
   <div class="admin-wrap">
     <h1 class="admin-title">Espace admin</h1>
-    <p class="admin-sub">Gestion des avocats, attribution des clients et messagerie.</p>
+    <p class="admin-sub">Gestion des avocats, accès LIQUID+ des fondateurs, attribution des clients et messagerie.</p>
 
     <div class="admin-section">
       <h2>Comptes avocats</h2>
       <div class="admin-grid" id="lawyer-list"><p class="notice">Chargement…</p></div>
+    </div>
+
+    <div class="admin-section">
+      <h2>Comptes fondateurs — accès LIQUID+</h2>
+      <div class="admin-grid" id="founder-list"><p class="notice">Chargement…</p></div>
     </div>
 
     <div class="admin-section">
@@ -265,7 +275,7 @@
       try {
         const [l,f,p] = await Promise.all([adminJson('/api/admin/lawyers'), adminJson('/api/admin/founders'), adminJson('/api/admin/client-proposals')]);
         adminLawyers=l.lawyers||[]; adminFounders=f.founders||[]; adminProposals=p.proposals||[];
-        renderLawyers(); renderProposalForm(); renderProposals();
+        renderLawyers(); renderFounders(); renderProposalForm(); renderProposals();
       } catch(e) { document.getElementById('lawyer-list').innerHTML='<p class="notice">'+escHtml(e.message)+'</p>'; }
     }
     function renderLawyers() {
@@ -273,6 +283,15 @@
       if(!adminLawyers.length){el.innerHTML='<p class="notice">Aucun compte avocat.</p>';return;}
       el.innerHTML=adminLawyers.map(l=>`<article class="admin-card"><h3>${escHtml(l.full_name||l.email)}</h3><p>${escHtml(l.email)}</p><p>${escHtml(l.profile?.specialty||'Profil professionnel non complété')} ${l.profile?.city?'· '+escHtml(l.profile.city):''}</p><div class="admin-actions"><span class="admin-pill">${escHtml(LAWYER_STATUS_LABELS[l.lawyer_status]||l.lawyer_status)}</span><select data-lawyer-status="${l.id}" aria-label="Changer le statut"><option value="pending">À valider</option><option value="active">Actif</option><option value="suspended">Suspendu</option><option value="rejected">Refusé</option></select></div></article>`).join('');
       el.querySelectorAll('[data-lawyer-status]').forEach(s=>{s.value=adminLawyers.find(l=>String(l.id)===s.dataset.lawyerStatus).lawyer_status;s.addEventListener('change',async()=>{try{await adminJson('/api/admin/lawyers/'+s.dataset.lawyerStatus+'/status',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:s.value})});await loadLawyerManagement();}catch(e){alert(e.message);}})});
+    }
+    function renderFounders() {
+      const el=document.getElementById('founder-list');
+      if(!adminFounders.length){el.innerHTML='<p class="notice">Aucun compte fondateur.</p>';return;}
+      el.innerHTML=adminFounders.map(f=>{
+        const active=f.plan==='active';
+        return `<article class="admin-card"><h3>${escHtml(f.company_name||f.full_name||f.email)}</h3><p>${escHtml(f.email)}</p><div class="admin-actions"><span class="admin-pill">${active?'Activé':'Gratuit'}</span><button class="founder-btn ${active?'founder-btn--off':'founder-btn--on'}" data-founder-plan="${f.id}" data-target="${active?'free':'active'}">${active?'Désactiver':'Activer LIQUID+'}</button></div></article>`;
+      }).join('');
+      el.querySelectorAll('[data-founder-plan]').forEach(b=>b.addEventListener('click',async()=>{try{await adminJson('/api/admin/founders/'+b.dataset.founderPlan+'/plan',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan:b.dataset.target})});await loadLawyerManagement();}catch(e){alert(e.message);}}));
     }
     function renderProposalForm(){
       document.getElementById('proposal-lawyer').innerHTML=adminLawyers.filter(l=>l.lawyer_status==='active').map(l=>`<option value="${l.id}">${escHtml(l.full_name||l.email)}</option>`).join('');
