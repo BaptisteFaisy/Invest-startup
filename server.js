@@ -52,6 +52,7 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
 const BASE_URL             = process.env.BASE_URL             || 'http://localhost:3000';
 const MONGODB_URI          = process.env.MONGODB_URI          || 'mongodb://localhost:27017';
 const STARTUP_SECRET       = process.env.STARTUP_SECRET       || 'startup_post_secret_2026';
+const PAYWALL_ENABLED      = process.env.PAYWALL_ENABLED === 'true'; // Verrou freemium : off par défaut → ne casse rien tant que le paiement n'est pas branché.
 // Data room externe (Google Drive / Dropbox) : OAuth self-service séparé du login.
 // Google Drive réutilise par défaut le client OAuth du login (même projet Google
 // Cloud) — surchargeable par des variables dédiées si un client séparé est créé.
@@ -452,6 +453,8 @@ function publicAuthUser(user) {
     theme: (user.theme === 'dark' || user.theme === 'paper') ? user.theme : null,
     lawyer_profile_completed: !!user.lawyer_profile_completed,
     lawyer_status: user.account_types?.includes('avocat') ? (user.lawyer_status || 'pending') : null,
+    plan: user.plan === 'active' ? 'active' : 'free',
+    paywall_enabled: PAYWALL_ENABLED,
     is_admin: ADMIN_EMAILS.includes(user.email),
   };
 }
@@ -516,6 +519,17 @@ async function requireLawyer(req, res, next) {
   if ((user.lawyer_status || 'pending') !== 'active') return res.status(403).json({ error: 'Votre compte avocat doit être activé par un administrateur' });
   req.lawyer = user;
   next();
+}
+
+// Verrou freemium : bloque l'extraction (export, conversion, téléchargement) pour les comptes
+// non activés. No-op tant que PAYWALL_ENABLED est off → n'affecte pas l'usage actuel. Les admins
+// et les comptes « active » passent toujours. Le paiement (Stripe) reste à brancher pour bascule
+// automatique en `plan: 'active'` ; en attendant, l'activation se fait via l'admin.
+async function gatePaidExtraction(req, res, next) {
+  if (!PAYWALL_ENABLED) return next();
+  const user = await col('users').findOne({ id: req.user.id }, { projection: { plan: 1, email: 1 } });
+  if (user && (user.plan === 'active' || ADMIN_EMAILS.includes(user.email))) return next();
+  return res.status(402).json({ error: 'Activez LIQUID+ pour exporter, télécharger ou copier vos documents.', code: 'PAYWALL' });
 }
 
 function requireStartupAuth(req, res, next) {
@@ -3921,10 +3935,20 @@ app.patch('/api/admin/lawyers/:id/status', requireAdmin, async (req, res) => {
 });
 
 app.get('/api/admin/founders', requireAdmin, async (_req, res) => {
-  const users = await col('users').find({ account_types: 'fondateur' }, { projection: { _id: 0, id: 1, email: 1, full_name: 1, created_at: 1 } }).sort({ created_at: -1 }).toArray();
+  const users = await col('users').find({ account_types: 'fondateur' }, { projection: { _id: 0, id: 1, email: 1, full_name: 1, created_at: 1, plan: 1 } }).sort({ created_at: -1 }).toArray();
   const profiles = await col('saas_fundraising_profiles').find({ user_id: { $in: users.map(u => u.id) } }, { projection: { _id: 0, user_id: 1, company_name: 1 } }).toArray();
   const companies = new Map(profiles.map(p => [p.user_id, p.company_name]));
-  res.json({ founders: users.map(u => ({ ...u, company_name: companies.get(u.id) || '' })) });
+  res.json({ founders: users.map(u => ({ ...u, plan: u.plan === 'active' ? 'active' : 'free', company_name: companies.get(u.id) || '' })) });
+});
+
+// Activation manuelle de l'accès LIQUID+ d'un fondateur (voie de déblocage tant que le
+// paiement Stripe n'est pas branché). Mirroir de l'activation avocat (lawyer_status).
+app.patch('/api/admin/founders/:id/plan', requireAdmin, async (req, res) => {
+  const id   = Number(req.params.id);
+  const plan = req.body?.plan === 'active' ? 'active' : 'free';
+  const r = await col('users').updateOne({ id, account_types: 'fondateur' }, { $set: { plan, plan_updated_at: new Date().toISOString() } });
+  if (!r.matchedCount) return res.status(404).json({ error: 'Fondateur introuvable' });
+  res.json({ success: true, id, plan });
 });
 
 app.get('/api/admin/client-proposals', requireAdmin, async (_req, res) => {
@@ -4834,7 +4858,7 @@ app.put('/api/saas/folders/:id/dd-fallback', requireAuth, async (req, res) => {
   res.json({ success: true, folder: publicFolder(saved) });
 });
 
-app.get('/api/saas/documents/:id/download', requireAuth, async (req, res) => {
+app.get('/api/saas/documents/:id/download', requireAuth, gatePaidExtraction, async (req, res) => {
   const id  = Number(req.params.id);
   const doc = await col('saas_documents').findOne({ id, user_id: req.user.id });
   if (!doc) return res.status(404).json({ error: 'Document introuvable' });
@@ -5045,7 +5069,7 @@ async function downloadToBuffer(url) {
   return Buffer.from(await r.arrayBuffer());
 }
 
-app.post('/api/saas/documents/:id/convert', requireAuth, async (req, res) => {
+app.post('/api/saas/documents/:id/convert', requireAuth, gatePaidExtraction, async (req, res) => {
   if (!cloudConvert)
     return res.status(503).json({ error: 'Conversion non configurée : ajoutez CLOUDCONVERT_API_KEY dans le .env du serveur.' });
 
@@ -5560,7 +5584,7 @@ async function saveExportedDoc(userId, srcDoc, baseName, ext, mimetype, fileBuf)
   return publicDoc(newDoc);
 }
 
-app.post('/api/saas/termsheets/:id/export', requireAuth, async (req, res) => {
+app.post('/api/saas/termsheets/:id/export', requireAuth, gatePaidExtraction, async (req, res) => {
   const id     = Number(req.params.id);
   const target = String(req.body?.to || '').toLowerCase();
   if (!['pdf', 'docx'].includes(target))
