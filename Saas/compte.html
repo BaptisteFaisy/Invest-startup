@@ -369,8 +369,23 @@
       <!-- Onglet Facturation -->
       <div id="tab-billing" class="tab-panel">
         <div class="card">
-          <h3 class="card__title">Facturation</h3>
+          <div class="help-bulb-row">
+            <h3 class="card__title">Facturation</h3>
+            <button type="button" class="help-bulb help-bulb--inline" id="billing-help-btn" data-help-target="#help-billing" aria-label="Comprendre l'encaissement des honoraires, étape par étape" title="Comprendre l'encaissement des honoraires, étape par étape" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg></button>
+          </div>
           <p class="card__desc" id="billing-description">Chargement de votre situation de facturation…</p>
+
+          <div class="help-pop help-pop--inline" id="help-billing" hidden>
+            <div class="help-pop__label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg> Encaisser vos honoraires, étape par étape</div>
+            <ol class="help-steps">
+              <li><b>Signez la convention de partenariat</b> à votre entrée dans le réseau. Sans elle, votre espace avocat reste fermé.</li>
+              <li><b>Activez vos paiements.</b> Depuis un dossier de mission, « Activer les paiements » crée votre compte Stripe et vous guide dans son inscription (identité, IBAN). Vous encaissez sur <b>votre propre compte</b> : Liquid+ ne touche jamais les fonds et ne prélève aucune commission.</li>
+              <li><b>Sur chaque mission, publiez le montant à régler</b> — après le contrôle des conflits, votre attestation de vigilance, votre décision d'accepter et la convention d'honoraires signée avec la société. Le montant vient de cette convention.</li>
+              <li><b>La société paie par carte</b> et les honoraires arrivent directement sur votre compte Stripe. La facture est émise par votre cabinet, via Stripe.</li>
+            </ol>
+            <p class="help-pop__note">L'encaissement par carte via Liquid+ est facultatif : une convention d'honoraires signée suffit à travailler, et vous pouvez facturer par virement, en dehors de Liquid+.</p>
+          </div>
+
           <div id="billing-content"></div>
           <div id="billing-alert" class="alert" hidden style="margin-top:16px"></div>
         </div>
@@ -601,9 +616,26 @@
         const response = await fetch('/api/billing/status', { credentials: 'include' });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error || 'Impossible de charger la facturation.');
-        if (data.role === 'avocat' && !data.liquid_plus) {
-          description.textContent = 'Retrouvez ici les informations de facturation liées à votre compte avocat.';
-          content.innerHTML = '<div class="billing-plan"><div><div class="billing-plan__price">Paiements avocat</div><div class="billing-plan__meta">Le paiement des honoraires avocat n’est pas encore activé dans Liquid+.</div></div><span class="account-status__badge">Bientôt disponible</span></div>';
+        if (data.role === 'avocat') {
+          document.getElementById('billing-help-btn').hidden = false;
+          description.textContent = 'Retrouvez ici l’état de l’encaissement de vos honoraires par carte via Liquid+.';
+          const connect = data.connect || {};
+          let badge, meta;
+          if (!data.lawyer_payments_enabled) {
+            badge = '<span class="account-status__badge">Bientôt disponible</span>';
+            meta = 'L’encaissement par carte n’est pas encore ouvert sur la plateforme. Vous pouvez déjà travailler et facturer par virement, en dehors de Liquid+.';
+          } else if (connect.ready_for_payments) {
+            badge = '<span class="account-status__badge account-status__badge--active">Paiements actifs</span>';
+            meta = 'Votre compte Stripe est actif. Depuis une mission acceptée, publiez le montant à régler : la société paie par carte, directement sur votre compte, sans commission Liquid+.';
+          } else if (connect.connected) {
+            const due = Array.isArray(connect.requirements_currently_due) ? connect.requirements_currently_due.length : 0;
+            badge = '<span class="account-status__badge">Activation en cours</span>';
+            meta = 'Votre compte Stripe est créé mais l’inscription n’est pas terminée' + (due ? ' : ' + due + ' information(s) encore attendue(s) par Stripe.' : '.') + ' Reprenez « Activer les paiements » depuis un dossier de mission pour la finaliser.';
+          } else {
+            badge = '<span class="account-status__badge">À activer</span>';
+            meta = 'Vous n’avez pas encore de compte de paiement. Ouvrez un dossier de mission et cliquez « Activer les paiements » : Stripe vous guidera (identité, IBAN). L’encaissement par carte est facultatif — une convention d’honoraires signée suffit à travailler.';
+          }
+          content.innerHTML = '<div class="billing-plan"><div><div class="billing-plan__price">Paiements avocat</div><div class="billing-plan__meta">' + meta + '</div></div>' + badge + '</div>';
           return;
         }
         if (!data.liquid_plus) {

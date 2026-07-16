@@ -1345,9 +1345,15 @@ app.get('/api/billing/status', requireAuth, async (req, res) => {
   const user = await col('users').findOne({ id: req.user.id }, { projection: { account_types: 1, subscription_status: 1, subscription_plan: 1, subscription_started_at: 1, liquid_plus_access_status: 1, liquid_plus_access_paid_at: 1 } });
   if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
   const isFounder = user.account_types?.includes('fondateur');
+  const isLawyer = user.account_types?.includes('avocat');
   const accessPaid = user.liquid_plus_access_status === 'paid' || user.subscription_status === 'active';
+  // État Connect réel du cabinet, à partir du profil déjà tenu à jour par les
+  // webhooks : l'onglet Facturation reflète ainsi la vérité plutôt qu'un placeholder.
+  const connect = isLawyer
+    ? publicLawyerConnectStatus(await col('saas_lawyer_profiles').findOne({ user_id: req.user.id }))
+    : null;
   res.json({
-    role: user.account_types?.includes('avocat') ? 'avocat' : isFounder ? 'fondateur' : 'autre',
+    role: isLawyer ? 'avocat' : isFounder ? 'fondateur' : 'autre',
     liquid_plus: isFounder ? {
       status: accessPaid ? 'active' : 'inactive',
       payment_type: 'one_time',
@@ -1356,6 +1362,7 @@ app.get('/api/billing/status', requireAuth, async (req, res) => {
       price: { amount: LIQUID_PLUS_STANDARD_PRICE_EUR, amount_cents: LIQUID_PLUS_STANDARD_PRICE_CENTS, currency: 'EUR', tax: 'TTC' },
       promo_price: { amount: LIQUID_PLUS_PROMO_PRICE_EUR, amount_cents: LIQUID_PLUS_PROMO_PRICE_CENTS, currency: 'EUR', tax: 'TTC', code: 'RAISE SUMMIT' },
     } : null,
+    connect,
     lawyer_payments_enabled: !!(stripe && STRIPE_CONNECT_WEBHOOK_SECRET),
   });
 });

@@ -29,7 +29,7 @@ test('la facturation permet le paiement et préremplit le code de bienvenue', ()
   });
   assert.match(accountHtml, /Payer 600 € TTC/);
   assert.match(accountHtml, /Votre accès gratuit n’expire pas/);
-  assert.match(accountHtml, /data\.role === 'avocat' && !data\.liquid_plus/);
+  assert.match(accountHtml, /data\.role === 'avocat'/);
   assert.match(accountHtml, /accountParams\.get\('promo'\)/);
   assert.match(accountHtml, /Accepter et payer 450 € TTC/);
 });
