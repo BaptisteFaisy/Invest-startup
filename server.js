@@ -87,7 +87,11 @@ function wrapAsyncMiddleware(fn) {
     return original(...args.map((arg, index) => (index === 0 ? arg : wrapAsyncMiddleware(arg))));
   };
 });
-const IS_PROD              = process.env.NODE_ENV === 'production';
+// Production détectée via NODE_ENV (standard) OU MODE_ENV (le nom réellement posé
+// dans l'environnement de déploiement). Sans ce second nom, IS_PROD restait faux en
+// production : les cookies d'authentification n'étaient pas marqués Secure sur un
+// site pourtant en HTTPS, et le contrôle des secrets au démarrage était court-circuité.
+const IS_PROD              = process.env.NODE_ENV === 'production' || process.env.MODE_ENV === 'production';
 const JWT_SECRET           = process.env.JWT_SECRET           || 'invest_bg_dev_secret_CHANGE_IN_PROD';
 const BCRYPT_ROUNDS        = 12;
 const GOOGLE_CLIENT_ID     = process.env.GOOGLE_CLIENT_ID     || '';
@@ -909,7 +913,7 @@ const authLimiter = rateLimit({
 // ─── Auth helpers ─────────────────────────────────────────────────────────────
 function setAuthCookie(res, user) {
   const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
-  const isProd = process.env.NODE_ENV === 'production';
+  const isProd = IS_PROD;
   res.cookie('auth_token', token, {
     httpOnly: true,
     secure:   isProd,
@@ -926,7 +930,7 @@ function setAuthCookie(res, user) {
 // que dans l'URL — un JWT dans la query fuiterait via l'historique du navigateur et
 // le Referer des sous-ressources de la page de connexion (polices Google, etc.).
 function setPending2FACookie(res, token) {
-  const isProd = process.env.NODE_ENV === 'production';
+  const isProd = IS_PROD;
   res.cookie('pending_2fa', token, {
     httpOnly: true,
     secure:   isProd,
@@ -1506,7 +1510,7 @@ app.post('/api/startup/register', authLimiter, async (req, res) => {
   const hash    = await bcrypt.hash(password, BCRYPT_ROUNDS);
   const startup = await createStartup({ email: emailClean, password: hash, company_name: company_name.trim() });
   const token   = jwt.sign({ id: startup.id, email: startup.email, company_name: startup.company_name }, JWT_SECRET, { expiresIn: '7d' });
-  res.cookie('startup_token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 7*24*60*60*1000 });
+  res.cookie('startup_token', token, { httpOnly: true, secure: IS_PROD, sameSite: 'lax', maxAge: 7*24*60*60*1000 });
   res.status(201).json({ success: true, startup: { id: startup.id, email: startup.email, company_name: startup.company_name } });
 });
 
@@ -1517,7 +1521,7 @@ app.post('/api/startup/login', authLimiter, async (req, res) => {
   if (!startup || !(await bcrypt.compare(password, startup.password)))
     return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
   const token = jwt.sign({ id: startup.id, email: startup.email, company_name: startup.company_name }, JWT_SECRET, { expiresIn: '7d' });
-  res.cookie('startup_token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 7*24*60*60*1000 });
+  res.cookie('startup_token', token, { httpOnly: true, secure: IS_PROD, sameSite: 'lax', maxAge: 7*24*60*60*1000 });
   res.json({ success: true, startup: { id: startup.id, email: startup.email, company_name: startup.company_name } });
 });
 
