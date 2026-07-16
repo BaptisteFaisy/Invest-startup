@@ -58,6 +58,19 @@
     .drawer__count { min-width:22px; margin-left:auto; padding:3px 7px; border-radius:99px; background:rgba(255,255,255,.12); color:inherit; text-align:center; font:800 10px 'Archivo',sans-serif; }
     .drawer__count--alert { background:var(--green); color:#fff; }
     .drawer__count[hidden] { display:none; }
+    /* Candidature en cours : les missions restent visibles mais fermées. Un cadenas
+       muet laisserait croire à une panne — le badge dit pourquoi. */
+    .drawer__lock { margin-left:auto; padding:3px 7px; border-radius:99px; background:rgba(255,255,255,.16); color:#fff; font:800 9px 'Archivo',sans-serif; letter-spacing:.06em; text-transform:uppercase; }
+    .drawer__lock[hidden] { display:none; }
+    .drawer__section-title:has(.drawer__lock) { display:flex; align-items:center; gap:8px; }
+    /* `opacity` seule ne ferme rien : le lien resterait cliquable et navigable au
+       clavier. On coupe aussi le pointeur ; le retrait du focus se fait en JS. */
+    .drawer__link.is-locked { opacity:.5; pointer-events:none; }
+    /* Thème clair : le tiroir passe sur fond papier (#f7f6f3). Un badge blanc
+       translucide y devient illisible — badge et compteurs virent à l'encre. */
+    :root[data-theme="paper"] .drawer__lock { background:rgba(17,17,17,.10); color:#3f3b34; }
+    :root[data-theme="paper"] .drawer__count { background:rgba(17,17,17,.10); color:#3f3b34; }
+    :root[data-theme="paper"] .drawer__count--alert { background:var(--green); color:#fff; }
     .drawer__sep { height:1px; margin:8px 4px; background:rgba(255,255,255,.08); }
     .drawer__soon { margin-left:auto; padding:2px 7px; border-radius:99px; background:rgba(34,197,94,0.20); color:#22c55e; font:800 9px 'Archivo',sans-serif; letter-spacing:.06em; text-transform:uppercase; }
     .drawer__resize { position:absolute; inset-block:0; z-index:2; width:10px; cursor:col-resize; touch-action:none; }
@@ -65,9 +78,12 @@
     .drawer--right .drawer__resize { left:-5px; }
     .dashboard { width:min(1080px,calc(100% - 44px)); margin:0 auto; padding:48px 0 80px; }
     /* Les vues avocat sans hero commencent directement par une carte. L'ampoule
-       reste dans l'espace au-dessus afin de ne pas recouvrir ce premier bloc. */
-    .dashboard > .help-bulb { top:0; }
-    .dashboard > .help-pop { top:48px; }
+       reste dans l'espace au-dessus afin de ne pas recouvrir ce premier bloc.
+       Cet espace doit donc la loger avec ses marges (16 + 40 + 16) : sans le
+       supplément de padding, elle se collerait au trait de la topbar. */
+    .dashboard:has(> .help-bulb:not([hidden])) { padding-top:72px; }
+    .dashboard > .help-bulb { top:16px; }
+    .dashboard > .help-pop { top:64px; }
     .hero { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:36px; }
     .eyebrow { margin:0 0 12px; color:#fff; font:800 12px 'Archivo',sans-serif; letter-spacing:.12em; text-transform:uppercase; }
     h1 { margin:0; color:#fff; font:800 clamp(2rem,4vw,3.15rem)/1.03 'Archivo',sans-serif; letter-spacing:-.045em; }
@@ -139,8 +155,10 @@
       .topbar__context, .avatar { display:none; }
       .topbar { padding-inline:8px; }
       .dashboard { width:min(100% - 28px,1080px); padding-top:34px; }
-      .dashboard > .help-bulb { top:-8px; }
-      .dashboard > .help-pop { top:38px; }
+      /* Même calcul qu'au-dessus, avec l'ampoule réduite à 36px : 10 + 36 + 10. */
+      .dashboard:has(> .help-bulb:not([hidden])) { padding-top:56px; }
+      .dashboard > .help-bulb { top:10px; }
+      .dashboard > .help-pop { top:54px; }
       .hero { display:block; }
       .status { margin-top:20px; }
       .stats { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -188,12 +206,16 @@
     </header>
 
     <div class="drawer-backdrop" id="nav-backdrop" data-drawer-close></div>
-    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Navigation avocat" data-hide-experience-mode>
+    <!-- data-account-menu="lawyer" : cette page fournit DÉJÀ le menu avocat, avec ses
+         compteurs et ses liens de vue. Sans ce marqueur, applyLawyerDrawers (drawer-menu.js)
+         réécrit le tiroir avec une version générique qui n'a ni l'un ni l'autre, et tout le
+         chargement tombe sur un null. Le script partagé ne sert que les pages sans menu propre. -->
+    <aside class="drawer drawer--left" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Navigation avocat" data-account-menu="lawyer" data-hide-experience-mode>
       <div class="drawer__head" aria-hidden="true"></div>
       <nav class="drawer__body">
         <a class="drawer__link" href="tableau-de-bord-avocat.html" data-lawyer-view="dashboard"><svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3Z"/><path d="M9 20v-6h6v6"/></svg>Tableau de bord</a>
         <div class="drawer__sep"></div>
-        <div class="drawer__section-title">Mes missions</div>
+        <div class="drawer__section-title">Mes missions<span class="drawer__lock" id="mission-lock-badge" title="Accessible dès l’activation de votre compte par Liquid+" hidden>En attente</span></div>
         <a class="drawer__link" href="propositions-avocat.html" data-lawyer-view="propositions"><svg viewBox="0 0 24 24"><path d="M4 5h16v12H8l-4 3Z"/><path d="M8 9h8M8 13h5"/></svg>Propositions de clients<span class="drawer__count drawer__count--alert" id="proposal-menu-count" hidden></span></a>
         <a class="drawer__link" href="clients-attribues-avocat.html" data-lawyer-view="clients"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2"/><path d="M3 20c0-4 2.5-7 6-7s6 3 6 7M15 14c3 0 5 2 5 5"/></svg>Clients attribués<span class="drawer__count" id="client-menu-count" hidden></span></a>
         <a class="drawer__link" href="missions-en-cours-avocat.html" data-lawyer-view="en-cours"><svg viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v11H3Z"/><path d="M8 12h8M8 16h5"/></svg>Missions en cours<span class="drawer__count" id="current-menu-count" hidden></span></a>
@@ -345,7 +367,9 @@
       await lawyerApi('/api/lawyer/catalogue/accept',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:catalogue.version,accepted:true})});
       return true;
     }
-    function setMenuCount(id, count) { const el=document.getElementById(id); el.textContent=String(count); el.hidden=!count; }
+    // Un compteur absent est un détail d'affichage : il ne doit jamais emporter le
+    // chargement complet du tableau de bord.
+    function setMenuCount(id, count) { const el=document.getElementById(id); if(!el)return; el.textContent=String(count); el.hidden=!count; }
     function renderNotifications(items) {
       const el=document.getElementById('lawyer-notifications');
       el.hidden=!items.length;
@@ -434,6 +458,21 @@
         };
         document.getElementById('welcome').textContent = lawyerView === 'dashboard' ? 'Bienvenue, ' + displayProfile.first_name : viewCopy[lawyerView][0];
         const active=user.lawyer_status==='active';
+        // Tant que la candidature est en cours, l'avocat entre chez lui : il voit son
+        // profil et sa 2FA. Seules les missions restent fermées, et le menu le dit —
+        // sans quoi il croirait à une panne et se reconnecterait indéfiniment.
+        const lockBadge=document.getElementById('mission-lock-badge');
+        if(lockBadge)lockBadge.hidden=active;
+        document.querySelectorAll('[data-lawyer-view]').forEach(link=>{
+          if(link.dataset.lawyerView==='dashboard')return;
+          const locked=!active;
+          link.classList.toggle('is-locked',locked);
+          // Le CSS coupe la souris ; sans ceci le lien resterait atteignable au clavier
+          // et annoncé comme actif par un lecteur d'écran.
+          link.setAttribute('aria-disabled',String(locked));
+          if(locked){link.setAttribute('tabindex','-1');link.title='Accessible dès l’activation de votre compte par Liquid+';}
+          else{link.removeAttribute('tabindex');link.removeAttribute('title');}
+        });
         const statusEl=document.querySelector('.status');
         statusEl.textContent=active?'Compte avocat actif':({suspended:'Compte suspendu',rejected:'Candidature refusée'}[user.lawyer_status]||'Candidature en cours d’évaluation');
         statusEl.classList.toggle('status--active',active);
@@ -445,7 +484,16 @@
         );
         await loadClientTools(active);
         app.classList.add('ready');
-      } catch { location.replace('login.html'); }
+      } catch (error) {
+        // Une panne d'affichage n'est PAS une perte de session. Renvoyer au login
+        // masquait la vraie cause et faisait tourner l'avocat en rond : il se
+        // reconnectait sans fin sans jamais savoir pourquoi. La session est déjà
+        // vérifiée plus haut (/api/auth/me) ; ici, on montre la page et on le dit.
+        console.error('Tableau de bord avocat :', error);
+        const statusEl = document.querySelector('.status');
+        if (statusEl) statusEl.textContent = 'Affichage incomplet — rechargez la page';
+        app.classList.add('ready');
+      }
     }
     load();
     document.getElementById('logout-btn').addEventListener('click', logout);
