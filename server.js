@@ -26,7 +26,7 @@ const archiver         = require('archiver');
 const Stripe           = require('stripe');
 const { createDocumentEncryption } = require('./lib/document-encryption');
 const { buildAdminDashboardStats, countUnreadAdminMessages } = require('./lib/admin-dashboard');
-const { adminLiquidPayment, adminTrialProgress } = require('./lib/admin-payments');
+const { adminLiquidPayment, adminFreeAiUsage } = require('./lib/admin-payments');
 const { productionConfigurationProblems } = require('./lib/runtime-config');
 const {
   LIQUID_PLUS_STANDARD_PRICE_CENTS,
@@ -93,8 +93,12 @@ const DROPBOX_APP_SECRET         = process.env.DROPBOX_APP_SECRET         || '';
 // facture. Réglable via la variable d'environnement DAILY_TOKEN_CAP (Railway →
 // service → onglet Variables). Défaut : 5 000 000 tokens/jour.
 const DAILY_TOKEN_CAP      = Number(process.env.DAILY_TOKEN_CAP) || 5_000_000;
-const FREE_FOUNDER_TOKEN_CAP = 200_000;
-const FOUNDER_TRIAL_MS     = 2 * 60 * 60 * 1000;
+// Plafond de tokens IA d'un compte fondateur gratuit. C'est un cumul À VIE du
+// compte (jamais remis à zéro), et non un quota périodique. Repère : un premier
+// document mené jusqu'au bout (analyse complète + une vingtaine d'échanges avec
+// l'assistant + quelques ré-analyses) coûte de l'ordre de 200 000 tokens.
+// Réglable via FREE_FOUNDER_TOKEN_CAP (Railway → service → onglet Variables).
+const FREE_FOUNDER_TOKEN_CAP = Number(process.env.FREE_FOUNDER_TOKEN_CAP) || 300_000;
 const STRIPE_SECRET_KEY    = process.env.STRIPE_SECRET_KEY || '';
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 // Webhook DISTINCT (secret différent) pour les événements des comptes connectés
@@ -213,9 +217,6 @@ async function connectDB() {
   const migrated = await documentEncryption.migrateExistingDocuments(db);
   const migratedCount = Object.values(migrated).reduce((sum, count) => sum + count, 0);
   if (migratedCount) console.log(`  ✓  ${migratedCount} document(s) existant(s) chiffré(s)`);
-  // Registre d'essai fondateur : persiste au-delà de la suppression du compte
-  // pour empêcher qu'un même email récupère 2 h gratuites en se réinscrivant.
-  await db.collection('founder_trial_ledger').createIndex({ email_hash: 1 }, { unique: true });
   await ensurePaymentIndexes();
   await ensureMissionIndexes();
   await backfillMissionAcceptances();
@@ -862,74 +863,21 @@ function publicAuthUser(user) {
     lawyer_status: user.account_types?.includes('avocat') ? (user.lawyer_status || 'pending') : null,
     twofa_enabled: !!user.twofa_method,
     is_admin: ADMIN_EMAILS.includes(user.email),
-    welcome_offer_pending: isFounder && access.status === 'trial' && user.welcome_offer_pending === true,
+    welcome_offer_pending: isFounder && access.status === 'free' && user.welcome_offer_pending === true,
     access,
   };
 }
 
-// ─── Registre d'essai fondateur (anti-réinscription) ──────────────────────────
-// Un fondateur qui supprime son compte puis se réinscrit avec le même email ne
-// doit PAS récupérer 2 h neuves. On garde donc, hors du document `users`
-// (supprimé avec le compte), une trace du temps d'essai déjà consommé, indexée
-// par un hash de l'email (aucun email en clair conservé après suppression).
-function founderTrialEmailHash(email) {
-  return crypto.createHmac('sha256', JWT_SECRET)
-    .update('founder-trial:' + String(email || '').trim().toLowerCase())
-    .digest('hex');
-}
-
-async function getFounderTrialLedger(email) {
-  if (!email) return null;
-  return col('founder_trial_ledger').findOne({ email_hash: founderTrialEmailHash(email) });
-}
-
-// Enregistre le temps consommé de façon monotone ($max) : la réinscription
-// reprend toujours au pire cumul déjà atteint pour cet email.
-async function syncFounderTrialLedger(email, { trial_started_at, trial_used_ms, trial_last_seen_at } = {}) {
-  if (!email) return;
-  const now = new Date().toISOString();
-  await col('founder_trial_ledger').updateOne(
-    { email_hash: founderTrialEmailHash(email) },
-    {
-      $max: { trial_used_ms: Math.min(FOUNDER_TRIAL_MS, Math.max(0, Number(trial_used_ms) || 0)) },
-      $set: { trial_last_seen_at: trial_last_seen_at || now, updated_at: now },
-      $setOnInsert: { trial_started_at: trial_started_at || now, first_seen_at: now },
-    },
-    { upsert: true },
-  );
-}
-
-function founderAccess(user, now = Date.now()) {
+// Freemium : un compte fondateur gratuit n'expire JAMAIS. Il n'y a plus d'essai
+// borné dans le temps — le fondateur prépare toute sa levée gratuitement, et ce
+// sont la VALEUR de sortie (export / copie / téléchargement, cf. PAYWALL_ENABLED)
+// et le plafond de tokens de l'assistant (FREE_FOUNDER_TOKEN_CAP) qui se paient.
+// `blocked` est conservé dans la réponse : d'autres appelants s'appuient dessus.
+function founderAccess(user) {
   const isFounder = Array.isArray(user?.account_types) && user.account_types.includes('fondateur');
   if (!isFounder || hasComplimentaryAccess(user?.email)) return { status: 'active', blocked: false };
   if (user.subscription_status === 'active') return { status: 'active', blocked: false, plan: user.subscription_plan || null };
-  // Les comptes fondateurs antérieurs à cette fonctionnalité restent actifs.
-  // L'essai est créé explicitement lors du choix du profil fondateur.
-  if (!user.trial_started_at) return { status: 'active', blocked: false, legacy: true };
-  const usedMs = Math.max(0, Number(user.trial_used_ms) || 0);
-  const remainingMs = Math.max(0, FOUNDER_TRIAL_MS - usedMs);
-  return {
-    status: remainingMs > 0 ? 'trial' : 'expired',
-    blocked: remainingMs <= 0,
-    remaining_ms: remainingMs,
-  };
-}
-
-async function touchFounderTrial(user, now = Date.now()) {
-  if (!user?.trial_started_at || user.subscription_status === 'active') return user;
-  const lastSeen = new Date(user.trial_last_seen_at || user.trial_started_at).getTime();
-  // Un battement toutes les 30 s comptabilise uniquement le temps connecté.
-  // Le plafond évite qu'une fermeture d'onglet consomme le temps hors ligne.
-  const elapsed = Number.isFinite(lastSeen) ? Math.min(Math.max(0, now - lastSeen), 60_000) : 0;
-  user.trial_used_ms = Math.min(FOUNDER_TRIAL_MS, Math.max(0, Number(user.trial_used_ms) || 0) + elapsed);
-  user.trial_last_seen_at = new Date(now).toISOString();
-  await updateUserById(user.id, { trial_used_ms: user.trial_used_ms, trial_last_seen_at: user.trial_last_seen_at });
-  await syncFounderTrialLedger(user.email, {
-    trial_started_at: user.trial_started_at,
-    trial_used_ms: user.trial_used_ms,
-    trial_last_seen_at: user.trial_last_seen_at,
-  });
-  return user;
+  return { status: 'free', blocked: false };
 }
 
 function hasAccountTypes(user) {
@@ -1092,24 +1040,13 @@ app.post('/api/auth/account-type', requireAuth, async (req, res) => {
     : [];
   if (clean.length === 0)
     return res.status(400).json({ error: 'Sélectionnez au moins un type de compte' });
-  const current = await col('users').findOne({ id: req.user.id }, { projection: { trial_started_at: 1, email: 1 } });
+  const current = await col('users').findOne({ id: req.user.id }, { projection: { account_types: 1, email: 1 } });
   const updates = { account_types: clean };
-  if (clean.includes('fondateur') && !current?.trial_started_at) {
-    const email = current?.email || req.user.email;
-    // Réinscription : on repart du temps déjà consommé (0 h restante si l'essai
-    // avait été épuisé sous un compte précédent portant le même email).
-    const ledger = await getFounderTrialLedger(email);
-    const now = new Date().toISOString();
-    updates.trial_started_at = ledger?.trial_started_at || now;
-    updates.trial_last_seen_at = now;
-    updates.trial_used_ms = Math.min(FOUNDER_TRIAL_MS, Math.max(0, Number(ledger?.trial_used_ms) || 0));
-    // Affichée après l'onboarding de levée, lors de la première arrivée dans le SaaS.
+  // Première fois que ce compte devient fondateur : on arme l'offre de bienvenue,
+  // affichée après l'onboarding de levée, à la première arrivée dans le SaaS. Un
+  // fondateur déjà enregistré qui repasse ici ne la revoit pas.
+  if (clean.includes('fondateur') && !current?.account_types?.includes('fondateur')) {
     updates.welcome_offer_pending = true;
-    await syncFounderTrialLedger(email, {
-      trial_started_at: updates.trial_started_at,
-      trial_used_ms: updates.trial_used_ms,
-      trial_last_seen_at: now,
-    });
   }
   await updateUserById(req.user.id, updates);
   res.json({ success: true, account_types: clean });
@@ -1168,7 +1105,6 @@ app.get('/api/auth/me', requireAuth, async (req, res) => {
   const user = await col('users').findOne({ id: req.user.id }, { projection: { _id: 0, password: 0, totp_secret: 0 } });
   if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
   await ensureLawyerCompletion(user);
-  await touchFounderTrial(user);
   const publicUser = publicAuthUser(user);
   publicUser.founder_lawyer_2fa_required = user.account_types?.includes('fondateur')
     ? !!(await assignedLawyerForClient(user.id))
@@ -1300,29 +1236,10 @@ app.get('/api/billing/status', requireAuth, async (req, res) => {
   });
 });
 
-// Un dossier avocat déjà ouvert reste consultable, et un honoraire déjà facturé reste
-// payable, même si l'accès Liquid+ a expiré : l'avocat est un tiers, il a fourni le
-// travail et sa facture est due au titre de la convention signée avec la société. Un
-// accès expiré ferme l'entrée de l'outil (nouvelle mission), pas le règlement d'une
-// dette déjà née. Chemins relatifs au montage '/api/saas'.
-const FOUNDER_ACCESS_EXEMPT_PATHS = [
-  /^\/avocat\/requests\/\d+\/thread$/,
-  /^\/avocat\/requests\/\d+\/payment$/,
-  /^\/avocat\/requests\/\d+\/payment\/checkout$/,
-];
-
-async function requireFounderAccess(req, res, next) {
-  if (FOUNDER_ACCESS_EXEMPT_PATHS.some(exempt => exempt.test(req.path))) return next();
-  const user = await col('users').findOne({ id: req.user.id }, { projection: { id: 1, email: 1, account_types: 1, trial_started_at: 1, trial_last_seen_at: 1, trial_used_ms: 1, subscription_status: 1, subscription_plan: 1 } });
-  await touchFounderTrial(user);
-  const access = founderAccess(user);
-  if (access.blocked) return res.status(402).json({ error: 'Vos 2 heures d’essai gratuit sont terminées. Choisissez une offre pour continuer.', code: 'TRIAL_EXPIRED', access });
-  next();
-}
-
-// Toutes les fonctions SaaS sont également protégées côté serveur : masquer
-// seulement l'interface ne suffirait pas à bloquer un essai expiré.
-app.use('/api/saas', requireAuth, requireFounderAccess);
+// Freemium : plus aucun accès fondateur ne se ferme avec le temps, donc plus de
+// garde d'expiration ici. Ce qui se paie est verrouillé au cas par cas — sortie
+// du document (gatePaidExtraction) et plafond de tokens de l'assistant.
+app.use('/api/saas', requireAuth);
 
 // ─── GET /api/auth/2fa/status ─────────────────────────────────────────────────
 app.get('/api/auth/2fa/status', requireAuth, async (req, res) => {
@@ -2096,7 +2013,7 @@ async function enforceDailyCap(req, res, next) {
       const personal = await col('saas_claude_usage').findOne({ user_id: req.user.id }, { projection: { total_tokens: 1 } });
       const personalUsed = personal?.total_tokens || 0;
       if (personalUsed >= FREE_FOUNDER_TOKEN_CAP) {
-        return res.status(429).json({ error: `Plafond de ${FREE_FOUNDER_TOKEN_CAP.toLocaleString('fr-FR')} tokens atteint pour l'essai gratuit. Choisissez une offre pour continuer à utiliser l'assistant.`, cap: FREE_FOUNDER_TOKEN_CAP, used: personalUsed });
+        return res.status(429).json({ error: `Vous avez utilisé les ${FREE_FOUNDER_TOKEN_CAP.toLocaleString('fr-FR')} tokens d'assistant IA inclus gratuitement. Votre travail reste accessible : activez Liquid+ pour continuer avec l'assistant.`, cap: FREE_FOUNDER_TOKEN_CAP, used: personalUsed });
       }
     }
     if (used >= DAILY_TOKEN_CAP) {
@@ -6169,11 +6086,11 @@ app.get('/api/admin/dashboard', requireAdmin, async (_req, res) => {
 app.get('/api/admin/payments', requireAdmin, async (_req, res) => {
   const founders = await col('users').find(
     { account_types: 'fondateur' },
-    { projection: { _id: 0, id: 1, email: 1, full_name: 1, created_at: 1, subscription_status: 1, trial_started_at: 1, trial_used_ms: 1 } },
+    { projection: { _id: 0, id: 1, email: 1, full_name: 1, created_at: 1, subscription_status: 1 } },
   ).sort({ created_at: -1 }).toArray();
   const userIds = founders.map(founder => founder.id);
 
-  const [profiles, liquidPayments, lawyerPayments] = await Promise.all([
+  const [profiles, liquidPayments, lawyerPayments, aiUsage] = await Promise.all([
     col('saas_fundraising_profiles').find(
       { user_id: { $in: userIds } },
       { projection: { _id: 0, user_id: 1, company_name: 1 } },
@@ -6186,8 +6103,13 @@ app.get('/api/admin/payments', requireAdmin, async (_req, res) => {
       { client_id: { $in: userIds } },
       { projection: { _id: 0, client_id: 1, amount_total: 1, amount_refunded: 1, status: 1 } },
     ).toArray(),
+    col('saas_claude_usage').find(
+      { user_id: { $in: userIds } },
+      { projection: { _id: 0, user_id: 1, total_tokens: 1, requests: 1 } },
+    ).toArray(),
   ]);
 
+  const aiUsageByUser = new Map(aiUsage.map(usage => [usage.user_id, usage]));
   const companiesByUser = new Map(profiles.map(profile => [profile.user_id, profile.company_name]));
   const latestLiquidPaymentByUser = new Map();
   liquidPayments.forEach(payment => {
@@ -6216,7 +6138,7 @@ app.get('/api/admin/payments', requireAdmin, async (_req, res) => {
       startup_id: founder.id,
       startup_name: companiesByUser.get(founder.id) || founder.full_name || founder.email,
       email: founder.email,
-      free_trial: adminTrialProgress(founder, FOUNDER_TRIAL_MS),
+      free_ai: adminFreeAiUsage(founder, aiUsageByUser.get(founder.id), FREE_FOUNDER_TOKEN_CAP),
       liquid_plus: adminLiquidPayment(liquidPayment),
       lawyer: lawyerPaymentsByUser.get(founder.id),
     };

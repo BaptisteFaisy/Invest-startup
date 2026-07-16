@@ -69,34 +69,21 @@ test('aucune étape d’attribution par l’admin ne subsiste', () => {
   assert.match(serverSource, /const nextStatus = status === 'accepted' \? 'assigned' : 'declined';/);
 });
 
-// Un honoraire déjà facturé reste payable même si l'accès Liquid+ a expiré : l'avocat
-// est un tiers dont la facture est due au titre de la convention signée.
-test('un accès Liquid+ expiré ferme l’outil mais laisse régler un honoraire déjà facturé', () => {
-  const middleware = serverSource.slice(
-    serverSource.indexOf('const FOUNDER_ACCESS_EXEMPT_PATHS'),
-    serverSource.indexOf("app.use('/api/saas', requireAuth, requireFounderAccess)"),
-  );
-  assert.ok(middleware, 'requireFounderAccess introuvable');
-  // L'exemption sort avant le calcul d'accès, donc avant tout blocage en 402.
-  const exempt = middleware.indexOf('FOUNDER_ACCESS_EXEMPT_PATHS.some');
-  const blocked = middleware.indexOf('access.blocked');
-  assert.ok(exempt > 0 && blocked > exempt, 'l’exemption doit précéder le blocage');
+// Freemium : le SaaS ne se ferme plus jamais avec le temps. Ce qui se paie est
+// la SORTIE du document et l'assistant IA au-delà de l'enveloppe incluse — pas
+// l'accès lui-même. Cette garde empêche le retour d'un mur temporel.
+test('aucun accès fondateur ne se ferme avec le temps', () => {
+  assert.match(serverSource, /app\.use\('\/api\/saas', requireAuth\);/);
+  assert.doesNotMatch(serverSource, /requireFounderAccess/);
+  assert.doesNotMatch(serverSource, /TRIAL_EXPIRED/);
+  assert.doesNotMatch(serverSource, /FOUNDER_TRIAL_MS|trial_used_ms|trial_started_at/);
 
-  const paths = [
-    '/avocat/requests/42/payment/checkout',
-    '/avocat/requests/42/payment',
-    '/avocat/requests/42/thread',
-  ];
-  const patterns = [
-    /^\/avocat\/requests\/\d+\/thread$/,
-    /^\/avocat\/requests\/\d+\/payment$/,
-    /^\/avocat\/requests\/\d+\/payment\/checkout$/,
-  ];
-  for (const openPath of paths) {
-    assert.ok(patterns.some(pattern => pattern.test(openPath)), `devrait rester ouvert : ${openPath}`);
-  }
-  // L'entrée dans l'outil, elle, reste fermée.
-  for (const gated of ['/avocat/overview', '/avocat/requests', '/avocat/company-eligibility', '/avocat/preference']) {
-    assert.ok(!patterns.some(pattern => pattern.test(gated)), `ne doit pas être exempté : ${gated}`);
-  }
+  // founderAccess ne renvoie plus jamais blocked:true pour un compte gratuit.
+  const access = serverSource.slice(
+    serverSource.indexOf('function founderAccess(user)'),
+    serverSource.indexOf('function hasAccountTypes(user)'),
+  );
+  assert.ok(access, 'founderAccess introuvable');
+  assert.doesNotMatch(access, /blocked: true/);
+  assert.match(access, /status: 'free', blocked: false/);
 });

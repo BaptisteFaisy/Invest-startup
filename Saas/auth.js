@@ -25,57 +25,11 @@ function hasAccountType(user) {
 async function requireAuth(redirect = 'login.html', options = {}) {
   const user = await fetchMe();
   if (!user) { window.location.replace(redirect); return null; }
-  if (user.access?.blocked) {
-    showFounderPaywall();
-    return null;
-  }
   if (options.requireAccountType && !user.is_admin && !hasAccountType(user)) {
     window.location.replace(options.onboarding || 'onboarding.html');
     return null;
   }
   return user;
-}
-
-function showFounderPaywall() {
-  if (!document.body) {
-    document.addEventListener('DOMContentLoaded', showFounderPaywall, { once: true });
-    return;
-  }
-  if (document.getElementById('liquid-founder-paywall')) return;
-  const style = document.createElement('style');
-  style.textContent = `
-    body.liquid-paywall-open > *:not(#liquid-founder-paywall):not(script):not(style){filter:blur(8px);pointer-events:none;user-select:none}
-    body.liquid-paywall-open{overflow:hidden}
-    #liquid-founder-paywall{position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;padding:22px;background:rgba(0,24,57,.42);font-family:Arial,sans-serif}
-    .liquid-paywall__box{width:min(780px,100%);max-height:calc(100vh - 44px);overflow:auto;background:#fff;border-radius:20px;padding:30px;box-shadow:0 28px 90px rgba(0,0,0,.35);color:#101828}
-    .liquid-paywall__eyebrow{color:#087f6c;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}.liquid-paywall__box h2{margin:9px 0;font-size:30px}.liquid-paywall__lead{margin:0;color:#667085;line-height:1.55}
-    .liquid-paywall__plans{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:24px}.liquid-paywall__plan{padding:20px;border:1px solid #e4e7ec;border-radius:14px}.liquid-paywall__plan--main{border:2px solid #2de0bc}.liquid-paywall__plan h3{margin:8px 0}.liquid-paywall__price{font-size:23px;font-weight:800}.liquid-paywall__plan ul{padding-left:18px;color:#475467;line-height:1.6}
-    .liquid-paywall__choose{width:100%;padding:12px;border:0;border-radius:9px;background:#001839;color:#fff;font-weight:800;cursor:pointer}.liquid-paywall__plan--main .liquid-paywall__choose{background:#087f6c}.liquid-paywall__message{min-height:20px;margin-top:14px;color:#b42318;text-align:center}.liquid-paywall__logout{display:block;margin:12px auto 0;border:0;background:none;color:#667085;text-decoration:underline;cursor:pointer}@media(max-width:650px){.liquid-paywall__plans{grid-template-columns:1fr}.liquid-paywall__box{padding:22px}.liquid-paywall__box h2{font-size:25px}}
-  `;
-  document.head.appendChild(style);
-  const overlay = document.createElement('div');
-  overlay.id = 'liquid-founder-paywall';
-  overlay.setAttribute('role', 'dialog');
-  overlay.setAttribute('aria-modal', 'true');
-  overlay.innerHTML = `<div class="liquid-paywall__box"><div class="liquid-paywall__eyebrow">Vos 2 heures d’essai gratuit sont terminées</div><h2>Choisissez votre offre pour continuer.</h2><p class="liquid-paywall__lead">Votre travail est conservé, mais aucune action ni aucun export n’est possible avant l’activation de votre offre.</p><div class="liquid-paywall__plans"><article class="liquid-paywall__plan liquid-paywall__plan--main"><h3>Liquid+</h3><div class="liquid-paywall__price">600 € TTC</div><ul><li>Plateforme, IA et data room</li><li>Documents, simulations et exports</li><li>Suivi jusqu’au closing</li></ul><button class="liquid-paywall__choose" data-liquid-plan="plateforme">Choisir cette offre</button></article><article class="liquid-paywall__plan"><h3>Liquid+ avec avocat</h3><div class="liquid-paywall__price">Sur mesure</div><ul><li>Tout Liquid+</li><li>Relecture des actes sélectionnés</li><li>Avocat partenaire</li></ul><button class="liquid-paywall__choose" data-liquid-plan="accompagnement">Choisir cette offre</button></article></div><div class="liquid-paywall__message" role="alert"></div><button class="liquid-paywall__logout">Se déconnecter</button></div>`;
-  document.body.appendChild(overlay);
-  document.body.classList.add('liquid-paywall-open');
-  overlay.querySelectorAll('[data-liquid-plan]').forEach((button) => button.addEventListener('click', async () => {
-    const message = overlay.querySelector('.liquid-paywall__message');
-    message.textContent = '';
-    button.disabled = true;
-    try {
-      const response = await fetch('/api/billing/checkout', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ plan: button.dataset.liquidPlan }) });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Paiement indisponible');
-      window.location.href = data.checkout_url;
-    } catch (error) {
-      message.textContent = error.message + ' Vous pouvez aussi nous écrire à liquidplus.contact@gmail.com.';
-      button.disabled = false;
-    }
-  }));
-  overlay.querySelector('.liquid-paywall__logout').addEventListener('click', logout);
-  overlay.querySelector('.liquid-paywall__choose')?.focus();
 }
 
 let welcomeOfferHandled = false;
@@ -94,7 +48,7 @@ async function dismissFounderWelcomeOffer() {
 }
 
 function showFounderWelcomeOffer(user) {
-  if (welcomeOfferHandled || !user?.welcome_offer_pending || user.access?.status !== 'trial') return;
+  if (welcomeOfferHandled || !user?.welcome_offer_pending || user.access?.status !== 'free') return;
   if (!document.body) {
     document.addEventListener('DOMContentLoaded', () => showFounderWelcomeOffer(user), { once: true });
     return;
@@ -112,7 +66,7 @@ function showFounderWelcomeOffer(user) {
     .liquid-welcome__eyebrow{margin:0 48px 9px 0;color:#15803d;font:800 11px Archivo,Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase}.liquid-welcome__box h2{max-width:520px;margin:0;font:800 clamp(26px,5vw,36px)/1.12 Archivo,Arial,sans-serif;letter-spacing:-.035em}.liquid-welcome__lead{margin:15px 0 0;color:#475467;font-size:15px;line-height:1.6}
     .liquid-welcome__offer{margin-top:22px;padding:20px;border:1px solid rgba(21,128,61,.18);border-radius:16px;background:#d1fae5}.liquid-welcome__offer-top{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}.liquid-welcome__offer-label{color:#15803d;font:800 11px Archivo,Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}.liquid-welcome__price{margin-top:5px;font:800 27px Archivo,Arial,sans-serif;letter-spacing:-.03em}.liquid-welcome__price s{margin-left:6px;color:#98a2b3;font-size:15px;font-weight:600}.liquid-welcome__code{flex:none;padding:9px 11px;border-radius:9px;background:#001839;color:#fff;font:800 12px Archivo,Arial,sans-serif;letter-spacing:.08em}
     .liquid-welcome__terms{position:relative;display:inline-block;margin-top:10px;color:#667085;font-size:11px}.liquid-welcome__terms-trigger{padding:0;border:0;border-bottom:1px dotted currentColor;background:none;color:inherit;font:inherit;cursor:help}.liquid-welcome__terms-tooltip{position:absolute;z-index:2;left:0;bottom:calc(100% + 8px);width:min(360px,calc(100vw - 88px));padding:11px 12px;border-radius:9px;background:#001839;color:#fff;font-size:12px;line-height:1.5;box-shadow:0 10px 30px rgba(0,0,0,.22);opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .15s,transform .15s,visibility .15s}.liquid-welcome__terms:hover .liquid-welcome__terms-tooltip,.liquid-welcome__terms:focus-within .liquid-welcome__terms-tooltip,.liquid-welcome__terms.is-open .liquid-welcome__terms-tooltip{opacity:1;visibility:visible;transform:translateY(0)}
-    .liquid-welcome__actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}.liquid-welcome__button{display:flex;align-items:center;justify-content:center;min-height:48px;padding:12px 15px;border:1px solid #001839;border-radius:10px;font:800 13px Archivo,Arial,sans-serif;text-align:center;cursor:pointer}.liquid-welcome__button:disabled{opacity:.58;cursor:wait}.liquid-welcome__button--promo{background:#15803d;border-color:#15803d;color:#fff}.liquid-welcome__button--standard{background:#fff;color:#001839}.liquid-welcome__message{min-height:18px;margin-top:10px;color:#b42318;font-size:12px;text-align:center}.liquid-welcome__trial{margin:4px 0 0;color:#667085;font-size:11px;text-align:center}
+    .liquid-welcome__actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}.liquid-welcome__button{display:flex;align-items:center;justify-content:center;min-height:48px;padding:12px 15px;border:1px solid #001839;border-radius:10px;font:800 13px Archivo,Arial,sans-serif;text-align:center;cursor:pointer}.liquid-welcome__button:disabled{opacity:.58;cursor:wait}.liquid-welcome__button--promo{background:#15803d;border-color:#15803d;color:#fff}.liquid-welcome__button--standard{background:#fff;color:#001839}.liquid-welcome__message{min-height:18px;margin-top:10px;color:#b42318;font-size:12px;text-align:center}.liquid-welcome__free{margin:4px 0 0;color:#667085;font-size:11px;text-align:center}
     @media(max-width:600px){.liquid-welcome__box{padding:27px 21px}.liquid-welcome__offer-top{display:block}.liquid-welcome__code{display:inline-block;margin-top:12px}.liquid-welcome__actions{grid-template-columns:1fr}.liquid-welcome__terms-tooltip{position:fixed;left:22px;right:22px;bottom:22px;width:auto}}
   `;
   if (!document.getElementById(style.id)) document.head.appendChild(style);
@@ -122,7 +76,7 @@ function showFounderWelcomeOffer(user) {
   overlay.setAttribute('role', 'dialog');
   overlay.setAttribute('aria-modal', 'true');
   overlay.setAttribute('aria-labelledby', 'liquid-welcome-title');
-  overlay.innerHTML = `<div class="liquid-welcome__box"><button type="button" class="liquid-welcome__close" aria-label="Fermer cette proposition">&times;</button><p class="liquid-welcome__eyebrow">Bienvenue dans Liquid+</p><h2 id="liquid-welcome-title">Pilotez dès maintenant le volet juridique de votre levée.</h2><p class="liquid-welcome__lead">Votre accès gratuit n’expire pas : préparez toute votre levée sans rien payer. Liquid+ s’active le jour où vous voulez exporter, copier et sécuriser vos documents.</p><div class="liquid-welcome__offer"><div class="liquid-welcome__offer-top"><div><div class="liquid-welcome__offer-label">Votre offre de bienvenue</div><div class="liquid-welcome__price">450 € TTC <s>600 € TTC</s></div></div><span class="liquid-welcome__code">RAISE SUMMIT</span></div><span class="liquid-welcome__terms">Offre soumise à <button type="button" class="liquid-welcome__terms-trigger" aria-expanded="false" aria-describedby="liquid-welcome-conditions">certaines conditions</button><span class="liquid-welcome__terms-tooltip" id="liquid-welcome-conditions" role="tooltip">Réduction accordée en échange d’un témoignage publié sur notre site et d’un post LinkedIn de votre part parlant de Liquid+.</span></span></div><div class="liquid-welcome__actions"><button type="button" class="liquid-welcome__button liquid-welcome__button--promo">Utiliser mon code promo</button><button type="button" class="liquid-welcome__button liquid-welcome__button--standard">Payer 600 € TTC maintenant</button></div><div class="liquid-welcome__message" role="alert"></div><p class="liquid-welcome__trial">Vous pouvez aussi fermer cette fenêtre et continuer gratuitement.</p></div>`;
+  overlay.innerHTML = `<div class="liquid-welcome__box"><button type="button" class="liquid-welcome__close" aria-label="Fermer cette proposition">&times;</button><p class="liquid-welcome__eyebrow">Bienvenue dans Liquid+</p><h2 id="liquid-welcome-title">Pilotez dès maintenant le volet juridique de votre levée.</h2><p class="liquid-welcome__lead">Votre accès gratuit n’expire pas : préparez toute votre levée sans rien payer. Liquid+ s’active le jour où vous voulez exporter, copier et sécuriser vos documents.</p><div class="liquid-welcome__offer"><div class="liquid-welcome__offer-top"><div><div class="liquid-welcome__offer-label">Votre offre de bienvenue</div><div class="liquid-welcome__price">450 € TTC <s>600 € TTC</s></div></div><span class="liquid-welcome__code">RAISE SUMMIT</span></div><span class="liquid-welcome__terms">Offre soumise à <button type="button" class="liquid-welcome__terms-trigger" aria-expanded="false" aria-describedby="liquid-welcome-conditions">certaines conditions</button><span class="liquid-welcome__terms-tooltip" id="liquid-welcome-conditions" role="tooltip">Réduction accordée en échange d’un témoignage publié sur notre site et d’un post LinkedIn de votre part parlant de Liquid+.</span></span></div><div class="liquid-welcome__actions"><button type="button" class="liquid-welcome__button liquid-welcome__button--promo">Utiliser mon code promo</button><button type="button" class="liquid-welcome__button liquid-welcome__button--standard">Payer 600 € TTC maintenant</button></div><div class="liquid-welcome__message" role="alert"></div><p class="liquid-welcome__free">Vous pouvez aussi fermer cette fenêtre et continuer gratuitement.</p></div>`;
   document.body.appendChild(overlay);
   document.body.classList.add('liquid-welcome-open');
 
@@ -213,21 +167,16 @@ function enableFounderCopyProtection() {
 }
 
 // Garde automatique, y compris sur les pages qui n'appellent pas requireAuth.
-fetchMe().then((user) => {
-  if (user?.access?.status === 'trial') enableFounderCopyProtection();
-  if (user?.access?.blocked) showFounderPaywall();
-  else if (user?.access?.status === 'trial' && user.access.remaining_ms > 0) {
-    showFounderWelcomeOffer(user);
-    window.setTimeout(showFounderPaywall, user.access.remaining_ms);
-  }
-});
-window.setInterval(() => {
-  fetchMe().then((user) => {
-    if (user?.access?.status === 'trial') enableFounderCopyProtection();
-    if (user?.access?.blocked) showFounderPaywall();
-    else showFounderWelcomeOffer(user);
-  });
-}, 30_000);
+// Freemium : un compte gratuit n'est jamais fermé, on installe seulement le
+// verrou de copie et, une fois, l'offre de bienvenue. Le relevé périodique sert
+// aux onglets déjà ouverts quand le compte devient fondateur ailleurs.
+function applyFounderFreeState(user) {
+  if (user?.access?.status !== 'free') return;
+  enableFounderCopyProtection();
+  showFounderWelcomeOffer(user);
+}
+fetchMe().then(applyFounderFreeState);
+window.setInterval(() => { fetchMe().then(applyFounderFreeState); }, 30_000);
 
 // Met à jour la barre de navigation de la landing selon l'état de connexion.
 async function refreshNav() {

@@ -4,38 +4,46 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
-const { adminLiquidPayment, adminTrialProgress } = require('../lib/admin-payments');
+const { adminLiquidPayment, adminFreeAiUsage } = require('../lib/admin-payments');
 
-const TWO_HOURS = 2 * 60 * 60 * 1000;
+const CAP = 300_000;
 
-test('présente le temps réellement consommé sur les deux heures d’essai', () => {
-  assert.deepEqual(adminTrialProgress({
-    trial_started_at: '2026-07-15T08:00:00.000Z',
-    trial_used_ms: 75 * 60 * 1000,
-    subscription_status: 'inactive',
-  }, TWO_HOURS), {
-    tracked: true,
+test('présente les tokens IA réellement consommés sur l’enveloppe gratuite', () => {
+  assert.deepEqual(adminFreeAiUsage(
+    { subscription_status: 'inactive' },
+    { total_tokens: 120_000, requests: 34 },
+    CAP,
+  ), {
     status: 'active',
-    used_ms: 75 * 60 * 1000,
-    remaining_ms: 45 * 60 * 1000,
-    total_ms: TWO_HOURS,
+    used_tokens: 120_000,
+    remaining_tokens: 180_000,
+    total_tokens: CAP,
+    requests: 34,
   });
 });
 
-test('plafonne l’essai à deux heures et distingue un passage au paiement', () => {
-  assert.equal(adminTrialProgress({
-    trial_started_at: '2026-07-15T08:00:00.000Z',
-    trial_used_ms: 3 * 60 * 60 * 1000,
-    subscription_status: 'inactive',
-  }, TWO_HOURS).status, 'expired');
+test('un fondateur qui n’a jamais utilisé l’IA n’a rien consommé', () => {
+  const untouched = adminFreeAiUsage({ subscription_status: 'inactive' }, undefined, CAP);
+  assert.equal(untouched.status, 'active');
+  assert.equal(untouched.used_tokens, 0);
+  assert.equal(untouched.remaining_tokens, CAP);
+});
 
-  const converted = adminTrialProgress({
-    trial_started_at: '2026-07-15T08:00:00.000Z',
-    trial_used_ms: 20 * 60 * 1000,
-    subscription_status: 'active',
-  }, TWO_HOURS);
+test('signale l’enveloppe épuisée et distingue un passage au paiement', () => {
+  assert.equal(adminFreeAiUsage(
+    { subscription_status: 'inactive' }, { total_tokens: CAP }, CAP,
+  ).status, 'exhausted');
+
+  // Le dernier appel autorisé n'est pas tronqué : le cumul peut dépasser
+  // l'enveloppe, le chiffre affiché doit rester le cumul réel.
+  const overshoot = adminFreeAiUsage({ subscription_status: 'inactive' }, { total_tokens: 312_400 }, CAP);
+  assert.equal(overshoot.status, 'exhausted');
+  assert.equal(overshoot.used_tokens, 312_400);
+  assert.equal(overshoot.remaining_tokens, 0);
+
+  const converted = adminFreeAiUsage({ subscription_status: 'active' }, { total_tokens: 20_000 }, CAP);
   assert.equal(converted.status, 'converted');
-  assert.equal(converted.used_ms, 20 * 60 * 1000);
+  assert.equal(converted.used_tokens, 20_000);
 });
 
 test('un paiement Liquid+ est payé ou absent, jamais dû', () => {
@@ -47,8 +55,8 @@ test('un paiement Liquid+ est payé ou absent, jamais dû', () => {
   });
 });
 
-test('place la progression de l’essai avant le paiement Liquid+ dans le tableau', () => {
+test('place la consommation IA avant le paiement Liquid+ dans le tableau', () => {
   const adminHtml = fs.readFileSync(path.join(__dirname, '..', 'admin.html'), 'utf8');
-  assert.match(adminHtml, /<th>Essai gratuit de 2 h<\/th><th>Paiements Liquid\+<\/th>/);
-  assert.match(adminHtml, /freeTrialValue\(payment\.free_trial\).*liquidPaymentValue\(payment\.liquid_plus\)/);
+  assert.match(adminHtml, /<th>Assistant IA gratuit<\/th><th>Paiements Liquid\+<\/th>/);
+  assert.match(adminHtml, /freeAiValue\(payment\.free_ai\).*liquidPaymentValue\(payment\.liquid_plus\)/);
 });

@@ -36,7 +36,7 @@ test('la facturation permet le paiement et préremplit le code de bienvenue', ()
 
 test('le serveur ne propose la fenêtre qu’au premier essai fondateur', () => {
   assert.match(serverSource, /updates\.welcome_offer_pending = true/);
-  assert.match(serverSource, /welcome_offer_pending: isFounder && access\.status === 'trial'/);
+  assert.match(serverSource, /welcome_offer_pending: isFounder && access\.status === 'free'/);
   assert.match(serverSource, /\/api\/billing\/welcome-offer\/dismiss/);
   assert.match(serverSource, /app\.post\('\/api\/billing\/checkout', requireAuth/);
 });
