@@ -378,36 +378,31 @@
       .btn-plan:hover { color: #111; border-color: #777168; }
       .plan--featured .btn-plan { background: #fff; color: #111; }
       .plan--featured .btn-plan:hover { background: #eeece7; }
-      .pricing-builder { margin-top: 36px; overflow: hidden; border: 1px solid #d8d4cc; border-radius: 22px; background: #fff; box-shadow: 0 18px 50px rgba(30,28,24,.08); }
-      .pricing-grid { display: grid; grid-template-columns: minmax(260px,1.4fr) repeat(3,minmax(160px,1fr)); }
-      .pricing-cell { min-width: 0; padding: 18px 20px; border-right: 1px solid #e3dfd7; border-bottom: 1px solid #e3dfd7; }
-      .pricing-cell:nth-child(4n) { border-right: 0; }
-      .pricing-head { padding-top: 24px; padding-bottom: 24px; background: #f7f6f3; }
-      .pricing-head--liquid { color: #14532d; background: #e7f6ec; }
-      .pricing-head__eyebrow { display: block; margin-bottom: 7px; color: #8a857b; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
-      .pricing-head--liquid .pricing-head__eyebrow { color: rgba(20,83,45,.6); }
-      .pricing-head strong { display: block; font-size: 16px; line-height: 1.3; }
-      .pricing-head small { display: block; margin-top: 7px; color: #78736a; font-size: 11px; line-height: 1.45; }
-      .pricing-head--liquid small { color: rgba(20,83,45,.72); }
-      .pricing-service { display: flex; align-items: center; gap: 12px; cursor: pointer; }
-      .pricing-service input { position: absolute; opacity: 0; pointer-events: none; }
-      .pricing-check { width: 22px; height: 22px; flex: none; display: grid; place-items: center; border: 1.5px solid #b8b2a8; border-radius: 6px; color: transparent; background: #fff; transition: .15s ease; }
-      .pricing-service input:checked + .pricing-check { color: #fff; border-color: #111; background: #111; }
-      .pricing-service input:focus-visible + .pricing-check { outline: 3px solid rgba(59,130,246,.25); outline-offset: 2px; }
-      .pricing-service__text strong { display: block; font-size: 13px; line-height: 1.35; }
-      .pricing-service__text small { display: block; margin-top: 3px; color: #8a857b; font-size: 11px; line-height: 1.4; }
-      .pricing-access { cursor: default; background: #faf9f7; }
-      .pricing-access .pricing-check { color: #15803d; border-color: #86efac; background: #dcfce7; }
-      .pricing-amount { display: flex; align-items: center; justify-content: center; color: #625f58; font-size: 13px; text-align: center; }
-      .pricing-amount--liquid { color: #111; font-weight: 700; background: #f5f8ff; }
-      .pricing-total-label { border-bottom: 0; background: #f7f6f3; }
-      .pricing-total-label strong { display: block; font-size: 15px; }
-      .pricing-total-label small { display: block; margin-top: 5px; color: #8a857b; font-size: 11px; }
-      .pricing-total { border-bottom: 0; padding-top: 24px; padding-bottom: 24px; text-align: center; background: #f7f6f3; }
-      .pricing-total--liquid { color: #14532d; background: #e7f6ec; }
-      .pricing-total__value { display: block; font-size: clamp(1.45rem,2.5vw,2rem); font-weight: 800; letter-spacing: -.04em; }
-      .pricing-total small { display: block; margin-top: 5px; color: #8a857b; font-size: 10px; }
-      .pricing-total--liquid small { color: rgba(20,83,45,.65); }
+      .offers { margin-top: 36px; overflow: hidden; border: 1px solid #d8d4cc; border-radius: 22px; background: #fff; box-shadow: 0 18px 50px rgba(30,28,24,.08); }
+      .offers-grid { display: grid; grid-template-columns: minmax(250px,1.45fr) repeat(2,minmax(185px,1fr)); }
+      .offers-cell { min-width: 0; padding: 18px 20px; border-right: 1px solid #e3dfd7; border-bottom: 1px solid #e3dfd7; }
+      .offers-grid .offers-cell:nth-child(3n) { border-right: 0; }
+      .offers-grid .offers-cell:nth-last-child(-n+3) { border-bottom: 0; }
+      .offers-head { padding-top: 22px; padding-bottom: 22px; background: #f7f6f3; }
+      .offers-head__eyebrow { display: block; margin-bottom: 7px; color: #8a857b; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+      .offers-head strong { display: block; font-size: 15px; line-height: 1.3; }
+      .offers-head small { display: block; margin-top: 6px; color: #78736a; font-size: 11px; line-height: 1.45; }
+      .offers-name strong { display: block; font-size: 14px; line-height: 1.35; }
+      .offers-name small { display: block; margin-top: 4px; color: #8a857b; font-size: 11.5px; line-height: 1.5; }
+      .offers-by { display: inline-block; margin-top: 8px; font-family: 'Archivo', sans-serif; font-size: 9.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #78736a; background: #eeece7; border-radius: 99px; padding: 3px 9px; }
+      .offers-cell--hl { background: #e7f6ec; }
+      .offers-cell--hl.offers-name strong { color: #14532d; }
+      .offers-cell--hl .offers-by { color: #14532d; background: #d1fae5; }
+      .offers-price { display: flex; flex-direction: column; justify-content: center; text-align: center; gap: 4px; }
+      .offers-price__main { font-size: 19px; font-weight: 800; letter-spacing: -.03em; color: #111; }
+      .offers-cell--hl .offers-price__main { color: #14532d; }
+      .offers-price__main s { font-size: 13px; font-weight: 600; color: #8a857b; margin-right: 6px; letter-spacing: 0; }
+      .offers-price small { color: #8a857b; font-size: 10.5px; line-height: 1.45; }
+      .offers-cell--hl.offers-price small { color: rgba(20,83,45,.72); }
+      .pricing-guarantee { display: flex; align-items: center; justify-content: center; gap: 10px; max-width: 760px; margin: 18px auto 0; padding: 14px 20px; border: 1px solid #c2dfc6; border-radius: 14px; background: #eef8ef; color: #14532d; font-size: 14px; line-height: 1.5; text-align: center; }
+      .pricing-guarantee strong { font-family: 'Archivo', sans-serif; font-weight: 800; }
+      .pricing-perimeter-link { display: block; margin-top: 20px; text-align: center; font-size: 14px; font-weight: 600; color: #14532d; text-decoration: underline; text-underline-offset: 3px; }
+      .pricing-perimeter-link:hover { color: #111; }
       .pricing-actions { display: flex; justify-content: center; margin-top: 22px; }
       .pricing-actions .btn-plan { min-width: 240px; color: #fff; border-color: #111; background: #111; }
       .pricing-note { max-width: 760px; margin: 14px auto 0; color: #78736a; font-size: 11px; line-height: 1.6; text-align: center; }
@@ -437,8 +432,8 @@
         .footer { padding: 40px 20px 0; }
         .footer__inner { gap: 32px; }
         .footer-contact { width: calc(100% - 40px); margin: 40px auto; grid-template-columns: 1fr; gap: 24px; padding: 24px 20px; }
-        .pricing-builder { overflow-x: auto; }
-        .pricing-grid { min-width: 780px; }
+        .offers { overflow-x: auto; }
+        .offers-grid { min-width: 680px; }
         .footer-contact__details { grid-template-columns: 1fr; gap: 20px; }
         .cta { padding: 64px 20px; }
       }
@@ -543,6 +538,7 @@
 
       <!-- HERO -->
       <section class="hero">
+        <div class="hero__badge"><span class="hero__dot"></span>Satisfait ou remboursé sous 30 jours</div>
         <h1>Le cockpit juridique<br><em>de votre levée de fonds.</em></h1>
         <p class="hero__sub">De la pre-seed à la série A : term sheets, pactes et cap tables sécurisés à chaque tour.</p>
         <div class="hero__actions">
@@ -552,7 +548,7 @@
         <!-- BÉNÉFICES CLÉS -->
         <div class="hero__benefits">
           <div class="hbenefit"><span class="hbenefit__dot"></span><span class="hbenefit__text"><strong>Gain de temps</strong> — modèles pré-structurés et champs guidés un par un : vos documents sont complets en heures, pas en semaines d'allers-retours avec un cabinet.</span></div>
-          <div class="hbenefit"><span class="hbenefit__dot"></span><span class="hbenefit__text"><strong>Gain d'argent</strong> — l’offre Liquid+ à 600 € TTC, là où un avocat facture au compteur, souvent plusieurs milliers d'euros.</span></div>
+          <div class="hbenefit"><span class="hbenefit__dot"></span><span class="hbenefit__text"><strong>Gain d'argent</strong> — Liquid+ Complet dès 490 € HT, satisfait ou remboursé sous 30 jours, là où un avocat facture au compteur, souvent plusieurs milliers d'euros.</span></div>
           <div class="hbenefit"><span class="hbenefit__dot"></span><span class="hbenefit__text"><strong>Gain de clarté</strong> — chaque clause traduite en clair par l'IA : ce qu'elle dit, ce qu'elle change concrètement pour vous.</span></div>
           <div class="hbenefit"><span class="hbenefit__dot"></span><span class="hbenefit__text"><strong>Backé par des avocats</strong> — les documents et points sensibles sont sécurisés avec l'appui de professionnels du droit.</span></div>
         </div>
@@ -789,45 +785,36 @@
       <section class="section pricing" id="tarifs">
         <div class="section__inner">
           <span class="eyebrow">Tarifs</span>
-          <h2 class="section__title">Un prix clair pour aller jusqu'au closing.</h2>
-          <p class="section__sub">L’offre Liquid+ est proposée à 600 € TTC. Sélectionnez ensuite, si nécessaire, les actes à faire relire ou valider par un avocat.</p>
-          <div class="pricing-promo"><strong>Offre RAISE SUMMIT : Liquid+ à 450 € TTC</strong> avec le code <code>RAISE SUMMIT</code></div>
-          <div class="pricing-builder" aria-label="Comparateur de tarifs juridiques">
-            <div class="pricing-grid" id="pricing-grid">
-              <div class="pricing-cell pricing-head"><span class="pricing-head__eyebrow">Votre périmètre</span><strong>Que souhaitez-vous sécuriser ?</strong><small>Cochez ou décochez chaque prestation.</small></div>
-              <div class="pricing-cell pricing-head pricing-head--liquid"><strong>Liquid+</strong><small>Pilotage, IA et avocat partenaire</small></div>
-              <div class="pricing-cell pricing-head"><strong>Avocat indépendant</strong><small>Honoraires moyens estimés</small></div>
-              <div class="pricing-cell pricing-head"><strong>Cabinet d'avocats</strong><small>Honoraires moyens estimés</small></div>
+          <h2 class="section__title">Une grille claire, du gratuit au closing sécurisé.</h2>
+          <p class="section__sub">Deux parcours — BSA-AIR ou levée classique — et, en option, deux packs avocat contractualisés et facturés directement par l'avocat partenaire.</p>
+          <div class="pricing-promo"><strong>Tarif fondateur : 10 places, jusqu'au 14 août.</strong> Liquid+ Complet à 290 € HT (BSA-AIR) ou 790 € HT (levée classique).</div>
+          <div class="offers" aria-label="Grille tarifaire Liquid+">
+            <div class="offers-grid">
+              <div class="offers-cell offers-head"><span class="offers-head__eyebrow">Votre parcours</span><strong>Choisissez votre type de levée</strong><small>Chaque offre existe dans les deux formats.</small></div>
+              <div class="offers-cell offers-head"><strong>Levée BSA-AIR</strong><small>Le format rapide — la « SAFE à la française »</small></div>
+              <div class="offers-cell offers-head"><strong>Levée classique</strong><small>Augmentation de capital en actions de préférence</small></div>
 
-              <div class="pricing-cell pricing-service pricing-access"><span class="pricing-check" aria-hidden="true">✓</span><span class="pricing-service__text"><strong>Accès au pilote Liquid+</strong><small>Plateforme, IA, data room et suivi</small></span></div>
-              <div class="pricing-cell pricing-amount pricing-amount--liquid">700 €</div><div class="pricing-cell pricing-amount">—</div><div class="pricing-cell pricing-amount">—</div>
+              <div class="offers-cell offers-name"><strong>Liquid+ Découverte</strong><small>Explorez la plateforme : parcours guidé étape par étape, simulateur de dilution, aperçu des modèles.</small><span class="offers-by">Sans engagement</span></div>
+              <div class="offers-cell offers-price"><span class="offers-price__main">0 €</span><small>gratuit</small></div>
+              <div class="offers-cell offers-price"><span class="offers-price__main">0 €</span><small>gratuit</small></div>
 
-              <label class="pricing-cell pricing-service"><input type="checkbox" data-liquid="100" data-independent="490" data-firm="900" checked><span class="pricing-check" aria-hidden="true">✓</span><span class="pricing-service__text"><strong>Term sheet</strong><small>Relecture et validation des équilibres</small></span></label>
-              <div class="pricing-cell pricing-amount pricing-amount--liquid">+ 100 €</div><div class="pricing-cell pricing-amount">+ 490 €</div><div class="pricing-cell pricing-amount">+ 900 €</div>
+              <div class="offers-cell offers-name offers-cell--hl"><strong>Liquid+ Complet</strong><small>Toute la plateforme et l'ensemble des documents de votre levée : rédaction guidée, analyse IA de chaque clause, data room, suivi jusqu'au closing.</small><span class="offers-by">Facturé par Liquid+ · satisfait ou remboursé 30 jours</span></div>
+              <div class="offers-cell offers-price offers-cell--hl"><span class="offers-price__main"><s>490 €</s>290 € HT</span><small>tarif fondateur — 10 places, jusqu'au 14 août</small></div>
+              <div class="offers-cell offers-price offers-cell--hl"><span class="offers-price__main"><s>1 490 €</s>790 € HT</span><small>tarif fondateur — 10 places, jusqu'au 14 août</small></div>
 
-              <label class="pricing-cell pricing-service"><input type="checkbox" data-liquid="100" data-independent="590" data-firm="1100"><span class="pricing-check" aria-hidden="true">✓</span><span class="pricing-service__text"><strong>BSA-AIR / convertible</strong><small>Révision de l'instrument d'investissement</small></span></label>
-              <div class="pricing-cell pricing-amount pricing-amount--liquid">+ 100 €</div><div class="pricing-cell pricing-amount">+ 590 €</div><div class="pricing-cell pricing-amount">+ 1 100 €</div>
+              <div class="offers-cell offers-name"><strong>Pack avocat Essentiel</strong><small>Un avocat partenaire rédige et valide les actes critiques de l'opération : term sheet, contrat d'investissement, pacte d'associés, formalisme d'assemblée.</small><span class="offers-by">Facturé directement par l'avocat</span></div>
+              <div class="offers-cell offers-price"><span class="offers-price__main">600 – 900 € HT</span><small>forfait indicatif</small></div>
+              <div class="offers-cell offers-price"><span class="offers-price__main">2 000 – 3 000 € HT</span><small>forfait indicatif</small></div>
 
-              <label class="pricing-cell pricing-service"><input type="checkbox" data-liquid="250" data-independent="1190" data-firm="2200" checked><span class="pricing-check" aria-hidden="true">✓</span><span class="pricing-service__text"><strong>Pacte d'associés</strong><small>Révision des clauses sensibles</small></span></label>
-              <div class="pricing-cell pricing-amount pricing-amount--liquid">+ 250 €</div><div class="pricing-cell pricing-amount">+ 1 190 €</div><div class="pricing-cell pricing-amount">+ 2 200 €</div>
-
-              <label class="pricing-cell pricing-service"><input type="checkbox" data-liquid="200" data-independent="790" data-firm="1500" checked><span class="pricing-check" aria-hidden="true">✓</span><span class="pricing-service__text"><strong>Statuts mis à jour</strong><small>Contrôle et validation avant dépôt</small></span></label>
-              <div class="pricing-cell pricing-amount pricing-amount--liquid">+ 200 €</div><div class="pricing-cell pricing-amount">+ 790 €</div><div class="pricing-cell pricing-amount">+ 1 500 €</div>
-
-              <label class="pricing-cell pricing-service"><input type="checkbox" data-liquid="150" data-independent="890" data-firm="1700"><span class="pricing-check" aria-hidden="true">✓</span><span class="pricing-service__text"><strong>Déclarations et garanties</strong><small>Relecture du document le plus engageant</small></span></label>
-              <div class="pricing-cell pricing-amount pricing-amount--liquid">+ 150 €</div><div class="pricing-cell pricing-amount">+ 890 €</div><div class="pricing-cell pricing-amount">+ 1 700 €</div>
-
-              <label class="pricing-cell pricing-service"><input type="checkbox" data-liquid="100" data-independent="450" data-firm="800" checked><span class="pricing-check" aria-hidden="true">✓</span><span class="pricing-service__text"><strong>Revue finale avant signature</strong><small>Validation de la documentation de closing</small></span></label>
-              <div class="pricing-cell pricing-amount pricing-amount--liquid">+ 100 €</div><div class="pricing-cell pricing-amount">+ 450 €</div><div class="pricing-cell pricing-amount">+ 800 €</div>
-
-              <div class="pricing-cell pricing-total-label"><strong>Budget estimé</strong><small>Mis à jour selon votre sélection</small></div>
-              <div class="pricing-cell pricing-total pricing-total--liquid"><span class="pricing-total__value" id="total-liquid">1 350 €</span><small>Accès Liquid+ inclus</small></div>
-              <div class="pricing-cell pricing-total"><span class="pricing-total__value" id="total-independent">2 920 €</span><small>hors accès Liquid+</small></div>
-              <div class="pricing-cell pricing-total"><span class="pricing-total__value" id="total-firm">5 400 €</span><small>hors accès Liquid+</small></div>
+              <div class="offers-cell offers-name"><strong>Pack avocat Sérénité</strong><small>Tout l'Essentiel + la relecture de l'ensemble des documents importants, jusqu'à la revue finale avant signature.</small><span class="offers-by">Facturé directement par l'avocat</span></div>
+              <div class="offers-cell offers-price"><span class="offers-price__main">1 200 – 1 800 € HT</span><small>forfait indicatif</small></div>
+              <div class="offers-cell offers-price"><span class="offers-price__main">4 000 – 6 000 € HT</span><small>forfait indicatif</small></div>
             </div>
           </div>
+          <div class="pricing-guarantee"><strong>Satisfait ou remboursé sous 30 jours</strong> — remboursement intégral de votre facture Liquid+.</div>
+          <a class="pricing-perimeter-link" href="offres.html">Voir le périmètre détaillé : chaque document de votre levée et la mission exacte de l'avocat →</a>
           <div class="pricing-actions"><a class="btn-plan" href="https://calendly.com/liquidplus-contact" target="_blank" rel="noopener">Parler de ma levée</a></div>
-          <p class="pricing-note">Estimations indicatives hors taxes. Les honoraires d'un avocat indépendant ou d'un cabinet varient selon le dossier et le temps passé. Le périmètre et le montant Liquid+ sont confirmés avant le démarrage.</p>
+          <p class="pricing-note">Prix hors taxes. Les packs avocat sont des forfaits indicatifs : ils sont confirmés par une lettre de mission conclue directement entre vous et l'avocat partenaire, qui vous facture en direct. Liquid+ ne facture aucune prestation de conseil juridique et ne partage pas d'honoraires avec les avocats. La garantie satisfait ou remboursé (30 jours) porte sur la facture Liquid+, réglée à la commande.</p>
         </div>
       </section>
 
@@ -881,6 +868,7 @@
           <h4>Produit</h4>
           <a href="/saas/tableau-de-bord.html">Préparer ma levée de fonds</a>
           <a href="#how">Les étapes</a>
+          <a href="offres.html">Offres &amp; périmètre détaillé</a>
         </div>
         <div class="footer__col">
           <h4>Ressources</h4>
@@ -944,27 +932,6 @@
         syncActiveLink();
       })();
 
-      (() => {
-        const grid = document.getElementById('pricing-grid');
-        if (!grid) return;
-        const formatPrice = value => new Intl.NumberFormat('fr-FR').format(value) + ' €';
-        const updatePricing = () => {
-          let liquid = 700;
-          let independent = 0;
-          let firm = 0;
-          grid.querySelectorAll('input[type="checkbox"]').forEach(input => {
-            if (!input.checked) return;
-            liquid += Number(input.dataset.liquid || 0);
-            independent += Number(input.dataset.independent || 0);
-            firm += Number(input.dataset.firm || 0);
-          });
-          document.getElementById('total-liquid').textContent = formatPrice(liquid);
-          document.getElementById('total-independent').textContent = formatPrice(independent);
-          document.getElementById('total-firm').textContent = formatPrice(firm);
-        };
-        grid.addEventListener('change', updatePricing);
-        updatePricing();
-      })();
     </script>
   </body>
 </html>
