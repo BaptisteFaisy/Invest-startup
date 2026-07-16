@@ -142,6 +142,9 @@
     .folder--phase { box-shadow: 0 1px 3px rgba(8,9,12,0.05); }
     .folder--phase .folder__head { border-bottom: 1px solid rgba(8,9,12,0.07); background: linear-gradient(180deg, rgba(8,9,12,0.015), transparent); }
     .folder--phase .folder__ic { background: #08090c; color: #fff; font-family: 'Archivo', sans-serif; font-weight: 800; }
+    /* Bloc « Documents » : logo vert de la même famille que les cartes de « Ma
+       levée » (.raise-profile), au lieu du carré numéroté des étapes. */
+    .folder--docs .folder__ic { background: #e7f4ea !important; color: #66b97f; }
     .folder--phase .folder__step { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #6b6b78; }
     .phase-files { margin:12px 2px 4px; border:1px dashed rgba(8,9,12,0.16); border-radius:10px; padding:10px; background:#faf9f6; }
     .phase-files__head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; }
@@ -6059,6 +6062,12 @@
       const stepNum = (f.track || 'classic') === 'classic' ? pi : friseStepNumber(f, pi);
       const title = opts.title || f.name;
       const icon = opts.icon || stepNum;
+      // Carte de documents : logo dédié (deux feuilles), vert comme celui des
+      // cartes de « Ma levée ». Les autres étapes gardent leur numéro.
+      const isDocs = icon === 'DOC';
+      const iconHtml = isDocs
+        ? `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H9a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6Z"/><path d="M15 2v4h4"/><path d="M5 7v13a2 2 0 0 0 2 2h9"/></svg>`
+        : esc(icon);
       const stepLabel = opts.hideStep ? '' : `<div class="folder__step">Étape ${stepNum}</div>`;
       const actions = opts.documentActions ? `
         <div class="documents-card__actions">
@@ -6070,13 +6079,14 @@
       // Une même phase peut porter deux cartes de documents (titres distincts) :
       // la clé de pli les sépare.
       const openKey = f.id + ':' + title;
-      card.className = 'folder folder--phase' + (phaseCardOpen[openKey] !== false ? ' open' : '');
+      card.className = 'folder folder--phase' + (isDocs ? ' folder--docs' : '')
+        + (phaseCardOpen[openKey] !== false ? ' open' : '');
       // opts.noAnchor : évite un doublon d'id quand l'étape possède déjà une autre
       // carte porteuse de #phase-<clé> (ex. « Ma levée » = profil + documents).
       if (f.key && !opts.noAnchor) card.id = 'phase-' + f.key;
       card.innerHTML = `
         <div class="folder__head">
-          <div class="folder__ic">${esc(icon)}</div>
+          <div class="folder__ic">${iconHtml}</div>
           <div class="folder__main">
             ${stepLabel}
             <div class="folder__name">${esc(title)}</div>
