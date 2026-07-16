@@ -976,7 +976,9 @@ body.auth { padding: 0; }
 .nav-hamburger {
   display: none;
   flex-direction: column;
-  gap: 5px;
+  /* Pas d'écart impair : 2px + 5px tombe entre deux pixels écran en 125/150 %,
+     et les 3 barres ne s'arrondissent plus à la même épaisseur. */
+  gap: 6px;
   background: none;
   border: none;
   cursor: pointer;
