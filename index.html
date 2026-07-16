@@ -283,13 +283,11 @@
       .nav-primary__link--active { color: #111; }
       .nav-primary__link--active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -13px; height: 2px; background: #22c55e; border-radius: 99px; }
       .logo-mark, .logo-wordmark, .nav-link { color: #111; }
-      .nav-user-name { color: #57534a; background: rgba(17,17,17,.05); border-color: rgba(17,17,17,.12); }
-      .nav-divider { width: 1px; height: 20px; background: rgba(17,17,17,.15); flex: none; }
       .mobile-divider { width: 120px; height: 1px; background: rgba(17,17,17,.15); border: 0; margin: 4px 0; }
       .button.ghost { color: #111; border-color: rgba(17,17,17,.2); }
       .button.ghost:hover { color: #111; border-color: rgba(17,17,17,.5); }
       .button.light { background: #111; color: #fff; }
-      .nav-hamburger { align-items: center; }
+      .nav-hamburger { display: flex; align-items: center; margin-left: 14px; }
       .nav-hamburger span {
         width: 24px;
         min-width: 24px;
@@ -437,13 +435,6 @@
         .footer-contact__details { grid-template-columns: 1fr; gap: 20px; }
         .cta { padding: 64px 20px; }
       }
-      /* Quand l'utilisateur est connecté, le groupe de droite est plus large
-         (SaaS, prénom, déconnexion). À ces largeurs, on le range
-         dans le menu pour préserver les deux onglets centraux sans collision. */
-      @media (min-width: 721px) and (max-width: 1500px) {
-        .nav-links { display: none; }
-        .nav-hamburger { display: flex; }
-      }
       @media (max-width: 720px) {
         .nav-primary { display: none; }
         .nav-signup { min-width: 142px; padding: 9px 12px; font-size: 10px; }
@@ -461,9 +452,6 @@
           <a class="nav-primary__link" href="#tarifs">TARIFS</a>
           <a class="nav-primary__link" href="#contact">NOUS CONTACTER</a>
         </div>
-        <div class="nav-links" id="nav-links">
-          <a class="button ghost" href="login.html">Se connecter</a>
-        </div>
         <a class="nav-signup" id="nav-signup" href="register.html"><span class="nav-signup__label">Créez un compte</span></a>
       <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button></nav>
     </header>
@@ -473,8 +461,9 @@
       <a href="#top">PILOTER MA LEVÉE</a>
       <a href="#tarifs">TARIFS</a>
       <a href="#contact">NOUS CONTACTER</a>
-      <a href="login.html" style="margin-top:16px; font-size:1.1rem; color:rgba(255,255,255,0.5);">Se connecter</a>
-      <a href="register.html" style="font-size:1.1rem; color:rgba(255,255,255,0.5);">Créez un compte</a>
+      <hr class="mobile-divider" aria-hidden="true" />
+      <a href="login.html" style="font-size:1.1rem; color:rgba(255,255,255,0.5);">ME CONNECTER</a>
+      <a href="register.html" style="font-size:1.1rem; color:rgba(255,255,255,0.5);">CRÉER UN COMPTE</a>
     </div>
 
     <script>
@@ -515,26 +504,15 @@
         .then(r => r.ok ? r.json() : null)
         .then(data => {
           if (!data?.user) return;
-          const name = data.user.full_name ? data.user.full_name.split(' ')[0] : data.user.email;
-          document.getElementById('nav-links').innerHTML = `
-            <span class="nav-divider" aria-hidden="true"></span>
-            <a class="nav-link saas-nav-link" href="/saas/tableau-de-bord.html">MON ESPACE</a>
-            <span class="nav-link nav-user-name">${name}</span>
-            <button class="button ghost" id="nav-logout">Me déconnecter</button>
-          `;
           document.getElementById('mobile-menu').innerHTML = `
             <button class="nav-hamburger" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><span></span><span></span><span></span></button>
             <a href="#top">PILOTER MA LEVÉE</a>
             <a href="#tarifs">TARIFS</a>
             <a href="#contact">NOUS CONTACTER</a>
             <hr class="mobile-divider" aria-hidden="true" />
-            <a href="/saas/tableau-de-bord.html">MON ESPACE</a>
-            <button id="mobile-logout" style="margin-top:16px;font-size:1.1rem;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer;font-family:inherit;">Me déconnecter</button>
+            <a href="/saas/tableau-de-bord.html" style="font-size:1.1rem; color:rgba(255,255,255,0.5);">MON ESPACE</a>
+            <button id="mobile-logout" style="font-size:1.1rem;color:rgba(255,255,255,0.5);background:none;border:none;cursor:pointer;font-family:'Archivo',sans-serif;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:0;">ME DÉCONNECTER</button>
           `;
-          document.getElementById('nav-logout').addEventListener('click', async () => {
-            await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
-            window.location.reload();
-          });
           document.getElementById('mobile-logout').addEventListener('click', async () => {
             await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
             window.location.reload();
