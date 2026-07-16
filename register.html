@@ -81,7 +81,7 @@
           </label>
           <label class="auth-field">
             <span>Email</span>
-            <input class="auth-input" type="email" name="email" autocomplete="email" placeholder="vous@exemple.fr" required />
+            <input class="auth-input" type="email" name="email" autocomplete="email" placeholder="vous@exemple.fr" autofocus required />
           </label>
           <label class="auth-field">
             <span>Mot de passe <span class="auth-optional">(8 caractères min.)</span></span>
@@ -225,6 +225,10 @@
           submitBtn.textContent = 'Créer mon compte';
         }
       });
+
+      // Curseur d'emblée dans le champ email (secours à l'attribut autofocus,
+      // qui n'est pas honoré quand la page se charge dans un onglet en arrière-plan).
+      document.querySelector('#register-form input[name="email"]')?.focus();
     </script>
   </body>
 </html>
