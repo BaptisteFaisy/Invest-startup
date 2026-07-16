@@ -597,7 +597,7 @@
         const active = data.liquid_plus.status === 'active';
         description.textContent = active
           ? 'Votre offre Liquid+ est active.'
-          : 'Activez Liquid+ dès maintenant, sans attendre la fin de vos 2 heures d’essai gratuit.';
+          : 'Votre accès gratuit n’expire pas. Activez Liquid+ pour exporter, copier et sécuriser vos documents.';
         content.innerHTML = '<div class="billing-plan"><div><div class="billing-plan__price">600 € <small>TTC · forfait Liquid+</small></div><div class="billing-plan__meta">Plateforme, assistant IA, documents, simulations, exports et suivi jusqu’au closing.</div></div><div class="billing-plan__action">' +
           (active ? '<span class="account-status__badge account-status__badge--active">Offre active</span>' : '<button type="button" class="btn btn--primary" id="billing-checkout">Payer 600 € TTC</button>') +
           '</div></div>' + (active ? '' : '<div class="billing-code"><input class="input" id="billing-promo-code" placeholder="Code promotionnel" autocomplete="off"><button type="button" class="btn btn--ghost" id="billing-apply-code">Appliquer</button></div><div id="billing-promo-details"></div>') + '<p class="billing-note">La société est cliente et payeuse de Liquid+. Les prestations éventuelles d’un avocat sont facturées séparément et ne sont pas incluses dans ce paiement.</p>';
