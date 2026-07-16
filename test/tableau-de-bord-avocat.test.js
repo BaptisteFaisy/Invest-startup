@@ -82,6 +82,32 @@ test('un lien de mission verrouillé n’est cliquable ni à la souris ni au cla
   assert.match(inlineScript, /link\.removeAttribute\('tabindex'\)/);
 });
 
+// L'adhésion à la grille s'arrachait dans un confirm() natif, au clic sur le premier
+// client — et affichait « Pacte d'associés : null », aucun tarif n'étant publié. C'est
+// désormais l'article 4 de la convention de partenariat, signée à l'entrée du réseau.
+test('la grille ne s’accepte plus dans une boîte de dialogue au dernier moment', () => {
+  // Les commentaires ont le droit de parler du confirm() disparu ; le code, non.
+  const code = inlineScript.replace(/^\s*\/\/.*$/gm, '');
+  assert.doesNotMatch(code, /confirm\(/, 'plus aucun confirm() dans le parcours avocat');
+  assert.doesNotMatch(code, /ensureCatalogueAccepted|api\/lawyer\/catalogue/);
+});
+
+// Un avocat activé mais non signataire n'a accès à aucune mission : le serveur le
+// verrouille, la page doit l'emmener au texte plutôt que d'afficher un espace vide.
+test('le verrou convention du serveur emmène l’avocat au texte, pas dans le vide', () => {
+  assert.match(inlineScript, /function goToPartnership\(\) \{ location\.replace\('convention-partenariat-avocat\.html'\); \}/);
+  const loadTools = inlineScript.slice(
+    inlineScript.indexOf('async function loadClientTools'),
+    inlineScript.indexOf('async function logout'),
+  );
+  assert.match(loadTools, /err\.code==='LAWYER_PARTNERSHIP_REQUIRED'/);
+  assert.match(loadTools, /goToPartnership\(\);return;/);
+  // Toute autre panne remonte : elle ne doit pas être avalée par la redirection.
+  assert.match(loadTools, /throw err;/);
+  // Le refus d'une proposition passe par le même aiguillage.
+  assert.match(inlineScript, /else if\(err\.code==='LAWYER_PARTNERSHIP_REQUIRED'\)goToPartnership\(\);/);
+});
+
 // Le tiroir passe sur fond papier en thème clair : un badge blanc translucide y
 // devient illisible. Les compteurs souffraient déjà du même défaut, encore invisible
 // faute de propositions à afficher.

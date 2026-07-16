@@ -51,6 +51,15 @@ const {
   validateFeeAgreementInput,
   validateDecisionInput,
 } = require('./lib/mission-acceptance');
+const {
+  LAWYER_PARTNERSHIP_VERSION,
+  buildPartnershipDocument,
+  partnershipDocumentHash,
+  partnershipAccepted,
+  validatePartnershipAcceptance,
+  partnershipAcceptanceRecord,
+  publicPartnership,
+} = require('./lib/lawyer-partnership');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -993,11 +1002,26 @@ function requireAdmin(req, res, next) {
   } catch { res.status(401).json({ error: 'Session expirée' }); }
 }
 
+// Les deux seules routes avocat ouvertes sans convention signée : celles qui
+// servent à la lire et à la signer. Sans cette exemption, le verrou s'enfermerait
+// lui-même et aucun avocat ne pourrait jamais entrer dans le réseau.
+const LAWYER_ROUTES_WITHOUT_PARTNERSHIP = new Set([
+  '/api/lawyer/partnership',
+  '/api/lawyer/partnership/accept',
+]);
+
 async function requireLawyer(req, res, next) {
-  const user = await col('users').findOne({ id: req.user.id }, { projection: { account_types: 1, lawyer_status: 1, twofa_method: 1, lawyer_catalog_version: 1 } });
+  const user = await col('users').findOne({ id: req.user.id }, { projection: { account_types: 1, lawyer_status: 1, twofa_method: 1, full_name: 1, lawyer_partnership_version: 1, lawyer_partnership_accepted_at: 1, lawyer_partnership_signed_name: 1 } });
   if (!user?.account_types?.includes('avocat')) return res.status(403).json({ error: 'Accès réservé aux avocats' });
   if ((user.lawyer_status || 'pending') !== 'active') return res.status(403).json({ error: 'Votre compte avocat doit être activé par un administrateur' });
   if (!user.twofa_method) return res.status(428).json({ error: 'Activez la double authentification pour accéder à votre espace avocat.', code: 'LAWYER_2FA_REQUIRED' });
+  // La convention de partenariat conditionne l'entrée dans le réseau, pas
+  // l'acceptation du premier client : un avocat activé qui n'a rien signé avec
+  // Liquid+ ne doit pas pouvoir approcher un dossier. Le contrôle est ici, au
+  // point de passage unique, plutôt que répété sur trente routes où l'oubli d'une
+  // seule suffirait à percer le verrou.
+  if (!LAWYER_ROUTES_WITHOUT_PARTNERSHIP.has(req.path) && !partnershipAccepted(user))
+    return res.status(428).json({ error: 'Signez la convention de partenariat Liquid+ pour accéder à votre espace avocat.', code: 'LAWYER_PARTNERSHIP_REQUIRED' });
   req.lawyer = user;
   next();
 }
@@ -4183,6 +4207,12 @@ function avocatPartner(id) { return AVOCAT_PARTNERS.find(p => p.id === id) || nu
 // d'honoraires signée entre la société et l'avocat. `fee_cap_cents` permettra
 // plus tard d'appliquer un plafond identique à tous les avocats sans modifier le
 // parcours de paiement direct du cabinet.
+//
+// ⚠ Cette liste EST la grille de l'article 4 de la convention de partenariat :
+// elle entre dans le document signé par l'avocat et dans son empreinte. La
+// modifier engage donc les avocats sur un texte qu'ils n'ont pas lu — il faut
+// incrémenter LAWYER_PARTNERSHIP_VERSION (lib/lawyer-partnership.js) pour
+// redemander leur signature.
 const AVOCAT_PRESTATIONS = [
   { key: 'garantie',  label: 'Déclarations & garanties (W&R)',  desc: 'Relecture avant signature du document le plus engageant pour les fondateurs.', critical: true,  price: null, fee_cap_cents: null, delay: 'À convenir' },
   { key: 'pacte',     label: 'Pacte d’associés',                desc: 'Revue des clauses sensibles : gouvernance, liquidité, leaver, préférence.',    critical: true,  price: null, fee_cap_cents: null, delay: 'À convenir' },
@@ -4190,7 +4220,6 @@ const AVOCAT_PRESTATIONS = [
   { key: 'bsa-air',   label: 'BSA-AIR / convertible',           desc: 'Contrôle de l’instrument d’investissement convertible.',                       critical: false, price: null, fee_cap_cents: null, delay: 'À convenir' },
   { key: 'question',  label: 'Question juridique ponctuelle',   desc: 'Un point précis à sécuriser ? Échange court avec votre avocat.',                critical: false, price: null, fee_cap_cents: null, delay: 'À convenir' },
 ];
-const LAWYER_CATALOG_VERSION = 2;
 const AVOCAT_PRESTATION_KEYS  = new Set(AVOCAT_PRESTATIONS.map(p => p.key));
 // `soumise` = en attente de la décision de l'avocat. `acceptee` = mission acceptée
 // mais diligences pas encore commencées (la convention d'honoraires reste à
@@ -6342,33 +6371,39 @@ app.get('/api/lawyer/review-requests/:id/company-evidence', requireAuth, require
   res.send(data);
 });
 
-app.get('/api/lawyer/catalogue', requireAuth, requireLawyer, async (req, res) => {
-  res.json({
-    version: LAWYER_CATALOG_VERSION,
-    accepted: Number(req.lawyer.lawyer_catalog_version) === LAWYER_CATALOG_VERSION,
-    prestations: AVOCAT_PRESTATIONS,
-    rules: [
-      'Les honoraires sont fixés dans la convention d’honoraires signée directement entre la société cliente et l’avocat.',
-      'Le montant total TTC saisi dans Liquid+ doit être celui prévu par la convention signée ; aucun montant n’est imposé ou modifié par Liquid+.',
-      'L’avocat conserve son indépendance juridique et peut refuser une mission pour un motif légal, déontologique, de conflit ou de capacité.',
-      'Les documents confidentiels utilisent l’e-Partage du CNB ; Liquid+ ne conserve pas les échanges écrits entre la société et l’avocat.',
-    ],
-  });
+// La convention absorbe l'ancien « catalogue à prix fermes » : l'adhésion à la
+// grille n'est pas un engagement distinct, c'est l'article 4 (§5 quater de la
+// stratégie). Un seul texte, une seule signature, à l'entrée du réseau.
+function lawyerPartnershipDocument() {
+  return buildPartnershipDocument(AVOCAT_PRESTATIONS);
+}
+
+app.get('/api/lawyer/partnership', requireAuth, requireLawyer, async (req, res) => {
+  res.json(publicPartnership(req.lawyer, lawyerPartnershipDocument()));
 });
 
-app.post('/api/lawyer/catalogue/accept', requireAuth, requireLawyer, async (req, res) => {
-  if (Number(req.body?.version) !== LAWYER_CATALOG_VERSION || req.body?.accepted !== true)
-    return res.status(422).json({ error: 'Vous devez accepter la version actuelle du catalogue.' });
+app.post('/api/lawyer/partnership/accept', requireAuth, requireLawyer, async (req, res) => {
+  const profile = await col('saas_lawyer_profiles').findOne({ user_id: Number(req.user.id) }, { projection: { first_name: 1, last_name: 1 } });
+  // Le nom de référence vient du profil déclaré au barreau, pas du compte : c'est
+  // celui sous lequel l'avocat exerce. À défaut, le nom du compte.
+  const profileName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ').trim();
+  const check = validatePartnershipAcceptance(req.body, profileName || req.lawyer.full_name || '');
+  if (!check.ok) return res.status(check.code === 'PARTNERSHIP_VERSION_STALE' ? 409 : 422).json({ error: check.error, code: check.code });
   const now = new Date().toISOString();
-  await col('users').updateOne({ id: req.user.id }, { $set: { lawyer_catalog_version: LAWYER_CATALOG_VERSION, lawyer_catalog_accepted_at: now } });
-  res.json({ success: true, version: LAWYER_CATALOG_VERSION, accepted_at: now });
+  const record = partnershipAcceptanceRecord({
+    signedName: check.value.signed_name,
+    documentHash: partnershipDocumentHash(lawyerPartnershipDocument()),
+    ip: req.ip,
+    userAgent: req.get('user-agent'),
+    now,
+  });
+  await col('users').updateOne({ id: req.user.id }, { $set: record });
+  res.json({ success: true, version: LAWYER_PARTNERSHIP_VERSION, accepted_at: now });
 });
 
 app.patch('/api/lawyer/client-proposals/:id', requireAuth, requireLawyer, async (req, res) => {
   const status = String(req.body?.status || '');
   if (!['accepted', 'declined'].includes(status)) return res.status(400).json({ error: 'Réponse invalide' });
-  if (status === 'accepted' && Number(req.lawyer.lawyer_catalog_version) !== LAWYER_CATALOG_VERSION)
-    return res.status(409).json({ error: 'Acceptez d’abord le cadre de mission Liquid+.', code: 'CATALOG_ACCEPTANCE_REQUIRED' });
   if (status === 'accepted') {
     const proposal = await col('lawyer_client_proposals').findOne({ id: req.params.id, lawyer_id: req.user.id, status: 'proposed' });
     if (!proposal) return res.status(409).json({ error: 'Cette proposition a déjà été traitée' });

@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Liquid+ - Convention de partenariat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
+  <style>
+    :root { --ink:#08090c; --muted:#6b6b78; --line:rgba(8,9,12,.14); --forest:#15803d; --forest-tint:#d1fae5; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; display:flex; align-items:flex-start; justify-content:center; padding:32px 16px; background:#08090c; font-family:'Libre Franklin',system-ui,sans-serif; }
+    .wrap { width:100%; max-width:820px; display:grid; gap:28px; justify-items:center; }
+    .logo { display:flex; align-items:center; gap:8px; color:#fff; text-decoration:none; font:600 1.35rem 'Archivo',sans-serif; letter-spacing:.1em; }
+    .logo img { height:40px; }
+    .card { width:100%; padding:40px 36px; border-radius:20px; background:#fff; box-shadow:0 24px 60px rgba(0,0,0,.5); }
+    h1 { margin:0 0 7px; color:var(--ink); font:800 1.65rem 'Archivo',sans-serif; letter-spacing:-.025em; }
+    .lead { margin:0; color:var(--muted); font-size:.9rem; line-height:1.55; }
+    .alert { margin:18px 0 0; padding:11px 14px; border:1px solid rgba(192,57,43,.2); border-radius:8px; background:rgba(224,88,72,.1); color:#b42318; font-size:.86rem; }
+    .draft { margin:20px 0 0; padding:13px 15px; border:1px solid rgba(180,35,24,.3); border-radius:9px; background:rgba(224,88,72,.08); color:#b42318; font-size:.83rem; line-height:1.5; }
+    .draft strong { display:block; margin-bottom:3px; font-size:.86rem; }
+    .meta { margin:20px 0 0; padding:11px 14px; border-radius:8px; background:#f7f7f5; color:var(--muted); font-size:.78rem; line-height:1.5; }
+    .doc { margin:24px 0 0; padding:26px 24px; border:1px solid var(--line); border-radius:12px; background:#fdfdfc; max-height:52vh; overflow-y:auto; }
+    .doc__title { margin:0 0 14px; color:var(--ink); font:700 1.1rem 'Archivo',sans-serif; }
+    .doc__preamble p { margin:0 0 10px; color:#40404a; font-size:.86rem; line-height:1.6; }
+    .doc__section { margin-top:22px; }
+    .doc__section h3 { margin:0 0 8px; color:var(--ink); font:700 .92rem 'Archivo',sans-serif; }
+    .doc__section ul { margin:0; padding-left:18px; }
+    .doc__section li { margin-bottom:7px; color:#40404a; font-size:.86rem; line-height:1.6; }
+    .sign { margin-top:26px; padding-top:24px; border-top:1px solid var(--line); }
+    .sign__check { display:flex; gap:10px; align-items:flex-start; color:#40404a; font-size:.86rem; line-height:1.5; cursor:pointer; }
+    .sign__check input { margin:2px 0 0; width:17px; height:17px; accent-color:var(--forest); flex:none; }
+    .field { display:grid; gap:7px; margin-top:18px; max-width:360px; }
+    label.field__label { color:#40404a; font-size:.78rem; font-weight:700; }
+    input[type=text] { width:100%; border:1px solid var(--line); border-radius:9px; padding:12px; background:#f7f7f5; color:var(--ink); font:500 .92rem inherit; outline:none; }
+    input[type=text]:focus { background:#fff; border-color:var(--forest); box-shadow:0 0 0 3px rgba(21,128,61,.12); }
+    .hint { margin:6px 0 0; color:var(--muted); font-size:.75rem; }
+    .actions { display:flex; gap:12px; align-items:center; margin-top:24px; flex-wrap:wrap; }
+    button { padding:14px 22px; border:0; border-radius:10px; background:var(--forest); color:#fff; cursor:pointer; font:700 .95rem inherit; }
+    button:disabled { opacity:.45; cursor:not-allowed; }
+    .btn--ghost { background:transparent; color:var(--muted); border:1px solid var(--line); font-weight:600; }
+    .signed { margin-top:24px; padding:14px 16px; border:1px solid rgba(21,128,61,.25); border-radius:10px; background:var(--forest-tint); color:#14532d; font-size:.86rem; line-height:1.55; }
+    .note { margin:16px 0 0; color:#92929d; font-size:.77rem; line-height:1.45; }
+    @media (max-width:600px) { .card { padding:30px 22px; } .doc { padding:20px 16px; max-height:none; } }
+    @media print {
+      body { background:#fff; padding:0; display:block; }
+      .logo, .sign, .actions, .draft, .note { display:none; }
+      .card { box-shadow:none; padding:0; }
+      .doc { max-height:none; overflow:visible; border:0; background:#fff; padding:0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <a class="logo" href="/index.html"><img src="/ressourcegraphique/Goutte%20blanche.png" alt="" />LIQUID+</a>
+    <section class="card" id="card" hidden>
+      <h1>Convention de partenariat</h1>
+      <p class="lead">Elle règle vos rapports avec Liquid+ : ce que la plateforme vous apporte, ce à quoi vous vous engagez, et ce que ni l&rsquo;un ni l&rsquo;autre ne fait. Elle ne fixe aucun honoraire &mdash; ceux-ci relèvent de votre convention d&rsquo;honoraires avec chaque société cliente.</p>
+      <div class="draft" id="draft-banner" role="note" hidden>
+        <strong>Texte en cours de validation juridique</strong>
+        Cette version est un brouillon de travail, non encore relu par un avocat. Ne la signez pas en l&rsquo;état&nbsp;: elle n&rsquo;a pas vocation à vous engager.
+      </div>
+      <div class="alert" id="error" role="alert" hidden></div>
+      <div class="signed" id="signed-notice" hidden></div>
+      <article class="doc" id="doc" aria-label="Texte de la convention"></article>
+      <p class="meta" id="doc-meta"></p>
+      <form class="sign" id="sign-form">
+        <label class="sign__check">
+          <input type="checkbox" id="accept" name="accepted" />
+          <span>J&rsquo;ai lu la convention de partenariat dans son intégralité et je l&rsquo;accepte. Je confirme exercer en qualité d&rsquo;avocat, être régulièrement inscrit à un barreau français et à jour de ma responsabilité civile professionnelle.</span>
+        </label>
+        <div class="field">
+          <label class="field__label" for="signed-name">Signature &mdash; saisissez vos prénom et nom</label>
+          <input type="text" id="signed-name" name="signed_name" autocomplete="name" maxlength="160" />
+          <p class="hint" id="name-hint"></p>
+        </div>
+        <div class="actions">
+          <button type="submit" id="submit" disabled>Signer la convention</button>
+          <button type="button" class="btn--ghost" id="print">Imprimer / enregistrer</button>
+        </div>
+        <p class="note">Votre acceptation est horodatée et conservée avec l&rsquo;empreinte du texte ci-dessus, afin d&rsquo;établir la version exacte que vous avez signée. Vous pouvez mettre fin au partenariat à tout moment (article 10).</p>
+      </form>
+    </section>
+  </main>
+  <script>
+    const card = document.getElementById('card');
+    const errorEl = document.getElementById('error');
+    const form = document.getElementById('sign-form');
+    const acceptEl = document.getElementById('accept');
+    const nameEl = document.getElementById('signed-name');
+    const submitBtn = document.getElementById('submit');
+    let partnershipVersion = null;
+
+    function showError(message) { errorEl.textContent = message || ''; errorEl.hidden = !message; }
+
+    async function api(path, opts) {
+      const res = await fetch(path, Object.assign({ credentials:'include' }, opts || {}));
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { const error = new Error(data.error || 'Erreur serveur'); error.code = data.code; error.status = res.status; throw error; }
+      return data;
+    }
+
+    function renderDocument(doc) {
+      const root = document.getElementById('doc');
+      root.replaceChildren();
+      const title = document.createElement('h2');
+      title.className = 'doc__title';
+      title.textContent = doc.title;
+      root.append(title);
+      const preamble = document.createElement('div');
+      preamble.className = 'doc__preamble';
+      doc.preamble.forEach(text => { const p = document.createElement('p'); p.textContent = text; preamble.append(p); });
+      root.append(preamble);
+      doc.sections.forEach(section => {
+        const el = document.createElement('section');
+        el.className = 'doc__section';
+        const heading = document.createElement('h3');
+        heading.textContent = section.title;
+        const list = document.createElement('ul');
+        section.clauses.forEach(clause => { const li = document.createElement('li'); li.textContent = clause; list.append(li); });
+        el.append(heading, list);
+        root.append(el);
+      });
+    }
+
+    // Un avocat qui a déjà signé cette version n'a rien à refaire : la page devient
+    // sa copie consultable, pas un formulaire qui redemande son nom.
+    function renderSigned(state) {
+      const notice = document.getElementById('signed-notice');
+      notice.hidden = false;
+      const signedOn = state.accepted_at ? new Date(state.accepted_at).toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' }) : '';
+      notice.textContent = `Convention signée${signedOn ? ' le ' + signedOn : ''}${state.signed_name ? ' par ' + state.signed_name : ''} · version ${state.signed_version}. Vous pouvez en conserver une copie ci-dessous.`;
+      form.hidden = true;
+      const back = document.createElement('div');
+      back.className = 'actions';
+      const link = document.createElement('button');
+      link.type = 'button';
+      link.textContent = 'Retour à mon espace';
+      link.addEventListener('click', () => { location.href = 'tableau-de-bord-avocat.html'; });
+      const print = document.createElement('button');
+      print.type = 'button';
+      print.className = 'btn--ghost';
+      print.textContent = 'Imprimer / enregistrer';
+      print.addEventListener('click', () => window.print());
+      back.append(link, print);
+      card.append(back);
+    }
+
+    function syncSubmit() {
+      submitBtn.disabled = !(acceptEl.checked && nameEl.value.trim().length > 1);
+    }
+    acceptEl.addEventListener('change', syncSubmit);
+    nameEl.addEventListener('input', syncSubmit);
+    document.getElementById('print').addEventListener('click', () => window.print());
+
+    async function load() {
+      try {
+        const meRes = await fetch('/api/auth/me', { credentials:'include' });
+        if (!meRes.ok) { location.replace('login.html'); return; }
+        const { user } = await meRes.json();
+        if (!user?.account_types?.includes('avocat')) { location.replace(user?.account_types?.length ? 'tableau-de-bord.html' : 'onboarding.html'); return; }
+        if (!user.twofa_enabled) { location.replace('compte.html?setup2fa=required'); return; }
+
+        const state = await api('/api/lawyer/partnership');
+        partnershipVersion = state.version;
+        renderDocument(state.document);
+        document.getElementById('draft-banner').hidden = state.status !== 'draft';
+        document.getElementById('doc-meta').textContent = `Version ${state.version} de la convention.`;
+        document.getElementById('name-hint').textContent = 'Le nom saisi doit correspondre à celui de votre profil avocat.';
+        if (state.accepted) renderSigned(state);
+        card.hidden = false;
+      } catch (error) {
+        // Un compte non encore activé n'a pas à signer : il n'est pas dans le
+        // réseau. Le tableau de bord lui dit où en est sa candidature.
+        if (error.status === 403) { location.replace('tableau-de-bord-avocat.html'); return; }
+        card.hidden = false;
+        showError(error.message || 'Impossible de joindre le serveur.');
+      }
+    }
+
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      showError('');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Signature en cours...';
+      try {
+        await api('/api/lawyer/partnership/accept', {
+          method:'POST',
+          headers:{ 'Content-Type':'application/json' },
+          body: JSON.stringify({ version: partnershipVersion, accepted: acceptEl.checked, signed_name: nameEl.value }),
+        });
+        location.href = 'tableau-de-bord-avocat.html';
+      } catch (error) {
+        // Le texte a changé sous ses yeux : le relire est la seule issue honnête.
+        if (error.code === 'PARTNERSHIP_VERSION_STALE') { location.reload(); return; }
+        showError(error.message || 'Impossible de joindre le serveur.');
+        submitBtn.textContent = 'Signer la convention';
+        syncSubmit();
+      }
+    });
+
+    load();
+  </script>
+</body>
+</html>

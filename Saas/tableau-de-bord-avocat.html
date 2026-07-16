@@ -358,15 +358,12 @@
     let proposalItems=[];
     let activeProposalTab='pending';
     async function lawyerApi(path, opts) { const r=await fetch(path,Object.assign({credentials:'include'},opts||{})); const data=await r.json().catch(()=>({})); if(!r.ok){const error=new Error(data.error||'Erreur serveur');error.code=data.code;throw error;} return data; }
-    async function ensureCatalogueAccepted() {
-      const catalogue=await lawyerApi('/api/lawyer/catalogue');
-      if(catalogue.accepted)return true;
-      const offers=catalogue.prestations.map(p=>`• ${p.label} : ${p.price}`).join('\n');
-      const rules=catalogue.rules.map(rule=>`• ${rule}`).join('\n');
-      if(!confirm(`Pour accepter des clients Liquid+, vous devez préaccepter le catalogue à prix fermes :\n\n${offers}\n\n${rules}\n\nAccepter la version ${catalogue.version} du catalogue ?`))return false;
-      await lawyerApi('/api/lawyer/catalogue/accept',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({version:catalogue.version,accepted:true})});
-      return true;
-    }
+    // La grille faisait l'objet d'un confirm() au premier client accepté. Elle est
+    // désormais l'article 4 de la convention de partenariat, signée à l'entrée du
+    // réseau : il n'y a plus rien à arracher au dernier moment dans une boîte de
+    // dialogue. Le serveur verrouille (LAWYER_PARTNERSHIP_REQUIRED) ; ici on se
+    // contente d'emmener l'avocat au texte.
+    function goToPartnership() { location.replace('convention-partenariat-avocat.html'); }
     // Un compteur absent est un détail d'affichage : il ne doit jamais emporter le
     // chargement complet du tableau de bord.
     function setMenuCount(id, count) { const el=document.getElementById(id); if(!el)return; el.textContent=String(count); el.hidden=!count; }
@@ -433,7 +430,17 @@
     }
     async function loadClientTools(active) {
       if(!active){renderProposals([]);renderClients([]);renderReviewRequests([]);renderNotifications([]);updateMissionNavigation([],[],[],[]);updateDashboardStats([],[],[]);return;}
-      const [p,c,r,n]=await Promise.all([lawyerApi('/api/lawyer/client-proposals'),lawyerApi('/api/lawyer/clients'),lawyerApi('/api/lawyer/review-requests'),lawyerApi('/api/lawyer/notifications')]); const proposals=p.proposals||[],clients=c.clients||[],requests=r.requests||[],notifications=n.notifications||[];renderProposals(proposals);renderClients(clients);renderReviewRequests(requests);renderNotifications(notifications);updateMissionNavigation(proposals,clients,requests,notifications);updateDashboardStats(proposals,clients,requests);
+      let p,c,r,n;
+      try {
+        [p,c,r,n]=await Promise.all([lawyerApi('/api/lawyer/client-proposals'),lawyerApi('/api/lawyer/clients'),lawyerApi('/api/lawyer/review-requests'),lawyerApi('/api/lawyer/notifications')]);
+      } catch(err) {
+        // Activé mais rien de signé avec Liquid+ : aucune mission ne lui est
+        // ouverte. On l'emmène au texte plutôt que de lui montrer un espace vide
+        // qu'il prendrait pour une panne.
+        if(err.code==='LAWYER_PARTNERSHIP_REQUIRED'){goToPartnership();return;}
+        throw err;
+      }
+      const proposals=p.proposals||[],clients=c.clients||[],requests=r.requests||[],notifications=n.notifications||[];renderProposals(proposals);renderClients(clients);renderReviewRequests(requests);renderNotifications(notifications);updateMissionNavigation(proposals,clients,requests,notifications);updateDashboardStats(proposals,clients,requests);
     }
     async function logout() { await fetch('/api/auth/logout', { method:'POST', credentials:'include' }).catch(() => {}); location.href = 'login.html'; }
     async function load() {
@@ -499,7 +506,7 @@
     document.getElementById('logout-btn').addEventListener('click', logout);
     document.querySelectorAll('[data-proposal-tab]').forEach(tab=>tab.addEventListener('click',()=>{activeProposalTab=tab.dataset.proposalTab;renderProposals(proposalItems);}));
     document.getElementById('lawyer-notifications').addEventListener('click',async(e)=>{const button=e.target.closest('[data-notification-read]');if(!button)return;button.disabled=true;try{await lawyerApi('/api/lawyer/notifications/'+encodeURIComponent(button.dataset.notificationRead)+'/read',{method:'PATCH'});button.closest('[data-notification]')?.remove();await loadClientTools(true);}catch(err){alert(err.message);button.disabled=false;}});
-    document.getElementById('proposal-work-list').addEventListener('click',async(e)=>{const b=e.target.closest('[data-proposal]');if(!b)return;b.disabled=true;try{if(b.dataset.answer==='accepted'&&!await ensureCatalogueAccepted())return;await lawyerApi('/api/lawyer/client-proposals/'+encodeURIComponent(b.dataset.proposal),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:b.dataset.answer})});await loadClientTools(true);}catch(err){if(err.code==='LAWYER_2FA_REQUIRED')location.replace('compte.html?setup2fa=required');else alert(err.message);}finally{b.disabled=false;}});
+    document.getElementById('proposal-work-list').addEventListener('click',async(e)=>{const b=e.target.closest('[data-proposal]');if(!b)return;b.disabled=true;try{await lawyerApi('/api/lawyer/client-proposals/'+encodeURIComponent(b.dataset.proposal),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:b.dataset.answer})});await loadClientTools(true);}catch(err){if(err.code==='LAWYER_2FA_REQUIRED')location.replace('compte.html?setup2fa=required');else if(err.code==='LAWYER_PARTNERSHIP_REQUIRED')goToPartnership();else alert(err.message);}finally{b.disabled=false;}});
   </script>
 </body>
 </html>
