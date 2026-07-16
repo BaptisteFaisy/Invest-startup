@@ -31,7 +31,7 @@
     .topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 56px; padding: 0 20px; background: var(--t-topbar-bg) !important; border-bottom: 1px solid var(--t-topbar-border) !important; position: sticky; top: 0; z-index: 70; }
     .topbar__left { display: flex; align-items: center; gap: 16px; min-width: 0; }
     .topbar__actions { display: flex; align-items: center; gap: 8px; flex: none; }
-    .topbar .brand { color: var(--t-on-bg) !important; display: flex; align-items: center; gap: 8px; }
+    .topbar .brand { color: var(--t-on-bg) !important; display: flex; align-items: center; gap: 0; }
     .topbar .brand__plus { color: var(--t-on-bg) !important; }
     .topbar .brand__logo { display: block; flex: none; }
     .topbar__doc { color: var(--t-on-bg) !important; border-left-color: var(--t-divider) !important; }
@@ -78,6 +78,47 @@
     .dashprefs__ctrl { display: flex; align-items: center; gap: 9px; font-size: 14px; color: var(--t-on-bg-80); }
     .dashprefs__ctrl select { background: #fff; border: 1px solid transparent; border-radius: 10px; padding: 8px 12px; font: inherit; font-size: 13.5px; color: #08090c; cursor: pointer; }
     .dashprefs__ctrl select:focus { outline: none; box-shadow: 0 0 0 2px #3b82f6; }
+
+    /* Calendrier du mois : un rond par jour. Contour vert forêt = des tâches y
+       sont dues, rouge = elles sont en retard, disque grisé = aujourd'hui.
+       Les teintes s'éclaircissent en thème sombre pour rester lisibles. */
+    .cal { --cal-ring: #15803d; --cal-ring-on: #ffffff; --cal-late: #dc2626; }
+    :root[data-theme="dark"] .cal { --cal-ring: #4ade80; --cal-ring-on: #08090c; --cal-late: #f87171; }
+    .cal__card { background: var(--t-surface); border: 1px solid var(--t-surface-brd); border-radius: 16px; padding: 16px 18px 18px; }
+    .cal__head { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .cal__month { font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; color: var(--t-on-bg); text-transform: capitalize; min-width: 150px; text-align: center; }
+    .cal__nav { flex: none; width: 28px; height: 28px; display: grid; place-items: center; padding: 0; border: 1px solid var(--t-border); border-radius: 8px; background: transparent; color: var(--t-on-bg-70); cursor: pointer; }
+    .cal__nav:hover { color: var(--t-on-bg); border-color: var(--t-outline); }
+    .cal__nav svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    .cal__today { margin-left: auto; font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; color: var(--t-on-bg-80); background: var(--t-chip-2); border: 1px solid var(--t-border); border-radius: 9px; padding: 6px 13px; cursor: pointer; }
+    .cal__today:hover { background: var(--t-chip); color: var(--t-on-bg); }
+    .cal__grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; justify-items: center; }
+    .cal__dow { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--t-on-bg-40); padding-bottom: 8px; }
+    .cal-day { position: relative; width: 36px; height: 36px; display: grid; place-items: center; padding: 0; border: 2px solid transparent; border-radius: 50%; background: transparent; color: var(--t-on-bg-70); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; transition: border-color .15s, background .15s, color .15s; }
+    .cal-day:hover { background: var(--t-chip-2); color: var(--t-on-bg); }
+    .cal-day:focus-visible { outline: 2px solid var(--t-accent); outline-offset: 2px; }
+    .cal-day--out { opacity: 0.42; }
+    .cal-day--today { background: var(--t-chip); color: var(--t-on-bg); font-weight: 700; }
+    .cal-day--tasks { border-color: var(--cal-ring); color: var(--t-on-bg); font-weight: 700; }
+    .cal-day--overdue { border-color: var(--cal-late); }
+    .cal-day--done { border-color: var(--t-border); }
+    .cal-day--sel { outline: 2px solid var(--t-accent); outline-offset: 2px; }
+    .cal-day__n { position: absolute; top: -3px; right: -3px; min-width: 15px; height: 15px; padding: 0 3px; border-radius: 99px; background: var(--cal-ring); color: var(--cal-ring-on); font-family: 'Archivo', sans-serif; font-size: 9.5px; font-weight: 700; line-height: 1; display: grid; place-items: center; }
+    .cal-day--overdue .cal-day__n { background: var(--cal-late); }
+    .cal__legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--t-divider); }
+    .cal__leg { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--t-on-bg-60); }
+    .cal__swatch { flex: none; width: 13px; height: 13px; border-radius: 50%; border: 2px solid transparent; }
+    .cal__swatch--tasks { border-color: var(--cal-ring); }
+    .cal__swatch--overdue { border-color: var(--cal-late); }
+    .cal__swatch--today { background: var(--t-chip); border-color: var(--t-border); }
+    /* Sur mobile, le bandeau (flèches + mois + « Aujourd'hui ») dépasse de la
+       carte : on resserre et on laisse le mois prendre la place qui reste. */
+    @media (max-width: 460px) {
+      .cal__card { padding: 14px 12px 16px; }
+      .cal__month { flex: 1; min-width: 0; font-size: 13px; }
+      .cal__today { padding: 6px 10px; }
+      .cal__grid { gap: 2px; }
+    }
 
     /* Priorités suggérées : générées d'après l'état du dossier (lecture seule). */
     .tsk__suggested-sub { color: var(--t-on-bg-muted); font-size: 13px; margin: -4px 0 12px; line-height: 1.5; }
@@ -164,7 +205,7 @@
         <button type="button" class="hamburger" id="nav-menu-btn" aria-label="Ouvrir la navigation" aria-controls="nav-drawer" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
-        <a href="tableau-de-bord.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid <span class="brand__plus">+</span></a>
+        <a href="tableau-de-bord.html" class="brand"><svg class="brand__logo" width="18" height="22" viewBox="-10 -12 60 76" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" stroke="#ffffff" stroke-width="3.5" stroke-linejoin="round"/></svg>Liquid<span class="brand__plus">+</span></a>
       </div>
       <div class="topbar__actions">
         <button type="button" class="hamburger" id="actions-menu-btn" aria-label="Ouvrir le menu" aria-controls="actions-drawer" aria-expanded="false">
@@ -259,6 +300,37 @@
         <div class="tskform__err" id="form-err" hidden></div>
       </form>
 
+      <div class="tsk__section cal" id="calendar-section" hidden>
+        <div class="tsk__section-h">Calendrier <span class="tsk__count" id="cal-count">0</span></div>
+        <div class="cal__card">
+          <div class="cal__head">
+            <button type="button" class="cal__nav" id="cal-prev" aria-label="Mois précédent" title="Mois précédent">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <div class="cal__month" id="cal-month" aria-live="polite"></div>
+            <button type="button" class="cal__nav" id="cal-next" aria-label="Mois suivant" title="Mois suivant">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+            <button type="button" class="cal__today" id="cal-today">Aujourd'hui</button>
+          </div>
+          <div class="cal__grid">
+            <div class="cal__dow" aria-hidden="true">Lu</div>
+            <div class="cal__dow" aria-hidden="true">Ma</div>
+            <div class="cal__dow" aria-hidden="true">Me</div>
+            <div class="cal__dow" aria-hidden="true">Je</div>
+            <div class="cal__dow" aria-hidden="true">Ve</div>
+            <div class="cal__dow" aria-hidden="true">Sa</div>
+            <div class="cal__dow" aria-hidden="true">Di</div>
+          </div>
+          <div class="cal__grid" id="cal-grid"></div>
+          <div class="cal__legend">
+            <span class="cal__leg"><i class="cal__swatch cal__swatch--tasks" aria-hidden="true"></i>Tâches à faire</span>
+            <span class="cal__leg"><i class="cal__swatch cal__swatch--overdue" aria-hidden="true"></i>En retard</span>
+            <span class="cal__leg"><i class="cal__swatch cal__swatch--today" aria-hidden="true"></i>Aujourd'hui</span>
+          </div>
+        </div>
+      </div>
+
       <div class="tsk__section tsk__suggested" id="suggested-section" hidden>
         <div class="tsk__section-h">Priorités suggérées <span class="tsk__count" id="suggested-count">0</span></div>
         <p class="tsk__suggested-sub">Générées automatiquement d'après l'état de votre dossier. Cliquez pour ouvrir l'étape concernée dans le tableau de bord.</p>
@@ -303,7 +375,10 @@
 
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
     function fmtDate(s) { try { return new Date(s + 'T00:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }); } catch { return ''; } }
-    function todayStr() { return new Date().toISOString().slice(0, 10); }
+    // Date locale en AAAA-MM-JJ. Pas toISOString() : il passe par UTC et, en
+    // France, renvoie la veille pendant les premières heures de la nuit.
+    function ymd(d) { const p = n => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()); }
+    function todayStr() { return ymd(new Date()); }
     const PRIO_LABEL = { basse: 'Basse', moyenne: 'Moyenne', haute: 'Haute' };
 
     const loadingEl = document.getElementById('loading');
@@ -406,6 +481,128 @@
       done.forEach(t => doneListEl.appendChild(taskRow(t)));
       doneCountEl.textContent = String(done.length);
       doneEmptyEl.hidden = done.length > 0;
+
+      renderCalendar();
+    }
+
+    // ─── Calendrier du mois ────────────────────────────────────────────────
+    // Une vue d'ensemble des échéances : un rond par jour, entouré de vert
+    // quand des tâches y sont dues (rouge si elles sont déjà en retard), et le
+    // jour courant grisé. Cliquer un jour choisit son échéance dans le
+    // formulaire d'ajout ci-dessus.
+    let calCursor = null;    // 1er du mois affiché
+    let calSelected = null;  // jour choisi (AAAA-MM-JJ), miroir du champ « Échéance »
+
+    // Regroupe les échéances par jour : combien restent à faire, combien sont
+    // terminées, et si l'une d'elles a dépassé sa date.
+    function calIndex() {
+      const today = todayStr();
+      const map = new Map();
+      tasks.forEach(t => {
+        if (!t.due_date) return;
+        const key = String(t.due_date).slice(0, 10);
+        let day = map.get(key);
+        if (!day) { day = { pending: 0, done: 0, overdue: false, titles: [] }; map.set(key, day); }
+        if (t.done) day.done++;
+        else { day.pending++; if (key < today) day.overdue = true; }
+        day.titles.push((t.done ? '✓ ' : '') + t.title);
+      });
+      return map;
+    }
+
+    function calDayTitle(d, day) {
+      const when = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+      if (!day) return 'Ajouter une tâche le ' + when;
+      const head = day.pending
+        ? day.pending + (day.pending > 1 ? ' tâches à faire' : ' tâche à faire')
+        : day.done + (day.done > 1 ? ' tâches terminées' : ' tâche terminée');
+      const titles = day.titles.slice(0, 6).join('\n');
+      return head + ' le ' + when + '\n' + titles + (day.titles.length > 6 ? '\n…' : '');
+    }
+
+    function calCell(d, day, inMonth, today) {
+      const key = ymd(d);
+      const cell = document.createElement('button');
+      cell.type = 'button';
+      let cls = 'cal-day';
+      if (!inMonth) cls += ' cal-day--out';
+      if (key === today) cls += ' cal-day--today';
+      if (day && day.pending) cls += ' cal-day--tasks' + (day.overdue ? ' cal-day--overdue' : '');
+      else if (day && day.done) cls += ' cal-day--done';
+      if (key === calSelected) cls += ' cal-day--sel';
+      cell.className = cls;
+      cell.dataset.date = key;
+      cell.title = calDayTitle(d, day);
+      cell.setAttribute('aria-label', cell.title.split('\n')[0]);
+
+      const num = document.createElement('span');
+      num.textContent = String(d.getDate());
+      cell.appendChild(num);
+      if (day && day.pending > 1) {
+        const badge = document.createElement('span');
+        badge.className = 'cal-day__n';
+        badge.setAttribute('aria-hidden', 'true');
+        badge.textContent = String(day.pending);
+        cell.appendChild(badge);
+      }
+
+      cell.addEventListener('click', () => selectCalDay(key));
+      return cell;
+    }
+
+    function selectCalDay(key) {
+      const dateInput = document.getElementById('new-date');
+      calSelected = (calSelected === key) ? null : key;
+      dateInput.value = calSelected || '';
+      renderCalendar();
+      if (calSelected) document.getElementById('new-title').focus();
+    }
+
+    function renderCalendar() {
+      const grid = document.getElementById('cal-grid');
+      if (!grid) return;
+      const now = new Date();
+      if (!calCursor) calCursor = new Date(now.getFullYear(), now.getMonth(), 1);
+      const year = calCursor.getFullYear();
+      const month = calCursor.getMonth();
+      document.getElementById('cal-month').textContent =
+        calCursor.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+
+      const index = calIndex();
+      const today = todayStr();
+      const lead = (new Date(year, month, 1).getDay() + 6) % 7;   // semaine commencée le lundi
+      const days = new Date(year, month + 1, 0).getDate();
+      const cells = Math.ceil((lead + days) / 7) * 7;
+
+      grid.innerHTML = '';
+      let monthPending = 0;
+      for (let i = 0; i < cells; i++) {
+        const d = new Date(year, month, 1 - lead + i);
+        const inMonth = d.getMonth() === month && d.getFullYear() === year;
+        const day = index.get(ymd(d));
+        if (inMonth && day) monthPending += day.pending;
+        grid.appendChild(calCell(d, day, inMonth, today));
+      }
+      document.getElementById('cal-count').textContent = String(monthPending);
+      document.getElementById('calendar-section').hidden = false;
+    }
+
+    function shiftCalMonth(delta) {
+      const base = calCursor || new Date();
+      calCursor = new Date(base.getFullYear(), base.getMonth() + delta, 1);
+      renderCalendar();
+    }
+
+    // Le champ « Échéance » reste maître : le saisir à la main déplace le
+    // calendrier sur le mois concerné et y marque le jour.
+    function syncCalToDateInput() {
+      const v = document.getElementById('new-date').value;
+      calSelected = v || null;
+      if (v) {
+        const d = new Date(v + 'T00:00:00');
+        if (!isNaN(d)) calCursor = new Date(d.getFullYear(), d.getMonth(), 1);
+      }
+      renderCalendar();
     }
 
     async function loadTasks() {
@@ -441,10 +638,11 @@
           body: JSON.stringify({ title, due_date: dateInput.value || null, priority: prioSelect.value }),
         });
         tasks.push(task);
-        render();
         titleInput.value = '';
         dateInput.value = '';
+        calSelected = null;
         prioSelect.value = 'moyenne';
+        render();
         titleInput.focus();
       } catch (err) {
         errEl.hidden = false;
@@ -733,6 +931,14 @@
       setupDashPrefs(user);
       renderSuggested(user);
       document.getElementById('add-form').addEventListener('submit', addTask);
+      document.getElementById('cal-prev').addEventListener('click', () => shiftCalMonth(-1));
+      document.getElementById('cal-next').addEventListener('click', () => shiftCalMonth(1));
+      document.getElementById('cal-today').addEventListener('click', () => {
+        const now = new Date();
+        calCursor = new Date(now.getFullYear(), now.getMonth(), 1);
+        renderCalendar();
+      });
+      document.getElementById('new-date').addEventListener('change', syncCalToDateInput);
       document.getElementById('activity-more-btn').addEventListener('click', () => {
         activityShown = Math.min(activityShown + ACT_PAGE, activity.length);
         renderActivity();
