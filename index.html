@@ -293,6 +293,10 @@
         min-width: 24px;
         max-width: 24px;
       }
+      /* Icône SVG (même tracé que le hamburger du tableau de bord) : un seul
+         trait vectoriel rendu d'un bloc → 3 barres nettes et égales à toutes
+         les échelles, y compris fractionnaires sur écran d'ordinateur. */
+      .nav-hamburger svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
       .mobile-menu { background: #f7f6f3; }
       .mobile-menu a { color: #111; }
       .mobile-menu a[style], .mobile-menu button[style] { color: rgba(17,17,17,.62) !important; }
@@ -452,7 +456,7 @@
           <a class="nav-primary__link" href="#contact">NOUS CONTACTER</a>
         </div>
         <a class="nav-signup" id="nav-signup" href="register.html"><span class="nav-signup__label">Créez un compte</span></a>
-      <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button></nav>
+      <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></nav>
     </header>
 
     <div class="mobile-menu" id="mobile-menu" role="dialog" aria-label="Navigation">

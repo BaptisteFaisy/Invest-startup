@@ -28,6 +28,8 @@
       .legal-nav { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--line); }
       .legal-nav a { font-size: 0.85rem; font-weight: 600; color: var(--muted); text-decoration: none; }
       .legal-nav a:hover { color: #080c14; }
+      /* Icône SVG (même tracé que le hamburger du tableau de bord) : 3 barres nettes et égales à toutes les échelles. */
+      .nav-hamburger svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
     </style>
   </head>
   <body>
@@ -39,7 +41,7 @@
         <div class="nav-links" id="nav-links">
           <a class="button ghost" href="login.html">Se connecter</a>
         </div>
-        <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+        <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
       </nav>
     </header>
 
