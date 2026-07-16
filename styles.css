@@ -973,14 +973,12 @@ body.auth { padding: 0; }
 }
 
 /* ── Hamburger ──
-   Les 3 barres sont dessinées depuis UNE seule boîte (span:first-child) : la
-   barre du milieu + deux copies box-shadow décalées de ±8px. Une copie
-   box-shadow est une translation de la même boîte rastérisée ; le décalage de
-   8px tombe sur un nombre ENTIER de pixels écran à toutes les échelles Windows
-   (8×1.25=10, 8×1.5=12, 8×1.75=14, 8×2=16…), donc les 3 barres ont exactement
-   la même épaisseur, quelle que soit l'échelle ou la position sous-pixel du
-   bouton. (Les 2 <span> restants du markup existant sont simplement masqués :
-   aucune page à modifier.) */
+   Les 3 barres sont 3 boîtes PLEINES issues d'un seul <span> : la barre du
+   milieu + deux pseudo-éléments (::before / ::after) posés à ±8px. On n'utilise
+   plus le `gap` du flex (qui s'arrondit différemment d'une barre à l'autre selon
+   l'échelle et les rendait inégales) : le pas est fixé en dur à 8px. Résultat :
+   3 barres de même épaisseur ET nettes (vraies boîtes, pas de box-shadow qui
+   adoucit le rendu). Markup inchangé : les 2 <span> restants sont masqués. */
 .nav-hamburger {
   display: none;
   align-items: center;
@@ -997,13 +995,25 @@ body.auth { padding: 0; }
 .nav-hamburger span { display: none; }
 .nav-hamburger span:first-child {
   display: block;
+  position: relative;
   width: 24px;
   height: 2px;
   border-radius: 2px;
   background: currentColor;
-  box-shadow: 0 -8px 0, 0 8px 0;   /* barres du haut et du bas, même couleur */
   transition: transform .25s, opacity .2s;
 }
+.nav-hamburger span:first-child::before,
+.nav-hamburger span:first-child::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 24px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+}
+.nav-hamburger span:first-child::before { top: -8px; }
+.nav-hamburger span:first-child::after  { top: 8px; }
 
 .mobile-menu {
   display: none;
