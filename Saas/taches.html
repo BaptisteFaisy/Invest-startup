@@ -81,11 +81,11 @@
 
     /* Calendrier du mois : un rond par jour. Contour vert forêt = des tâches y
        sont dues, rouge = elles sont en retard, disque grisé = aujourd'hui. Un
-       point violet signale une échéance de la levée (jalon, ex. date cible) :
+       point bleu signale une échéance de la levée (jalon, ex. date cible) :
        marqueur distinct des tâches, il peut coexister avec un anneau le même jour.
        Les teintes s'éclaircissent en thème sombre pour rester lisibles. */
-    .cal { --cal-ring: #15803d; --cal-ring-on: #ffffff; --cal-late: #dc2626; --cal-milestone: #7c3aed; }
-    :root[data-theme="dark"] .cal { --cal-ring: #4ade80; --cal-ring-on: #08090c; --cal-late: #f87171; --cal-milestone: #a78bfa; }
+    .cal { --cal-ring: #15803d; --cal-ring-on: #ffffff; --cal-late: #dc2626; --cal-milestone: #2563eb; }
+    :root[data-theme="dark"] .cal { --cal-ring: #4ade80; --cal-ring-on: #08090c; --cal-late: #f87171; --cal-milestone: #60a5fa; }
     .cal__card { background: var(--t-surface); border: 1px solid var(--t-surface-brd); border-radius: 16px; padding: 16px 18px 18px; }
     .cal__head { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
     .cal__month { font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; color: var(--t-on-bg); text-transform: capitalize; min-width: 150px; text-align: center; }
@@ -331,7 +331,7 @@
             <span class="cal__leg"><i class="cal__swatch cal__swatch--tasks" aria-hidden="true"></i>Tâches à faire</span>
             <span class="cal__leg"><i class="cal__swatch cal__swatch--overdue" aria-hidden="true"></i>En retard</span>
             <span class="cal__leg"><i class="cal__swatch cal__swatch--today" aria-hidden="true"></i>Aujourd'hui</span>
-            <span class="cal__leg"><i class="cal__swatch cal__swatch--echeance" aria-hidden="true"></i>Échéance de la levée</span>
+            <span class="cal__leg"><i class="cal__swatch cal__swatch--echeance" aria-hidden="true"></i>Échéances de la levée</span>
           </div>
         </div>
       </div>
