@@ -80,10 +80,12 @@
     .dashprefs__ctrl select:focus { outline: none; box-shadow: 0 0 0 2px #3b82f6; }
 
     /* Calendrier du mois : un rond par jour. Contour vert forêt = des tâches y
-       sont dues, rouge = elles sont en retard, disque grisé = aujourd'hui.
+       sont dues, rouge = elles sont en retard, disque grisé = aujourd'hui. Un
+       point violet signale une échéance de la levée (jalon, ex. date cible) :
+       marqueur distinct des tâches, il peut coexister avec un anneau le même jour.
        Les teintes s'éclaircissent en thème sombre pour rester lisibles. */
-    .cal { --cal-ring: #15803d; --cal-ring-on: #ffffff; --cal-late: #dc2626; }
-    :root[data-theme="dark"] .cal { --cal-ring: #4ade80; --cal-ring-on: #08090c; --cal-late: #f87171; }
+    .cal { --cal-ring: #15803d; --cal-ring-on: #ffffff; --cal-late: #dc2626; --cal-milestone: #7c3aed; }
+    :root[data-theme="dark"] .cal { --cal-ring: #4ade80; --cal-ring-on: #08090c; --cal-late: #f87171; --cal-milestone: #a78bfa; }
     .cal__card { background: var(--t-surface); border: 1px solid var(--t-surface-brd); border-radius: 16px; padding: 16px 18px 18px; }
     .cal__head { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
     .cal__month { font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; color: var(--t-on-bg); text-transform: capitalize; min-width: 150px; text-align: center; }
@@ -102,6 +104,7 @@
     .cal-day--tasks { border-color: var(--cal-ring); color: var(--t-on-bg); font-weight: 700; }
     .cal-day--overdue { border-color: var(--cal-late); }
     .cal-day--done { border-color: var(--t-border); }
+    .cal-day--echeance::after { content: ''; position: absolute; left: 50%; bottom: 3px; transform: translateX(-50%); width: 5px; height: 5px; border-radius: 50%; background: var(--cal-milestone); }
     .cal-day--sel { outline: 2px solid var(--t-accent); outline-offset: 2px; }
     .cal-day__n { position: absolute; top: -3px; right: -3px; min-width: 15px; height: 15px; padding: 0 3px; border-radius: 99px; background: var(--cal-ring); color: var(--cal-ring-on); font-family: 'Archivo', sans-serif; font-size: 9.5px; font-weight: 700; line-height: 1; display: grid; place-items: center; }
     .cal-day--overdue .cal-day__n { background: var(--cal-late); }
@@ -111,6 +114,7 @@
     .cal__swatch--tasks { border-color: var(--cal-ring); }
     .cal__swatch--overdue { border-color: var(--cal-late); }
     .cal__swatch--today { background: var(--t-chip); border-color: var(--t-border); }
+    .cal__swatch--echeance { background: var(--cal-milestone); border-color: var(--cal-milestone); }
     /* Sur mobile, le bandeau (flèches + mois + « Aujourd'hui ») dépasse de la
        carte : on resserre et on laisse le mois prendre la place qui reste. */
     @media (max-width: 460px) {
@@ -327,6 +331,7 @@
             <span class="cal__leg"><i class="cal__swatch cal__swatch--tasks" aria-hidden="true"></i>Tâches à faire</span>
             <span class="cal__leg"><i class="cal__swatch cal__swatch--overdue" aria-hidden="true"></i>En retard</span>
             <span class="cal__leg"><i class="cal__swatch cal__swatch--today" aria-hidden="true"></i>Aujourd'hui</span>
+            <span class="cal__leg"><i class="cal__swatch cal__swatch--echeance" aria-hidden="true"></i>Échéance de la levée</span>
           </div>
         </div>
       </div>
@@ -392,6 +397,10 @@
     const doneEmptyEl    = document.getElementById('done-empty');
 
     let tasks = [];
+    // Échéances de la levée (jalons datés). Distinctes des tâches : elles ne
+    // viennent pas de l'utilisateur mais du dossier « Ma levée » (aujourd'hui la
+    // seule datée est la date cible). Affichées sur le calendrier par un point.
+    let milestones = [];
 
     async function api(path, opts) {
       const r = await fetch(path, Object.assign({ credentials: 'include' }, opts || {}));
@@ -502,22 +511,40 @@
         if (!t.due_date) return;
         const key = String(t.due_date).slice(0, 10);
         let day = map.get(key);
-        if (!day) { day = { pending: 0, done: 0, overdue: false, titles: [] }; map.set(key, day); }
+        if (!day) { day = { pending: 0, done: 0, overdue: false, titles: [], echeances: [] }; map.set(key, day); }
         if (t.done) day.done++;
         else { day.pending++; if (key < today) day.overdue = true; }
         day.titles.push((t.done ? '✓ ' : '') + t.title);
+      });
+      // Les échéances de la levée se superposent aux tâches : un jour peut porter
+      // les deux (anneau de tâche + point d'échéance), on crée donc la case au
+      // besoin sans toucher aux compteurs de tâches.
+      milestones.forEach(m => {
+        const key = String(m.date).slice(0, 10);
+        let day = map.get(key);
+        if (!day) { day = { pending: 0, done: 0, overdue: false, titles: [], echeances: [] }; map.set(key, day); }
+        day.echeances.push(m.label);
       });
       return map;
     }
 
     function calDayTitle(d, day) {
       const when = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
-      if (!day) return 'Ajouter une tâche le ' + when;
-      const head = day.pending
-        ? day.pending + (day.pending > 1 ? ' tâches à faire' : ' tâche à faire')
-        : day.done + (day.done > 1 ? ' tâches terminées' : ' tâche terminée');
-      const titles = day.titles.slice(0, 6).join('\n');
-      return head + ' le ' + when + '\n' + titles + (day.titles.length > 6 ? '\n…' : '');
+      const ech = (day && day.echeances) || [];
+      const hasTasks = day && (day.pending || day.done);
+      if (!hasTasks && !ech.length) return 'Ajouter une tâche le ' + when;
+      const parts = [];
+      // L'échéance de la levée passe en tête : c'est le repère le plus fort du
+      // jour, et elle devient l'aria-label (première ligne) le cas échéant.
+      if (ech.length) parts.push(ech.join(', ') + ' — le ' + when);
+      if (hasTasks) {
+        const head = day.pending
+          ? day.pending + (day.pending > 1 ? ' tâches à faire' : ' tâche à faire')
+          : day.done + (day.done > 1 ? ' tâches terminées' : ' tâche terminée');
+        const titles = day.titles.slice(0, 6).join('\n');
+        parts.push(head + ' le ' + when + '\n' + titles + (day.titles.length > 6 ? '\n…' : ''));
+      }
+      return parts.join('\n');
     }
 
     function calCell(d, day, inMonth, today) {
@@ -529,6 +556,7 @@
       if (key === today) cls += ' cal-day--today';
       if (day && day.pending) cls += ' cal-day--tasks' + (day.overdue ? ' cal-day--overdue' : '');
       else if (day && day.done) cls += ' cal-day--done';
+      if (day && day.echeances && day.echeances.length) cls += ' cal-day--echeance';
       if (key === calSelected) cls += ' cal-day--sel';
       cell.className = cls;
       cell.dataset.date = key;
@@ -605,12 +633,27 @@
       renderCalendar();
     }
 
+    // Jalons datés de la levée, lus dans le dossier « Ma levée ». Aujourd'hui
+    // seule la date cible en porte une ; la liste est prête à en accueillir
+    // d'autres. Ne bloque jamais l'affichage des tâches : avale ses erreurs.
+    async function loadMilestones() {
+      try {
+        const { profile } = await api('/api/saas/fundraising-profile');
+        const list = [];
+        if (profile && /^\d{4}-\d{2}-\d{2}$/.test(profile.target_date || '')) {
+          list.push({ date: profile.target_date, label: 'Date cible de la levée' });
+        }
+        milestones = list;
+      } catch { milestones = []; }
+    }
+
     async function loadTasks() {
       loadingEl.hidden = false;
       errorEl.hidden = true;
       try {
         const data = await api('/api/saas/tasks');
         tasks = data.tasks || [];
+        await loadMilestones();
         loadingEl.hidden = true;
         listsEl.hidden = false;
         render();
