@@ -78,6 +78,63 @@
 :root[data-theme="paper"] .help-pop strong { color: var(--t-on-bg); }
 :root[data-theme="paper"] .help-pop__label { color: var(--t-on-bg-faint); }
 
+/* ─── Variante en ligne, posée à côté d'un titre de carte ────────────────────
+   Ampoule plus petite, dans le flux du titre, et encart qui pousse le contenu
+   au lieu de le survoler — pour une aide qui vit à l'intérieur d'une carte.
+
+   Balisage attendu :
+     <div class="help-bulb-row">
+       <h3 …>…</h3>
+       <button type="button" class="help-bulb help-bulb--inline"
+               data-help-target="#help-x" aria-label="…">…svg…</button>
+     </div>
+     <div class="help-pop help-pop--inline" id="help-x" hidden> … </div>
+
+   Les cartes restent blanches dans les deux thèmes (--t-card vaut #fff partout),
+   donc cette variante garde un traitement clair quel que soit le thème. D'où le
+   préfixe :root[data-theme] : sans lui, le bloc « paper » ci-dessus, plus
+   spécifique, reprendrait la main en mode clair. */
+.help-bulb-row { display: flex; align-items: center; gap: 9px; margin-bottom: 4px; }
+.help-bulb-row > :first-child { margin: 0; }
+
+:root[data-theme] .help-bulb--inline {
+  position: static; flex: none; width: 26px; height: 26px;
+  background: #fff; border-color: rgba(8, 9, 12, 0.22); color: #08090c;
+}
+:root[data-theme] .help-bulb--inline:hover,
+:root[data-theme] .help-bulb--inline:focus-visible,
+:root[data-theme] .help-bulb--inline.is-open {
+  background: #f4f2ee; border-color: #08090c; color: #08090c;
+}
+:root[data-theme] .help-bulb--inline svg { width: 15px; height: 15px; }
+
+:root[data-theme] .help-pop--inline {
+  position: static; width: auto; margin: 14px 0 0; padding: 15px 18px 17px;
+  background: #f4f2ee; border: 1px solid rgba(8, 9, 12, 0.1); border-radius: 12px;
+  box-shadow: none; color: #4b4b57;
+}
+:root[data-theme] .help-pop--inline .help-pop__label { color: #6b6b78; }
+:root[data-theme] .help-pop--inline b,
+:root[data-theme] .help-pop--inline strong { color: #08090c; }
+
+/* Étapes numérotées de l'encart. */
+.help-steps { margin: 0; padding: 0; list-style: none; counter-reset: help-step; }
+.help-steps li {
+  counter-increment: help-step; position: relative; padding-left: 30px;
+}
+.help-steps li + li { margin-top: 11px; }
+.help-steps li::before {
+  content: counter(help-step);
+  position: absolute; left: 0; top: 1px;
+  width: 20px; height: 20px; display: grid; place-items: center;
+  border-radius: 50%; background: #08090c; color: #fff;
+  font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; line-height: 1;
+}
+.help-pop__note {
+  margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(8, 9, 12, 0.1);
+  font-size: 13px; line-height: 1.55;
+}
+
 @keyframes helpPopIn {
   from { opacity: 0; transform: translateY(-6px); }
   to   { opacity: 1; transform: translateY(0); }

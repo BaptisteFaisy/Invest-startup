@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="editor.css?v=7" />
   <link rel="stylesheet" href="drawer-menu.css?v=15" />
   <link rel="stylesheet" href="theme.css?v=3" />
+  <link rel="stylesheet" href="help-bulb.css?v=3" />
   <style>
     body { background: var(--t-bg); min-height: 100vh; }
 
@@ -177,6 +178,7 @@
   <script src="theme.js?v=3" defer></script>
   <script src="tasks.js?v=2" defer></script>
   <script src="drawer-menu.js?v=14" defer></script>
+  <script src="help-bulb.js?v=1" defer></script>
   <script src="drawer-steps.js?v=3" defer></script>
 </head>
 <body>
@@ -379,8 +381,23 @@
         <div class="card">
           <div class="sec-row">
             <div style="flex:1;min-width:0">
-              <h3 class="card__title">Authentification à deux facteurs (2FA)</h3>
+              <div class="help-bulb-row">
+                <h3 class="card__title">Authentification à deux facteurs (2FA)</h3>
+                <button type="button" class="help-bulb help-bulb--inline" data-help-target="#help-2fa" aria-label="Comprendre l'activation du 2FA, étape par étape" title="Comprendre l'activation du 2FA, étape par étape"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg></button>
+              </div>
               <p class="card__desc" style="margin-bottom:0">Protégez votre compte avec Google Authenticator. À chaque connexion, un code à 6 chiffres vous sera demandé en plus de votre mot de passe.</p>
+
+              <div class="help-pop help-pop--inline" id="help-2fa" hidden>
+                <div class="help-pop__label"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8.3 14.7A6 6 0 1 1 15.7 14.7C14.7 15.5 14.4 16.2 14.4 17H9.6C9.6 16.2 9.3 15.5 8.3 14.7Z"/></svg> Ce qui va se passer, étape par étape</div>
+                <ol class="help-steps">
+                  <li>Vous cliquez sur <b>Activer le 2FA</b> : nous générons une clé secrète propre à votre compte et nous l'affichons ici sous forme de QR code.</li>
+                  <li>Vous scannez ce QR code avec <b>Google Authenticator</b> ou <b>Authy</b>. Si vous ne pouvez pas scanner, recopiez la clé affichée sous le QR code dans l'application. Celle-ci se met alors à afficher un code à 6 chiffres, qui change toutes les 30 secondes.</li>
+                  <li>Vous recopiez le code affiché dans le champ de confirmation. Il prouve que votre application est bien synchronisée : <b>tant que ce code n'est pas validé, le 2FA n'est pas activé</b> et rien n'est enregistré.</li>
+                  <li>C'est terminé. À chaque connexion, votre mot de passe ne suffira plus : le code à 6 chiffres de l'application vous sera demandé juste après.</li>
+                </ol>
+                <p class="help-pop__note">Notez la clé secrète de l'étape 1 dans un endroit sûr. C'est elle, et elle seule, qui vous permettra de reconfigurer l'application si vous changez ou perdez votre téléphone.</p>
+              </div>
+
               <div id="lawyer-2fa-required" class="alert alert--error" hidden style="margin-top:12px"></div>
               <div id="status-badge"></div>
 
