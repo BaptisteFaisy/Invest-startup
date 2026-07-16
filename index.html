@@ -296,7 +296,7 @@
       /* Icône SVG (même tracé que le hamburger du tableau de bord) : un seul
          trait vectoriel rendu d'un bloc → 3 barres nettes et égales à toutes
          les échelles, y compris fractionnaires sur écran d'ordinateur. */
-      .nav-hamburger svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+      .nav-hamburger svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
       .mobile-menu { background: #f7f6f3; }
       .mobile-menu a { color: #111; }
       .mobile-menu a[style], .mobile-menu button[style] { color: rgba(17,17,17,.62) !important; }
@@ -440,7 +440,12 @@
       }
       @media (max-width: 720px) {
         .nav-primary { display: none; }
-        .nav-signup { min-width: 142px; padding: 9px 12px; font-size: 10px; }
+        .nav { gap: 12px; }
+        .nav-hamburger { margin-left: 10px; }
+        /* flex-shrink:0 empêche le bouton de rétrécir sous le libellé « Essayez
+           gratuitement » (le texte débordait du cadre) ; min-width le cale sur
+           le libellé le plus long pour éviter tout saut de largeur à chaque swap. */
+        .nav-signup { flex-shrink: 0; min-width: 154px; padding: 8px 11px; font-size: 9px; text-align: center; }
       }
     </style>
   </head>
@@ -460,7 +465,7 @@
     </header>
 
     <div class="mobile-menu" id="mobile-menu" role="dialog" aria-label="Navigation">
-      <button class="nav-hamburger" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><span></span><span></span><span></span></button>
+      <button class="nav-hamburger" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
       <a href="#top">PILOTER MA LEVÉE</a>
       <a href="#tarifs">TARIFS</a>
       <a href="#contact">NOUS CONTACTER</a>
@@ -508,7 +513,7 @@
         .then(data => {
           if (!data?.user) return;
           document.getElementById('mobile-menu').innerHTML = `
-            <button class="nav-hamburger" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><span></span><span></span><span></span></button>
+            <button class="nav-hamburger" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
             <a href="#top">PILOTER MA LEVÉE</a>
             <a href="#tarifs">TARIFS</a>
             <a href="#contact">NOUS CONTACTER</a>
