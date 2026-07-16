@@ -17,7 +17,7 @@ html.drawer-open body { overflow:hidden; }
 .hamburger--notify::after { content:''; position:absolute; top:-4px; right:-4px; width:10px; height:10px; border-radius:50%; background:#86efac; }
 .drawer-backdrop { position:fixed; inset:0; background:transparent; opacity:0; visibility:hidden; transition:visibility .2s; z-index:60; }
 .drawer-backdrop.is-open { opacity:1; visibility:visible; }
-.drawer { position:fixed; top:0; bottom:0; width:var(--drawer-w, 280px); min-width:220px; max-width:92vw; background:#0c0d11; border-right:1px solid rgba(255,255,255,0.08); box-shadow:0 0 40px rgba(0,0,0,0.5); z-index:61; display:flex; flex-direction:column; transition:transform .22s ease; }
+.drawer { position:fixed; top:0; bottom:0; width:var(--drawer-w, 280px); min-width:220px; max-width:92vw; background:#0a0a0a; border-right:1px solid rgba(255,255,255,0.08); box-shadow:0 0 40px rgba(0,0,0,0.5); z-index:61; display:flex; flex-direction:column; transition:transform .22s ease; }
 .drawer--left { left:0; }
 .drawer--right { right:0; left:auto; border-right:0; border-left:1px solid rgba(255,255,255,0.08); }
 .drawer--left:not(.is-open) { transform:translateX(-100%); }
@@ -61,10 +61,10 @@ html.drawer-open body { overflow:hidden; }
 .drawer__mode-option.is-active .drawer__mode-soon { color:#16a34a; }
 .drawer__mode-option:hover:not(:disabled) { color:#fff; }
 .drawer__mode-option:disabled { cursor:not-allowed; color:rgba(255,255,255,0.38); }
-.drawer__mode-option.is-active { background:#fff; color:#111318; box-shadow:0 1px 5px rgba(0,0,0,0.24); }
+.drawer__mode-option.is-active { background:#fff; color:#000; box-shadow:0 1px 5px rgba(0,0,0,0.24); }
 .drawer__mode-option:disabled { color:rgba(255,255,255,0.32); cursor:not-allowed; }
 .drawer__mode-option:disabled:hover { background:transparent; color:rgba(255,255,255,0.32); }
-.drawer__mode-option:focus-visible { outline:2px solid #a5b4fc; outline-offset:1px; }
+.drawer__mode-option:focus-visible { outline:2px solid #86efac; outline-offset:1px; }
 
 /* Recherche globale, injectée par drawer-menu.js sur les pages outils. */
 .global-search { position:relative; width:min(320px, 28vw); }
@@ -81,12 +81,12 @@ html.drawer-open body { overflow:hidden; }
 :root[data-theme="paper"] .global-search__input::placeholder { color:#111; opacity:1; }
 :root[data-theme="paper"] .global-search__input::-webkit-search-cancel-button { background:#111; }
 :root[data-theme="paper"] .global-search__shortcut { border-color:rgba(0,0,0,0.3); color:#111; }
-.global-search__results { position:absolute; top:calc(100% + 8px); right:0; z-index:80; width:min(430px,calc(100vw - 28px)); max-height:min(62vh,460px); overflow-y:auto; overscroll-behavior:contain; padding:7px; border:1px solid rgba(255,255,255,0.13); border-radius:12px; background:#15161b; box-shadow:0 18px 42px rgba(0,0,0,0.42); scrollbar-width:thin; scrollbar-color:#fff transparent; }
+.global-search__results { position:absolute; top:calc(100% + 8px); right:0; z-index:80; width:min(430px,calc(100vw - 28px)); max-height:min(62vh,460px); overflow-y:auto; overscroll-behavior:contain; padding:7px; border:1px solid rgba(255,255,255,0.13); border-radius:12px; background:var(--t-elevated); box-shadow:0 18px 42px rgba(0,0,0,0.42); scrollbar-width:thin; scrollbar-color:#fff transparent; }
 .global-search__results[hidden] { display:none; }
 .global-search__results::-webkit-scrollbar { width:6px; }
 .global-search__results::-webkit-scrollbar-track { background:transparent; }
 .global-search__results::-webkit-scrollbar-thumb { border-radius:6px; background:#fff; }
-.global-search__summary { position:sticky; top:-7px; z-index:1; margin:-7px -7px 0; padding:6px 8px 8px; background:#15161b; color:rgba(255,255,255,0.52); font:700 10px/1.25 'Archivo',sans-serif; letter-spacing:.09em; text-transform:uppercase; }
+.global-search__summary { position:sticky; top:-7px; z-index:1; margin:-7px -7px 0; padding:6px 8px 8px; background:var(--t-elevated); color:rgba(255,255,255,0.52); font:700 10px/1.25 'Archivo',sans-serif; letter-spacing:.09em; text-transform:uppercase; }
 .global-search__empty { margin:0; padding:10px 8px; color:rgba(255,255,255,0.72); font-size:13px; }
 .global-search__result { width:100%; display:flex; align-items:center; gap:10px; padding:9px 8px; border:0; border-radius:8px; background:transparent; color:#fff; cursor:pointer; text-align:left; font:inherit; }
 .global-search__result:hover, .global-search__result:focus-visible { background:rgba(255,255,255,0.09); outline:0; }
@@ -106,12 +106,14 @@ html.drawer-open body { overflow:hidden; }
 .drawer__step-bar { height:4px; margin-left:34px; border-radius:99px; background:rgba(255,255,255,0.09); overflow:hidden; }
 .drawer__step-bar > span { display:block; height:100%; width:0; border-radius:99px; background:linear-gradient(90deg,#10b981,#34d399); transition:width .45s ease; }
 .drawer__link--step.is-done .drawer__step-num { background:rgba(16,185,129,0.20); color:#34d399; }
-.drawer__link--step.is-current { background:rgba(99,102,241,0.13); color:#fff; }
-.drawer__link--step.is-current .drawer__step-num { background:rgba(99,102,241,0.30); color:#a5b4fc; }
+/* Étape en cours = vert « Forêt » de la marque. L'étape faite garde l'émeraude
+   et sa coche : accent de marque = où l'on en est, succès = ce qui est bouclé. */
+.drawer__link--step.is-current { background:rgba(21,128,61,0.28); color:#fff; }
+.drawer__link--step.is-current .drawer__step-num { background:rgba(21,128,61,0.55); color:#d1fae5; }
 .drawer__link--step.is-active { background:transparent; }
-.drawer__link--step.is-active .drawer__step-num { background:#fff; color:#111318; }
+.drawer__link--step.is-active .drawer__step-num { background:#fff; color:#000; }
 .drawer__steps-loading, .drawer__steps-empty { margin:0; padding:10px 12px; color:rgba(255,255,255,0.56); font-family:'Libre Franklin',sans-serif; font-size:13px; line-height:1.5; }
-.drawer__steps-empty a { color:#a5b4fc; }
+.drawer__steps-empty a { color:#86efac; }
 
 /* -- Variante claire des menus ---------------------------------------------
    En mode Papier, les tiroirs et le menu de recherche suivent la coquille
@@ -138,13 +140,13 @@ html.drawer-open body { overflow:hidden; }
 :root[data-theme="paper"] .drawer__mode-option:disabled:hover { color:#a8a29e; background:transparent; }
 :root[data-theme="paper"] .drawer__step-num { background:rgba(17,17,17,0.06); color:#57534a; }
 :root[data-theme="paper"] .drawer__step-bar { background:rgba(17,17,17,0.09); }
-:root[data-theme="paper"] .drawer__link--step.is-current { background:rgba(79,70,229,0.10); color:#312e81; }
-:root[data-theme="paper"] .drawer__link--step.is-current .drawer__step-num { background:rgba(79,70,229,0.16); color:#4338ca; }
+:root[data-theme="paper"] .drawer__link--step.is-current { background:rgba(21,128,61,0.10); color:#14532d; }
+:root[data-theme="paper"] .drawer__link--step.is-current .drawer__step-num { background:rgba(21,128,61,0.18); color:#15803d; }
 :root[data-theme="paper"] .drawer__link--step.is-active { background:rgba(17,17,17,0.055); color:#111; }
 :root[data-theme="paper"] .drawer__link--step.is-active .drawer__step-num { background:rgba(17,17,17,0.06); color:#57534a; }
 :root[data-theme="paper"] .drawer__steps-loading,
 :root[data-theme="paper"] .drawer__steps-empty { color:#57534a; }
-:root[data-theme="paper"] .drawer__steps-empty a { color:#4338ca; }
+:root[data-theme="paper"] .drawer__steps-empty a { color:#15803d; }
 :root[data-theme="paper"] .global-search__results { background:#fff; border-color:#e4e0d8; box-shadow:0 20px 50px rgba(8,9,12,0.14); scrollbar-color:#8a8578 transparent; }
 :root[data-theme="paper"] .global-search__results::-webkit-scrollbar-thumb { background:#8a8578; }
 :root[data-theme="paper"] .global-search__summary { background:#fff; color:#57534a; }

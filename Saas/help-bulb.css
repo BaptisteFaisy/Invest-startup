@@ -18,14 +18,14 @@
 .help-bulb {
   position: absolute; top: 20px; right: 24px; z-index: 12;
   width: 40px; height: 40px; display: grid; place-items: center; padding: 0;
-  border-radius: 50%; background: #08090c; border: 1.5px solid rgba(255, 255, 255, 0.7);
+  border-radius: 50%; background: #000; border: 1.5px solid rgba(255, 255, 255, 0.7);
   color: #fff; cursor: pointer;
   transition: border-color .15s, background .15s, color .15s, transform .12s;
 }
-.help-bulb:hover { border-color: #fff; background: #15161b; }
+.help-bulb:hover { border-color: #fff; background: #1a1a1a; }
 .help-bulb:focus-visible { outline: none; border-color: #fff; }
 .help-bulb:active { transform: scale(.94); }
-.help-bulb.is-open { border-color: #fde68a; color: #fde68a; background: #15161b; }
+.help-bulb.is-open { border-color: #fde68a; color: #fde68a; background: #1a1a1a; }
 .help-bulb svg {
   width: 20px; height: 20px; display: block; fill: none; stroke: currentColor;
   stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; pointer-events: none;
@@ -34,7 +34,7 @@
 .help-pop {
   position: absolute; top: 68px; right: 24px; z-index: 30;
   width: min(380px, calc(100vw - 40px));
-  background: #0f1116; border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 16px;
+  background: var(--t-elevated); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 16px;
   padding: 16px 20px 18px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
   color: rgba(255, 255, 255, 0.82); font-size: 14px; line-height: 1.6;
   animation: helpPopIn .16s ease;

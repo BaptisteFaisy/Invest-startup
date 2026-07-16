@@ -14,9 +14,11 @@
    (localStorage « liquidTheme » + PUT /api/auth/preferences).
    ════════════════════════════════════════════════════════════════════════ */
 
+/* Le noir du thème sombre est NEUTRE : R = V = B. Toute teinte, même de 3 ou 4
+   points sur le canal bleu, se lit « bleu marine » sur un grand aplat. */
 :root[data-theme="dark"] {
-  --t-bg:                    #08090c;
-  --t-topbar-bg:             #08090c;
+  --t-bg:                    #000000;
+  --t-topbar-bg:             #000000;
   --t-topbar-border:         rgba(255,255,255,0.07);
   --t-on-bg:                 #ffffff;   /* texte/icônes directement sur le fond */
   --t-on-bg-muted:           rgba(255,255,255,0.55);
@@ -44,11 +46,11 @@
   --t-outline:               rgba(255,255,255,0.35);
   --t-outline-hov:           rgba(255,255,255,0.65);
   /* Surface « élevée » opaque (popovers, menus) */
-  --t-elevated:              #14151b;
+  --t-elevated:              #121212;
   --t-elevated-shadow:       0 24px 60px rgba(0,0,0,0.5);
   /* Pastille/segment « solide » à fort contraste (actif) */
   --t-solid:                 #ffffff;
-  --t-on-solid:              #08090c;
+  --t-on-solid:              #000000;
 }
 
 :root,

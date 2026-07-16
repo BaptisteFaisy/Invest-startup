@@ -73,7 +73,7 @@
     /* Ampoule « Comprendre cette étape » : en haut à droite de chaque vue d'étape.
        Contour blanc sur fond noir, reprend l'ampoule qui figurait sur la frise. */
     .step-guide-btn { margin-left: auto; flex: none; width: 40px; height: 40px; display: grid; place-items: center; padding: 0; border-radius: 50%; background: #08090c; border: 1.5px solid rgba(255,255,255,0.7); color: #fff; cursor: pointer; transition: border-color .15s, background .15s, transform .12s; }
-    .step-guide-btn:hover { border-color: #fff; background: #15161b; }
+    .step-guide-btn:hover { border-color: #fff; background: #1a1a1a; }
     .step-guide-btn:active { transform: scale(.94); }
     .step-guide-btn svg { width: 20px; height: 20px; display: block; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
     .step-guide-btn[hidden] { display: none; }
@@ -183,7 +183,7 @@
     .phase-guide__panel { display: none; padding: 2px 16px 16px; }
     .phase-guide.open .phase-guide__panel { display: block; }
     .phase-guide__block { margin-top: 14px; }
-    .phase-guide__tag { display: inline-block; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase; color: #4f46e5; background: rgba(79,70,229,0.10); padding: 3px 9px; border-radius: 99px; margin-bottom: 8px; }
+    .phase-guide__tag { display: inline-block; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase; color: #15803d; background: #d1fae5; padding: 3px 9px; border-radius: 99px; margin-bottom: 8px; }
     .phase-guide__tag--warn { color: #b91c1c; background: rgba(185,28,28,0.10); }
     .phase-guide__panel p { font-size: 14px; line-height: 1.6; color: #26272c; margin: 0; }
     .phase-guide__block--goal p { font-weight: 600; color: #08090c; }
@@ -447,17 +447,17 @@
 
     /* Bandeau de synthèse : paliers de montant (levé / intentionné) + compteur. */
     .ip-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 20px; }
-    .ip-stat { background: #16181d; border: 1px solid rgba(255,255,255,0.09); border-radius: 14px; padding: 14px 16px; }
+    .ip-stat { background: #121212; border: 1px solid rgba(255,255,255,0.09); border-radius: 14px; padding: 14px 16px; }
     .ip-stat__label { font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8b919b; }
     .ip-stat__value { font-size: 20px; font-weight: 700; color: #eef0f3; margin-top: 6px; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
     .ip-stat--leve .ip-stat__value { color: #5ec38c; }
     .ip-stat--intent .ip-stat__value { color: #8ba6ff; }
 
     /* Formulaire d'ajout (sombre). */
-    .ip-form { background: #16181d; border: 1px solid rgba(255,255,255,0.09); border-radius: 16px; padding: 18px 20px; margin-top: 18px; }
+    .ip-form { background: #121212; border: 1px solid rgba(255,255,255,0.09); border-radius: 16px; padding: 18px 20px; margin-top: 18px; }
     .ip-form__grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 10px; }
     .ip-form__grid2 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; }
-    .ip-form input, .ip-form select, .ip-form textarea { background: #0f1013; border: 1px solid rgba(255,255,255,0.14); border-radius: 10px; padding: 10px 12px; font: inherit; font-size: 13.5px; color: #eef0f3; width: 100%; box-sizing: border-box; }
+    .ip-form input, .ip-form select, .ip-form textarea { background: #0a0a0a; border: 1px solid rgba(255,255,255,0.14); border-radius: 10px; padding: 10px 12px; font: inherit; font-size: 13.5px; color: #eef0f3; width: 100%; box-sizing: border-box; }
     .ip-form input::placeholder, .ip-form textarea::placeholder { color: #6b7078; }
     .ip-form input:focus, .ip-form select:focus, .ip-form textarea:focus { outline: none; border-color: var(--blue, #3b82f6); box-shadow: 0 0 0 2px rgba(59,130,246,0.25); }
     .ip-form textarea { resize: vertical; min-height: 40px; grid-column: 1 / -1; }
@@ -480,17 +480,17 @@
     .ip-grid col.ip-col--contact { width: 220px; }
     .ip-grid col.ip-col--amount { width: 145px; }
     .ip-grid col.ip-col--stage { width: 118px; }
-    .ip-grid th { text-align: left; vertical-align: top; padding: 12px 10px; background: #15161a; border-bottom: 1px solid rgba(255,255,255,0.1); border-left: 1px solid rgba(255,255,255,0.06); border-top: 2px solid #6b7078; }
+    .ip-grid th { text-align: left; vertical-align: top; padding: 12px 10px; background: #171717; border-bottom: 1px solid rgba(255,255,255,0.1); border-left: 1px solid rgba(255,255,255,0.06); border-top: 2px solid #6b7078; }
     .ip-grid th:first-child { border-left: 0; }
     .ip-grid th.is-leve { border-top-color: #3f9e6b; }
     .ip-grid th.is-intent { border-top-color: #6b8afd; }
     .ip-grid__lab { display:flex; flex-direction:column; align-items:flex-start; gap:5px; }
     .ip-grid__lab-t { flex: 1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family: 'Archivo', sans-serif; font-size: 10.5px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; color: #c4c8cf; line-height: 1.3; }
     .ip-grid th.is-leve .ip-grid__lab-t { color: #8fe0b3; }
-    .ip-grid__count { max-width:100%; overflow:hidden; box-sizing:border-box; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 800; color: #8b919b; background: #0f1013; border: 1px solid rgba(255,255,255,0.12); border-radius: 99px; padding: 1px 6px; flex: none; }
+    .ip-grid__count { max-width:100%; overflow:hidden; box-sizing:border-box; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 800; color: #8b919b; background: #0a0a0a; border: 1px solid rgba(255,255,255,0.12); border-radius: 99px; padding: 1px 6px; flex: none; }
     .ip-grid__amt { overflow:hidden; text-overflow:ellipsis; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 600; color: #8b919b; margin-top: 6px; min-height: 13px; white-space: nowrap; font-variant-numeric: tabular-nums; }
     .ip-grid th.is-leve .ip-grid__amt { color: #5ec38c; }
-    .ip-grid td { overflow:hidden; vertical-align: middle; padding: 11px 10px; border-left: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.07); background:#101216; }
+    .ip-grid td { overflow:hidden; vertical-align: middle; padding: 11px 10px; border-left: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.07); background:#121212; }
     .ip-grid tbody tr:last-child td { border-bottom:0; }
     .ip-grid td:first-child { border-left: 0; }
     .ip-grid thead th { position:sticky; top:0; z-index:3; }
@@ -525,7 +525,7 @@
     .ip-stage-btn.is-active { background:#e7f6ec; border-color:#bbebca; color:#16a34a; }
     .ip-stage-btn__mark { width:12px; height:12px; border:2px solid currentColor; border-radius:50%; }
     .ip-stage-btn.is-active .ip-stage-btn__mark { border-width:4px; }
-    .ip-grid-empty { margin-top: 12px; color: #8b919b; font-size: 14px; padding: 24px; text-align: center; border: 1px dashed rgba(255,255,255,0.14); border-radius: 14px; background: #16181d; }
+    .ip-grid-empty { margin-top: 12px; color: #8b919b; font-size: 14px; padding: 24px; text-align: center; border: 1px dashed rgba(255,255,255,0.14); border-radius: 14px; background: #121212; }
 
     /* Pied de tableau : totaux par palier. */
     .ip-foot { display: flex; align-items: center; gap: 16px; margin-top: 12px; flex-wrap: wrap; font-size: 12.5px; color: #8b919b; }
@@ -665,10 +665,10 @@
     }
 
     /* ── DARK THEME ── */
-    body, .app { background: #08090c !important; }
+    body, .app { background: #000 !important; }
 
     /* Topbar noir */
-    .topbar { position: sticky; top: 0; z-index: 70; background: #08090c !important; border-bottom: 1px solid rgba(255,255,255,0.07) !important; }
+    .topbar { position: sticky; top: 0; z-index: 70; background: #000 !important; border-bottom: 1px solid rgba(255,255,255,0.07) !important; }
     /* Un tiroir ouvert ne fige plus la page : l'arrière-plan reste défilable.
        Le corps des tiroirs a son propre overflow, donc leur défilement interne
        ne « fuit » pas vers la page (voir .drawer__body). */
@@ -692,12 +692,12 @@
     .topbar__search-input { width:100%; min-width:0; border:0; outline:0; background:transparent; color:#fff; font:500 13px/1.2 'Libre Franklin', sans-serif; }
     .topbar__search-input::placeholder { color:rgba(255,255,255,0.56); }
     .topbar__search-input::-webkit-search-cancel-button { appearance:none; width:13px; height:13px; flex:none; background:rgba(255,255,255,0.56); -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 3l10 10M13 3L3 13' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 3l10 10M13 3L3 13' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat; cursor:pointer; }
-    .topbar__search-results { position:absolute; top:calc(100% + 8px); right:0; z-index:80; width:min(430px, calc(100vw - 28px)); max-height:min(62vh, 460px); overflow-y:auto; overscroll-behavior:contain; padding:7px; border:1px solid rgba(255,255,255,0.13); border-radius:12px; background:#15161b; box-shadow:0 18px 42px rgba(0,0,0,0.42); scrollbar-width:thin; scrollbar-color:#fff transparent; }
+    .topbar__search-results { position:absolute; top:calc(100% + 8px); right:0; z-index:80; width:min(430px, calc(100vw - 28px)); max-height:min(62vh, 460px); overflow-y:auto; overscroll-behavior:contain; padding:7px; border:1px solid rgba(255,255,255,0.13); border-radius:12px; background:var(--t-elevated); box-shadow:0 18px 42px rgba(0,0,0,0.42); scrollbar-width:thin; scrollbar-color:#fff transparent; }
     /* Barre de défilement fine et blanche, comme les tiroirs et les pages outils. */
     .topbar__search-results::-webkit-scrollbar { width:6px; }
     .topbar__search-results::-webkit-scrollbar-track { background:transparent; }
     .topbar__search-results::-webkit-scrollbar-thumb { border-radius:6px; background:#fff; }
-    .topbar__search-summary { position:sticky; top:-7px; z-index:1; margin:-7px -7px 0; background:#15161b; }
+    .topbar__search-summary { position:sticky; top:-7px; z-index:1; margin:-7px -7px 0; background:var(--t-elevated); }
     .topbar__search-results[hidden] { display:none; }
     .topbar__search-summary { padding:6px 8px 8px; color:rgba(255,255,255,0.52); font:700 10px/1.25 'Archivo', sans-serif; letter-spacing:.09em; text-transform:uppercase; }
     .topbar__search-empty { margin:0; padding:10px 8px; color:rgba(255,255,255,0.72); font-size:13px; }
@@ -711,7 +711,7 @@
     .topbar__search-result-goto svg { width:15px; height:15px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
     .drawer-backdrop { position:fixed; inset:0; background:transparent; opacity:0; visibility:hidden; transition:visibility .2s; z-index:60; }
     .drawer-backdrop.is-open { opacity:1; visibility:visible; }
-    .drawer { position:fixed; top:0; bottom:0; width:var(--drawer-w, 280px); min-width:220px; max-width:92vw; background:#0c0d11; border-right:1px solid rgba(255,255,255,0.08); box-shadow:0 0 40px rgba(0,0,0,0.5); z-index:61; display:flex; flex-direction:column; transition:transform .22s ease; }
+    .drawer { position:fixed; top:0; bottom:0; width:var(--drawer-w, 280px); min-width:220px; max-width:92vw; background:#0a0a0a; border-right:1px solid rgba(255,255,255,0.08); box-shadow:0 0 40px rgba(0,0,0,0.5); z-index:61; display:flex; flex-direction:column; transition:transform .22s ease; }
     .drawer--left { left:0; }
     .drawer--right { right:0; left:auto; border-right:0; border-left:1px solid rgba(255,255,255,0.08); }
     .drawer--left:not(.is-open) { transform:translateX(-100%); }
@@ -751,11 +751,11 @@
     .drawer__step-bar { height:4px; margin-left:34px; border-radius:99px; background:rgba(255,255,255,0.09); overflow:hidden; }
     .drawer__step-bar > span { display:block; height:100%; width:0; border-radius:99px; background:linear-gradient(90deg,#10b981,#34d399); transition:width .45s ease; }
     .drawer__link--step.is-done .drawer__step-num { background:rgba(16,185,129,0.20); color:#34d399; }
-    .drawer__link--step.is-current { background:rgba(99,102,241,0.13); color:#fff; }
-    .drawer__link--step.is-current .drawer__step-num { background:rgba(99,102,241,0.30); color:#a5b4fc; }
+    .drawer__link--step.is-current { background:rgba(21,128,61,0.28); color:#fff; }
+    .drawer__link--step.is-current .drawer__step-num { background:rgba(21,128,61,0.55); color:#d1fae5; }
     /* Étape réellement affichée : en sombre, seul le carré du numéro ressort. */
     .drawer__link--step.is-active { background:transparent; }
-    .drawer__link--step.is-active .drawer__step-num { background:#fff; color:#111318; }
+    .drawer__link--step.is-active .drawer__step-num { background:#fff; color:#000; }
     .drawer__soon-tag { margin-left:auto; flex:none; font-family:'Archivo',sans-serif; font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#22c55e; background:rgba(34,197,94,0.20); padding:2px 7px; border-radius:99px; }
     .drawer__unread-dot { margin-left:auto; flex:none; width:10px; height:10px; border-radius:50%; background:#86efac; }
     .drawer__mode { flex:none; margin-top:8px; padding:12px 10px 6px; border-top:1px solid rgba(255,255,255,0.08); direction:ltr; }
@@ -766,10 +766,10 @@
     .drawer__mode-option.is-active .drawer__mode-soon { color:#16a34a; }
     .drawer__mode-option:hover:not(:disabled) { color:#fff; }
     .drawer__mode-option:disabled { cursor:not-allowed; color:rgba(255,255,255,0.38); }
-    .drawer__mode-option.is-active { background:#fff; color:#111318; box-shadow:0 1px 5px rgba(0,0,0,0.24); }
+    .drawer__mode-option.is-active { background:#fff; color:#000; box-shadow:0 1px 5px rgba(0,0,0,0.24); }
     .drawer__mode-option:disabled { color:rgba(255,255,255,0.32); cursor:not-allowed; }
     .drawer__mode-option:disabled:hover { background:transparent; color:rgba(255,255,255,0.32); }
-    .drawer__mode-option:focus-visible { outline:2px solid #a5b4fc; outline-offset:1px; }
+    .drawer__mode-option:focus-visible { outline:2px solid #86efac; outline-offset:1px; }
 
     /* Titres et labels de page */
     .dossiers__eyebrow { color: #fff !important; }
@@ -928,7 +928,7 @@
     .company-legal__warn strong { color:#3a3a45; }
     .company-legal__checks { display:flex; flex-direction:column; gap:9px; }
     .company-legal__check { display:flex; gap:9px; align-items:flex-start; font-size:13px; color:#3a3a45; line-height:1.45; cursor:pointer; }
-    .company-legal__check input { margin:2px 0 0; flex:none; }
+    .company-legal__check input { margin:2px 0 0; flex:none; accent-color:#15803d; }
     .company-legal__evidence-current { font-size:12px; color:#6b6b78; margin-top:6px; display:block; }
     .company-legal__link { color:#15803d; font-weight:700; }
 
@@ -1077,8 +1077,8 @@
     :root[data-theme="paper"] .drawer__sep { background:var(--t-divider); }
     :root[data-theme="paper"] .drawer__step-num { background:var(--t-chip); color:var(--t-on-bg-muted); }
     :root[data-theme="paper"] .drawer__step-bar { background:rgba(17,17,17,.09); }
-    :root[data-theme="paper"] .drawer__link--step.is-current { background:rgba(79,70,229,.10); color:#312e81; }
-    :root[data-theme="paper"] .drawer__link--step.is-current .drawer__step-num { background:rgba(79,70,229,.16); color:#4338ca; }
+    :root[data-theme="paper"] .drawer__link--step.is-current { background:rgba(21,128,61,.10); color:#14532d; }
+    :root[data-theme="paper"] .drawer__link--step.is-current .drawer__step-num { background:rgba(21,128,61,.18); color:#15803d; }
     /* Une étape affichée peut aussi être l'étape courante (souvent en BSA-AIR) :
        l'état sélectionné garde alors la même teinte neutre qu'en levée classique. */
     :root[data-theme="paper"] .drawer__link--step.is-current.is-active { background:var(--t-chip); color:var(--t-on-bg); }

@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="theme.css?v=3" />
   <link rel="stylesheet" href="help-bulb.css?v=3" />
   <style>
-    :root { --ink:#08090c; --panel:#101116; --card:#fff; --paper:#f5f4f0; --line:rgba(8,9,12,.11); --muted:#6b6b78; --purple:#6366f1; --green:#10b981; }
+    :root { --ink:#000000; --panel:#121212; --card:#fff; --paper:#f5f4f0; --line:rgba(8,9,12,.11); --muted:#6b6b78; --purple:#6366f1; --green:#10b981; }
     * { box-sizing:border-box; }
     html { scroll-behavior:smooth; }
     body { margin:0; min-height:100vh; background:var(--ink); color:#fff; font-family:'Libre Franklin',system-ui,sans-serif; }
@@ -40,7 +40,7 @@
     .notification-dot[hidden] { display:none; }
     .drawer-backdrop { position:fixed; inset:0; z-index:60; visibility:hidden; background:transparent; }
     .drawer-backdrop.is-open { visibility:visible; }
-    .drawer { position:fixed; inset-block:0; z-index:61; width:var(--drawer-w,280px); min-width:220px; max-width:92vw; display:flex; flex-direction:column; background:#0c0d11; box-shadow:0 0 40px rgba(0,0,0,.5); transition:transform .22s ease; }
+    .drawer { position:fixed; inset-block:0; z-index:61; width:var(--drawer-w,280px); min-width:220px; max-width:92vw; display:flex; flex-direction:column; background:#0a0a0a; box-shadow:0 0 40px rgba(0,0,0,.5); transition:transform .22s ease; }
     .drawer--left { left:0; border-right:1px solid rgba(255,255,255,.08); }
     .drawer--right { right:0; border-left:1px solid rgba(255,255,255,.08); }
     .drawer--left:not(.is-open) { transform:translateX(-100%); }
