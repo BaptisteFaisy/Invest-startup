@@ -130,7 +130,6 @@
       .section__inner { max-width: 1080px; margin: 0 auto; }
       .eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.28); display: block; text-align: center; margin-bottom: 14px; }
       .section__title { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 800; letter-spacing: -0.035em; text-align: center; margin-bottom: 12px; }
-      .how .section__title { font-size: clamp(2.4rem, 5vw, 4.6rem); }
       .section__sub { font-size: 16px; color: rgba(255,255,255,0.4); text-align: center; max-width: 500px; margin: 0 auto 56px; line-height: 1.7; }
 
       .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; border: 1px solid rgba(255,255,255,0.07); border-radius: 20px; overflow: hidden; }
@@ -140,35 +139,6 @@
       .feat__title { font-size: 1rem; font-weight: 700; margin-bottom: 9px; letter-spacing: -0.01em; }
       .feat__desc { font-size: 13.5px; color: rgba(255,255,255,0.42); line-height: 1.68; }
       .feat__tag { display: inline-block; margin-top: 12px; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #3b82f6; background: rgba(59,130,246,0.1); padding: 3px 9px; border-radius: 99px; }
-
-      /* HOW */
-      .how { border-top: 1px solid rgba(255,255,255,0.06); border-bottom: 1px solid rgba(255,255,255,0.06); }
-      .how .section__inner { max-width: 680px; }
-      .how .section__sub { margin-bottom: 0; }
-      .steps { margin-top: 0; }
-      .step { display: flex; gap: 24px; padding: 28px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
-      .step:last-child { border-bottom: none; }
-      .step__num { font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 1rem; color: rgba(255,255,255,0.12); flex: none; width: 32px; padding-top: 2px; }
-      .step h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0; letter-spacing: -0.01em; }
-      .step > div { flex: 1; min-width: 0; }
-
-      /* Visuel du SaaS par étape (remplace l'ancien sous-texte gris) */
-      .step__visual { margin-top: 14px; display: flex; flex-direction: column; gap: 6px; background: #111318; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px 16px; }
-      .step__visual.sv-toggle { flex-direction: row; flex-wrap: wrap; }
-      .step__visual.sv-grid { display: grid; grid-template-columns: repeat(2, 1fr); }
-      .sv-pill { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; padding: 7px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.14); color: rgba(255,255,255,0.4); }
-      .sv-pill.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
-      .sv-file, .sv-folder, .sv-deal, .sv-status { display: flex; align-items: center; gap: 8px; font-size: 12px; color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 7px 10px; }
-      .sv-deal, .sv-status { justify-content: space-between; }
-      .sv-file__dot { width: 6px; height: 6px; border-radius: 50%; background: #3b82f6; flex: none; }
-      .sv-callout { font-size: 11.5px; line-height: 1.5; border-left: 3px solid #3b82f6; background: rgba(255,255,255,0.04); border-radius: 6px; padding: 6px 10px; color: rgba(255,255,255,0.55); }
-      .sv-callout b { color: #fff; }
-      .sv-callout--warn { border-left-color: #dc2626; }
-      .sv-callout--ok { border-left-color: #16a34a; }
-      .sv-tag { font-family: 'Archivo', sans-serif; font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 3px 8px; border-radius: 99px; background: rgba(59,130,246,0.15); color: #3b82f6; white-space: nowrap; flex: none; }
-      .sv-tag--ok { background: rgba(22,163,74,0.15); color: #4ade80; }
-      .sv-check { display: flex; align-items: center; gap: 8px; font-size: 12px; color: rgba(255,255,255,0.6); }
-      .sv-check__ic { color: #16a34a; font-weight: 800; }
 
       /* PANELS HIGHLIGHT */
       .panels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 0; }
@@ -345,15 +315,6 @@
       .feat { background: rgba(255,255,255,.68); border-color: #e2ded6; }
       .feat:hover { background: #fff; }
       .feat__desc, .panel-card p { color: #625f58; }
-      .how { border-color: #ddd9d1; background: rgba(255,255,255,.28); }
-      .step { border-bottom-color: #ddd9d1; }
-      .step__num { color: #aaa49a; }
-      .step__visual { background: #fff; border-color: #dedad2; box-shadow: 0 5px 18px rgba(30,28,24,.04); }
-      .sv-pill { color: #625f58; border-color: #cfcac1; }
-      .sv-file, .sv-folder, .sv-deal, .sv-status { color: #3f3b34; background: #f7f6f3; border-color: #e1ddd5; }
-      .sv-callout { color: #57534a; background: #f7f6f3; }
-      .sv-callout b { color: #111; }
-      .sv-check { color: #3f3b34; }
 
       .panel-card--lib { background: #eef4ff; border-color: #bfd3f7; }
       .panel-card--fill { background: #fff2f2; border-color: #f3c8c8; }
@@ -676,111 +637,6 @@
         </div>
       </section>
 
-      <!-- HOW IT WORKS -->
-      <section class="section how" id="how">
-        <div class="section__inner">
-          <h2 class="section__title">LES ETAPES</h2>
-          <p class="section__sub">Un parcours guidé de A à Z.</p>
-          <div class="steps">
-            <div class="step">
-              <span class="step__num">01</span>
-              <div>
-                <h3>Choix du type de levée de fonds.</h3>
-                <div class="step__visual sv-toggle">
-                  <span class="sv-pill active">Levée classique</span>
-                  <span class="sv-pill">BSA-AIR</span>
-                </div>
-              </div>
-            </div>
-            <div class="step">
-              <span class="step__num">02</span>
-              <div>
-                <h3>Elaboration sur-mesure de vos documents juridiques : de la term sheet au pacte d'associés.</h3>
-                <div class="step__visual">
-                  <div class="sv-file"><span class="sv-file__dot"></span>Term sheet</div>
-                  <div class="sv-file"><span class="sv-file__dot"></span>Pacte d'associés</div>
-                  <div class="sv-file"><span class="sv-file__dot"></span>Statuts mis à jour</div>
-                </div>
-              </div>
-            </div>
-            <div class="step">
-              <span class="step__num">03</span>
-              <div>
-                <h3>Validation par un avocat : chaque contrat est relu et sécurisé avant d'être utilisé.</h3>
-                <div class="step__visual">
-                  <div class="sv-status">Term sheet <span class="sv-tag sv-tag--ok">Validée par l'avocat</span></div>
-                  <div class="sv-status">Pacte d'associés <span class="sv-tag sv-tag--ok">Validé par l'avocat</span></div>
-                  <div class="sv-status">Statuts mis à jour <span class="sv-tag sv-tag--ok">Validés par l'avocat</span></div>
-                </div>
-              </div>
-            </div>
-            <div class="step">
-              <span class="step__num">04</span>
-              <div>
-                <h3>Explication de chaque clause par l'IA : les enjeux, les pratiques, les points majeurs, les pièges.</h3>
-                <div class="step__visual">
-                  <div class="sv-callout"><b>En clair —</b> ce que dit la clause, en langage courant.</div>
-                  <div class="sv-callout sv-callout--warn"><b>Point de vigilance —</b> le piège à repérer.</div>
-                  <div class="sv-callout sv-callout--ok"><b>Standard de marché —</b> l'argument à opposer.</div>
-                </div>
-              </div>
-            </div>
-            <div class="step">
-              <span class="step__num">05</span>
-              <div>
-                <h3>Dataroom prête pour le roadshow.</h3>
-                <div class="step__visual sv-grid">
-                  <div class="sv-folder">Financials</div>
-                  <div class="sv-folder">Cap table</div>
-                  <div class="sv-folder">Pitch deck</div>
-                  <div class="sv-folder">Contrats clés</div>
-                </div>
-              </div>
-            </div>
-            <div class="step">
-              <span class="step__num">06</span>
-              <div>
-                <h3>Suivi automatisé et intelligent des négociations : compréhension des intentions des VCs et des BAs.</h3>
-                <div class="step__visual">
-                  <div class="sv-deal">Alpha Ventures <span class="sv-tag">Négocie la valo</span></div>
-                  <div class="sv-deal">Business Angel — J. Martin <span class="sv-tag">Prêt à signer</span></div>
-                </div>
-              </div>
-            </div>
-            <div class="step">
-              <span class="step__num">07</span>
-              <div>
-                <h3>Revue juridique avant signature : un avocat vérifie la version finale de chaque acte.</h3>
-                <div class="step__visual">
-                  <div class="sv-check"><span class="sv-check__ic">✓</span> Version finale relue par l'avocat</div>
-                  <div class="sv-check"><span class="sv-check__ic">✓</span> Conformité juridique confirmée</div>
-                  <div class="sv-check"><span class="sv-check__ic">✓</span> Prêt pour signature en toute sécurité</div>
-                </div>
-              </div>
-            </div>
-            <div class="step">
-              <span class="step__num">08</span>
-              <div>
-                <h3>Closing.</h3>
-                <div class="step__visual">
-                  <div class="sv-check"><span class="sv-check__ic">✓</span> Bulletins de souscription signés</div>
-                  <div class="sv-check"><span class="sv-check__ic">✓</span> Fonds reçus et constatés</div>
-                  <div class="sv-check"><span class="sv-check__ic">✓</span> Registre des mouvements mis à jour</div>
-                </div>
-              </div>
-            </div>
-            <div class="step">
-              <span class="step__num">09</span>
-              <div>
-                <h3>Inscription au greffe.</h3>
-                <div class="step__visual">
-                  <div class="sv-status">Formalité déposée au greffe <span class="sv-tag sv-tag--ok">Validé</span></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <!-- TARIFS -->
       <section class="section pricing" id="tarifs">
@@ -868,7 +724,6 @@
         <div class="footer__col">
           <h4>Produit</h4>
           <a href="/saas/tableau-de-bord.html">Préparer ma levée de fonds</a>
-          <a href="#how">Les étapes</a>
           <a href="offres.html">Offres &amp; périmètre détaillé</a>
         </div>
         <div class="footer__col">
