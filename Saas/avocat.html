@@ -102,7 +102,7 @@
 
     /* Topbar — thème « Papier » (clair) / sombre, piloté par variables. */
     .topbar { background: var(--av-bg) !important; border-bottom: 1px solid var(--av-line) !important; }
-    .topbar .brand { color: var(--av-ink) !important; display: flex; align-items: center; gap: 8px; }
+    .topbar .brand { color: var(--av-ink) !important; display: flex; align-items: center; gap: 0; }
     .topbar .brand__plus { color: var(--av-ink) !important; }
     .topbar .brand__logo { display: block; flex: none; }
     .topbar .brand__logo path { stroke: var(--av-ink) !important; }
@@ -241,6 +241,23 @@
     .av-note { font-size: 12px; color: var(--av-text-3); margin-top: 18px; line-height: 1.55; }
     .av-note strong { color: var(--av-text); font-weight: 600; }
 
+    /* ── Sélecteur de documents (modale de demande) ────────────────
+       Une liste à cocher plutôt qu'un <select multiple> : le fondateur voit ce
+       qu'il confie — nom, enjeu juridique, avancement — et coche. Le Ctrl+clic
+       d'un select natif ne montre rien de tout cela et se perd au premier clic. */
+    .av-picker { margin-top: 8px; max-height: 244px; overflow-y: auto; border: 1px solid var(--av-field-border); border-radius: 10px; }
+    .av-pickdoc { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--av-card-border); cursor: pointer; transition: background .12s; }
+    .av-pickdoc:last-child { border-bottom: 0; }
+    .av-pickdoc:hover, .av-pickdoc.is-sel { background: var(--av-bg-raise); }
+    .av-pickdoc input { flex: none; margin: 0; accent-color: var(--av-ink-strong); }
+    .av-pickdoc__main { flex: 1 1 auto; min-width: 0; }
+    .av-pickdoc__n { display: block; font-size: 13.5px; font-weight: 600; color: var(--av-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .av-pickdoc__m { display: block; font-size: 11.5px; color: var(--av-text-3); margin-top: 2px; }
+    .av-pickdoc .av-docrisk { font-size: 10px; }
+    .av-picker__foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; font-size: 12px; color: var(--av-text-2); }
+    .av-picker__empty { padding: 18px 12px; text-align: center; color: var(--av-text-3); font-size: 12.5px; }
+    .av-picker__empty a { color: var(--av-ink); text-decoration: underline; }
+
     @media (max-width: 640px) {
       .av-lawyer { flex-direction: column; }
       .av-lawyer__side { flex-direction: row; align-items: center; align-self: stretch; }
@@ -374,9 +391,14 @@
       <div class="av-dialog__h" id="req-title">Demander une relecture</div>
       <p class="av-dialog__p" id="req-desc"></p>
       <div class="av-field">
-        <label class="av-field__l" for="req-doc">Documents à transmettre *</label>
-        <select class="av-select" id="req-doc" multiple size="6"></select>
-        <small>Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs documents.</small>
+        <label class="av-field__l" for="req-doc-search">Documents à transmettre *</label>
+        <p class="av-note" style="margin:0 0 8px">Cochez les documents de votre espace Liquid+ que vous confiez à votre avocat pour cette mission. Ils lui sont transmis en l'état ; vous pourrez en confier d'autres par une nouvelle demande.</p>
+        <input class="av-select" id="req-doc-search" type="search" placeholder="Rechercher un document…" autocomplete="off" />
+        <div class="av-picker" id="req-doc-list"></div>
+        <div class="av-picker__foot">
+          <span id="req-doc-count"></span>
+          <button type="button" class="av-btn--link" id="req-doc-clear" hidden>Tout décocher</button>
+        </div>
       </div>
       <div class="av-field">
         <label class="av-field__l" for="req-title-input">Objet de la demande *</label>
@@ -608,16 +630,88 @@
     };
     const RISK_ORDER = { critique: 0, conseille: 1, faible: 2 };
 
+    /* ── Sélection des documents à soumettre ─────────────────────────
+       Le serveur tronque silencieusement au-delà de 20 documents : on refuse
+       ici plutôt que d'envoyer une mission amputée sans le dire au fondateur. */
+    const MAX_REVIEW_DOCS = 20;
+    // Avancement d'un document : son statut explicite s'il existe, sinon déduit
+    // — même règle que « Documents », pour que le libellé ne change pas d'un
+    // écran à l'autre.
+    const DOC_STATUS_LABELS = { genere: 'Généré', en_cours: 'En cours de modification', modifie: 'Modifié, non signé', valide: 'Validé', signe: 'Signé', data_room: 'Disponible en data room' };
+    function docStatusLabel(d) {
+      if (d.status && DOC_STATUS_LABELS[d.status]) return DOC_STATUS_LABELS[d.status];
+      const created = +new Date(d.created_at || 0);
+      const updated = +new Date(d.updated_at || d.created_at || 0);
+      return updated - created > 60000 ? DOC_STATUS_LABELS.en_cours : DOC_STATUS_LABELS.genere;
+    }
+    function docsByRisk() {
+      return DOCS.slice().sort((a, b) =>
+        ((RISK_ORDER[a.risk] ?? 3) - (RISK_ORDER[b.risk] ?? 3)) ||
+        (new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at)));
+    }
+    let SELECTED_DOCS = new Set();
+
+    function renderDocPicker() {
+      const box = document.getElementById('req-doc-list');
+      const query = document.getElementById('req-doc-search').value.trim().toLowerCase();
+      const shown = docsByRisk().filter(d => !query || String(d.name || '').toLowerCase().includes(query));
+      if (!shown.length) {
+        box.innerHTML = '<div class="av-picker__empty">' + (DOCS.length
+          ? 'Aucun document ne correspond à votre recherche.'
+          : 'Aucun document dans votre espace. Rédigez-le ou importez-le depuis <a href="documents.html" target="_blank" rel="noopener">Documents</a>.') + '</div>';
+      } else {
+        box.innerHTML = shown.map(d => {
+          const rk = RISK_META[d.risk] || RISK_META.faible;
+          const sel = SELECTED_DOCS.has(d.id);
+          const meta = [docStatusLabel(d), fmtDate(d.updated_at || d.created_at), d.size ? Math.ceil(d.size / 1024) + ' Ko' : '']
+            .filter(Boolean).join(' · ');
+          return '<label class="av-pickdoc' + (sel ? ' is-sel' : '') + '">' +
+            '<input type="checkbox" data-doc-id="' + esc(d.id) + '"' + (sel ? ' checked' : '') + ' />' +
+            '<span class="av-pickdoc__main">' +
+              '<span class="av-pickdoc__n" title="' + esc(d.name) + '">' + esc(d.name || ('Document #' + d.id)) + '</span>' +
+              '<span class="av-pickdoc__m">' + esc(meta) + '</span>' +
+            '</span>' +
+            '<span class="av-docrisk av-docrisk--' + esc(rk.cls) + '"><span class="av-docrisk__dot"></span>' + esc(rk.label) + '</span>' +
+          '</label>';
+        }).join('');
+      }
+      renderDocPickerFoot();
+    }
+
+    function renderDocPickerFoot() {
+      const n = SELECTED_DOCS.size;
+      // Les documents sélectionnés puis masqués par la recherche restent
+      // sélectionnés : le compteur porte sur la demande, pas sur l'affichage.
+      document.getElementById('req-doc-count').textContent = n
+        ? n + ' document' + (n > 1 ? 's' : '') + ' sélectionné' + (n > 1 ? 's' : '') + ' sur ' + DOCS.length
+        : 'Aucun document sélectionné';
+      document.getElementById('req-doc-clear').hidden = !n;
+    }
+
+    // Coche/décoche sur place : reconstruire la liste détacherait la case qu'on
+    // vient de cliquer, et le focus du clavier retomberait sur <body> à chaque
+    // sélection.
+    function toggleDoc(box, row) {
+      const id = Number(box.getAttribute('data-doc-id'));
+      const err = document.getElementById('req-err');
+      if (box.checked && !SELECTED_DOCS.has(id) && SELECTED_DOCS.size >= MAX_REVIEW_DOCS) {
+        box.checked = false;
+        err.textContent = 'Une demande porte sur ' + MAX_REVIEW_DOCS + ' documents au maximum. Créez une seconde demande pour le reste.';
+        return;
+      }
+      err.textContent = '';
+      if (box.checked) SELECTED_DOCS.add(id); else SELECTED_DOCS.delete(id);
+      row.classList.toggle('is-sel', box.checked);
+      renderDocPickerFoot();
+    }
+
     function renderSecureDocs() {
       const box = document.getElementById('secure-docs');
       if (!DOCS.length) {
         box.innerHTML = '<div class="av-card av-empty">Vos documents apparaîtront ici avec leur niveau de risque juridique. Rédigez-les ou importez-les depuis <a href="documents.html">Documents</a>.</div>';
         return;
       }
-      const sorted = DOCS.slice().sort((a, b) =>
-        ((RISK_ORDER[a.risk] ?? 3) - (RISK_ORDER[b.risk] ?? 3)) ||
-        (new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at)));
-      box.innerHTML = sorted.map(d => {
+      box.innerHTML = docsByRisk().map(d => {
         const rk = RISK_META[d.risk] || RISK_META.faible;
         return '<div class="av-card av-doc">' +
           '<div class="av-doc__main"><div class="av-doc__name" title="' + esc(d.name) + '">' + esc(d.name) + '</div></div>' +
@@ -659,8 +753,16 @@
       }
       renderAll();
     }
+    // Ne sont de vrais documents ni les versions archivées (gardées pour la
+    // comparaison), ni les checklists investisseurs, ni les modèles ouverts mais
+    // jamais personnalisés : rien de tout cela ne se confie à un avocat. Même
+    // règle que « Documents » et que l'export data room, côté serveur.
+    function isRealDoc(d) {
+      return !d.is_version && !d.is_investor_checklist &&
+        !(d.kind === 'termsheet' && d.template_source && d.is_personalized === false);
+    }
     async function loadDocs() {
-      try { DOCS = (await api('/api/saas/documents')).documents || []; }
+      try { DOCS = ((await api('/api/saas/documents')).documents || []).filter(isRealDoc); }
       catch { DOCS = []; }
     }
 
@@ -689,12 +791,13 @@
       document.getElementById('req-parties-confirm').checked = false;
       document.getElementById('req-party-add').value = '';
       loadPartySuggestions();
-      const sel = document.getElementById('req-doc');
-      sel.innerHTML = DOCS.map(d => '<option value="' + esc(d.id) + '">' + esc(d.name || ('Document #' + d.id)) + '</option>').join('');
-      // Pré-sélection du document (arrivée depuis « Faire relire » d'un document).
-      if (preselectDocId != null && DOCS.some(d => String(d.id) === String(preselectDocId))) {
-        [...sel.options].forEach(o => { o.selected = o.value === String(preselectDocId); });
-      }
+      // La sélection ne doit jamais être collante d'une demande à l'autre : on
+      // repart du document d'où l'on vient (« Faire relire »), sinon de rien.
+      SELECTED_DOCS = new Set();
+      const preselected = DOCS.find(d => String(d.id) === String(preselectDocId));
+      if (preselected) SELECTED_DOCS.add(preselected.id);
+      document.getElementById('req-doc-search').value = '';
+      renderDocPicker();
       openModal('request-modal');
     }
 
@@ -757,11 +860,12 @@
       const btn = document.getElementById('req-submit');
       const err = document.getElementById('req-err');
       err.textContent = '';
+      if (!SELECTED_DOCS.size) { err.textContent = 'Sélectionnez au moins un document à transmettre.'; return; }
       btn.disabled = true; btn.textContent = 'Envoi…';
       try {
         await jsonPost('/api/saas/avocat/requests', {
           prestation_key: modalPrestaKey,
-          document_ids: [...document.getElementById('req-doc').selectedOptions].map(o => Number(o.value)),
+          document_ids: [...SELECTED_DOCS],
           title: document.getElementById('req-title-input').value,
           due_date: document.getElementById('req-due').value || null,
           note: document.getElementById('req-note').value,
@@ -861,6 +965,20 @@
       document.querySelectorAll('.av-modal').forEach(m =>
         m.addEventListener('click', (e) => { if (e.target === m) m.hidden = true; }));
       document.getElementById('req-submit').addEventListener('click', submitRequest);
+      // Sélection des documents (délégation : la liste est refaite à chaque rendu)
+      document.getElementById('req-doc-list').addEventListener('change', (e) => {
+        const box = e.target.closest('input[data-doc-id]');
+        if (box) toggleDoc(box, box.closest('.av-pickdoc'));
+      });
+      document.getElementById('req-doc-search').addEventListener('input', renderDocPicker);
+      document.getElementById('req-doc-search').addEventListener('keydown', (e) => {
+        // Entrée dans la recherche ne doit pas envoyer la demande.
+        if (e.key === 'Enter') e.preventDefault();
+      });
+      document.getElementById('req-doc-clear').addEventListener('click', () => {
+        SELECTED_DOCS = new Set();
+        renderDocPicker();
+      });
       document.getElementById('req-party-add-btn').addEventListener('click', addPartyManually);
       document.getElementById('req-party-add').addEventListener('keydown', (e) => {
         // Entrée ajoute la partie au lieu de soumettre la demande.
