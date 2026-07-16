@@ -20,3 +20,9 @@ output/
 
 # Config de preview locale (chemins absolus propres à la machine)
 .claude/launch.json
+
+# Documents internes (notes de travail levée de fonds) — usage privé, ne doit
+# jamais être servi par le site ni déployé. Le dossier commence par un point :
+# express.static (dotfiles: 'ignore') ne le sert donc pas, et cette règle garantit
+# qu'un `git add -A` ne l'embarque pas.
+.docs-internes/

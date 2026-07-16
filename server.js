@@ -862,6 +862,23 @@ app.post('/api/payments/stripe-connect-webhook', express.raw({ type: 'applicatio
 
 app.use(express.json({ limit: '12mb' }));
 app.use(cookieParser());
+// Sécurité : ne jamais servir de fichier ou dossier « en point » (.env, .git,
+// .gitignore, .docs-internes, .claude…). Dans cette version de serve-static, le
+// service statique de la racine sert ces fichiers par défaut. Ce garde-fou, placé
+// avant tous les express.static, renvoie 404 pour tout segment de chemin
+// commençant par un point — sauf « .well-known », requis par les vérifications
+// TLS / propriété de domaine. Le chemin est décodé au préalable pour éviter un
+// contournement via %2e.
+app.use((req, res, next) => {
+  let decodedPath;
+  try { decodedPath = decodeURIComponent(req.path); }
+  catch { return res.status(400).type('txt').send('Bad Request'); }
+  const hasDotSegment = decodedPath
+    .split('/')
+    .some((segment) => segment.length > 1 && segment[0] === '.' && segment !== '.well-known');
+  if (hasDotSegment) return res.status(404).type('txt').send('Not Found');
+  next();
+});
 app.use('/uploads/public', express.static(PUBLIC_IMG_DIR));
 // Les pages HTML ne doivent jamais être servies depuis un cache périmé : sinon une
 // ancienne page masque les mises à jour (une modif inline HTML/JS/CSS reste
