@@ -4525,6 +4525,22 @@ async function missionWorkBlock(request) {
   };
 }
 
+// Verrou de LECTURE des pièces confiées. Prendre connaissance du fond d'un document
+// EST une diligence : c'est interdit AVANT que la mission soit ouverte (contrôle des
+// conflits sur les parties déclarées, vigilance, acceptation, convention signée) —
+// sinon l'avocat lirait le pacte d'un futur adversaire puis se déporterait pour
+// conflit. Mais une fois la mission entrée en diligences, la lecture reste ouverte
+// même après clôture : l'avocat doit pouvoir retrouver la version exacte qu'il a
+// revue, notamment en cas de litige. Ces états de travail (en_cours… clôturée) ne
+// sont atteignables qu'après avoir satisfait `can_work`, d'où le carve-out ; tout le
+// reste retombe sur le verrou de travail commun.
+async function missionReadBlock(request) {
+  const acceptance = await missionAcceptanceFor(request);
+  const WORKED = ['en_cours', 'attente_fondateur', 'livree', 'cloturee'];
+  if (acceptance?.status === 'accepted' && WORKED.includes(request.status)) return null;
+  return missionWorkBlock(request);
+}
+
 // ── Stripe Connect : état du compte de paiement d'un cabinet ───────────────────
 // Le cabinet encaisse ses honoraires sur son PROPRE compte Stripe Standard.
 // Liquid+ ne perçoit pas les fonds et n'applique aucune commission.
@@ -5598,6 +5614,11 @@ app.get('/api/lawyer/review-requests/:id/documents/:docId/editor', requireAuth, 
   const request = await lawyerRequestFor(req.user.id, req.params.id);
   const docId = Number(req.params.docId);
   if (!request || !(request.documents || []).some(d => Number(d.document_id) === docId)) return res.status(404).json({ error: 'Document non soumis' });
+  // Ouvrir la pièce dans l'éditeur en révèle le contenu, tout autant que la télécharger :
+  // même verrou de lecture. L'avocat contrôle les conflits sur les parties déclarées et
+  // accepte la mission avant d'accéder au fond des documents.
+  const blocked = await missionReadBlock(request);
+  if (blocked) return res.status(blocked.status).json(blocked.body);
   const doc = await col('saas_documents').findOne({ id: docId, user_id: request.user_id, kind: 'termsheet' }, { projection: { _id: 0, user_id: 0 } });
   if (!doc) return res.status(404).json({ error: 'Ce document ne peut pas être ouvert dans l’éditeur' });
   res.json({ id: doc.id, name: doc.name, html: doc.html || '', created_at: doc.created_at, updated_at: doc.updated_at || doc.created_at });
@@ -5664,6 +5685,12 @@ app.get('/api/lawyer/review-requests/:id/documents/:docId/download', requireAuth
   const request = await lawyerRequestFor(req.user.id, req.params.id);
   const docId = Number(req.params.docId);
   if (!request || !(request.documents || []).some(d => d.document_id === docId)) return res.status(404).json({ error: 'Document non soumis' });
+  // Télécharger une pièce confiée, c'est en prendre connaissance : cet accès ne peut
+  // précéder le contrôle des conflits, la vigilance et l'acceptation. La déontologie
+  // impose de trancher AVANT de lire le fond. Verrou de lecture (cf. missionReadBlock) :
+  // il reste ouvert après clôture pour retrouver la version revue.
+  const blocked = await missionReadBlock(request);
+  if (blocked) return res.status(blocked.status).json(blocked.body);
   const doc = await col('saas_documents').findOne({ id: docId, user_id: request.user_id });
   if (!doc) return res.status(404).json({ error: 'Document introuvable' });
   if (doc.kind === 'termsheet') {

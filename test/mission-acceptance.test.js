@@ -276,6 +276,37 @@ test('aucune diligence ne s’écrit sans passer par le verrou de mission', () =
   }
 });
 
+test('la lecture du fond d’une pièce est verrouillée comme une diligence', () => {
+  // Prendre connaissance du contenu d'un document confié — le télécharger ou l'ouvrir
+  // dans l'éditeur — ne peut précéder l'ouverture de la mission : sinon l'avocat lirait
+  // les pièces d'un futur adversaire puis se déporterait pour conflit. Chaque route de
+  // lecture consulte le verrou AVANT de charger le document.
+  const routes = [
+    ["app.get('/api/lawyer/review-requests/:id/documents/:docId/download'", "col('saas_documents').findOne"],
+    ["app.get('/api/lawyer/review-requests/:id/documents/:docId/editor'", "col('saas_documents').findOne"],
+  ];
+  for (const [route, read] of routes) {
+    const start = serverSource.indexOf(route);
+    assert.ok(start > 0, `route introuvable : ${route}`);
+    const guard = serverSource.indexOf('missionReadBlock', start);
+    const readAt = serverSource.indexOf(read, start);
+    assert.ok(guard > 0 && guard < readAt, `le verrou de lecture doit précéder le chargement : ${route}`);
+  }
+});
+
+test('la lecture reste ouverte après clôture, jamais avant l’ouverture', () => {
+  // missionReadBlock est plus permissif que missionWorkBlock sur un seul point : une
+  // mission entrée en diligences puis figée (livrée, clôturée) garde la lecture ouverte,
+  // pour que l'avocat retrouve la version qu'il a revue en cas de litige. Tout le reste —
+  // pré-acceptation, convention non signée, refus — retombe sur le verrou de travail.
+  const start = serverSource.indexOf('async function missionReadBlock');
+  assert.ok(start > 0, 'missionReadBlock introuvable');
+  const body = serverSource.slice(start, serverSource.indexOf('\n}', start));
+  assert.match(body, /'cloturee'/);
+  assert.match(body, /acceptance\?\.status === 'accepted'/);
+  assert.match(body, /return missionWorkBlock\(request\)/);
+});
+
 test('la transition implicite « soumise → en_cours » a disparu', () => {
   // C'était la seule acceptation de mission qui existait : sauvegarder dans
   // l'éditeur faisait démarrer le dossier tout seul. Une mission ne démarre
