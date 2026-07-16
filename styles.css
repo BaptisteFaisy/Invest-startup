@@ -972,25 +972,36 @@ body.auth { padding: 0; }
   .features-grid { grid-template-columns: 1fr 1fr; }
 }
 
-/* ── Hamburger ── */
+/* ── Hamburger ──
+   Les 3 barres sont dessinées depuis UNE seule boîte (span:first-child) : la
+   barre du milieu + deux copies box-shadow décalées de ±8px. Une copie
+   box-shadow est une translation de la même boîte rastérisée ; le décalage de
+   8px tombe sur un nombre ENTIER de pixels écran à toutes les échelles Windows
+   (8×1.25=10, 8×1.5=12, 8×1.75=14, 8×2=16…), donc les 3 barres ont exactement
+   la même épaisseur, quelle que soit l'échelle ou la position sous-pixel du
+   bouton. (Les 2 <span> restants du markup existant sont simplement masqués :
+   aucune page à modifier.) */
 .nav-hamburger {
   display: none;
-  flex-direction: column;
-  /* Pas d'écart impair : 2px + 5px tombe entre deux pixels écran en 125/150 %,
-     et les 3 barres ne s'arrondissent plus à la même épaisseur. */
-  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 30px;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 6px;
+  padding: 0;
   z-index: 200;
+  color: #fff;                 /* couleur des barres, reprise par currentColor */
 }
-.nav-hamburger span {
+.nav-hamburger span { display: none; }
+.nav-hamburger span:first-child {
   display: block;
   width: 24px;
   height: 2px;
-  background: #fff;
   border-radius: 2px;
+  background: currentColor;
+  box-shadow: 0 -8px 0, 0 8px 0;   /* barres du haut et du bas, même couleur */
   transition: transform .25s, opacity .2s;
 }
 
