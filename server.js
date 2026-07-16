@@ -914,6 +914,22 @@ function setAuthCookie(res, user) {
   return token;
 }
 
+// Cookie éphémère qui porte l'étape « 2FA en attente » d'une connexion Google.
+// Le login email/mot de passe garde son tempToken en mémoire (réponse JSON), mais
+// la connexion Google passe par une redirection de page complète : sans support,
+// l'état serait perdu. On le dépose donc dans un cookie httpOnly de 5 min plutôt
+// que dans l'URL — un JWT dans la query fuiterait via l'historique du navigateur et
+// le Referer des sous-ressources de la page de connexion (polices Google, etc.).
+function setPending2FACookie(res, token) {
+  const isProd = process.env.NODE_ENV === 'production';
+  res.cookie('pending_2fa', token, {
+    httpOnly: true,
+    secure:   isProd,
+    sameSite: isProd ? 'none' : 'lax',
+    maxAge:   5 * 60 * 1000,
+  });
+}
+
 function publicAuthUser(user) {
   const access = founderAccess(user);
   const isFounder = Array.isArray(user.account_types) && user.account_types.includes('fondateur');
@@ -1389,7 +1405,11 @@ app.delete('/api/auth/2fa', requireAuth, async (req, res) => {
 
 // ─── POST /api/auth/2fa/verify ────────────────────────────────────────────────
 app.post('/api/auth/2fa/verify', authLimiter, async (req, res) => {
-  const { tempToken, code } = req.body ?? {};
+  const { code } = req.body ?? {};
+  // Le login email/mot de passe transmet le tempToken dans le corps (gardé en
+  // mémoire côté client) ; la connexion Google le dépose dans un cookie httpOnly
+  // (jamais dans l'URL). On accepte les deux sources.
+  const tempToken = req.body?.tempToken || req.cookies?.pending_2fa || null;
   let payload;
   try {
     payload = jwt.verify(tempToken, JWT_SECRET);
@@ -1401,6 +1421,7 @@ app.post('/api/auth/2fa/verify', authLimiter, async (req, res) => {
   if (!speakeasy.totp.verify({ secret: decryptSecret(user.totp_secret), encoding: 'base32', token: (code || '').replace(/\s/g, ''), window: 1 }))
     return res.status(400).json({ error: 'Code incorrect' });
 
+  res.clearCookie('pending_2fa');
   await ensureLawyerCompletion(user);
   const token = setAuthCookie(res, user);
   res.json({ success: true, token, user: publicAuthUser(user), redirect: await authLandingPath(user) });
@@ -1648,11 +1669,25 @@ app.get('/auth/google/callback', async (req, res) => {
            :            res.redirect('/login.html?error=email_burnt');
     if (!user) user  = await createUser({ email: emailClean, password: '', full_name: profile.name || emailClean.split('@')[0], email_verified: true });
     else if (user.email_verified === false) { await updateUserById(user.id, { email_verified: true, email_verified_at: new Date().toISOString() }); user.email_verified = true; }
-    setAuthCookie(res, user);
+
+    // App native : flux inchangé (le schéma liquidplus:// n'a pas d'écran de
+    // challenge 2FA web ; l'app gère sa propre session via le token renvoyé).
     if (fromApp) {
+      setAuthCookie(res, user);
       const appToken = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
       return res.redirect(`liquidplus://auth?token=${encodeURIComponent(appToken)}`);
     }
+
+    // Web : la connexion Google ne doit PAS contourner la double authentification.
+    // Quand la 2FA est configurée (obligatoire pour les avocats), on n'ouvre aucune
+    // session : on exige le code TOTP, exactement comme le login email/mot de passe.
+    if (user.twofa_method) {
+      const tempToken = jwt.sign({ id: user.id, email: user.email, purpose: 'verify_2fa' }, JWT_SECRET, { expiresIn: '5m' });
+      setPending2FACookie(res, tempToken);
+      return res.redirect(fromSaas ? '/saas/login.html?twofa=1' : '/login.html?twofa=1');
+    }
+
+    setAuthCookie(res, user);
     await ensureLawyerCompletion(user);
     res.redirect(await authLandingPath(user));
   } catch (err) {

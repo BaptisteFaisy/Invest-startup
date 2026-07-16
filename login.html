@@ -204,6 +204,17 @@
         el.hidden = false;
       }
 
+      // ── Retour de la connexion Google quand la 2FA est configurée ────────────
+      // Le serveur a déposé le tempToken dans un cookie httpOnly et nous renvoie
+      // ici : on affiche le panneau de saisie du code. `tempToken` reste null côté
+      // JS ; /api/auth/2fa/verify lira le cookie. On nettoie l'URL pour ne pas
+      // réafficher ce panneau au rafraîchissement une fois le cookie expiré.
+      if (new URLSearchParams(window.location.search).get('twofa') === '1') {
+        showPanel('panel-2fa');
+        document.getElementById('totp-input').focus();
+        history.replaceState(null, '', window.location.pathname);
+      }
+
       // Autorise uniquement un retour interne au SaaS, jamais une URL externe.
       function requestedDestination() {
         const value = new URLSearchParams(window.location.search).get('return_to');
