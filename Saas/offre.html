@@ -35,8 +35,8 @@
   /* ── HERO ── */
   .hero{background:var(--ink);color:#fff;padding:15mm 16mm 12mm;position:relative;overflow:hidden}
   .hero::after{content:"";position:absolute;right:-55mm;top:-45mm;width:150mm;height:150mm;background:radial-gradient(circle,rgba(37,99,235,.28),transparent 62%)}
-  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:21px;letter-spacing:-.03em;position:relative}
-  .brand__mark{width:28px;height:28px}
+  .brand{display:flex;align-items:center;gap:0;font-weight:800;font-size:21px;letter-spacing:-.03em;position:relative}
+  .brand__mark{width:28px;height:28px;margin-right:10px}
   .brand__plus{color:#60a5fa}
   .hero__kicker{position:relative;margin-top:22px;font-size:9.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.22);display:inline-block;padding:6px 12px;border-radius:99px}
   .hero h1{position:relative;font-size:31px;font-weight:800;margin:14px 0 11px;max-width:17ch}
@@ -150,8 +150,7 @@
         <rect width="32" height="32" rx="7" fill="#111826" stroke="#3b82f6" stroke-opacity=".4"/>
         <line x1="16" y1="8" x2="16" y2="24" stroke="#60a5fa" stroke-width="4" stroke-linecap="round"/>
         <line x1="8" y1="16" x2="24" y2="16" stroke="#60a5fa" stroke-width="4" stroke-linecap="round"/>
-      </svg>
-      liquid <span class="brand__plus">+</span>
+      </svg>liquid<span class="brand__plus">+</span>
     </div>
     <div class="hero__kicker">Présentation &amp; offre · levée de fonds</div>
     <h1>On gère votre levée de fonds <em>de A à Z.</em></h1>

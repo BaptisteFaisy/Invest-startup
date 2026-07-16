@@ -26,7 +26,7 @@
 .topbar { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 56px; padding: 0 20px; background: #0a0a0a; border-bottom: 1px solid #222; }
 .topbar-wrap .topbar { padding-right: 54px; }
 .topbar__left { display: flex; align-items: center; gap: 16px; min-width: 0; }
-.topbar .brand { font-size: 18px; color: #fff; display: flex; align-items: center; gap: 8px; }
+.topbar .brand { font-size: 18px; color: #fff; display: flex; align-items: center; gap: 0; }
 .topbar .brand__plus { color: #fff; }
 .topbar .brand__logo { display: block; flex: none; }
 .topbar__doc { font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 500; color: #fff; padding-left: 16px; border-left: 1px solid #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
