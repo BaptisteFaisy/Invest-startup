@@ -27,6 +27,7 @@ const Stripe           = require('stripe');
 const { createDocumentEncryption } = require('./lib/document-encryption');
 const { buildAdminDashboardStats, countUnreadAdminMessages } = require('./lib/admin-dashboard');
 const { adminLiquidPayment, adminFreeAiUsage } = require('./lib/admin-payments');
+const { companyNameKey, identityHash: identityHashWith } = require('./lib/founder-identity');
 const { productionConfigurationProblems } = require('./lib/runtime-config');
 const {
   LIQUID_PLUS_STANDARD_PRICE_CENTS,
@@ -217,6 +218,16 @@ async function connectDB() {
   const migrated = await documentEncryption.migrateExistingDocuments(db);
   const migratedCount = Object.values(migrated).reduce((sum, count) => sum + count, 0);
   if (migratedCount) console.log(`  ✓  ${migratedCount} document(s) existant(s) chiffré(s)`);
+  // Un email / un nom de startup ne servent qu'une fois, même après suppression.
+  await db.collection('founder_identity_ledger').createIndex({ kind: 1, hash: 1 }, { unique: true });
+  // Unicité du nom de startup entre comptes vivants. Index PARTIEL et non
+  // `sparse` : `sparse` n'ignore que les champs absents, pas les valeurs null —
+  // tous les comptes sans startup (avocats, investisseurs, comptes antérieurs)
+  // se collisionneraient sur null. Le filtre ne retient que les vraies chaînes.
+  await db.collection('users').createIndex(
+    { company_name_key: 1 },
+    { unique: true, partialFilterExpression: { company_name_key: { $type: 'string' } } },
+  );
   await ensurePaymentIndexes();
   await ensureMissionIndexes();
   await backfillMissionAcceptances();
@@ -314,9 +325,15 @@ async function nextId(colName) {
 // Users
 async function readUsers()        { return col('users').find({}, { projection: { _id: 0 } }).toArray(); }
 async function findByEmail(email) { return col('users').findOne({ email }, { projection: { _id: 0 } }); }
-async function createUser({ email, password, full_name, email_verified = true }) {
+async function createUser({ email, password, full_name, company_name, email_verified = true }) {
   const id   = await nextId('users');
-  const user = { id, email, password: password || '', full_name: full_name || null, email_verified, created_at: new Date().toISOString() };
+  const user = {
+    id, email, password: password || '', full_name: full_name || null,
+    company_name: company_name || null,
+    // Clé normalisée : c'est elle qui porte l'unicité du nom de startup.
+    company_name_key: company_name ? companyNameKey(company_name) : null,
+    email_verified, created_at: new Date().toISOString(),
+  };
   await col('users').insertOne(user);
   return user;
 }
@@ -328,7 +345,46 @@ async function unsetUserFields(id, fields) {
   fields.forEach(f => { unset[f] = ''; });
   await col('users').updateOne({ id }, { $unset: unset });
 }
+// ─── Registre d'identités fondateur (anti-réinscription) ──────────────────────
+// Un email et un nom de startup ne servent QU'UNE fois : supprimer son compte ne
+// doit pas permettre de repartir à neuf (enveloppe d'IA gratuite remise à zéro,
+// offre de bienvenue reprise…). Ce registre survit donc au compte.
+//
+// Il ne conserve QUE des empreintes HMAC, jamais l'email ni le nom en clair :
+// après suppression du compte, plus rien n'est lisible ni ré-identifiable, on
+// peut seulement répondre « cette valeur a-t-elle déjà servi ? ». Le déblocage
+// admin fonctionne de la même façon : l'admin saisit la valeur, on la hache, on
+// compare. Voir POST /api/admin/identity-ledger/release.
+// (companyNameKey / identityHash : logique pure, dans lib/founder-identity.js)
+function identityHash(kind, value) {
+  return identityHashWith(JWT_SECRET, kind, value);
+}
+
+async function isIdentityBurnt(kind, value) {
+  if (!value) return false;
+  const found = await col('founder_identity_ledger').findOne(
+    { kind, hash: identityHash(kind, value) },
+    { projection: { _id: 1 } },
+  );
+  return !!found;
+}
+
+// Appelé à la suppression d'un compte : l'email et le nom sont brûlés pour de bon.
+async function burnIdentities({ email, company_name_key }) {
+  const now = new Date().toISOString();
+  const entries = [];
+  if (email) entries.push({ kind: 'email', hash: identityHash('email', String(email).trim().toLowerCase()) });
+  if (company_name_key) entries.push({ kind: 'company', hash: identityHash('company', company_name_key) });
+  await Promise.all(entries.map(entry => col('founder_identity_ledger').updateOne(
+    { kind: entry.kind, hash: entry.hash },
+    { $setOnInsert: { ...entry, burnt_at: now } },
+    { upsert: true },
+  )));
+}
+
 async function deleteUserAccountById(id) {
+  // Lu AVANT la suppression : après, l'email et le nom ne sont plus accessibles.
+  const user = await col('users').findOne({ id }, { projection: { email: 1, company_name_key: 1 } });
   await Promise.all([
     col('saas_documents').deleteMany({ user_id: id }),
     col('saas_doc_versions').deleteMany({ user_id: id }),
@@ -351,6 +407,7 @@ async function deleteUserAccountById(id) {
     col('saas_compare_history').deleteMany({ user_id: id }),
   ]);
   await col('users').deleteOne({ id });
+  await burnIdentities({ email: user?.email, company_name_key: user?.company_name_key });
 }
 
 // Startup accounts (portal entreprises)
@@ -954,7 +1011,7 @@ function requireStartupAuth(req, res, next) {
 
 // ─── POST /api/auth/register ──────────────────────────────────────────────────
 app.post('/api/auth/register', authLimiter, async (req, res) => {
-  const { email, password, full_name } = req.body ?? {};
+  const { email, password, full_name, company_name } = req.body ?? {};
   if (!email || !password) return res.status(400).json({ error: 'Email et mot de passe requis' });
 
   const emailClean = email.trim().toLowerCase();
@@ -962,6 +1019,14 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
     return res.status(400).json({ error: 'Adresse email invalide' });
   if (password.length < 6)
     return res.status(400).json({ error: 'Le mot de passe doit faire au moins 6 caractères' });
+
+  // Un compte = une startup : le nom est demandé dès l'inscription et ne sert
+  // qu'une fois. Il porte l'identité du compte, il n'est donc pas facultatif.
+  const companyClean = shortText(company_name, 160);
+  const companyKey = companyNameKey(companyClean);
+  if (!companyClean) return res.status(400).json({ error: 'Nom de la startup requis' });
+  if (!companyKey) return res.status(400).json({ error: 'Le nom de la startup doit contenir au moins une lettre ou un chiffre' });
+
   const existingUser = await findByEmail(emailClean);
   if (existingUser) {
     if (existingUser.email_verified === false) {
@@ -972,9 +1037,23 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
     }
     return res.status(409).json({ error: 'Un compte existe déjà avec cet email' });
   }
+  if (await isIdentityBurnt('email', emailClean))
+    return res.status(409).json({ error: 'Cette adresse email a déjà été utilisée pour un compte Liquid+ et ne peut plus servir à en créer un nouveau. Écrivez-nous à liquidplus.contact@gmail.com si vous pensez qu\'il s\'agit d\'une erreur.', code: 'EMAIL_BURNT' });
+
+  if (await col('users').findOne({ company_name_key: companyKey }, { projection: { _id: 1 } }))
+    return res.status(409).json({ error: 'Un compte existe déjà pour cette startup. Un compte correspond à une startup : connectez-vous avec le mot de passe partagé de votre équipe.', code: 'COMPANY_TAKEN' });
+  if (await isIdentityBurnt('company', companyKey))
+    return res.status(409).json({ error: 'Cette startup a déjà eu un compte Liquid+ et ne peut plus en créer un nouveau. Écrivez-nous à liquidplus.contact@gmail.com si vous pensez qu\'il s\'agit d\'une erreur.', code: 'COMPANY_BURNT' });
 
   const hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
-  const user = await createUser({ email: emailClean, password: hash, full_name: full_name?.trim(), email_verified: false });
+  let user;
+  try {
+    user = await createUser({ email: emailClean, password: hash, full_name: full_name?.trim(), company_name: companyClean, email_verified: false });
+  } catch (err) {
+    // Course entre deux inscriptions simultanées : l'index unique tranche.
+    if (err?.code === 11000) return res.status(409).json({ error: 'Un compte existe déjà pour cette startup. Un compte correspond à une startup : connectez-vous avec le mot de passe partagé de votre équipe.', code: 'COMPANY_TAKEN' });
+    throw err;
+  }
   try {
     await sendVerificationEmail(user);
   } catch (err) {
@@ -1494,6 +1573,9 @@ app.post('/api/auth/google/token', async (req, res) => {
     if (!profile.email) return res.status(401).json({ error: 'Email non récupérable via Google' });
     const emailClean = profile.email.toLowerCase();
     let user         = await findByEmail(emailClean);
+    // Google ne doit pas rouvrir une porte fermée à l'inscription classique.
+    if (!user && await isIdentityBurnt('email', emailClean))
+      return res.status(409).json({ error: 'Cette adresse email a déjà été utilisée pour un compte Liquid+ et ne peut plus servir à en créer un nouveau.', code: 'EMAIL_BURNT' });
     if (!user) user  = await createUser({ email: emailClean, password: '', full_name: profile.name || emailClean.split('@')[0], email_verified: true });
     else if (user.email_verified === false) { await updateUserById(user.id, { email_verified: true, email_verified_at: new Date().toISOString() }); user.email_verified = true; }
     const token      = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
@@ -1535,6 +1617,11 @@ app.get('/auth/google/callback', async (req, res) => {
     if (!profile.email) return res.redirect('/login.html?error=google_email');
     const emailClean = profile.email.toLowerCase();
     let user         = await findByEmail(emailClean);
+    // Google ne doit pas rouvrir une porte fermée à l'inscription classique.
+    if (!user && await isIdentityBurnt('email', emailClean))
+      return fromSaas ? res.redirect('/saas/login.html?error=email_burnt')
+           : fromApp  ? res.redirect('liquidplus://auth?error=email_burnt')
+           :            res.redirect('/login.html?error=email_burnt');
     if (!user) user  = await createUser({ email: emailClean, password: '', full_name: profile.name || emailClean.split('@')[0], email_verified: true });
     else if (user.email_verified === false) { await updateUserById(user.id, { email_verified: true, email_verified_at: new Date().toISOString() }); user.email_verified = true; }
     setAuthCookie(res, user);
@@ -3699,7 +3786,15 @@ function sanitizeFundraisingProfile(body) {
 
 app.get('/api/saas/fundraising-profile', requireAuth, async (req, res) => {
   const profile = await col('saas_fundraising_profiles').findOne({ user_id: req.user.id });
-  res.json({ profile: publicFundraisingProfile(profile) });
+  const publicProfile = publicFundraisingProfile(profile);
+  // Le nom donné à l'inscription préremplit « Ma levée » tant que le fondateur
+  // n'en a pas saisi un autre : il identifie déjà son compte, autant ne pas le
+  // lui redemander.
+  if (!publicProfile.company_name) {
+    const user = await col('users').findOne({ id: req.user.id }, { projection: { company_name: 1 } });
+    if (user?.company_name) publicProfile.company_name = user.company_name;
+  }
+  res.json({ profile: publicProfile });
 });
 
 app.put('/api/saas/fundraising-profile', requireAuth, async (req, res) => {
@@ -6164,6 +6259,26 @@ app.get('/api/admin/founders', requireAdmin, async (_req, res) => {
     const lawyer = lawyersById.get(lawyerId);
     return { ...u, company_name: companies.get(u.id) || '', lawyer_id: lawyerId, lawyer_name: lawyer ? (lawyer.full_name || lawyer.email) : '', has_open_proposal: clientsWithProposal.has(u.id) };
   }) });
+});
+
+// Libère un email ou un nom de startup brûlé par une suppression de compte.
+// Le registre ne contenant que des empreintes, on ne peut pas LISTER ce qui est
+// bloqué : l'admin saisit la valeur, on la hache et on compare. C'est la
+// contrepartie assumée de ne rien conserver de lisible après une suppression.
+app.post('/api/admin/identity-ledger/release', requireAdmin, async (req, res) => {
+  const kind = String(req.body?.kind || '');
+  if (!['email', 'company'].includes(kind))
+    return res.status(400).json({ error: 'Type invalide : « email » ou « company ».' });
+
+  const raw = String(req.body?.value || '').trim();
+  if (!raw) return res.status(400).json({ error: 'Valeur requise.' });
+  const value = kind === 'email' ? raw.toLowerCase() : companyNameKey(raw);
+  if (!value) return res.status(400).json({ error: 'Valeur invalide.' });
+
+  const result = await col('founder_identity_ledger').deleteOne({ kind, hash: identityHash(kind, value) });
+  if (!result.deletedCount)
+    return res.status(404).json({ error: 'Cette valeur n’est pas bloquée : elle n’a jamais servi, ou elle appartient à un compte encore actif (supprimez-le d’abord).', released: false });
+  res.json({ success: true, released: true });
 });
 
 app.get('/api/admin/lawyer-change-requests', requireAdmin, async (_req, res) => {

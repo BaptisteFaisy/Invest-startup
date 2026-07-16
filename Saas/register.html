@@ -82,6 +82,11 @@
             <input class="auth-input" type="text" name="full_name" autocomplete="name" placeholder="Jean Dupont" />
           </label>
           <label class="auth-field">
+            <span>Nom de la startup</span>
+            <input class="auth-input" type="text" name="company_name" autocomplete="organization" placeholder="Acme" required />
+            <span class="auth-hint">Il identifie votre compte et ne pourra pas servir à un autre.</span>
+          </label>
+          <label class="auth-field">
             <span>Email</span>
             <input class="auth-input" type="email" name="email" autocomplete="email" placeholder="vous@exemple.fr" required />
             <span class="auth-hint">C'est à cette adresse que se feront vos échanges avec l'avocat.</span>
@@ -145,11 +150,13 @@
         errEl.hidden = true; successEl.hidden = true;
 
         const full_name        = form.full_name.value.trim();
+        const company_name     = form.company_name.value.trim();
         const email            = form.email.value.trim();
         const password         = form.password.value;
         const confirm_password = form.confirm_password.value;
 
         if (!email || !password) { errEl.textContent = 'Email et mot de passe requis'; errEl.hidden = false; return; }
+        if (!company_name) { errEl.textContent = 'Nom de la startup requis'; errEl.hidden = false; return; }
         if (password.length < 8) { errEl.textContent = 'Le mot de passe doit faire au moins 8 caractères'; errEl.hidden = false; return; }
         if (password !== confirm_password) { errEl.textContent = 'Les mots de passe ne correspondent pas'; errEl.hidden = false; return; }
 
@@ -159,7 +166,7 @@
         try {
           const res  = await fetch('/api/auth/register', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            credentials: 'include', body: JSON.stringify({ email, password, full_name }),
+            credentials: 'include', body: JSON.stringify({ email, password, full_name, company_name }),
           });
           const data = await res.json();
           if (!res.ok) {

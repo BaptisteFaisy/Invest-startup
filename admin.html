@@ -135,6 +135,14 @@
     .quota-progress--converted .quota-progress__fill { background:#15803d; }
     .quota-progress--exhausted .quota-progress__fill { background:#78716c; }
     .quota-progress--legacy { color:var(--muted); font-size:.76rem; }
+    .release-form { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px; }
+    .release-form__kind, .release-form__value { padding:9px 11px; border:1px solid #d6d3d1; border-radius:8px; font:inherit; font-size:.86rem; background:#fff; }
+    .release-form__value { flex:1; min-width:220px; }
+    .release-form__submit { padding:9px 16px; border:0; border-radius:8px; background:#15803d; color:#fff; font-weight:700; font-size:.86rem; cursor:pointer; }
+    .release-form__submit:disabled { opacity:.55; cursor:wait; }
+    .release-form__message { margin-top:9px; font-size:.8rem; min-height:1.1em; }
+    .release-form__message--ok { color:#15803d; }
+    .release-form__message--ko { color:#b42318; }
     .payment-values { display:flex; flex-wrap:wrap; gap:8px; }
     .payment-value { display:inline-flex; align-items:center; gap:7px; min-height:30px; padding:5px 9px; border-radius:8px; font-size:.88rem; font-weight:700; white-space:nowrap; }
     .payment-value small { font-size:.65rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
@@ -290,6 +298,22 @@
           <tbody id="payments-list"><tr><td colspan="4" class="notice">Chargement…</td></tr></tbody>
         </table>
       </div>
+
+      <h2>Libérer un email ou un nom de startup</h2>
+      <p class="notice">
+        Un email et un nom de startup ne servent qu'une fois : supprimer un compte les bloque
+        définitivement. Saisissez la valeur exacte pour la rendre à nouveau disponible.
+        Le registre ne conserve aucun email ni nom en clair, il ne peut donc pas être listé.
+      </p>
+      <form class="release-form" id="release-form">
+        <select class="release-form__kind" id="release-kind" aria-label="Type de valeur à libérer">
+          <option value="email">Email</option>
+          <option value="company">Nom de startup</option>
+        </select>
+        <input class="release-form__value" id="release-value" type="text" placeholder="vous@exemple.fr" aria-label="Valeur à libérer" required />
+        <button class="release-form__submit" type="submit">Libérer</button>
+      </form>
+      <div class="release-form__message" id="release-message" role="status"></div>
     </div>
 
     <div class="admin-section" id="admin-lawyers" data-admin-view-panel="lawyers" hidden>
@@ -679,6 +703,42 @@
         el.innerHTML='<tr><td colspan="4" class="notice">'+escHtml(e.message)+'</td></tr>';
       }
     }
+    // Libération d'un email / nom de startup brûlé par une suppression de compte.
+    (function wireReleaseForm() {
+      const form = document.getElementById('release-form');
+      if (!form) return;
+      const kind = document.getElementById('release-kind');
+      const value = document.getElementById('release-value');
+      const message = document.getElementById('release-message');
+      const submit = form.querySelector('.release-form__submit');
+      kind.addEventListener('change', () => {
+        value.placeholder = kind.value === 'email' ? 'vous@exemple.fr' : 'Acme';
+      });
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        message.textContent = '';
+        message.className = 'release-form__message';
+        if (!value.value.trim()) return;
+        submit.disabled = true;
+        try {
+          await adminJson('/api/admin/identity-ledger/release', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ kind: kind.value, value: value.value }),
+          });
+          message.textContent = kind.value === 'email'
+            ? 'Email libéré : il peut de nouveau servir à créer un compte.'
+            : 'Nom de startup libéré : il peut de nouveau servir à créer un compte.';
+          message.className = 'release-form__message release-form__message--ok';
+          value.value = '';
+        } catch (e) {
+          message.textContent = e.message;
+          message.className = 'release-form__message release-form__message--ko';
+        } finally {
+          submit.disabled = false;
+        }
+      });
+    })();
     function renderAdministrators() {
       const el=document.getElementById('administrator-list');
       if(!adminAdministrators.length){el.innerHTML='<p class="notice">Aucun compte administrateur.</p>';return;}
