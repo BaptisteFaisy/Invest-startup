@@ -60,6 +60,11 @@ const {
   partnershipAcceptanceRecord,
   publicPartnership,
 } = require('./lib/lawyer-partnership');
+const {
+  buildMissionScope,
+  FOUNDER_PERSONAL_INTEREST_NOTICE,
+  FOUNDER_INDEPENDENT_COUNSEL_NOTICE,
+} = require('./lib/mission-scope');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -4263,7 +4268,6 @@ const AVOCAT_PRESTATION_KEYS  = new Set(AVOCAT_PRESTATIONS.map(p => p.key));
 const AVOCAT_REQUEST_STATUSES = ['soumise', 'acceptee', 'refusee', 'en_cours', 'attente_fondateur', 'livree', 'cloturee', 'annule'];
 const COMPANY_LEGAL_FORMS = new Set(['sas', 'sasu', 'sarl', 'eurl', 'sa', 'sca', 'snc', 'scop', 'other']);
 const COMPANY_USER_ROLES = new Set(['legal_representative', 'authorized_user']);
-const FOUNDER_PERSONAL_INTEREST_NOTICE = 'Cette question concerne vos intérêts personnels et n’est pas incluse dans la mission confiée par la société. Un conseil distinct peut être nécessaire.';
 const LAWYER_APPOINTMENT_PROVIDERS = new Set(['zoom_e2ee', 'google_meet_managed', 'phone']);
 const LAWYER_APPOINTMENT_STATUSES = new Set(['requested', 'scheduled', 'cancelled', 'completed']);
 
@@ -4712,6 +4716,7 @@ app.get('/api/saas/avocat/company-eligibility', requireAuth, requireAssignedFoun
       workspace_owner: 'company', user_capacity: 'legal_representative_or_authorized_user',
     },
     personal_interest_notice: FOUNDER_PERSONAL_INTEREST_NOTICE,
+    independent_counsel_notice: FOUNDER_INDEPENDENT_COUNSEL_NOTICE,
     personal_advice_offer: { available: false, label: 'Conseil personnel fondateur' },
     constitution_offer: { available: false, label: 'Constitution', client: 'future_shareholders' },
   });
@@ -4802,6 +4807,7 @@ app.get('/api/saas/avocat/overview', requireAuth, requireAssignedFounder2FA, asy
     requests,
     company: { profile: publicCompanyLegalProfile(companyProfile), eligibility: companyEligibility(companyProfile) },
     personal_interest_notice: FOUNDER_PERSONAL_INTEREST_NOTICE,
+    independent_counsel_notice: FOUNDER_INDEPENDENT_COUNSEL_NOTICE,
   });
 });
 
@@ -4885,11 +4891,12 @@ app.post('/api/saas/avocat/requests', requireAuth, requireAssignedFounder2FA, as
     code: 'COMPANY_PROFILE_REQUIRED',
     eligibility,
   });
-  if (body.founder_personal_interest === true) return res.status(409).json({
-    error: FOUNDER_PERSONAL_INTEREST_NOTICE,
-    code: 'FOUNDER_PERSONAL_ADVICE_REQUIRED',
-    personal_advice_offer: { available: false, label: 'Conseil personnel fondateur' },
-  });
+  // On NE bloque PLUS quand le fondateur signale un intérêt personnel : une term
+  // sheet engage toujours le fondateur (vesting/leaver/non-concurrence), donc un
+  // fondateur honnête cocherait toujours cette case et ne pourrait jamais rien
+  // soumettre. La mission de la société reste légitime ; on trace le périmètre
+  // (mission_scope) et on rappelle qu'un avocat indépendant est nécessaire pour
+  // le conseil personnel. Voir lib/mission-scope.js.
 
   const state = await getOrInitAvocatState(req.user.id);
   const lawyerUserId = await assignedLawyerForClient(req.user.id);
@@ -4933,8 +4940,7 @@ app.post('/api/saas/avocat/requests', requireAuth, requireAssignedFounder2FA, as
     title: shortText(body.title, 160) || (prestation?.label || 'Relecture juridique'),
     lawyer_payment_status: 'not_requested',
     note: shortText(body.note, 3000),
-    founder_personal_interest_flag: body.founder_personal_interest === true,
-    founder_personal_interest_notice: body.founder_personal_interest === true ? FOUNDER_PERSONAL_INTEREST_NOTICE : null,
+    mission_scope: buildMissionScope({ founderPersonalInterest: body.founder_personal_interest === true, recordedAt: now }),
     due_date: /^\d{4}-\d{2}-\d{2}$/.test(String(body.due_date || '')) ? String(body.due_date) : null,
     parties,
     parties_confirmed_at: now,
@@ -4965,6 +4971,13 @@ app.post('/api/saas/avocat/requests', requireAuth, requireAssignedFounder2FA, as
     type: 'parties_declarees', actorId: req.user.id, actorRole: 'founder',
     metadata: { parties_count: parties.length },
   });
+  // Trace probante du périmètre : le fondateur a signalé qu'une clause l'engage
+  // personnellement, donc hors mandat société. Horodaté, opposable des deux côtés.
+  if (request.mission_scope.founder_personal_interest_flagged) {
+    await recordMissionEvent(request, {
+      type: 'perimetre_personnel_declare', actorId: req.user.id, actorRole: 'founder',
+    });
+  }
   await createLawyerNotification(
     lawyerUserId,
     'mission_received',

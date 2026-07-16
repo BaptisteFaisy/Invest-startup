@@ -52,6 +52,9 @@
       --av-outline:           rgba(0,0,0,0.32);
       --av-outline-hov:       rgba(0,0,0,0.6);
       --av-doc-border:        rgba(0,0,0,0.18);
+      --av-hamburger-border:      rgba(0,0,0,0.18);
+      --av-hamburger-border-hov:  rgba(0,0,0,0.45);
+      --av-hamburger-hover-bg:    rgba(0,0,0,0.05);
       --av-hair-strong:       rgba(0,0,0,0.5);
       --av-danger-border:     rgba(0,0,0,0.28);
       --av-danger-hover:      rgba(0,0,0,0.05);
@@ -84,6 +87,9 @@
       --av-outline:           rgba(255,255,255,0.32);
       --av-outline-hov:       rgba(255,255,255,0.65);
       --av-doc-border:        rgba(255,255,255,0.2);
+      --av-hamburger-border:      rgba(255,255,255,0.22);
+      --av-hamburger-border-hov:  rgba(255,255,255,0.55);
+      --av-hamburger-hover-bg:    rgba(255,255,255,0.06);
       --av-hair-strong:       rgba(255,255,255,0.5);
       --av-danger-border:     rgba(255,255,255,0.28);
       --av-danger-hover:      rgba(255,255,255,0.06);
@@ -107,9 +113,11 @@
     .topbar .brand__logo { display: block; flex: none; }
     .topbar .brand__logo path { stroke: var(--av-ink) !important; }
     .topbar__doc { color: var(--av-ink) !important; border-left-color: var(--av-doc-border) !important; }
-    /* Icône : couleur pilotée par le thème. La bordure vient de la base .hamburger
-       (invisible sur fond clair, visible sur fond sombre) — comme aujourd'hui. */
-    .topbar .hamburger { color: var(--av-ink) !important; }
+    /* Icône ET contour pilotés par le thème : sur fond clair la bordure blanche
+       de base .hamburger disparaîtrait — on la remplace par un contour sombre,
+       pour retrouver l'apparence du hamburger du tableau de bord. */
+    .topbar .hamburger { color: var(--av-ink) !important; border-color: var(--av-hamburger-border) !important; }
+    .topbar .hamburger:hover { border-color: var(--av-hamburger-border-hov) !important; background: var(--av-hamburger-hover-bg) !important; }
     .topbar .btn--ghost { color: var(--av-ink) !important; border-color: var(--av-outline) !important; }
     .topbar .btn--ghost:hover { color: var(--av-ink) !important; border-color: var(--av-outline-hov) !important; }
 
@@ -423,7 +431,7 @@
         <label class="av-note" style="display:block;margin:12px 0 0"><input type="checkbox" id="req-parties-confirm" /> Je confirme que cette liste est exacte et complète à ma connaissance.</label>
       </div>
       <label class="av-note" style="display:block;margin:12px 0"><input type="checkbox" id="req-personal-interest" /> Cette demande concerne-t-elle personnellement un fondateur (garantie personnelle, cession de titres, vesting/leaver, non-concurrence…) ?</label>
-      <p class="av-note" id="personal-interest-warning" hidden><strong>Hors mission société.</strong> Cette question concerne vos intérêts personnels et n’est pas incluse dans la mission confiée par la société. Un conseil distinct peut être nécessaire.</p>
+      <p class="av-note" id="personal-interest-warning" hidden><strong>Hors mission société.</strong> Ces clauses (vesting/leaver, non-concurrence, garantie personnelle…) vous engagent personnellement et ne sont pas couvertes par la mission de la société. <strong>Votre demande reste possible</strong> : elle est transmise pour la société, et ce périmètre est tracé. Pour ces clauses, l’avocat de la société ne peut pas vous conseiller à titre personnel sur la même opération — un avocat indépendant (distinct de son cabinet) est nécessaire.</p>
       <div class="av-err" id="req-err"></div>
       <div class="av-dialog__act">
         <button type="button" class="av-btn av-btn--ghost" data-close-modal="request-modal">Annuler</button>
