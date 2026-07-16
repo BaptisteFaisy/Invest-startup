@@ -300,6 +300,10 @@
       .mobile-menu { background: #f7f6f3; }
       .mobile-menu a { color: #111; }
       .mobile-menu a[style], .mobile-menu button[style] { color: rgba(17,17,17,.62) !important; }
+      /* Le bouton Fermer est un .nav-hamburger avec style inline : la règle
+         ci-dessus le grisait. On le remet aussi noir que le hamburger principal
+         (même taille déjà, via .nav-hamburger svg). */
+      #mobile-close { color: #111 !important; }
 
       .hero__badge { color: #57534a; border-color: #d8d4cc; background: rgba(255,255,255,.58); }
       .hero__sub, .section__sub, .cta p { color: #625f58; }
