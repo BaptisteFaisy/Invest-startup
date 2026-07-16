@@ -5223,10 +5223,16 @@ app.post('/api/lawyer/payments/connect/onboard', requireAuth, requireLawyer, asy
 
   let accountId = existingProfile.stripe_connect_account_id;
   if (!accountId) {
+    // Clé d'idempotence FRAÎCHE à chaque tentative. Une clé fixe par avocat
+    // paraissait plus sûre, mais Stripe met en cache la première réponse d'une clé
+    // — erreur comprise, pendant 24 h. Un premier essai échoué (ex. Connect pas
+    // encore activé) « empoisonnait » alors toutes les tentatives suivantes, qui
+    // rejouaient l'échec en boucle. La déduplication réelle est assurée par le
+    // garde `if (!accountId)` ci-dessus : un compte déjà créé n'en recrée pas.
     const account = await stripe.accounts.create({
       type: 'standard', country: 'FR', email: user?.email || undefined,
       metadata: { liquid_plus_lawyer_id: String(req.user.id), liquid_plus_role: 'independent_lawyer' },
-    }, { idempotencyKey: `lawyer-connect-account-${req.user.id}` });
+    }, { idempotencyKey: crypto.randomUUID() });
     accountId = account.id;
     const now = new Date().toISOString();
     await col('saas_lawyer_profiles').updateOne(
@@ -5744,8 +5750,9 @@ app.post('/api/lawyer/review-requests/:id/deliver', requireAuth, requireLawyer, 
   const delivery = { document_id: id, source_document_id: source.id, name: doc.name, size: doc.size, delivered_at: now, lawyer_user_id: req.user.id };
   await col('saas_avocat_requests').updateOne({ id: request.id }, { $push: { deliveries: delivery }, $set: { status: 'livree', updated_at: now, lawyer_activity_at: now } });
   await recordMissionEvent(request, { type: 'documents_remis', actorId: req.user.id, actorRole: 'lawyer' });
-  const note = shortText(req.body?.message, 4000);
-  if (note) await col('saas_avocat_messages').insertOne({ id: await nextId('saas_avocat_messages'), request_id: request.id, client_id: request.user_id, author_type: 'lawyer', author_id: req.user.id, body: note, created_at: now });
+  // Aucun message n'est stocké ici : la messagerie Liquid+ est désactivée (les autres
+  // routes renvoient 410) et l'interface promet « Liquid+ ne conserve aucun message ».
+  // Un mot accompagnant la remise passe par email ou l'e-Partage CNB, jamais par la base.
   sendPortalNotificationEmail(request.user_id, 'Un document est disponible dans votre espace sécurisé', `/saas/dossier-avocat.html?id=${request.id}`).catch(error => console.error('founder notification email error:', error.message));
   res.status(201).json({ delivery, document: publicDoc(doc) });
 });

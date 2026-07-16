@@ -28,8 +28,8 @@ const SIGNED = { lawyer_partnership_version: LAWYER_PARTNERSHIP_VERSION };
 // LAWYER_PARTNERSHIP_VERSION, puis reporter la nouvelle empreinte ici.
 test('l’empreinte fige le texte : le modifier sans changer de version casse la CI', () => {
   const hash = partnershipDocumentHash(buildPartnershipDocument(PRESTATIONS));
-  assert.equal(hash, '3a5191e728cd1e09f527dfb2883b7f6b5bb3069452b2a360e871bc2037b6bd1e');
-  assert.equal(LAWYER_PARTNERSHIP_VERSION, 1);
+  assert.equal(hash, '39d7a231fdc3512dd22d8162f79c7b8fc3c4eccd88b8b46db65d61e2c93e5bed');
+  assert.equal(LAWYER_PARTNERSHIP_VERSION, 2);
 });
 
 test('l’empreinte suit la grille, pas seulement les clauses', () => {
