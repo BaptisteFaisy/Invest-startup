@@ -398,8 +398,14 @@ let DOC_TYPE = '';
 let BASELINE_HTML = '';
 let BASELINE_AT = null;
 let redlineActive = false;
+let redlineMarking = true; // suivi des modifications : ON par défaut en redline ;
+                           // le fondateur peut le mettre en pause pour corriger
+                           // sans que ses retouches apparaissent en ins/del.
 let _rlSavedHtml = null;   // contenu de travail à restaurer en quittant le redline
 let _rlChanges = [];       // récapitulatif clause par clause du dernier diff
+let _rlPauseUnchanged = new Set(); // clés des clauses SANS modification suivie au
+                           // moment de la mise en pause : les corrections qu'on y
+                           // fait pendant la pause sont fondues dans la référence.
 let docAdviceCache = null; // conseils IA spécifiques au document chargé
 let docAdviceIsBaked = false; // true si les conseils proviennent du modèle (data-advice)
 // Identifie le document actuellement affiché pour empêcher une réponse IA
@@ -1537,6 +1543,7 @@ async function exportToFile(format, btn, mode) {
    conservées) : c'est lui qui est enregistré. La vue s'imprime telle quelle
    (PDF) et s'exporte en Word via le serveur, annexe récapitulative comprise. */
 const redlineBtn   = document.getElementById('redline-btn');
+const rlMarkToggle = document.getElementById('rl-mark-toggle');
 const rlBanner     = document.getElementById('rl-banner');
 const rlBannerText = document.getElementById('rl-banner-text');
 const rlPanel      = document.getElementById('rlpanel');
@@ -1558,12 +1565,24 @@ function rlIntro() {
 // Sort du mode redline SANS restaurer la page (le contenu suivant la remplace).
 function discardRedlineView() {
   redlineActive = false;
+  redlineMarking = true;
+  _rlPauseUnchanged = new Set();
   clearTimeout(_rlRemarkTimer);
   _rlSavedHtml = null;
   _rlChanges = [];
   if (rlBanner) rlBanner.hidden = true;
   if (rlPanel)  rlPanel.hidden = true;
+  if (rlMarkToggle) rlMarkToggle.hidden = true;
   if (redlineBtn) redlineBtn.textContent = 'Redline';
+}
+
+// Interrupteur « suivi des modifications » : reflète l'état ON / en pause.
+function rlSyncMarkToggle() {
+  if (!rlMarkToggle) return;
+  rlMarkToggle.hidden = !redlineActive;
+  rlMarkToggle.setAttribute('aria-pressed', String(redlineMarking));
+  rlMarkToggle.textContent = redlineMarking ? 'Suivi : activé' : 'Suivi : en pause';
+  rlMarkToggle.classList.toggle('rl-banner__toggle--paused', !redlineMarking);
 }
 
 // Le texte barré représente ce qui a été RETIRÉ de la référence : il ne
@@ -1592,6 +1611,7 @@ function renderRedlineView(diff) {
   rlUpdateBanner(diff.stats);
   if (rlBanner) rlBanner.hidden = false;
   if (redlineBtn) redlineBtn.textContent = 'Quitter le redline';
+  rlSyncMarkToggle();
 }
 
 /* ----- Curseur : sauvegarde/restauration à travers un re-marquage ----------
@@ -1660,7 +1680,7 @@ function rlScheduleRemark() {
   _rlRemarkTimer = setTimeout(rlRemark, 1200);
 }
 function rlRemark() {
-  if (!redlineActive) return;
+  if (!redlineActive || !redlineMarking) return;
   let diff;
   try { diff = RedlineDiff.diffEditorDocs(BASELINE_HTML, termsheetHtml()); }
   catch { return; }
@@ -1671,7 +1691,88 @@ function rlRemark() {
   rlRestoreCaret(caret);
   paginate();
 }
-page.addEventListener('input', () => { if (redlineActive) rlScheduleRemark(); });
+// Le re-marquage automatique n'a lieu que si le suivi est actif : en pause, la
+// frappe modifie le document propre sans produire d'insertions / suppressions.
+page.addEventListener('input', () => { if (redlineActive && redlineMarking) rlScheduleRemark(); });
+
+/* ----- Suivi des modifications : mise en pause / reprise -------------------
+   En pause, la vue redline (marques + annexe) est remplacée par le document
+   « accepté » PROPRE, entièrement éditable normalement. Les corrections faites
+   dans une clause qui n'avait AUCUNE modification suivie sont ensuite fondues
+   dans la référence à la reprise : elles n'apparaissent donc jamais en redline.
+   Une clause qu'on était déjà en train de négocier reste rediffée normalement. */
+function rlPausedBannerText() {
+  return 'Suivi des modifications en pause : vos corrections ne sont pas marquées ' +
+    'et n’apparaîtront pas en redline. Réactivez le suivi pour revoir la comparaison.';
+}
+
+function pauseRedlineMarking() {
+  if (!redlineActive || !redlineMarking) return;
+  clearTimeout(_rlRemarkTimer);
+  // Fige la comparaison courante pour mémoriser quelles clauses étaient intactes.
+  try {
+    const diff = RedlineDiff.diffEditorDocs(BASELINE_HTML, termsheetHtml());
+    _rlChanges = diff.changes;
+  } catch { /* on garde le dernier récapitulatif connu */ }
+  _rlPauseUnchanged = new Set(
+    (_rlChanges || []).filter(c => c.status === 'unchanged' && c.key).map(c => c.key));
+  const clean = termsheetHtml(); // document accepté, sans marques
+  redlineMarking = false;
+  page.innerHTML = clean;
+  if (rlBannerText) rlBannerText.textContent = rlPausedBannerText();
+  if (rlBanner) rlBanner.hidden = false;
+  if (rlPanel) rlPanel.hidden = true;
+  rlSyncMarkToggle();
+  showEmptyPanel();
+  paginate();
+}
+
+// Fond les corrections faites pendant la pause dans la référence, pour les seules
+// clauses intactes au moment de la pause. La référence corrigée est persistée
+// (sans changer la date de réception) pour survivre au rechargement.
+async function rlAbsorbPausedEdits() {
+  if (!_rlPauseUnchanged || !_rlPauseUnchanged.size || !BASELINE_HTML) return;
+  const editDoc = document.createElement('div'); editDoc.innerHTML = termsheetHtml();
+  const baseDoc = document.createElement('div'); baseDoc.innerHTML = BASELINE_HTML;
+  let changed = false;
+  _rlPauseUnchanged.forEach(key => {
+    const sel = '.ts-clause[data-key="' + String(key).replace(/"/g, '\\"') + '"]';
+    const b = baseDoc.querySelector(sel);
+    const e = editDoc.querySelector(sel);
+    if (!b || !e || b.innerHTML === e.innerHTML) return;
+    b.innerHTML = e.innerHTML; // la référence adopte le texte corrigé → plus de redline
+    changed = true;
+  });
+  if (!changed) return;
+  BASELINE_HTML = baseDoc.innerHTML;
+  if (currentDocId) {
+    try {
+      await fetch('/api/saas/termsheets/' + currentDocId + '/baseline', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', body: JSON.stringify({ html: BASELINE_HTML, keep_at: true }),
+      });
+    } catch { /* la correction reste appliquée localement */ }
+  }
+}
+
+async function resumeRedlineMarking() {
+  if (!redlineActive || redlineMarking) return;
+  clearTimeout(_rlRemarkTimer);
+  await rlAbsorbPausedEdits();
+  _rlPauseUnchanged = new Set();
+  redlineMarking = true;
+  let diff;
+  try { diff = RedlineDiff.diffEditorDocs(BASELINE_HTML, termsheetHtml()); }
+  catch (e) {
+    redlineMarking = false; rlSyncMarkToggle();
+    alert('Le calcul du redline a échoué : ' + (e && e.message ? e.message : e));
+    return;
+  }
+  renderRedlineView(diff);
+  renderRedlinePanel();
+  showEmptyPanel();
+  paginate();
+}
 
 async function enterRedline() {
   if (redlineActive) return;
@@ -1712,15 +1813,21 @@ async function enterRedline() {
 
   _rlSavedHtml  = termsheetHtml();
   redlineActive = true;
+  redlineMarking = true;
+  _rlPauseUnchanged = new Set();
   renderRedlineView(diff);
   renderRedlinePanel();
   showEmptyPanel();
   paginate();
 }
 
-function exitRedline() {
+async function exitRedline() {
   if (!redlineActive) return;
   clearTimeout(_rlRemarkTimer);
+  // Sortie alors que le suivi était en pause : les corrections propres sont
+  // d'abord fondues dans la référence, pour qu'elles ne réapparaissent pas en
+  // redline à la prochaine ouverture.
+  if (!redlineMarking) { try { await rlAbsorbPausedEdits(); } catch { /* correction locale conservée */ } }
   // Le document de travail est DÉRIVÉ de la vue (les éditions faites en mode
   // redline sont donc conservées) ; repli sur l'état d'entrée en cas de pépin.
   let html = null;
@@ -1768,6 +1875,10 @@ function renderRedlinePanel() {
 }
 
 if (redlineBtn) redlineBtn.addEventListener('click', () => { if (redlineActive) exitRedline(); else enterRedline(); });
+if (rlMarkToggle) rlMarkToggle.addEventListener('click', () => {
+  if (!redlineActive) return;
+  if (redlineMarking) pauseRedlineMarking(); else resumeRedlineMarking();
+});
 const rlExitBtn = document.getElementById('rl-exit-btn');
 if (rlExitBtn) rlExitBtn.addEventListener('click', exitRedline);
 const rlSummaryBtn = document.getElementById('rl-summary-btn');
@@ -1782,12 +1893,16 @@ if (exportPdfRedline) exportPdfRedline.addEventListener('click', async () => {
   closeExportMenu();
   if (!BASELINE_HTML) { alert('Pas de version de référence : le redline nécessite un document importé, ou une référence définie via le bouton « Redline ».'); return; }
   if (!redlineActive) await enterRedline();
-  if (redlineActive) window.print();
+  else if (!redlineMarking) await resumeRedlineMarking(); // sinon la vue est « propre »
+  if (redlineActive && redlineMarking) window.print();
 });
 const exportDocxRedline = document.getElementById('export-docx-redline-item');
-if (exportDocxRedline) exportDocxRedline.addEventListener('click', () => {
+if (exportDocxRedline) exportDocxRedline.addEventListener('click', async () => {
   closeExportMenu();
   if (!BASELINE_HTML) { alert('Pas de version de référence : le redline nécessite un document importé, ou une référence définie via le bouton « Redline ».'); return; }
+  // En pause, on fond d'abord les corrections dans la référence pour que
+  // l'export serveur (diff référence ↔ document) reflète le même redline.
+  if (redlineActive && !redlineMarking) await resumeRedlineMarking();
   exportToFile('docx', exportToggle, 'redline');
 });
 

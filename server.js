@@ -6778,7 +6778,9 @@ app.post('/api/saas/termsheets/:id/baseline', requireAuth, async (req, res) => {
   if (!doc) return res.status(404).json({ error: 'Document introuvable' });
   const html = typeof req.body?.html === 'string' && req.body.html.trim() ? req.body.html : (doc.html || '');
   if (!html.trim()) return res.status(422).json({ error: 'Document vide : rien à prendre comme référence.' });
-  const baseline_at = new Date().toISOString();
+  // keep_at : mise à jour de la référence SANS changer la date de réception
+  // (utilisé quand on fond une simple correction de coquille dans la référence).
+  const baseline_at = (req.body?.keep_at && doc.baseline_at) ? doc.baseline_at : new Date().toISOString();
   await col('saas_documents').updateOne(
     { id, user_id: req.user.id },
     { $set: { baseline_html: html, baseline_at } }

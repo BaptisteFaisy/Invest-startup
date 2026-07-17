@@ -90,6 +90,11 @@
     .rl-banner__text{flex:1;min-width:0}
     .rl-banner__btn{flex:none;font:600 12px 'Archivo',sans-serif;color:#08090c;background:#fff;border:1px solid rgba(8,9,12,.2);border-radius:8px;padding:6px 11px;cursor:pointer}
     .rl-banner__btn:hover{border-color:rgba(8,9,12,.5)}
+    .rl-banner__btn[hidden]{display:none}
+    .rl-banner__toggle{position:relative;padding-left:24px}
+    .rl-banner__toggle::before{content:"";position:absolute;left:9px;top:50%;transform:translateY(-50%);width:8px;height:8px;border-radius:99px;background:#15803d}
+    .rl-banner__toggle--paused{color:#92400e;border-color:rgba(146,64,14,.4);background:#fef3c7}
+    .rl-banner__toggle--paused::before{background:#d97706}
     .rl-banner__btn--exit{color:#15803d;border-color:rgba(21,128,61,.4)}
     .rlpanel{position:fixed;top:70px;right:18px;z-index:1200;width:min(430px,calc(100vw - 36px));background:#fff;border:1px solid rgba(8,9,12,0.12);border-radius:14px;box-shadow:0 18px 60px rgba(8,9,12,0.25);overflow:hidden;color:#08090c}
     .rlpanel[hidden]{display:none}
@@ -448,6 +453,7 @@
         <div class="rl-banner" id="rl-banner" hidden>
           <span class="rl-banner__badge">Redline</span>
           <span class="rl-banner__text" id="rl-banner-text"></span>
+          <button class="rl-banner__btn rl-banner__toggle" id="rl-mark-toggle" type="button" aria-pressed="true" title="Suspendre le suivi pour corriger une coquille sans qu’elle apparaisse en redline" hidden>Suivi : activé</button>
           <button class="rl-banner__btn" id="rl-summary-btn" type="button">Récapitulatif</button>
           <button class="rl-banner__btn rl-banner__btn--exit" id="rl-exit-btn" type="button">Quitter le redline</button>
         </div>
@@ -592,7 +598,7 @@
   </div>
 
   <script src="redline-diff.js?v=1"></script>
-  <script src="editor.js?v=67"></script>
+  <script src="editor.js?v=68"></script>
   <script src="documents.js?v=35"></script>
   <script>
     // Garde d'accès : l'éditeur est réservé aux utilisateurs connectés.
