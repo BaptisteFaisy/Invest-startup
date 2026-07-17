@@ -856,19 +856,25 @@
        la grille de TOUS les documents des deux parcours (prix laissés vides,
        chiffrés au devis par l'avocat). « Demander un devis » enchaîne sur la
        demande de mission classique, clé `a-la-carte`. */
+    function grilleRow(label, price) {
+      // Prix laissé vide : la mission à la carte est chiffrée au devis par l'avocat.
+      return '<div class="av-grille__row">' +
+        '<span class="av-grille__doc">' + esc(label) + '</span>' +
+        '<span class="av-grille__price">' + esc(price || '') + '</span>' +
+      '</div>';
+    }
     function renderGrille() {
       const body = document.getElementById('grille-body');
       const tracks = (STATE.document_catalog || []).filter(t => (t.documents || []).length);
-      if (!tracks.length) { body.innerHTML = '<p class="av-note">Aucun document au catalogue.</p>'; return; }
-      body.innerHTML = tracks.map(track =>
+      // Ligne fourre-tout : le fondateur peut aussi demander un devis pour un
+      // besoin qui n'est pas dans les listes des deux parcours.
+      const other = { label: 'Autre demande', documents: [{ label: 'Tout autre besoin juridique lié à votre levée', price: null }] };
+      const sections = tracks.length ? [...tracks, other] : [other];
+      body.innerHTML = sections.map(track =>
         '<div class="av-grille__track">' +
           '<p class="av-grille__track-h">' + esc(track.label) + '</p>' +
           '<div class="av-grille__list">' +
-            track.documents.map(d =>
-              '<div class="av-grille__row">' +
-                '<span class="av-grille__doc">' + esc(d.label) + '</span>' +
-                '<span class="av-grille__price">' + esc(d.price || 'Sur devis') + '</span>' +
-              '</div>').join('') +
+            track.documents.map(d => grilleRow(d.label, d.price)).join('') +
           '</div>' +
         '</div>').join('');
     }
