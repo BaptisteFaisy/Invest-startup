@@ -113,6 +113,7 @@
     .alert { padding: 10px 14px; border-radius: 9px; font-size: 0.88rem; }
     .alert--error { background: rgba(220,38,38,0.09); color: #b91c1c; border: 1px solid rgba(220,38,38,0.2); }
     .alert--success { background: rgba(22,163,74,0.1); color: #15803d; border: 1px solid rgba(22,163,74,0.22); }
+    .alert--info { background: rgba(30,58,95,0.06); color: #334155; border: 1px solid rgba(30,58,95,0.16); }
 
     /* Sécurité / 2FA */
     .sec-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 22px; }
@@ -608,7 +609,7 @@
       initAppearance(user.theme);
       load2FAStatus();
       loadUsage();
-      loadBilling();
+      loadBilling().then(handlePaymentReturn);
       loadDataroomSettings();
     });
 
@@ -669,6 +670,42 @@
         content.innerHTML = '';
         showAlert('billing-alert', 'error', error.message || 'Impossible de charger la facturation.');
       }
+    }
+
+    // Retour depuis Stripe Checkout. L'accès est activé par le webhook serveur, qui
+    // peut arriver quelques secondes APRÈS la redirection du navigateur : on affiche
+    // une confirmation, puis on ré-interroge l'état jusqu'à ce qu'il passe « actif »,
+    // sans jamais montrer à un payeur le bouton « Payer » qu'il vient d'honorer.
+    async function handlePaymentReturn() {
+      const outcome = accountParams.get('payment');
+      if (!outcome) return;
+      // Retire le paramètre de l'URL : un rechargement ne doit pas rejouer le message.
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete('payment');
+      window.history.replaceState({}, '', cleanUrl);
+      document.querySelector('[data-tab="billing"]')?.click();
+      if (outcome === 'cancelled') {
+        showAlert('billing-alert', 'info', 'Paiement annulé. Vous pouvez relancer l’activation de Liquid+ quand vous le souhaitez.');
+        return;
+      }
+      if (outcome !== 'success') return;
+      showAlert('billing-alert', 'success', 'Paiement reçu. Activation de votre accès Liquid+ en cours…');
+      for (let attempt = 0; attempt < 10; attempt++) {
+        let active = false;
+        try {
+          const r = await fetch('/api/billing/status', { credentials: 'include' });
+          const d = await r.json().catch(() => ({}));
+          active = d?.liquid_plus?.status === 'active';
+        } catch {}
+        if (active) {
+          await loadBilling();
+          showAlert('billing-alert', 'success', 'Votre accès Liquid+ Intégral est activé. Merci de votre confiance !');
+          return;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
+      // Toujours pas confirmé après ~15 s : on rassure sans alarmer (le paiement est pris).
+      showAlert('billing-alert', 'info', 'Votre paiement est bien reçu. L’activation peut prendre une minute — actualisez la page si l’offre n’apparaît pas encore comme active.');
     }
 
     function revealRaiseSummitOffer() {
