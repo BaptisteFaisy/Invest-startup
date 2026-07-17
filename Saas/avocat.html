@@ -188,6 +188,16 @@
     .av-presta__delay svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; }
     .av-presta__cta { margin-top: 14px; width: 100%; }
 
+    /* ── Grille tarifaire « à la carte » (modale) ─────────────────── */
+    .av-grille__track { margin-top: 18px; }
+    .av-grille__track:first-child { margin-top: 4px; }
+    .av-grille__track-h { font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--av-text-3); margin: 0 0 6px; }
+    .av-grille__list { border: 1px solid var(--av-field-border); border-radius: 10px; overflow: hidden; }
+    .av-grille__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 12px; border-top: 1px solid var(--av-line); font-size: 13px; }
+    .av-grille__row:first-child { border-top: none; }
+    .av-grille__doc { color: var(--av-ink); line-height: 1.4; }
+    .av-grille__price { flex: none; font-size: 12px; font-weight: 600; color: var(--av-text-3); white-space: nowrap; }
+
     /* ── Boutons ──────────────────────────────────────────────────── */
     .av-btn { font-family: inherit; font-weight: 600; font-size: 13.5px; line-height: 1; padding: 10px 16px; border-radius: 10px; border: 1px solid transparent; cursor: pointer; transition: background .15s, border-color .15s, color .15s; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
     .av-btn--primary { background: var(--av-solid); color: var(--av-on-solid); }
@@ -470,6 +480,19 @@
     </div>
   </div>
 
+  <!-- Modale : grille tarifaire « à la carte » -->
+  <div class="av-modal" id="grille-modal" hidden>
+    <div class="av-dialog" role="dialog" aria-modal="true" aria-labelledby="grille-title">
+      <div class="av-dialog__h" id="grille-title">Avocat à la carte — grille de documents</div>
+      <p class="av-dialog__p">Tous les documents des deux parcours de levée. La mission à la carte se limite aux documents que vous confiez : chaque acte est <strong>sur devis</strong>, l'avocat le chiffre dans la convention d'honoraires avant de commencer.</p>
+      <div id="grille-body"></div>
+      <div class="av-dialog__act">
+        <button type="button" class="av-btn av-btn--ghost" data-close-modal="grille-modal">Fermer</button>
+        <button type="button" class="av-btn av-btn--primary" id="grille-request">Demander un devis</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modale : choisir / changer d'avocat -->
   <div class="av-modal" id="chooser-modal" hidden>
     <div class="av-dialog" role="dialog" aria-modal="true" aria-labelledby="chooser-title">
@@ -544,7 +567,7 @@
 
     const STATUS_LABELS = { soumise: 'En attente d\'acceptation', acceptee: 'Mission acceptée', refusee: 'Mission refusée', en_cours: 'Relecture en cours', attente_fondateur: 'Réponse attendue', livree: 'Documents remis', cloturee: 'Clôturée', annule: 'Annulée' };
 
-    let STATE = { prestations: [], partners: [], requests: [], mode: 'assigned', partner: null, own_lawyer: null, company: { profile: {}, eligibility: { status: 'incomplete', verified: false } } };
+    let STATE = { prestations: [], document_catalog: [], partners: [], requests: [], mode: 'assigned', partner: null, own_lawyer: null, company: { profile: {}, eligibility: { status: 'incomplete', verified: false } } };
     let DOCS = [];
     let modalPrestaKey = null;
     // Demandes sur lesquelles l'avocat a agi sans que le fondateur ait rouvert
@@ -828,6 +851,35 @@
     function openModal(id)  { document.getElementById(id).hidden = false; }
     function closeModal(id) { document.getElementById(id).hidden = true; }
 
+    /* ── Modale : grille tarifaire « à la carte » ─────────────────────
+       Le pack à la carte est sur devis : avant d'ouvrir la demande, on montre
+       la grille de TOUS les documents des deux parcours (prix laissés vides,
+       chiffrés au devis par l'avocat). « Demander un devis » enchaîne sur la
+       demande de mission classique, clé `a-la-carte`. */
+    function renderGrille() {
+      const body = document.getElementById('grille-body');
+      const tracks = (STATE.document_catalog || []).filter(t => (t.documents || []).length);
+      if (!tracks.length) { body.innerHTML = '<p class="av-note">Aucun document au catalogue.</p>'; return; }
+      body.innerHTML = tracks.map(track =>
+        '<div class="av-grille__track">' +
+          '<p class="av-grille__track-h">' + esc(track.label) + '</p>' +
+          '<div class="av-grille__list">' +
+            track.documents.map(d =>
+              '<div class="av-grille__row">' +
+                '<span class="av-grille__doc">' + esc(d.label) + '</span>' +
+                '<span class="av-grille__price">' + esc(d.price || 'Sur devis') + '</span>' +
+              '</div>').join('') +
+          '</div>' +
+        '</div>').join('');
+    }
+    function openGrilleModal() {
+      // Dossier société incomplet : la demande ne pourra pas partir. On renvoie
+      // le fondateur sur « Ma levée » comme pour les autres packs.
+      if (!STATE.company?.eligibility?.complete) { location.href = maLeveeHref(); return; }
+      renderGrille();
+      openModal('grille-modal');
+    }
+
     function openRequestModal(key, preselectDocId) {
       // Dossier société incomplet : aucune mission ne peut partir, l'avocat n'a
       // pas de quoi identifier son client. On renvoie le fondateur sur
@@ -1025,7 +1077,18 @@
       // Boutons « Demander une relecture » (délégation)
       document.getElementById('presta-grid').addEventListener('click', (e) => {
         const btn = e.target.closest('button[data-presta]');
-        if (btn) openRequestModal(btn.getAttribute('data-presta'));
+        if (!btn) return;
+        const key = btn.getAttribute('data-presta');
+        // Le pack à la carte passe d'abord par la grille tarifaire des documents ;
+        // les forfaits ouvrent directement la demande.
+        const presta = STATE.prestations.find(p => p.key === key);
+        if (presta?.quote_based) openGrilleModal();
+        else openRequestModal(key);
+      });
+      // « Demander un devis » depuis la grille : enchaîne sur la demande à la carte.
+      document.getElementById('grille-request').addEventListener('click', () => {
+        closeModal('grille-modal');
+        openRequestModal('a-la-carte');
       });
       // « Faire relire » depuis « Vos documents à sécuriser »
       document.getElementById('secure-docs').addEventListener('click', (e) => {

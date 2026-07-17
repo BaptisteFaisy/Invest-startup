@@ -4339,6 +4339,37 @@ const AVOCAT_PRESTATIONS = [
   },
 ];
 const AVOCAT_PRESTATION_KEYS  = new Set(AVOCAT_PRESTATIONS.map(p => p.key));
+
+// Grille tarifaire « à la carte » : catalogue de TOUS les documents des deux
+// parcours (levée classique et BSA-AIR), pris dans les checklists de leurs
+// étapes — la même liste que celle de la page Documents. Chaque ligne est laissée
+// sans prix : la prestation à la carte est sur devis, l'avocat chiffre document
+// par document dans la convention d'honoraires. Cette grille s'affiche dans
+// l'onglet « Offres & tarifs » quand le fondateur clique sur le pack à la carte.
+// Les doublons entre étapes (« Statuts à jour » revient plusieurs fois) sont
+// écartés pour ne présenter chaque acte qu'une seule fois par parcours.
+function buildAvocatDocumentCatalog() {
+  const track = (label, phases) => {
+    const seen = new Set();
+    const documents = [];
+    for (const phase of phases) {
+      for (const name of (phase.checklist || [])) {
+        const clean = String(name || '').trim();
+        const dedupeKey = clean.toLowerCase();
+        if (!clean || seen.has(dedupeKey)) continue;
+        seen.add(dedupeKey);
+        // `price: null` = laissé vide : c'est du sur-devis à la carte.
+        documents.push({ label: clean, price: null });
+      }
+    }
+    return { label, documents };
+  };
+  return [
+    track('Levée classique', FUNDRAISING_PHASES),
+    track('BSA-AIR', BSA_AIR_PHASES),
+  ];
+}
+const AVOCAT_DOCUMENT_CATALOG = buildAvocatDocumentCatalog();
 // `soumise` = en attente de la décision de l'avocat. `acceptee` = mission acceptée
 // mais diligences pas encore commencées (la convention d'honoraires reste à
 // confirmer). `refusee` est terminal et distinct de `annule` : l'un vient de
@@ -4889,6 +4920,7 @@ app.get('/api/saas/avocat/overview', requireAuth, requireAssignedFounder2FA, asy
   }));
   res.json({
     prestations,
+    document_catalog: AVOCAT_DOCUMENT_CATALOG,
     partners:    AVOCAT_PARTNERS,
     statuses:    AVOCAT_REQUEST_STATUSES,
     ...(platformLawyer ? { mode: 'assigned', partner: platformLawyer, own_lawyer: null } : avocatPublicState(state)),
