@@ -659,7 +659,11 @@
             '<span class="av-presta__delay"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>' + esc(p.delay) + '</span>' +
           '</div>' +
           (p.price_note ? '<div class="av-presta__desc" style="margin-top:2px;font-size:12px">' + esc(p.price_note) + '</div>' : '') +
-          '<button type="button" class="av-btn av-btn--primary av-presta__cta" data-presta="' + esc(p.key) + '"' + (STATE.company?.eligibility?.complete ? '' : ' disabled title="Dossier société incomplet"') + '>' + (p.quote_based ? 'Demander une mission' : 'Demander ce pack') + '</button>' +
+          // La grille à la carte (prestation « sur devis ») est informative : son
+          // bouton reste cliquable même dossier incomplet — il ouvre la liste des
+          // documents. Le verrou d'éligibilité s'applique aux packs et, pour l'à la
+          // carte, à l'action « Demander un devis » (openRequestModal).
+          '<button type="button" class="av-btn av-btn--primary av-presta__cta" data-presta="' + esc(p.key) + '"' + ((p.quote_based || STATE.company?.eligibility?.complete) ? '' : ' disabled title="Dossier société incomplet"') + '>' + (p.quote_based ? 'Voir les documents &amp; demander un devis' : 'Demander ce pack') + '</button>' +
         '</div>'
       ).join('');
     }
@@ -879,9 +883,11 @@
         '</div>').join('');
     }
     function openGrilleModal() {
-      // Dossier société incomplet : la demande ne pourra pas partir. On renvoie
-      // le fondateur sur « Ma levée » comme pour les autres packs.
-      if (!STATE.company?.eligibility?.complete) { location.href = maLeveeHref(); return; }
+      // La grille est purement informative (liste des documents des deux
+      // parcours, prix laissés au devis) : on l'affiche toujours, dossier
+      // société complet ou non. Le verrou d'éligibilité reste sur l'action
+      // « Demander un devis » (openRequestModal), là où l'avocat a besoin
+      // d'identifier son client.
       renderGrille();
       openModal('grille-modal');
     }
