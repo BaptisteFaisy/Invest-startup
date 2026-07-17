@@ -577,6 +577,9 @@
       'bsa-air': 'BSA AIR',
       unknown: 'Type de levée à définir',
     };
+    // Tarifs Liquid+ renvoyés par /api/billing/status (dépendent du type de levée).
+    let BILLING_PRICING = null;
+    function fmtEuros(cents) { return (cents / 100).toLocaleString('fr-FR') + ' €'; }
 
     const accountLoginUrl = '/saas/login.html?return_to=' + encodeURIComponent('/saas/compte.html');
 
@@ -644,12 +647,16 @@
           return;
         }
         const active = data.liquid_plus.status === 'active';
+        // Le tarif vient du serveur et suit la grille de la homepage : il dépend
+        // du type de levée du compte (BSA-AIR ou levée classique).
+        BILLING_PRICING = data.liquid_plus;
+        const raiseLabel = RAISE_TYPE_LABELS[data.liquid_plus.raise_type] || data.liquid_plus.raise_type;
         description.textContent = active
           ? 'Votre offre Liquid+ est active.'
-          : 'Votre accès gratuit n’expire pas. Activez Liquid+ pour exporter, copier et sécuriser vos documents.';
-        content.innerHTML = '<div class="billing-plan"><div><div class="billing-plan__price">600 € <small>TTC · forfait Liquid+</small></div><div class="billing-plan__meta">Plateforme, assistant IA, documents, simulations, exports et suivi jusqu’au closing.</div></div><div class="billing-plan__action">' +
-          (active ? '<span class="account-status__badge account-status__badge--active">Offre active</span>' : '<button type="button" class="btn btn--primary" id="billing-checkout">Payer 600 € TTC</button>') +
-          '</div></div>' + (active ? '' : '<div class="billing-code"><input class="input" id="billing-promo-code" placeholder="Code promotionnel" autocomplete="off"><button type="button" class="btn btn--ghost" id="billing-apply-code">Appliquer</button></div><div id="billing-promo-details"></div>') + '<p class="billing-note">La société est cliente et payeuse de Liquid+. Les prestations éventuelles d’un avocat sont facturées séparément et ne sont pas incluses dans ce paiement.</p>';
+          : 'Votre accès gratuit n’expire pas. Activez Liquid+ Complet pour exporter, copier et sécuriser vos documents.';
+        content.innerHTML = '<div class="billing-plan"><div><div class="billing-plan__price"><s>' + fmtEuros(data.liquid_plus.list_price.amount_cents) + '</s> ' + fmtEuros(data.liquid_plus.price.amount_cents) + ' <small>HT · Liquid+ Complet · ' + esc(raiseLabel) + '</small></div><div class="billing-plan__meta">Toute la plateforme et l’ensemble des documents de votre levée : rédaction guidée, analyse IA de chaque clause, data room, suivi jusqu’au closing. Tarif fondateur — 10 places, jusqu’au 14 août.</div></div><div class="billing-plan__action">' +
+          (active ? '<span class="account-status__badge account-status__badge--active">Offre active</span>' : '<button type="button" class="btn btn--primary" id="billing-checkout">Payer ' + fmtEuros(data.liquid_plus.price.amount_cents) + ' HT</button>') +
+          '</div></div>' + (active ? '' : '<div class="billing-code"><input class="input" id="billing-promo-code" placeholder="Code promotionnel" autocomplete="off"><button type="button" class="btn btn--ghost" id="billing-apply-code">Appliquer</button></div><div id="billing-promo-details"></div>') + '<p class="billing-note">Prix hors taxes. La société est cliente et payeuse de Liquid+. Les prestations éventuelles d’un avocat sont facturées séparément et ne sont pas incluses dans ce paiement. Satisfait ou remboursé sous 30 jours sur la facture Liquid+.</p>';
         const button = document.getElementById('billing-checkout');
         if (button) button.addEventListener('click', () => startLiquidCheckout());
         const applyCode = document.getElementById('billing-apply-code');
@@ -672,7 +679,8 @@
         return;
       }
       document.getElementById('billing-alert').hidden = true;
-      document.getElementById('billing-promo-details').innerHTML = '<div class="billing-commitment"><p class="billing-commitment__title">Offre Liquid+ à 450 € TTC</p><p class="billing-commitment__text">Ce tarif réduit est accordé en contrepartie des deux engagements suivants :</p><label><input type="checkbox" id="raise-review"> <span>J’accepte de fournir un témoignage pouvant être publié sur le site de Liquid+.</span></label><label><input type="checkbox" id="raise-linkedin"> <span>J’accepte de publier de mon côté un post LinkedIn parlant de Liquid+.</span></label><button type="button" class="btn btn--primary" id="billing-discount-checkout" style="margin-top:14px">Accepter et payer 450 € TTC</button></div>';
+      const promoLabel = fmtEuros(BILLING_PRICING.promo_price.amount_cents) + ' HT';
+      document.getElementById('billing-promo-details').innerHTML = '<div class="billing-commitment"><p class="billing-commitment__title">Offre Liquid+ à ' + promoLabel + '</p><p class="billing-commitment__text">Ce tarif réduit est accordé en contrepartie des deux engagements suivants :</p><label><input type="checkbox" id="raise-review"> <span>J’accepte de fournir un témoignage pouvant être publié sur le site de Liquid+.</span></label><label><input type="checkbox" id="raise-linkedin"> <span>J’accepte de publier de mon côté un post LinkedIn parlant de Liquid+.</span></label><button type="button" class="btn btn--primary" id="billing-discount-checkout" style="margin-top:14px">Accepter et payer ' + promoLabel + '</button></div>';
       document.getElementById('billing-discount-checkout').addEventListener('click', () => {
         if (!document.getElementById('raise-review').checked || !document.getElementById('raise-linkedin').checked) {
           showAlert('billing-alert', 'error', 'Vous devez accepter les deux engagements pour utiliser le code RAISE SUMMIT.');
@@ -696,7 +704,9 @@
       } catch (error) {
         showAlert('billing-alert', 'error', error.message || 'Paiement indisponible.');
         activeButton.disabled = false;
-        activeButton.textContent = promotion.code ? 'Accepter et payer 450 € TTC' : 'Payer 600 € TTC';
+        activeButton.textContent = promotion.code
+          ? 'Accepter et payer ' + fmtEuros(BILLING_PRICING.promo_price.amount_cents) + ' HT'
+          : 'Payer ' + fmtEuros(BILLING_PRICING.price.amount_cents) + ' HT';
       }
     }
 

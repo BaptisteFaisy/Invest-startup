@@ -674,6 +674,10 @@ const openBlankEditor = (() => {
   const labels = { soumise: 'À traiter', en_cours: 'En cours', attente_fondateur: 'En attente', livree: 'Livrée' };
   const activeStatuses = new Set(['soumise', 'en_cours', 'attente_fondateur', 'livree']);
   const taskSets = {
+    // Packs de la grille tarifaire (offres actuelles).
+    essentiel: ['Rédiger et valider les actes critiques : term sheet, contrat d’investissement, pacte d’associés', 'Contrôler le formalisme d’assemblée de l’opération', 'Identifier les engagements déséquilibrés et les points à négocier', 'Préparer une synthèse claire pour le client'],
+    serenite: ['Couvrir l’ensemble du pack Essentiel', 'Relire l’ensemble des documents importants de la levée', 'Signaler les risques et proposer les corrections nécessaires', 'Assurer la revue finale avant signature'],
+    // Anciennes prestations à la carte : encore référencées par les missions déjà créées.
     garantie: ['Identifier les déclarations et garanties sensibles', 'Vérifier les plafonds, franchises et durées', 'Proposer les réserves ou corrections nécessaires', 'Préparer une synthèse claire pour le client'],
     pacte: ['Contrôler gouvernance, liquidité et clauses de sortie', 'Vérifier les clauses leaver et les prix de rachat', 'Identifier les engagements déséquilibrés', 'Proposer une rédaction alternative sur les points critiques'],
     termsheet: ['Vérifier les grands équilibres économiques', 'Contrôler les clauses contraignantes', 'Identifier les points à négocier avant signature', 'Préparer les modifications et la synthèse client'],
@@ -722,7 +726,7 @@ const openBlankEditor = (() => {
     const client = mission.client || {};
     const profile = mission.client_profile || {};
     const company = profile.company_name || client.full_name || 'Client';
-    const tasks = taskSets[mission.prestation_key] || taskSets.question;
+    const tasks = taskSets[mission.prestation_key] || taskSets.essentiel;
     eyebrow.textContent = 'Dossier de mission';
     title.textContent = mission.title || mission.document_name || 'Mission juridique';
     sub.textContent = `${company} · ${labels[mission.status] || mission.status}`;

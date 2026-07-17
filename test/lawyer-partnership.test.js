@@ -28,8 +28,10 @@ const SIGNED = { lawyer_partnership_version: LAWYER_PARTNERSHIP_VERSION };
 // LAWYER_PARTNERSHIP_VERSION, puis reporter la nouvelle empreinte ici.
 test('l’empreinte fige le texte : le modifier sans changer de version casse la CI', () => {
   const hash = partnershipDocumentHash(buildPartnershipDocument(PRESTATIONS));
-  assert.equal(hash, '39d7a231fdc3512dd22d8162f79c7b8fc3c4eccd88b8b46db65d61e2c93e5bed');
-  assert.equal(LAWYER_PARTNERSHIP_VERSION, 2);
+  // v3 : grille passée aux packs Essentiel / Sérénité, forfaits indicatifs par
+  // type de levée (grille tarifaire homepage du 16/07/2026).
+  assert.equal(hash, '85913c81abbbba152c08c892ede9ff1e0d92591d619109d940cefe63c7719234');
+  assert.equal(LAWYER_PARTNERSHIP_VERSION, 3);
 });
 
 test('l’empreinte suit la grille, pas seulement les clauses', () => {
@@ -53,6 +55,23 @@ test('un plafond publié s’affiche en euros TTC', () => {
   const grille = buildPartnershipDocument([{ ...PRESTATIONS[0], fee_cap_cents: 90000 }])
     .sections.find(s => s.key === 'grille');
   assert.match(grille.clauses.find(c => c.startsWith('Pacte')), /plafond\s.*900.*TTC/);
+});
+
+test('un forfait indicatif par type de levée s’écrit dans la grille signée', () => {
+  const grille = buildPartnershipDocument([{
+    ...PRESTATIONS[0],
+    label: 'Pack avocat Essentiel',
+    price_by_raise_type: { 'bsa-air': '600 – 900 € HT', classic: '2 000 – 3 000 € HT' },
+  }]).sections.find(s => s.key === 'grille');
+  const ligne = grille.clauses.find(c => c.startsWith('Pack avocat Essentiel'));
+  assert.match(ligne, /forfait indicatif 600 – 900 € HT \(levée BSA-AIR\) ou 2 000 – 3 000 € HT \(levée classique\)/);
+  assert.match(ligne, /convention d’honoraires/);
+  // Le plafond publié, lui, garde la priorité sur le forfait indicatif.
+  const avecPlafond = buildPartnershipDocument([{
+    ...PRESTATIONS[0], fee_cap_cents: 90000,
+    price_by_raise_type: { 'bsa-air': '600 – 900 € HT', classic: '2 000 – 3 000 € HT' },
+  }]).sections.find(s => s.key === 'grille');
+  assert.match(avecPlafond.clauses.find(c => c.startsWith('Pacte')), /plafond/);
 });
 
 // ─── L'engagement ─────────────────────────────────────────────────────────────

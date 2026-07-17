@@ -6,8 +6,8 @@ const path = require('node:path');
 const test = require('node:test');
 const vm = require('node:vm');
 const {
-  LIQUID_PLUS_STANDARD_PRICE_CENTS,
-  LIQUID_PLUS_PROMO_PRICE_CENTS,
+  LIQUID_PLUS_PRICING_CENTS,
+  liquidPlusPricingForRaiseType,
   liquidPlusAccessAmountCents,
   parseEuroAmountToCents,
   isValidLawyerAmountCents,
@@ -20,12 +20,20 @@ const serverSource = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
 const accountHtml = fs.readFileSync(path.join(root, 'Saas', 'compte.html'), 'utf8');
 const caseHtml = fs.readFileSync(path.join(root, 'Saas', 'dossier-avocat.html'), 'utf8');
 
-test('Liquid+ : accès unique à 600 € TTC, 450 € TTC avec le code promo', () => {
-  assert.equal(LIQUID_PLUS_STANDARD_PRICE_CENTS, 60_000);
-  assert.equal(LIQUID_PLUS_PROMO_PRICE_CENTS, 45_000);
-  assert.equal(liquidPlusAccessAmountCents({}), 60_000);
-  assert.equal(liquidPlusAccessAmountCents({ promotion: null }), 60_000);
-  assert.equal(liquidPlusAccessAmountCents({ promotion: 'RAISE SUMMIT' }), 45_000);
+test('Liquid+ : le tarif suit la grille de la homepage, par type de levée', () => {
+  // Grille homepage (HT) : Complet BSA-AIR 490 € barré → 290 € fondateur ;
+  // levée classique 1 490 € barré → 790 € fondateur.
+  assert.deepEqual(LIQUID_PLUS_PRICING_CENTS['bsa-air'], { list: 49_000, standard: 29_000, promo: 22_000 });
+  assert.deepEqual(LIQUID_PLUS_PRICING_CENTS.classic, { list: 149_000, standard: 79_000, promo: 59_000 });
+  assert.equal(liquidPlusAccessAmountCents({ raiseType: 'bsa-air' }), 29_000);
+  assert.equal(liquidPlusAccessAmountCents({ raiseType: 'classic' }), 79_000);
+  assert.equal(liquidPlusAccessAmountCents({ raiseType: 'bsa-air', promotion: 'RAISE SUMMIT' }), 22_000);
+  assert.equal(liquidPlusAccessAmountCents({ raiseType: 'classic', promotion: 'RAISE SUMMIT' }), 59_000);
+  // Type absent ou inconnu : on retombe sur la levée classique, jamais sur un prix nul.
+  assert.equal(liquidPlusAccessAmountCents({}), 79_000);
+  assert.equal(liquidPlusAccessAmountCents({ raiseType: 'autre', promotion: null }), 79_000);
+  assert.equal(liquidPlusPricingForRaiseType('bsa-air').standard, 29_000);
+  assert.equal(liquidPlusPricingForRaiseType(undefined).standard, 79_000);
 });
 
 test('le Checkout Liquid+ est un paiement unique généré côté serveur, montant TTC imposé', () => {
@@ -36,8 +44,12 @@ test('le Checkout Liquid+ est un paiement unique généré côté serveur, monta
   assert.doesNotMatch(serverSource, /mode: 'subscription'/);
   // Le montant est revalidé contre la session en attente enregistrée.
   assert.match(serverSource, /session\.amount_total !== pending\.amount_total/);
-  assert.match(accountHtml, /Payer 600 € TTC/);
-  assert.match(accountHtml, /Accepter et payer 450 € TTC/);
+  // Le checkout dépend du type de levée du compte, jamais d'un montant du navigateur.
+  assert.match(serverSource, /liquidPlusAccessAmountCents\(\{ raiseType, promotion \}\)/);
+  // La page Facturation affiche les montants servis par l'API, plus aucun prix en dur.
+  assert.match(accountHtml, /fmtEuros\(data\.liquid_plus\.price\.amount_cents\)/);
+  assert.match(accountHtml, /fmtEuros\(BILLING_PRICING\.promo_price\.amount_cents\)/);
+  assert.doesNotMatch(accountHtml, /600 € TTC|450 € TTC/);
 });
 
 test('les webhooks Stripe lisent le corps brut avant le parseur JSON et vérifient la signature', () => {

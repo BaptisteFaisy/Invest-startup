@@ -18,7 +18,11 @@ test('la proposition de bienvenue reste fermable et son script est valide', () =
   assert.match(authScript, /RAISE SUMMIT/);
   assert.match(authScript, /témoignage publié sur notre site/);
   assert.match(authScript, /post LinkedIn de votre part parlant de Liquid\+/);
-  assert.match(authScript, /Payer 600 € TTC maintenant/);
+  // Les montants suivent la grille tarifaire (type de levée) : servis par l'API,
+  // jamais écrits en dur dans le script.
+  assert.match(authScript, /\/api\/billing\/status/);
+  assert.match(authScript, /pricing\.promo_price\.amount_cents/);
+  assert.doesNotMatch(authScript, /600 € TTC|450 € TTC/);
 });
 
 test('la facturation permet le paiement et préremplit le code de bienvenue', () => {
@@ -27,11 +31,11 @@ test('la facturation permet le paiement et préremplit le code de bienvenue', ()
   inlineScripts.forEach((match, index) => {
     assert.doesNotThrow(() => new vm.Script(match[1], { filename: `Saas/compte.html#script-${index + 1}` }));
   });
-  assert.match(accountHtml, /Payer 600 € TTC/);
+  assert.match(accountHtml, /Payer ' \+ fmtEuros\(data\.liquid_plus\.price\.amount_cents\) \+ ' HT/);
   assert.match(accountHtml, /Votre accès gratuit n’expire pas/);
   assert.match(accountHtml, /data\.role === 'avocat'/);
   assert.match(accountHtml, /accountParams\.get\('promo'\)/);
-  assert.match(accountHtml, /Accepter et payer 450 € TTC/);
+  assert.match(accountHtml, /Accepter et payer ' \+ promoLabel/);
 });
 
 test('le serveur ne propose la fenêtre qu’au premier essai fondateur', () => {

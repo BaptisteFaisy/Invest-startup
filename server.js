@@ -30,8 +30,7 @@ const { adminLiquidPayment, adminFreeAiUsage } = require('./lib/admin-payments')
 const { companyNameKey, identityHash: identityHashWith } = require('./lib/founder-identity');
 const { productionConfigurationProblems } = require('./lib/runtime-config');
 const {
-  LIQUID_PLUS_STANDARD_PRICE_CENTS,
-  LIQUID_PLUS_PROMO_PRICE_CENTS,
+  liquidPlusPricingForRaiseType,
   LIQUID_PLUS_ACCESS_CURRENCY,
   liquidPlusAccessAmountCents,
   parseEuroAmountToCents,
@@ -124,8 +123,17 @@ const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 // des cabinets d'avocats (paiements directs des honoraires — voir Stripe Connect).
 const STRIPE_CONNECT_WEBHOOK_SECRET = process.env.STRIPE_CONNECT_WEBHOOK_SECRET || '';
 const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
-const LIQUID_PLUS_STANDARD_PRICE_EUR = LIQUID_PLUS_STANDARD_PRICE_CENTS / 100;
-const LIQUID_PLUS_PROMO_PRICE_EUR = LIQUID_PLUS_PROMO_PRICE_CENTS / 100;
+
+// Type de levée du compte fondateur : c'est lui qui fixe le tarif Liquid+ et les
+// forfaits avocat affichés (grille tarifaire de la homepage). Tout profil absent
+// ou inconnu retombe sur la levée classique, comme le défaut du profil.
+async function founderRaiseType(userId) {
+  const profile = await col('saas_fundraising_profiles').findOne(
+    { user_id: userId },
+    { projection: { raise_type: 1 } },
+  );
+  return profile?.raise_type === 'bsa-air' ? 'bsa-air' : 'classic';
+}
 
 const ADMIN_EMAILS = ['baptiste.faisy@gmail.com', 'bg.fsg.invest@gmail.com', 'liquidplus.startups@gmail.com'];
 
@@ -1291,7 +1299,8 @@ app.post('/api/billing/checkout', requireAuth, async (req, res) => {
     return res.status(503).json({ error: 'Le paiement en ligne est en cours d’activation. Contactez-nous pour choisir cette offre.' });
 
   const promotion = usesRaiseSummit ? 'RAISE SUMMIT' : null;
-  const amountCents = liquidPlusAccessAmountCents({ promotion });
+  const raiseType = await founderRaiseType(req.user.id);
+  const amountCents = liquidPlusAccessAmountCents({ raiseType, promotion });
 
   if (usesRaiseSummit) {
     const acceptedAt = new Date().toISOString();
@@ -1325,7 +1334,7 @@ app.post('/api/billing/checkout', requireAuth, async (req, res) => {
   }
 
   const now = new Date().toISOString();
-  const metadata = { payment_kind: 'liquid_plus_access', user_id: String(req.user.id), promotion: promotion || '' };
+  const metadata = { payment_kind: 'liquid_plus_access', user_id: String(req.user.id), promotion: promotion || '', raise_type: raiseType };
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
     locale: 'fr',
@@ -1338,7 +1347,7 @@ app.post('/api/billing/checkout', requireAuth, async (req, res) => {
         unit_amount: amountCents,
         tax_behavior: 'inclusive',
         product_data: {
-          name: 'Accès Liquid+ — levée de fonds',
+          name: `Liquid+ Complet — ${raiseType === 'bsa-air' ? 'levée BSA-AIR' : 'levée classique'}`,
           description: 'Accès unique du démarrage de la levée jusqu’au closing. Honoraires d’avocat exclus.',
         },
       },
@@ -1373,6 +1382,9 @@ app.get('/api/billing/status', requireAuth, async (req, res) => {
   const connect = isLawyer
     ? publicLawyerConnectStatus(await col('saas_lawyer_profiles').findOne({ user_id: req.user.id }))
     : null;
+  // Le tarif suit la grille de la homepage : il dépend du type de levée du compte.
+  const raiseType = isFounder ? await founderRaiseType(req.user.id) : null;
+  const pricing = raiseType ? liquidPlusPricingForRaiseType(raiseType) : null;
   res.json({
     role: isLawyer ? 'avocat' : isFounder ? 'fondateur' : 'autre',
     liquid_plus: isFounder ? {
@@ -1380,8 +1392,10 @@ app.get('/api/billing/status', requireAuth, async (req, res) => {
       payment_type: 'one_time',
       plan: user.subscription_plan || null,
       paid_at: user.liquid_plus_access_paid_at || user.subscription_started_at || null,
-      price: { amount: LIQUID_PLUS_STANDARD_PRICE_EUR, amount_cents: LIQUID_PLUS_STANDARD_PRICE_CENTS, currency: 'EUR', tax: 'TTC' },
-      promo_price: { amount: LIQUID_PLUS_PROMO_PRICE_EUR, amount_cents: LIQUID_PLUS_PROMO_PRICE_CENTS, currency: 'EUR', tax: 'TTC', code: 'RAISE SUMMIT' },
+      raise_type: raiseType,
+      list_price: { amount: pricing.list / 100, amount_cents: pricing.list, currency: 'EUR', tax: 'HT' },
+      price: { amount: pricing.standard / 100, amount_cents: pricing.standard, currency: 'EUR', tax: 'HT' },
+      promo_price: { amount: pricing.promo / 100, amount_cents: pricing.promo, currency: 'EUR', tax: 'HT', code: 'RAISE SUMMIT' },
     } : null,
     connect,
     lawyer_payments_enabled: !!(stripe && STRIPE_CONNECT_WEBHOOK_SECRET),
@@ -4281,12 +4295,32 @@ function avocatPartner(id) { return AVOCAT_PARTNERS.find(p => p.id === id) || nu
 // modifier engage donc les avocats sur un texte qu'ils n'ont pas lu — il faut
 // incrémenter LAWYER_PARTNERSHIP_VERSION (lib/lawyer-partnership.js) pour
 // redemander leur signature.
+// Les deux offres sont les packs de la grille tarifaire de la homepage. Les
+// forfaits sont INDICATIFS, par type de levée : le montant exact est arrêté dans
+// la convention d'honoraires signée entre la société et l'avocat, qui facture en
+// direct. `price` reste null ici : il est résolu par compte, selon son type de
+// levée (voir l'overview avocat).
 const AVOCAT_PRESTATIONS = [
-  { key: 'garantie',  label: 'Déclarations & garanties (W&R)',  desc: 'Relecture avant signature du document le plus engageant pour les fondateurs.', critical: true,  price: null, fee_cap_cents: null, delay: 'À convenir' },
-  { key: 'pacte',     label: 'Pacte d’associés',                desc: 'Revue des clauses sensibles : gouvernance, liquidité, leaver, préférence.',    critical: true,  price: null, fee_cap_cents: null, delay: 'À convenir' },
-  { key: 'termsheet', label: 'Term sheet / lettre d’intention', desc: 'Vérification avant de vous engager sur les grands équilibres de la levée.',     critical: false, price: null, fee_cap_cents: null, delay: 'À convenir' },
-  { key: 'bsa-air',   label: 'BSA-AIR / convertible',           desc: 'Contrôle de l’instrument d’investissement convertible.',                       critical: false, price: null, fee_cap_cents: null, delay: 'À convenir' },
-  { key: 'question',  label: 'Question juridique ponctuelle',   desc: 'Un point précis à sécuriser ? Échange court avec votre avocat.',                critical: false, price: null, fee_cap_cents: null, delay: 'À convenir' },
+  {
+    key: 'essentiel',
+    label: 'Pack avocat Essentiel',
+    desc: 'Un avocat partenaire rédige et valide les actes critiques de l’opération : term sheet, contrat d’investissement, pacte d’associés, formalisme d’assemblée.',
+    critical: true,
+    price: null,
+    price_by_raise_type: { 'bsa-air': '600 – 900 € HT', classic: '2 000 – 3 000 € HT' },
+    fee_cap_cents: null,
+    delay: 'À convenir',
+  },
+  {
+    key: 'serenite',
+    label: 'Pack avocat Sérénité',
+    desc: 'Tout l’Essentiel + la relecture de l’ensemble des documents importants, jusqu’à la revue finale avant signature.',
+    critical: false,
+    price: null,
+    price_by_raise_type: { 'bsa-air': '1 200 – 1 800 € HT', classic: '4 000 – 6 000 € HT' },
+    fee_cap_cents: null,
+    delay: 'À convenir',
+  },
 ];
 const AVOCAT_PRESTATION_KEYS  = new Set(AVOCAT_PRESTATIONS.map(p => p.key));
 // `soumise` = en attente de la décision de l'avocat. `acceptee` = mission acceptée
@@ -4669,33 +4703,35 @@ function documentRiskLevel(doc) {
   return 'faible';
 }
 
-// Prestation avocat la plus adaptée à un document (pré-remplit la demande de relecture).
-const AVOCAT_PRESTA_BY_SLUG = {
-  'declarations-garanties-r-w-integrees-au-pacte': 'garantie',
-  'convention-de-garantie-d-actif-et-de-passif-gap': 'garantie',
-  'pacte-d-associes-shareholders-agreement': 'pacte',
-  'statuts-a-jour': 'pacte',
-  'statuts-modifies-actions-de-preference': 'pacte',
-  'suivi-des-engagements-du-pacte-covenants': 'pacte',
-  'convention-entre-investisseurs': 'pacte',
-  'term-sheet-lettre-d-intention': 'termsheet',
-  'clause-d-exclusivite-de-negociation': 'termsheet',
-  'lettre-d-investissement-side-letter': 'termsheet',
-  'term-sheet-bsa-air-montant-decote-plafond-et-ou-plancher-de-valorisation': 'bsa-air',
-  'contrat-d-emission-de-bsa-air-termes-et-conditions-des-bons': 'bsa-air',
-  'bulletin-de-souscription-des-bsa-air': 'bsa-air',
-  'contrat-bulletin-de-souscription': 'bsa-air',
-  'termes-des-valeurs-mobilieres-emises-adp-bsa-oc': 'bsa-air',
-};
+// Pack avocat le plus adapté à un document (pré-remplit la demande de relecture) :
+// les actes critiques de l'opération relèvent de l'Essentiel ; tout autre document
+// n'est couvert que par la Sérénité (« l'ensemble des documents importants »).
+const AVOCAT_ESSENTIEL_SLUGS = new Set([
+  'declarations-garanties-r-w-integrees-au-pacte',
+  'convention-de-garantie-d-actif-et-de-passif-gap',
+  'pacte-d-associes-shareholders-agreement',
+  'statuts-a-jour',
+  'statuts-modifies-actions-de-preference',
+  'suivi-des-engagements-du-pacte-covenants',
+  'convention-entre-investisseurs',
+  'term-sheet-lettre-d-intention',
+  'clause-d-exclusivite-de-negociation',
+  'lettre-d-investissement-side-letter',
+  'term-sheet-bsa-air-montant-decote-plafond-et-ou-plancher-de-valorisation',
+  'contrat-d-emission-de-bsa-air-termes-et-conditions-des-bons',
+  'bulletin-de-souscription-des-bsa-air',
+  'contrat-bulletin-de-souscription',
+  'termes-des-valeurs-mobilieres-emises-adp-bsa-oc',
+]);
 function documentAvocatPresta(doc) {
   const slug = shortText(doc && doc.template_source, 120).toLowerCase();
-  if (slug && AVOCAT_PRESTA_BY_SLUG[slug]) return AVOCAT_PRESTA_BY_SLUG[slug];
+  if (slug && AVOCAT_ESSENTIEL_SLUGS.has(slug)) return 'essentiel';
   const name = shortText(doc && doc.name, 200).toLowerCase();
-  if (/garantie|d[eé]clarations?/.test(name))       return 'garantie';
-  if (/pacte|statuts/.test(name))                   return 'pacte';
-  if (/term.?sheet|lettre d.?intention/.test(name)) return 'termsheet';
-  if (/bsa.?air|souscription|convertible/.test(name)) return 'bsa-air';
-  return 'question';
+  if (/garantie|d[eé]clarations?/.test(name)
+    || /pacte|statuts/.test(name)
+    || /term.?sheet|lettre d.?intention/.test(name)
+    || /bsa.?air|souscription|convertible/.test(name)) return 'essentiel';
+  return 'serenite';
 }
 
 function avocatPublicRequest(r) {
@@ -4827,8 +4863,15 @@ app.get('/api/saas/avocat/overview', requireAuth, requireAssignedFounder2FA, asy
   const requests = await col('saas_avocat_requests')
     .find({ user_id: req.user.id }, { projection: { _id: 0, user_id: 0 } })
     .sort({ id: -1 }).toArray();
+  // Forfait indicatif du pack résolu selon le type de levée du compte (grille homepage).
+  const raiseType = await founderRaiseType(req.user.id);
+  const prestations = AVOCAT_PRESTATIONS.map(({ price_by_raise_type, ...p }) => ({
+    ...p,
+    price: price_by_raise_type ? price_by_raise_type[raiseType] : p.price,
+    price_note: price_by_raise_type ? 'Forfait indicatif · facturé directement par l’avocat' : null,
+  }));
   res.json({
-    prestations: AVOCAT_PRESTATIONS,
+    prestations,
     partners:    AVOCAT_PARTNERS,
     statuses:    AVOCAT_REQUEST_STATUSES,
     ...(platformLawyer ? { mode: 'assigned', partner: platformLawyer, own_lawyer: null } : avocatPublicState(state)),

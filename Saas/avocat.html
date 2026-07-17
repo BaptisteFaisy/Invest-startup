@@ -376,9 +376,10 @@
 
       <!-- Prestations -->
       <section class="av-sec">
-        <div class="av-sec__h"><span class="av-sec__t">Prestations &amp; tarifs</span></div>
+        <div class="av-sec__h"><span class="av-sec__t">Packs avocat &amp; tarifs</span></div>
         <div class="av-grid" id="presta-grid"></div>
-        <p class="av-note" style="margin-top:14px"><strong>Questions personnelles exclues.</strong> Une garantie personnelle, une cession de titres, le vesting/leaver ou une non-concurrence peuvent nécessiter une convention et un avocat distincts.</p>
+        <p class="av-note" style="margin-top:14px">Les forfaits sont indicatifs : ils sont confirmés par une convention d'honoraires conclue directement entre votre société et l'avocat, qui vous facture en direct. Liquid+ ne facture aucune prestation de conseil juridique et ne partage pas d'honoraires avec les avocats.</p>
+        <p class="av-note" style="margin-top:10px"><strong>Questions personnelles exclues.</strong> Une garantie personnelle, une cession de titres, le vesting/leaver ou une non-concurrence peuvent nécessiter une convention et un avocat distincts.</p>
       </section>
 
       <!-- Mes demandes -->
@@ -586,10 +587,11 @@
           '</div>' +
           '<div class="av-presta__desc">' + esc(p.desc) + '</div>' +
           '<div class="av-presta__meta">' +
-            '<span class="av-presta__price">' + esc(p.price) + '</span>' +
+            '<span class="av-presta__price">' + esc(p.price || 'Tarif à convenir') + '</span>' +
             '<span class="av-presta__delay"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>' + esc(p.delay) + '</span>' +
           '</div>' +
-          '<button type="button" class="av-btn av-btn--primary av-presta__cta" data-presta="' + esc(p.key) + '"' + (STATE.company?.eligibility?.complete ? '' : ' disabled title="Dossier société incomplet"') + '>Demander une relecture</button>' +
+          (p.price_note ? '<div class="av-presta__desc" style="margin-top:2px;font-size:12px">' + esc(p.price_note) + '</div>' : '') +
+          '<button type="button" class="av-btn av-btn--primary av-presta__cta" data-presta="' + esc(p.key) + '"' + (STATE.company?.eligibility?.complete ? '' : ' disabled title="Dossier société incomplet"') + '>Demander ce pack</button>' +
         '</div>'
       ).join('');
     }
@@ -724,7 +726,7 @@
         return '<div class="av-card av-doc">' +
           '<div class="av-doc__main"><div class="av-doc__name" title="' + esc(d.name) + '">' + esc(d.name) + '</div></div>' +
           '<span class="av-docrisk av-docrisk--' + esc(rk.cls) + '"><span class="av-docrisk__dot"></span>' + esc(rk.label) + '</span>' +
-          '<button type="button" class="av-btn av-btn--ghost av-btn--sm" data-review-doc="' + esc(d.id) + '" data-review-presta="' + esc(d.avocat_presta || 'question') + '"' + (STATE.company?.eligibility?.complete ? '' : ' disabled title="Dossier société incomplet"') + '>Faire relire</button>' +
+          '<button type="button" class="av-btn av-btn--ghost av-btn--sm" data-review-doc="' + esc(d.id) + '" data-review-presta="' + esc(d.avocat_presta || 'essentiel') + '"' + (STATE.company?.eligibility?.complete ? '' : ' disabled title="Dossier société incomplet"') + '>Faire relire</button>' +
         '</div>';
       }).join('');
     }
@@ -785,8 +787,8 @@
       if (!STATE.company?.eligibility?.complete) { location.href = maLeveeHref(); return; }
       modalPrestaKey = key;
       const p = STATE.prestations.find(x => x.key === key) || {};
-      document.getElementById('req-title').textContent = 'Relecture — ' + (p.label || '');
-      document.getElementById('req-desc').textContent = (p.desc || '') + (p.price ? ' · ' + p.price + ' · délai ' + p.delay : '');
+      document.getElementById('req-title').textContent = 'Demande — ' + (p.label || '');
+      document.getElementById('req-desc').textContent = (p.desc || '') + (p.price ? ' · ' + p.price + ' (forfait indicatif, facturé directement par l’avocat) · délai ' + p.delay : '');
       document.getElementById('req-err').textContent = '';
       document.getElementById('req-note').value = '';
       document.getElementById('req-title-input').value = p.label || 'Relecture juridique';
@@ -860,7 +862,7 @@
       const docId = params.get('doc');
       if (!docId) return;
       const doc = DOCS.find(d => String(d.id) === String(docId));
-      const presta = (doc && doc.avocat_presta) || params.get('presta') || 'question';
+      const presta = (doc && doc.avocat_presta) || params.get('presta') || 'essentiel';
       openRequestModal(presta, docId);
     }
 

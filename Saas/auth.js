@@ -47,13 +47,24 @@ async function dismissFounderWelcomeOffer() {
   }
 }
 
-function showFounderWelcomeOffer(user) {
+async function showFounderWelcomeOffer(user) {
   if (welcomeOfferHandled || !user?.welcome_offer_pending || user.access?.status !== 'free') return;
   if (!document.body) {
     document.addEventListener('DOMContentLoaded', () => showFounderWelcomeOffer(user), { once: true });
     return;
   }
   if (document.getElementById('liquid-founder-welcome')) return;
+
+  // Les montants suivent la grille tarifaire (type de levée du compte) : ils
+  // viennent du serveur. Sans tarif, pas de fenêtre — on ne promet pas un prix faux.
+  let pricing;
+  try {
+    const response = await fetch('/api/billing/status', { credentials: 'include' });
+    pricing = (await response.json())?.liquid_plus;
+  } catch { return; }
+  if (!pricing?.price || welcomeOfferHandled || document.getElementById('liquid-founder-welcome')) return;
+  const euros = (cents) => (cents / 100).toLocaleString('fr-FR') + ' €';
+  const standardLabel = 'Payer ' + euros(pricing.price.amount_cents) + ' HT maintenant';
 
   const style = document.createElement('style');
   style.id = 'liquid-founder-welcome-style';
@@ -76,7 +87,7 @@ function showFounderWelcomeOffer(user) {
   overlay.setAttribute('role', 'dialog');
   overlay.setAttribute('aria-modal', 'true');
   overlay.setAttribute('aria-labelledby', 'liquid-welcome-title');
-  overlay.innerHTML = `<div class="liquid-welcome__box"><button type="button" class="liquid-welcome__close" aria-label="Fermer cette proposition">&times;</button><p class="liquid-welcome__eyebrow">Bienvenue dans Liquid+</p><h2 id="liquid-welcome-title">Pilotez dès maintenant le volet juridique de votre levée.</h2><p class="liquid-welcome__lead">Votre accès gratuit n’expire pas : préparez toute votre levée sans rien payer. Liquid+ s’active le jour où vous voulez exporter, copier et sécuriser vos documents.</p><div class="liquid-welcome__offer"><div class="liquid-welcome__offer-top"><div><div class="liquid-welcome__offer-label">Votre offre de bienvenue</div><div class="liquid-welcome__price">450 € TTC <s>600 € TTC</s></div></div><span class="liquid-welcome__code">RAISE SUMMIT</span></div><span class="liquid-welcome__terms">Offre soumise à <button type="button" class="liquid-welcome__terms-trigger" aria-expanded="false" aria-describedby="liquid-welcome-conditions">certaines conditions</button><span class="liquid-welcome__terms-tooltip" id="liquid-welcome-conditions" role="tooltip">Réduction accordée en échange d’un témoignage publié sur notre site et d’un post LinkedIn de votre part parlant de Liquid+.</span></span></div><div class="liquid-welcome__actions"><button type="button" class="liquid-welcome__button liquid-welcome__button--promo">Utiliser mon code promo</button><button type="button" class="liquid-welcome__button liquid-welcome__button--standard">Payer 600 € TTC maintenant</button></div><div class="liquid-welcome__message" role="alert"></div><p class="liquid-welcome__free">Vous pouvez aussi fermer cette fenêtre et continuer gratuitement.</p></div>`;
+  overlay.innerHTML = `<div class="liquid-welcome__box"><button type="button" class="liquid-welcome__close" aria-label="Fermer cette proposition">&times;</button><p class="liquid-welcome__eyebrow">Bienvenue dans Liquid+</p><h2 id="liquid-welcome-title">Pilotez dès maintenant le volet juridique de votre levée.</h2><p class="liquid-welcome__lead">Votre accès gratuit n’expire pas : préparez toute votre levée sans rien payer. Liquid+ s’active le jour où vous voulez exporter, copier et sécuriser vos documents.</p><div class="liquid-welcome__offer"><div class="liquid-welcome__offer-top"><div><div class="liquid-welcome__offer-label">Votre offre de bienvenue</div><div class="liquid-welcome__price">${euros(pricing.promo_price.amount_cents)} HT <s>${euros(pricing.price.amount_cents)} HT</s></div></div><span class="liquid-welcome__code">RAISE SUMMIT</span></div><span class="liquid-welcome__terms">Offre soumise à <button type="button" class="liquid-welcome__terms-trigger" aria-expanded="false" aria-describedby="liquid-welcome-conditions">certaines conditions</button><span class="liquid-welcome__terms-tooltip" id="liquid-welcome-conditions" role="tooltip">Réduction accordée en échange d’un témoignage publié sur notre site et d’un post LinkedIn de votre part parlant de Liquid+.</span></span></div><div class="liquid-welcome__actions"><button type="button" class="liquid-welcome__button liquid-welcome__button--promo">Utiliser mon code promo</button><button type="button" class="liquid-welcome__button liquid-welcome__button--standard">${standardLabel}</button></div><div class="liquid-welcome__message" role="alert"></div><p class="liquid-welcome__free">Vous pouvez aussi fermer cette fenêtre et continuer gratuitement.</p></div>`;
   document.body.appendChild(overlay);
   document.body.classList.add('liquid-welcome-open');
 
@@ -125,7 +136,7 @@ function showFounderWelcomeOffer(user) {
     } catch (error) {
       message.textContent = error.message || 'Paiement indisponible.';
       standardButton.disabled = false;
-      standardButton.textContent = 'Payer 600 € TTC maintenant';
+      standardButton.textContent = standardLabel;
     }
   });
   overlay.addEventListener('keydown', (event) => {
