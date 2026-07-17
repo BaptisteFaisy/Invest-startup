@@ -132,6 +132,9 @@
     .documents-action-btn:hover { background:#f0f0ee; border-color:rgba(8,9,12,0.34); }
     .folder__body { display: none; padding: 4px 14px 16px; }
     .folder.open .folder__body { display: block; }
+    /* Ligne mise en évidence après « Voir l'emplacement du fichier » (recherche). */
+    .is-search-target { outline: 2px solid #15803d; outline-offset: 2px; animation: search-target-flash 2.4s ease-out; }
+    @keyframes search-target-flash { from { background-color: #d1fae5; } to { background-color: transparent; } }
     .folder__empty { font-size: 13px; color: #fff; padding: 10px 6px 6px; }
     .folder--import .folder__ic { background: #fff4d6; }
     .folder__drop { text-align: center; font-size: 13.5px; color: #fff; line-height: 1.6; padding: 22px 14px; border: 2px dashed var(--line); border-radius: 12px; background: var(--bg, #f4f2ee); }
@@ -2069,6 +2072,27 @@
       dashboardSearchResultsEl.innerHTML = '';
     }
 
+    // Rend visible une ligne trouvée par la recherche : un scrollIntoView sur un
+    // élément masqué ne fait rien, il faut donc d'abord déplier ce qui la cache
+    // (dossier thématique replié, carte de dossier fermée). On passe par les
+    // boutons existants pour que l'état mémorisé (docCategoryOpen, phaseCardOpen)
+    // reste synchronisé, puis on met brièvement la ligne en évidence.
+    function revealSearchRow(target) {
+      const collapsed = target.closest('.doc-category.is-collapsed');
+      if (collapsed) {
+        const toggle = collapsed.querySelector('[data-category-toggle]');
+        if (toggle) toggle.click(); else collapsed.classList.remove('is-collapsed');
+      }
+      const card = target.closest('.folder:not(.open)');
+      if (card) {
+        const head = card.querySelector('.folder__head');
+        if (head) head.click(); else card.classList.add('open');
+      }
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target.classList.add('is-search-target');
+      setTimeout(() => target.classList.remove('is-search-target'), 2600);
+    }
+
     // Outils accessibles depuis le menu latéral, indexés dans la recherche.
     const DASHBOARD_TOOLS = [
       { label: 'Éditeur', href: 'editor.html', newTab: true, keywords: ['outil', 'editeur', 'rediger', 'clauses', 'term sheet'] },
@@ -2154,12 +2178,7 @@
         const tick = () => {
           const target = selector ? document.querySelector(selector) : null;
           if (target) {
-            // Le document peut se trouver dans une catégorie repliée : on la déplie
-            // avant de faire défiler la page pour que la cible soit bien visible.
-            const collapsedCategory = target.closest('.doc-category.is-collapsed');
-            const toggle = collapsedCategory && collapsedCategory.querySelector('[data-category-toggle]');
-            if (toggle) toggle.click();
-            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            revealSearchRow(target);
             return;
           }
           // Le rendu de l'étape est synchrone, mais on laisse quelques images de
@@ -2265,13 +2284,13 @@
       const fallbackId = folder && folder.key ? 'phase-' + folder.key : null;
       let tries = 0;
       const scrollToTarget = () => {
-        const target = selector && document.querySelector(selector);
-        const fallback = fallbackId && document.getElementById(fallbackId);
-        if (target || fallback) {
-          (target || fallback).scrollIntoView({ behavior: 'smooth', block: target ? 'center' : 'start' });
-        } else if (++tries < 6) {
-          requestAnimationFrame(scrollToTarget);
-        }
+        const target = selector ? document.querySelector(selector) : null;
+        if (target) { revealSearchRow(target); return; }
+        const fallback = fallbackId ? document.getElementById(fallbackId) : null;
+        // Tant qu'on espère la ligne exacte (ou que rien n'est trouvé), on laisse
+        // quelques images au rendu avant de se rabattre sur la carte de l'étape.
+        if (++tries < 6 && (selector || !fallback)) { requestAnimationFrame(scrollToTarget); return; }
+        if (fallback) fallback.scrollIntoView({ behavior: 'smooth', block: 'start' });
       };
       requestAnimationFrame(scrollToTarget);
 
@@ -6562,7 +6581,10 @@
       const li = document.createElement('li');
       li.className = 'bsa-item' + (linked ? ' bsa-item--done' : '') + (editorialDD ? ' dd-editorial-item' : '');
       li.dataset.searchFolderId = String(f.id);
-      li.dataset.searchItemSlug = slug;
+      // Identité de recherche : toujours le slug de base de l'item. Les étapes de
+      // négociation rendent leurs lignes avec un slug composite (inv<id>:slug) que
+      // la recherche du tableau de bord ne connaît pas.
+      li.dataset.searchItemSlug = baseSlug;
       if (doc) li.dataset.searchDocumentId = String(doc.id);
       li.innerHTML = `
         <div class="bsa-item__head">
