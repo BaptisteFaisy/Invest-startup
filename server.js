@@ -4326,7 +4326,7 @@ const AVOCAT_PRESTATIONS = [
   {
     key: 'a-la-carte',
     label: 'Avocat à la carte',
-    desc: 'Sans pack : une mission ponctuelle, limitée aux documents que vous confiez — relecture ou rédaction d’un acte précis, réponse à une question délimitée. L’avocat chiffre la mission avant de commencer.',
+    desc: 'Sans pack, ou en plus d’un pack pour les documents à moindre enjeu ou très spécifiques à votre société : une mission ponctuelle, limitée aux documents que vous confiez — relecture ou rédaction d’un acte précis, réponse à une question délimitée. L’avocat chiffre la mission avant de commencer.',
     critical: false,
     price: 'Sur devis',
     price_note: 'Devis arrêté dans la convention d’honoraires · facturé directement par l’avocat',
