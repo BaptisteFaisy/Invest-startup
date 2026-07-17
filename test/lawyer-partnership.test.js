@@ -28,10 +28,11 @@ const SIGNED = { lawyer_partnership_version: LAWYER_PARTNERSHIP_VERSION };
 // LAWYER_PARTNERSHIP_VERSION, puis reporter la nouvelle empreinte ici.
 test('l’empreinte fige le texte : le modifier sans changer de version casse la CI', () => {
   const hash = partnershipDocumentHash(buildPartnershipDocument(PRESTATIONS));
-  // v3 : grille passée aux packs Essentiel / Sérénité, forfaits indicatifs par
-  // type de levée (grille tarifaire homepage du 16/07/2026).
-  assert.equal(hash, '85913c81abbbba152c08c892ede9ff1e0d92591d619109d940cefe63c7719234');
-  assert.equal(LAWYER_PARTNERSHIP_VERSION, 3);
+  // v4 : offre « Avocat à la carte » (sur devis) ajoutée à la grille, aux côtés
+  // des packs Essentiel / Sérénité (forfaits indicatifs par type de levée,
+  // grille tarifaire homepage du 16/07/2026).
+  assert.equal(hash, '9f6ee097e92e3479d10eb590e97990eecc0311d6ac738a59607e95a149caf886');
+  assert.equal(LAWYER_PARTNERSHIP_VERSION, 4);
 });
 
 test('l’empreinte suit la grille, pas seulement les clauses', () => {
@@ -49,6 +50,17 @@ test('une prestation sans tarif publié l’écrit, au lieu d’afficher un vide
   for (const clause of grille.clauses) {
     assert.doesNotMatch(clause, /null|undefined|NaN/);
   }
+});
+
+// L'offre à la carte est sur devis PAR PRINCIPE : la grille le dit, au lieu de
+// laisser croire à un tarif oublié (« non publié à ce jour »).
+test('une prestation sur devis l’écrit dans la grille signée', () => {
+  const grille = buildPartnershipDocument([{ ...PRESTATIONS[0], quote_based: true }])
+    .sections.find(s => s.key === 'grille');
+  const ligne = grille.clauses.find(c => c.startsWith('Pacte'));
+  assert.match(ligne, /sur devis/);
+  assert.match(ligne, /convention d’honoraires/);
+  assert.doesNotMatch(ligne, /tarif non publié/);
 });
 
 test('un plafond publié s’affiche en euros TTC', () => {

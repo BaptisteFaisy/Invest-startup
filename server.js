@@ -8587,7 +8587,14 @@ function docxHtmlToEditorPage(rawHtml, docName) {
   blocks.forEach(b => {
     const txt = stripHtml(b);
     if (!cur || SECTION_RE.test(txt)) {
-      const label = txt.split(/[.:—–]/)[0].split(/\s+/).slice(0, 9).join(' ');
+      // Libellé = premier segment avant ponctuation. Si ce segment n'est que le
+      // NUMÉRO de l'article (« 1 », « III », « ARTICLE 5 »), on y adjoint le
+      // segment suivant pour un libellé lisible (« 1. Valorisation »).
+      const segs = txt.split(/[.:—–]/);
+      let label = (segs[0] || '').trim();
+      if (segs[1] && /^(ARTICLE\s+\d+|TITRE\s+[IVXLC\d]+|\d+(?:\.\d+)*|[IVXLC]+)$/i.test(label))
+        label = label + '. ' + segs[1].trim();
+      label = label.split(/\s+/).slice(0, 9).join(' ');
       // N'inclure le bloc dans le corps que s'il contient plus que le seul titre
       // (évite d'afficher le titre à la fois dans la colonne label et dans le texte).
       const hasBody = txt.length > label.length + 5;

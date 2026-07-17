@@ -134,8 +134,25 @@
     .page-back:focus-visible { outline: none; opacity: 1; }
     .page-back svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
     .mkt__eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--av-text-3); }
-    .mkt__title { font-size: 30px; letter-spacing: -0.03em; color: var(--av-ink); margin-top: 6px; padding-bottom: 16px; border-bottom: 2px solid var(--av-title-rule); }
+    /* Le filet du titre est porté par la barre d'onglets (même variable) :
+       deux règles horizontales superposées alourdiraient l'entête. */
+    .mkt__title { font-size: 30px; letter-spacing: -0.03em; color: var(--av-ink); margin-top: 6px; }
     .mkt__sub { color: var(--av-text-2); font-size: 15px; margin-top: 8px; line-height: 1.55; max-width: 640px; }
+
+    /* ── Onglets ──────────────────────────────────────────────────── */
+    .av-tabs { display: flex; gap: 2px; margin-top: 18px; border-bottom: 1px solid var(--av-line); }
+    .av-tab { appearance: none; background: none; border: 0; margin-bottom: -1px; border-bottom: 2px solid transparent; padding: 10px 14px 11px; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--av-text-3); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: color .15s, border-color .15s; }
+    .av-tab:hover { color: var(--av-ink); }
+    .av-tab:focus-visible { outline: 2px solid var(--av-ink-strong); outline-offset: -2px; }
+    .av-tab.is-active { color: var(--av-ink); border-bottom-color: var(--av-title-rule); }
+    /* Même pastille verte que les demandes : « du nouveau de votre avocat »
+       reste visible quand l'onglet n'est pas ouvert. */
+    .av-tab__dot { width: 8px; height: 8px; border-radius: 50%; background: #86efac; flex: none; }
+    .av-panel[hidden] { display: none; }
+    @media (max-width: 640px) {
+      .av-tabs { overflow-x: auto; }
+      .av-tab { padding: 10px 10px 11px; white-space: nowrap; }
+    }
 
     /* ── Blocs / sections ─────────────────────────────────────────── */
     .av-sec { margin-top: 30px; }
@@ -357,40 +374,52 @@
         <p>Un avocat partenaire vous est attribué pour sécuriser les documents les plus engageants de votre levée. Notre IA prépare et dégrossit ; l'avocat relit, valide et <strong>engage sa responsabilité</strong>. Vous gardez votre temps pour votre business.</p>
       </div>
 
-      <!-- Mon avocat -->
-      <section class="av-sec">
-        <div class="av-sec__h"><span class="av-sec__t">Votre avocat</span></div>
-        <div class="av-card av-lawyer" id="lawyer-card"><div class="av-empty">Chargement…</div></div>
-      </section>
+      <!-- Onglets : votre avocat / documents à sécuriser / offres & tarifs -->
+      <div class="av-tabs" role="tablist" aria-label="Sections de l'outil avocat">
+        <button type="button" class="av-tab is-active" id="tab-avocat" role="tab" aria-selected="true" aria-controls="panel-avocat" data-tab="avocat">Votre avocat</button>
+        <button type="button" class="av-tab" id="tab-documents" role="tab" aria-selected="false" aria-controls="panel-documents" data-tab="documents" tabindex="-1">Documents à sécuriser<span class="av-tab__dot" id="tab-documents-dot" title="Du nouveau de votre avocat" hidden></span></button>
+        <button type="button" class="av-tab" id="tab-offres" role="tab" aria-selected="false" aria-controls="panel-offres" data-tab="offres" tabindex="-1">Offres &amp; tarifs</button>
+      </div>
 
-      <section class="av-sec">
-        <div class="av-sec__h"><span class="av-sec__t">Société cliente</span></div>
-        <div class="av-card" id="company-eligibility" style="padding:18px 20px"><div class="av-empty">Chargement…</div></div>
-      </section>
+      <!-- Onglet : votre avocat -->
+      <div class="av-panel" id="panel-avocat" role="tabpanel" aria-labelledby="tab-avocat">
+        <section class="av-sec">
+          <div class="av-sec__h"><span class="av-sec__t">Votre avocat</span></div>
+          <div class="av-card av-lawyer" id="lawyer-card"><div class="av-empty">Chargement…</div></div>
+        </section>
 
-      <!-- Vos documents à sécuriser -->
-      <section class="av-sec">
-        <div class="av-sec__h"><span class="av-sec__t">Vos documents à sécuriser</span></div>
-        <div class="av-docs" id="secure-docs"></div>
-      </section>
+        <section class="av-sec">
+          <div class="av-sec__h"><span class="av-sec__t">Société cliente</span></div>
+          <div class="av-card" id="company-eligibility" style="padding:18px 20px"><div class="av-empty">Chargement…</div></div>
+        </section>
 
-      <!-- Prestations -->
-      <section class="av-sec">
-        <div class="av-sec__h"><span class="av-sec__t">Packs avocat &amp; tarifs</span></div>
-        <div class="av-grid" id="presta-grid"></div>
-        <p class="av-note" style="margin-top:14px">Les forfaits sont indicatifs : ils sont confirmés par une convention d'honoraires conclue directement entre votre société et l'avocat, qui vous facture en direct. Liquid+ ne facture aucune prestation de conseil juridique et ne partage pas d'honoraires avec les avocats.</p>
-        <p class="av-note" style="margin-top:10px"><strong>Questions personnelles exclues.</strong> Une garantie personnelle, une cession de titres, le vesting/leaver ou une non-concurrence peuvent nécessiter une convention et un avocat distincts.</p>
-      </section>
+        <p class="av-note" style="margin-top:22px">
+          <strong>Pourquoi un avocat nommé ?</strong> Chaque relecture engage la responsabilité personnelle de l'avocat, via une lettre de mission nominative et son assurance responsabilité civile professionnelle (RCP). C'est pourquoi vous savez toujours qui relit vos documents — et pouvez en changer.
+        </p>
+      </div>
 
-      <!-- Mes demandes -->
-      <section class="av-sec">
-        <div class="av-sec__h"><span class="av-sec__t">Mes demandes</span></div>
-        <div class="av-reqs" id="reqs"></div>
-      </section>
+      <!-- Onglet : documents à sécuriser (et le suivi des demandes qui en découlent) -->
+      <div class="av-panel" id="panel-documents" role="tabpanel" aria-labelledby="tab-documents" hidden>
+        <section class="av-sec">
+          <div class="av-sec__h"><span class="av-sec__t">Vos documents à sécuriser</span></div>
+          <div class="av-docs" id="secure-docs"></div>
+        </section>
 
-      <p class="av-note">
-        <strong>Pourquoi un avocat nommé ?</strong> Chaque relecture engage la responsabilité personnelle de l'avocat, via une lettre de mission nominative et son assurance responsabilité civile professionnelle (RCP). C'est pourquoi vous savez toujours qui relit vos documents — et pouvez en changer.
-      </p>
+        <section class="av-sec">
+          <div class="av-sec__h"><span class="av-sec__t">Mes demandes</span></div>
+          <div class="av-reqs" id="reqs"></div>
+        </section>
+      </div>
+
+      <!-- Onglet : offres & tarifs -->
+      <div class="av-panel" id="panel-offres" role="tabpanel" aria-labelledby="tab-offres" hidden>
+        <section class="av-sec">
+          <div class="av-sec__h"><span class="av-sec__t">Packs avocat &amp; missions à la carte</span></div>
+          <div class="av-grid" id="presta-grid"></div>
+          <p class="av-note" style="margin-top:14px">Les forfaits sont indicatifs et l'offre à la carte est sur devis : dans tous les cas, le montant est confirmé par une convention d'honoraires conclue directement entre votre société et l'avocat, qui vous facture en direct. Liquid+ ne facture aucune prestation de conseil juridique et ne partage pas d'honoraires avec les avocats.</p>
+          <p class="av-note" style="margin-top:10px"><strong>Questions personnelles exclues.</strong> Une garantie personnelle, une cession de titres, le vesting/leaver ou une non-concurrence peuvent nécessiter une convention et un avocat distincts.</p>
+        </section>
+      </div>
     </main>
   </div>
 
@@ -497,6 +526,22 @@
     }
     function toggleTheme() { applyTheme(currentTheme() === 'dark' ? 'paper' : 'dark', true); }
 
+    /* ── Onglets ─────────────────────────────────────────────────────
+       L'onglet actif vit dans le hash (#avocat, #documents, #offres) :
+       rechargement et lien partagé retombent au même endroit. */
+    const TAB_NAMES = ['avocat', 'documents', 'offres'];
+    function selectTab(name) {
+      const target = TAB_NAMES.includes(name) ? name : 'avocat';
+      document.querySelectorAll('.av-tab').forEach(btn => {
+        const active = btn.dataset.tab === target;
+        btn.classList.toggle('is-active', active);
+        btn.setAttribute('aria-selected', active ? 'true' : 'false');
+        btn.tabIndex = active ? 0 : -1;
+      });
+      TAB_NAMES.forEach(n => { document.getElementById('panel-' + n).hidden = n !== target; });
+      try { history.replaceState(null, '', '#' + target); } catch {}
+    }
+
     const STATUS_LABELS = { soumise: 'En attente d\'acceptation', acceptee: 'Mission acceptée', refusee: 'Mission refusée', en_cours: 'Relecture en cours', attente_fondateur: 'Réponse attendue', livree: 'Documents remis', cloturee: 'Clôturée', annule: 'Annulée' };
 
     let STATE = { prestations: [], partners: [], requests: [], mode: 'assigned', partner: null, own_lawyer: null, company: { profile: {}, eligibility: { status: 'incomplete', verified: false } } };
@@ -591,7 +636,7 @@
             '<span class="av-presta__delay"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>' + esc(p.delay) + '</span>' +
           '</div>' +
           (p.price_note ? '<div class="av-presta__desc" style="margin-top:2px;font-size:12px">' + esc(p.price_note) + '</div>' : '') +
-          '<button type="button" class="av-btn av-btn--primary av-presta__cta" data-presta="' + esc(p.key) + '"' + (STATE.company?.eligibility?.complete ? '' : ' disabled title="Dossier société incomplet"') + '>Demander ce pack</button>' +
+          '<button type="button" class="av-btn av-btn--primary av-presta__cta" data-presta="' + esc(p.key) + '"' + (STATE.company?.eligibility?.complete ? '' : ' disabled title="Dossier société incomplet"') + '>' + (p.quote_based ? 'Demander une mission' : 'Demander ce pack') + '</button>' +
         '</div>'
       ).join('');
     }
@@ -604,6 +649,9 @@
       return p ? p.lead : '';
     }
     function renderRequests() {
+      // La pastille remonte sur l'onglet : l'activité de l'avocat reste
+      // visible même quand « Documents à sécuriser » n'est pas ouvert.
+      document.getElementById('tab-documents-dot').hidden = !UNREAD_REQUESTS.size;
       const box = document.getElementById('reqs');
       if (!STATE.requests.length) {
         box.innerHTML = '<div class="av-card av-empty">Aucune demande pour l\'instant. Choisissez un document ci-dessus pour lancer une relecture.</div>';
@@ -788,7 +836,7 @@
       modalPrestaKey = key;
       const p = STATE.prestations.find(x => x.key === key) || {};
       document.getElementById('req-title').textContent = 'Demande — ' + (p.label || '');
-      document.getElementById('req-desc').textContent = (p.desc || '') + (p.price ? ' · ' + p.price + ' (forfait indicatif, facturé directement par l’avocat) · délai ' + p.delay : '');
+      document.getElementById('req-desc').textContent = (p.desc || '') + (p.price ? ' · ' + p.price + (p.quote_based ? ' (devis confirmé dans la convention d’honoraires, facturé directement par l’avocat)' : ' (forfait indicatif, facturé directement par l’avocat)') + ' · délai ' + p.delay : '');
       document.getElementById('req-err').textContent = '';
       document.getElementById('req-note').value = '';
       document.getElementById('req-title-input').value = p.label || 'Relecture juridique';
@@ -863,6 +911,9 @@
       if (!docId) return;
       const doc = DOCS.find(d => String(d.id) === String(docId));
       const presta = (doc && doc.avocat_presta) || params.get('presta') || 'essentiel';
+      // Le lien vient d'un document : à la fermeture de la modale, on retombe
+      // sur l'onglet qui le porte.
+      selectTab('documents');
       openRequestModal(presta, docId);
     }
 
@@ -885,6 +936,8 @@
         });
         closeModal('request-modal');
         await loadOverview();
+        // La demande envoyée apparaît dans « Mes demandes » : on y amène l'écran.
+        selectTab('documents');
       } catch (e) {
         err.textContent = e.message;
       } finally {
@@ -954,6 +1007,21 @@
 
     /* ── Câblage global ──────────────────────────────────────────── */
     function wireEvents() {
+      // Onglets : clic + flèches gauche/droite (motif « roving tabindex »)
+      document.querySelectorAll('.av-tab').forEach(btn =>
+        btn.addEventListener('click', () => selectTab(btn.dataset.tab)));
+      document.querySelector('.av-tabs').addEventListener('keydown', (e) => {
+        if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+        e.preventDefault();
+        const idx = TAB_NAMES.indexOf(document.querySelector('.av-tab.is-active')?.dataset.tab);
+        const next = TAB_NAMES[(idx + (e.key === 'ArrowRight' ? 1 : TAB_NAMES.length - 1)) % TAB_NAMES.length];
+        selectTab(next);
+        document.querySelector('.av-tab[data-tab="' + next + '"]').focus();
+      });
+      // Un lien interne « avocat.html#documents » sur la page déjà ouverte ne
+      // recharge rien : on suit le hash. (replaceState ne redéclenche pas cet
+      // événement, pas de boucle.)
+      window.addEventListener('hashchange', () => selectTab(location.hash.slice(1)));
       // Boutons « Demander une relecture » (délégation)
       document.getElementById('presta-grid').addEventListener('click', (e) => {
         const btn = e.target.closest('button[data-presta]');
@@ -1018,6 +1086,7 @@
       applyTheme((user.theme === 'dark' || user.theme === 'paper') ? user.theme : currentTheme(), false);
       document.querySelector('.app').classList.add('ready');
       wireEvents();
+      selectTab(location.hash.slice(1));
       await Promise.all([loadOverview(), loadDocs(), loadRaiseType(), loadAvocatActivity()]);
       // Les pastilles des demandes dépendent de l'activité, chargée en
       // parallèle de l'aperçu : on refait la liste une fois les deux arrivées.
