@@ -28,11 +28,11 @@ const SIGNED = { lawyer_partnership_version: LAWYER_PARTNERSHIP_VERSION };
 // LAWYER_PARTNERSHIP_VERSION, puis reporter la nouvelle empreinte ici.
 test('l’empreinte fige le texte : le modifier sans changer de version casse la CI', () => {
   const hash = partnershipDocumentHash(buildPartnershipDocument(PRESTATIONS));
-  // v4 : offre « Avocat à la carte » (sur devis) ajoutée à la grille, aux côtés
-  // des packs Essentiel / Sérénité (forfaits indicatifs par type de levée,
-  // grille tarifaire homepage du 16/07/2026).
-  assert.equal(hash, '9f6ee097e92e3479d10eb590e97990eecc0311d6ac738a59607e95a149caf886');
-  assert.equal(LAWYER_PARTNERSHIP_VERSION, 4);
+  // v5 : pack « Sérénité » renommé « Complète », forfaits recalibrés sur les
+  // cartographies .docs-internes (Essentiel = Critique, Complète = Critique +
+  // Important, revue DD plafonnée à 15 documents) — grille du 17/07/2026.
+  assert.equal(hash, '435896472684a96d8acdf1920006398701a1dd6cac8e1d3b0092b6c8aced5e8f');
+  assert.equal(LAWYER_PARTNERSHIP_VERSION, 5);
 });
 
 test('l’empreinte suit la grille, pas seulement les clauses', () => {

@@ -4306,20 +4306,20 @@ const AVOCAT_PRESTATIONS = [
   {
     key: 'essentiel',
     label: 'Pack avocat Essentiel',
-    desc: 'Un avocat partenaire rédige et valide les actes critiques de l’opération : term sheet, contrat d’investissement, pacte d’associés, formalisme d’assemblée.',
+    desc: 'Un avocat partenaire rédige et valide les actes critiques de l’opération : term sheet, contrat d’investissement, pacte d’associés, garantie d’actif et de passif, formalisme d’assemblée.',
     critical: true,
     price: null,
-    price_by_raise_type: { 'bsa-air': '600 – 900 € HT', classic: '2 000 – 3 000 € HT' },
+    price_by_raise_type: { 'bsa-air': '900 – 1 200 € HT', classic: '3 000 – 4 500 € HT' },
     fee_cap_cents: null,
     delay: 'À convenir',
   },
   {
     key: 'serenite',
-    label: 'Pack avocat Sérénité',
-    desc: 'Tout l’Essentiel + la relecture de l’ensemble des documents importants, jusqu’à la revue finale avant signature.',
+    label: 'Pack avocat Complète',
+    desc: 'Tout l’Essentiel + la relecture de l’ensemble des documents importants — revue des pièces de due diligence dans la limite de 15 documents —, jusqu’à la revue finale avant signature.',
     critical: false,
     price: null,
-    price_by_raise_type: { 'bsa-air': '1 200 – 1 800 € HT', classic: '4 000 – 6 000 € HT' },
+    price_by_raise_type: { 'bsa-air': '1 500 – 2 200 € HT', classic: '4 500 – 7 000 € HT' },
     fee_cap_cents: null,
     delay: 'À convenir',
   },
@@ -4721,7 +4721,8 @@ function documentRiskLevel(doc) {
 
 // Pack avocat le plus adapté à un document (pré-remplit la demande de relecture) :
 // les actes critiques de l'opération relèvent de l'Essentiel ; tout autre document
-// n'est couvert que par la Sérénité (« l'ensemble des documents importants »).
+// n'est couvert que par la Complète (« l'ensemble des documents importants »).
+// La clé interne reste `serenite` (valeurs stockées, URLs) : seul le libellé public change.
 const AVOCAT_ESSENTIEL_SLUGS = new Set([
   'declarations-garanties-r-w-integrees-au-pacte',
   'convention-de-garantie-d-actif-et-de-passif-gap',
