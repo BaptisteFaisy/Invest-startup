@@ -8655,13 +8655,15 @@ const CLASSIFY_DOC_TYPES = new Set(['termsheet', 'pacte', 'statuts', 'bsa_air', 
 const CLASSIFY_TIMEOUT_MS = 30000;
 
 async function classifyEditorClauses(userId, pageHtml) {
-  if (!zaiClient) return { html: pageHtml, docType: '' };
   const clauses = redlineDiff.parseEditorDoc(pageHtml).filter(i => i.type === 'clause' && i.key);
   if (!clauses.length) return { html: pageHtml, docType: '' };
 
+  // Le cache d'analyse est consulté même sans clé IA configurée : un document
+  // déjà classé (même contenu) est reconnu sans nouvel appel.
   const hash = aiHash('clause-classify-v1', [pageHtml]);
   let data = await aiCacheGet(hash);
   if (!data) {
+    if (!zaiClient) return { html: pageHtml, docType: '' };
     const list = clauses.slice(0, 100).map(c =>
       `- ${c.key} | ${c.label.slice(0, 120)} | ${stripHtml(c.content).slice(0, 240)}`).join('\n');
     const taxonomy = Object.entries(CLAUSE_TAXONOMY).map(([k, v]) => `${k} = ${v}`).join(' ; ');
