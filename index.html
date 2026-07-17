@@ -192,10 +192,7 @@
       .cta p { font-size: 16px; color: rgba(255,255,255,0.4); margin-bottom: 36px; }
 
       /* FOOTER */
-      .brand { font-weight: 800; font-size: 1.4rem; letter-spacing: -0.02em; color: #fff; display: inline-flex; align-items: center; gap: 8px; }
-      .brand span { color: #3b82f6; }
-      .brand .brand__mark { width: 18px; height: 24px; color: #fff; flex: none; }
-      .brand .brand__mark svg { display: block; width: 100%; height: 100%; }
+      .footer-logo .logo-wordmark { text-transform: none; }
       .footer { border-top: 1px solid rgba(255,255,255,0.06); padding: 52px 40px 0; position: relative; z-index: 1; }
       .footer__inner { max-width: 1080px; margin: 0 auto; display: flex; gap: 60px; flex-wrap: wrap; padding-bottom: 44px; }
       .footer__brand { flex: 2; }
@@ -373,7 +370,6 @@
       .pricing-promo code { display:inline-block; margin-left:5px; padding:4px 8px; border-radius:7px; background:#111; color:#fff; font-family:'Archivo',sans-serif; font-size:12px; font-weight:800; letter-spacing:.08em; }
 
       .cta, .footer { border-color: #ddd9d1; }
-      .brand, .brand .brand__mark { color: #111; }
       .footer__brand p, .footer__col h4 { color: #78736a; }
       .footer__col a { color: #57534a; }
       .footer__col a:hover { color: #111; }
@@ -719,18 +715,13 @@
     <footer class="footer">
       <div class="footer__inner">
         <div class="footer__col footer__brand">
-          <a href="index.html" class="brand"><span class="brand__mark" aria-hidden="true"><svg viewBox="-10 -12 60 76" focusable="false"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/></svg></span>liquid <span>+</span></a>
+          <a href="index.html" class="logo footer-logo"><span class="logo-mark" aria-hidden="true"><svg viewBox="-10 -12 60 76" focusable="false"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/></svg></span><span class="logo-wordmark">Liquid+</span></a>
           <p>Le cockpit juridique de votre levée de fonds.</p>
         </div>
         <div class="footer__col">
           <h4>Produit</h4>
           <a href="/saas/tableau-de-bord.html">Préparer ma levée de fonds</a>
           <a href="offres.html">Offres &amp; périmètre détaillé</a>
-        </div>
-        <div class="footer__col">
-          <h4>Ressources</h4>
-          <a href="marche.html">Données de marché</a>
-          <a href="comment-ca-marche.html">Comment ça marche</a>
         </div>
         <div class="footer__col">
           <h4>Légal</h4>
