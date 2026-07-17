@@ -768,7 +768,10 @@
             return;
           }
           const contactTop = contact.getBoundingClientRect().top;
-          setActiveLink(contactTop <= 90 ? '#contact' : (pricing.getBoundingClientRect().top <= 90 ? '#tarifs' : '#top'));
+          // La section contact est trop basse pour jamais atteindre le seuil des
+          // 90 px : arrivé en bas de page, on la considère active quoi qu'il en soit.
+          const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
+          setActiveLink(atBottom || contactTop <= 90 ? '#contact' : (pricing.getBoundingClientRect().top <= 90 ? '#tarifs' : '#top'));
           ticking = false;
         };
         window.addEventListener('scroll', () => {
