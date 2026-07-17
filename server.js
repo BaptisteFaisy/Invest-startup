@@ -4341,6 +4341,18 @@ const AVOCAT_PRESTATIONS = [
     delay: 'À convenir',
   },
   {
+    key: 'negociation',
+    label: 'Option Négociation',
+    desc: 'Votre avocat vous accompagne ou mène la négociation avec les investisseurs (term sheet, pacte) : mission dédiée, au temps passé, recommandée à partir de la série A ou face à un fonds.',
+    critical: false,
+    price: 'Sur devis',
+    price_note: 'Devis arrêté dans la convention d’honoraires · facturé directement par l’avocat',
+    quote_based: true,
+    price_by_raise_type: null,
+    fee_cap_cents: null,
+    delay: 'À convenir',
+  },
+  {
     key: 'a-la-carte',
     label: 'Avocat à la carte',
     desc: 'Sans pack, ou en plus d’un pack pour les documents à moindre enjeu ou très spécifiques à votre société : une mission ponctuelle, limitée aux documents que vous confiez — relecture ou rédaction d’un acte précis, réponse à une question délimitée. L’avocat chiffre la mission avant de commencer.',
