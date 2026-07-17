@@ -4295,7 +4295,11 @@ function avocatPartner(id) { return AVOCAT_PARTNERS.find(p => p.id === id) || nu
 // elle entre dans le document signé par l'avocat et dans son empreinte. La
 // modifier engage donc les avocats sur un texte qu'ils n'ont pas lu — il faut
 // incrémenter LAWYER_PARTNERSHIP_VERSION (lib/lawyer-partnership.js) pour
-// redemander leur signature.
+// redemander leur signature. Seuls `label`, `delay`, `price_by_raise_type`,
+// `quote_based` et `fee_cap_cents` entrent dans l'empreinte (voir grilleLines) :
+// `details` n'est lu que par la fiche d'offre du fondateur et ne doit donc rien
+// dire que `desc` ne dise déjà — sinon la fiche promettrait un périmètre que
+// l'avocat n'a pas signé.
 // Les deux packs sont ceux de la grille tarifaire de la homepage ; s'y ajoute
 // l'offre « à la carte », sur devis, hors grille homepage. Les forfaits sont
 // INDICATIFS, par type de levée : le montant exact est arrêté dans la
@@ -4307,6 +4311,13 @@ const AVOCAT_PRESTATIONS = [
     key: 'essentiel',
     label: 'Pack avocat Essentiel',
     desc: 'Un avocat partenaire rédige et valide les actes critiques de l’opération : term sheet, contrat d’investissement, pacte d’associés, garantie d’actif et de passif, formalisme d’assemblée.',
+    details: [
+      'La term sheet : rédaction ou relecture avant que vous ne la signiez.',
+      'Le contrat d’investissement (ou le contrat d’émission, pour une levée BSA-AIR).',
+      'Le pacte d’associés.',
+      'La garantie d’actif et de passif.',
+      'Le formalisme d’assemblée de l’opération.',
+    ],
     critical: true,
     price: null,
     price_by_raise_type: { 'bsa-air': '900 – 1 200 € HT', classic: '3 000 – 4 500 € HT' },
@@ -4317,6 +4328,12 @@ const AVOCAT_PRESTATIONS = [
     key: 'serenite',
     label: 'Pack avocat Complet',
     desc: 'Tout l’Essentiel + la relecture de l’ensemble des documents importants — revue des pièces de due diligence dans la limite de 15 documents —, jusqu’à la revue finale avant signature.',
+    details: [
+      'Tout ce que comprend le pack Essentiel.',
+      'La relecture de l’ensemble des documents importants de la levée.',
+      'La revue des pièces de due diligence, dans la limite de 15 documents.',
+      'La revue finale avant signature.',
+    ],
     critical: false,
     price: null,
     price_by_raise_type: { 'bsa-air': '1 500 – 2 200 € HT', classic: '4 500 – 7 000 € HT' },
@@ -4327,6 +4344,12 @@ const AVOCAT_PRESTATIONS = [
     key: 'a-la-carte',
     label: 'Avocat à la carte',
     desc: 'Sans pack, ou en plus d’un pack pour les documents à moindre enjeu ou très spécifiques à votre société : une mission ponctuelle, limitée aux documents que vous confiez — relecture ou rédaction d’un acte précis, réponse à une question délimitée. L’avocat chiffre la mission avant de commencer.',
+    details: [
+      'Une mission ponctuelle, limitée aux seuls documents que vous confiez.',
+      'La relecture ou la rédaction d’un acte précis, ou la réponse à une question délimitée.',
+      'Utilisable sans pack, ou en plus d’un pack pour les documents à moindre enjeu ou très spécifiques à votre société.',
+      'L’avocat chiffre la mission avant de commencer : la grille ci-dessous est sans prix, chaque acte est sur devis.',
+    ],
     critical: false,
     price: 'Sur devis',
     price_note: 'Devis arrêté dans la convention d’honoraires · facturé directement par l’avocat',
@@ -4907,6 +4930,11 @@ async function platformLawyerPublic(userId) {
 app.get('/api/saas/avocat/overview', requireAuth, requireAssignedFounder2FA, async (req, res) => {
   const state = await getOrInitAvocatState(req.user.id);
   const platformLawyer = await platformLawyerPublic(req.user.id);
+  // Tant qu'aucun avocat n'est attribué (proposition acceptée), la soumission est
+  // refusée par POST /requests : l'onglet « Offres & tarifs » a besoin de la même
+  // vérité pour griser ses boutons plutôt que de laisser le fondateur buter sur
+  // un 409. Les offres, elles, restent consultables sans avocat.
+  const lawyerAssigned = Boolean(await assignedLawyerForClient(req.user.id));
   const companyProfile = await companyProfileForUser(req.user.id);
   const requests = await col('saas_avocat_requests')
     .find({ user_id: req.user.id }, { projection: { _id: 0, user_id: 0 } })
@@ -4924,6 +4952,7 @@ app.get('/api/saas/avocat/overview', requireAuth, requireAssignedFounder2FA, asy
     partners:    AVOCAT_PARTNERS,
     statuses:    AVOCAT_REQUEST_STATUSES,
     ...(platformLawyer ? { mode: 'assigned', partner: platformLawyer, own_lawyer: null } : avocatPublicState(state)),
+    lawyer_assigned: lawyerAssigned,
     requests,
     company: { profile: publicCompanyLegalProfile(companyProfile), eligibility: companyEligibility(companyProfile) },
     personal_interest_notice: FOUNDER_PERSONAL_INTEREST_NOTICE,

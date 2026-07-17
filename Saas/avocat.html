@@ -176,7 +176,9 @@
 
     /* ── Prestations ──────────────────────────────────────────────── */
     .av-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); gap: 12px; }
-    .av-presta { padding: 18px 18px 16px; display: flex; flex-direction: column; transition: border-color .15s, transform .15s; }
+    /* La carte entière ouvre la fiche de l'offre : le curseur l'annonce, le survol
+       de la bordure suit. */
+    .av-presta { padding: 18px 18px 16px; display: flex; flex-direction: column; transition: border-color .15s, transform .15s; cursor: pointer; }
     .av-presta:hover { border-color: var(--av-field-border); }
     .av-presta__top { display: flex; align-items: flex-start; gap: 8px; justify-content: space-between; }
     .av-presta__label { font-size: 15px; font-weight: 700; color: var(--av-ink); letter-spacing: -0.01em; }
@@ -186,7 +188,22 @@
     .av-presta__price { font-weight: 700; color: var(--av-ink); }
     .av-presta__delay { color: var(--av-text-3); display: inline-flex; align-items: center; gap: 5px; }
     .av-presta__delay svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; }
-    .av-presta__cta { margin-top: 14px; width: 100%; }
+    /* Empilés : côte à côte, « Demander ce pack » passe à la ligne dans une carte
+       de 268px. Lire d'abord, agir ensuite. */
+    .av-presta__acts { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+    .av-presta__acts .av-btn { width: 100%; }
+    .av-presta__note { font-size: 12px; line-height: 1.45; color: var(--av-text-3); margin-top: 6px; }
+
+    /* ── Fiche détaillée d'une offre (modale) ─────────────────────── */
+    .av-offer__top { display: flex; align-items: flex-start; gap: 10px; justify-content: space-between; }
+    .av-offer__list { margin: 8px 0 0; padding: 0; list-style: none; }
+    .av-offer__list li { position: relative; padding-left: 16px; font-size: 13.5px; line-height: 1.5; color: var(--av-text); margin-top: 7px; }
+    .av-offer__list li::before { content: ''; position: absolute; left: 0; top: 8px; width: 5px; height: 5px; border-radius: 50%; background: var(--av-ink-strong); }
+    /* Le motif du verrou (pas d'avocat, dossier incomplet) : un encart, pas une
+       erreur — l'offre reste consultable, c'est l'action qui attend. */
+    .av-offer__lock { margin-top: 18px; padding: 12px 14px; border: 1px solid var(--av-field-border); border-radius: 10px; font-size: 12.5px; line-height: 1.5; color: var(--av-text-2); background: var(--av-bg-raise); }
+    .av-offer__lock strong { color: var(--av-ink); }
+    .av-offer__lock a { color: var(--av-ink); text-decoration: underline; text-underline-offset: 2px; }
 
     /* ── Grille tarifaire « à la carte » (modale) ─────────────────── */
     .av-grille__track { margin-top: 18px; }
@@ -253,6 +270,7 @@
     /* ── Modale ───────────────────────────────────────────────────── */
     .av-modal { position: fixed; inset: 0; z-index: 100; background: var(--av-overlay); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 20px; }
     .av-dialog { width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto; background: var(--av-card); border: 1px solid var(--av-line); border-radius: 18px; padding: 24px; box-shadow: 0 24px 60px var(--av-shadow); }
+    .av-dialog--wide { max-width: 560px; }
     .av-dialog__h { font-size: 19px; font-weight: 700; color: var(--av-ink); letter-spacing: -0.01em; }
     .av-dialog__p { font-size: 13.5px; color: var(--av-text-2); margin-top: 6px; line-height: 1.5; }
     .av-field { margin-top: 16px; }
@@ -480,15 +498,33 @@
     </div>
   </div>
 
-  <!-- Modale : grille tarifaire « à la carte » -->
-  <div class="av-modal" id="grille-modal" hidden>
-    <div class="av-dialog" role="dialog" aria-modal="true" aria-labelledby="grille-title">
-      <div class="av-dialog__h" id="grille-title">Avocat à la carte — grille de documents</div>
-      <p class="av-dialog__p">Tous les documents des deux parcours de levée. La mission à la carte se limite aux documents que vous confiez : chaque acte est <strong>sur devis</strong>, l'avocat le chiffre dans la convention d'honoraires avant de commencer.</p>
-      <div id="grille-body"></div>
+  <!-- Modale : fiche détaillée d'une offre (les trois offres y passent) —
+       consultable sans avocat attribué et dossier société incomplet : elle décrit
+       l'offre. Seule l'action de fin de fiche porte le verrou. Pour l'offre à la
+       carte, la fiche embarque la grille de tous les documents des deux parcours. -->
+  <div class="av-modal" id="presta-modal" hidden>
+    <div class="av-dialog av-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="presta-title">
+      <div class="av-offer__top">
+        <div class="av-dialog__h" id="presta-title"></div>
+        <span class="av-presta__crit" id="presta-crit" hidden>Avocat recommandé</span>
+      </div>
+      <div class="av-presta__meta" id="presta-meta"></div>
+      <p class="av-dialog__p" id="presta-desc"></p>
+      <div class="av-field" id="presta-details-box" hidden>
+        <div class="av-field__l">Ce que comprend l'offre</div>
+        <ul class="av-offer__list" id="presta-details"></ul>
+      </div>
+      <div class="av-field" id="presta-grille-box" hidden>
+        <div class="av-field__l">Les documents que vous pouvez confier</div>
+        <p class="av-note" style="margin:0">Tous les documents des deux parcours de levée. La mission se limite à ceux que vous confiez : chaque acte est <strong>sur devis</strong>, l'avocat le chiffre dans la convention d'honoraires avant de commencer.</p>
+        <div id="grille-body"></div>
+      </div>
+      <p class="av-note" style="margin-top:16px" id="presta-fees"></p>
+      <p class="av-note" style="margin-top:8px"><strong>Questions personnelles exclues.</strong> Une garantie personnelle, une cession de titres, le vesting/leaver ou une non-concurrence peuvent nécessiter une convention et un avocat distincts.</p>
+      <div class="av-offer__lock" id="presta-lock" hidden></div>
       <div class="av-dialog__act">
-        <button type="button" class="av-btn av-btn--ghost" data-close-modal="grille-modal">Fermer</button>
-        <button type="button" class="av-btn av-btn--primary" id="grille-request">Demander un devis</button>
+        <button type="button" class="av-btn av-btn--ghost" data-close-modal="presta-modal">Fermer</button>
+        <button type="button" class="av-btn av-btn--primary" id="presta-request">Demander ce pack</button>
       </div>
     </div>
   </div>
@@ -645,10 +681,22 @@
       });
     }
 
-    /* ── Rendu : prestations ─────────────────────────────────────── */
+    /* ── Rendu : prestations ─────────────────────────────────────────
+       Ce qui décrit l'offre est toujours consultable — une offre qu'on ne peut
+       pas lire ne se choisit pas. Ce qui l'engage (demander un pack, un devis)
+       attend deux conditions, celles-là mêmes que le serveur exige à la
+       soumission : un avocat attribué qui a accepté le dossier, et un dossier
+       société complet. On grise plutôt que de laisser buter sur un 409. */
+    function missionBlockReason() {
+      if (STATE.lawyer_assigned !== true) return 'Aucun avocat n’est encore attribué à votre dossier : aucune mission ne peut partir tant que Liquid+ ne vous en a pas attribué un.';
+      if (STATE.company?.eligibility?.complete !== true) return 'Votre dossier société est incomplet : votre avocat ne peut pas identifier son client, donc aucune mission ne peut partir.';
+      return '';
+    }
+    function prestaCta(p) { return p.quote_based ? 'Demander un devis' : 'Demander ce pack'; }
     function renderPrestations() {
+      const blocked = missionBlockReason();
       document.getElementById('presta-grid').innerHTML = STATE.prestations.map(p =>
-        '<div class="av-card av-presta">' +
+        '<div class="av-card av-presta" data-presta-card="' + esc(p.key) + '">' +
           '<div class="av-presta__top">' +
             '<span class="av-presta__label">' + esc(p.label) + '</span>' +
             (p.critical ? '<span class="av-presta__crit">Avocat recommandé</span>' : '') +
@@ -658,12 +706,14 @@
             '<span class="av-presta__price">' + esc(p.price || 'Tarif à convenir') + '</span>' +
             '<span class="av-presta__delay"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>' + esc(p.delay) + '</span>' +
           '</div>' +
-          (p.price_note ? '<div class="av-presta__desc" style="margin-top:2px;font-size:12px">' + esc(p.price_note) + '</div>' : '') +
-          // La grille à la carte (prestation « sur devis ») est informative : son
-          // bouton reste cliquable même dossier incomplet — il ouvre la liste des
-          // documents. Le verrou d'éligibilité s'applique aux packs et, pour l'à la
-          // carte, à l'action « Demander un devis » (openRequestModal).
-          '<button type="button" class="av-btn av-btn--primary av-presta__cta" data-presta="' + esc(p.key) + '"' + ((p.quote_based || STATE.company?.eligibility?.complete) ? '' : ' disabled title="Dossier société incomplet"') + '>' + (p.quote_based ? 'Voir les documents &amp; demander un devis' : 'Demander ce pack') + '</button>' +
+          (p.price_note ? '<div class="av-presta__note">' + esc(p.price_note) + '</div>' : '') +
+          '<div class="av-presta__acts">' +
+            // Le clavier a besoin d'une vraie commande pour ouvrir la fiche (la
+            // carte cliquable n'est qu'un confort à la souris) : ce bouton n'a pas
+            // de gestionnaire propre, il tombe dans celui de la carte.
+            '<button type="button" class="av-btn av-btn--ghost av-btn--sm">Voir le détail</button>' +
+            '<button type="button" class="av-btn av-btn--primary av-btn--sm" data-presta="' + esc(p.key) + '"' + (blocked ? ' disabled title="' + esc(blocked) + '"' : '') + '>' + esc(prestaCta(p)) + '</button>' +
+          '</div>' +
         '</div>'
       ).join('');
     }
@@ -796,12 +846,15 @@
         box.innerHTML = '<div class="av-card av-empty">Vos documents apparaîtront ici avec leur niveau de risque juridique. Rédigez-les ou importez-les depuis <a href="documents.html">Documents</a>.</div>';
         return;
       }
+      // Même verrou que les offres : sans avocat attribué ou dossier société
+      // complet, la demande est refusée à la soumission — autant le dire ici.
+      const blocked = missionBlockReason();
       box.innerHTML = docsByRisk().map(d => {
         const rk = RISK_META[d.risk] || RISK_META.faible;
         return '<div class="av-card av-doc">' +
           '<div class="av-doc__main"><div class="av-doc__name" title="' + esc(d.name) + '">' + esc(d.name) + '</div></div>' +
           '<span class="av-docrisk av-docrisk--' + esc(rk.cls) + '"><span class="av-docrisk__dot"></span>' + esc(rk.label) + '</span>' +
-          '<button type="button" class="av-btn av-btn--ghost av-btn--sm" data-review-doc="' + esc(d.id) + '" data-review-presta="' + esc(d.avocat_presta || 'essentiel') + '"' + (STATE.company?.eligibility?.complete ? '' : ' disabled title="Dossier société incomplet"') + '>Faire relire</button>' +
+          '<button type="button" class="av-btn av-btn--ghost av-btn--sm" data-review-doc="' + esc(d.id) + '" data-review-presta="' + esc(d.avocat_presta || 'essentiel') + '"' + (blocked ? ' disabled title="' + esc(blocked) + '"' : '') + '>Faire relire</button>' +
         '</div>';
       }).join('');
     }
@@ -855,11 +908,11 @@
     function openModal(id)  { document.getElementById(id).hidden = false; }
     function closeModal(id) { document.getElementById(id).hidden = true; }
 
-    /* ── Modale : grille tarifaire « à la carte » ─────────────────────
-       Le pack à la carte est sur devis : avant d'ouvrir la demande, on montre
-       la grille de TOUS les documents des deux parcours (prix laissés vides,
-       chiffrés au devis par l'avocat). « Demander un devis » enchaîne sur la
-       demande de mission classique, clé `a-la-carte`. */
+    /* ── Grille tarifaire « à la carte » ─────────────────────────────
+       Le pack à la carte est sur devis : sa fiche montre la grille de TOUS les
+       documents des deux parcours (prix laissés vides, chiffrés au devis par
+       l'avocat), puis « Demander un devis » enchaîne sur la demande de mission
+       classique, clé `a-la-carte`. */
     function grilleRow(label, price) {
       // Prix laissé vide : la mission à la carte est chiffrée au devis par l'avocat.
       return '<div class="av-grille__row">' +
@@ -882,21 +935,60 @@
           '</div>' +
         '</div>').join('');
     }
-    function openGrilleModal() {
-      // La grille est purement informative (liste des documents des deux
-      // parcours, prix laissés au devis) : on l'affiche toujours, dossier
-      // société complet ou non. Le verrou d'éligibilité reste sur l'action
-      // « Demander un devis » (openRequestModal), là où l'avocat a besoin
-      // d'identifier son client.
-      renderGrille();
-      openModal('grille-modal');
+    /* ── Modale : fiche détaillée d'une offre ─────────────────────────
+       Le premier plan où le fondateur lit ce qu'il achète : périmètre, forfait
+       indicatif, délai, et — pour l'à la carte — la grille des documents. Elle
+       s'ouvre en toutes circonstances ; le verrou (avocat, dossier) n'y ferme
+       que le bouton de fin de fiche, en disant pourquoi. */
+    let modalOfferKey = null;
+    function openPrestaModal(key) {
+      const p = STATE.prestations.find(x => x.key === key);
+      if (!p) return;
+      modalOfferKey = key;
+      document.getElementById('presta-title').textContent = p.label || '';
+      document.getElementById('presta-crit').hidden = !p.critical;
+      document.getElementById('presta-meta').innerHTML =
+        '<span class="av-presta__price">' + esc(p.price || 'Tarif à convenir') + '</span>' +
+        '<span class="av-presta__delay"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>' + esc(p.delay) + '</span>';
+      document.getElementById('presta-desc').textContent = p.desc || '';
+      const details = Array.isArray(p.details) ? p.details : [];
+      document.getElementById('presta-details-box').hidden = !details.length;
+      document.getElementById('presta-details').innerHTML = details.map(d => '<li>' + esc(d) + '</li>').join('');
+      // La grille des documents n'a de sens que pour la mission à la carte : un
+      // pack ne se compose pas document par document.
+      document.getElementById('presta-grille-box').hidden = !p.quote_based;
+      if (p.quote_based) renderGrille();
+      // La fiche se lit seule : elle reformule ce que dit `price_note` sur la carte
+      // plutôt que de le répéter mot pour mot en plus.
+      document.getElementById('presta-fees').textContent = (p.quote_based
+        ? 'Sur devis : le montant est arrêté dans la convention d’honoraires conclue entre votre société et l’avocat, qui vous facture en direct.'
+        : 'Forfait indicatif : le montant est confirmé dans la convention d’honoraires conclue entre votre société et l’avocat, qui vous facture en direct.') +
+        ' Liquid+ ne facture aucune prestation de conseil juridique et ne partage pas d’honoraires avec les avocats.';
+      const blocked = missionBlockReason();
+      const lock = document.getElementById('presta-lock');
+      lock.hidden = !blocked;
+      // Dossier incomplet : le fondateur peut agir tout de suite, on lui donne la
+      // porte. Pas d'avocat : rien à faire de son côté, on ne lui propose rien.
+      lock.innerHTML = blocked
+        ? '<strong>Demande indisponible pour l’instant.</strong> ' + esc(blocked) +
+          (STATE.lawyer_assigned === true ? ' <a href="' + esc(maLeveeHref()) + '">Compléter le dossier</a>' : '')
+        : '';
+      const cta = document.getElementById('presta-request');
+      cta.textContent = prestaCta(p);
+      cta.disabled = Boolean(blocked);
+      if (blocked) cta.setAttribute('title', blocked); else cta.removeAttribute('title');
+      openModal('presta-modal');
     }
 
     function openRequestModal(key, preselectDocId) {
-      // Dossier société incomplet : aucune mission ne peut partir, l'avocat n'a
-      // pas de quoi identifier son client. On renvoie le fondateur sur
-      // « Ma levée », qui porte le dossier.
-      if (!STATE.company?.eligibility?.complete) { location.href = maLeveeHref(); return; }
+      // Garde-fou : les points d'entrée sont grisés quand aucune mission ne peut
+      // partir, mais un lien profond peut y mener quand même. Sans avocat, il n'y
+      // a rien à faire côté fondateur (Liquid+ attribue) ; dossier incomplet, on
+      // le renvoie sur « Ma levée », qui porte le dossier.
+      if (missionBlockReason()) {
+        if (STATE.lawyer_assigned === true) location.href = maLeveeHref();
+        return;
+      }
       modalPrestaKey = key;
       const p = STATE.prestations.find(x => x.key === key) || {};
       document.getElementById('req-title').textContent = 'Demande — ' + (p.label || '');
@@ -1086,21 +1178,18 @@
       // recharge rien : on suit le hash. (replaceState ne redéclenche pas cet
       // événement, pas de boucle.)
       window.addEventListener('hashchange', () => selectTab(location.hash.slice(1)));
-      // Boutons « Demander une relecture » (délégation)
+      // Offres (délégation) : « Demander ce pack / un devis » lance la demande,
+      // tout le reste de la carte ouvre la fiche de l'offre.
       document.getElementById('presta-grid').addEventListener('click', (e) => {
-        const btn = e.target.closest('button[data-presta]');
-        if (!btn) return;
-        const key = btn.getAttribute('data-presta');
-        // Le pack à la carte passe d'abord par la grille tarifaire des documents ;
-        // les forfaits ouvrent directement la demande.
-        const presta = STATE.prestations.find(p => p.key === key);
-        if (presta?.quote_based) openGrilleModal();
-        else openRequestModal(key);
+        const cta = e.target.closest('button[data-presta]');
+        if (cta) { openRequestModal(cta.getAttribute('data-presta')); return; }
+        const card = e.target.closest('[data-presta-card]');
+        if (card) openPrestaModal(card.getAttribute('data-presta-card'));
       });
-      // « Demander un devis » depuis la grille : enchaîne sur la demande à la carte.
-      document.getElementById('grille-request').addEventListener('click', () => {
-        closeModal('grille-modal');
-        openRequestModal('a-la-carte');
+      // « Demander … » depuis la fiche : enchaîne sur la demande de mission.
+      document.getElementById('presta-request').addEventListener('click', () => {
+        closeModal('presta-modal');
+        openRequestModal(modalOfferKey);
       });
       // « Faire relire » depuis « Vos documents à sécuriser »
       document.getElementById('secure-docs').addEventListener('click', (e) => {
