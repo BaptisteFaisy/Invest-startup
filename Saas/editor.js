@@ -1526,12 +1526,16 @@ async function exportToFile(format, btn, mode) {
 }
 
 /* ---------- 6 bis. Redline : fidélité différentielle de la contreproposition ----------
-   Le mode redline affiche, en lecture seule, la comparaison mot à mot entre la
-   version de RÉFÉRENCE (le document tel qu'il a été importé/reçu — jamais
-   modifiée par les enregistrements) et le document de travail actuel :
-   insertions soulignées vertes, suppressions barrées rouges, récapitulatif
-   clause par clause. Il s'imprime tel quel (PDF) et s'exporte en Word via le
-   serveur, annexe récapitulative comprise. */
+   Le mode redline affiche la comparaison mot à mot entre la version de
+   RÉFÉRENCE (le document tel qu'il a été importé/reçu — jamais modifiée par les
+   enregistrements) et le document de travail : insertions soulignées vertes,
+   suppressions barrées rouges, récapitulatif clause par clause. La vue reste
+   MODIFIABLE : le fondateur tape directement dedans, et ses ajouts/retraits
+   sont re-marqués automatiquement dès qu'il marque une pause (le texte barré,
+   lui, est verrouillé : il représente ce qui a été supprimé de la référence).
+   Le document « accepté » est DÉRIVÉ de la vue (suppressions ôtées, insertions
+   conservées) : c'est lui qui est enregistré. La vue s'imprime telle quelle
+   (PDF) et s'exporte en Word via le serveur, annexe récapitulative comprise. */
 const redlineBtn   = document.getElementById('redline-btn');
 const rlBanner     = document.getElementById('rl-banner');
 const rlBannerText = document.getElementById('rl-banner-text');
@@ -1554,13 +1558,120 @@ function rlIntro() {
 // Sort du mode redline SANS restaurer la page (le contenu suivant la remplace).
 function discardRedlineView() {
   redlineActive = false;
+  clearTimeout(_rlRemarkTimer);
   _rlSavedHtml = null;
   _rlChanges = [];
-  page.setAttribute('contenteditable', 'true');
   if (rlBanner) rlBanner.hidden = true;
   if (rlPanel)  rlPanel.hidden = true;
   if (redlineBtn) redlineBtn.textContent = 'Redline';
 }
+
+// Le texte barré représente ce qui a été RETIRÉ de la référence : il ne
+// s'édite pas (le curseur passe au-dessus). Idem pour les clauses supprimées.
+function rlLockDeletions() {
+  page.querySelectorAll('del.rl-del, .ts-clause[data-rl="removed"]')
+    .forEach(el => el.setAttribute('contenteditable', 'false'));
+}
+
+function rlUpdateBanner(stats) {
+  const parts = [];
+  if (stats.modified) parts.push(stats.modified + ' modifiée' + (stats.modified > 1 ? 's' : ''));
+  if (stats.added)    parts.push(stats.added + ' ajoutée' + (stats.added > 1 ? 's' : ''));
+  if (stats.removed)  parts.push(stats.removed + ' supprimée' + (stats.removed > 1 ? 's' : ''));
+  if (rlBannerText) rlBannerText.textContent = (parts.length
+    ? `Comparaison avec le document de référence : ${parts.join(', ')} — ${stats.unchanged} inchangée${stats.unchanged > 1 ? 's' : ''}. `
+    : 'Aucune modification par rapport au document de référence. ')
+    + 'Vous pouvez modifier directement : vos changements se marquent tout seuls.';
+}
+
+// Rend la vue redline (diff + annexe) et remet l'interface en cohérence.
+function renderRedlineView(diff) {
+  _rlChanges = diff.changes;
+  page.innerHTML = diff.html + '\n' + RedlineDiff.changesAnnexHtml(diff.changes, { intro: rlIntro() });
+  rlLockDeletions();
+  rlUpdateBanner(diff.stats);
+  if (rlBanner) rlBanner.hidden = false;
+  if (redlineBtn) redlineBtn.textContent = 'Quitter le redline';
+}
+
+/* ----- Curseur : sauvegarde/restauration à travers un re-marquage ----------
+   Position mémorisée comme (clé de clause, zone label/contenu, décalage dans le
+   texte « accepté » — c'est-à-dire hors texte barré, qui n'existe plus dans le
+   document dérivé). Après re-rendu, on re-parcourt les nœuds texte de la même
+   zone en sautant les <del> pour reposer le curseur au même décalage. */
+function rlInsideDel(node) {
+  const el = node.nodeType === 3 ? node.parentElement : node;
+  return !!(el && el.closest && el.closest('del'));
+}
+function rlCaretInfo() {
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return null;
+  const r = sel.getRangeAt(0);
+  let el = r.startContainer.nodeType === 3 ? r.startContainer.parentElement : r.startContainer;
+  if (!el || !page.contains(el)) return null;
+  const clause = el.closest('.ts-clause');
+  if (!clause || !clause.dataset.key) return null;
+  const inLabel = !!el.closest('.ts-label');
+  const zone = inLabel ? clause.querySelector('.ts-label') : (clause.querySelector('.ts-content') || clause);
+  if (!zone) return null;
+  const walker = document.createTreeWalker(zone, NodeFilter.SHOW_TEXT, null);
+  let offset = 0, n;
+  while ((n = walker.nextNode())) {
+    if (n === r.startContainer) {
+      if (!rlInsideDel(n)) offset += r.startOffset;
+      return { key: clause.dataset.key, inLabel, offset };
+    }
+    if (!rlInsideDel(n)) offset += n.length;
+  }
+  // Curseur posé sur un élément (pas un nœud texte) : approximation en fin de zone.
+  return { key: clause.dataset.key, inLabel, offset };
+}
+function rlRestoreCaret(info) {
+  if (!info) return;
+  const clause = page.querySelector('.ts-clause[data-key="' + String(info.key).replace(/"/g, '\\"') + '"]');
+  if (!clause) return;
+  const zone = info.inLabel ? clause.querySelector('.ts-label') : (clause.querySelector('.ts-content') || clause);
+  if (!zone) return;
+  const walker = document.createTreeWalker(zone, NodeFilter.SHOW_TEXT, null);
+  let acc = 0, n, target = null, at = 0;
+  while ((n = walker.nextNode())) {
+    if (rlInsideDel(n)) continue;
+    if (acc + n.length >= info.offset) { target = n; at = info.offset - acc; break; }
+    acc += n.length;
+    target = n; at = n.length;
+  }
+  try {
+    const sel = window.getSelection();
+    const range = document.createRange();
+    if (target) range.setStart(target, Math.max(0, Math.min(at, target.length)));
+    else { range.selectNodeContents(zone); range.collapse(false); }
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+  } catch { /* le curseur reste où le navigateur l'a mis */ }
+}
+
+/* ----- Re-marquage : après une pause de frappe, le document accepté est
+   re-dérivé de la vue puis re-diffé contre la référence — le texte tapé passe
+   en insertion soulignée, le texte de référence effacé réapparaît barré. */
+let _rlRemarkTimer = null;
+function rlScheduleRemark() {
+  clearTimeout(_rlRemarkTimer);
+  _rlRemarkTimer = setTimeout(rlRemark, 1200);
+}
+function rlRemark() {
+  if (!redlineActive) return;
+  let diff;
+  try { diff = RedlineDiff.diffEditorDocs(BASELINE_HTML, termsheetHtml()); }
+  catch { return; }
+  const caret = rlCaretInfo();
+  const panelWasVisible = rlPanel && !rlPanel.hidden;
+  renderRedlineView(diff);
+  if (panelWasVisible) renderRedlinePanel();
+  rlRestoreCaret(caret);
+  paginate();
+}
+page.addEventListener('input', () => { if (redlineActive) rlScheduleRemark(); });
 
 async function enterRedline() {
   if (redlineActive) return;
@@ -1590,9 +1701,9 @@ async function enterRedline() {
       if (!r.ok) { alert(d.error || 'Impossible de définir la référence.'); return; }
       BASELINE_HTML = termsheetHtml();
       BASELINE_AT   = d.baseline_at || new Date().toISOString();
-      alert('Référence définie. Modifiez le document, puis rouvrez le redline pour visualiser votre contreproposition.');
-    } catch { alert('Impossible de joindre le serveur.'); }
-    return;
+    } catch { alert('Impossible de joindre le serveur.'); return; }
+    // Référence tout juste définie : on entre en redline (vide) — les
+    // modifications tapées maintenant se marqueront au fil de l'eau.
   }
 
   let diff;
@@ -1600,21 +1711,8 @@ async function enterRedline() {
   catch (e) { alert('Le calcul du redline a échoué : ' + (e && e.message ? e.message : e)); return; }
 
   _rlSavedHtml  = termsheetHtml();
-  _rlChanges    = diff.changes;
   redlineActive = true;
-  page.setAttribute('contenteditable', 'false');
-  page.innerHTML = diff.html + '\n' + RedlineDiff.changesAnnexHtml(diff.changes, { intro: rlIntro() });
-
-  const s = diff.stats;
-  const parts = [];
-  if (s.modified) parts.push(s.modified + ' modifiée' + (s.modified > 1 ? 's' : ''));
-  if (s.added)    parts.push(s.added + ' ajoutée' + (s.added > 1 ? 's' : ''));
-  if (s.removed)  parts.push(s.removed + ' supprimée' + (s.removed > 1 ? 's' : ''));
-  if (rlBannerText) rlBannerText.textContent = parts.length
-    ? `Comparaison avec le document de référence : ${parts.join(', ')} — ${s.unchanged} inchangée${s.unchanged > 1 ? 's' : ''}. Lecture seule.`
-    : 'Aucune modification par rapport au document de référence. Lecture seule.';
-  if (rlBanner) rlBanner.hidden = false;
-  if (redlineBtn) redlineBtn.textContent = 'Quitter le redline';
+  renderRedlineView(diff);
   renderRedlinePanel();
   showEmptyPanel();
   paginate();
@@ -1622,7 +1720,12 @@ async function enterRedline() {
 
 function exitRedline() {
   if (!redlineActive) return;
-  const html = _rlSavedHtml;
+  clearTimeout(_rlRemarkTimer);
+  // Le document de travail est DÉRIVÉ de la vue (les éditions faites en mode
+  // redline sont donc conservées) ; repli sur l'état d'entrée en cas de pépin.
+  let html = null;
+  try { html = termsheetHtml(); } catch { html = _rlSavedHtml; }
+  if (!html || !html.trim()) html = _rlSavedHtml;
   discardRedlineView();
   if (html != null) {
     page.innerHTML = html;
@@ -1630,6 +1733,8 @@ function exitRedline() {
     else { restoreOriginalTermsheetModel(); syncModelFromDOM(); }
     showEmptyPanel();
     paginate();
+    // Les éditions faites en redline sont enregistrées comme document propre.
+    scheduleAutosave();
   }
 }
 
@@ -1641,7 +1746,7 @@ function renderRedlinePanel() {
     : 'Aucune modification par rapport au document de référence.';
   rlPanelList.innerHTML = '';
   if (!touched.length) {
-    rlPanelList.innerHTML = '<p class="rlpanel__empty">Modifiez le document puis rouvrez le redline : les changements apparaîtront ici, clause par clause.</p>';
+    rlPanelList.innerHTML = '<p class="rlpanel__empty">Modifiez le document directement dans cette vue : vos changements se marqueront et apparaîtront ici, clause par clause.</p>';
   }
   touched.forEach(c => {
     const btn = document.createElement('button');
@@ -2004,8 +2109,12 @@ function updateDocumentPlacementLabel(folderName = '', categoryName = '') {
 // Sans titre détecté dans la page (document importé), on garde le nom affiché
 // dans la barre du haut plutôt que de renommer le document « Term sheet ».
 function termsheetName() {
-  const sub = page.querySelector('.doc-sub');
-  const title = page.querySelector('.doc-title');
+  // En mode redline, le titre affiché peut contenir des marques <ins>/<del> :
+  // le nom se lit sur le document DÉRIVÉ (accepté), jamais sur la comparaison.
+  let root = page;
+  if (redlineActive) { root = document.createElement('div'); root.innerHTML = termsheetHtml(); }
+  const sub = root.querySelector('.doc-sub');
+  const title = root.querySelector('.doc-title');
   const company = sub ? sub.textContent.trim() : '';
   const t = title ? title.textContent.trim() : '';
   if (!t) {
@@ -2016,6 +2125,10 @@ function termsheetName() {
 }
 
 // Renvoie le HTML de la term sheet, nettoyé des artefacts de pagination.
+// En mode redline, la page affiche la COMPARAISON : le document de travail en
+// est DÉRIVÉ — suppressions (texte barré) ôtées, insertions conservées telles
+// quelles, annexe et marqueurs de statut retirés. C'est ce document « accepté »
+// qui est enregistré et exporté.
 function termsheetHtml() {
   const clone = page.cloneNode(true);
   clone.querySelectorAll('[data-pgspacer]').forEach(el => el.remove());
@@ -2024,6 +2137,16 @@ function termsheetHtml() {
   clone.querySelectorAll('.ts-clause.is-active').forEach(el => el.classList.remove('is-active'));
   // Surlignage temporaire du remplissage automatique : on n'enregistre que le texte.
   clone.querySelectorAll('span.af-flash').forEach(s => s.replaceWith(document.createTextNode(s.textContent)));
+  if (redlineActive) {
+    clone.querySelectorAll('.rl-annex').forEach(el => el.remove());
+    clone.querySelectorAll('.ts-clause[data-rl="removed"]').forEach(el => el.remove());
+    clone.querySelectorAll('del.rl-del, del').forEach(el => el.remove());
+    clone.querySelectorAll('ins.rl-ins, ins').forEach(el => {
+      while (el.firstChild) el.parentNode.insertBefore(el.firstChild, el);
+      el.remove();
+    });
+    clone.querySelectorAll('[data-rl]').forEach(el => el.removeAttribute('data-rl'));
+  }
   return clone.innerHTML;
 }
 
@@ -2047,9 +2170,9 @@ function setLastSavedAt(value) {
 }
 
 async function saveTermsheet() {
-  // Mode redline : la page affiche la COMPARAISON, pas le document. On ne
-  // l'enregistre jamais (le contenu de travail a été sauvegardé en entrant).
-  if (redlineActive) return true;
+  // En mode redline, termsheetHtml() renvoie le document DÉRIVÉ de la vue
+  // (suppressions ôtées, insertions acceptées) : les éditions faites en
+  // redline s'enregistrent donc normalement.
   setSaveStatus('Enregistrement…');
   const name = termsheetName();
   const html = termsheetHtml();
