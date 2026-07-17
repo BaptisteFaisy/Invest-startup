@@ -391,6 +391,15 @@ const ORIGINAL_TS_KEYS = new Set(TERMSHEET.map(c => c.key));
 // Document « libre » (statuts, pacte, PV…) chargé via un modèle : on parle alors
 // de « paragraphes » et l'onglet Conseil propose des pistes d'amélioration.
 let isCustom = false;
+// Type de document reconnu par la classification sémantique à l'import
+// ('termsheet', 'pacte', 'statuts', 'bsa_air', 'gap', 'nda', 'contrat', '').
+let DOC_TYPE = '';
+// Redline : version de référence (document tel que reçu/importé) et état du mode.
+let BASELINE_HTML = '';
+let BASELINE_AT = null;
+let redlineActive = false;
+let _rlSavedHtml = null;   // contenu de travail à restaurer en quittant le redline
+let _rlChanges = [];       // récapitulatif clause par clause du dernier diff
 let docAdviceCache = null; // conseils IA spécifiques au document chargé
 let docAdviceIsBaked = false; // true si les conseils proviennent du modèle (data-advice)
 // Identifie le document actuellement affiché pour empêcher une réponse IA
@@ -401,7 +410,10 @@ const AI_BIAS = {};   // { [key]: 1..5 } — niveau « Avantage pour les investi
 const AI_COND = {};   // { [key]: [{id,label,preview,html}] } — conditions pré-écrites générées par l'IA
 let libSuggestLoading = false; // recherche IA des « clauses disponibles » en cours (bibliothèque)
 let libAbort = null;           // requête « clauses disponibles » en cours (annulable)
-const UNIT  = (n = 1) => (isCustom ? 'paragraphe' : 'clause') + (n > 1 ? 's' : '');
+// Un document importé RECONNU (term sheet, pacte, statuts…) parle de « clauses » ;
+// seul un document de type inconnu retombe sur le vocabulaire neutre « paragraphe ».
+const CLAUSE_DOC_TYPES = new Set(['termsheet', 'pacte', 'statuts', 'bsa_air', 'gap', 'nda', 'contrat']);
+const UNIT  = (n = 1) => ((isCustom && !CLAUSE_DOC_TYPES.has(DOC_TYPE)) ? 'paragraphe' : 'clause') + (n > 1 ? 's' : '');
 
 /* Clauses indispensables (non supprimables) et ordre d'affichage des groupes. */
 const ESSENTIAL = new Set(['societe', 'fondateurs', 'investisseur', 'investissement', 'titre']);
@@ -415,6 +427,48 @@ TERMSHEET.forEach(c => { c.inDoc = c.inDoc !== false; });
 // de restaurer le vrai catalogue lorsqu'une term sheet est ouverte ensuite.
 const ORIGINAL_TERMSHEET = TERMSHEET.map(c => ({ ...c }));
 const masterIndex = key => TERMSHEET.findIndex(c => c.key === key);
+
+/* ---------- Connaissance sémantique des clauses importées ----------
+   À l'import, le serveur classe chaque clause sur une taxonomie fermée et pose
+   la clé en data-skey. Les clauses reconnues héritent ici de l'analyse
+   pré-établie : niveau de risque, pourquoi la clause existe, points de
+   vigilance côté fondateur. Les clés de la term sheet héritent directement de
+   la term sheet de démonstration ; les clés propres aux autres documents
+   (pacte, statuts, BSA-AIR, GAP…) sont décrites ci-dessous. */
+const EXTRA_KNOWLEDGE = {
+  preambule:       { risk: 'low', why: `Situe le contexte de l'accord ; il sert à interpréter les clauses en cas de litige.`, watch: `Vérifiez que les faits exposés sont exacts : un préambule inexact peut être retenu contre vous.` },
+  definitions:     { risk: 'mid', why: `Fixe le sens précis des termes utilisés dans tout le document.`, watch: `Des définitions larges (« Transfert », « Concurrent »…) élargissent mécaniquement la portée des clauses qui les utilisent. Lisez-les en premier.` },
+  adhesion:        { risk: 'low', why: `Oblige tout nouvel associé à adhérer au pacte, pour que ses règles s'appliquent à tous.`, watch: `Standard. Vérifiez que l'adhésion vaut pour toutes les stipulations, sans créer de droits particuliers au nouvel entrant.` },
+  objet_social:    { risk: 'low', why: `Délimite l'activité que la société peut exercer.`, watch: `Un objet trop étroit peut gêner un pivot ; prévoyez une rédaction large (« et toutes opérations connexes »).` },
+  denomination:    { risk: 'low', why: `Nomme juridiquement la société.`, watch: `Vérifiez la disponibilité du nom (INPI, RCS) et la cohérence avec vos marques.` },
+  siege:           { risk: 'low', why: `Localise juridiquement la société (tribunal compétent, formalités).`, watch: `Clause standard, sans enjeu de négociation particulier.` },
+  capital_social:  { risk: 'mid', why: `Décrit le capital et les actions émises : c'est la base de tous les pourcentages.`, watch: `Vérifiez la cohérence avec la table de capitalisation (nombre d'actions, nominal, catégories).` },
+  agrement:        { risk: 'mid', why: `Soumet l'entrée de tout nouvel actionnaire à une approbation préalable.`, watch: `Regardez QUI agrée (assemblée, board, majorité requise) et les exceptions : un agrément trop strict peut bloquer vos propres cessions.` },
+  direction:       { risk: 'mid', why: `Organise la direction (président, directeurs généraux) et ses pouvoirs.`, watch: `Vérifiez les limitations de pouvoirs qui renvoient au pacte (autorisations préalables) : c'est là que se loge le contrôle réel.` },
+  assemblees:      { risk: 'mid', why: `Fixe comment les associés décident (majorités, quorum, consultation).`, watch: `Contrôlez les seuils de majorité : un seuil élevé + un associé important = droit de veto de fait.` },
+  exercice_social: { risk: 'low', why: `Définit l'exercice comptable et l'affectation des résultats.`, watch: `Clause standard, sans enjeu de négociation particulier.` },
+  exclusion:       { risk: 'high', why: `Permet de forcer un associé à céder ses titres dans certains cas.`, watch: `Vérifiez les cas de déclenchement et le prix de rachat : appliquée à un fondateur, cette clause peut vous faire perdre votre participation.` },
+  comptes_courants:{ risk: 'low', why: `Encadre les avances d'argent des associés à la société.`, watch: `Vérifiez les conditions de remboursement et de rémunération, et qu'aucun remboursement prioritaire ne précède la levée.` },
+  air_montant:     { risk: 'mid', why: `Fixe le montant avancé par l'investisseur en échange des BSA (l'AIR).`, watch: `Vérifiez le calendrier de versement et ce qui se passe si une tranche n'est pas versée.` },
+  valorisation_cap:{ risk: 'high', why: `Plafonne la valorisation retenue à la conversion : c'est le cœur économique d'un BSA-AIR.`, watch: `Un cap bas = forte dilution à la conversion. Simulez toujours la dilution au cap, pas seulement à la valorisation espérée.` },
+  decote:          { risk: 'mid', why: `Accorde à l'investisseur AIR un prix réduit par rapport aux investisseurs du tour suivant.`, watch: `20 % est le standard. Décote ET cap se cumulent souvent : vérifiez que la conversion retient le plus favorable à l'investisseur, pas les deux.` },
+  conversion:      { risk: 'high', why: `Définit quand et comment l'avance se transforme en actions (levée qualifiée, cession, échéance).`, watch: `Vérifiez le seuil de « levée qualifiée » et le sort de l'avance si aucune levée n'intervient : conversion forcée ou remboursement ?` },
+  echeance:        { risk: 'mid', why: `Fixe la date limite du mécanisme et son dénouement (conversion, remboursement, caducité).`, watch: `Évitez un remboursement exigible en numéraire à l'échéance : c'est une dette qui peut asphyxier la société.` },
+  plafond_garantie:{ risk: 'high', why: `Limite le montant maximal que les garants (souvent les fondateurs) peuvent devoir payer.`, watch: `Négociez un plafond en pourcentage du prix perçu, jamais illimité, et par garant plutôt que solidaire.` },
+  franchise:       { risk: 'mid', why: `Fixe le seuil en dessous duquel les réclamations ne sont pas indemnisées.`, watch: `Préférez une franchise « tunnel » (seuil déclencheur puis indemnisation au premier euro… ou au-delà du seuil seulement : vérifiez lequel).` },
+  duree_garantie:  { risk: 'mid', why: `Limite la période pendant laquelle la garantie peut être appelée.`, watch: `18 à 36 mois est le standard (plus long pour fiscal/social, qui suit la prescription légale). Refusez une durée indéfinie.` },
+  appel_garantie:  { risk: 'mid', why: `Organise la procédure de réclamation (notification, délais, contestation).`, watch: `Vérifiez les délais de notification : un délai trop court peut faire perdre une défense légitime.` },
+  notifications:   { risk: 'low', why: `Fixe comment les parties se notifient officiellement (adresse, forme, délais).`, watch: `Clause standard. Vérifiez simplement que vos adresses sont exactes et qu'un e-mail suffit quand c'est possible.` },
+  integralite:     { risk: 'low', why: `L'accord écrit remplace tous les échanges antérieurs (promesses orales comprises).`, watch: `Tout engagement important discuté à l'oral doit figurer DANS le document : après signature, il ne vaudra plus rien.` },
+  annexes:         { risk: 'mid', why: `Les annexes font partie intégrante du contrat (cap table, comptes, déclarations…).`, watch: `Relisez-les avec le même soin que le corps du texte : c'est souvent là que se nichent les listes d'exceptions.` },
+  signature:       { risk: 'low', why: `Formalise l'engagement des parties.`, watch: `Vérifiez les pouvoirs des signataires (un investisseur en fonds signe via sa société de gestion).` },
+};
+// Connaissance par clé sémantique : clauses de la term sheet de démonstration
+// (risque, pourquoi, vigilance) + clés spécifiques aux autres documents.
+const CLAUSE_KNOWLEDGE = Object.fromEntries([
+  ...ORIGINAL_TERMSHEET.map(c => [c.key, { risk: c.risk, why: c.why || '', watch: c.watch || '' }]),
+  ...Object.entries(EXTRA_KNOWLEDGE),
+]);
 
 /* Curseur d'avantage : 1 = équilibré / pro-fondateur … 5 = fortement pro-investisseurs. */
 const BIAS = {
@@ -677,6 +731,7 @@ const openBlankEditor = (() => {
     // Packs de la grille tarifaire (offres actuelles).
     essentiel: ['Rédiger et valider les actes critiques : term sheet, contrat d’investissement, pacte d’associés', 'Contrôler le formalisme d’assemblée de l’opération', 'Identifier les engagements déséquilibrés et les points à négocier', 'Préparer une synthèse claire pour le client'],
     serenite: ['Couvrir l’ensemble du pack Essentiel', 'Relire l’ensemble des documents importants de la levée', 'Signaler les risques et proposer les corrections nécessaires', 'Assurer la revue finale avant signature'],
+    'a-la-carte': ['Délimiter la mission aux seuls documents confiés', 'Chiffrer la mission et la confirmer dans la convention d’honoraires', 'Relire ou rédiger les actes confiés et signaler les risques', 'Préparer une synthèse claire pour le client'],
     // Anciennes prestations à la carte : encore référencées par les missions déjà créées.
     garantie: ['Identifier les déclarations et garanties sensibles', 'Vérifier les plafonds, franchises et durées', 'Proposer les réserves ou corrections nécessaires', 'Préparer une synthèse claire pour le client'],
     pacte: ['Contrôler gouvernance, liquidité et clauses de sortie', 'Vérifier les clauses leaver et les prix de rachat', 'Identifier les engagements déséquilibrés', 'Proposer une rédaction alternative sur les points critiques'],
@@ -1448,15 +1503,17 @@ document.getElementById('export-docx-item').addEventListener('click', () => {
 
 // Export direct du document (HTML structuré) → DOCX/PDF via le serveur : conserve
 // la mise en page, sans passer par un PDF reconverti.
-async function exportToFile(format, btn) {
+async function exportToFile(format, btn, mode) {
   const old = btn ? btn.textContent : '';
   if (btn) { btn.disabled = true; btn.textContent = 'Export…'; }
   try {
     await saveTermsheet();             // s'assure que le dernier contenu est en base
     if (!currentDocId) { alert('Enregistrez d\'abord le document, puis réessayez.'); return; }
+    const body = { to: format };
+    if (mode) body.mode = mode;        // 'redline' : diff + annexe côté serveur
     const r = await fetch('/api/saas/termsheets/' + currentDocId + '/export', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', body: JSON.stringify({ to: format }),
+      credentials: 'include', body: JSON.stringify(body),
     });
     const d = await r.json().catch(() => ({}));
     if (!r.ok || !d.document) { alert(d.error || 'Export échoué.'); return; }
@@ -1467,6 +1524,168 @@ async function exportToFile(format, btn) {
     if (btn) { btn.disabled = false; btn.textContent = old; }
   }
 }
+
+/* ---------- 6 bis. Redline : fidélité différentielle de la contreproposition ----------
+   Le mode redline affiche, en lecture seule, la comparaison mot à mot entre la
+   version de RÉFÉRENCE (le document tel qu'il a été importé/reçu — jamais
+   modifiée par les enregistrements) et le document de travail actuel :
+   insertions soulignées vertes, suppressions barrées rouges, récapitulatif
+   clause par clause. Il s'imprime tel quel (PDF) et s'exporte en Word via le
+   serveur, annexe récapitulative comprise. */
+const redlineBtn   = document.getElementById('redline-btn');
+const rlBanner     = document.getElementById('rl-banner');
+const rlBannerText = document.getElementById('rl-banner-text');
+const rlPanel      = document.getElementById('rlpanel');
+const rlPanelBar   = document.getElementById('rlpanel-bar');
+const rlPanelList  = document.getElementById('rlpanel-list');
+const RL_STATUS_FR = { modified: 'Modifiée', added: 'Ajoutée', removed: 'Supprimée', unchanged: 'Inchangée' };
+
+function rlEsc(s) { const d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+
+function rlIntro() {
+  const d = BASELINE_AT ? new Date(BASELINE_AT) : null;
+  const dd = d && !Number.isNaN(d.getTime())
+    ? d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
+  return 'Contreproposition établie à partir du document de référence' + (dd ? ' du ' + dd : '') +
+    '. Les insertions apparaissent <ins class="rl-ins">soulignées</ins>, les suppressions <del class="rl-del">barrées</del>. ' +
+    'La structure et la numérotation du document d’origine sont conservées.';
+}
+
+// Sort du mode redline SANS restaurer la page (le contenu suivant la remplace).
+function discardRedlineView() {
+  redlineActive = false;
+  _rlSavedHtml = null;
+  _rlChanges = [];
+  page.setAttribute('contenteditable', 'true');
+  if (rlBanner) rlBanner.hidden = true;
+  if (rlPanel)  rlPanel.hidden = true;
+  if (redlineBtn) redlineBtn.textContent = 'Redline';
+}
+
+async function enterRedline() {
+  if (redlineActive) return;
+  if (lawyerEditorActive) { alert('Le redline n’est pas disponible dans l’espace avocat.'); return; }
+  if (!page.innerText.trim()) { alert('Aucun document ouvert.'); return; }
+
+  // Le travail en cours est d'abord enregistré : le diff (et l'export serveur)
+  // se calculent sur le même état que la base.
+  clearTimeout(_saveTimer);
+  const saved = await saveTermsheet();
+  if (!saved || !currentDocId) { alert('Enregistrez d’abord le document, puis réessayez.'); return; }
+
+  // Document créé dans l'éditeur (jamais importé) : on propose de figer l'état
+  // actuel comme référence — les modifications suivantes seront redlinées.
+  if (!BASELINE_HTML) {
+    const ok = confirm(
+      'Ce document n’a pas de version de référence (il n’a pas été importé depuis un document reçu).\n\n' +
+      'Définir l’état ACTUEL comme référence ? Les modifications faites ensuite apparaîtront en redline ' +
+      '(insertions soulignées, suppressions barrées), comme pour une contreproposition.');
+    if (!ok) return;
+    try {
+      const r = await fetch('/api/saas/termsheets/' + currentDocId + '/baseline', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', body: JSON.stringify({}),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { alert(d.error || 'Impossible de définir la référence.'); return; }
+      BASELINE_HTML = termsheetHtml();
+      BASELINE_AT   = d.baseline_at || new Date().toISOString();
+      alert('Référence définie. Modifiez le document, puis rouvrez le redline pour visualiser votre contreproposition.');
+    } catch { alert('Impossible de joindre le serveur.'); }
+    return;
+  }
+
+  let diff;
+  try { diff = RedlineDiff.diffEditorDocs(BASELINE_HTML, termsheetHtml()); }
+  catch (e) { alert('Le calcul du redline a échoué : ' + (e && e.message ? e.message : e)); return; }
+
+  _rlSavedHtml  = termsheetHtml();
+  _rlChanges    = diff.changes;
+  redlineActive = true;
+  page.setAttribute('contenteditable', 'false');
+  page.innerHTML = diff.html + '\n' + RedlineDiff.changesAnnexHtml(diff.changes, { intro: rlIntro() });
+
+  const s = diff.stats;
+  const parts = [];
+  if (s.modified) parts.push(s.modified + ' modifiée' + (s.modified > 1 ? 's' : ''));
+  if (s.added)    parts.push(s.added + ' ajoutée' + (s.added > 1 ? 's' : ''));
+  if (s.removed)  parts.push(s.removed + ' supprimée' + (s.removed > 1 ? 's' : ''));
+  if (rlBannerText) rlBannerText.textContent = parts.length
+    ? `Comparaison avec le document de référence : ${parts.join(', ')} — ${s.unchanged} inchangée${s.unchanged > 1 ? 's' : ''}. Lecture seule.`
+    : 'Aucune modification par rapport au document de référence. Lecture seule.';
+  if (rlBanner) rlBanner.hidden = false;
+  if (redlineBtn) redlineBtn.textContent = 'Quitter le redline';
+  renderRedlinePanel();
+  showEmptyPanel();
+  paginate();
+}
+
+function exitRedline() {
+  if (!redlineActive) return;
+  const html = _rlSavedHtml;
+  discardRedlineView();
+  if (html != null) {
+    page.innerHTML = html;
+    if (isCustomDocument()) adoptDocumentClauses();
+    else { restoreOriginalTermsheetModel(); syncModelFromDOM(); }
+    showEmptyPanel();
+    paginate();
+  }
+}
+
+function renderRedlinePanel() {
+  if (!rlPanel) return;
+  const touched = _rlChanges.filter(c => c.status !== 'unchanged');
+  if (rlPanelBar) rlPanelBar.textContent = touched.length
+    ? 'Cliquez sur une ligne pour aller à la clause. Ce récapitulatif figure aussi en fin de document, dans le PDF et dans l’export Word.'
+    : 'Aucune modification par rapport au document de référence.';
+  rlPanelList.innerHTML = '';
+  if (!touched.length) {
+    rlPanelList.innerHTML = '<p class="rlpanel__empty">Modifiez le document puis rouvrez le redline : les changements apparaîtront ici, clause par clause.</p>';
+  }
+  touched.forEach(c => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'rlrow';
+    const amp = [c.ins ? '+' + c.ins : '', c.del ? '−' + c.del : ''].filter(Boolean).join(' / ');
+    btn.innerHTML =
+      `<span class="rlrow__tag rlrow__tag--${c.status}">${RL_STATUS_FR[c.status] || c.status}</span>` +
+      `<span class="rlrow__label">${rlEsc(c.label)}</span>` +
+      `<span class="rlrow__amp">${amp ? amp + ' mots' : ''}</span>`;
+    btn.addEventListener('click', () => {
+      const sel = '.ts-clause[data-key="' + String(c.key).replace(/"/g, '\\"') + '"]';
+      const el = page.querySelector(sel);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    rlPanelList.appendChild(btn);
+  });
+  rlPanel.hidden = false;
+}
+
+if (redlineBtn) redlineBtn.addEventListener('click', () => { if (redlineActive) exitRedline(); else enterRedline(); });
+const rlExitBtn = document.getElementById('rl-exit-btn');
+if (rlExitBtn) rlExitBtn.addEventListener('click', exitRedline);
+const rlSummaryBtn = document.getElementById('rl-summary-btn');
+if (rlSummaryBtn) rlSummaryBtn.addEventListener('click', () => { if (rlPanel) { if (rlPanel.hidden) renderRedlinePanel(); else rlPanel.hidden = true; } });
+const rlPanelClose = document.getElementById('rlpanel-close');
+if (rlPanelClose) rlPanelClose.addEventListener('click', () => { rlPanel.hidden = true; });
+
+// Exports « modifications apparentes » : PDF via l'impression de la vue redline,
+// Word via le serveur (diff + annexe recalculés sur l'état enregistré).
+const exportPdfRedline = document.getElementById('export-pdf-redline-item');
+if (exportPdfRedline) exportPdfRedline.addEventListener('click', async () => {
+  closeExportMenu();
+  if (!BASELINE_HTML) { alert('Pas de version de référence : le redline nécessite un document importé, ou une référence définie via le bouton « Redline ».'); return; }
+  if (!redlineActive) await enterRedline();
+  if (redlineActive) window.print();
+});
+const exportDocxRedline = document.getElementById('export-docx-redline-item');
+if (exportDocxRedline) exportDocxRedline.addEventListener('click', () => {
+  closeExportMenu();
+  if (!BASELINE_HTML) { alert('Pas de version de référence : le redline nécessite un document importé, ou une référence définie via le bouton « Redline ».'); return; }
+  exportToFile('docx', exportToggle, 'redline');
+});
+
 /* ---------- 6 ter. Analyser tout le document (Claude) ---------- */
 // Remplit en une fois : le « Pour bien comprendre » de chaque paragraphe (requête
 // groupée), et l'onglet Conseil (pistes d'amélioration). La bibliothèque est déjà
@@ -1754,7 +1973,10 @@ function reconcileFullWhenReady(tries) {
 }
 
 const analyzeBtn = document.getElementById('analyze-btn');
-if (analyzeBtn) analyzeBtn.addEventListener('click', () => analyzeFull(analyzeBtn));
+if (analyzeBtn) analyzeBtn.addEventListener('click', () => {
+  if (redlineActive) { alert('Quittez le redline pour analyser le document.'); return; }
+  analyzeFull(analyzeBtn);
+});
 
 /* ---------- 6 bis. Enregistrer / charger la term sheet (Mes documents) ------ */
 let currentDocId = null;
@@ -1825,6 +2047,9 @@ function setLastSavedAt(value) {
 }
 
 async function saveTermsheet() {
+  // Mode redline : la page affiche la COMPARAISON, pas le document. On ne
+  // l'enregistre jamais (le contenu de travail a été sauvegardé en entrant).
+  if (redlineActive) return true;
   setSaveStatus('Enregistrement…');
   const name = termsheetName();
   const html = termsheetHtml();
@@ -1925,7 +2150,19 @@ function adoptDocumentClauses() {
     const contentEl = el.querySelector('.ts-content');
     const label = (labelEl ? labelEl.textContent : 'Clause ' + i).trim() || ('Clause ' + i);
     const html  = contentEl ? contentEl.innerHTML : el.innerHTML;
-    derived.push({ key, group, label, risk: 'low', html, plain: '', watch: '', inDoc: true });
+    // Clause reconnue par la classification sémantique (data-skey posé à
+    // l'import) : elle hérite de l'analyse pré-établie — niveau de risque,
+    // raison d'être, points de vigilance — et du curseur d'avantage type.
+    // L'explication « Pour bien comprendre » reste générée depuis le texte réel.
+    const skey = el.dataset.skey || '';
+    const know = (skey && CLAUSE_KNOWLEDGE[skey]) || null;
+    derived.push({
+      key, group, label, html, inDoc: true, skey,
+      risk: know ? know.risk : 'low',
+      why: know ? know.why : '',
+      plain: '', watch: know ? know.watch : '',
+    });
+    if (know && BIAS[skey] != null && AI_BIAS[key] == null) AI_BIAS[key] = BIAS[skey];
     // Explication « Pour bien comprendre » codée en dur dans le modèle (data-plain)
     // → on amorce le cache pour un affichage instantané, sans appel Claude.
     const baked = el.getAttribute('data-plain');
@@ -1944,17 +2181,19 @@ function adoptDocumentClauses() {
   isCustom = true;
   TERMSHEET = derived;
   EXPLAIN = Object.fromEntries(derived.map(c => [c.key, c]));
-  // Réétiquette les panneaux pour un document « libre ».
+  // Réétiquette les panneaux pour un document « libre ». Un document dont le
+  // type est reconnu (term sheet, pacte, statuts…) garde le mot « clause ».
+  const unit = UNIT();
   const libTitle = document.querySelector('#view-library .library__title');
-  if (libTitle) libTitle.textContent = 'Paragraphes du document';
+  if (libTitle) libTitle.textContent = unit === 'clause' ? 'Clauses du document' : 'Paragraphes du document';
   const advEyebrow = document.querySelector('#view-advice .library__eyebrow');
   if (advEyebrow) advEyebrow.textContent = 'Conseils';
   const advTitle = document.querySelector('#view-advice .library__title');
   if (advTitle) advTitle.textContent = 'À vérifier';
   const chatTitle = document.querySelector('.chat__title');
-  if (chatTitle) chatTitle.textContent = 'Assistant IA — modifier ce paragraphe';
+  if (chatTitle) chatTitle.textContent = `Assistant IA — modifier ${unit === 'clause' ? 'cette clause' : 'ce paragraphe'}`;
   const chatExplainBtn = document.getElementById('chat-explain');
-  if (chatExplainBtn) chatExplainBtn.textContent = 'Expliquer le paragraphe';
+  if (chatExplainBtn) chatExplainBtn.textContent = `Expliquer ${unit === 'clause' ? 'la clause' : 'le paragraphe'}`;
   renderLibrary();
   renderAdvice();
 }
@@ -1969,6 +2208,7 @@ async function loadTermsheet(id) {
       sessionStorage.removeItem('liquid_prefill_' + id);
       const pre = JSON.parse(raw);
       if (pre && typeof pre.html === 'string' && pre.html) {
+        DOC_TYPE = ''; BASELINE_HTML = ''; BASELINE_AT = null;
         applyTermsheet(id, pre.html, pre.name, pre.updated_at || pre.created_at);
         preHtml = pre.html;
       }
@@ -1991,6 +2231,10 @@ async function loadTermsheet(id) {
       updateDocumentPlacementLabel(data.folder_name || '', data.category_name || '');
       return;
     }
+    // Redline + sémantique : version de référence et type de document reconnu.
+    BASELINE_HTML = data.baseline_html || '';
+    BASELINE_AT   = data.baseline_at || null;
+    DOC_TYPE      = data.doc_type || '';
     // Déjà affiché à l'identique via le pré-chargement : rien à refaire.
     if (preHtml !== null && data.html === preHtml) {
       currentDocId = data.id;
@@ -2009,6 +2253,9 @@ async function loadTermsheet(id) {
 // (décrypteur, conseil et conditions embarqués dans le modèle).
 function applyTermsheet(id, html, name, savedAt) {
   documentContextVersion += 1;
+  // Un nouveau contenu remplace la page : le mode redline en cours est abandonné
+  // (sans restauration — le document affiché change de toute façon).
+  if (redlineActive) discardRedlineView();
   // Les tâches continuent éventuellement côté serveur, mais leurs résultats ne
   // doivent plus modifier le document qui vient de prendre leur place.
   fullJobId = null;
@@ -2109,6 +2356,8 @@ if (closeDocumentBtn) closeDocumentBtn.addEventListener('click', async () => {
     return;
   }
 
+  if (redlineActive) discardRedlineView();
+  DOC_TYPE = ''; BASELINE_HTML = ''; BASELINE_AT = null;
   currentDocId = null;
   documentDirty = false;
   page.innerHTML = '';
@@ -2647,6 +2896,8 @@ async function selectTemplate(slug, label) {
     hideEmptyState();
     newDocumentFolderId = '';
     newDocumentCategoryKey = '';
+    // Nouveau document (modèle) : ni référence redline, ni type hérité du précédent.
+    DOC_TYPE = ''; BASELINE_HTML = ''; BASELINE_AT = null;
     applyTermsheet(null, html, label);
     const placement = await openDocumentPlacementModal();
     newDocumentFolderId = placement ? placement.folderId : '';
@@ -5411,7 +5662,10 @@ const COND_SIMPLE = {
     modal.hidden = true;
   }
 
-  openBtn.addEventListener('click', openModal);
+  openBtn.addEventListener('click', () => {
+    if (redlineActive) { alert('Quittez le redline pour signer le document.'); return; }
+    openModal();
+  });
   closeBtn.addEventListener('click', closeModal);
   cancelBtn.addEventListener('click', closeModal);
   backdrop.addEventListener('click', closeModal);

@@ -65,6 +65,7 @@
 .export-menu__item { display: block; width: 100%; text-align: left; padding: 9px 12px; font: inherit; font-size: 13px; color: #fff; background: transparent; border: 0; border-radius: 7px; cursor: pointer; }
 .export-menu__item:hover { background: #1e1e1e; }
 .export-menu__item:disabled { opacity: .5; cursor: default; }
+.export-menu__sep { height: 1px; margin: 5px 4px; background: rgba(255,255,255,0.18); }
 
 /* ---------- Ribbon (barre d'outils) ---------- */
 .ribbon { flex: none; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 8px 54px 8px 16px; background: var(--card); border-bottom: 1px solid var(--line); }
@@ -988,4 +989,34 @@ mark.cond-val { background: rgba(251,191,36,0.38); border-radius: 3px; padding: 
   .selx-btn:not([hidden]), .selx-pop:not([hidden]), .verpanel:not([hidden]) { animation: none !important; }
   .chat__msg--typing span { animation: none !important; opacity: .55; }
   .tbtn:active, .topbar .btn:active { transform: none; }
+}
+
+/* ---------- Redline (fidélité différentielle de la contreproposition) ---------- */
+/* Encre du diff : insertions soulignées vertes, suppressions barrées rouges. */
+.page ins.rl-ins { color: #15803d; background: #d1fae5; text-decoration: underline; text-underline-offset: 2px; }
+.page del.rl-del { color: #b91c1c; background: #fee2e2; text-decoration: line-through; }
+
+/* Statut de la clause : filet coloré dans la marge gauche. */
+.page .ts-clause[data-rl="modified"] { box-shadow: inset 3px 0 0 #f59e0b; }
+.page .ts-clause[data-rl="added"]    { box-shadow: inset 3px 0 0 #15803d; }
+.page .ts-clause[data-rl="removed"]  { box-shadow: inset 3px 0 0 #b91c1c; }
+
+/* Annexe « Récapitulatif des modifications » (fin du document redline). */
+.page .rl-annex { margin-top: 34px; padding-top: 18px; border-top: 2px solid #d7d7de; }
+.page .rl-annex__title { font-size: 17px; font-weight: 700; margin: 0 0 8px; }
+.page .rl-annex__intro, .page .rl-annex__rest, .page .rl-annex__empty { font-size: 13px; color: #3f3f49; line-height: 1.55; }
+.page .rl-annex__table { border-collapse: collapse; width: 100%; margin: 12px 0 6px; }
+.page .rl-annex__table th, .page .rl-annex__table td { border: 1px solid #c9c9d2; padding: 6px 9px; font-size: 12.5px; text-align: left; vertical-align: top; }
+.page .rl-annex__table th { background: #f2f2f5; font-family: 'Archivo', sans-serif; font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
+.page .rl-annex__was { color: #6b6b78; font-size: 11.5px; }
+
+/* Lecture seule pendant le redline : curseur normal, pas de halo d'édition. */
+.page[contenteditable="false"] { caret-color: transparent; }
+
+@media print {
+  /* Le bandeau et le panneau du mode redline ne s'impriment jamais ; le contenu
+     redline de la page s'imprime, lui, avec ses couleurs (color-adjust ci-dessus). */
+  .rl-banner, .rlpanel { display: none !important; }
+  .page .ts-clause[data-rl] { box-shadow: none !important; }
+  .page .rl-annex { break-before: page; page-break-before: always; }
 }
