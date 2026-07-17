@@ -25,6 +25,7 @@ const { Dropbox }      = require('dropbox');
 const archiver         = require('archiver');
 const Stripe           = require('stripe');
 const { createDocumentEncryption } = require('./lib/document-encryption');
+const redlineDiff      = require('./Saas/redline-diff');
 const { buildAdminDashboardStats, countUnreadAdminMessages } = require('./lib/admin-dashboard');
 const { adminLiquidPayment, adminFreeAiUsage } = require('./lib/admin-payments');
 const { companyNameKey, identityHash: identityHashWith } = require('./lib/founder-identity');
@@ -4295,11 +4296,12 @@ function avocatPartner(id) { return AVOCAT_PARTNERS.find(p => p.id === id) || nu
 // modifier engage donc les avocats sur un texte qu'ils n'ont pas lu — il faut
 // incrémenter LAWYER_PARTNERSHIP_VERSION (lib/lawyer-partnership.js) pour
 // redemander leur signature.
-// Les deux offres sont les packs de la grille tarifaire de la homepage. Les
-// forfaits sont INDICATIFS, par type de levée : le montant exact est arrêté dans
-// la convention d'honoraires signée entre la société et l'avocat, qui facture en
-// direct. `price` reste null ici : il est résolu par compte, selon son type de
-// levée (voir l'overview avocat).
+// Les deux packs sont ceux de la grille tarifaire de la homepage ; s'y ajoute
+// l'offre « à la carte », sur devis, hors grille homepage. Les forfaits sont
+// INDICATIFS, par type de levée : le montant exact est arrêté dans la
+// convention d'honoraires signée entre la société et l'avocat, qui facture en
+// direct. `price` reste null pour les packs : il est résolu par compte, selon
+// son type de levée (voir l'overview avocat).
 const AVOCAT_PRESTATIONS = [
   {
     key: 'essentiel',
@@ -4318,6 +4320,20 @@ const AVOCAT_PRESTATIONS = [
     critical: false,
     price: null,
     price_by_raise_type: { 'bsa-air': '1 200 – 1 800 € HT', classic: '4 000 – 6 000 € HT' },
+    fee_cap_cents: null,
+    delay: 'À convenir',
+  },
+  {
+    key: 'a-la-carte',
+    label: 'Avocat à la carte',
+    desc: 'Sans pack : une mission ponctuelle, limitée aux documents que vous confiez — relecture ou rédaction d’un acte précis, réponse à une question délimitée. L’avocat chiffre la mission avant de commencer.',
+    critical: false,
+    price: 'Sur devis',
+    price_note: 'Devis arrêté dans la convention d’honoraires · facturé directement par l’avocat',
+    // Pas de forfait publié : l'avocat chiffre mission par mission. Le flag est
+    // lu par la grille de la convention de partenariat (grilleLines).
+    quote_based: true,
+    price_by_raise_type: null,
     fee_cap_cents: null,
     delay: 'À convenir',
   },
@@ -4868,7 +4884,7 @@ app.get('/api/saas/avocat/overview', requireAuth, requireAssignedFounder2FA, asy
   const prestations = AVOCAT_PRESTATIONS.map(({ price_by_raise_type, ...p }) => ({
     ...p,
     price: price_by_raise_type ? price_by_raise_type[raiseType] : p.price,
-    price_note: price_by_raise_type ? 'Forfait indicatif · facturé directement par l’avocat' : null,
+    price_note: price_by_raise_type ? 'Forfait indicatif · facturé directement par l’avocat' : (p.price_note || null),
   }));
   res.json({
     prestations,
@@ -6712,7 +6728,29 @@ app.get('/api/saas/termsheets/:id', requireAuth, async (req, res) => {
     folder_name: folder?.name || '',
     created_at: doc.created_at,
     updated_at: doc.updated_at || doc.created_at,
+    // Redline : version de référence (document tel que reçu) + type reconnu.
+    baseline_html: doc.baseline_html || '',
+    baseline_at: doc.baseline_at || null,
+    doc_type: doc.doc_type || '',
   });
+});
+
+// Définit (ou redéfinit) la version de RÉFÉRENCE du redline : l'état à partir
+// duquel les modifications sont comptées. Fixée automatiquement à l'import d'un
+// document reçu ; ce point d'entrée sert aux documents créés dans l'éditeur ou
+// pour repartir de l'état actuel après l'envoi d'une contreproposition.
+app.post('/api/saas/termsheets/:id/baseline', requireAuth, async (req, res) => {
+  const id  = Number(req.params.id);
+  const doc = await col('saas_documents').findOne({ id, user_id: req.user.id, kind: 'termsheet' });
+  if (!doc) return res.status(404).json({ error: 'Document introuvable' });
+  const html = typeof req.body?.html === 'string' && req.body.html.trim() ? req.body.html : (doc.html || '');
+  if (!html.trim()) return res.status(422).json({ error: 'Document vide : rien à prendre comme référence.' });
+  const baseline_at = new Date().toISOString();
+  await col('saas_documents').updateOne(
+    { id, user_id: req.user.id },
+    { $set: { baseline_html: html, baseline_at } }
+  );
+  res.json({ success: true, baseline_at });
 });
 
 // ─── SaaS : versions VALIDÉES d'un document de travail ────────────────────────
@@ -8316,6 +8354,13 @@ function buildExportHtml(inner, title) {
   th,td { border:1px solid #999999; padding:4pt 6pt; font-size:10.5pt; text-align:left; vertical-align:top; }
   th { background:#f0f0f0; }
   mark { background:#fff3c4; }
+  /* Redline (contreproposition) : insertions soulignées vertes, suppressions barrées rouges. */
+  ins.rl-ins { color:#15803d; background:#d1fae5; text-decoration:underline; }
+  del.rl-del { color:#b91c1c; background:#fee2e2; text-decoration:line-through; }
+  .rl-annex { page-break-before:always; border-top:2px solid #999; padding-top:14pt; margin-top:22pt; }
+  .rl-annex__title { font-size:14pt; }
+  .rl-annex__intro, .rl-annex__rest, .rl-annex__empty { font-size:10.5pt; color:#333; }
+  .rl-annex__was { color:#666; font-size:9.5pt; }
 </style></head><body>${body}</body></html>`;
 }
 
@@ -8338,8 +8383,9 @@ async function saveExportedDoc(userId, srcDoc, baseName, ext, mimetype, fileBuf)
 }
 
 app.post('/api/saas/termsheets/:id/export', requireAuth, async (req, res) => {
-  const id     = Number(req.params.id);
-  const target = String(req.body?.to || '').toLowerCase();
+  const id      = Number(req.params.id);
+  const target  = String(req.body?.to || '').toLowerCase();
+  const redline = String(req.body?.mode || '') === 'redline';
   if (!['pdf', 'docx'].includes(target))
     return res.status(400).json({ error: 'Format cible invalide (pdf ou docx).' });
 
@@ -8347,8 +8393,31 @@ app.post('/api/saas/termsheets/:id/export', requireAuth, async (req, res) => {
   if (!doc) return res.status(404).json({ error: 'Document introuvable' });
   if (!doc.html) return res.status(400).json({ error: 'Document vide.' });
 
-  const baseName = (doc.name || 'document').replace(/\.[^.]+$/, '').trim() || 'document';
-  const html     = buildExportHtml(doc.html, baseName);
+  let baseName = (doc.name || 'document').replace(/\.[^.]+$/, '').trim() || 'document';
+  let inner    = doc.html;
+  if (redline) {
+    // Export « modifications apparentes » : diff complet contre la version de
+    // référence + annexe récapitulative clause par clause.
+    if (!doc.baseline_html)
+      return res.status(400).json({ error: 'Pas de version de référence pour ce document : le redline nécessite un document importé (ou une référence définie depuis l\'éditeur).' });
+    try {
+      const d = redlineDiff.diffEditorDocs(doc.baseline_html, doc.html);
+      const receivedOn = doc.baseline_at
+        ? new Date(doc.baseline_at).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+        : '';
+      inner = d.html + redlineDiff.changesAnnexHtml(d.changes, {
+        intro: 'Contreproposition établie à partir du document de référence' +
+               (receivedOn ? ' du ' + receivedOn : '') +
+               '. Les insertions apparaissent <ins class="rl-ins">soulignées</ins>, les suppressions <del class="rl-del">barrées</del>. ' +
+               'La structure et la numérotation du document d’origine sont conservées.',
+      });
+      baseName += ' — modifications apparentes';
+    } catch (e) {
+      console.error('Redline export error:', e.message);
+      return res.status(500).json({ error: 'Le calcul du redline a échoué. Réessayez.' });
+    }
+  }
+  const html = buildExportHtml(inner, baseName);
 
   // PDF : nécessite CloudConvert (le bouton « Exporter en PDF » de l'éditeur passe,
   // lui, par l'impression du navigateur et ne dépend pas de cet endpoint).
@@ -8528,6 +8597,111 @@ function docxHtmlToEditorPage(rawHtml, docName) {
   return clauses.map(c => clauseBlock(c.key, c.label, c.body.join('\n'))).join('\n');
 }
 
+// ─── Classification sémantique des clauses d'un document importé ──────────────
+// Après le découpage STRUCTUREL (docxHtmlToEditorPage), une passe IA identifie le
+// TYPE de document et la NATURE juridique de chaque clause (taxonomie fermée).
+// La clé sémantique est portée par data-skey sur .ts-clause (data-key reste la clé
+// structurelle stable, utilisée par le redline et le décrypteur). L'éditeur fait
+// hériter aux clauses reconnues l'analyse pré-établie (risque, points de vigilance).
+const CLAUSE_TAXONOMY = {
+  // Term sheet / LOI — mêmes clés que la term sheet de démonstration de l'éditeur.
+  societe: 'Identification de la société', fondateurs: 'Identification des fondateurs',
+  investisseur: 'Identification des investisseurs', investissement: 'Montant investi et valorisation',
+  titre: 'Titres émis (actions, catégorie)', liquidation: 'Liquidation préférentielle',
+  ratchet: 'Ratchet / protection contre un down round', antidilution: 'Anti-dilution / droit de maintien (pro rata)',
+  lockup: 'Inaliénabilité (lock-up)', preemption: 'Droit de préemption',
+  fulltag: 'Sortie conjointe totale (full tag-along)', proptag: 'Sortie conjointe proportionnelle (tag-along)',
+  drag: 'Droit d’entraînement (drag-along)', libres: 'Transferts libres',
+  board: 'Comité stratégique / conseil / board', decisions: 'Décisions importantes / matières réservées (vetos)',
+  implication: 'Engagement d’implication / exclusivité d’activité des fondateurs',
+  noncompete: 'Non-concurrence / non-débauchage', pi: 'Propriété intellectuelle',
+  leaver: 'Promesses de vente / leaver / vesting des fondateurs', realisation: 'Réalisation / closing / calendrier',
+  conditions: 'Conditions suspensives', garanties: 'Déclarations et garanties',
+  exclusivite: 'Exclusivité de négociation (no-shop)', confidentialite: 'Confidentialité',
+  frais: 'Frais et coûts', duree: 'Durée de validité de l’offre',
+  nonbinding: 'Caractère non contraignant', droit: 'Droit applicable et juridiction',
+  reporting: 'Droit à l’information / reporting', observer: 'Censeur / observateur',
+  liquidite: 'Clause de liquidité / sortie', rachat: 'Rachat des titres (redemption)',
+  paytoplay: 'Pay-to-play', mfn: 'Nation la plus favorisée (MFN)',
+  dividprio: 'Dividende prioritaire', rofo: 'Droit de première offre (ROFO)',
+  nonsollicitation: 'Non-sollicitation de clients', hommecle: 'Assurance homme-clé',
+  mac: 'Changement défavorable significatif (MAC)', mediation: 'Médiation / règlement des différends',
+  // Pacte d'associés / statuts.
+  preambule: 'Préambule / exposé', definitions: 'Définitions',
+  adhesion: 'Adhésion des nouveaux associés au pacte', objet_social: 'Objet social',
+  denomination: 'Dénomination sociale', siege: 'Siège social', capital_social: 'Capital social et actions',
+  agrement: 'Clause d’agrément des cessions', direction: 'Direction (président, directeurs généraux)',
+  assemblees: 'Décisions collectives / assemblées', exercice_social: 'Exercice social et comptes',
+  exclusion: 'Exclusion d’un associé', comptes_courants: 'Comptes courants d’associés',
+  // BSA-AIR / obligations convertibles.
+  air_montant: 'Montant de l’avance / souscription des BSA', valorisation_cap: 'Valorisation plafond (cap)',
+  decote: 'Décote (discount)', conversion: 'Événements et modalités de conversion / exercice',
+  echeance: 'Échéance / remboursement / caducité',
+  // Garantie d'actif-passif.
+  plafond_garantie: 'Plafond de la garantie', franchise: 'Franchise / seuil de déclenchement',
+  duree_garantie: 'Durée de la garantie', appel_garantie: 'Mise en œuvre / appel de la garantie',
+  // Blocs contractuels génériques.
+  notifications: 'Notifications entre parties', integralite: 'Intégralité de l’accord',
+  annexes: 'Annexes', signature: 'Signatures', autre: 'Autre / inclassable',
+};
+const CLASSIFY_DOC_TYPES = new Set(['termsheet', 'pacte', 'statuts', 'bsa_air', 'gap', 'nda', 'contrat', 'autre']);
+const CLASSIFY_TIMEOUT_MS = 30000;
+
+async function classifyEditorClauses(userId, pageHtml) {
+  if (!zaiClient) return { html: pageHtml, docType: '' };
+  const clauses = redlineDiff.parseEditorDoc(pageHtml).filter(i => i.type === 'clause' && i.key);
+  if (!clauses.length) return { html: pageHtml, docType: '' };
+
+  const hash = aiHash('clause-classify-v1', [pageHtml]);
+  let data = await aiCacheGet(hash);
+  if (!data) {
+    const list = clauses.slice(0, 100).map(c =>
+      `- ${c.key} | ${c.label.slice(0, 120)} | ${stripHtml(c.content).slice(0, 240)}`).join('\n');
+    const taxonomy = Object.entries(CLAUSE_TAXONOMY).map(([k, v]) => `${k} = ${v}`).join(' ; ');
+    const system =
+`Tu es le moteur de classification juridique de « liquid + », un outil pour fondateurs de startup en levée de fonds.
+On te donne la liste des clauses d'un document (une par ligne : identifiant | titre | extrait).
+
+1) Détermine le TYPE du document parmi : termsheet (term sheet / lettre d'intention), pacte (pacte d'associés / shareholders agreement), statuts, bsa_air (BSA-AIR / avance en compte convertible), gap (garantie d'actif-passif), nda (accord de confidentialité), contrat (autre contrat), autre.
+2) Pour CHAQUE identifiant de clause, attribue LA clé sémantique la plus adaptée dans la taxonomie fermée ci-dessous. Utilise "autre" si aucune clé ne convient vraiment. N'invente JAMAIS de clé hors taxonomie.
+
+Taxonomie : ${taxonomy}`;
+    const response = await Promise.race([
+      glmChat({
+        system,
+        messages: [{ role: 'user', content: 'Voici les clauses :\n' + list }],
+        maxTokens: 4000,
+        thinking: false,
+        json: true,
+        jsonHint: 'Format : {"docType":"termsheet","clauses":{"c1":"societe","c2":"investissement"}}',
+      }),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('classification timeout')), CLASSIFY_TIMEOUT_MS)),
+    ]);
+    await recordClaudeUsage(userId, response);
+    const raw = glmJson(response);
+    data = {
+      docType: CLASSIFY_DOC_TYPES.has(raw.docType) ? raw.docType : 'autre',
+      clauses: {},
+    };
+    if (raw.clauses && typeof raw.clauses === 'object') {
+      for (const [k, v] of Object.entries(raw.clauses)) {
+        if (typeof v === 'string' && CLAUSE_TAXONOMY[v] && v !== 'autre') data.clauses[k] = v;
+      }
+    }
+    await aiCacheSet(hash, data);
+  }
+
+  let html = pageHtml;
+  for (const [key, skey] of Object.entries(data.clauses || {})) {
+    const safeKey = String(key).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    html = html.replace(
+      new RegExp(`(<div\\b[^>]*class="[^"]*\\bts-clause\\b[^"]*"[^>]*data-key="${safeKey}")(?![^>]*data-skey=)`),
+      `$1 data-skey="${skey}"`
+    );
+  }
+  return { html, docType: data.docType || '' };
+}
+
 app.post('/api/saas/documents/:id/to-editor', requireAuth, async (req, res) => {
   const id  = Number(req.params.id);
   const doc = await col('saas_documents').findOne({ id, user_id: req.user.id });
@@ -8577,7 +8751,17 @@ app.post('/api/saas/documents/:id/to-editor', requireAuth, async (req, res) => {
     if (!rawHtml.trim())
       return res.status(422).json({ error: 'Le fichier est vide ou illisible.' });
 
-    const pageHtml  = docxHtmlToEditorPage(rawHtml, doc.name);
+    let pageHtml = docxHtmlToEditorPage(rawHtml, doc.name);
+    // Reconnaissance sémantique des clauses (type de document + nature juridique
+    // de chaque clause). Facultative : en cas d'échec ou de lenteur de l'IA, le
+    // document s'ouvre quand même, simplement sans clés sémantiques.
+    let docType = '';
+    try {
+      const classified = await classifyEditorClauses(req.user.id, pageHtml);
+      pageHtml = classified.html;
+      docType  = classified.docType;
+    } catch (e) { console.error('Classification clauses (import) ignorée :', e.message); }
+
     const baseName  = (doc.name || doc.originalname || 'Document').replace(/\.[^.]+$/, '');
     const now       = new Date().toISOString();
     const newId     = await nextId('saas_documents');
@@ -8585,7 +8769,11 @@ app.post('/api/saas/documents/:id/to-editor', requireAuth, async (req, res) => {
       id: newId, user_id: req.user.id, kind: 'termsheet',
       name: baseName, html: pageHtml, size: Buffer.byteLength(pageHtml, 'utf8'),
       editor_source: id, created_at: now, updated_at: now,
+      // Version de référence pour le « redline » : l'état exact du document tel
+      // qu'il a été reçu/importé. Ne change jamais lors des enregistrements.
+      baseline_html: pageHtml, baseline_at: now,
     };
+    if (docType) newDoc.doc_type = docType;
     if (doc.folder_id != null) newDoc.folder_id = doc.folder_id;
     await col('saas_documents').insertOne(newDoc);
     res.status(201).json({ id: newId });
