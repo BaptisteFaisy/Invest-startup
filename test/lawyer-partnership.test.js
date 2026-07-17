@@ -28,11 +28,12 @@ const SIGNED = { lawyer_partnership_version: LAWYER_PARTNERSHIP_VERSION };
 // LAWYER_PARTNERSHIP_VERSION, puis reporter la nouvelle empreinte ici.
 test('l’empreinte fige le texte : le modifier sans changer de version casse la CI', () => {
   const hash = partnershipDocumentHash(buildPartnershipDocument(PRESTATIONS));
-  // v5 : pack « Sérénité » renommé « Complète », forfaits recalibrés sur les
-  // cartographies .docs-internes (Essentiel = Critique, Complète = Critique +
-  // Important, revue DD plafonnée à 15 documents) — grille du 17/07/2026.
-  assert.equal(hash, '435896472684a96d8acdf1920006398701a1dd6cac8e1d3b0092b6c8aced5e8f');
-  assert.equal(LAWYER_PARTNERSHIP_VERSION, 5);
+  // v6 : pack « Sérénité » renommé « Pack avocat Complet » (la plateforme devient
+  // « Liquid+ Intégral »), forfaits recalibrés sur les cartographies .docs-internes
+  // (Essentiel = Critique, Complet = Critique + Important, revue DD plafonnée à
+  // 15 documents) — grille du 17/07/2026.
+  assert.equal(hash, '6e4ad82fc7753dcc3b733b7fddfba3f92426489919c0d459528e53a3e97fd486');
+  assert.equal(LAWYER_PARTNERSHIP_VERSION, 6);
 });
 
 test('l’empreinte suit la grille, pas seulement les clauses', () => {

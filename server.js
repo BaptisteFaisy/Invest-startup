@@ -1348,7 +1348,7 @@ app.post('/api/billing/checkout', requireAuth, async (req, res) => {
         unit_amount: amountCents,
         tax_behavior: 'inclusive',
         product_data: {
-          name: `Liquid+ Complet — ${raiseType === 'bsa-air' ? 'levée BSA-AIR' : 'levée classique'}`,
+          name: `Liquid+ Intégral — ${raiseType === 'bsa-air' ? 'levée BSA-AIR' : 'levée classique'}`,
           description: 'Accès unique du démarrage de la levée jusqu’au closing. Honoraires d’avocat exclus.',
         },
       },
@@ -4315,7 +4315,7 @@ const AVOCAT_PRESTATIONS = [
   },
   {
     key: 'serenite',
-    label: 'Pack avocat Complète',
+    label: 'Pack avocat Complet',
     desc: 'Tout l’Essentiel + la relecture de l’ensemble des documents importants — revue des pièces de due diligence dans la limite de 15 documents —, jusqu’à la revue finale avant signature.',
     critical: false,
     price: null,
@@ -4721,7 +4721,7 @@ function documentRiskLevel(doc) {
 
 // Pack avocat le plus adapté à un document (pré-remplit la demande de relecture) :
 // les actes critiques de l'opération relèvent de l'Essentiel ; tout autre document
-// n'est couvert que par la Complète (« l'ensemble des documents importants »).
+// n'est couvert que par le pack Complet (« l'ensemble des documents importants »).
 // La clé interne reste `serenite` (valeurs stockées, URLs) : seul le libellé public change.
 const AVOCAT_ESSENTIEL_SLUGS = new Set([
   'declarations-garanties-r-w-integrees-au-pacte',

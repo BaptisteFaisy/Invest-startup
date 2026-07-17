@@ -21,7 +21,7 @@ const accountHtml = fs.readFileSync(path.join(root, 'Saas', 'compte.html'), 'utf
 const caseHtml = fs.readFileSync(path.join(root, 'Saas', 'dossier-avocat.html'), 'utf8');
 
 test('Liquid+ : le tarif suit la grille de la homepage, par type de levée', () => {
-  // Grille homepage (HT) : Complet BSA-AIR 490 € barré → 290 € fondateur ;
+  // Grille homepage (HT) : Intégral BSA-AIR 490 € barré → 290 € fondateur ;
   // levée classique 1 490 € barré → 790 € fondateur.
   assert.deepEqual(LIQUID_PLUS_PRICING_CENTS['bsa-air'], { list: 49_000, standard: 29_000, promo: 22_000 });
   assert.deepEqual(LIQUID_PLUS_PRICING_CENTS.classic, { list: 149_000, standard: 79_000, promo: 59_000 });
