@@ -132,10 +132,12 @@
     .kpi__lab { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #6b6b78; }
     .kpi__val { font-family: 'Archivo', sans-serif; font-size: 22px; font-weight: 700; color: #08090c; letter-spacing: -0.02em; margin-top: 5px; }
     .kpi__sub { font-size: 11.5px; color: #8a8a95; margin-top: 2px; }
+    /* Le fond de la carte accentuée reste sombre dans les deux thèmes, donc le texte
+       est en blanc fixe et NON en var(--t-on-bg*) (noir en thème « Papier »). */
     .kpi--accent { background: linear-gradient(135deg, #26272e, #131417); }
-    .kpi--accent .kpi__lab { color: var(--t-on-bg-70); }
-    .kpi--accent .kpi__val { color: var(--t-on-bg); }
-    .kpi--accent .kpi__sub { color: var(--t-on-bg-60); }
+    .kpi--accent .kpi__lab { color: rgba(255,255,255,0.70); }
+    .kpi--accent .kpi__val { color: #ffffff; }
+    .kpi--accent .kpi__sub { color: rgba(255,255,255,0.60); }
 
     /* Barres de répartition */
     .ownbar-wrap { margin-top: 6px; }
@@ -173,13 +175,21 @@
     .note { font-size: 12px; color: var(--t-on-bg-faint); line-height: 1.6; margin-top: 16px; }
     .note b { color: var(--t-on-bg-80); }
 
-    .ext__actions { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+    .ext__actions { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; align-items: center; }
     .ext__actions .btn { background: var(--t-chip-2); color: var(--t-on-bg); border-color: var(--t-divider); }
     .ext__actions .btn:hover { border-color: var(--t-on-bg-faint); }
 
+    /* Sélecteur d'exemple (même composant que le simulateur de dilution) */
+    .example-picker { display: flex; align-items: center; gap: 8px; }
+    .example-picker__lab { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--t-on-bg-muted); }
+    .example-picker__sel { font-family: 'Libre Franklin', sans-serif; font-size: 12.5px; color: var(--t-on-bg); background: var(--t-chip-2); border: 1px solid var(--t-divider); border-radius: 9px; padding: 8px 10px; cursor: pointer; max-width: 260px; }
+    .example-picker__sel:hover { border-color: var(--t-on-bg-faint); }
+    .example-picker__sel:focus { outline: none; border-color: var(--t-on-bg-70); }
+    .example-picker__sel option { color: #08090c; }
+
     /* Explication IA des résultats (le calcul reste en JS, l'IA ne fait que commenter) */
     .explain-card .card__toprow { margin-bottom: 8px; }
-    .btn--ai { background: #08090c; color: var(--t-on-bg); border-color: #08090c; padding: 8px 15px; min-height: 38px; font-size: 13px; }
+    .btn--ai { background: #08090c; color: #ffffff; border-color: #08090c; padding: 8px 15px; min-height: 38px; font-size: 13px; }
     .btn--ai:hover { background: #26262c; }
     .btn--ai:disabled { opacity: 0.5; cursor: default; }
     .explain-desc { font-size: 12px; color: #6b6b78; line-height: 1.55; margin: 0; }
@@ -211,7 +221,7 @@
     .term:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; border-radius: 2px; }
     .tip { position: fixed; z-index: 200; max-width: 280px; background: #0f1115; color: #e8e8ec; font-family: 'Libre Franklin', sans-serif; font-size: 12.5px; font-weight: 400; font-style: normal; line-height: 1.5; letter-spacing: 0; text-transform: none; text-align: left; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--t-border); box-shadow: 0 12px 34px rgba(0,0,0,0.5); pointer-events: none; opacity: 0; transform: translateY(3px); transition: opacity .12s ease, transform .12s ease; }
     .tip.is-on { opacity: 1; transform: translateY(0); }
-    .tip b { color: var(--t-on-bg); font-weight: 700; }
+    .tip b { color: #ffffff; font-weight: 700; }
 
     /* Historique des simulations d'exit */
     .ext__history { margin-top: 26px; }
@@ -249,7 +259,7 @@
     .ask-box__actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
     .ask-box__btn { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; border-radius: 9px; padding: 8px 14px; cursor: pointer; border: 1px solid rgba(8,9,12,0.14); background: #fff; color: #08090c; transition: .12s; }
     .ask-box__btn:hover { border-color: rgba(8,9,12,0.3); }
-    .ask-box__btn--primary { background: #08090c; border-color: #08090c; color: var(--t-on-bg); }
+    .ask-box__btn--primary { background: #08090c; border-color: #08090c; color: #ffffff; }
     .ask-box__btn--primary:hover { background: #26272e; border-color: #26272e; }
 
     @media (max-width: 520px) {
@@ -260,14 +270,9 @@
       .xrow__pref { grid-template-columns: 1fr; }
       .kpi__val { font-size: 19px; }
     }
-    /* Composants « accent sombre » (bouton IA, KPI accentué, tooltip) :
-       fond volontairement foncé dans les deux thèmes → texte clair conservé en clair. */
-    :root[data-theme="paper"] .btn--ai,
-    :root[data-theme="paper"] .ask-box__btn--primary,
-    :root[data-theme="paper"] .tip b,
-    :root[data-theme="paper"] .kpi--accent .kpi__val { color: #fff; }
-    :root[data-theme="paper"] .kpi--accent .kpi__lab { color: rgba(255,255,255,0.72); }
-    :root[data-theme="paper"] .kpi--accent .kpi__sub { color: rgba(255,255,255,0.6); }
+    /* Composants « accent sombre » (bouton IA, KPI accentué, tooltip) : leur fond est
+       volontairement foncé dans les deux thèmes, donc leur texte est fixé en blanc
+       directement sur la règle de base — aucune correction par thème n'est nécessaire. */
     :root[data-theme="paper"] .tip { border-color: rgba(255,255,255,0.14); }
   </style>
   <script src="auth.js?v=4"></script>
@@ -363,7 +368,7 @@
             <div class="ext__col-num">1</div>
             <div>
               <div class="ext__col-lab">À remplir — vos données</div>
-              <p class="ext__col-sub">Renseignez la cap table actuelle et les paramètres de la cession à simuler.</p>
+              <p class="ext__col-sub">Les champs sont vides par défaut : renseignez la cap table actuelle et les paramètres de la cession, ou chargez un exemple pour voir le simulateur en action.</p>
             </div>
           </div>
           <div class="card">
@@ -398,7 +403,7 @@
               <div class="field">
                 <label class="field__lab" for="sale-price">Prix de vente (valeur des capitaux propres)</label>
                 <div class="inp-wrap">
-                  <input class="inp inp--money" type="text" inputmode="numeric" id="sale-price" value="15 000 000" />
+                  <input class="inp inp--money" type="text" inputmode="numeric" id="sale-price" value="" placeholder="0" />
                   <span class="inp-wrap__suf">€</span>
                 </div>
               </div>
@@ -423,13 +428,13 @@
               <div class="field">
                 <label class="field__lab" for="part-valo">Valorisation retenue <small style="text-transform:none;font-weight:400;color:#a8a8b3">(base du prix par titre)</small></label>
                 <div class="inp-wrap">
-                  <input class="inp inp--money" type="text" inputmode="numeric" id="part-valo" value="8 000 000" />
+                  <input class="inp inp--money" type="text" inputmode="numeric" id="part-valo" value="" placeholder="0" />
                   <span class="inp-wrap__suf">€</span>
                 </div>
               </div>
               <div class="field" style="margin-bottom:0">
                 <label class="field__lab" for="part-buyer">Acheteur</label>
-                <input class="inp" type="text" id="part-buyer" value="Investisseur secondaire" />
+                <input class="inp" type="text" id="part-buyer" value="" placeholder="Investisseur secondaire" />
               </div>
             </div>
           </div>
@@ -445,7 +450,18 @@
             </div>
           </div>
           <div class="ext__actions">
-            <button type="button" class="btn" id="reset-btn">↺ Réinitialiser l'exemple</button>
+            <div class="example-picker">
+              <label class="example-picker__lab" for="example-select">Exemple</label>
+              <select class="example-picker__sel" id="example-select">
+                <option value="" selected>— Partir d'un formulaire vide —</option>
+                <option value="0">Cession simple — sans préférence</option>
+                <option value="1">Préférence 1x non participative</option>
+                <option value="2">Préférence participative plafonnée</option>
+                <option value="3">Exit bas — la préférence absorbe tout</option>
+                <option value="4">Cession partielle — secondaire</option>
+              </select>
+            </div>
+            <button type="button" class="btn" id="reset-btn">↺ Vider le formulaire</button>
             <button type="button" class="btn" id="save-sim-btn">Enregistrer cet exit</button>
           </div>
 
@@ -553,19 +569,90 @@
       buyer:   { label: 'Acheteur (secondaire)', cls: 'c-buyer', color: '#2563eb' },
     };
 
-    const EXAMPLE = {
-      shareholders: [
-        { name: 'Fondateur A', shares: 380000, type: 'founder' },
-        { name: 'Fondateur B', shares: 320000, type: 'founder' },
-        { name: 'Pool BSPCE', shares: 100000, type: 'pool0' },
-        { name: 'Seed Capital', shares: 130000, type: 'invest0',
-          pref: { invested: 800000, multiple: 1, participating: false, cap: 0, rank: 2, convert: false } },
-        { name: 'Série A Ventures', shares: 70000, type: 'invest0',
-          pref: { invested: 3000000, multiple: 1, participating: true, cap: 3, rank: 1, convert: false } },
-      ],
-      salePrice: 15000000, fees: 3, debt: 0,
-      partValo: 8000000, buyer: 'Investisseur secondaire',
-    };
+    // ---------- Données d'exemple ----------
+    // Progression pédagogique : chaque exemple n'introduit qu'une mécanique nouvelle
+    // par rapport au précédent (aucune préférence → 1x non participative → participative
+    // plafonnée → prix de cession trop bas), le dernier basculant en cession partielle.
+    // Format : { label, exitType, shareholders, salePrice, fees, debt, partValo, buyer }.
+    // Les parts sont saisies en nombre d'actions puis converties si la vue est « en % ».
+    const EXAMPLES = [
+      {
+        // #0 — Aucune préférence de liquidation : le produit net se partage au prorata.
+        label: 'Cession simple — sans préférence',
+        exitType: 'total',
+        shareholders: [
+          { name: 'Fondateur A', shares: 450000, type: 'founder' },
+          { name: 'Fondateur B', shares: 450000, type: 'founder' },
+          { name: 'Pool BSPCE', shares: 100000, type: 'pool0' },
+        ],
+        salePrice: 15000000, fees: 3, debt: 0,
+      },
+      {
+        // #1 — Une seule préférence 1x non participative, à un prix où elle joue
+        // vraiment : le prorata de l'investisseur (873 k€ pour 15 %) est inférieur à sa
+        // mise, la préférence lui sert donc de plancher et il récupère ses 1,5 M€.
+        // (Au-dessus d'environ 10 M€ de prix, il aurait intérêt à cocher « convertir ».)
+        label: 'Préférence 1x non participative',
+        exitType: 'total',
+        shareholders: [
+          { name: 'Fondateur A', shares: 400000, type: 'founder' },
+          { name: 'Fondateur B', shares: 350000, type: 'founder' },
+          { name: 'Pool BSPCE', shares: 100000, type: 'pool0' },
+          { name: 'Seed Capital', shares: 150000, type: 'invest0',
+            pref: { invested: 1500000, multiple: 1, participating: false, cap: 0, rank: 1, convert: false } },
+        ],
+        salePrice: 6000000, fees: 3, debt: 0,
+      },
+      {
+        // #2 — Deux rangs de préférence, dont une participative plafonnée à 3x :
+        // elle touche sa préférence PUIS une part du reliquat, dans la limite du cap.
+        label: 'Préférence participative plafonnée',
+        exitType: 'total',
+        shareholders: [
+          { name: 'Fondateur A', shares: 380000, type: 'founder' },
+          { name: 'Fondateur B', shares: 320000, type: 'founder' },
+          { name: 'Pool BSPCE', shares: 100000, type: 'pool0' },
+          { name: 'Seed Capital', shares: 130000, type: 'invest0',
+            pref: { invested: 800000, multiple: 1, participating: false, cap: 0, rank: 2, convert: false } },
+          { name: 'Série A Ventures', shares: 70000, type: 'invest0',
+            pref: { invested: 3000000, multiple: 1, participating: true, cap: 3, rank: 1, convert: false } },
+        ],
+        salePrice: 15000000, fees: 3, debt: 0,
+      },
+      {
+        // #3 — Même cap table que #2, mais un prix de cession bas : les préférences
+        // (3,8 M€ au total) absorbent presque tout le produit net. Les fondateurs ne
+        // touchent quasiment rien — le cas que tout fondateur doit avoir simulé.
+        label: 'Exit bas — la préférence absorbe tout',
+        exitType: 'total',
+        shareholders: [
+          { name: 'Fondateur A', shares: 380000, type: 'founder' },
+          { name: 'Fondateur B', shares: 320000, type: 'founder' },
+          { name: 'Pool BSPCE', shares: 100000, type: 'pool0' },
+          { name: 'Seed Capital', shares: 130000, type: 'invest0',
+            pref: { invested: 800000, multiple: 1, participating: false, cap: 0, rank: 2, convert: false } },
+          { name: 'Série A Ventures', shares: 70000, type: 'invest0',
+            pref: { invested: 3000000, multiple: 1, participating: true, cap: 3, rank: 1, convert: false } },
+        ],
+        salePrice: 4000000, fees: 3, debt: 0,
+      },
+      {
+        // #4 — Cession secondaire : pas de liquidation, donc aucune préférence ne joue.
+        // Le seed sort intégralement, un fondateur cède une partie de ses titres.
+        label: 'Cession partielle — secondaire',
+        exitType: 'partial',
+        shareholders: [
+          { name: 'Fondateur A', shares: 380000, type: 'founder', sellPct: 20 },
+          { name: 'Fondateur B', shares: 320000, type: 'founder', sellPct: 0 },
+          { name: 'Pool BSPCE', shares: 100000, type: 'pool0', sellPct: 0 },
+          { name: 'Seed Capital', shares: 130000, type: 'invest0', sellPct: 100,
+            pref: { invested: 800000, multiple: 1, participating: false, cap: 0, rank: 2, convert: false } },
+          { name: 'Série A Ventures', shares: 70000, type: 'invest0', sellPct: 0,
+            pref: { invested: 3000000, multiple: 1, participating: true, cap: 3, rank: 1, convert: false } },
+        ],
+        partValo: 8000000, buyer: 'Investisseur secondaire',
+      },
+    ];
 
     const shRowsEl = document.getElementById('sh-rows');
 
@@ -626,21 +713,43 @@
       </div>`;
     }
 
-    function exampleShRows() {
-      const tot = EXAMPLE.shareholders.reduce((a, s) => a + s.shares, 0) || 1;
-      return EXAMPLE.shareholders.map(s => ({
-        name: s.name, type: s.type, pref: s.pref, sellPct: 0,
+    function exampleShRows(ex) {
+      const tot = ex.shareholders.reduce((a, s) => a + s.shares, 0) || 1;
+      return ex.shareholders.map(s => ({
+        name: s.name, type: s.type, pref: s.pref, sellPct: s.sellPct || 0,
         value: mode === 'pct' ? (s.shares / tot * 100) : s.shares,
       }));
     }
 
-    function loadExample() {
-      shRowsEl.innerHTML = exampleShRows().map(shRowHTML).join('');
-      document.getElementById('sale-price').value = nfInt.format(EXAMPLE.salePrice);
-      document.getElementById('sale-fees').value = String(EXAMPLE.fees);
-      document.getElementById('sale-debt').value = nfInt.format(EXAMPLE.debt);
-      document.getElementById('part-valo').value = nfInt.format(EXAMPLE.partValo);
-      document.getElementById('part-buyer').value = EXAMPLE.buyer;
+    // Bascule le type de sortie même s'il est déjà actif : setExitType() sort tôt
+    // quand la valeur ne change pas, or un exemple doit toujours rafraîchir l'UI.
+    function forceExitType(t) {
+      exitType = (t === 'total') ? 'partial' : 'total';
+      setExitType(t);
+    }
+
+    function loadExample(idx) {
+      const i = typeof idx === 'number' ? idx : Number(document.getElementById('example-select').value) || 0;
+      const ex = EXAMPLES[i] || EXAMPLES[0];
+      document.getElementById('example-select').value = String(i);
+      shRowsEl.innerHTML = exampleShRows(ex).map(shRowHTML).join('');
+      document.getElementById('sale-price').value = ex.salePrice ? nfInt.format(ex.salePrice) : '';
+      document.getElementById('sale-fees').value = String(ex.fees == null ? 3 : ex.fees);
+      document.getElementById('sale-debt').value = nfInt.format(ex.debt || 0);
+      document.getElementById('part-valo').value = ex.partValo ? nfInt.format(ex.partValo) : '';
+      document.getElementById('part-buyer').value = ex.buyer || '';
+      forceExitType(ex.exitType === 'partial' ? 'partial' : 'total');   // enchaîne syncRowVisibility + recompute
+    }
+
+    // Formulaire vide, prêt à recevoir les données de l'utilisateur.
+    function resetForm() {
+      document.getElementById('example-select').value = '';
+      shRowsEl.innerHTML = shRowHTML({ name: '', value: 0, type: 'founder' });
+      document.getElementById('sale-price').value = '';
+      document.getElementById('sale-fees').value = '3';
+      document.getElementById('sale-debt').value = '0';
+      document.getElementById('part-valo').value = '';
+      document.getElementById('part-buyer').value = '';
       syncRowVisibility();
       recompute();
     }
@@ -1188,7 +1297,11 @@
       }
     });
 
-    document.getElementById('reset-btn').addEventListener('click', loadExample);
+    document.getElementById('reset-btn').addEventListener('click', resetForm);
+    document.getElementById('example-select').addEventListener('change', (e) => {
+      if (e.target.value === '') resetForm();
+      else loadExample(Number(e.target.value));
+    });
 
     document.getElementById('page-back-btn').addEventListener('click', () => {
       const ref = document.referrer;
@@ -1755,16 +1868,16 @@
       document.getElementById('part-valo').value = '';
       document.getElementById('part-buyer').value = 'Investisseur secondaire';
       syncModeUI();
-      exitType = 'partial'; setExitType('total');   // force le rafraîchissement + recompute
+      forceExitType('total');   // force le rafraîchissement + recompute
       showDilutionImportBanner(data.meta);
       return true;
     }
 
-    // Init
+    // Init : formulaire vide par défaut (l'utilisateur choisit un exemple s'il le souhaite)
     syncModeUI();
     setExitType('total');
     const fromDilution = new URLSearchParams(location.search).get('from') === 'dilution';
-    if (!(fromDilution && importFromDilution())) loadExample();
+    if (!(fromDilution && importFromDilution())) resetForm();
     hydrateHistory();
   </script>
 

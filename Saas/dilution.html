@@ -130,10 +130,12 @@
     .kpi__lab { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #6b6b78; }
     .kpi__val { font-family: 'Archivo', sans-serif; font-size: 22px; font-weight: 700; color: #08090c; letter-spacing: -0.02em; margin-top: 5px; }
     .kpi__sub { font-size: 11.5px; color: #8a8a95; margin-top: 2px; }
+    /* Le fond de la carte accentuée reste sombre dans les deux thèmes, donc le texte
+       est en blanc fixe et NON en var(--t-on-bg*) (noir en thème « Papier »). */
     .kpi--accent { background: linear-gradient(135deg, #26272e, #131417); }
-    .kpi--accent .kpi__lab { color: var(--t-on-bg-70); }
-    .kpi--accent .kpi__val { color: var(--t-on-bg); }
-    .kpi--accent .kpi__sub { color: var(--t-on-bg-60); }
+    .kpi--accent .kpi__lab { color: rgba(255,255,255,0.70); }
+    .kpi--accent .kpi__val { color: #ffffff; }
+    .kpi--accent .kpi__sub { color: rgba(255,255,255,0.60); }
 
     /* Sélecteur de base de calcul (pleinement dilué / non dilué) */
     .dil__basis-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 2px 0 10px; }
@@ -198,7 +200,7 @@
 
     /* Explication IA des résultats (le calcul reste en JS, l'IA ne fait que commenter) */
     .explain-card .card__toprow { margin-bottom: 8px; }
-    .btn--ai { background: #08090c; color: var(--t-on-bg); border-color: #08090c; padding: 8px 15px; min-height: 38px; font-size: 13px; }
+    .btn--ai { background: #08090c; color: #ffffff; border-color: #08090c; padding: 8px 15px; min-height: 38px; font-size: 13px; }
     .btn--ai:hover { background: #26262c; }
     .btn--ai:disabled { opacity: 0.5; cursor: default; }
     .explain-desc { font-size: 12px; color: #6b6b78; line-height: 1.55; margin: 0; }
@@ -252,7 +254,7 @@
     .ask-box__actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
     .ask-box__btn { font-family: 'Archivo', sans-serif; font-size: 12.5px; font-weight: 600; border-radius: 9px; padding: 8px 14px; cursor: pointer; border: 1px solid rgba(8,9,12,0.14); background: #fff; color: #08090c; transition: .12s; }
     .ask-box__btn:hover { border-color: rgba(8,9,12,0.3); }
-    .ask-box__btn--primary { background: #08090c; border-color: #08090c; color: var(--t-on-bg); }
+    .ask-box__btn--primary { background: #08090c; border-color: #08090c; color: #ffffff; }
     .ask-box__btn--primary:hover { background: #26272e; border-color: #26272e; }
 
     /* Termes survolables (info-bulle de définition) */
@@ -260,7 +262,7 @@
     .term:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; border-radius: 2px; }
     .tip { position: fixed; z-index: 200; max-width: 280px; background: #0f1115; color: #e8e8ec; font-family: 'Libre Franklin', sans-serif; font-size: 12.5px; font-weight: 400; font-style: normal; line-height: 1.5; letter-spacing: 0; text-transform: none; text-align: left; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--t-border); box-shadow: 0 12px 34px rgba(0,0,0,0.5); pointer-events: none; opacity: 0; transform: translateY(3px); transition: opacity .12s ease, transform .12s ease; }
     .tip.is-on { opacity: 1; transform: translateY(0); }
-    .tip b { color: var(--t-on-bg); font-weight: 700; }
+    .tip b { color: #ffffff; font-weight: 700; }
 
     /* Renvoi vers l'estimateur de valorisation (outil à part) */
     .dil__link { margin-top: 10px; }
@@ -271,7 +273,7 @@
     .rounds-container { display: flex; flex-direction: column; gap: 14px; }
     .round-card { border: 1px solid var(--t-card-border); border-radius: 16px; background: var(--t-card); box-shadow: var(--t-card-shadow); overflow: hidden; }
     .round-card__head { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid rgba(8,9,12,0.08); background: #fafafa; }
-    .round-card__num { flex: none; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: var(--t-on-bg); background: #08090c; border-radius: 6px; padding: 4px 8px; white-space: nowrap; }
+    .round-card__num { flex: none; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; color: #ffffff; background: #08090c; border-radius: 6px; padding: 4px 8px; white-space: nowrap; }
     .round-name { flex: 1; min-width: 0; font-family: 'Archivo', sans-serif; font-size: 14px; font-weight: 700; color: #08090c; background: transparent; border: 1px solid transparent; border-radius: 8px; padding: 5px 8px; }
     .round-name:hover { border-color: rgba(8,9,12,0.12); }
     .round-name:focus { outline: none; border-color: #08090c; background: #f7f7f5; }
@@ -349,15 +351,9 @@
       .air-slider__top { flex-direction: column; }
       .air-slider__exact { grid-template-columns: 1fr; }
     }
-    /* Composants « accent sombre » (bouton IA, badge, KPI accentué, tooltip) :
-       fond volontairement foncé dans les deux thèmes → texte clair conservé en clair. */
-    :root[data-theme="paper"] .btn--ai,
-    :root[data-theme="paper"] .ask-box__btn--primary,
-    :root[data-theme="paper"] .round-card__num,
-    :root[data-theme="paper"] .tip b,
-    :root[data-theme="paper"] .kpi--accent .kpi__val { color: #fff; }
-    :root[data-theme="paper"] .kpi--accent .kpi__lab { color: rgba(255,255,255,0.72); }
-    :root[data-theme="paper"] .kpi--accent .kpi__sub { color: rgba(255,255,255,0.6); }
+    /* Composants « accent sombre » (bouton IA, badge, KPI accentué, tooltip) : leur fond
+       est volontairement foncé dans les deux thèmes, donc leur texte est fixé en blanc
+       directement sur la règle de base — aucune correction par thème n'est nécessaire. */
     :root[data-theme="paper"] .tip { border-color: rgba(255,255,255,0.14); }
   </style>
   <script src="auth.js?v=4"></script>
