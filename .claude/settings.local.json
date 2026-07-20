@@ -18,7 +18,16 @@
       "mcp__visualize__read_me",
       "Bash(echo \"=== jeanp accessible ? ===\" && ls -d \"C:/Users/jeanp/Documents/invest-startup-gaia/Invest-startup\" 2>&1 | head -1; echo \"=== payments.js là-bas ? ===\" && ls -la \"C:/Users/jeanp/Documents/invest-startup-gaia/Invest-startup/lib/payments.js\" 2>&1 | head -1; echo \"=== docs là-bas ? ===\" && ls \"C:/Users/jeanp/Documents/invest-startup-gaia/Invest-startup/docs/\" 2>&1 | head)",
       "Bash(git commit -m 'feat: tarifs Liquid+ en TTC + parcours BSA-AIR en 8 étapes *)",
-      "Bash(node --check lib/payments.js)"
+      "Bash(node --check lib/payments.js)",
+      "Bash(node -e \"const p=require\\('./package.json'\\);console.log\\(JSON.stringify\\(p.scripts,null,2\\)\\);console.log\\('main:',p.main\\)\")",
+      "Bash(\"/c/Program Files/nodejs/node.exe\" -e \"const p=require\\('./package.json'\\);console.log\\(JSON.stringify\\(p.scripts,null,2\\)\\)\")",
+      "mcp__visualize__show_widget",
+      "Bash(awk -F= '{print length\\($2\\)}')",
+      "Bash(git commit -q -m ' *)",
+      "Bash(find \"C:/Users/gaiam/AppData/Local/Temp/claude\" -name \"generate.js\" -not -path \"*/node_modules/*\" 2>/dev/null; echo \"---\"; find \"C:/Users/gaiam/Documents/Codex/2026-07-12/git/Invest-startup\" -maxdepth 3 -name \"generate.js\" -not -path \"*/node_modules/*\" 2>/dev/null)",
+      "Bash(\"/c/Program Files/nodejs/node.exe\" generate.js)",
+      "Bash(cd \"C:/Users/gaiam/.claude/projects/C--Users-gaiam-Documents-Codex-2026-07-12-git-Invest-startup/memory\" && cat kill-test-liquidplus-aout-2026.md offres-liquidplus-couverture-juridique.md company-dossier-belongs-to-ma-levee.md 2>/dev/null)",
+      "Bash(ls -la \"C:/Users/gaiam/Documents/Liquid+ deck/\" \"C:/Users/gaiam/Documents/Liquid+ deck/plaquettes-source/\" 2>&1)"
     ],
     "defaultMode": "bypassPermissions"
   },
