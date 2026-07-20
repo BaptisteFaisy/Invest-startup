@@ -1354,7 +1354,14 @@ app.post('/api/billing/checkout', requireAuth, async (req, res) => {
       },
     }],
     billing_address_collection: 'required',
-    invoice_creation: { enabled: true },
+    // Micro-entreprise en franchise en base : aucune TVA n'est ajoutée (d'où le
+    // tax_behavior « inclusive » ci-dessus), mais la mention de l'article 293 B
+    // est obligatoire sur la facture. Ne s'applique qu'à Liquid+ : les honoraires
+    // d'avocat sont encaissés par le cabinet, lui assujetti à la TVA.
+    invoice_creation: {
+      enabled: true,
+      invoice_data: { footer: 'TVA non applicable, article 293 B du Code général des impôts.' },
+    },
     metadata,
     payment_intent_data: { metadata },
     success_url: new URL('/saas/compte.html?tab=billing&payment=success', BASE_URL).toString(),
