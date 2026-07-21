@@ -1199,9 +1199,51 @@ app.get('/api/auth/verify-email', authLimiter, async (req, res) => {
   }
 });
 
+// Un rôle n'est pas une préférence d'affichage : il porte des obligations envers
+// des tiers. On peut en changer tant que rien n'est engagé — c'est le cas réel,
+// celui du clic de travers à l'onboarding — mais pas une fois qu'un client, un
+// paiement ou une convention en dépend. Ces cas-là passent par le support, qui
+// sait ce qu'il faut solder d'abord. On ne bloque que l'ABANDON d'un rôle :
+// en ajouter un n'engage personne.
+async function accountTypeChangeBlockers(user, nextTypes) {
+  const had = Array.isArray(user?.account_types) ? user.account_types : [];
+  const abandonne = (role) => had.includes(role) && !nextTypes.includes(role);
+  const id = Number(user.id);
+  const blockers = [];
+
+  if (abandonne('avocat')) {
+    if (user.lawyer_status === 'active')
+      blockers.push('votre compte avocat a été activé par Liquid+');
+    if (partnershipAccepted(user))
+      blockers.push('vous avez signé la convention de partenariat');
+    if (await col('lawyer_client_proposals').findOne(
+      { lawyer_id: id, status: { $in: ['proposed', 'accepted', 'assigned'] } }, { projection: { _id: 1 } }))
+      blockers.push('des clients ou des propositions vous sont rattachés');
+    if (await col('lawyer_payment_requests').findOne(
+      { lawyer_id: id, status: { $ne: 'refunded' } }, { projection: { _id: 1 } }))
+      blockers.push('des honoraires sont en cours');
+  }
+
+  if (abandonne('fondateur')) {
+    if (await assignedLawyerForClient(id))
+      blockers.push('un avocat vous est attribué');
+    if (user.subscription_status === 'active' || user.liquid_plus_access_status === 'paid')
+      blockers.push('votre accès Liquid+ est payé');
+    if (await col('billing_bank_transfers').findOne(
+      { user_id: id, status: 'awaiting_transfer' }, { projection: { _id: 1 } }))
+      blockers.push('un virement est en attente');
+    if (await col('lawyer_payment_requests').findOne(
+      { client_id: id, status: { $ne: 'refunded' } }, { projection: { _id: 1 } }))
+      blockers.push('des honoraires d\'avocat sont en cours');
+  }
+
+  return blockers;
+}
+
 // ─── POST /api/auth/account-type ──────────────────────────────────────────────
 // Enregistre le(s) type(s) de compte choisi(s) à l'onboarding : fondateur,
-// avocat, VC, business angel. Plusieurs valeurs possibles.
+// avocat, VC, business angel. Plusieurs valeurs possibles. Sert aussi à corriger
+// son choix depuis « Mon compte » tant qu'aucun engagement ne s'y oppose.
 app.post('/api/auth/account-type', requireAuth, async (req, res) => {
   const { types } = req.body ?? {};
   const allowed = ['fondateur', 'avocat', 'vc', 'business_angel'];
@@ -1210,14 +1252,37 @@ app.post('/api/auth/account-type', requireAuth, async (req, res) => {
     : [];
   if (clean.length === 0)
     return res.status(400).json({ error: 'Sélectionnez au moins un type de compte' });
-  const current = await col('users').findOne({ id: req.user.id }, { projection: { account_types: 1, email: 1 } });
+
+  const current = await col('users').findOne({ id: req.user.id });
+  if (!current) return res.status(401).json({ error: 'Compte introuvable' });
+
+  const blockers = await accountTypeChangeBlockers(current, clean);
+  if (blockers.length)
+    return res.status(409).json({
+      error: `Votre type de compte ne peut plus être modifié ici : ${blockers.join(', ')}. Écrivez-nous à liquidplus.contact@gmail.com.`,
+      code: 'ACCOUNT_TYPE_LOCKED',
+      blockers,
+    });
+
   const updates = { account_types: clean };
+
   // Première fois que ce compte devient fondateur : on arme l'offre de bienvenue,
   // affichée après l'onboarding de levée, à la première arrivée dans le SaaS. Un
-  // fondateur déjà enregistré qui repasse ici ne la revoit pas.
-  if (clean.includes('fondateur') && !current?.account_types?.includes('fondateur')) {
+  // fondateur déjà enregistré qui repasse ici ne la revoit pas — et un aller-retour
+  // entre rôles ne doit pas la ré-armer chez quelqu'un qui l'a déjà écartée.
+  if (clean.includes('fondateur') && !current.account_types?.includes('fondateur')
+      && !current.welcome_offer_dismissed_at && !current.welcome_offer_checkout_at) {
     updates.welcome_offer_pending = true;
   }
+
+  // Abandonner le rôle avocat remet la candidature à zéro. Sans cela,
+  // `lawyer_status: 'active'` resterait en base pendant l'intermède — hors de
+  // portée de l'admin, qui ne voit que les comptes de type avocat — et un simple
+  // retour au rôle restaurerait un avocat actif sans nouvelle validation.
+  if (current.account_types?.includes('avocat') && !clean.includes('avocat')) {
+    updates.lawyer_status = 'pending';
+  }
+
   await updateUserById(req.user.id, updates);
   res.json({ success: true, account_types: clean });
 });
@@ -2312,8 +2377,15 @@ async function globalTokensToday() {
 async function enforceDailyCap(req, res, next) {
   try {
     const used = await globalTokensToday();
-    const user = await col('users').findOne({ id: req.user.id }, { projection: { email: 1, account_types: 1, subscription_status: 1 } });
-    if (user?.account_types?.includes('fondateur') && user.subscription_status !== 'active' && !hasComplimentaryAccess(user.email)) {
+    const user = await col('users').findOne({ id: req.user.id }, { projection: { email: 1, account_types: 1, subscription_status: 1, lawyer_status: 1 } });
+    // Le plafond gratuit ne peut pas dépendre du rôle déclaré : le rôle s'écrit
+    // soi-même (POST /api/auth/account-type), donc un compte gratuit qui se
+    // déclarait « avocat » sortait du plafond tout en gardant l'assistant — le
+    // préfixe /api/saas n'est gardé que par requireAuth. Le plafond porte donc
+    // sur tout compte qui ne paie pas, avec une seule exemption : l'avocat
+    // réellement activé par un admin, le seul rôle qu'on ne peut pas s'attribuer.
+    const activeLawyer = user?.account_types?.includes('avocat') && user.lawyer_status === 'active';
+    if (!activeLawyer && user?.subscription_status !== 'active' && !hasComplimentaryAccess(user?.email)) {
       const personal = await col('saas_claude_usage').findOne({ user_id: req.user.id }, { projection: { total_tokens: 1 } });
       const personalUsed = personal?.total_tokens || 0;
       if (personalUsed >= FREE_FOUNDER_TOKEN_CAP) {
