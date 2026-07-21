@@ -800,17 +800,10 @@
       const typeBadges = types.length
         ? types.map(type => `<span class="account-status__badge">${esc(ACCOUNT_TYPE_LABELS[type] || type)}</span>`).join('')
         : '<span class="account-status__badge">Non renseigné</span>';
-      // Corriger un choix d'onboarding : entre les deux rôles ouverts seulement,
-      // et seulement si le compte n'en porte qu'un. Le serveur refuse de toute
-      // façon d'abandonner un rôle déjà engagé (ACCOUNT_TYPE_LOCKED) — le bouton
-      // ne fait que proposer, il ne décide pas.
-      const switchTypeTo = types.length === 1 && types[0] === 'fondateur' ? 'avocat'
-        : types.length === 1 && types[0] === 'avocat' ? 'fondateur'
-        : null;
-      const typeSwitchBtn = switchTypeTo
-        ? '<button type="button" class="account-status__switch" data-switch-account-type>Changer de type de compte</button>'
-        : '';
-      const rows = [`<div class="account-status__row"><span class="account-status__label">Type de compte</span><span class="account-status__values">${typeBadges}${typeSwitchBtn}</span></div>`];
+      // Pas de changement de type ici : fondateur et avocat ouvrent deux produits
+      // distincts, le choix est définitif (voir POST /api/auth/account-type). Ce
+      // qu'un fondateur peut changer, c'est son type de levée, plus bas.
+      const rows = [`<div class="account-status__row"><span class="account-status__label">Type de compte</span><span class="account-status__values">${typeBadges}</span></div>`];
 
       if (types.includes('avocat')) {
         const lawyerStatus = LAWYER_STATUS_LABELS[user.lawyer_status] || LAWYER_STATUS_LABELS.pending;
@@ -836,38 +829,6 @@
       }
 
       root.innerHTML = rows.join('');
-
-      const typeSwitchEl = root.querySelector('[data-switch-account-type]');
-      if (typeSwitchEl && switchTypeTo) {
-        typeSwitchEl.addEventListener('click', async () => {
-          const ok = window.confirm(
-            `Passer votre compte en « ${ACCOUNT_TYPE_LABELS[switchTypeTo]} » ?\n\n`
-            + "Rien n'est supprimé, mais tout ce qui dépend de votre rôle actuel devient inaccessible : "
-            + 'espace, tableau de bord et documents du rôle que vous quittez.\n\n'
-            + 'Si un client, un paiement ou une convention vous engage déjà, le changement sera refusé.'
-          );
-          if (!ok) return;
-          typeSwitchEl.disabled = true;
-          typeSwitchEl.textContent = 'Changement en cours...';
-          try {
-            const r = await fetch('/api/auth/account-type', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              credentials: 'include',
-              body: JSON.stringify({ types: [switchTypeTo] }),
-            });
-            const data = await r.json().catch(() => ({}));
-            if (!r.ok) throw new Error(data.error || 'Changement impossible.');
-            window.location.href = switchTypeTo === 'avocat'
-              ? '/saas/onboarding-avocat.html'
-              : '/saas/onboarding-raise.html';
-          } catch (err) {
-            typeSwitchEl.disabled = false;
-            typeSwitchEl.textContent = 'Changer de type de compte';
-            window.alert(err.message || 'Changement impossible.');
-          }
-        });
-      }
 
       const switchEl = root.querySelector('[data-switch-raise-type]');
       if (switchEl && lockedRaiseType) {

@@ -1199,51 +1199,18 @@ app.get('/api/auth/verify-email', authLimiter, async (req, res) => {
   }
 });
 
-// Un rôle n'est pas une préférence d'affichage : il porte des obligations envers
-// des tiers. On peut en changer tant que rien n'est engagé — c'est le cas réel,
-// celui du clic de travers à l'onboarding — mais pas une fois qu'un client, un
-// paiement ou une convention en dépend. Ces cas-là passent par le support, qui
-// sait ce qu'il faut solder d'abord. On ne bloque que l'ABANDON d'un rôle :
-// en ajouter un n'engage personne.
-async function accountTypeChangeBlockers(user, nextTypes) {
-  const had = Array.isArray(user?.account_types) ? user.account_types : [];
-  const abandonne = (role) => had.includes(role) && !nextTypes.includes(role);
-  const id = Number(user.id);
-  const blockers = [];
-
-  if (abandonne('avocat')) {
-    if (user.lawyer_status === 'active')
-      blockers.push('votre compte avocat a été activé par Liquid+');
-    if (partnershipAccepted(user))
-      blockers.push('vous avez signé la convention de partenariat');
-    if (await col('lawyer_client_proposals').findOne(
-      { lawyer_id: id, status: { $in: ['proposed', 'accepted', 'assigned'] } }, { projection: { _id: 1 } }))
-      blockers.push('des clients ou des propositions vous sont rattachés');
-    if (await col('lawyer_payment_requests').findOne(
-      { lawyer_id: id, status: { $ne: 'refunded' } }, { projection: { _id: 1 } }))
-      blockers.push('des honoraires sont en cours');
-  }
-
-  if (abandonne('fondateur')) {
-    if (await assignedLawyerForClient(id))
-      blockers.push('un avocat vous est attribué');
-    if (user.subscription_status === 'active' || user.liquid_plus_access_status === 'paid')
-      blockers.push('votre accès Liquid+ est payé');
-    if (await col('billing_bank_transfers').findOne(
-      { user_id: id, status: 'awaiting_transfer' }, { projection: { _id: 1 } }))
-      blockers.push('un virement est en attente');
-    if (await col('lawyer_payment_requests').findOne(
-      { client_id: id, status: { $ne: 'refunded' } }, { projection: { _id: 1 } }))
-      blockers.push('des honoraires d\'avocat sont en cours');
-  }
-
-  return blockers;
-}
-
 // ─── POST /api/auth/account-type ──────────────────────────────────────────────
 // Enregistre le(s) type(s) de compte choisi(s) à l'onboarding : fondateur,
-// avocat, VC, business angel. Plusieurs valeurs possibles. Sert aussi à corriger
-// son choix depuis « Mon compte » tant qu'aucun engagement ne s'y oppose.
+// avocat, VC, business angel. Plusieurs valeurs possibles.
+//
+// Le choix est DÉFINITIF. Fondateur et avocat ne sont pas deux préférences
+// d'affichage : ils ouvrent deux produits distincts, avec des obligations
+// envers des tiers (clients attribués, convention de partenariat, honoraires,
+// accès payé) qu'un clic ne peut pas dénouer. La route n'accepte donc qu'une
+// première écriture — sans cette garde, un compte gratuit pouvait changer de
+// rôle pour se soustraire à ce que son rôle d'origine fait payer. Ce qu'un
+// fondateur peut changer, c'est son type de LEVÉE, via
+// POST /api/saas/fundraising-profile/switch-type.
 app.post('/api/auth/account-type', requireAuth, async (req, res) => {
   const { types } = req.body ?? {};
   const allowed = ['fondateur', 'avocat', 'vc', 'business_angel'];
@@ -1253,34 +1220,23 @@ app.post('/api/auth/account-type', requireAuth, async (req, res) => {
   if (clean.length === 0)
     return res.status(400).json({ error: 'Sélectionnez au moins un type de compte' });
 
-  const current = await col('users').findOne({ id: req.user.id });
+  const current = await col('users').findOne({ id: req.user.id }, { projection: { account_types: 1, welcome_offer_dismissed_at: 1, welcome_offer_checkout_at: 1 } });
   if (!current) return res.status(401).json({ error: 'Compte introuvable' });
 
-  const blockers = await accountTypeChangeBlockers(current, clean);
-  if (blockers.length)
+  if (hasAccountTypes(current))
     return res.status(409).json({
-      error: `Votre type de compte ne peut plus être modifié ici : ${blockers.join(', ')}. Écrivez-nous à liquidplus.contact@gmail.com.`,
+      error: 'Votre type de compte est déjà défini et ne peut pas être modifié. Écrivez-nous à liquidplus.contact@gmail.com si vous pensez qu\'il s\'agit d\'une erreur.',
       code: 'ACCOUNT_TYPE_LOCKED',
-      blockers,
+      account_types: current.account_types,
     });
 
   const updates = { account_types: clean };
 
   // Première fois que ce compte devient fondateur : on arme l'offre de bienvenue,
-  // affichée après l'onboarding de levée, à la première arrivée dans le SaaS. Un
-  // fondateur déjà enregistré qui repasse ici ne la revoit pas — et un aller-retour
-  // entre rôles ne doit pas la ré-armer chez quelqu'un qui l'a déjà écartée.
-  if (clean.includes('fondateur') && !current.account_types?.includes('fondateur')
+  // affichée après l'onboarding de levée, à la première arrivée dans le SaaS.
+  if (clean.includes('fondateur')
       && !current.welcome_offer_dismissed_at && !current.welcome_offer_checkout_at) {
     updates.welcome_offer_pending = true;
-  }
-
-  // Abandonner le rôle avocat remet la candidature à zéro. Sans cela,
-  // `lawyer_status: 'active'` resterait en base pendant l'intermède — hors de
-  // portée de l'admin, qui ne voit que les comptes de type avocat — et un simple
-  // retour au rôle restaurerait un avocat actif sans nouvelle validation.
-  if (current.account_types?.includes('avocat') && !clean.includes('avocat')) {
-    updates.lawyer_status = 'pending';
   }
 
   await updateUserById(req.user.id, updates);
