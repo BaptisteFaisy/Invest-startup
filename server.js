@@ -1096,7 +1096,7 @@ function requireStartupAuth(req, res, next) {
 
 // ─── POST /api/auth/register ──────────────────────────────────────────────────
 app.post('/api/auth/register', authLimiter, async (req, res) => {
-  const { email, password, full_name, company_name } = req.body ?? {};
+  const { email, password, full_name } = req.body ?? {};
   if (!email || !password) return res.status(400).json({ error: 'Email et mot de passe requis' });
 
   const emailClean = email.trim().toLowerCase();
@@ -1105,13 +1105,14 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
   if (password.length < 6)
     return res.status(400).json({ error: 'Le mot de passe doit faire au moins 6 caractères' });
 
-  // Un compte = une startup : le nom est demandé dès l'inscription et ne sert
-  // qu'une fois. Il porte l'identité du compte, il n'est donc pas facultatif.
-  const companyClean = shortText(company_name, 160);
-  const companyKey = companyNameKey(companyClean);
-  if (!companyClean) return res.status(400).json({ error: 'Nom de la startup requis' });
-  if (!companyKey) return res.status(400).json({ error: 'Le nom de la startup doit contenir au moins une lettre ou un chiffre' });
-
+  // Le nom de la startup n'est pas demandé ici. À l'inscription on ignore encore
+  // si ce compte sera fondateur ou avocat — le type n'est choisi qu'après la
+  // confirmation d'email (voir /api/auth/account-type). Exiger un nom de startup
+  // avant de le savoir revient à poser une question de fondateur à un avocat, et
+  // à lui faire réserver un nom qui ne le concerne pas. La réservation a donc
+  // lieu là où le fondateur saisit réellement ce nom : PUT
+  // /api/saas/fundraising-profile, qui porte l'unicité et le registre des
+  // identités brûlées.
   const existingUser = await findByEmail(emailClean);
   if (existingUser) {
     if (existingUser.email_verified === false) {
@@ -1125,20 +1126,8 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
   if (await isIdentityBurnt('email', emailClean))
     return res.status(409).json({ error: 'Cette adresse email a déjà été utilisée pour un compte Liquid+ et ne peut plus servir à en créer un nouveau. Écrivez-nous à liquidplus.contact@gmail.com si vous pensez qu\'il s\'agit d\'une erreur.', code: 'EMAIL_BURNT' });
 
-  if (await col('users').findOne({ company_name_key: companyKey }, { projection: { _id: 1 } }))
-    return res.status(409).json({ error: 'Un compte existe déjà pour cette startup. Un compte correspond à une startup : connectez-vous avec le mot de passe partagé de votre équipe.', code: 'COMPANY_TAKEN' });
-  if (await isIdentityBurnt('company', companyKey))
-    return res.status(409).json({ error: 'Cette startup a déjà eu un compte Liquid+ et ne peut plus en créer un nouveau. Écrivez-nous à liquidplus.contact@gmail.com si vous pensez qu\'il s\'agit d\'une erreur.', code: 'COMPANY_BURNT' });
-
   const hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
-  let user;
-  try {
-    user = await createUser({ email: emailClean, password: hash, full_name: full_name?.trim(), company_name: companyClean, email_verified: false });
-  } catch (err) {
-    // Course entre deux inscriptions simultanées : l'index unique tranche.
-    if (err?.code === 11000) return res.status(409).json({ error: 'Un compte existe déjà pour cette startup. Un compte correspond à une startup : connectez-vous avec le mot de passe partagé de votre équipe.', code: 'COMPANY_TAKEN' });
-    throw err;
-  }
+  const user = await createUser({ email: emailClean, password: hash, full_name: full_name?.trim(), email_verified: false });
   try {
     await sendVerificationEmail(user);
   } catch (err) {
@@ -3998,9 +3987,9 @@ function sanitizeFundraisingProfile(body) {
 app.get('/api/saas/fundraising-profile', requireAuth, async (req, res) => {
   const profile = await col('saas_fundraising_profiles').findOne({ user_id: req.user.id });
   const publicProfile = publicFundraisingProfile(profile);
-  // Le nom donné à l'inscription préremplit « Ma levée » tant que le fondateur
-  // n'en a pas saisi un autre : il identifie déjà son compte, autant ne pas le
-  // lui redemander.
+  // Reprise des comptes créés quand le nom était encore demandé à l'inscription :
+  // il préremplit « Ma levée » tant que le fondateur n'en a pas saisi un autre.
+  // Les comptes récents arrivent ici sans nom — c'est ce formulaire qui le pose.
   if (!publicProfile.company_name) {
     const user = await col('users').findOne({ id: req.user.id }, { projection: { company_name: 1 } });
     if (user?.company_name) publicProfile.company_name = user.company_name;
@@ -4012,6 +4001,33 @@ app.put('/api/saas/fundraising-profile', requireAuth, async (req, res) => {
   let profile;
   try { profile = sanitizeFundraisingProfile(req.body || {}); }
   catch (e) { return res.status(400).json({ error: e.message || 'Profil de levée invalide' }); }
+
+  // C'est ici, et non à l'inscription, que le nom de la startup est réservé : le
+  // fondateur le saisit pour la première fois dans ce formulaire, une fois son
+  // type de compte choisi. Le nom reste porté par le document utilisateur —
+  // c'est lui que l'index unique arbitre et que le registre brûle à la
+  // suppression du compte — mais il n'y est écrit qu'à partir d'ici.
+  const companyKey = companyNameKey(profile.company_name);
+  if (!profile.company_name) return res.status(400).json({ error: 'Nom de la société requis' });
+  if (!companyKey) return res.status(400).json({ error: 'Le nom de la société doit contenir au moins une lettre ou un chiffre' });
+
+  const owner = await col('users').findOne({ id: req.user.id }, { projection: { company_name_key: 1 } });
+  if (owner?.company_name_key !== companyKey) {
+    if (await col('users').findOne({ company_name_key: companyKey, id: { $ne: req.user.id } }, { projection: { _id: 1 } }))
+      return res.status(409).json({ error: 'Un compte existe déjà pour cette startup. Un compte correspond à une startup : connectez-vous avec le mot de passe partagé de votre équipe.', code: 'COMPANY_TAKEN' });
+    if (await isIdentityBurnt('company', companyKey))
+      return res.status(409).json({ error: 'Cette startup a déjà eu un compte Liquid+ et ne peut plus en créer un nouveau. Écrivez-nous à liquidplus.contact@gmail.com si vous pensez qu\'il s\'agit d\'une erreur.', code: 'COMPANY_BURNT' });
+  }
+
+  // Réservation avant l'enregistrement du profil : si le nom est déjà pris, rien
+  // n'a été écrit. La course entre deux fondateurs simultanés est tranchée par
+  // l'index unique, pas par le findOne ci-dessus.
+  try {
+    await updateUserById(req.user.id, { company_name: profile.company_name, company_name_key: companyKey });
+  } catch (err) {
+    if (err?.code === 11000) return res.status(409).json({ error: 'Un compte existe déjà pour cette startup. Un compte correspond à une startup : connectez-vous avec le mot de passe partagé de votre équipe.', code: 'COMPANY_TAKEN' });
+    throw err;
+  }
 
   // Verrouillage du type de levée : une fois classic ou bsa-air enregistré, le
   // choix est définitif. On ignore silencieusement toute tentative de bascule

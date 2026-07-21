@@ -8,7 +8,8 @@ const { companyNameKey, identityHash } = require('../lib/founder-identity');
 
 const root = path.resolve(__dirname, '..');
 const serverSource = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
-const registerHtml = fs.readFileSync(path.join(root, 'Saas', 'register.html'), 'utf8');
+const registerHtml = fs.readFileSync(path.join(root, 'register.html'), 'utf8');
+const raiseHtml = fs.readFileSync(path.join(root, 'Saas', 'onboarding-raise.html'), 'utf8');
 
 test('deux écritures du même nom de startup donnent la même clé', () => {
   const attendu = 'acmesas';
@@ -53,13 +54,30 @@ test('le registre survit au compte et n’est alimenté qu’à la suppression',
   assert.match(serverSource, /col\('users'\)\.deleteOne\(\{ id: user\.id, email_verified: false \}\)/);
 });
 
-test('l’inscription refuse un email ou un nom déjà utilisé, vivant ou brûlé', () => {
+test('l’inscription refuse un email déjà utilisé, vivant ou brûlé', () => {
   assert.match(serverSource, /if \(await isIdentityBurnt\('email', emailClean\)\)/);
+});
+
+test('l’inscription ne demande ni ne réserve de nom de startup', () => {
+  // Le type de compte n'est choisi qu'après la confirmation d'email : exiger un
+  // nom de startup à l'inscription reviendrait à le demander aussi aux avocats,
+  // qui réserveraient alors un nom qui ne les concerne pas.
+  assert.doesNotMatch(registerHtml, /name="company_name"/);
+  assert.match(serverSource, /const \{ email, password, full_name \} = req\.body \?\? \{\};/);
+});
+
+test('le nom de startup est réservé là où le fondateur le saisit', () => {
+  assert.match(serverSource, /const companyKey = companyNameKey\(profile\.company_name\);/);
+  // L'unicité exclut le compte courant, sinon un fondateur qui réenregistre son
+  // profil sans changer de nom se verrait refuser son propre nom.
+  assert.match(serverSource, /col\('users'\)\.findOne\(\{ company_name_key: companyKey, id: \{ \$ne: req\.user\.id \} \}/);
   assert.match(serverSource, /if \(await isIdentityBurnt\('company', companyKey\)\)/);
-  assert.match(serverSource, /col\('users'\)\.findOne\(\{ company_name_key: companyKey \}/);
-  // Course entre deux inscriptions simultanées : l'index unique doit trancher.
+  // Course entre deux fondateurs simultanés : l'index unique doit trancher.
   assert.match(serverSource, /err\?\.code === 11000/);
   assert.match(serverSource, /partialFilterExpression: \{ company_name_key: \{ \$type: 'string' \} \}/);
+  // La clé reste portée par le document utilisateur : c'est elle que l'index
+  // arbitre et que burnIdentities brûle à la suppression du compte.
+  assert.match(serverSource, /updateUserById\(req\.user\.id, \{ company_name: profile\.company_name, company_name_key: companyKey \}\)/);
 });
 
 test('Google ne contourne pas le registre', () => {
@@ -67,7 +85,6 @@ test('Google ne contourne pas le registre', () => {
   assert.equal(passages.length, 2, 'les deux entrées Google (callback + token) doivent vérifier le registre');
 });
 
-test('le formulaire d’inscription demande le nom de la startup et l’envoie', () => {
-  assert.match(registerHtml, /name="company_name"[^>]*required/);
-  assert.match(registerHtml, /JSON\.stringify\(\{ email, password, full_name, company_name \}\)/);
+test('le formulaire de levée demande le nom de la société', () => {
+  assert.match(raiseHtml, /name="company_name"[^>]*required/);
 });

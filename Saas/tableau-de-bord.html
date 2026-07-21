@@ -4254,7 +4254,7 @@
           <div class="raise-profile__grid">
             <label class="raise-field">
               <span class="raise-field__label">Nom de la société</span>
-              <input class="raise-input" name="company_name" type="text" autocomplete="organization" value="${esc(profile.company_name)}" />
+              <input class="raise-input" name="company_name" type="text" autocomplete="organization" maxlength="160" required value="${esc(profile.company_name)}" />
             </label>
             <label class="raise-field">
               <span class="raise-field__label raise-field__label--required">Pays de résidence de la société</span>
@@ -4337,9 +4337,9 @@
         status.textContent = '';
         if (!form.reportValidity()) return;
         const nextProfile = readFundraisingProfileForm(form);
-        if (!nextProfile.company_country || !nextProfile.raise_type) {
+        if (!nextProfile.company_name || !nextProfile.company_country || !nextProfile.raise_type) {
           status.className = 'raise-profile__status is-error';
-          status.textContent = 'Pays et type de levée sont requis.';
+          status.textContent = 'Nom de la société, pays et type de levée sont requis.';
           return;
         }
         status.textContent = 'Enregistrement...';

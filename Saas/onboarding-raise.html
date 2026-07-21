@@ -79,8 +79,8 @@
         <form class="raise-form" id="raise-form">
           <div class="raise-grid">
             <label class="raise-field">
-              <span class="raise-field__label">Nom de la soci&eacute;t&eacute;</span>
-              <input class="raise-input" name="company_name" type="text" autocomplete="organization" />
+              <span class="raise-field__label raise-field__label--required">Nom de la soci&eacute;t&eacute;</span>
+              <input class="raise-input" name="company_name" type="text" autocomplete="organization" maxlength="160" required />
             </label>
             <label class="raise-field">
               <span class="raise-field__label raise-field__label--required">Pays de r&eacute;sidence de la soci&eacute;t&eacute;</span>
@@ -362,9 +362,9 @@
         if (!form.reportValidity()) return;
 
         const profile = readForm();
-        if (!profile.company_country || !profile.raise_type) {
+        if (!profile.company_name || !profile.company_country || !profile.raise_type) {
           statusEl.className = 'raise-status is-error';
-          statusEl.textContent = 'Pays et type de levee sont requis.';
+          statusEl.textContent = 'Nom de la societe, pays et type de levee sont requis.';
           return;
         }
 
