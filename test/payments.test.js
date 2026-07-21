@@ -13,12 +13,65 @@ const {
   isValidLawyerAmountCents,
   publicLawyerPayment,
   stripeObjectId,
+  bankTransferReference,
+  userIdFromTransferReference,
 } = require('../lib/payments');
 
 const root = path.resolve(__dirname, '..');
 const serverSource = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
 const accountHtml = fs.readFileSync(path.join(root, 'Saas', 'compte.html'), 'utf8');
 const caseHtml = fs.readFileSync(path.join(root, 'Saas', 'dossier-avocat.html'), 'utf8');
+
+test('la référence de virement identifie le compte et refuse toute forme approximative', () => {
+  assert.equal(bankTransferReference(4, 'a1b2c3'), 'LQP-4-A1B2C3');
+  assert.equal(userIdFromTransferReference('LQP-4-A1B2C3'), 4);
+  // Tolérances utiles au rapprochement : casse et espaces d'un relevé bancaire.
+  assert.equal(userIdFromTransferReference('  lqp-4-a1b2c3 '), 4);
+  // Un libellé fantaisiste ne doit JAMAIS désigner un compte : sans quoi un
+  // virement mal référencé activerait l'accès de quelqu'un d'autre.
+  for (const bogus of ['LQP-4', 'LQP--A1B2C3', 'LQP-0-A1B2C3', 'LQP-04-A1B2C3', 'LQP-4-ZZZZZZ', 'LQP-4-A1B2C', 'virement liquid plus', '', null]) {
+    assert.equal(userIdFromTransferReference(bogus), null, `référence acceptée à tort : ${bogus}`);
+  }
+  assert.throws(() => bankTransferReference(0, 'a1b2c3'), /Identifiant utilisateur invalide/);
+  assert.throws(() => bankTransferReference(4, 'xyz'), /Suffixe de référence invalide/);
+});
+
+// `assert.match` déverserait les 500 Ko de server.js au moindre échec : on teste
+// la regex à la main pour n'afficher que le message.
+const has = (source, pattern, message) => assert.ok(pattern.test(source), message);
+const lacks = (source, pattern, message) => assert.ok(!pattern.test(source), message);
+
+test('les coordonnées bancaires ne sont pas dans le dépôt et se désactivent si absentes', () => {
+  // L'IBAN vit dans l'environnement, jamais en dur : un dépôt public ne doit
+  // pas porter de coordonnées d'encaissement.
+  has(serverSource, /LIQUIDPLUS_IBAN = \(process\.env\.LIQUIDPLUS_IBAN/, 'IBAN non lu depuis l’environnement');
+  lacks(serverSource, /\bFR\d{2}\s?[0-9A-Z]{10,}/, 'un IBAN semble codé en dur dans server.js');
+  // Sans coordonnées, on refuse explicitement plutôt que d'afficher un IBAN vide.
+  has(serverSource, /bankTransferEnabled = \(\) => !!\(LIQUIDPLUS_IBAN && LIQUIDPLUS_ACCOUNT_HOLDER\)/, 'garde bankTransferEnabled absente');
+  has(serverSource, /if \(!bankTransferEnabled\(\)\) return res\.status\(503\)/, 'pas de 503 quand l’IBAN manque');
+});
+
+test('le virement Liquid+ impose le montant côté serveur et se réutilise', () => {
+  const endpoint = serverSource.slice(serverSource.indexOf("app.post('/api/billing/bank-transfer'"));
+  // Le montant vient de la grille et du type de levée, jamais du navigateur.
+  has(endpoint, /liquidPlusAccessAmountCents\(\{ raiseType, promotion \}\)/, 'montant non calculé côté serveur');
+  lacks(endpoint.slice(0, endpoint.indexOf('publicBankTransfer')), /req\.body\?\.amount/, 'le montant est lu depuis le body');
+  // Une demande en attente est réutilisée : la référence déjà donnée à la banque
+  // ne doit pas changer d'un affichage à l'autre.
+  has(endpoint, /status: 'awaiting_transfer' \}/, 'pas de réutilisation de la demande en attente');
+  has(endpoint, /existing\.amount_total !== amountCents/, 'un changement de tarif ne périme pas la référence');
+  // Un accès déjà réglé ne peut pas être re-payé.
+  has(endpoint, /Votre accès Liquid\+ est déjà actif/, 'un accès actif peut être re-payé');
+});
+
+test('l’activation manuelle est réservée à l’admin et solde le virement en attente', () => {
+  const endpoint = serverSource.slice(serverSource.indexOf("app.patch('/api/admin/founders/:id/plan'"));
+  has(endpoint.slice(0, 120), /requireAdmin/, 'activation non protégée par requireAdmin');
+  has(endpoint, /liquid_plus_access_status: 'paid'/, 'l’activation ne marque pas l’accès payé');
+  has(endpoint, /status: 'received', received_at: now/, 'le virement en attente n’est pas soldé');
+  // Le booléen est exigé : un body vide ne doit pas activer un accès par défaut.
+  has(endpoint, /typeof activate !== 'boolean'/, 'un body vide pourrait activer un accès');
+});
 
 test('Liquid+ : le tarif suit la grille de la homepage, par type de levée', () => {
   // Grille homepage (HT) : Intégral BSA-AIR 490 € barré → 290 € fondateur ;

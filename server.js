@@ -34,6 +34,7 @@ const {
   liquidPlusPricingForRaiseType,
   LIQUID_PLUS_ACCESS_CURRENCY,
   liquidPlusAccessAmountCents,
+  bankTransferReference,
   parseEuroAmountToCents,
   isValidLawyerAmountCents,
   publicLawyerPayment,
@@ -124,6 +125,15 @@ const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 // des cabinets d'avocats (paiements directs des honoraires — voir Stripe Connect).
 const STRIPE_CONNECT_WEBHOOK_SECRET = process.env.STRIPE_CONNECT_WEBHOOK_SECRET || '';
 const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
+
+// Coordonnées d'encaissement Liquid+ (virement SEPA). Volontairement hors du
+// dépôt : elles se posent dans les variables d'environnement (Railway → service
+// → Variables), comme les secrets. Sans elles, le paiement par virement se
+// désactive proprement plutôt que d'afficher un IBAN vide à un payeur.
+const LIQUIDPLUS_IBAN = (process.env.LIQUIDPLUS_IBAN || '').replace(/\s+/g, '').toUpperCase();
+const LIQUIDPLUS_BIC = (process.env.LIQUIDPLUS_BIC || '').replace(/\s+/g, '').toUpperCase();
+const LIQUIDPLUS_ACCOUNT_HOLDER = process.env.LIQUIDPLUS_ACCOUNT_HOLDER || '';
+const bankTransferEnabled = () => !!(LIQUIDPLUS_IBAN && LIQUIDPLUS_ACCOUNT_HOLDER);
 
 // Type de levée du compte fondateur : c'est lui qui fixe le tarif Liquid+ et les
 // forfaits avocat affichés (grille tarifaire de la homepage). Tout profil absent
@@ -1379,6 +1389,86 @@ app.post('/api/billing/checkout', requireAuth, async (req, res) => {
   return res.json({ checkout_url: session.url });
 });
 
+// ─── Paiement Liquid+ par virement SEPA ───────────────────────────────────────
+// Le prestataire de paiement par carte n'est plus disponible : l'accès se règle
+// par virement. Le serveur ne peut pas constater la réception des fonds — il
+// émet une référence, l'affiche au fondateur, et l'accès est activé à la main
+// depuis l'admin une fois le virement vu sur le compte (PATCH .../plan).
+app.post('/api/billing/bank-transfer', requireAuth, async (req, res) => {
+  const user = await col('users').findOne({ id: req.user.id }, {
+    projection: { account_types: 1, subscription_status: 1, liquid_plus_access_status: 1 },
+  });
+  if (!user?.account_types?.includes('fondateur')) return res.status(403).json({ error: 'Le paiement Liquid+ est réservé aux comptes fondateurs.' });
+  if (user.subscription_status === 'active' || user.liquid_plus_access_status === 'paid')
+    return res.status(409).json({ error: 'Votre accès Liquid+ est déjà actif.' });
+  if (['refunded', 'disputed'].includes(user.liquid_plus_access_status))
+    return res.status(409).json({ error: 'Votre paiement Liquid+ doit être régularisé avec notre équipe avant une nouvelle tentative.' });
+  if (!bankTransferEnabled()) return res.status(503).json({ error: 'Le paiement par virement est en cours d’activation. Contactez-nous pour régler votre accès.' });
+
+  const promotionCode = String(req.body?.code || '').trim().replace(/\s+/g, ' ').toUpperCase();
+  const usesRaiseSummit = promotionCode === 'RAISE SUMMIT';
+  if (promotionCode && !usesRaiseSummit) return res.status(422).json({ error: 'Code promotionnel invalide.' });
+  if (usesRaiseSummit && (req.body?.review_commitment !== true || req.body?.linkedin_commitment !== true))
+    return res.status(422).json({ error: 'Les deux engagements doivent être acceptés pour utiliser le code RAISE SUMMIT.' });
+
+  const promotion = usesRaiseSummit ? 'RAISE SUMMIT' : null;
+  const raiseType = await founderRaiseType(req.user.id);
+  const amountCents = liquidPlusAccessAmountCents({ raiseType, promotion });
+  const now = new Date().toISOString();
+
+  if (usesRaiseSummit) {
+    const acceptedAt = now;
+    await col('billing_commitments').insertOne({ user_id: req.user.id, promotion: 'RAISE SUMMIT', review_commitment: true, linkedin_commitment: true, accepted_at: acceptedAt });
+    await updateUserById(req.user.id, { raise_summit_commitment_accepted_at: acceptedAt });
+  }
+
+  // Une demande en attente est réutilisée tant que son montant tient : le
+  // fondateur qui revient sur la page doit retrouver LA référence qu'il a déjà
+  // pu communiquer à sa banque, pas une nouvelle à chaque affichage.
+  const existing = await col('billing_bank_transfers').findOne(
+    { user_id: req.user.id, status: 'awaiting_transfer' },
+    { sort: { created_at: -1 } },
+  );
+  let transfer = existing;
+  if (existing && existing.amount_total !== amountCents) {
+    await col('billing_bank_transfers').updateOne(
+      { id: existing.id, status: 'awaiting_transfer' },
+      { $set: { status: 'superseded', updated_at: now } },
+    );
+    transfer = null;
+  }
+  if (!transfer) {
+    transfer = {
+      id: crypto.randomUUID(),
+      reference: bankTransferReference(req.user.id, crypto.randomBytes(3).toString('hex')),
+      user_id: req.user.id, payment_kind: 'liquid_plus_access',
+      amount_total: amountCents, currency: LIQUID_PLUS_ACCESS_CURRENCY,
+      promotion, status: 'awaiting_transfer', created_at: now, updated_at: now,
+    };
+    await col('billing_bank_transfers').insertOne(transfer);
+  }
+  await updateUserById(req.user.id, { welcome_offer_pending: false });
+
+  return res.json({ bank_transfer: publicBankTransfer(transfer) });
+});
+
+// Vue payeur d'une demande de virement : les coordonnées d'encaissement et la
+// référence à porter. Aucun identifiant interne n'en sort.
+function publicBankTransfer(transfer) {
+  if (!transfer) return null;
+  return {
+    reference: transfer.reference,
+    amount: transfer.amount_total / 100,
+    amount_cents: transfer.amount_total,
+    currency: String(transfer.currency || 'eur').toUpperCase(),
+    status: transfer.status,
+    created_at: transfer.created_at,
+    beneficiary: LIQUIDPLUS_ACCOUNT_HOLDER,
+    iban: LIQUIDPLUS_IBAN,
+    bic: LIQUIDPLUS_BIC || null,
+  };
+}
+
 app.get('/api/billing/status', requireAuth, async (req, res) => {
   const user = await col('users').findOne({ id: req.user.id }, { projection: { account_types: 1, subscription_status: 1, subscription_plan: 1, subscription_started_at: 1, liquid_plus_access_status: 1, liquid_plus_access_paid_at: 1 } });
   if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
@@ -1393,6 +1483,11 @@ app.get('/api/billing/status', requireAuth, async (req, res) => {
   // Le tarif suit la grille de la homepage : il dépend du type de levée du compte.
   const raiseType = isFounder ? await founderRaiseType(req.user.id) : null;
   const pricing = raiseType ? liquidPlusPricingForRaiseType(raiseType) : null;
+  // Virement déjà demandé et pas encore encaissé : la page doit réafficher la
+  // même référence plutôt que de reproposer un paiement au fondateur qui a payé.
+  const pendingTransfer = isFounder && !accessPaid
+    ? await col('billing_bank_transfers').findOne({ user_id: req.user.id, status: 'awaiting_transfer' }, { sort: { created_at: -1 } })
+    : null;
   res.json({
     role: isLawyer ? 'avocat' : isFounder ? 'fondateur' : 'autre',
     liquid_plus: isFounder ? {
@@ -1404,6 +1499,8 @@ app.get('/api/billing/status', requireAuth, async (req, res) => {
       list_price: { amount: pricing.list / 100, amount_cents: pricing.list, currency: 'EUR', tax: 'HT' },
       price: { amount: pricing.standard / 100, amount_cents: pricing.standard, currency: 'EUR', tax: 'HT' },
       promo_price: { amount: pricing.promo / 100, amount_cents: pricing.promo, currency: 'EUR', tax: 'HT', code: 'RAISE SUMMIT' },
+      bank_transfer_enabled: bankTransferEnabled(),
+      pending_transfer: publicBankTransfer(pendingTransfer),
     } : null,
     connect,
     lawyer_payments_enabled: !!(stripe && STRIPE_CONNECT_WEBHOOK_SECRET),
@@ -6520,13 +6617,17 @@ app.get('/api/admin/payments', requireAdmin, async (_req, res) => {
 });
 
 app.get('/api/admin/founders', requireAdmin, async (_req, res) => {
-  const users = await col('users').find({ account_types: 'fondateur' }, { projection: { _id: 0, id: 1, email: 1, full_name: 1, created_at: 1 } }).sort({ created_at: -1 }).toArray();
+  const users = await col('users').find({ account_types: 'fondateur' }, { projection: { _id: 0, id: 1, email: 1, full_name: 1, created_at: 1, liquid_plus_access_status: 1, liquid_plus_access_paid_at: 1, subscription_status: 1 } }).sort({ created_at: -1 }).toArray();
   const userIds = users.map(u => u.id);
-  const [profiles, assignments, openProposals] = await Promise.all([
+  const [profiles, assignments, openProposals, transfers] = await Promise.all([
     col('saas_fundraising_profiles').find({ user_id: { $in: userIds } }, { projection: { _id: 0, user_id: 1, company_name: 1 } }).toArray(),
     col('saas_avocat').find({ user_id: { $in: userIds }, mode: 'platform' }, { projection: { _id: 0, user_id: 1, lawyer_user_id: 1 } }).toArray(),
     col('lawyer_client_proposals').find({ client_id: { $in: userIds }, status: { $in: ['proposed', 'accepted'] } }, { projection: { _id: 0, client_id: 1 } }).toArray(),
+    col('billing_bank_transfers').find({ user_id: { $in: userIds }, status: 'awaiting_transfer' }, { projection: { _id: 0, user_id: 1, reference: 1, amount_total: 1, created_at: 1 } }).sort({ created_at: -1 }).toArray(),
   ]);
+  // Un seul virement en attente par fondateur : le plus récent fait foi.
+  const transfersByUser = new Map();
+  for (const t of transfers) if (!transfersByUser.has(t.user_id)) transfersByUser.set(t.user_id, t);
   const companies = new Map(profiles.map(p => [p.user_id, p.company_name]));
   const lawyerIds = [...new Set(assignments.map(item => item.lawyer_user_id).filter(Number.isFinite))];
   const lawyers = await col('users').find({ id: { $in: lawyerIds } }, { projection: { _id: 0, id: 1, email: 1, full_name: 1 } }).toArray();
@@ -6536,8 +6637,51 @@ app.get('/api/admin/founders', requireAdmin, async (_req, res) => {
   res.json({ founders: users.map(u => {
     const lawyerId = assignmentsByClient.get(u.id) || null;
     const lawyer = lawyersById.get(lawyerId);
-    return { ...u, company_name: companies.get(u.id) || '', lawyer_id: lawyerId, lawyer_name: lawyer ? (lawyer.full_name || lawyer.email) : '', has_open_proposal: clientsWithProposal.has(u.id) };
+    const transfer = transfersByUser.get(u.id) || null;
+    return {
+      ...u, company_name: companies.get(u.id) || '', lawyer_id: lawyerId,
+      lawyer_name: lawyer ? (lawyer.full_name || lawyer.email) : '',
+      has_open_proposal: clientsWithProposal.has(u.id),
+      access_active: u.liquid_plus_access_status === 'paid' || u.subscription_status === 'active',
+      pending_transfer: transfer ? { reference: transfer.reference, amount_cents: transfer.amount_total, created_at: transfer.created_at } : null,
+    };
   }) });
+});
+
+// Activation manuelle de l'accès Liquid+. C'est la contrepartie du paiement par
+// virement : le serveur ne voit pas arriver les fonds, un humain constate le
+// versement sur le compte puis débloque ici. `reference` est facultative mais
+// recommandée — elle rattache l'activation au virement constaté.
+app.patch('/api/admin/founders/:id/plan', requireAdmin, async (req, res) => {
+  const userId = Number(req.params.id);
+  if (!Number.isInteger(userId) || userId <= 0) return res.status(400).json({ error: 'Identifiant invalide' });
+  const activate = req.body?.active;
+  if (typeof activate !== 'boolean') return res.status(422).json({ error: 'Le champ « active » doit être un booléen.' });
+
+  const user = await col('users').findOne({ id: userId }, { projection: { account_types: 1 } });
+  if (!user?.account_types?.includes('fondateur')) return res.status(404).json({ error: 'Fondateur introuvable' });
+
+  const now = new Date().toISOString();
+  if (activate) {
+    await updateUserById(userId, {
+      liquid_plus_access_status: 'paid',
+      liquid_plus_access_paid_at: now,
+      subscription_status: 'active', // compat avec founderAccess() existant
+      subscription_plan: 'plateforme',
+      subscription_started_at: now,
+    });
+    await col('billing_bank_transfers').updateMany(
+      { user_id: userId, status: 'awaiting_transfer' },
+      { $set: { status: 'received', received_at: now, received_by: req.user?.email || null, updated_at: now } },
+    );
+  } else {
+    await updateUserById(userId, {
+      liquid_plus_access_status: 'unpaid',
+      subscription_status: 'inactive',
+      subscription_suspended_at: now,
+    });
+  }
+  return res.json({ id: userId, access_active: activate });
 });
 
 // Libère un email ou un nom de startup brûlé par une suppression de compte.

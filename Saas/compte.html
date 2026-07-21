@@ -64,6 +64,16 @@
     .billing-commitment__text { margin:0 0 12px; color:#6b6b78; font-size:.84rem; line-height:1.5; }
     .billing-commitment label { display:flex; align-items:flex-start; gap:9px; margin-top:9px; color:#08090c; font-size:.84rem; line-height:1.45; }
     .billing-commitment input { margin-top:3px; }
+    .transfer-panel { padding:18px; border:1px solid rgba(8,9,12,.12); border-radius:14px; background:#f8f8f6; }
+    .transfer-panel__title { margin:0 0 6px; font-weight:800; color:#08090c; }
+    .transfer-panel__intro { margin:0 0 16px; color:#6b6b78; font-size:.86rem; line-height:1.5; }
+    .transfer-row { display:flex; align-items:baseline; justify-content:space-between; gap:16px; padding:9px 0; border-top:1px solid rgba(8,9,12,.08); }
+    .transfer-row__label { flex:none; color:#6b6b78; font-size:.82rem; }
+    .transfer-row__value { display:flex; align-items:center; gap:9px; color:#08090c; font-size:.92rem; font-weight:600; text-align:right; word-break:break-all; }
+    .transfer-row--key .transfer-row__value strong { font-size:1.05rem; letter-spacing:.02em; }
+    .transfer-copy { flex:none; padding:3px 9px; border:1px solid rgba(8,9,12,.18); border-radius:7px; background:#fff; color:#6b6b78; font:inherit; font-size:.74rem; font-weight:700; cursor:pointer; }
+    .transfer-copy:hover { color:#08090c; border-color:rgba(8,9,12,.34); }
+    .transfer-panel__warn { margin:14px 0 0; color:#08090c; font-size:.82rem; line-height:1.5; }
 
     /* Cartes blanches (bulles) sur fond noir — cohérent avec le tableau de bord */
     .card { background: var(--t-card); border: 1px solid var(--t-card-border); border-radius: 18px; padding: 26px 28px; margin-bottom: 18px; box-shadow: var(--t-card-shadow); }
@@ -655,8 +665,15 @@
         description.textContent = active
           ? 'Votre offre Liquid+ est active.'
           : 'Votre accès gratuit n’expire pas. Activez Liquid+ Intégral pour exporter, copier et sécuriser vos documents.';
+        // Virement déjà demandé : on réaffiche LA référence communiquée à la
+        // banque plutôt qu'un bouton « Payer » à quelqu'un qui a peut-être payé.
+        if (!active && data.liquid_plus.pending_transfer) {
+          description.textContent = 'Votre virement est en attente de réception. L’accès s’active dès que nous le constatons.';
+          renderBankTransfer(data.liquid_plus.pending_transfer);
+          return;
+        }
         content.innerHTML = '<div class="billing-plan"><div><div class="billing-plan__price"><s>' + fmtEuros(data.liquid_plus.list_price.amount_cents) + '</s> ' + fmtEuros(data.liquid_plus.price.amount_cents) + ' <small>HT · Liquid+ Intégral · ' + esc(raiseLabel) + '</small></div><div class="billing-plan__meta">Toute la plateforme et l’ensemble des documents de votre levée : rédaction guidée, analyse IA de chaque clause, data room, suivi jusqu’au closing. Tarif fondateur — 10 places, jusqu’au 14 août.</div></div><div class="billing-plan__action">' +
-          (active ? '<span class="account-status__badge account-status__badge--active">Offre active</span>' : '<button type="button" class="btn btn--primary" id="billing-checkout">Payer ' + fmtEuros(data.liquid_plus.price.amount_cents) + ' HT</button>') +
+          (active ? '<span class="account-status__badge account-status__badge--active">Offre active</span>' : '<button type="button" class="btn btn--primary" id="billing-checkout">Payer ' + fmtEuros(data.liquid_plus.price.amount_cents) + ' HT par virement</button>') +
           '</div></div>' + (active ? '' : '<div class="billing-code"><input class="input" id="billing-promo-code" placeholder="Code promotionnel" autocomplete="off"><button type="button" class="btn btn--ghost" id="billing-apply-code">Appliquer</button></div><div id="billing-promo-details"></div>') + '<p class="billing-note">Prix hors taxes. La société est cliente et payeuse de Liquid+. Les prestations éventuelles d’un avocat sont facturées séparément et ne sont pas incluses dans ce paiement. Satisfait ou remboursé sous 30 jours sur la facture Liquid+.</p>';
         const button = document.getElementById('billing-checkout');
         if (button) button.addEventListener('click', () => startLiquidCheckout());
@@ -732,12 +749,13 @@
       const discountButton = document.getElementById('billing-discount-checkout');
       const activeButton = promotion.code ? discountButton : button;
       activeButton.disabled = true;
-      activeButton.textContent = 'Redirection…';
+      activeButton.textContent = 'Préparation…';
       try {
-        const response = await fetch('/api/billing/checkout', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ plan: 'plateforme', ...promotion }) });
+        const response = await fetch('/api/billing/bank-transfer', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ plan: 'plateforme', ...promotion }) });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error || 'Paiement indisponible.');
-        window.location.href = data.checkout_url;
+        document.getElementById('billing-alert').hidden = true;
+        renderBankTransfer(data.bank_transfer);
       } catch (error) {
         showAlert('billing-alert', 'error', error.message || 'Paiement indisponible.');
         activeButton.disabled = false;
@@ -745,6 +763,35 @@
           ? 'Accepter et payer ' + fmtEuros(BILLING_PRICING.promo_price.amount_cents) + ' HT'
           : 'Payer ' + fmtEuros(BILLING_PRICING.price.amount_cents) + ' HT';
       }
+    }
+
+    // Instructions de virement. La référence est le seul lien entre le versement
+    // et le compte : elle est mise en avant, copiable, et présentée comme
+    // obligatoire — un virement sans référence oblige à un rapprochement manuel.
+    function renderBankTransfer(transfer) {
+      if (!transfer) return;
+      const content = document.getElementById('billing-content');
+      const line = (label, value, copyable) => '<div class="transfer-row"><span class="transfer-row__label">' + esc(label) + '</span><span class="transfer-row__value">' + esc(value) +
+        (copyable ? '<button type="button" class="transfer-copy" data-copy="' + esc(value) + '" title="Copier">Copier</button>' : '') + '</span></div>';
+      content.innerHTML = '<div class="transfer-panel">' +
+        '<p class="transfer-panel__title">Virement à effectuer</p>' +
+        '<p class="transfer-panel__intro">Effectuez un virement — instantané de préférence — depuis votre banque avec les coordonnées ci-dessous. Votre accès est activé dès réception, généralement sous quelques heures ouvrées.</p>' +
+        line('Bénéficiaire', transfer.beneficiary, true) +
+        line('IBAN', transfer.iban, true) +
+        (transfer.bic ? line('BIC', transfer.bic, true) : '') +
+        line('Montant', fmtEuros(transfer.amount_cents) + ' HT', true) +
+        '<div class="transfer-row transfer-row--key"><span class="transfer-row__label">Référence à indiquer</span><span class="transfer-row__value"><strong>' + esc(transfer.reference) + '</strong><button type="button" class="transfer-copy" data-copy="' + esc(transfer.reference) + '" title="Copier">Copier</button></span></div>' +
+        '<p class="transfer-panel__warn">Cette référence est indispensable : sans elle, nous ne pouvons pas rattacher votre virement à votre compte, et l’activation sera retardée.</p>' +
+        '</div>' +
+        '<p class="billing-note">Prix hors taxes. TVA non applicable, article 293 B du CGI. La société est cliente et payeuse de Liquid+. Les prestations éventuelles d’un avocat sont facturées séparément. Satisfait ou remboursé sous 30 jours.</p>';
+      content.querySelectorAll('.transfer-copy').forEach(btn => btn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(btn.dataset.copy);
+          const previous = btn.textContent;
+          btn.textContent = 'Copié';
+          setTimeout(() => { btn.textContent = previous; }, 1600);
+        } catch { showAlert('billing-alert', 'info', 'Copie impossible depuis ce navigateur — sélectionnez la valeur à la main.'); }
+      }));
     }
 
     async function loadAccountStatus(user) {

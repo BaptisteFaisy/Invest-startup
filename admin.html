@@ -747,7 +747,22 @@
     function renderStartups() {
       const el=document.getElementById('startup-list');
       if(!adminFounders.length){el.innerHTML='<p class="notice">Aucun compte startup.</p>';return;}
-      el.innerHTML=adminFounders.map(f=>`<article class="admin-card"><h3>${escHtml(f.company_name||f.full_name||f.email)}</h3><p>${escHtml(f.email)}</p><p>Compte créé le ${new Date(f.created_at).toLocaleDateString('fr-FR')}</p><div class="admin-actions"><span class="admin-pill">${f.lawyer_id?'Avocat attribué':f.has_open_proposal?'Proposition en cours':'Sans avocat'}</span></div>${f.lawyer_id?`<div class="assigned-startups"><div class="assigned-startups__title">Avocat</div><span class="assigned-startups__item">${escHtml(f.lawyer_name||'Avocat Liquid+')}</span></div>`:''}</article>`).join('');
+      el.innerHTML=adminFounders.map(f=>`<article class="admin-card"><h3>${escHtml(f.company_name||f.full_name||f.email)}</h3><p>${escHtml(f.email)}</p><p>Compte créé le ${new Date(f.created_at).toLocaleDateString('fr-FR')}</p><div class="admin-actions"><span class="admin-pill">${f.lawyer_id?'Avocat attribué':f.has_open_proposal?'Proposition en cours':'Sans avocat'}</span><span class="admin-pill">${f.access_active?'Liquid+ activé':'Gratuit'}</span><button type="button" data-founder-plan="${f.id}" data-active="${f.access_active?'1':''}">${f.access_active?'Désactiver l’accès':'Activer l’accès'}</button></div>${f.pending_transfer?`<div class="assigned-startups"><div class="assigned-startups__title">Virement en attente</div><span class="assigned-startups__item">${escHtml(f.pending_transfer.reference)} <small>· ${(f.pending_transfer.amount_cents/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'})} · demandé le ${new Date(f.pending_transfer.created_at).toLocaleDateString('fr-FR')}</small></span></div>`:''}${f.lawyer_id?`<div class="assigned-startups"><div class="assigned-startups__title">Avocat</div><span class="assigned-startups__item">${escHtml(f.lawyer_name||'Avocat Liquid+')}</span></div>`:''}</article>`).join('');
+      // Activation manuelle : contrepartie du paiement par virement, le serveur
+      // ne voyant pas arriver les fonds. On confirme avant d'activer — c'est un
+      // geste qui donne un accès payant, et avant de retirer un accès déjà vendu.
+      el.querySelectorAll('[data-founder-plan]').forEach(btn=>btn.addEventListener('click',async()=>{
+        const active=!btn.dataset.active;
+        const founder=adminFounders.find(f=>String(f.id)===btn.dataset.founderPlan);
+        const label=founder?(founder.company_name||founder.full_name||founder.email):'ce compte';
+        const question=active
+          ?`Activer l’accès Liquid+ de ${label} ?${founder?.pending_transfer?`\n\nVirement attendu : ${founder.pending_transfer.reference} — ${(founder.pending_transfer.amount_cents/100).toLocaleString('fr-FR',{style:'currency',currency:'EUR'})}.\nVérifiez que le virement est bien arrivé sur le compte avant de confirmer.`:'\n\nAucun virement en attente n’est enregistré pour ce compte.'}`
+          :`Retirer l’accès Liquid+ de ${label} ? Le compte repassera en offre gratuite.`;
+        if(!confirm(question))return;
+        btn.disabled=true;
+        try{await adminJson('/api/admin/founders/'+btn.dataset.founderPlan+'/plan',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({active})});await loadLawyerManagement();}
+        catch(e){alert(e.message);btn.disabled=false;}
+      }));
     }
     function renderLawyers() {
       const el=document.getElementById('lawyer-list');
