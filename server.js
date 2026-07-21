@@ -4424,7 +4424,7 @@ const AVOCAT_PRESTATIONS = [
     ],
     critical: true,
     price: null,
-    price_by_raise_type: { 'bsa-air': '900 – 1 200 € HT', classic: '3 000 – 4 500 € HT' },
+    price_by_raise_type: { 'bsa-air': '1 200 – 1 500 € HT', classic: '3 000 – 4 500 € HT' },
     fee_cap_cents: null,
     delay: 'À convenir',
   },
