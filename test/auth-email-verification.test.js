@@ -31,6 +31,17 @@ test('les deux pages permettent de renvoyer un lien de confirmation', () => {
   assert.match(login, /fetch\('\/api\/auth\/resend-verification'/);
 });
 
+test('le lien de confirmation ouvre la session et mène au choix du type de compte', () => {
+  const serverSource = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
+
+  // La bascule est arbitrée par le filtre de l'updateOne, pas par la lecture qui
+  // précède : sans cela, deux clics simultanés ouvriraient deux sessions.
+  assert.match(serverSource, /\{ id: user\.id, email_verified: false \},\s*\n\s*\{ \$set: \{ email_verified: true, email_verified_at: new Date\(\)\.toISOString\(\) \} \},/);
+  assert.match(serverSource, /if \(claim\.modifiedCount === 1\) \{\s*\n\s*user\.email_verified = true;\s*\n\s*setAuthCookie\(res, user\);\s*\n\s*return res\.redirect\(await authLandingPath\(user\)\);/);
+  // Un lien rejoué ne redonne pas de session : il retombe sur la connexion.
+  assert.match(serverSource, /return res\.redirect\('\/login\.html\?email_verification=success'\);/);
+});
+
 test('la production reste disponible sans intégrations externes', () => {
   const problems = productionConfigurationProblems({
     JWT_SECRET: 'j'.repeat(32),

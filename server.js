@@ -1173,8 +1173,25 @@ app.get('/api/auth/verify-email', authLimiter, async (req, res) => {
     if (payload.purpose !== 'verify_email') throw new Error('Invalid purpose');
     const user = await col('users').findOne({ id: payload.id, email: payload.email });
     if (!user) return res.redirect('/login.html?email_verification=invalid');
-    if (user.email_verified === false) {
-      await updateUserById(user.id, { email_verified: true, email_verified_at: new Date().toISOString() });
+
+    // Le lien de confirmation ouvre la session et emmène directement au choix du
+    // type de compte. Renvoyer vers login.html pour faire ressaisir un mot de
+    // passe choisi deux minutes plus tôt n'apportait rien : le lien vient
+    // d'arriver dans la boîte du titulaire, il prouve déjà l'accès à l'adresse.
+    //
+    // La session n'est ouverte que sur la bascule non confirmé → confirmé, et
+    // c'est le updateOne filtré qui l'arbitre, pas la lecture au-dessus : deux
+    // clics simultanés ne peuvent pas ouvrir deux sessions. Un lien rejoué plus
+    // tard — email transféré, historique partagé, scanner antispam qui le
+    // préouvre — retombe donc sur le parcours de connexion normal.
+    const claim = await col('users').updateOne(
+      { id: user.id, email_verified: false },
+      { $set: { email_verified: true, email_verified_at: new Date().toISOString() } },
+    );
+    if (claim.modifiedCount === 1) {
+      user.email_verified = true;
+      setAuthCookie(res, user);
+      return res.redirect(await authLandingPath(user));
     }
     return res.redirect('/login.html?email_verification=success');
   } catch {
