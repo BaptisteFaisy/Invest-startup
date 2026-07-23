@@ -3486,15 +3486,6 @@
       return Math.max(0, Math.min(1, engaged / target));
     }
 
-    // Carte d'avancement de la levée, affichée au-dessus des « prochaines
-    // priorités » sur l'étape « Ma levée ». Renvoie null tant que le montant
-    // visé n'est pas renseigné (sans objectif, la barre n'a pas de sens).
-    function fundraiseProgressEl() {
-      const target = Number(fundraisingProfile && fundraisingProfile.target_amount) || 0;
-      if (!(target > 0)) return null;
-      let engaged = 0, discussion = 0, engagedCount = 0, pipelineCount = 0;
-      (invPipeline || []).forEach(inv => {
-
     function invFillStageSelect(select, value) {
       select.innerHTML = INV_STAGES.map(s => `<option value="${s.key}">${esc(s.label)}</option>`).join('');
       select.value = value;
