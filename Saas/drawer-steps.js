@@ -203,15 +203,21 @@
     let user = null;
     try { if (typeof fetchMe === 'function') user = await fetchMe(); } catch {}
     const raiseUser = (user && (user.id || user.email)) || 'me';
+    // Repris de tableau-de-bord.html : quand cette page outil connaît elle-même
+    // le projet ouvert (project_id dans son URL), on lit la même clé que le
+    // tableau de bord et on scope l'appel /folders sur ce projet.
+    let projectId = '';
+    try { projectId = new URLSearchParams(location.search).get('project_id') || ''; } catch {}
     let type = 'classic';
     try {
-      const t = localStorage.getItem('liquid_raise_type_' + raiseUser);
+      const t = localStorage.getItem('liquid_raise_type_' + raiseUser + (projectId ? '_' + projectId : ''));
       if (t === 'classic' || t === 'bsa-air') type = t;
     } catch {}
     let folders = [], docs = [], investors = [];
     try {
+      const foldersUrl = '/api/saas/folders' + (projectId ? '?project_id=' + encodeURIComponent(projectId) : '');
       const [fr, dr, ir] = await Promise.all([
-        fetch('/api/saas/folders', { credentials: 'include' }),
+        fetch(foldersUrl, { credentials: 'include' }),
         fetch('/api/saas/documents', { credentials: 'include' }),
         fetch('/api/saas/investors', { credentials: 'include' }).catch(() => null),
       ]);

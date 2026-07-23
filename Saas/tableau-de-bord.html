@@ -1359,6 +1359,16 @@
       importInvestorChecklist(folderId, file, name.trim());
     });
 
+    // Projet ouvert (« Mes projets ») : un compte peut porter plusieurs levées de
+    // types différents, ce tableau de bord n'en affiche qu'une à la fois. Sans
+    // project_id dans l'URL (lien historique), le serveur retombe sur le projet
+    // par défaut du compte — on ne bloque jamais l'accès pour autant.
+    const PROJECT_ID = new URLSearchParams(location.search).get('project_id') || '';
+    function withProjectParam(url) {
+      if (!PROJECT_ID) return url;
+      return url + (url.includes('?') ? '&' : '?') + 'project_id=' + encodeURIComponent(PROJECT_ID);
+    }
+
     /* ---- Type de levée : Levée classique OU BSA-AIR (choix exclusif) ---- */
     let raiseUser = 'me';
     // Deux instruments exclusifs : une levée classique OU des BSA-AIR. Aucun état
@@ -1568,7 +1578,7 @@
       return isSystemPhase(f) && !String(f && f.name || '').trim().startsWith('9')
         && !HIDDEN_CLASSIC_PHASE_KEYS.includes(f && f.key);
     }
-    function raiseKey() { return 'liquid_raise_type_' + raiseUser; }
+    function raiseKey() { return 'liquid_raise_type_' + raiseUser + (PROJECT_ID ? '_' + PROJECT_ID : ''); }
     function dashboardControlsKey() { return 'liquid_dashboard_controls_collapsed_' + raiseUser; }
     function storedDashboardControlsCollapsed() {
       try { return localStorage.getItem(dashboardControlsKey()) === '1'; }
@@ -2871,7 +2881,7 @@
         })).filter(f => f.name || f.job),
       };
     }
-    function fundraisingProfileKey() { return 'liquid_fundraising_profile_' + raiseUser; }
+    function fundraisingProfileKey() { return 'liquid_fundraising_profile_' + raiseUser + (PROJECT_ID ? '_' + PROJECT_ID : ''); }
     function storeFundraisingProfileLocal(profile) {
       try { localStorage.setItem(fundraisingProfileKey(), JSON.stringify(profile)); } catch {}
     }
@@ -2890,9 +2900,9 @@
       if (!loaded) foldersEl.innerHTML = '<p class="empty">Chargement…</p>';
       try {
         const [fr, dr, pr, cr, ir, tr] = await Promise.all([
-          fetch('/api/saas/folders',   { credentials: 'include' }),
+          fetch(withProjectParam('/api/saas/folders'),   { credentials: 'include' }),
           fetch('/api/saas/documents', { credentials: 'include' }),
-          fetch('/api/saas/fundraising-profile', { credentials: 'include' }).catch(() => null),
+          fetch(withProjectParam('/api/saas/fundraising-profile'), { credentials: 'include' }).catch(() => null),
           fetch('/api/saas/dataroom/connections', { credentials: 'include' }).catch(() => null),
           fetch('/api/saas/investors', { credentials: 'include' }).catch(() => null),
           fetch('/api/saas/tasks', { credentials: 'include' }).catch(() => null),
@@ -4055,7 +4065,7 @@
         }
         status.textContent = 'Enregistrement...';
         try {
-          const r = await fetch('/api/saas/fundraising-profile', {
+          const r = await fetch(withProjectParam('/api/saas/fundraising-profile'), {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
@@ -4084,9 +4094,9 @@
           const next = current === 'classic' ? 'bsa-air' : 'classic';
           const nextLabel = next === 'classic' ? 'Levée classique' : 'BSA-AIR';
           const ok = window.confirm(
-            `Passer votre compte en « ${nextLabel} » ?\n\n`
-            + "Tous les documents et l'avancement du parcours de votre type de levée actuel seront définitivement supprimés. "
-            + 'Votre profil de levée, vos investisseurs, vos simulations et vos dossiers personnels sont conservés.\n\n'
+            `Passer cette levée en « ${nextLabel} » ?\n\n`
+            + "Tous les documents et l'avancement du parcours de son type de levée actuel seront définitivement supprimés. "
+            + 'Le profil de levée, les investisseurs, les simulations et les dossiers personnels sont conservés.\n\n'
             + 'Cette action est irréversible.'
           );
           if (!ok) return;
@@ -4094,7 +4104,7 @@
           status.className = 'raise-profile__status';
           status.textContent = 'Changement de type en cours...';
           try {
-            const r = await fetch('/api/saas/fundraising-profile/switch-type', {
+            const r = await fetch(withProjectParam('/api/saas/fundraising-profile/switch-type'), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               credentials: 'include',
@@ -4109,6 +4119,7 @@
             // (dossiers, étapes, documents) après la suppression côté serveur.
             const params = new URLSearchParams({ raise: saved.raise_type });
             if (saved.raise_type === 'classic') params.set('step', 'mise-en-ordre');
+            if (PROJECT_ID) params.set('project_id', PROJECT_ID);
             window.location.href = 'tableau-de-bord.html?' + params.toString();
           } catch (err) {
             switchBtn.disabled = false;
@@ -7046,7 +7057,7 @@
       if (!name) return;
       showErr('');
       try {
-        const r = await fetch('/api/saas/folders', {
+        const r = await fetch(withProjectParam('/api/saas/folders'), {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           credentials: 'include', body: JSON.stringify({ name }),
         });

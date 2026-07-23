@@ -568,9 +568,14 @@
             };
             const typeClass = typeClasses[project.type] || 'raise';
             const progress = project.progress || 0;
+            // Évite un flash « mauvais type » le temps que le tableau de bord
+            // recharge son profil : on connaît déjà le type ici.
+            const dashboardRaise = project.type === 'bsaair' ? 'bsa-air' : 'classic';
+            const dashboardParams = new URLSearchParams({ project_id: project.id, raise: dashboardRaise });
+            if (dashboardRaise === 'classic') dashboardParams.set('step', 'mise-en-ordre');
 
             return `
-              <a href="tableau-de-bord.html?project_id=${project.id}" class="project-card">
+              <a href="tableau-de-bord.html?${dashboardParams.toString()}" class="project-card">
                 <div class="project-card__header">
                   <span class="project-card__type project-card__type--${typeClass}">
                     ${typeLabel}

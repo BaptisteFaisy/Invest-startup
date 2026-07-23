@@ -137,6 +137,14 @@
     <script>
       const NEXT = 'tableau-de-bord.html';
       const RAISE_HINTS = { classic: true, 'bsa-air': true };
+      // Arrivée depuis « Mes projets » (création d'un nouveau projet) : le type de
+      // levée a déjà été choisi là-bas, ce formulaire ne fait que compléter le
+      // profil pour CE projet — il ne doit plus laisser le type se re-choisir.
+      const PROJECT_ID = new URLSearchParams(location.search).get('project_id') || '';
+      function withProjectParam(url) {
+        if (!PROJECT_ID) return url;
+        return url + (url.includes('?') ? '&' : '?') + 'project_id=' + encodeURIComponent(PROJECT_ID);
+      }
       const COUNTRIES = ['france', 'us', 'uk', 'germany', 'other'];
       const STATUSES = ['cofounder', 'late-cofounder', 'investor'];
       const DEFAULT_PROFILE = {
@@ -282,6 +290,7 @@
       function dashboardHref(profile) {
         const params = new URLSearchParams({ raise: profile.raise_type });
         if (profile.raise_type === 'classic') params.set('step', 'mise-en-ordre');
+        if (PROJECT_ID) params.set('project_id', PROJECT_ID);
         return NEXT + '?' + params.toString();
       }
 
@@ -308,7 +317,7 @@
 
         let profile = normalizeProfile(DEFAULT_PROFILE);
         try {
-          const res = await fetch('/api/saas/fundraising-profile', { credentials: 'include' });
+          const res = await fetch(withProjectParam('/api/saas/fundraising-profile'), { credentials: 'include' });
           if (res.ok) {
             const data = await res.json();
             profile = normalizeProfile(data.profile || DEFAULT_PROFILE);
@@ -340,7 +349,7 @@
         submitBtn.textContent = 'Enregistrement...';
         statusEl.textContent = 'Enregistrement...';
         try {
-          const res = await fetch('/api/saas/fundraising-profile', {
+          const res = await fetch(withProjectParam('/api/saas/fundraising-profile'), {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',

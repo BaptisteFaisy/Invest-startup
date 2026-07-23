@@ -18,6 +18,7 @@ const OpenAI           = require('openai');
 const CloudConvert     = require('cloudconvert');
 const JSZip            = require('jszip');
 const mammoth          = require('mammoth');
+const WordExtractor    = require('word-extractor');
 const pdfParse         = require('pdf-parse');
 const ExcelJS          = require('exceljs');
 const { google }       = require('googleapis');
@@ -139,6 +140,8 @@ const bankTransferEnabled = () => !!(LIQUIDPLUS_IBAN && LIQUIDPLUS_ACCOUNT_HOLDE
 // forfaits avocat affichés (grille tarifaire de la homepage). Tout profil absent
 // ou inconnu retombe sur la levée classique, comme le défaut du profil.
 async function founderRaiseType(userId) {
+  const project = await ensureDefaultProject(userId);
+  if (project) return projectRaiseType(project.type);
   const profile = await col('saas_fundraising_profiles').findOne(
     { user_id: userId },
     { projection: { raise_type: 1 } },
@@ -2917,6 +2920,18 @@ async function odtToText(buf) {
   return decodeXmlText(xml);
 }
 
+// Signature OLE2/CFB (D0 CF 11 E0 A1 B1 1A E1) : format binaire de Word 97-2003 (.doc).
+// mammoth ne sait lire que l'OOXML (.docx, une archive ZIP) ; un vrai .doc legacy doit
+// être détecté à part pour être converti (CloudConvert) ou lu en texte brut (word-extractor).
+function isLegacyDocBuffer(buf) {
+  return buf.length >= 8 && buf.slice(0, 8).equals(Buffer.from([0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1]));
+}
+
+async function legacyDocToText(buf) {
+  const doc = await new WordExtractor().extract(buf);
+  return doc.getBody() || '';
+}
+
 // ─── SaaS : remplissage automatique des champs depuis les documents importés ───
 // Extrait (et met en cache dans le document) le texte brut d'un document importé
 // (PDF, Word, OpenDocument, Excel ou TXT). Renvoie '' si inexploitable.
@@ -2936,6 +2951,7 @@ async function extractImportedText(doc) {
       // Un .doc « de secours » peut en réalité contenir du HTML (voir /to-editor).
       const sample = buf.slice(0, 300).toString('utf8');
       if (/<html|<!DOCTYPE/i.test(sample)) text = buf.toString('utf8').replace(/<[^>]+>/g, ' ');
+      else if (isLegacyDocBuffer(buf)) text = await legacyDocToText(buf);
       else text = (await mammoth.extractRawText({ buffer: buf })).value || '';
     } else if (ext === '.xlsx') {
       text = await xlsxToText(buf);
@@ -3952,6 +3968,61 @@ function publicFolder(f) {
   return rest;
 }
 
+// ─── Projets (« Mes projets ») : résolution du projet courant ────────────────
+// « Mes projets » permet plusieurs levées par compte (raise-preference, bsaair,
+// raise-ordinary). Le tableau de bord (dossiers, checklists) est scopé par
+// projet ; le profil de levée (nom société, fondateurs, montant visé...) reste
+// un document unique par compte — une société ne change pas de nom entre deux
+// levées. Seul le type effectif de la levée est dérivé du projet courant.
+const SAAS_PROJECT_TYPES = new Set(['raise-preference', 'bsaair', 'raise-ordinary']);
+function projectRaiseType(type) { return type === 'bsaair' ? 'bsa-air' : 'classic'; }
+
+// Compte créé avant l'introduction de « Mes projets » (ou tableau de bord ouvert
+// sans project_id, ex. lien historique) : on lui provisionne un projet par
+// défaut à partir de son éventuel profil existant, et on y rattache ses
+// dossiers déjà créés (sans rien déplacer ni supprimer — ils n'avaient pas de
+// project_id avant cette migration). Sans effet pour un compte déjà multi-projets.
+// S'applique aussi à un compte tout neuf (parcours d'inscription historique,
+// qui atterrit sur le tableau de bord sans passer par « Mes projets ») : il
+// obtient de la même façon son premier projet, vide, à la volée.
+async function ensureDefaultProject(userId) {
+  const existing = await col('saas_projects').findOne({ user_id: userId }, { sort: { created_at: 1, id: 1 } });
+  if (existing) return existing;
+
+  const legacyProfile = await col('saas_fundraising_profiles').findOne(
+    { user_id: userId }, { projection: { raise_type: 1, company_name: 1 } },
+  );
+
+  const id = await nextId('saas_projects');
+  const now = new Date().toISOString();
+  const project = {
+    id, user_id: userId,
+    name: legacyProfile?.company_name || 'Ma levée',
+    type: legacyProfile?.raise_type === 'bsa-air' ? 'bsaair' : 'raise-preference',
+    company_name: legacyProfile?.company_name || null,
+    progress: 0, created_at: now, updated_at: now,
+  };
+  await col('saas_projects').insertOne(project);
+  await col('saas_folders').updateMany(
+    { user_id: userId, project_id: { $exists: false } },
+    { $set: { project_id: id } },
+  );
+  return project;
+}
+
+// Résout le projet ciblé par une requête du tableau de bord. Sans project_id
+// fourni (lien historique, première visite), on retombe sur le projet par
+// défaut du compte (créé à la volée si besoin). Retourne `false` si un
+// project_id est fourni mais introuvable / n'appartient pas à l'utilisateur.
+async function resolveProject(req) {
+  const raw = req.query?.project_id ?? req.body?.project_id;
+  if (raw === undefined || raw === null || raw === '') return ensureDefaultProject(req.user.id);
+  const id = Number(raw);
+  if (!Number.isFinite(id)) return false;
+  const project = await col('saas_projects').findOne({ id, user_id: req.user.id });
+  return project || false;
+}
+
 const FUNDRAISING_PROFILE_DEFAULT = {
   company_name: '',
   company_country: 'france',
@@ -4023,6 +4094,9 @@ function sanitizeFundraisingProfile(body) {
 }
 
 app.get('/api/saas/fundraising-profile', requireAuth, async (req, res) => {
+  const project = await resolveProject(req);
+  if (project === false) return res.status(404).json({ error: 'Projet introuvable' });
+
   const profile = await col('saas_fundraising_profiles').findOne({ user_id: req.user.id });
   const publicProfile = publicFundraisingProfile(profile);
   // Reprise des comptes créés quand le nom était encore demandé à l'inscription :
@@ -4032,10 +4106,20 @@ app.get('/api/saas/fundraising-profile', requireAuth, async (req, res) => {
     const user = await col('users').findOne({ id: req.user.id }, { projection: { company_name: 1 } });
     if (user?.company_name) publicProfile.company_name = user.company_name;
   }
-  res.json({ profile: publicProfile });
+  // Le type de levée affiché est celui du projet courant (« Mes projets »), pas
+  // le type historique du compte : un compte peut porter plusieurs projets de
+  // types différents, seul le profil (société, fondateurs...) reste partagé.
+  if (project) {
+    publicProfile.raise_type = projectRaiseType(project.type);
+    publicProfile.raise_type_locked = true;
+  }
+  res.json({ profile: publicProfile, project: project ? { id: project.id, type: project.type, name: project.name } : null });
 });
 
 app.put('/api/saas/fundraising-profile', requireAuth, async (req, res) => {
+  const project = await resolveProject(req);
+  if (project === false) return res.status(404).json({ error: 'Projet introuvable' });
+
   let profile;
   try { profile = sanitizeFundraisingProfile(req.body || {}); }
   catch (e) { return res.status(400).json({ error: e.message || 'Profil de levée invalide' }); }
@@ -4067,12 +4151,17 @@ app.put('/api/saas/fundraising-profile', requireAuth, async (req, res) => {
     throw err;
   }
 
-  // Verrouillage du type de levée : une fois classic ou bsa-air enregistré, le
-  // choix est définitif. On ignore silencieusement toute tentative de bascule
-  // vers l'autre instrument (le reste du profil reste modifiable).
-  const existing = await col('saas_fundraising_profiles').findOne({ user_id: req.user.id });
-  if (existing && existing.raise_type_locked && existing.raise_type) {
-    profile.raise_type = existing.raise_type;
+  // Le type de levée effectif est celui du projet courant (« Mes projets »),
+  // jamais celui envoyé par le formulaire : il ne se change que via le bouton
+  // dédié (switch-type) ou en créant un nouveau projet. Sans projet résolu
+  // (lien historique), on retombe sur l'ancien verrouillage au niveau du compte.
+  if (project) {
+    profile.raise_type = projectRaiseType(project.type);
+  } else {
+    const existing = await col('saas_fundraising_profiles').findOne({ user_id: req.user.id });
+    if (existing && existing.raise_type_locked && existing.raise_type) {
+      profile.raise_type = existing.raise_type;
+    }
   }
 
   const now = new Date().toISOString();
@@ -4082,7 +4171,12 @@ app.put('/api/saas/fundraising-profile', requireAuth, async (req, res) => {
     { upsert: true },
   );
   const saved = await col('saas_fundraising_profiles').findOne({ user_id: req.user.id });
-  res.json({ success: true, profile: publicFundraisingProfile(saved) });
+  const publicProfile = publicFundraisingProfile(saved);
+  if (project) {
+    publicProfile.raise_type = projectRaiseType(project.type);
+    publicProfile.raise_type_locked = true;
+  }
+  res.json({ success: true, profile: publicProfile });
 });
 
 // Changement de type de levée (classique <-> BSA-AIR) sur un même compte. Le type
@@ -4096,14 +4190,19 @@ app.post('/api/saas/fundraising-profile/switch-type', requireAuth, async (req, r
   if (!FUNDRAISING_TYPES.has(nextType)) return res.status(400).json({ error: 'Type de levée cible invalide' });
 
   const userId = req.user.id;
-  const existing = await col('saas_fundraising_profiles').findOne({ user_id: userId });
-  const currentType = (existing && existing.raise_type) || 'classic';
-  if (nextType === currentType) return res.status(400).json({ error: 'Ce compte est déjà sur ce type de levée' });
+  const project = await resolveProject(req);
+  if (project === false) return res.status(404).json({ error: 'Projet introuvable' });
+  const projectId = project ? project.id : null;
+
+  const currentType = project
+    ? projectRaiseType(project.type)
+    : ((await col('saas_fundraising_profiles').findOne({ user_id: userId }))?.raise_type || 'classic');
+  if (nextType === currentType) return res.status(400).json({ error: 'Cette levée est déjà sur ce type' });
 
   // On s'assure que les dossiers système existent, puis on cible ceux de l'ancien type.
-  await ensureUserFolders(userId);
+  await ensureUserFolders(userId, projectId);
   const oldFolders = await col('saas_folders')
-    .find({ user_id: userId, system: true, track: currentType }, { projection: { id: 1 } })
+    .find({ user_id: userId, project_id: projectId, system: true, track: currentType }, { projection: { id: 1 } })
     .toArray();
   const oldFolderIds = oldFolders.map(f => f.id);
 
@@ -4133,19 +4232,33 @@ app.post('/api/saas/fundraising-profile/switch-type', requireAuth, async (req, r
     }
     // Supprime les dossiers système de l'ancien type : ensureUserFolders les recréera
     // vierges (état d'avancement et checklists remis à zéro).
-    await col('saas_folders').deleteMany({ user_id: userId, system: true, track: currentType });
+    await col('saas_folders').deleteMany({ user_id: userId, project_id: projectId, system: true, track: currentType });
   }
 
   const now = new Date().toISOString();
-  await col('saas_fundraising_profiles').updateOne(
-    { user_id: userId },
-    { $set: { raise_type: nextType, raise_type_locked: true, updated_at: now }, $setOnInsert: { user_id: userId, created_at: now } },
-    { upsert: true },
-  );
-  await ensureUserFolders(userId); // recrée à neuf les dossiers du parcours choisi.
+  if (project) {
+    // Le type est celui du projet courant : on ne touche pas au profil partagé
+    // du compte (société, fondateurs...), seul le projet change de piste.
+    await col('saas_projects').updateOne(
+      { id: project.id, user_id: userId },
+      { $set: { type: nextType === 'bsa-air' ? 'bsaair' : 'raise-preference', updated_at: now } },
+    );
+  } else {
+    await col('saas_fundraising_profiles').updateOne(
+      { user_id: userId },
+      { $set: { raise_type: nextType, raise_type_locked: true, updated_at: now }, $setOnInsert: { user_id: userId, created_at: now } },
+      { upsert: true },
+    );
+  }
+  await ensureUserFolders(userId, projectId); // recrée à neuf les dossiers du parcours choisi.
 
   const saved = await col('saas_fundraising_profiles').findOne({ user_id: userId });
-  res.json({ success: true, profile: publicFundraisingProfile(saved) });
+  const publicProfile = publicFundraisingProfile(saved);
+  if (project) {
+    publicProfile.raise_type = nextType;
+    publicProfile.raise_type_locked = true;
+  }
+  res.json({ success: true, profile: publicProfile });
 });
 
 // Profil professionnel demandé aux avocats avant l'accès à leur espace.
@@ -4215,18 +4328,18 @@ app.put('/api/saas/lawyer-profile', requireAuth, async (req, res) => {
 // (leurs fichiers redeviennent « non classés »). Les dossiers créés par
 // l'utilisateur (non système) ne sont jamais touchés. Idempotent et sans écriture
 // inutile une fois la dernière version appliquée.
-async function ensureUserFolders(userId) {
+async function ensureUserFolders(userId, projectId) {
   const PHASES = allSeedPhases();
   const testFolders = await col('saas_folders')
-    .find({ user_id: userId, system: { $ne: true }, name: /^\s*test(?:\s+1)?\s*$/i }, { projection: { id: 1 } })
+    .find({ user_id: userId, project_id: projectId, system: { $ne: true }, name: /^\s*test(?:\s+1)?\s*$/i }, { projection: { id: 1 } })
     .toArray();
   for (const f of testFolders) {
-    await col('saas_folders').deleteOne({ id: f.id, user_id: userId, system: { $ne: true } });
+    await col('saas_folders').deleteOne({ id: f.id, user_id: userId, project_id: projectId, system: { $ne: true } });
     await col('saas_documents').updateMany({ user_id: userId, folder_id: f.id }, { $unset: { folder_id: '' } });
   }
 
   const sys = await col('saas_folders')
-    .find({ user_id: userId, system: true }, {
+    .find({ user_id: userId, project_id: projectId, system: true }, {
       projection: {
         id: 1, key: 1, seed_version: 1,
         checklist: 1, marks: 1, items_state: 1,
@@ -4244,7 +4357,7 @@ async function ensureUserFolders(userId) {
     const checklists = investorChecklistsForFolder(folder);
     if ((!Array.isArray(folder.investor_checklists) || !folder.investor_checklists.length) && checklists.length) {
       await col('saas_folders').updateOne(
-        { id: folder.id, user_id: userId },
+        { id: folder.id, user_id: userId, project_id: projectId },
         { $set: { investor_checklists: checklists } },
       );
       folder.investor_checklists = checklists;
@@ -4263,7 +4376,7 @@ async function ensureUserFolders(userId) {
   // Supprime les dossiers système obsolètes (anciens génériques sans clé inclus).
   const obsolete = sys.filter(f => !f.key || !wantedKeys.has(f.key));
   for (const f of obsolete) {
-    await col('saas_folders').deleteOne({ id: f.id, user_id: userId });
+    await col('saas_folders').deleteOne({ id: f.id, user_id: userId, project_id: projectId });
     await col('saas_documents').updateMany({ user_id: userId, folder_id: f.id }, { $unset: { folder_id: '' } });
   }
 
@@ -4294,10 +4407,10 @@ async function ensureUserFolders(userId) {
         && INVESTOR_CHECKLIST_FOLDER_KEYS.has(p.key)
         && cur.seed_version !== FOLDERS_SEED_VERSION;
       const nextSet = clearsLegacyDdState ? { ...set, items_state: {} } : set;
-      await col('saas_folders').updateOne({ id: cur.id, user_id: userId }, { $set: nextSet, $unset: { required: '' } });
+      await col('saas_folders').updateOne({ id: cur.id, user_id: userId, project_id: projectId }, { $set: nextSet, $unset: { required: '' } });
     } else {
       const id = await nextId('saas_folders');
-      await col('saas_folders').insertOne({ id, user_id: userId, key: p.key, created_at: now, ...set });
+      await col('saas_folders').insertOne({ id, user_id: userId, project_id: projectId, key: p.key, created_at: now, ...set });
     }
   }
 }
@@ -4319,7 +4432,7 @@ app.get('/api/saas/projects', requireAuth, async (req, res) => {
 
 app.post('/api/saas/projects', requireAuth, async (req, res) => {
   const name = (req.body?.name || '').trim().slice(0, 200);
-  const type = ['raise', 'bsaair'].includes(req.body?.type) ? req.body.type : 'raise';
+  const type = SAAS_PROJECT_TYPES.has(req.body?.type) ? req.body.type : 'raise-preference';
   const company_name = (req.body?.company_name || '').trim().slice(0, 200);
 
   if (!name) return res.status(400).json({ error: 'Nom du projet requis' });
@@ -4373,21 +4486,25 @@ app.delete('/api/saas/projects/:id', requireAuth, async (req, res) => {
 });
 
 app.get('/api/saas/folders', requireAuth, async (req, res) => {
-  await ensureUserFolders(req.user.id);
+  const project = await resolveProject(req);
+  if (project === false) return res.status(404).json({ error: 'Projet introuvable' });
+  await ensureUserFolders(req.user.id, project.id);
   const folders = await col('saas_folders')
-    .find({ user_id: req.user.id }, { projection: { _id: 0, user_id: 0 } })
+    .find({ user_id: req.user.id, project_id: project.id }, { projection: { _id: 0, user_id: 0 } })
     .sort({ order: 1, id: 1 })
     .toArray();
-  res.json({ folders });
+  res.json({ folders, project: { id: project.id, type: project.type, name: project.name } });
 });
 
 app.post('/api/saas/folders', requireAuth, async (req, res) => {
   const name = (req.body?.name || '').trim();
   if (!name) return res.status(400).json({ error: 'Nom du dossier requis' });
-  await ensureUserFolders(req.user.id);
-  const last   = await col('saas_folders').findOne({ user_id: req.user.id }, { sort: { order: -1 }, projection: { order: 1 } });
+  const project = await resolveProject(req);
+  if (project === false) return res.status(404).json({ error: 'Projet introuvable' });
+  await ensureUserFolders(req.user.id, project.id);
+  const last   = await col('saas_folders').findOne({ user_id: req.user.id, project_id: project.id }, { sort: { order: -1 }, projection: { order: 1 } });
   const id     = await nextId('saas_folders');
-  const folder = { id, user_id: req.user.id, name, order: (last?.order ?? -1) + 1, system: false, created_at: new Date().toISOString() };
+  const folder = { id, user_id: req.user.id, project_id: project.id, name, order: (last?.order ?? -1) + 1, system: false, created_at: new Date().toISOString() };
   await col('saas_folders').insertOne(folder);
   res.status(201).json({ folder: publicFolder(folder) });
 });
@@ -9101,8 +9218,20 @@ app.post('/api/saas/documents/:id/to-editor', requireAuth, async (req, res) => {
         const fullHtml = docBuf.toString('utf8');
         const m = /<body[^>]*>([\s\S]*?)<\/body>/i.exec(fullHtml);
         rawHtml = m ? m[1] : fullHtml;
+      } else if (isLegacyDocBuffer(docBuf)) {
+        // Vrai .doc legacy (Word 97-2003, binaire OLE2) : mammoth ne sait pas le lire.
+        // On passe par CloudConvert pour obtenir un .docx (mise en forme conservée)
+        // si le service est configuré, sinon on se rabat sur le texte brut.
+        if (cloudConvert) {
+          const converted = await convertViaCloudConvert(docBuf, doc.originalname || doc.name || 'document.doc', 'docx');
+          const docxBuf   = await downloadToBuffer(converted.url);
+          const result    = await mammoth.convertToHtml({ buffer: docxBuf });
+          rawHtml = result.value || '';
+        } else {
+          rawHtml = plainTextToEditorHtml(await legacyDocToText(docBuf));
+        }
       } else {
-        // Vrai DOCX/DOC binaire → conversion via mammoth.
+        // Vrai DOCX (ou .doc renommé qui est en réalité un DOCX) → conversion via mammoth.
         const result = await mammoth.convertToHtml({ buffer: docBuf });
         rawHtml = result.value || '';
       }

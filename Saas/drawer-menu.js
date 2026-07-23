@@ -411,8 +411,15 @@
     resultsEl.innerHTML = '';
   }
 
+  // Le projet ouvert (« Mes projets ») : quand cette page connaît un project_id
+  // (elle est déjà sur le tableau de bord, ou une page outil l'a repris), la
+  // recherche reste dans ce projet plutôt que de retomber sur le projet par défaut.
+  let currentProjectId = '';
+  try { currentProjectId = new URLSearchParams(location.search).get('project_id') || ''; } catch {}
+
   function dashboardTarget(folderId, documentId) {
     const params = new URLSearchParams();
+    if (currentProjectId) params.set('project_id', currentProjectId);
     if (folderId != null) params.set('targetFolder', String(folderId));
     if (documentId != null) params.set('targetDocument', String(documentId));
     return 'tableau-de-bord.html?' + params.toString();
@@ -485,8 +492,9 @@
     if (dataLoaded || dataLoading) return;
     dataLoading = true;
     try {
+      const foldersUrl = '/api/saas/folders' + (currentProjectId ? '?project_id=' + encodeURIComponent(currentProjectId) : '');
       const [foldersResponse, documentsResponse] = await Promise.all([
-        fetch('/api/saas/folders', { credentials: 'include' }),
+        fetch(foldersUrl, { credentials: 'include' }),
         fetch('/api/saas/documents', { credentials: 'include' }),
       ]);
       if (foldersResponse.ok) folders = (await foldersResponse.json()).folders || [];
