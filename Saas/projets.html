@@ -349,10 +349,46 @@
 
   <script src="auth.js"></script>
   <script>
-    (async function() {
-      const projectsList = document.getElementById('projects-list');
-      const errorContainer = document.getElementById('error-container');
+    const projectsList = document.getElementById('projects-list');
+    const errorContainer = document.getElementById('error-container');
 
+    async function createProject(type, name) {
+      try {
+        const response = await fetch('/api/saas/projects', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type, name }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(error.error || 'Impossible de créer le projet');
+        }
+
+        const data = await response.json();
+        // Rediriger vers le tableau de bord avec l'ID du nouveau projet
+        window.location.href = `tableau-de-bord.html?project_id=${data.project.id}`;
+      } catch (error) {
+        console.error('Erreur lors de la création du projet:', error);
+        errorContainer.innerHTML = `
+          <div class="error-message">
+            ${error.message || 'Impossible de créer le projet'}
+          </div>
+        `;
+      }
+    }
+
+    // Attacher les gestionnaires d'événements aux boutons
+    document.getElementById('btn-new-raise').addEventListener('click', () => {
+      createProject('raise', 'Nouvelle levée de fonds');
+    });
+
+    document.getElementById('btn-new-bsaair').addEventListener('click', () => {
+      createProject('bsaair', 'Nouveau BSA AIR');
+    });
+
+    (async function() {
       // Vérifier l'authentification
       const user = await requireAuth('login.html', { requireAccountType: true });
       if (!user) return;
@@ -456,42 +492,6 @@
             <p class="empty-state__text">Impossible de charger vos projets. Veuillez réessayer.</p>
           </div>
         `;
-      }
-
-      // Gestion des boutons de création
-      document.getElementById('btn-new-raise').addEventListener('click', async () => {
-        await createProject('raise', 'Nouvelle levée de fonds');
-      });
-
-      document.getElementById('btn-new-bsaair').addEventListener('click', async () => {
-        await createProject('bsaair', 'Nouveau BSA AIR');
-      });
-
-      async function createProject(type, name) {
-        try {
-          const response = await fetch('/api/saas/projects', {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type, name }),
-          });
-
-          if (!response.ok) {
-            const error = await response.json().catch(() => ({}));
-            throw new Error(error.error || 'Impossible de créer le projet');
-          }
-
-          const data = await response.json();
-          // Rediriger vers le tableau de bord avec l'ID du nouveau projet
-          window.location.href = `tableau-de-bord.html?project_id=${data.project.id}`;
-        } catch (error) {
-          console.error('Erreur lors de la création du projet:', error);
-          errorContainer.innerHTML = `
-            <div class="error-message">
-              ${error.message || 'Impossible de créer le projet'}
-            </div>
-          `;
-        }
       }
 
       function formatDate(dateString) {
