@@ -31,12 +31,47 @@
       box-sizing: border-box;
     }
 
+    .projects-header__top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+    }
+
     .projects-header__logo {
       display: flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 40px;
       text-decoration: none;
+    }
+
+    .btn-logout {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .btn-logout:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .btn-logout svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
     }
 
     .projects-header__logo img {
@@ -315,10 +350,20 @@
 </head>
 <body>
   <div class="projects-header">
-    <a class="projects-header__logo" href="index.html">
-      <img src="/ressourcegraphique/Goutte%20blanche.png" alt="" />
-      <span class="projects-header__logo-text">LIQUID+</span>
-    </a>
+    <div class="projects-header__top">
+      <a class="projects-header__logo" href="index.html">
+        <img src="/ressourcegraphique/Goutte%20blanche.png" alt="" />
+        <span class="projects-header__logo-text">LIQUID+</span>
+      </a>
+      <button class="btn-logout" id="btn-logout">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <path d="M16 17l5-5-5-5"></path>
+          <path d="M21 12H9"></path>
+        </svg>
+        Déconnexion
+      </button>
+    </div>
     <h1 class="projects-header__title">Mes projets</h1>
     <p class="projects-header__subtitle">Sélectionnez le projet sur lequel vous souhaitez travailler</p>
   </div>
@@ -386,6 +431,14 @@
 
     document.getElementById('btn-new-bsaair').addEventListener('click', () => {
       createProject('bsaair', 'Nouveau BSA AIR');
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', () => {
+      if (typeof logout === 'function') {
+        logout();
+      } else {
+        window.location.href = 'login.html';
+      }
     });
 
     (async function() {
