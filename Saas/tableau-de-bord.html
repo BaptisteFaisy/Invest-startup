@@ -4340,6 +4340,53 @@
       return String(f.name || '').replace(/^\s*\d+\s*[·.\-—]\s*/, '').split(/\s*[(—]/)[0].trim();
     }
 
+    // Étapes de la levée classique dont le contenu détaillé n'est pas encore
+    // construit : le menu et la page d'étape affichent « Bientôt » à la place.
+    const CLASSIC_SOON_STEPS = new Set(['gouvernance']);
+    const CLASSIC_SOON_BADGES = new Set(['gouvernance', 'post-closing']);
+
+    // Avancement d'une étape. Un document « si applicable » non fourni ne bloque pas ;
+    // tout document fourni doit être validé. « complete » = tout ce qui doit l'être
+    // est validé (→ pastille verte).
+    function friseStepNumber(f, fallback) {
+      const match = String(f && f.name || '').match(/^\s*(\d+)/);
+      return match ? Number(match[1]) : fallback;
+    }
+
+    // ── Étapes de négociation classées par investisseur ─────────────────────
+    // Deux étapes de la levée classique (lettre d'intention, négociation)
+    // produisent des documents PROPRES à chaque investisseur : ils ne sont pas
+    // communs, mais négociés séparément avec chaque investisseur du pipeline.
+    // On y range donc les documents attendus dans un dossier par investisseur,
+    // alimenté par le pipeline (étape « Investisseurs ») filtré sur le statut.
+    // L'état d'un document est stocké dans items_state sous une clé composite
+    // « inv<id>::<slug> » ; les points de terminaison de liaison acceptent déjà
+    // n'importe quelle clé, aucun changement serveur n'est nécessaire.
+    const INVESTOR_STAGE_ORDER = [
+      'a_contacter', 'contacte', 'interesse', 'due_diligence_preliminaire',
+      'lettre_intention_negociation', 'lettre_intention_signee', 'due_diligence_poussee',
+      'contrats_negociation', 'contrats_signes', 'gouvernance',
+    ];
+    // Libellés lisibles des statuts (réutilise ceux du pipeline).
+    const INVESTOR_STAGE_LABELS = Object.fromEntries(INV_STAGES.map(s => [s.key, s.label]));
+    // Étape → statut minimal du pipeline pour qu'un investisseur y apparaisse.
+    const NEGOTIATION_PHASE_MIN_STAGE = {
+      'term-sheet': 'lettre_intention_negociation',
+      'documentation': 'contrats_negociation',
+    };
+    function isNegotiationPhase(f) {
+      return !!(f && NEGOTIATION_PHASE_MIN_STAGE[f.key]);
+    }
+    // Étapes dont les lignes de documents adoptent l'apparence « éditoriale »
+    // (icônes DOC, pastilles de statut, grille), quelle que soit leur organisation.
+    const EDITORIAL_ROW_KEYS = new Set([
+      'confidentialite', 'due-diligence-preliminaire', 'due-diligence',
+      'term-sheet', 'documentation', 'closing', 'post-closing',
+    ]);
+    function isEditorialRowStep(f) {
+      return !!f && EDITORIAL_ROW_KEYS.has(f.key);
+    }
+
     // Étapes où le style éditorial s'applique À L'INTÉRIEUR des dossiers (dossiers
     // investisseurs pour la négociation, dossiers thématiques pour la due diligence
     // préliminaire, closing / post-closing) plutôt qu'en liste unique à plat.
