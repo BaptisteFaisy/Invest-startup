@@ -116,22 +116,6 @@
               <span class="raise-field__label">Date cible</span>
               <input class="raise-input" name="target_date" type="date" />
             </label>
-            <label class="raise-field raise-field--wide">
-              <span class="raise-field__label">Pourquoi lever ?</span>
-              <textarea class="raise-textarea" name="raise_reason" placeholder="Ex. recruter, acc&eacute;l&eacute;rer le produit, financer le go-to-market..."></textarea>
-            </label>
-            <label class="raise-field raise-field--wide">
-              <span class="raise-field__label">Profil d'investisseurs recherch&eacute;</span>
-              <textarea class="raise-textarea" name="investor_profile" placeholder="Ex. fonds d'amor&ccedil;age tech, business angels du secteur, investisseur capable de reparticiper au prochain tour..."></textarea>
-            </label>
-            <label class="raise-field raise-field--wide">
-              <span class="raise-field__label">Autres financements envisag&eacute;s</span>
-              <textarea class="raise-textarea" name="other_financing" placeholder="Ex. pr&ecirc;t bancaire, obligations convertibles, subventions et aides publiques, love money..."></textarea>
-            </label>
-            <label class="raise-field raise-field--wide">
-              <span class="raise-field__label">Conditions de gouvernance / contr&ocirc;le souhait&eacute;es</span>
-              <textarea class="raise-textarea" name="governance_conditions" placeholder="Ex. garder la majorit&eacute; au board, pas de pr&eacute;f&eacute;rence de liquidation sup&eacute;rieure &agrave; 1x, droits de veto limit&eacute;s..."></textarea>
-            </label>
           </div>
 
           <div class="raise-founders">
@@ -164,10 +148,6 @@
         target_valuation: '',
         max_dilution: '',
         target_date: '',
-        raise_reason: '',
-        investor_profile: '',
-        other_financing: '',
-        governance_conditions: '',
         founders: [],
       };
 
@@ -194,10 +174,6 @@
           target_valuation: p.target_valuation == null ? '' : String(p.target_valuation),
           max_dilution: p.max_dilution == null ? '' : String(p.max_dilution),
           target_date: String(p.target_date || ''),
-          raise_reason: String(p.raise_reason || ''),
-          investor_profile: String(p.investor_profile || ''),
-          other_financing: String(p.other_financing || ''),
-          governance_conditions: String(p.governance_conditions || ''),
           founders: founders.map(f => ({
             name: String((f && f.name) || ''),
             status: STATUSES.includes(f && f.status) ? f.status : 'cofounder',
@@ -280,10 +256,6 @@
         form.target_valuation.value = profile.target_valuation;
         form.max_dilution.value = profile.max_dilution;
         form.target_date.value = profile.target_date;
-        form.raise_reason.value = profile.raise_reason;
-        form.investor_profile.value = profile.investor_profile;
-        form.other_financing.value = profile.other_financing;
-        form.governance_conditions.value = profile.governance_conditions;
         foundersList.innerHTML = '';
         const founders = profile.founders.length ? profile.founders : [{}];
         founders.forEach(founder => foundersList.appendChild(founderRow(founder)));
@@ -303,10 +275,6 @@
           target_valuation: form.target_valuation.value.trim(),
           max_dilution: form.max_dilution.value.trim(),
           target_date: form.target_date.value,
-          raise_reason: form.raise_reason.value.trim(),
-          investor_profile: form.investor_profile.value.trim(),
-          other_financing: form.other_financing.value.trim(),
-          governance_conditions: form.governance_conditions.value.trim(),
           founders,
         });
       }
