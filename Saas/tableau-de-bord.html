@@ -914,29 +914,6 @@
     .raise-profile__status.is-error { color:#dc2626; }
     .raise-profile__status.is-ok { color:#16a34a; }
 
-    /* Société cliente (« Ma levée ») : dossier légal de la société — identité,
-       attestations et justificatif d'immatriculation. Vérifié par Liquid+ ; tant
-       qu'il ne l'est pas, l'outil Avocat ne transmet aucune mission standard.
-       Reprend la chrome et les champs du profil de la levée (.raise-*), replié
-       par défaut une fois la société vérifiée. Le logo n'a pas de règle propre :
-       la carte porte aussi .raise-profile, dont le vert s'applique tel quel. */
-    .company-legal__id { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; margin:4px 0 16px; }
-    .company-legal__name { font-family:'Archivo',sans-serif; font-size:16px; font-weight:800; color:#08090c; }
-    .company-legal__note { font-size:12.5px; color:#6b6b78; line-height:1.5; margin-top:5px; }
-    .company-legal__note strong { color:#3a3a45; }
-    .company-legal__badge { flex:none; font-family:'Archivo',sans-serif; font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; border-radius:999px; padding:5px 10px; }
-    .company-legal__badge--complete { background:#d1fae5; color:#15803d; }
-    .company-legal__badge--incomplete { background:#eeeef0; color:#6b6b78; }
-    /* Encadré informatif (société non immatriculée, délai de vérification) : ton
-       neutre volontaire — ce dossier n'est requis que pour confier un document à
-       un avocat, il ne doit alarmer aucun fondateur qui n'en a pas l'usage. */
-    .company-legal__warn { border:1px solid rgba(8,9,12,0.12); background:#f7f7f5; border-radius:10px; padding:11px 13px; font-size:12.5px; color:#6b6b78; line-height:1.5; margin-bottom:16px; }
-    .company-legal__warn strong { color:#3a3a45; }
-    .company-legal__checks { display:flex; flex-direction:column; gap:9px; }
-    .company-legal__check { display:flex; gap:9px; align-items:flex-start; font-size:13px; color:#3a3a45; line-height:1.45; cursor:pointer; }
-    .company-legal__check input { margin:2px 0 0; flex:none; accent-color:#15803d; }
-    .company-legal__evidence-current { font-size:12px; color:#6b6b78; margin-top:6px; display:block; }
-    .company-legal__link { color:#15803d; font-weight:700; }
 
     /* Barre d'avancement de la levée — affichée au-dessus des « prochaines
        priorités » sur l'étape « Ma levée ». Montre le montant levé (contrats
@@ -2019,31 +1996,11 @@
     let founderTasks = [];
     let dataroomConnections = [];
     let fundraisingProfile = normalizeFundraisingProfile({});
-    // Dossier légal de la société cliente (carte « Société cliente » de l'étape
-    // « Ma levée »). Sert aussi l'outil Avocat, qui ne peut transmettre aucune
-    // mission tant que Liquid+ n'a pas vérifié ce dossier. `twofa_required` :
-    // l'API renvoie 428 quand un avocat est assigné et que la 2FA est absente.
-    let companyLegal = { profile: {}, eligibility: { status: 'incomplete', complete: false }, twofa_required: false, setup_url: '' };
-    // Ce dossier n'est nécessaire que pour confier un document à un avocat : la
-    // carte reste repliée tant que le fondateur ne l'ouvre pas lui-même ou
-    // n'arrive pas depuis l'outil avocat (lien « Compléter le dossier »).
-    // L'état survit aux re-rendus, pour ne pas se refermer en cours de saisie.
-    let companyLegalOpen = false;
-    let companyLegalScrollPending = false;
-    // Repli des autres cartes de la levée. Ouvertes par défaut : elles portent le
-    // travail courant, à la différence de « Société cliente ». L'état vit hors du
-    // DOM pour survivre aux re-rendus (clé : id de phase + titre de la carte).
+    // Repli des cartes de la levée. Ouvertes par défaut.
+    // L'état vit hors du DOM pour survivre aux re-rendus (clé : id de phase + titre de la carte).
     let raiseProfileOpen = true;
     let importCardOpen = true;
     const phaseCardOpen = {};
-    (function readCompanyLegalFocus() {
-      const url = currentUrlState();
-      if (!url || url.searchParams.get('focus') !== 'societe') return;
-      companyLegalOpen = true;
-      companyLegalScrollPending = true;
-      url.searchParams.delete('focus');
-      if (history.replaceState) history.replaceState(history.state, '', url);
-    })();
     const dashboardSearchForm = document.getElementById('dashboard-search');
     const dashboardSearchInput = document.getElementById('dashboard-search-input');
     const dashboardSearchResultsEl = document.getElementById('dashboard-search-results');
@@ -2083,7 +2040,7 @@
     // Outils accessibles depuis le menu latéral, indexés dans la recherche.
     const DASHBOARD_TOOLS = [
       { label: 'Éditeur', href: 'editor.html', newTab: true, keywords: ['outil', 'editeur', 'rediger', 'clauses', 'term sheet'] },
-      { label: 'Comparer', href: 'compare.html', keywords: ['outil', 'comparer', 'comparaison', 'confronter'] },
+      // { label: 'Comparer', href: 'compare.html', keywords: ['outil', 'comparer', 'comparaison', 'confronter'] },
       { label: 'Feedback', href: 'feedback.html', newTab: true, keywords: ['outil', 'feedback', 'contact', 'support', 'fondateur', 'message', 'aide', 'bug'] },
       { label: 'Documents', href: 'documents.html', newTab: true, keywords: ['outil', 'documents', 'fichiers', 'pieces'] },
       { label: 'Data room', href: 'data-room.html', newTab: true, keywords: ['outil', 'data room', 'dataroom', 'audit', 'due diligence'] },
@@ -3009,26 +2966,6 @@
       } catch { return normalizeFundraisingProfile({}); }
     }
 
-    // Lit la réponse de /api/saas/avocat/company-eligibility. Un 428 signifie
-    // qu'un avocat est déjà assigné et que la double authentification manque :
-    // le dossier reste alors illisible et non modifiable tant qu'elle n'est pas
-    // activée. Toute autre erreur laisse l'état par défaut (dossier incomplet).
-    async function readCompanyLegalResponse(response) {
-      const data = await response.json().catch(() => ({}));
-      if (response.status === 428) {
-        companyLegal = {
-          profile: {}, eligibility: { status: 'incomplete', complete: false },
-          twofa_required: true, setup_url: data.setup_url || 'compte.html?setup2fa=founder-lawyer',
-        };
-        return;
-      }
-      if (!response.ok) return;
-      companyLegal = {
-        profile: data.profile || {},
-        eligibility: data.eligibility || { status: 'incomplete', verified: false },
-        twofa_required: false, setup_url: '',
-      };
-    }
 
     let loaded = false;
     async function load() {
@@ -3036,14 +2973,13 @@
       // après un échec d'action optimiste, dont le message doit rester visible.
       if (!loaded) foldersEl.innerHTML = '<p class="empty">Chargement…</p>';
       try {
-        const [fr, dr, pr, cr, ir, tr, lr] = await Promise.all([
+        const [fr, dr, pr, cr, ir, tr] = await Promise.all([
           fetch('/api/saas/folders',   { credentials: 'include' }),
           fetch('/api/saas/documents', { credentials: 'include' }),
           fetch('/api/saas/fundraising-profile', { credentials: 'include' }).catch(() => null),
           fetch('/api/saas/dataroom/connections', { credentials: 'include' }).catch(() => null),
           fetch('/api/saas/investors', { credentials: 'include' }).catch(() => null),
           fetch('/api/saas/tasks', { credentials: 'include' }).catch(() => null),
-          fetch('/api/saas/avocat/company-eligibility', { credentials: 'include' }).catch(() => null),
         ]);
         if (fr.status === 401 || dr.status === 401) { window.location.href = 'login.html'; return; }
         folders = (await fr.json()).folders || [];
@@ -3066,7 +3002,6 @@
           const cdata = await cr.json().catch(() => ({}));
           dataroomConnections = cdata.connections || [];
         }
-        if (lr) await readCompanyLegalResponse(lr);
         if (pr && pr.ok) {
           const data = await pr.json().catch(() => ({}));
           fundraisingProfile = normalizeFundraisingProfile(data.profile || {});
@@ -3466,7 +3401,6 @@
           const profileCard = fundraisingProfileEl();
           profileCard.id = 'phase-air-preparation-profile';
           container.appendChild(profileCard);
-          container.appendChild(companyLegalEl());
           container.appendChild(phaseCard(selected, idx, { title: 'Documents préalables', icon: 'DOC', hideStep: true, documentActions: true }));
         } else if (selected) {
           container.appendChild(phaseCard(selected, idx));
@@ -3495,7 +3429,6 @@
         const profileCard = fundraisingProfileEl();
         profileCard.id = 'phase-' + selected.key;
         container.appendChild(profileCard);
-        container.appendChild(companyLegalEl());
       }
       if (selected.key === 'confidentialite') {
         // Étape « Investisseurs » : onglets Trouver / Pipeline.
