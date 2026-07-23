@@ -239,6 +239,67 @@
       fill: none;
     }
 
+    .project-menu {
+      position: fixed;
+      z-index: 1200;
+      min-width: 190px;
+      background: #fff;
+      border: 1px solid rgba(8, 9, 12, 0.14);
+      border-radius: 12px;
+      box-shadow: 0 18px 44px rgba(8, 9, 12, 0.28);
+      padding: 6px;
+      animation: project-menu-in 0.12s ease;
+    }
+
+    @keyframes project-menu-in {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .project-menu__item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 9px 10px;
+      border: 0;
+      background: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Libre Franklin', sans-serif;
+      font-size: 14px;
+      color: #08090c;
+      text-align: left;
+    }
+
+    .project-menu__item:hover {
+      background: #f2f0ea;
+    }
+
+    .project-menu__item svg {
+      width: 16px;
+      height: 16px;
+      flex: none;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.9;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      color: #6b6b78;
+    }
+
+    .project-menu__item--danger {
+      color: #dc2626;
+    }
+
+    .project-menu__item--danger svg {
+      color: #dc2626;
+    }
+
+    .project-menu__item--danger:hover {
+      background: rgba(220, 38, 38, 0.08);
+    }
+
     .project-card__name {
       font-family: 'Archivo', sans-serif;
       font-size: 20px;
@@ -457,106 +518,119 @@
       }
     });
 
-    (async function() {
-      // Vérifier l'authentification
-      const user = await requireAuth('login.html', { requireAccountType: true });
-      if (!user) return;
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffTime = Math.abs(now - date);
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
+      if (diffDays === 0) return "aujourd'hui";
+      if (diffDays === 1) return "hier";
+      if (diffDays < 7) return `il y a ${diffDays} jours`;
+      if (diffDays < 30) return `il y a ${Math.floor(diffDays / 7)} semaines`;
+      return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    // Projets actuellement affichés (nécessaire pour le menu ⋮ de chaque carte).
+    let currentProjects = [];
+
+    function renderProjects(projects) {
+      currentProjects = projects;
+
+      if (projects.length === 0) {
+        projectsList.innerHTML = `
+          <div class="empty-state">
+            <svg class="empty-state__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            <h2 class="empty-state__title">Aucun projet pour le moment</h2>
+            <p class="empty-state__text">Créez votre première levée de fonds ou BSA AIR pour commencer</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Afficher les projets
+      projectsList.innerHTML = `
+        <div class="projects-grid">
+          ${projects.map(project => {
+            const typeLabels = {
+              'raise-preference': 'Actions de préférence',
+              'bsaair': 'BSA AIR',
+              'raise-ordinary': 'Actions ordinaires'
+            };
+            const typeLabel = typeLabels[project.type] || 'Levée de fonds';
+            const typeClasses = {
+              'raise-preference': 'raise',
+              'bsaair': 'bsaair',
+              'raise-ordinary': 'ordinary'
+            };
+            const typeClass = typeClasses[project.type] || 'raise';
+            const progress = project.progress || 0;
+
+            return `
+              <a href="tableau-de-bord.html?project_id=${project.id}" class="project-card">
+                <div class="project-card__header">
+                  <span class="project-card__type project-card__type--${typeClass}">
+                    ${typeLabel}
+                  </span>
+                  <button class="project-card__menu" onclick="event.preventDefault(); event.stopPropagation(); openProjectMenu(this, ${project.id});">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="1"></circle>
+                      <circle cx="12" cy="5" r="1"></circle>
+                      <circle cx="12" cy="19" r="1"></circle>
+                    </svg>
+                  </button>
+                </div>
+
+                <div>
+                  <h2 class="project-card__name">${project.name || 'Projet sans nom'}</h2>
+                  <div class="project-card__meta">
+                    ${project.company_name ? `
+                      <div class="project-card__meta-item">
+                        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        </svg>
+                        ${project.company_name}
+                      </div>
+                    ` : ''}
+                    ${project.updated_at ? `
+                      <div class="project-card__meta-item">
+                        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        Modifié ${formatDate(project.updated_at)}
+                      </div>
+                    ` : ''}
+                  </div>
+                </div>
+
+                <div class="project-card__progress">
+                  <div class="project-card__progress-label">
+                    <span>Progression</span>
+                    <strong>${Math.round(progress)}%</strong>
+                  </div>
+                  <div class="project-card__progress-bar">
+                    <div class="project-card__progress-fill" style="width: ${progress}%"></div>
+                  </div>
+                </div>
+              </a>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    async function loadProjects() {
       try {
-        // Charger les projets
         const response = await fetch('/api/saas/projects', { credentials: 'include' });
         if (!response.ok) {
           throw new Error('Impossible de charger les projets');
         }
-
         const data = await response.json();
-        const projects = data.projects || [];
-
-        if (projects.length === 0) {
-          projectsList.innerHTML = `
-            <div class="empty-state">
-              <svg class="empty-state__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                <polyline points="9 22 9 12 15 12 15 22"></polyline>
-              </svg>
-              <h2 class="empty-state__title">Aucun projet pour le moment</h2>
-              <p class="empty-state__text">Créez votre première levée de fonds ou BSA AIR pour commencer</p>
-            </div>
-          `;
-          return;
-        }
-
-        // Afficher les projets
-        projectsList.innerHTML = `
-          <div class="projects-grid">
-            ${projects.map(project => {
-              const typeLabels = {
-                'raise-preference': 'Actions de préférence',
-                'bsaair': 'BSA AIR',
-                'raise-ordinary': 'Actions ordinaires'
-              };
-              const typeLabel = typeLabels[project.type] || 'Levée de fonds';
-              const typeClasses = {
-                'raise-preference': 'raise',
-                'bsaair': 'bsaair',
-                'raise-ordinary': 'ordinary'
-              };
-              const typeClass = typeClasses[project.type] || 'raise';
-              const progress = project.progress || 0;
-
-              return `
-                <a href="tableau-de-bord.html?project_id=${project.id}" class="project-card">
-                  <div class="project-card__header">
-                    <span class="project-card__type project-card__type--${typeClass}">
-                      ${typeLabel}
-                    </span>
-                    <button class="project-card__menu" onclick="event.preventDefault(); alert('Menu à implémenter');">
-                      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="1"></circle>
-                        <circle cx="12" cy="5" r="1"></circle>
-                        <circle cx="12" cy="19" r="1"></circle>
-                      </svg>
-                    </button>
-                  </div>
-
-                  <div>
-                    <h2 class="project-card__name">${project.name || 'Projet sans nom'}</h2>
-                    <div class="project-card__meta">
-                      ${project.company_name ? `
-                        <div class="project-card__meta-item">
-                          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                          </svg>
-                          ${project.company_name}
-                        </div>
-                      ` : ''}
-                      ${project.updated_at ? `
-                        <div class="project-card__meta-item">
-                          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <polyline points="12 6 12 12 16 14"></polyline>
-                          </svg>
-                          Modifié ${formatDate(project.updated_at)}
-                        </div>
-                      ` : ''}
-                    </div>
-                  </div>
-
-                  <div class="project-card__progress">
-                    <div class="project-card__progress-label">
-                      <span>Progression</span>
-                      <strong>${Math.round(progress)}%</strong>
-                    </div>
-                    <div class="project-card__progress-bar">
-                      <div class="project-card__progress-fill" style="width: ${progress}%"></div>
-                    </div>
-                  </div>
-                </a>
-              `;
-            }).join('')}
-          </div>
-        `;
-
+        renderProjects(data.projects || []);
       } catch (error) {
         console.error('Erreur lors du chargement des projets:', error);
         errorContainer.innerHTML = `
@@ -571,19 +645,121 @@
           </div>
         `;
       }
+    }
 
-      function formatDate(dateString) {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffTime = Math.abs(now - date);
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    // Menu flottant « ⋮ » de chaque carte projet (renommer / supprimer).
+    let projectMenuEl = null;
 
-        if (diffDays === 0) return "aujourd'hui";
-        if (diffDays === 1) return "hier";
-        if (diffDays < 7) return `il y a ${diffDays} jours`;
-        if (diffDays < 30) return `il y a ${Math.floor(diffDays / 7)} semaines`;
-        return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    function closeProjectMenu() {
+      if (projectMenuEl) { projectMenuEl.remove(); projectMenuEl = null; }
+      document.removeEventListener('click', onProjectMenuOutside, true);
+      window.removeEventListener('scroll', closeProjectMenu, true);
+    }
+
+    function onProjectMenuOutside(e) {
+      if (projectMenuEl && !projectMenuEl.contains(e.target)) closeProjectMenu();
+    }
+
+    function openProjectMenu(anchor, projectId) {
+      const alreadyOpenForThisAnchor = projectMenuEl && projectMenuEl.dataset.anchorId === String(projectId);
+      closeProjectMenu();
+      if (alreadyOpenForThisAnchor) return;
+
+      const project = currentProjects.find(p => p.id === projectId);
+      if (!project) return;
+
+      const menu = document.createElement('div');
+      menu.className = 'project-menu';
+      menu.dataset.anchorId = String(projectId);
+      menu.setAttribute('role', 'menu');
+      menu.innerHTML = `
+        <button type="button" class="project-menu__item" role="menuitem" data-action="rename">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+          <span>Renommer</span>
+        </button>
+        <button type="button" class="project-menu__item project-menu__item--danger" role="menuitem" data-action="delete">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
+          <span>Supprimer</span>
+        </button>
+      `;
+      document.body.appendChild(menu);
+
+      const r = anchor.getBoundingClientRect();
+      const w = menu.offsetWidth, h = menu.offsetHeight;
+      const vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
+      let top = r.bottom + 6;
+      if (top + h > vh - 6) top = Math.max(6, r.top - h - 6);
+      const left = Math.max(8, Math.min(r.right - w, vw - w - 8));
+      menu.style.top = top + 'px';
+      menu.style.left = left + 'px';
+
+      menu.querySelectorAll('.project-menu__item').forEach(item => {
+        item.addEventListener('click', () => {
+          const action = item.getAttribute('data-action');
+          closeProjectMenu();
+          if (action === 'rename') renameProject(project);
+          if (action === 'delete') deleteProject(project);
+        });
+      });
+
+      projectMenuEl = menu;
+      setTimeout(() => {
+        document.addEventListener('click', onProjectMenuOutside, true);
+        window.addEventListener('scroll', closeProjectMenu, true);
+      }, 0);
+    }
+
+    async function renameProject(project) {
+      const newName = (window.prompt('Renommer le projet :', project.name || '') || '').trim();
+      if (!newName || newName === project.name) return;
+
+      try {
+        const response = await fetch(`/api/saas/projects/${project.id}`, {
+          method: 'PUT',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: newName }),
+        });
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(error.error || 'Impossible de renommer le projet');
+        }
+        await loadProjects();
+      } catch (error) {
+        console.error('Erreur lors du renommage du projet:', error);
+        errorContainer.innerHTML = `
+          <div class="error-message">${error.message || 'Impossible de renommer le projet'}</div>
+        `;
       }
+    }
+
+    async function deleteProject(project) {
+      if (!window.confirm(`Supprimer définitivement « ${project.name || 'ce projet'} » ? Cette action est irréversible.`)) return;
+
+      try {
+        const response = await fetch(`/api/saas/projects/${project.id}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        });
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(error.error || 'Impossible de supprimer le projet');
+        }
+        await loadProjects();
+      } catch (error) {
+        console.error('Erreur lors de la suppression du projet:', error);
+        errorContainer.innerHTML = `
+          <div class="error-message">${error.message || 'Impossible de supprimer le projet'}</div>
+        `;
+      }
+    }
+
+    (async function() {
+      // Vérifier l'authentification
+      const user = await requireAuth('login.html', { requireAccountType: true });
+      if (!user) return;
+
+      await loadProjects();
     })();
   </script>
 </body>

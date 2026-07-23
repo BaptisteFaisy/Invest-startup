@@ -1561,8 +1561,12 @@
     function isSystemPhase(f) {
       return !!(f && f.system === true && f.key);
     }
+    // Étapes masquées du menu de gauche (levée de fonds classique) :
+    // Investisseurs, DD préliminaire, DD poussée, Post-closing, Gouvernance.
+    const HIDDEN_CLASSIC_PHASE_KEYS = ['confidentialite', 'due-diligence-preliminaire', 'due-diligence', 'post-closing', 'gouvernance'];
     function isClassicPhaseVisible(f) {
-      return isSystemPhase(f) && !String(f && f.name || '').trim().startsWith('9');
+      return isSystemPhase(f) && !String(f && f.name || '').trim().startsWith('9')
+        && !HIDDEN_CLASSIC_PHASE_KEYS.includes(f && f.key);
     }
     function raiseKey() { return 'liquid_raise_type_' + raiseUser; }
     function dashboardControlsKey() { return 'liquid_dashboard_controls_collapsed_' + raiseUser; }
@@ -4118,7 +4122,7 @@
 
     // Libellés courts des étapes (le nom complet reste dans la fenêtre).
     const FRISE_LABELS = {
-      'mise-en-ordre': 'Ma levée',
+      'mise-en-ordre': 'La levée',
       'confidentialite': 'Investisseurs',
       'due-diligence-preliminaire': 'Due diligence préliminaire',
       'term-sheet': "Lettre d'intention",

@@ -94,7 +94,7 @@
   const CLASSIC_UNAVAILABLE = new Set(['confidentialite', 'gouvernance']);
   const CLASSIC_SOON_BADGES = new Set(['confidentialite', 'gouvernance', 'post-closing']);
   const FRISE_LABELS = {
-    'mise-en-ordre': 'Ma levée',
+    'mise-en-ordre': 'La levée',
     'confidentialite': 'Investisseurs',
     'due-diligence-preliminaire': 'Due diligence préliminaire',
     'term-sheet': "Lettre d'intention",
@@ -166,11 +166,14 @@
     });
     return { total, done, linked, complete: total > 0 && done === total };
   }
+  // Doit rester alignée avec HIDDEN_CLASSIC_PHASE_KEYS / isClassicPhaseVisible
+  // dans tableau-de-bord.html (menu de gauche de la levée de fonds classique).
+  const HIDDEN_CLASSIC_PHASE_KEYS = ['confidentialite', 'due-diligence-preliminaire', 'due-diligence', 'post-closing', 'gouvernance'];
   function buildSteps(type, folders, docs, investors) {
     const isSys = f => !!(f && f.system === true && f.key);
     let phases = folders.filter(f => isSys(f) && (f.track || 'classic') === type);
     if (type === 'classic') {
-      phases = phases.filter(f => !String(f && f.name || '').trim().startsWith('9'));
+      phases = phases.filter(f => !String(f && f.name || '').trim().startsWith('9') && !HIDDEN_CLASSIC_PHASE_KEYS.includes(f.key));
     }
     if (!phases.length) return { raiseType: type, steps: [] };
     const stats = phases.map(f => phaseStatus(f, docs, investors));
