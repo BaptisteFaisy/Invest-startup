@@ -403,7 +403,6 @@
   const tools = [
     { type: 'Page', label: 'Tableau de bord', href: 'tableau-de-bord.html', keywords: ['accueil', 'dossiers', 'levee', 'levée', 'roadmap'] },
     { type: 'Outil', label: 'Éditeur', href: 'editor.html', keywords: ['rediger', 'rédiger', 'clauses', 'term sheet', 'document'] },
-    { type: 'Outil', label: 'Comparer', href: 'compare.html', keywords: ['comparaison', 'versions', 'contrat'] },
     { type: 'Outil', label: 'Documents', href: 'documents.html', keywords: ['fichiers', 'pieces', 'pièces'] },
     { type: 'Outil', label: 'Data room', href: 'data-room.html', keywords: ['dataroom', 'audit', 'due diligence'] },
     { type: 'Outil', label: 'Avocat', href: 'avocat.html', keywords: ['juridique', 'legal', 'juriste', 'conseil', 'contrat'] },
