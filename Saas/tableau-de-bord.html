@@ -915,33 +915,6 @@
     .raise-profile__status.is-ok { color:#16a34a; }
 
 
-    /* Barre d'avancement de la levée — affichée au-dessus des « prochaines
-       priorités » sur l'étape « Ma levée ». Montre le montant levé (contrats
-       signés), le montant intentionné et un repère vertical fin du montant visé,
-       placé vers la fin de la barre (à 80 %) pour laisser voir un dépassement. */
-    .raise-progress { background:#fff; color:#08090c; border:1px solid rgba(255,255,255,0.1); border-radius:14px; padding:18px 20px; box-shadow:0 10px 26px rgba(0,0,0,0.22); margin:12px 0 4px; }
-    .raise-progress__head { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:18px; }
-    .raise-progress__eyebrow { font-family:'Archivo',sans-serif; font-size:11px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:#6b6b78; margin-bottom:6px; }
-    .raise-progress__amount { font-family:'Libre Franklin',sans-serif; font-size:15px; color:#3a3a45; }
-    .raise-progress__amount strong { font-family:'Archivo',sans-serif; font-weight:800; font-size:22px; color:#08090c; }
-    .raise-progress__pct { font-family:'Archivo',sans-serif; font-weight:800; font-size:28px; line-height:1; color:#66b97f; flex:none; }
-    .raise-progress__track-wrap { position:relative; padding-top:24px; }
-    .raise-progress__bar { position:relative; height:26px; border-radius:8px; background:#eef0f2; overflow:hidden; }
-    .raise-progress__fill { position:absolute; top:0; bottom:0; left:0; border-radius:8px; transition:width .5s ease; }
-    .raise-progress__fill--total { background:#86c899; }
-    .raise-progress__fill--engaged { background:#66b97f; }
-    .raise-progress__target { position:absolute; top:16px; bottom:0; width:2px; background:#08090c; border-radius:2px; transform:translateX(-1px); z-index:2; }
-    .raise-progress__target::before { content:attr(data-label); position:absolute; top:-16px; right:3px; white-space:nowrap; font-family:'Archivo',sans-serif; font-size:10px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; color:#08090c; }
-    .raise-progress__legend { display:flex; flex-wrap:wrap; gap:16px; margin-top:12px; font-size:12.5px; color:#6b6b78; }
-    .raise-progress__legend > span { display:inline-flex; align-items:center; gap:6px; }
-    .raise-progress__dot { width:10px; height:10px; border-radius:3px; flex:none; }
-    .raise-progress__tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-top:18px; }
-    .raise-progress__tile { background:#f7f7f5; border:1px solid rgba(8,9,12,0.08); border-radius:10px; padding:11px 13px; }
-    .raise-progress__tile-label { font-family:'Archivo',sans-serif; font-size:10.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#6b6b78; }
-    .raise-progress__tile-value { font-family:'Archivo',sans-serif; font-size:19px; font-weight:800; color:#08090c; margin-top:5px; }
-    .raise-progress__tile-sub { font-size:12px; color:#6b6b78; margin-top:3px; }
-    .raise-progress__tile--accent .raise-progress__tile-value { color:#66b97f; }
-    .raise-progress__tile--intentions .raise-progress__tile-value { color:#86c899; }
 
     @media (max-width:680px) {
       .raise-profile__grid { grid-template-columns:1fr; }
@@ -3185,12 +3158,6 @@
     function renderNextActions() {
       if (!nextActionsHost) return;
       const type = getRaiseType();
-      // Étape « Ma levée » (profil de levée) : une barre d'avancement précède
-      // les prochaines priorités. Elle reste visible même quand il n'y a aucune
-      // priorité à afficher.
-      const onRaiseStep = (type === 'classic' && selectedClassicStep === 'mise-en-ordre')
-        || (type === 'bsa-air' && (selectedBsaStep === 'air-preparation' || selectedBsaStep === 'bsa-profile'));
-      const progressEl = onRaiseStep ? fundraiseProgressEl() : null;
       // Le calcul ne dépend pas de l'étape affichée : on le persiste toujours
       // pour la page Tâches, même quand le bandeau est masqué dans cette vue.
       const data = computeNextActions();
@@ -3205,7 +3172,6 @@
       const pendingTasks = sortFounderTasks((founderTasks || []).filter(t => !t.done), getNaTaskSort());
       if (!data && !pendingTasks.length) {
         nextActionsHost.innerHTML = '';
-        if (progressEl) nextActionsHost.appendChild(progressEl);
         return;
       }
 
@@ -3310,7 +3276,6 @@
           + cardHtml;
       }
       nextActionsHost.innerHTML = '';
-      if (progressEl) nextActionsHost.appendChild(progressEl);
       nextActionsHost.appendChild(section);
       const toggleBtn = section.querySelector('.resume-toggle');
       if (toggleBtn) {
@@ -3529,83 +3494,6 @@
       if (!(target > 0)) return null;
       let engaged = 0, discussion = 0, engagedCount = 0, pipelineCount = 0;
       (invPipeline || []).forEach(inv => {
-        const amt = Number(inv.amount) || 0;
-        pipelineCount += 1;
-        if (inv.stage === 'contrats_signes' || inv.stage === 'gouvernance') { engaged += amt; engagedCount += 1; }
-        else discussion += amt;
-      });
-      const total = engaged + discussion;
-      // Le repère du montant visé est fixé à 80 % de la barre ; on n'élargit
-      // l'échelle que si l'engagé + le pipeline dépasse 125 % de l'objectif,
-      // ce qui décale alors le repère vers la gauche (sur-souscription visible).
-      const scaleMax = Math.max(target / 0.8, total, 1);
-      const engagedPct = Math.min(100, engaged / scaleMax * 100);
-      const totalPct = Math.min(100, total / scaleMax * 100);
-      const targetPct = Math.min(100, target / scaleMax * 100);
-      const pctOfTarget = Math.round(engaged / target * 100);
-      const remaining = Math.max(0, target - engaged);
-      const fmt = (n) => invFmtAmount(Math.round(n));
-
-      const tiles = [];
-      tiles.push('<div class="raise-progress__tile raise-progress__tile--accent"><div class="raise-progress__tile-label">Levé (contrats signés)</div><div class="raise-progress__tile-value">' + fmt(engaged) + '</div><div class="raise-progress__tile-sub">' + pctOfTarget + '% de l’objectif</div></div>');
-      tiles.push('<div class="raise-progress__tile"><div class="raise-progress__tile-label">Reste à lever</div><div class="raise-progress__tile-value">' + fmt(remaining) + '</div><div class="raise-progress__tile-sub">Objectif ' + fmt(target) + '</div></div>');
-      if (discussion > 0) {
-        const inTalks = Math.max(0, pipelineCount - engagedCount);
-        tiles.push('<div class="raise-progress__tile raise-progress__tile--intentions"><div class="raise-progress__tile-label">Intentionnés</div><div class="raise-progress__tile-value">' + fmt(discussion) + '</div><div class="raise-progress__tile-sub">' + inTalks + ' investisseur' + (inTalks > 1 ? 's' : '') + ' en cours</div></div>');
-      }
-      tiles.push('<div class="raise-progress__tile"><div class="raise-progress__tile-label">Contrats signés</div><div class="raise-progress__tile-value">' + engagedCount + (pipelineCount ? ' <span style="font-size:13px;color:#6b6b78">/ ' + pipelineCount + '</span>' : '') + '</div><div class="raise-progress__tile-sub">' + (pipelineCount ? 'sur ' + pipelineCount + ' au pipeline' : 'aucun au pipeline') + '</div></div>');
-
-      const td = fundraisingProfile.target_date;
-      if (td) {
-        const days = Math.ceil((new Date(td + 'T00:00:00').getTime() - Date.now()) / 86400000);
-        let dateSub = '';
-        try { dateSub = new Date(td + 'T00:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }); } catch {}
-        const late = days < 0;
-        const val = late ? 'Dépassée' : (days + ' j');
-        tiles.push('<div class="raise-progress__tile"><div class="raise-progress__tile-label">Jours restants</div><div class="raise-progress__tile-value"' + (late ? ' style="color:#dc2626"' : '') + '>' + val + '</div><div class="raise-progress__tile-sub">Cible ' + esc(dateSub) + '</div></div>');
-      }
-
-      const pre = Number(fundraisingProfile.target_valuation) || 0;
-      if (pre > 0) {
-        const dil = target / (pre + target) * 100;
-        const maxDil = Number(fundraisingProfile.max_dilution) || 0;
-        const over = maxDil > 0 && dil > maxDil + 0.05;
-        const sub = maxDil > 0 ? ('Max accepté ' + maxDil.toLocaleString('fr-FR') + '%') : ('Post-money ' + fmt(pre + target));
-        tiles.push('<div class="raise-progress__tile"><div class="raise-progress__tile-label">Dilution estimée</div><div class="raise-progress__tile-value"' + (over ? ' style="color:#dc2626"' : '') + '>' + dil.toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + '%</div><div class="raise-progress__tile-sub">' + esc(sub) + '</div></div>');
-      }
-
-      const el = document.createElement('section');
-      el.className = 'raise-progress';
-      el.id = 'raise-progress';
-      el.innerHTML =
-        '<div class="raise-progress__head">'
-        + '<div><div class="raise-progress__eyebrow">Avancement de la levée</div>'
-        + '<div class="raise-progress__amount"><strong>' + fmt(engaged) + '</strong> levés sur ' + fmt(target) + ' visés</div></div>'
-        + '<div class="raise-progress__pct">' + pctOfTarget + '%</div>'
-        + '</div>'
-        + '<div class="raise-progress__track-wrap">'
-        + '<div class="raise-progress__bar">'
-        + '<div class="raise-progress__fill raise-progress__fill--total" style="width:' + totalPct.toFixed(1) + '%"></div>'
-        + '<div class="raise-progress__fill raise-progress__fill--engaged" style="width:' + engagedPct.toFixed(1) + '%"></div>'
-        + '</div>'
-        + '<div class="raise-progress__target" style="left:' + targetPct.toFixed(1) + '%" data-label="Objectif ' + esc(fmt(target)) + '"></div>'
-        + '</div>'
-        + '<div class="raise-progress__legend">'
-        + '<span><span class="raise-progress__dot" style="background:#66b97f"></span>Levé (contrats signés)</span>'
-        + (discussion > 0 ? '<span><span class="raise-progress__dot" style="background:#86c899"></span>Intentionnés</span>' : '')
-        + '<span><span class="raise-progress__dot" style="width:3px;border-radius:2px;background:#08090c"></span>Montant visé</span>'
-        + '</div>'
-        + '<div class="raise-progress__tiles">' + tiles.join('') + '</div>';
-      return el;
-    }
-
-    async function invApi(path, opts) {
-      const r = await fetch(path, Object.assign({ credentials: 'include' }, opts || {}));
-      let data = {};
-      try { data = await r.json(); } catch {}
-      if (!r.ok) throw new Error(data.error || 'Une erreur est survenue.');
-      return data;
-    }
 
     function invFillStageSelect(select, value) {
       select.innerHTML = INV_STAGES.map(s => `<option value="${s.key}">${esc(s.label)}</option>`).join('');
