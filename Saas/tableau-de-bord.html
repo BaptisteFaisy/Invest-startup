@@ -1562,8 +1562,8 @@
       return !!(f && f.system === true && f.key);
     }
     // Étapes masquées du menu de gauche (levée de fonds classique) :
-    // Investisseurs, DD préliminaire, DD poussée, Post-closing, Gouvernance.
-    const HIDDEN_CLASSIC_PHASE_KEYS = ['confidentialite', 'due-diligence-preliminaire', 'due-diligence', 'post-closing', 'gouvernance'];
+    // Investisseurs, DD préliminaire, DD poussée, Négociation, Post-closing, Gouvernance.
+    const HIDDEN_CLASSIC_PHASE_KEYS = ['confidentialite', 'due-diligence-preliminaire', 'due-diligence', 'documentation', 'post-closing', 'gouvernance'];
     function isClassicPhaseVisible(f) {
       return isSystemPhase(f) && !String(f && f.name || '').trim().startsWith('9')
         && !HIDDEN_CLASSIC_PHASE_KEYS.includes(f && f.key);

@@ -168,7 +168,7 @@
   }
   // Doit rester alignée avec HIDDEN_CLASSIC_PHASE_KEYS / isClassicPhaseVisible
   // dans tableau-de-bord.html (menu de gauche de la levée de fonds classique).
-  const HIDDEN_CLASSIC_PHASE_KEYS = ['confidentialite', 'due-diligence-preliminaire', 'due-diligence', 'post-closing', 'gouvernance'];
+  const HIDDEN_CLASSIC_PHASE_KEYS = ['confidentialite', 'due-diligence-preliminaire', 'due-diligence', 'documentation', 'post-closing', 'gouvernance'];
   function buildSteps(type, folders, docs, investors) {
     const isSys = f => !!(f && f.system === true && f.key);
     let phases = folders.filter(f => isSys(f) && (f.track || 'classic') === type);
