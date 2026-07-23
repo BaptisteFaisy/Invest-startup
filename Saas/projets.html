@@ -208,6 +208,11 @@
       color: #1e40af;
     }
 
+    .project-card__type--ordinary {
+      background: #e9d5ff;
+      color: #7c3aed;
+    }
+
     .project-card__menu {
       width: 32px;
       height: 32px;
@@ -370,19 +375,26 @@
 
   <div class="projects-container">
     <div class="projects-actions">
-      <button class="btn-new-project" id="btn-new-raise">
+      <button class="btn-new-project" id="btn-new-raise-preference" style="background: #15803d;">
         <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
-        Nouvelle levée de fonds
+        Levée avec actions de préférence
       </button>
       <button class="btn-new-project" id="btn-new-bsaair" style="background: #1e40af;">
         <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
-        Nouveau BSA AIR
+        Levée avec BSA AIR
+      </button>
+      <button class="btn-new-project" id="btn-new-raise-ordinary" style="background: #7c3aed;">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Levée avec actions ordinaires
       </button>
     </div>
 
@@ -425,12 +437,16 @@
     }
 
     // Attacher les gestionnaires d'événements aux boutons
-    document.getElementById('btn-new-raise').addEventListener('click', () => {
-      createProject('raise', 'Nouvelle levée de fonds');
+    document.getElementById('btn-new-raise-preference').addEventListener('click', () => {
+      createProject('raise-preference', 'Levée avec actions de préférence');
     });
 
     document.getElementById('btn-new-bsaair').addEventListener('click', () => {
-      createProject('bsaair', 'Nouveau BSA AIR');
+      createProject('bsaair', 'Levée avec BSA AIR');
+    });
+
+    document.getElementById('btn-new-raise-ordinary').addEventListener('click', () => {
+      createProject('raise-ordinary', 'Levée avec actions ordinaires');
     });
 
     document.getElementById('btn-logout').addEventListener('click', () => {
@@ -474,9 +490,18 @@
         projectsList.innerHTML = `
           <div class="projects-grid">
             ${projects.map(project => {
-              const isRaise = project.type === 'raise';
-              const typeLabel = isRaise ? 'Levée de fonds' : 'BSA AIR';
-              const typeClass = isRaise ? 'raise' : 'bsaair';
+              const typeLabels = {
+                'raise-preference': 'Actions de préférence',
+                'bsaair': 'BSA AIR',
+                'raise-ordinary': 'Actions ordinaires'
+              };
+              const typeLabel = typeLabels[project.type] || 'Levée de fonds';
+              const typeClasses = {
+                'raise-preference': 'raise',
+                'bsaair': 'bsaair',
+                'raise-ordinary': 'ordinary'
+              };
+              const typeClass = typeClasses[project.type] || 'raise';
               const progress = project.progress || 0;
 
               return `
