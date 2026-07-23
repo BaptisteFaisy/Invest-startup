@@ -412,8 +412,8 @@
         }
 
         const data = await response.json();
-        // Rediriger vers le tableau de bord avec l'ID du nouveau projet
-        window.location.href = `tableau-de-bord.html?project_id=${data.project.id}`;
+        // Rediriger vers l'onboarding pour remplir le profil de la levée
+        window.location.href = `onboarding-raise.html?project_id=${data.project.id}&type=${type}`;
       } catch (error) {
         console.error('Erreur lors de la création du projet:', error);
         errorContainer.innerHTML = `
