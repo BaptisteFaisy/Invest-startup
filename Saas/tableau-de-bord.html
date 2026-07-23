@@ -4319,6 +4319,27 @@
       return card;
     }
 
+    // Libellés courts des étapes (le nom complet reste dans la fenêtre).
+    const FRISE_LABELS = {
+      'mise-en-ordre': 'Ma levée',
+      'confidentialite': 'Investisseurs',
+      'due-diligence-preliminaire': 'Due diligence préliminaire',
+      'term-sheet': "Lettre d'intention",
+      'due-diligence': 'Due diligence poussée',
+      'documentation': 'Négociation',
+      'closing': 'Closing',
+      'post-closing': 'Post-closing',
+      'gouvernance': 'Gouvernance',
+      'air-preparation': 'Ma levée', 'air-approche': 'Investisseurs',
+      'air-termes': 'Rédaction des BSA-AIR', 'air-emission': "Autorisation de l'émission",
+      'air-souscription': 'Émission des BSA-AIR', 'air-postemission': 'Post-émission',
+      'air-suivi': 'Suivi des bons', 'air-conversion': 'Conversion',
+    };
+    function friseLabel(f) {
+      if (FRISE_LABELS[f.key]) return FRISE_LABELS[f.key];
+      return String(f.name || '').replace(/^\s*\d+\s*[·.\-—]\s*/, '').split(/\s*[(—]/)[0].trim();
+    }
+
     // Étapes où le style éditorial s'applique À L'INTÉRIEUR des dossiers (dossiers
     // investisseurs pour la négociation, dossiers thématiques pour la due diligence
     // préliminaire, closing / post-closing) plutôt qu'en liste unique à plat.
