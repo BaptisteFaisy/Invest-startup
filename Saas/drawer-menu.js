@@ -150,37 +150,6 @@
     });
   })();
 
-  (function addBenchmarkSoonTag() {
-    const benchmarkLink = document.querySelector('#actions-drawer .drawer__link[href="benchmark.html"]');
-    if (!benchmarkLink || benchmarkLink.querySelector('.drawer__soon-tag')) return;
-
-    const tag = document.createElement('span');
-    tag.className = 'drawer__soon-tag';
-    tag.textContent = 'Bientôt';
-    benchmarkLink.appendChild(tag);
-  })();
-
-  // Les outils d'analyse documentaire suivent le même ordre sur toutes les
-  // pages fondateur, y compris les pages plus anciennes dont le menu est figé
-  // dans le HTML.
-  (function setupDocumentAnalysisTools() {
-    const body = document.querySelector('#actions-drawer .drawer__body');
-    const compare = body && body.querySelector('.drawer__link[href="compare.html"]');
-    const benchmark = body && body.querySelector('.drawer__link[href="benchmark.html"]');
-    if (!body || !compare || !benchmark) return;
-
-    let coherence = body.querySelector('.drawer__link[href="coherence.html"]');
-    if (!coherence) {
-      coherence = document.createElement('a');
-      coherence.className = 'drawer__link';
-      coherence.href = 'coherence.html';
-      coherence.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M4 12h7M4 18h10"/><path d="m16 12 2 2 4-5"/></svg>Cohérence';
-    }
-
-    compare.insertAdjacentElement('afterend', coherence);
-    coherence.insertAdjacentElement('afterend', benchmark);
-    if ((location.pathname.split('/').pop() || '') === 'coherence.html') coherence.classList.add('is-current');
-  })();
 
   // Sur telephone, les deux tiroirs sont aussi accessibles par glissement :
   // bord gauche vers le centre pour la navigation, bord droit vers le centre
@@ -435,17 +404,11 @@
     { type: 'Page', label: 'Tableau de bord', href: 'tableau-de-bord.html', keywords: ['accueil', 'dossiers', 'levee', 'levée', 'roadmap'] },
     { type: 'Outil', label: 'Éditeur', href: 'editor.html', keywords: ['rediger', 'rédiger', 'clauses', 'term sheet', 'document'] },
     { type: 'Outil', label: 'Comparer', href: 'compare.html', keywords: ['comparaison', 'versions', 'contrat'] },
-    { type: 'Outil', label: 'Cohérence', href: 'coherence.html', keywords: ['coherence', 'cohérence', 'contradiction', 'documents', 'audit', 'alignement'] },
-    { type: 'Outil', label: 'Tâches', href: 'taches.html', keywords: ['tache', 'todo', 'checklist', 'organisation'] },
-    { type: 'Outil', label: 'Valorisation', href: 'valorisation.html', keywords: ['estimation', 'berkus', 'scorecard', 'pre money', 'prix'] },
-    { type: 'Outil', label: 'Dilution', href: 'dilution.html', keywords: ['cap table', 'simulation', 'actions'] },
-    { type: 'Outil', label: 'Exit', href: 'exit.html', keywords: ['sortie', 'cession', 'liquidation', 'waterfall'] },
     { type: 'Outil', label: 'Documents', href: 'documents.html', keywords: ['fichiers', 'pieces', 'pièces'] },
     { type: 'Outil', label: 'Data room', href: 'data-room.html', keywords: ['dataroom', 'audit', 'due diligence'] },
     { type: 'Outil', label: 'Avocat', href: 'avocat.html', keywords: ['juridique', 'legal', 'juriste', 'conseil', 'contrat'] },
     { type: 'Page', label: 'Mon compte', href: 'compte.html', keywords: ['profil', 'abonnement', 'securite', 'sécurité'] },
     { type: 'Page', label: 'Feedback', href: 'feedback.html', keywords: ['support', 'aide', 'message', 'bug'] },
-    { type: 'Outil', label: 'Benchmark', href: 'benchmark.html', keywords: ['benchmark', 'marche', 'marché', 'repères', 'reperes', 'valorisation', 'dilution', 'termes', 'clauses', 'bsa-air', 'safe', 'levée', 'levee'] },
   ];
   let documents = [];
   let folders = [];
