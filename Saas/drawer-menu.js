@@ -354,24 +354,6 @@
     if (!document.getElementById('feedback-unread-dot')) return; // pages sans lien Feedback
     pollUnread('feedback', '/api/saas/feedback/unread', 'feedback-unread-dot', d => d && d.unread);
   })();
-
-  // Notification « avocat » : allumée dès que l'avocat a fait quelque chose que
-  // le fondateur n'a pas vu (remise, statut, honoraires, rendez-vous). La
-  // pastille du lien est injectée ici plutôt qu'ajoutée aux 14 pages qui
-  // recopient le tiroir. Elle s'éteint dossier par dossier, à leur ouverture.
-  (function setupAvocatNotification() {
-    const link = document.querySelector('.drawer__link[href="avocat.html"]');
-    if (!link) return; // tiroir avocat (applyLawyerDrawers) ou page sans tiroir
-    let dot = document.getElementById('avocat-unread-dot');
-    if (!dot) {
-      dot = document.createElement('span');
-      dot.className = 'drawer__unread-dot';
-      dot.id = 'avocat-unread-dot';
-      dot.hidden = true;
-      link.appendChild(dot);
-    }
-    pollUnread('avocat', '/api/saas/avocat/activity', 'avocat-unread-dot', d => d && d.unread);
-  })();
 })();
 
 // Recherche partagée : elle est ajoutée aux barres supérieures des pages outils.
@@ -405,7 +387,6 @@
     { type: 'Outil', label: 'Éditeur', href: 'editor.html', keywords: ['rediger', 'rédiger', 'clauses', 'term sheet', 'document'] },
     { type: 'Outil', label: 'Documents', href: 'documents.html', keywords: ['fichiers', 'pieces', 'pièces'] },
     { type: 'Outil', label: 'Data room', href: 'data-room.html', keywords: ['dataroom', 'audit', 'due diligence'] },
-    { type: 'Outil', label: 'Avocat', href: 'avocat.html', keywords: ['juridique', 'legal', 'juriste', 'conseil', 'contrat'] },
     { type: 'Page', label: 'Mon compte', href: 'compte.html', keywords: ['profil', 'abonnement', 'securite', 'sécurité'] },
     { type: 'Page', label: 'Feedback', href: 'feedback.html', keywords: ['support', 'aide', 'message', 'bug'] },
   ];
