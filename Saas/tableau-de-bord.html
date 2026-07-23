@@ -764,18 +764,6 @@
     .drawer__link--step.is-active .drawer__step-num { background:#fff; color:#000; }
     .drawer__soon-tag { margin-left:auto; flex:none; font-family:'Archivo',sans-serif; font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#22c55e; background:rgba(34,197,94,0.20); padding:2px 7px; border-radius:99px; }
     .drawer__unread-dot { margin-left:auto; flex:none; width:10px; height:10px; border-radius:50%; background:#86efac; }
-    .drawer__mode { flex:none; margin-top:8px; padding:12px 10px 6px; border-top:1px solid rgba(255,255,255,0.08); direction:ltr; }
-    .drawer__mode-label { display:block; margin:0 0 8px 2px; color:rgba(255,255,255,0.62); font-family:'Archivo',sans-serif; font-size:10px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; }
-    .drawer__mode-options { display:grid; grid-template-columns:1fr 1fr; gap:3px; padding:3px; border:1px solid rgba(255,255,255,0.12); border-radius:10px; background:rgba(255,255,255,0.04); }
-    .drawer__mode-option { min-width:0; padding:8px 6px; border:0; border-radius:7px; background:transparent; color:rgba(255,255,255,0.58); font-family:'Libre Franklin',sans-serif; font-size:12px; font-weight:600; cursor:pointer; transition:background .15s,color .15s,box-shadow .15s; }
-    .drawer__mode-soon { display:block; width:max-content; margin:3px auto 0; padding:2px 6px; border-radius:99px; background:rgba(34,197,94,0.20); color:#22c55e; font-family:'Archivo',sans-serif; font-size:8px; font-weight:800; letter-spacing:.07em; line-height:1; text-transform:uppercase; }
-    .drawer__mode-option.is-active .drawer__mode-soon { color:#16a34a; }
-    .drawer__mode-option:hover:not(:disabled) { color:#fff; }
-    .drawer__mode-option:disabled { cursor:not-allowed; color:rgba(255,255,255,0.38); }
-    .drawer__mode-option.is-active { background:#fff; color:#000; box-shadow:0 1px 5px rgba(0,0,0,0.24); }
-    .drawer__mode-option:disabled { color:rgba(255,255,255,0.32); cursor:not-allowed; }
-    .drawer__mode-option:disabled:hover { background:transparent; color:rgba(255,255,255,0.32); }
-    .drawer__mode-option:focus-visible { outline:2px solid #86efac; outline-offset:1px; }
 
     /* Titres et labels de page */
     .dossiers__eyebrow { color: #fff !important; }
@@ -1042,13 +1030,6 @@
        l'état sélectionné garde alors la même teinte neutre qu'en levée classique. */
     :root[data-theme="paper"] .drawer__link--step.is-current.is-active { background:var(--t-chip); color:var(--t-on-bg); }
     :root[data-theme="paper"] .drawer__link--step.is-current.is-active .drawer__step-num { background:var(--t-chip); color:var(--t-on-bg-muted); }
-    :root[data-theme="paper"] .drawer__mode-label { color:var(--t-on-bg-muted); }
-    :root[data-theme="paper"] .drawer__mode-options { background:var(--t-surface); border-color:var(--t-border); }
-    :root[data-theme="paper"] .drawer__mode-option { color:var(--t-on-bg-muted); }
-    :root[data-theme="paper"] .drawer__mode-option:hover { background:var(--t-chip); color:var(--t-on-bg); }
-    :root[data-theme="paper"] .drawer__mode-option.is-active { background:var(--t-solid); color:var(--t-on-solid); box-shadow:0 1px 5px rgba(8,9,12,.18); }
-    :root[data-theme="paper"] .drawer__mode-option:disabled,
-    :root[data-theme="paper"] .drawer__mode-option:disabled:hover { color:#a8a29e; background:transparent; }
 
     /* Chevron de repli sur le fond */
     :root[data-theme="paper"] .resume-toggle { color: var(--t-on-bg-muted) !important; }
@@ -1146,7 +1127,6 @@
       <nav class="drawer__body">
         <div class="drawer__section-title">Outils</div>
         <a class="drawer__link" href="editor.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Éditeur</a>
-        <a class="drawer__link" href="compare.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18"/><path d="M7 8 3 12l4 4"/><path d="m17 8 4 4-4 4"/></svg>Comparer</a>
         <div class="drawer__sep"></div>
         <a class="drawer__link" href="documents.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>Documents</a>
         <a class="drawer__link" href="data-room.html" target="_blank" rel="noopener" title="Data room"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/></svg>Data room</a>
@@ -1767,38 +1747,9 @@
     const navDrawer = setupDrawer('nav-menu-btn', 'nav-drawer', 'nav-backdrop');
     const actionsDrawer = setupDrawer('actions-menu-btn', 'actions-drawer', 'actions-backdrop');
 
+    // Mode expérience : toujours en mode autonome
     (function setupExperienceMode() {
-      const drawer = document.getElementById('nav-drawer');
-      const body = drawer && drawer.querySelector('.drawer__body');
-      if (!drawer || !body) return;
-      const control = document.createElement('div');
-      control.className = 'drawer__mode';
-      control.innerHTML = `<span class="drawer__mode-label" id="drawer-mode-label">Mode</span><div class="drawer__mode-options" role="group" aria-labelledby="drawer-mode-label"><button class="drawer__mode-option" type="button" data-mode="autonome" aria-pressed="false">Autonome</button><button class="drawer__mode-option" type="button" data-mode="guide" aria-pressed="false" disabled aria-disabled="true" title="Bientôt disponible">Guidé<span class="drawer__mode-soon">Bientôt</span></button></div>`;
-      // Placé à la fin de la liste de navigation (juste sous « Gouvernance »,
-      // avec un petit espace) : en bas du menu, sans être collé au tout fond.
-      body.appendChild(control);
-      let currentMode = 'autonome';
-      try { currentMode = localStorage.getItem('liquid_experience_mode') || currentMode; } catch {}
-      // Le mode « Guidé » n'est pas encore disponible : on force « Autonome »
-      // (y compris si une ancienne valeur « guide » avait été mémorisée).
-      if (currentMode !== 'autonome') currentMode = 'autonome';
-      function applyMode(mode, notify) {
-        mode = 'autonome';
-        document.documentElement.dataset.experienceMode = mode;
-        control.querySelectorAll('[data-mode]').forEach(button => {
-          const active = button.dataset.mode === mode;
-          button.classList.toggle('is-active', active);
-          button.setAttribute('aria-pressed', String(active));
-        });
-        try { localStorage.setItem('liquid_experience_mode', mode); } catch {}
-        if (notify) window.dispatchEvent(new CustomEvent('liquid:mode-change', { detail: { mode } }));
-      }
-      control.addEventListener('click', event => {
-        const button = event.target.closest('[data-mode]');
-        // Ignore les options désactivées (ex. « Guidé », pas encore disponible).
-        if (button && !button.disabled) applyMode(button.dataset.mode, true);
-      });
-      applyMode('autonome', false);
+      document.documentElement.dataset.experienceMode = 'autonome';
     })();
 
     // Sur telephone, les deux tiroirs sont aussi accessibles par glissement :
