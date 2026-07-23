@@ -3961,10 +3961,6 @@ const FUNDRAISING_PROFILE_DEFAULT = {
   target_valuation: '',
   max_dilution: '',
   target_date: '',
-  raise_reason: '',
-  investor_profile: '',
-  other_financing: '',
-  governance_conditions: '',
   founders: [],
 };
 const FUNDRAISING_COUNTRIES = new Set(['france', 'us', 'uk', 'germany', 'other']);
@@ -3972,7 +3968,7 @@ const FUNDRAISING_COUNTRIES = new Set(['france', 'us', 'uk', 'germany', 'other']
 // soit des BSA-AIR. Les deux instruments ne se mélangent jamais sur un même
 // compte, il n'existe donc pas d'état « indéterminé ».
 const FUNDRAISING_TYPES = new Set(['classic', 'bsa-air']);
-const FOUNDER_STATUSES = new Set(['cofounder', 'late-cofounder', 'investor']);
+const FOUNDER_STATUSES = new Set(['cofounder', 'investor']);
 function shortText(v, max = 240) {
   return String(v || '').trim().slice(0, max);
 }
@@ -4022,10 +4018,6 @@ function sanitizeFundraisingProfile(body) {
     target_valuation: target_valuation_raw,
     max_dilution: max_dilution_raw,
     target_date,
-    raise_reason: shortText(body?.raise_reason, 1200),
-    investor_profile: shortText(body?.investor_profile, 1200),
-    other_financing: shortText(body?.other_financing, 1200),
-    governance_conditions: shortText(body?.governance_conditions, 1200),
     founders,
   };
 }
