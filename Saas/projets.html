@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Liquid+ — Mes projets</title>
+  <meta name="description" content="Sélectionnez le projet sur lequel vous souhaitez travailler." />
+  <link rel="icon" href="favicon.svg?v=5" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=6" />
+  <link rel="stylesheet" href="theme.css?v=3" />
+  <style>
+    body {
+      background: #000;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-family: 'Libre Franklin', sans-serif;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+
+    .projects-header {
+      padding: 40px 28px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .projects-header__logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 40px;
+      text-decoration: none;
+    }
+
+    .projects-header__logo img {
+      height: 32px;
+      width: auto;
+    }
+
+    .projects-header__logo-text {
+      font-family: 'Archivo', sans-serif;
+      font-weight: 700;
+      font-size: 1.2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #fff;
+    }
+
+    .projects-header__title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin: 0 0 12px;
+      color: #fff;
+    }
+
+    .projects-header__subtitle {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.7);
+      margin: 0;
+    }
+
+    .projects-container {
+      flex: 1;
+      padding: 20px 28px 60px;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .projects-actions {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+
+    .btn-new-project {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: 10px;
+      background: #15803d;
+      color: #fff;
+      font-family: 'Archivo', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .btn-new-project:hover {
+      background: #166534;
+    }
+
+    .btn-new-project:active {
+      transform: scale(0.97);
+    }
+
+    .btn-new-project svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      stroke-width: 2.5;
+      fill: none;
+    }
+
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .project-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      cursor: pointer;
+      text-decoration: none;
+      color: #08090c;
+      transition: transform 0.15s, box-shadow 0.15s;
+      border: 2px solid transparent;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .project-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      border-color: #15803d;
+    }
+
+    .project-card__header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .project-card__type {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-family: 'Archivo', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .project-card__type--raise {
+      background: #d1fae5;
+      color: #15803d;
+    }
+
+    .project-card__type--bsaair {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .project-card__menu {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border-radius: 6px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: #6b6b78;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .project-card__menu:hover {
+      background: #f0f1f3;
+      color: #08090c;
+    }
+
+    .project-card__menu svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .project-card__name {
+      font-family: 'Archivo', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0 0 8px;
+      color: #08090c;
+    }
+
+    .project-card__meta {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 13px;
+      color: #6b6b78;
+    }
+
+    .project-card__meta-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .project-card__meta-item svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+      flex: none;
+    }
+
+    .project-card__progress {
+      margin-top: auto;
+      padding-top: 16px;
+      border-top: 1px solid rgba(8, 9, 12, 0.08);
+    }
+
+    .project-card__progress-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #6b6b78;
+      margin-bottom: 8px;
+    }
+
+    .project-card__progress-bar {
+      height: 6px;
+      background: #f0f1f3;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .project-card__progress-fill {
+      height: 100%;
+      background: #15803d;
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+    }
+
+    .empty-state__icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 20px;
+      opacity: 0.4;
+    }
+
+    .empty-state__title {
+      font-family: 'Archivo', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.9);
+      margin: 0 0 8px;
+    }
+
+    .empty-state__text {
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.6);
+      margin: 0 0 24px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 60px 20px;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 15px;
+    }
+
+    .error-message {
+      background: rgba(220, 38, 38, 0.15);
+      border: 1px solid rgba(220, 38, 38, 0.3);
+      border-radius: 12px;
+      padding: 16px 20px;
+      color: #fca5a5;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .projects-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .projects-header__title {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="projects-header">
+    <a class="projects-header__logo" href="index.html">
+      <img src="/ressourcegraphique/Goutte%20blanche.png" alt="" />
+      <span class="projects-header__logo-text">LIQUID+</span>
+    </a>
+    <h1 class="projects-header__title">Mes projets</h1>
+    <p class="projects-header__subtitle">Sélectionnez le projet sur lequel vous souhaitez travailler</p>
+  </div>
+
+  <div class="projects-container">
+    <div class="projects-actions">
+      <button class="btn-new-project" id="btn-new-raise">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Nouvelle levée de fonds
+      </button>
+      <button class="btn-new-project" id="btn-new-bsaair" style="background: #1e40af;">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Nouveau BSA AIR
+      </button>
+    </div>
+
+    <div id="error-container"></div>
+    <div id="projects-list">
+      <div class="loading">Chargement de vos projets...</div>
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
+  <script>
+    (async function() {
+      const projectsList = document.getElementById('projects-list');
+      const errorContainer = document.getElementById('error-container');
+
+      // Vérifier l'authentification
+      const user = await requireAuth('login.html', { requireAccountType: true });
+      if (!user) return;
+
+      try {
+        // Charger les projets
+        const response = await fetch('/api/saas/projects', { credentials: 'include' });
+        if (!response.ok) {
+          throw new Error('Impossible de charger les projets');
+        }
+
+        const data = await response.json();
+        const projects = data.projects || [];
+
+        if (projects.length === 0) {
+          projectsList.innerHTML = `
+            <div class="empty-state">
+              <svg class="empty-state__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+              <h2 class="empty-state__title">Aucun projet pour le moment</h2>
+              <p class="empty-state__text">Créez votre première levée de fonds ou BSA AIR pour commencer</p>
+            </div>
+          `;
+          return;
+        }
+
+        // Afficher les projets
+        projectsList.innerHTML = `
+          <div class="projects-grid">
+            ${projects.map(project => {
+              const isRaise = project.type === 'raise';
+              const typeLabel = isRaise ? 'Levée de fonds' : 'BSA AIR';
+              const typeClass = isRaise ? 'raise' : 'bsaair';
+              const progress = project.progress || 0;
+
+              return `
+                <a href="tableau-de-bord.html?project_id=${project.id}" class="project-card">
+                  <div class="project-card__header">
+                    <span class="project-card__type project-card__type--${typeClass}">
+                      ${typeLabel}
+                    </span>
+                    <button class="project-card__menu" onclick="event.preventDefault(); alert('Menu à implémenter');">
+                      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="1"></circle>
+                        <circle cx="12" cy="5" r="1"></circle>
+                        <circle cx="12" cy="19" r="1"></circle>
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div>
+                    <h2 class="project-card__name">${project.name || 'Projet sans nom'}</h2>
+                    <div class="project-card__meta">
+                      ${project.company_name ? `
+                        <div class="project-card__meta-item">
+                          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                          </svg>
+                          ${project.company_name}
+                        </div>
+                      ` : ''}
+                      ${project.updated_at ? `
+                        <div class="project-card__meta-item">
+                          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                          </svg>
+                          Modifié ${formatDate(project.updated_at)}
+                        </div>
+                      ` : ''}
+                    </div>
+                  </div>
+
+                  <div class="project-card__progress">
+                    <div class="project-card__progress-label">
+                      <span>Progression</span>
+                      <strong>${Math.round(progress)}%</strong>
+                    </div>
+                    <div class="project-card__progress-bar">
+                      <div class="project-card__progress-fill" style="width: ${progress}%"></div>
+                    </div>
+                  </div>
+                </a>
+              `;
+            }).join('')}
+          </div>
+        `;
+
+      } catch (error) {
+        console.error('Erreur lors du chargement des projets:', error);
+        errorContainer.innerHTML = `
+          <div class="error-message">
+            ${error.message || 'Une erreur est survenue lors du chargement de vos projets'}
+          </div>
+        `;
+        projectsList.innerHTML = `
+          <div class="empty-state">
+            <h2 class="empty-state__title">Erreur de chargement</h2>
+            <p class="empty-state__text">Impossible de charger vos projets. Veuillez réessayer.</p>
+          </div>
+        `;
+      }
+
+      // Gestion des boutons de création
+      document.getElementById('btn-new-raise').addEventListener('click', () => {
+        window.location.href = 'onboarding.html?type=raise';
+      });
+
+      document.getElementById('btn-new-bsaair').addEventListener('click', () => {
+        window.location.href = 'onboarding.html?type=bsaair';
+      });
+
+      function formatDate(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffTime = Math.abs(now - date);
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) return "aujourd'hui";
+        if (diffDays === 1) return "hier";
+        if (diffDays < 7) return `il y a ${diffDays} jours`;
+        if (diffDays < 30) return `il y a ${Math.floor(diffDays / 7)} semaines`;
+        return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1040,7 +1040,8 @@ async function authLandingPath(user) {
   if (types.includes('fondateur') && !user.twofa_method && await assignedLawyerForClient(user.id)) {
     return '/saas/compte.html?setup2fa=founder-lawyer';
   }
-  return '/saas/tableau-de-bord.html';
+  // Redirige vers la page de sélection de projets au lieu du tableau de bord
+  return '/saas/projets.html';
 }
 
 function requireAuth(req, res, next) {
@@ -4308,6 +4309,76 @@ async function ensureUserFolders(userId) {
     }
   }
 }
+
+// ─── Projets (gestion multi-levées/BSA-AIR) ──────────────────────────────────
+
+function publicProject(p) {
+  const { _id, user_id, ...rest } = p;
+  return rest;
+}
+
+app.get('/api/saas/projects', requireAuth, async (req, res) => {
+  const projects = await col('saas_projects')
+    .find({ user_id: req.user.id }, { projection: { _id: 0, user_id: 0 } })
+    .sort({ updated_at: -1, id: 1 })
+    .toArray();
+  res.json({ projects: projects.map(publicProject) });
+});
+
+app.post('/api/saas/projects', requireAuth, async (req, res) => {
+  const name = (req.body?.name || '').trim().slice(0, 200);
+  const type = ['raise', 'bsaair'].includes(req.body?.type) ? req.body.type : 'raise';
+  const company_name = (req.body?.company_name || '').trim().slice(0, 200);
+
+  if (!name) return res.status(400).json({ error: 'Nom du projet requis' });
+
+  const id = await nextId('saas_projects');
+  const now = new Date().toISOString();
+  const project = {
+    id,
+    user_id: req.user.id,
+    name,
+    type,
+    company_name: company_name || null,
+    progress: 0,
+    created_at: now,
+    updated_at: now,
+  };
+
+  await col('saas_projects').insertOne(project);
+  res.status(201).json({ project: publicProject(project) });
+});
+
+app.put('/api/saas/projects/:id', requireAuth, async (req, res) => {
+  const id = Number(req.params.id);
+  const project = await col('saas_projects').findOne({ id, user_id: req.user.id });
+  if (!project) return res.status(404).json({ error: 'Projet introuvable' });
+
+  const updates = {};
+  if (req.body.name !== undefined) updates.name = (req.body.name || '').trim().slice(0, 200);
+  if (req.body.company_name !== undefined) updates.company_name = (req.body.company_name || '').trim().slice(0, 200) || null;
+  if (req.body.progress !== undefined) {
+    const progress = Number(req.body.progress);
+    if (Number.isFinite(progress)) updates.progress = Math.max(0, Math.min(100, progress));
+  }
+
+  if (Object.keys(updates).length === 0) return res.json({ success: true });
+
+  updates.updated_at = new Date().toISOString();
+  await col('saas_projects').updateOne({ id, user_id: req.user.id }, { $set: updates });
+
+  const updated = await col('saas_projects').findOne({ id, user_id: req.user.id });
+  res.json({ success: true, project: publicProject(updated) });
+});
+
+app.delete('/api/saas/projects/:id', requireAuth, async (req, res) => {
+  const id = Number(req.params.id);
+  const project = await col('saas_projects').findOne({ id, user_id: req.user.id });
+  if (!project) return res.status(404).json({ error: 'Projet introuvable' });
+
+  await col('saas_projects').deleteOne({ id, user_id: req.user.id });
+  res.json({ success: true });
+});
 
 app.get('/api/saas/folders', requireAuth, async (req, res) => {
   await ensureUserFolders(req.user.id);
