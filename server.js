@@ -4352,8 +4352,24 @@ async function ensureUserFolders(userId, projectId) {
 
   const wantedKeys = new Set(PHASES.map(p => p.key));
   const byKey      = {};
-  sys.forEach(f => { if (f.key) byKey[f.key] = f; });
+  const duplicates = [];
+  sys.forEach(f => {
+    if (f.key) {
+      if (byKey[f.key]) {
+        // Doublon détecté : on garde le premier et on supprime les suivants
+        duplicates.push(f);
+      } else {
+        byKey[f.key] = f;
+      }
+    }
+  });
   const now = new Date().toISOString();
+
+  // Supprime les doublons de dossiers système (même clé)
+  for (const f of duplicates) {
+    await col('saas_folders').deleteOne({ id: f.id, user_id: userId, project_id: projectId });
+    await col('saas_documents').updateMany({ user_id: userId, folder_id: f.id }, { $unset: { folder_id: '' } });
+  }
 
   // Supprime les dossiers système obsolètes (anciens génériques sans clé inclus).
   const obsolete = sys.filter(f => !f.key || !wantedKeys.has(f.key));
