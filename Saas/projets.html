@@ -172,7 +172,7 @@
       text-decoration: none;
       color: #08090c;
       transition: transform 0.15s, box-shadow 0.15s;
-      border: 2px solid transparent;
+      border: 2px solid #66b97f;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -181,7 +181,7 @@
     .project-card:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-      border-color: #1e40af;
+      border-color: #66b97f;
     }
 
     .project-card__header {
@@ -210,8 +210,8 @@
       font-weight: 800;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      background: #dbeafe;
-      color: #1e40af;
+      background: #e7f4ea;
+      color: #66b97f;
     }
 
     .project-card__menu {
@@ -420,11 +420,11 @@
 <body>
   <div class="projects-header">
     <div class="projects-header__top">
-      <a class="projects-header__logo" href="index.html">
+      <div class="projects-header__logo">
         <img src="/ressourcegraphique/Goutte%20blanche.png" alt="" />
         <span class="projects-header__logo-text">LIQUID+</span>
         <span class="projects-header__page-title">Mes projets</span>
-      </a>
+      </div>
       <button class="btn-logout" id="btn-logout">
         <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
