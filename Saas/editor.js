@@ -843,6 +843,51 @@ document.querySelectorAll('.tbtn[data-cmd]').forEach(btn => {
 // d'insérer un paragraphe qui respecte la mise en page (grille étiquette | contenu),
 // notamment dans les modèles « libres » où la bibliothèque sert de sommaire.
 function addClauseBlock() {
+  // On veut qu'un paragraphe ajouté se FONDE dans la page : au lieu de créer un
+  // nouvel encadré « clause » (colonne d'étiquette + contenu) qui se repère au
+  // premier coup d'œil, on insère un simple <p> DANS le contenu d'une clause
+  // existante. Il hérite alors exactement de la police, de l'alignement et des
+  // espacements du texte voisin — impossible de voir que c'est un ajout.
+  const active = activeKey ? page.querySelector('.ts-clause[data-key="' + activeKey + '"]') : null;
+  // Hôte du nouveau paragraphe : la clause active, sinon la dernière clause du
+  // document. On ne crée un bloc structuré que si le document n'a AUCUNE clause.
+  const clauses = page.querySelectorAll('.ts-clause');
+  const host = (active || clauses[clauses.length - 1] || null);
+  const content = host ? host.querySelector('.ts-content') : null;
+
+  if (content) {
+    const p = document.createElement('p');
+    p.innerHTML = '<br>'; // paragraphe vide, prêt à saisir
+
+    // Insère juste après le paragraphe où se trouve le curseur (s'il est dans
+    // cette clause), sinon en fin de clause.
+    let anchor = null;
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount) {
+      let node = sel.getRangeAt(0).startContainer;
+      const el = node.nodeType === 1 ? node : node.parentElement;
+      const cand = el ? el.closest('.ts-content > p') : null;
+      if (cand && cand.parentElement === content) anchor = cand;
+    }
+    if (anchor) anchor.after(p);
+    else content.appendChild(p);
+
+    // Garde la clause hôte comme clause active (sans réafficher l'encadré de
+    // sélection ailleurs) puis recompose la mise en page avant de placer le curseur.
+    if (host.dataset.key) selectClauseByKey(host.dataset.key, host);
+    paginate();
+    scheduleAutosave(); // insertion programmatique : ne déclenche pas l'événement input
+    p.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    page.focus();
+    const r = document.createRange();
+    r.selectNodeContents(p);
+    r.collapse(true); // curseur au début du paragraphe vide
+    sel.removeAllRanges();
+    sel.addRange(r);
+    return;
+  }
+
+  // Document sans aucune clause : on retombe sur la création d'un bloc structuré.
   const div = document.createElement('div');
   div.className = 'ts-clause';
   const key = 'c' + Date.now().toString(36);
@@ -850,13 +895,8 @@ function addClauseBlock() {
   div.innerHTML = '<div class="ts-label">Nouveau paragraphe</div>'
     + '<div class="ts-content"><p>Saisissez le texte de ce paragraphe…</p></div>';
 
-  // Position : juste après la clause active, sinon avant la signature / l'annexe.
-  const ref = activeKey ? page.querySelector('.ts-clause[data-key="' + activeKey + '"]') : null;
-  if (ref) ref.after(div);
-  else {
-    const anchor = page.querySelector('.ts-sign') || page.querySelector('.ts-annexe');
-    if (anchor) anchor.before(div); else page.appendChild(div);
-  }
+  const anchor = page.querySelector('.ts-sign') || page.querySelector('.ts-annexe');
+  if (anchor) anchor.before(div); else page.appendChild(div);
 
   // Réintègre la nouvelle clause au modèle (sommaire + décrypteur) puis recompose
   // la mise en page avant de défiler/placer le curseur (sinon tout se décalerait).
@@ -1552,6 +1592,14 @@ document.getElementById('export-docx-item').addEventListener('click', () => {
   closeExportMenu();
   exportToFile('docx', exportToggle);
 });
+document.getElementById('export-odt-item').addEventListener('click', () => {
+  closeExportMenu();
+  exportToFile('odt', exportToggle);
+});
+document.getElementById('export-txt-item').addEventListener('click', () => {
+  closeExportMenu();
+  exportToFile('txt', exportToggle);
+});
 
 // Export direct du document (HTML structuré) → DOCX/PDF via le serveur : conserve
 // la mise en page, sans passer par un PDF reconverti.
@@ -1950,6 +1998,13 @@ if (exportDocxRedline) exportDocxRedline.addEventListener('click', async () => {
   // l'export serveur (diff référence ↔ document) reflète le même redline.
   if (redlineActive && !redlineMarking) await resumeRedlineMarking();
   exportToFile('docx', exportToggle, 'redline');
+});
+const exportOdtRedline = document.getElementById('export-odt-redline-item');
+if (exportOdtRedline) exportOdtRedline.addEventListener('click', async () => {
+  closeExportMenu();
+  if (!BASELINE_HTML) { alert('Pas de version de référence : le redline nécessite un document importé, ou une référence définie via le bouton « Redline ».'); return; }
+  if (redlineActive && !redlineMarking) await resumeRedlineMarking();
+  exportToFile('odt', exportToggle, 'redline');
 });
 
 /* ---------- 6 ter. Analyser tout le document (Claude) ---------- */
