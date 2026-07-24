@@ -302,6 +302,14 @@
         foundersList.appendChild(founderRow({}));
       });
 
+      // Empêche la touche Entrée de soumettre prématurément le formulaire
+      // depuis un champ texte (le nom/siren semblait alors "disparaître").
+      form.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+          e.preventDefault();
+        }
+      });
+
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         showError('');
