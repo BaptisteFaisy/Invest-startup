@@ -214,11 +214,6 @@
       color: #7c3aed;
     }
 
-    .project-card__company {
-      background: #fef3c7;
-      color: #92400e;
-    }
-
     .project-card__menu {
       width: 32px;
       height: 32px;
@@ -591,11 +586,6 @@
                     <span class="project-card__type project-card__type--${typeClass}">
                       ${typeLabel}
                     </span>
-                    ${project.company_name ? `
-                      <span class="project-card__type project-card__company">
-                        ${project.company_name}
-                      </span>
-                    ` : ''}
                   </div>
                   <button class="project-card__menu" onclick="event.preventDefault(); event.stopPropagation(); openProjectMenu(this, ${project.id});">
                     <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
