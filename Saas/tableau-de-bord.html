@@ -2674,9 +2674,12 @@
       'convention-entre-investisseurs',
       // Phase 6 — closing
       'certificat-du-depositaire-des-fonds',
+      'contrats-de-souscription-investment-agreements-individuels',
       'pv-de-l-age-actant-l-augmentation-de-capital',
+      'decisions-du-president-constatant-les-souscriptions-et-le-versement-des-fonds',
       'pv-de-constatation-de-la-realisation-definitive',
       'cap-table-post-money-mise-a-jour',
+      'tableau-fully-diluted-post-closing-bspce-bsa-air-oc-inclus',
       'registre-des-mouvements-de-titres-mis-a-jour',
       'dossier-de-formalites-au-greffe',
       // Phase 7 — post-closing
@@ -2714,9 +2717,6 @@
       'bulletins-de-souscription-des-actions-issues-de-la-conversion': 'contrat-bulletin-de-souscription',
       // Closing : le dossier de formalités a désormais son propre modèle dédié
       // (l'ancien rapprochement « statuts à jour » était accidentel).
-      // NB : le « tableau fully diluted post-closing » ne partage plus le modèle de
-      // cap table post-money — sinon deux lignes du closing ouvraient le même
-      // document. Il passe par l'assistant (voir MODEL_SLUG_BLOCKLIST).
       'dossier-de-formalites-au-greffe-m2-statuts-pv-attestation-de-depot': 'dossier-de-formalites-au-greffe',
     };
     // Correspondances souples pour les intitulés rédigés par les investisseurs.
@@ -2768,23 +2768,8 @@
       ['contrat-bulletin-de-souscription', [/bulletins?.*souscription|contrats?.*souscription|investment agreements?/]],
       ['statuts-a-jour', [/statuts?/]],
     ];
-    // Lignes du closing dont l'intitulé chevauche un modèle DÉJÀ proposé par une
-    // autre ligne (le matcher souple les rattachait au même document). On les
-    // exclut pour qu'un même modèle ne soit jamais offert sur deux lignes
-    // différentes : ces pièces se préparent à part (assistant ou import).
-    //  - « Contrats de souscription / investment agreements individuels » doublait
-    //    « Bulletins de souscription des investisseurs » (contrat-bulletin-de-souscription).
-    //  - « Décisions du président constatant les souscriptions… » doublait
-    //    « PV de constatation de la réalisation définitive » (pv-de-constatation…).
-    //  - « Tableau fully diluted post-closing » doublait « Cap table post-money mise à jour ».
-    const MODEL_SLUG_BLOCKLIST = new Set([
-      'contrats-de-souscription-investment-agreements-individuels',
-      'decisions-du-president-constatant-les-souscriptions-et-le-versement-des-fonds',
-      'tableau-fully-diluted-post-closing-bspce-bsa-air-oc-inclus',
-    ]);
     // Modèle effectif pour un slug (alias éventuel), s'il existe.
     function modelSlugFor(slug, label = '') {
-      if (MODEL_SLUG_BLOCKLIST.has(slug)) return null;
       const m = MODEL_ALIASES[slug] || slug;
       if (MODELS.has(m)) return m;
       const candidate = (label || slug).toLowerCase().normalize('NFD')

@@ -1,0 +1,51 @@
+<h1 class="doc-title">TABLEAU FULLY DILUTED POST-CLOSING</h1>
+<p class="doc-sub">[DÉNOMINATION] — après l'opération du [DATE] — BSPCE, BSA, AIR, OC inclus — version exhaustive</p>
+
+<div class="ts-group" contenteditable="false">Position pleinement diluée post-closing</div>
+
+<div class="ts-clause" data-key="instruments" data-plain="Contrairement à la cap table post-money (qui ne reflète que les actions réellement émises), ce tableau intègre TOUS les instruments potentiellement dilutifs restant en circulation après le closing : BSPCE attribués et pool réservé, BSA, BSA-AIR non encore convertis, obligations convertibles. Une ligne par catégorie d'instrument, avec son hypothèse de conversion — c'est le document de référence pour négocier le prochain tour."><div class="ts-label">Détail par catégorie d'instrument</div><div class="ts-content"><table>
+<tr><th>Catégorie</th><th>Nombre / équivalent actions</th><th>% capital émis</th><th>% pleinement dilué</th><th>Hypothèse retenue</th></tr>
+<tr><td>Actions ordinaires</td><td>[…]</td><td>[…] %</td><td>[…] %</td><td>—</td></tr>
+<tr><td>Actions de préférence (ADP A)</td><td>[…]</td><td>[…] %</td><td>[…] %</td><td>—</td></tr>
+<tr><td>BSPCE attribués</td><td>[…]</td><td>—</td><td>[…] %</td><td>Exercice à [prix d'exercice] €</td></tr>
+<tr><td>Pool BSPCE / BSA réservés non attribués</td><td>[…]</td><td>—</td><td>[…] %</td><td>Réservé, non attribué</td></tr>
+<tr><td>BSA-AIR non convertis</td><td>[…]</td><td>—</td><td>[…] %</td><td>Conversion au [floor / cap], hypothèse la plus dilutive</td></tr>
+<tr><td>Obligations convertibles (OC) non converties</td><td>[…]</td><td>—</td><td>[…] %</td><td>Conversion au [prix / ratio contractuel]</td></tr>
+<tr><td><strong>Total pleinement dilué</strong></td><td><strong>[…]</strong></td><td><strong>100 %</strong></td><td><strong>100 %</strong></td><td></td></tr>
+</table></div></div>
+
+<div class="ts-clause" data-key="hypotheses" data-plain="Documente les hypothèses retenues pour chaque instrument non encore converti, car un même tableau peut être construit selon plusieurs conventions (hypothèse basse/haute). Sans cette transparence méthodologique, un investisseur du tour suivant ne peut pas vérifier le calcul — et le remettra en cause."><div class="ts-label">Hypothèses de conversion retenues</div><div class="ts-content"><table>
+<tr><th>Instrument</th><th>Hypothèse basse</th><th>Hypothèse haute (la plus dilutive)</th><th>Hypothèse retenue ici</th></tr>
+<tr><td>BSA-AIR</td><td>Conversion au cap</td><td>Conversion au floor</td><td>[…]</td></tr>
+<tr><td>OC</td><td>Non conversion (remboursement)</td><td>Conversion intégrale au ratio contractuel</td><td>[…]</td></tr>
+<tr><td>BSPCE / BSA</td><td>Attribués uniquement</td><td>Attribués + pool réservé</td><td>[…]</td></tr>
+</table><p>Sauf mention contraire, le tableau ci-dessus retient l'hypothèse <strong>la plus dilutive</strong> pour chaque instrument, conformément à la pratique de place pour un tableau fully diluted de référence.</p></div></div>
+
+<div class="ts-clause" data-key="coherence" data-plain="La check-list de cohérence propre à ce tableau : il doit se recouper avec la cap table post-money (actions réellement émises), avec le registre des valeurs mobilières (BSA/BSA-AIR/OC) et avec chaque contrat d'émission (prix, ratio, échéance). C'est le document qu'un investisseur entrant exigera en premier pour vérifier la dilution potentielle réelle."><div class="ts-label">Cohérence à vérifier</div><div class="ts-content"><ul>
+<li>Le sous-total « actions émises » correspond exactement à la <strong>cap table post-money</strong>.</li>
+<li>Chaque ligne d'instrument non converti se recoupe avec le <strong>registre des valeurs mobilières</strong> et son contrat d'émission (prix, ratio, échéance).</li>
+<li>L'hypothèse de conversion retenue pour chaque BSA-AIR correspond à sa <strong>note de calcul de conversion</strong> propre (décote, cap, floor).</li>
+<li>Le pool BSPCE non attribué correspond au <strong>solde disponible</strong> après attributions individuelles, conforme au pacte.</li>
+<li>Pourcentages au capital et pleinement dilués bouclant à <strong>100 %</strong>, recalculés en nombre d'actions/équivalents — jamais copiés.</li>
+<li>Date d'arrêté et hypothèses de conversion clairement indiquées, pour permettre un recalcul par un tiers.</li>
+</ul></div></div>
+
+<div class="ts-sign"><p>Tableau fully diluted arrêté au [DATE], sur la base des hypothèses de conversion indiquées ci-dessus.</p><p>Le Président — [NOM]</p></div>
+<script type="application/json" data-conditions>{
+"instruments": [
+{"id":"tfd_inst_conservateur","type":"option","label":"Hypothèse conservatrice (moins dilutive)","preview":"BSPCE attribués seuls, AIR au cap, OC non converties","html":"<p>Le tableau retient l'hypothèse <mark class='cond-val'>la moins dilutive</mark> : BSPCE attribués seuls (pool exclu), AIR convertis au cap, OC non converties — utile pour une lecture plancher de la dilution.</p>"},
+{"id":"tfd_inst_maximaliste","type":"option","label":"Hypothèse maximaliste (la plus dilutive)","preview":"Pool complet, AIR au floor, OC converties","html":"<p>Le tableau retient l'hypothèse <mark class='cond-val'>la plus dilutive</mark> : pool BSPCE complet (attribué + réservé), AIR convertis au floor, OC intégralement converties — c'est la convention de place pour un tableau fully diluted de référence.</p>"}
+],
+"hypotheses": [
+{"id":"tfd_hyp_air","type":"seuil","label":"AIR : conversion au floor par prudence","preview":"L'hypothèse la plus dilutive pour les investisseurs déjà présents","html":"<p>Les BSA-AIR non convertis sont valorisés en supposant une <mark class='cond-val'>conversion au plancher (floor)</mark>, hypothèse la plus dilutive pour les actionnaires déjà présents.</p>"},
+{"id":"tfd_hyp_oc","type":"option","label":"OC : conversion intégrale supposée","preview":"Par opposition au remboursement en numéraire","html":"<p>Les obligations convertibles sont supposées <mark class='cond-val'>intégralement converties</mark> en actions, plutôt que remboursées en numéraire à l'échéance.</p>"}
+]
+}</script>
+<script type="application/json" data-advice>[
+{"title":"Ne pas confondre avec la cap table post-money","body":"La cap table post-money reflète le capital réellement émis et inscrit aux registres ; ce tableau fully diluted y ajoute tous les instruments potentiellement dilutifs encore en circulation — les deux documents coexistent, ils ne se substituent pas l'un à l'autre."},
+{"title":"Toujours documenter l'hypothèse retenue","body":"Un tableau fully diluted sans hypothèse explicite pour chaque instrument non converti est invérifiable : indiquez systématiquement floor/cap pour les AIR, conversion ou non pour les OC, pool inclus ou non pour les BSPCE."},
+{"title":"Retenir l'hypothèse la plus dilutive par défaut","body":"C'est la convention de place pour un tableau de référence transmis à un investisseur entrant : elle évite toute contestation ultérieure sur une dilution sous-estimée."},
+{"title":"Recouper avec le registre des valeurs mobilières","body":"Chaque BSA, BSA-AIR ou OC listé ici doit exister dans le registre des valeurs mobilières avec les mêmes caractéristiques (prix, ratio, échéance) — c'est le premier point de contrôle en due diligence."},
+{"title":"Distinguer pool attribué et pool réservé","body":"Le pool BSPCE non attribué dilue déjà les actionnaires actuels au moment où il est créé, même avant toute attribution individuelle : ne l'omettez pas du tableau sous prétexte qu'il n'est pas encore distribué."},
+{"title":"Recalculer, ne jamais copier les pourcentages","body":"Comme pour la cap table post-money, travaillez en nombre d'actions/équivalents et laissez les pourcentages se recalculer automatiquement — les arrondis copiés sont la première source d'erreur."}
+]</script>
