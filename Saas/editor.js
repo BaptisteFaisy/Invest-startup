@@ -1195,9 +1195,11 @@ window.addEventListener('resize', () => { positionSelxBtn(); positionSelxPop(); 
 /* ---------- 5 bis. Pagination écran (mise en page façon Word) ----------
    Le contenu est réparti sur des feuilles A4. Chaque bloc de premier niveau
    (titre, paragraphe, clause…) est insécable : s'il déborde de la feuille
-   courante il est repoussé en haut de la suivante. Une clause plus grande
-   qu'une page entière déborde (cas rare) plutôt que de voir son conteneur
-   s'étirer à travers la gouttière entre deux feuilles. */
+   courante il est repoussé en haut de la suivante. Un bloc plus grand qu'une
+   page entière (tableau, image…) ne peut pas être scindé : plutôt que de le
+   laisser traverser la gouttière grise entre deux feuilles — ce qui affiche
+   du texte hors de toute feuille blanche — on fusionne les feuilles qu'il
+   chevauche en une seule feuille plus haute (voir `bleedRanges` plus bas). */
 const PAGE_H = 1160;       // hauteur d'une feuille A4 à 820 px de large
 const SHEET_GAP = 28;      // espace gris entre deux feuilles
 const CONTENT_TOP = 76;    // marge haute imprimable d'une feuille
@@ -1324,14 +1326,28 @@ function paginate(opts = {}) {
     // On ne peut pas injecter de marge à l'intérieur d'un tableau.
     const NO_SPLIT = /^(TABLE|THEAD|TBODY|TFOOT|TR|TD|TH)$/;
 
+    // Plages verticales (en coordonnées `page`) occupées par un bloc qu'on n'a
+    // pas pu répartir (tableau, image, ou tout bloc sans enfant plus haut
+    // qu'une feuille). Utilisées à l'étape 3 pour fusionner les feuilles dont
+    // la gouttière tombe dans une de ces plages, afin que ce contenu reste
+    // toujours posé sur une feuille blanche au lieu du fond gris du canevas.
+    const bleedRanges = [];
+
     // Unité plus haute qu'une feuille entière : plutôt que de la laisser couler
     // à travers la gouttière, on repousse chacun de ses blocs internes qui
     // chevauche une fin de zone de texte en haut de la feuille suivante
     // (récursif). Renvoie la feuille où se termine le dernier bloc placé.
     function flowInside(el, startPage) {
       el.setAttribute('data-pgsplit', '1'); // fond « clause active » neutralisé (l'unité chevauche deux feuilles)
+      const kids = innerBlocks(el);
+      if (!kids.length) {
+        // Rien à répartir à l'intérieur : l'élément lui-même déborde (image,
+        // bloc insécable sans enfant…) — on retient sa zone (voir bleedRanges).
+        bleedRanges.push([topOf(el), topOf(el) + heightOf(el)]);
+        return startPage;
+      }
       let pg = startPage;
-      for (const k of innerBlocks(el)) {
+      for (const k of kids) {
         const kh = heightOf(k);
         if (!kh) continue;
         const kt = topOf(k);
@@ -1347,7 +1363,12 @@ function paginate(opts = {}) {
           } else {
             // Bloc lui-même plus haut qu'une feuille → on descend d'un niveau.
             if (target - kt > 0.5) pushTo(k, k, target);
-            pg = NO_SPLIT.test(k.tagName) ? kp : flowInside(k, kp);
+            if (NO_SPLIT.test(k.tagName)) {
+              bleedRanges.push([topOf(k), topOf(k) + heightOf(k)]);
+              pg = kp;
+            } else {
+              pg = flowInside(k, kp);
+            }
             continue;
           }
         }
@@ -1408,11 +1429,29 @@ function paginate(opts = {}) {
 
     // 3. Dessin de la pile de feuilles + repères de page.
     const nPages = Math.max(1, cursorPage + 1, Math.ceil(page.scrollHeight / pitch));
+
+    // Fusionne deux feuilles consécutives si un bloc insécable (bleedRanges)
+    // chevauche la gouttière grise entre elles : le texte reste ainsi toujours
+    // posé sur du blanc, jamais sur le fond gris du canevas.
+    const mergeAfter = new Array(nPages - 1).fill(false);
+    for (const [from, to] of bleedRanges) {
+      for (let i = 0; i < nPages - 1; i++) {
+        const gutterTop = i * pitch + PAGE_H;
+        const gutterBottom = gutterTop + SHEET_GAP;
+        if (from < gutterBottom && to > gutterTop) mergeAfter[i] = true;
+      }
+    }
+
     let html = '';
-    for (let i = 0; i < nPages; i++) {
+    for (let i = 0; i < nPages;) {
+      let j = i;
+      while (j < nPages - 1 && mergeAfter[j]) j++;
       const top = i * pitch;
-      html += `<div class="sheet" style="top:${top}px;height:${PAGE_H}px"></div>`;
-      html += `<div class="sheet__num" style="top:${top + PAGE_H + 7}px">Page ${i + 1} / ${nPages}</div>`;
+      const height = (j - i) * pitch + PAGE_H;
+      html += `<div class="sheet" style="top:${top}px;height:${height}px"></div>`;
+      const label = i === j ? `Page ${i + 1} / ${nPages}` : `Pages ${i + 1}-${j + 1} / ${nPages}`;
+      html += `<div class="sheet__num" style="top:${top + height + 7}px">${label}</div>`;
+      i = j + 1;
     }
     sheetBg.innerHTML = html;
 
