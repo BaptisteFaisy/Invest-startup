@@ -21,7 +21,7 @@
   // l'étape consultée dans l'instantané partagé ; on revient directement dessus.
   function lastConsultedStepUrl() {
     const snapshot = readSnapshot();
-    const type = snapshot && snapshot.raiseType === 'bsa-air' ? 'bsa-air' : 'classic';
+    const type = snapshot && snapshot.raiseType === 'bsa-air' ? 'bsa-air' : (snapshot && snapshot.raiseType === 'ordinary' ? 'ordinary' : 'classic');
     const steps = snapshot && Array.isArray(snapshot.steps) ? snapshot.steps : [];
     const step = steps.find(item => item && item.active)
       || steps.find(item => item && item.current)
@@ -171,8 +171,9 @@
   const HIDDEN_CLASSIC_PHASE_KEYS = ['confidentialite', 'due-diligence-preliminaire', 'due-diligence', 'documentation', 'post-closing', 'gouvernance'];
   function buildSteps(type, folders, docs, investors) {
     const isSys = f => !!(f && f.system === true && f.key);
-    let phases = folders.filter(f => isSys(f) && (f.track || 'classic') === type);
-    if (type === 'classic') {
+    const trackType = (type === 'ordinary') ? 'classic' : type;
+    let phases = folders.filter(f => isSys(f) && (f.track || 'classic') === trackType);
+    if (type === 'classic' || type === 'ordinary') {
       phases = phases.filter(f => !String(f && f.name || '').trim().startsWith('9') && !HIDDEN_CLASSIC_PHASE_KEYS.includes(f.key));
     }
     if (!phases.length) return { raiseType: type, steps: [] };
@@ -211,7 +212,7 @@
     let type = 'classic';
     try {
       const t = localStorage.getItem('liquid_raise_type_' + raiseUser + (projectId ? '_' + projectId : ''));
-      if (t === 'classic' || t === 'bsa-air') type = t;
+      if (t === 'classic' || t === 'ordinary' || t === 'bsa-air') type = t;
     } catch {}
     let folders = [], docs = [], investors = [];
     try {

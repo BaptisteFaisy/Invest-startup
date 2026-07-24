@@ -3634,10 +3634,11 @@
             <label class="raise-field">
               <span class="raise-field__label raise-field__label--required">Type de levée de fonds</span>
               <select class="raise-select" name="raise_type" required${profile.raise_type_locked ? ' disabled' : ''}>
-                <option value="classic"${optionSelected('classic', profile.raise_type)}>Levée classique</option>
-                <option value="bsa-air"${optionSelected('bsa-air', profile.raise_type)}>BSA-AIR</option>
+                <option value="classic"${optionSelected('classic', profile.raise_type)}>Levée avec actions de préférence</option>
+                <option value="ordinary"${optionSelected('ordinary', profile.raise_type)}>Levée avec actions ordinaires</option>
+                <option value="bsa-air"${optionSelected('bsa-air', profile.raise_type)}>Levée avec BSA-AIR</option>
               </select>
-              ${profile.raise_type_locked ? `<span class="raise-field__lock-hint">Type de levée verrouillé : une levée classique et des BSA-AIR ne se mélangent pas sur un même compte. <button type="button" class="raise-type-switch" data-switch-raise-type>Changer de type de levée</button></span>` : ''}
+              ${profile.raise_type_locked ? `<span class="raise-field__lock-hint">Type de levée verrouillé. <button type="button" class="raise-type-switch" data-switch-raise-type>Changer de type de levée</button></span>` : ''}
             </label>
             <label class="raise-field">
               <span class="raise-field__label">Montant visé</span>

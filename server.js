@@ -28,7 +28,7 @@ const Stripe           = require('stripe');
 const { createDocumentEncryption } = require('./lib/document-encryption');
 const redlineDiff      = require('./Saas/redline-diff');
 const { buildAdminDashboardStats, countUnreadAdminMessages } = require('./lib/admin-dashboard');
-const { adminLiquidPayment, adminFreeAiUsage } = require('./lib/admin-payments');
+const { adminLiquidPayment } = require('./lib/admin-payments');
 const { companyNameKey, identityHash: identityHashWith } = require('./lib/founder-identity');
 const { productionConfigurationProblems } = require('./lib/runtime-config');
 const {
@@ -117,9 +117,6 @@ const DAILY_TOKEN_CAP      = Number(process.env.DAILY_TOKEN_CAP) || 5_000_000;
 // Plafond de tokens IA d'un compte fondateur gratuit. C'est un cumul À VIE du
 // compte (jamais remis à zéro), et non un quota périodique. Repère : un premier
 // document mené jusqu'au bout (analyse complète + une vingtaine d'échanges avec
-// l'assistant + quelques ré-analyses) coûte de l'ordre de 200 000 tokens.
-// Réglable via FREE_FOUNDER_TOKEN_CAP (Railway → service → onglet Variables).
-const FREE_FOUNDER_TOKEN_CAP = Number(process.env.FREE_FOUNDER_TOKEN_CAP) || 300_000;
 const STRIPE_SECRET_KEY    = process.env.STRIPE_SECRET_KEY || '';
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 // Webhook DISTINCT (secret différent) pour les événements des comptes connectés
@@ -1529,9 +1526,8 @@ app.get('/api/billing/status', requireAuth, async (req, res) => {
   });
 });
 
-// Freemium : plus aucun accès fondateur ne se ferme avec le temps, donc plus de
-// garde d'expiration ici. Ce qui se paie est verrouillé au cas par cas — sortie
-// du document (gatePaidExtraction) et plafond de tokens de l'assistant.
+// Les accès payants sont verrouillés au cas par cas — sortie du document
+// (gatePaidExtraction).
 app.use('/api/saas', requireAuth);
 
 // ─── GET /api/auth/2fa/status ─────────────────────────────────────────────────
@@ -3952,7 +3948,11 @@ function publicFolder(f) {
 // un document unique par compte — une société ne change pas de nom entre deux
 // levées. Seul le type effectif de la levée est dérivé du projet courant.
 const SAAS_PROJECT_TYPES = new Set(['raise-preference', 'bsaair', 'raise-ordinary']);
-function projectRaiseType(type) { return type === 'bsaair' ? 'bsa-air' : 'classic'; }
+function projectRaiseType(type) {
+  if (type === 'bsaair') return 'bsa-air';
+  if (type === 'raise-ordinary') return 'ordinary';
+  return 'classic';
+}
 
 // Compte créé avant l'introduction de « Mes projets » (ou tableau de bord ouvert
 // sans project_id, ex. lien historique) : on lui provisionne un projet par
@@ -3975,7 +3975,7 @@ async function ensureDefaultProject(userId) {
   const project = {
     id, user_id: userId,
     name: legacyProfile?.company_name || 'Ma levée',
-    type: legacyProfile?.raise_type === 'bsa-air' ? 'bsaair' : 'raise-preference',
+    type: legacyProfile?.raise_type === 'bsa-air' ? 'bsaair' : (legacyProfile?.raise_type === 'ordinary' ? 'raise-ordinary' : 'raise-preference'),
     company_name: legacyProfile?.company_name || null,
     progress: 0, created_at: now, updated_at: now,
   };
@@ -4015,7 +4015,7 @@ const FUNDRAISING_COUNTRIES = new Set(['france', 'us', 'uk', 'germany', 'other']
 // Le type de levée est un choix exclusif : soit une levée classique (equity),
 // soit des BSA-AIR. Les deux instruments ne se mélangent jamais sur un même
 // compte, il n'existe donc pas d'état « indéterminé ».
-const FUNDRAISING_TYPES = new Set(['classic', 'bsa-air']);
+const FUNDRAISING_TYPES = new Set(['classic', 'ordinary', 'bsa-air']);
 const FOUNDER_STATUSES = new Set(['cofounder', 'investor']);
 function shortText(v, max = 240) {
   return String(v || '').trim().slice(0, max);
@@ -4223,7 +4223,7 @@ app.post('/api/saas/fundraising-profile/switch-type', requireAuth, async (req, r
     // du compte (société, fondateurs...), seul le projet change de piste.
     await col('saas_projects').updateOne(
       { id: project.id, user_id: userId },
-      { $set: { type: nextType === 'bsa-air' ? 'bsaair' : 'raise-preference', updated_at: now } },
+      { $set: { type: nextType === 'bsa-air' ? 'bsaair' : (nextType === 'ordinary' ? 'raise-ordinary' : 'raise-preference'), updated_at: now } },
     );
   } else {
     await col('saas_fundraising_profiles').updateOne(
@@ -4410,29 +4410,24 @@ app.get('/api/saas/projects', requireAuth, async (req, res) => {
     .sort({ updated_at: -1, id: 1 })
     .toArray();
 
-  // Enrichir avec le company_name du profil si non renseigné dans le projet
+  res.json({ projects: projects.map(publicProject) });
+});
+
+app.post('/api/saas/projects', requireAuth, async (req, res) => {
+  const type = SAAS_PROJECT_TYPES.has(req.body?.type) ? req.body.type : 'raise-preference';
+  const company_name = (req.body?.company_name || '').trim().slice(0, 200);
+
+  // Récupérer le company_name du profil si non fourni
   const profile = await col('saas_fundraising_profiles').findOne(
     { user_id: req.user.id },
     { projection: { company_name: 1 } }
   );
 
-  const enrichedProjects = projects.map(p => {
-    const project = publicProject(p);
-    if (!project.company_name && profile?.company_name) {
-      project.company_name = profile.company_name;
-    }
-    return project;
-  });
-
-  res.json({ projects: enrichedProjects });
-});
-
-app.post('/api/saas/projects', requireAuth, async (req, res) => {
-  const name = (req.body?.name || '').trim().slice(0, 200);
-  const type = SAAS_PROJECT_TYPES.has(req.body?.type) ? req.body.type : 'raise-preference';
-  const company_name = (req.body?.company_name || '').trim().slice(0, 200);
-
-  if (!name) return res.status(400).json({ error: 'Nom du projet requis' });
+  // Le nom par défaut est le company_name du profil, sinon celui fourni, sinon vide
+  let name = (req.body?.name || '').trim().slice(0, 200);
+  if (!name) {
+    name = company_name || profile?.company_name || '';
+  }
 
   const id = await nextId('saas_projects');
   const now = new Date().toISOString();
@@ -4441,7 +4436,7 @@ app.post('/api/saas/projects', requireAuth, async (req, res) => {
     user_id: req.user.id,
     name,
     type,
-    company_name: company_name || null,
+    company_name: company_name || profile?.company_name || null,
     progress: 0,
     created_at: now,
     updated_at: now,
@@ -6799,7 +6794,7 @@ app.get('/api/admin/payments', requireAdmin, async (_req, res) => {
   ).sort({ created_at: -1 }).toArray();
   const userIds = founders.map(founder => founder.id);
 
-  const [profiles, liquidPayments, lawyerPayments, aiUsage] = await Promise.all([
+  const [profiles, liquidPayments, lawyerPayments] = await Promise.all([
     col('saas_fundraising_profiles').find(
       { user_id: { $in: userIds } },
       { projection: { _id: 0, user_id: 1, company_name: 1 } },
@@ -6812,13 +6807,7 @@ app.get('/api/admin/payments', requireAdmin, async (_req, res) => {
       { client_id: { $in: userIds } },
       { projection: { _id: 0, client_id: 1, amount_total: 1, amount_refunded: 1, status: 1 } },
     ).toArray(),
-    col('saas_claude_usage').find(
-      { user_id: { $in: userIds } },
-      { projection: { _id: 0, user_id: 1, total_tokens: 1, requests: 1 } },
-    ).toArray(),
   ]);
-
-  const aiUsageByUser = new Map(aiUsage.map(usage => [usage.user_id, usage]));
   const companiesByUser = new Map(profiles.map(profile => [profile.user_id, profile.company_name]));
   const latestLiquidPaymentByUser = new Map();
   liquidPayments.forEach(payment => {
@@ -6847,7 +6836,6 @@ app.get('/api/admin/payments', requireAdmin, async (_req, res) => {
       startup_id: founder.id,
       startup_name: companiesByUser.get(founder.id) || founder.full_name || founder.email,
       email: founder.email,
-      free_ai: adminFreeAiUsage(founder, aiUsageByUser.get(founder.id), FREE_FOUNDER_TOKEN_CAP),
       liquid_plus: adminLiquidPayment(liquidPayment),
       lawyer: lawyerPaymentsByUser.get(founder.id),
     };
