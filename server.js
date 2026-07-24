@@ -4415,19 +4415,11 @@ app.get('/api/saas/projects', requireAuth, async (req, res) => {
 
 app.post('/api/saas/projects', requireAuth, async (req, res) => {
   const type = SAAS_PROJECT_TYPES.has(req.body?.type) ? req.body.type : 'raise-preference';
+  const name = (req.body?.name || '').trim().slice(0, 200);
   const company_name = (req.body?.company_name || '').trim().slice(0, 200);
 
-  // Récupérer le company_name du profil si non fourni
-  const profile = await col('saas_fundraising_profiles').findOne(
-    { user_id: req.user.id },
-    { projection: { company_name: 1 } }
-  );
-
-  // Le nom par défaut est le company_name du profil, sinon celui fourni, sinon vide
-  let name = (req.body?.name || '').trim().slice(0, 200);
-  if (!name) {
-    name = company_name || profile?.company_name || '';
-  }
+  if (!name) return res.status(400).json({ error: 'Nom du projet requis' });
+  if (!company_name) return res.status(400).json({ error: 'Nom de l\'entreprise requis' });
 
   const id = await nextId('saas_projects');
   const now = new Date().toISOString();
@@ -4436,7 +4428,7 @@ app.post('/api/saas/projects', requireAuth, async (req, res) => {
     user_id: req.user.id,
     name,
     type,
-    company_name: company_name || profile?.company_name || null,
+    company_name,
     progress: 0,
     created_at: now,
     updated_at: now,
