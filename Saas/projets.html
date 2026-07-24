@@ -148,14 +148,26 @@
 
     .projects-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 16px;
+    }
+
+    @media (max-width: 1200px) {
+      .projects-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .projects-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     .project-card {
       background: #fff;
-      border-radius: 16px;
-      padding: 20px;
+      border-radius: 14px;
+      padding: 16px;
       cursor: pointer;
       text-decoration: none;
       color: #08090c;
@@ -163,13 +175,13 @@
       border: 2px solid transparent;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
     .project-card:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-      border-color: #15803d;
+      border-color: #1e40af;
     }
 
     .project-card__header {
@@ -191,33 +203,20 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 12px;
-      border-radius: 8px;
+      padding: 5px 10px;
+      border-radius: 6px;
       font-family: 'Archivo', sans-serif;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 800;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-    }
-
-    .project-card__type--raise {
-      background: #d1fae5;
-      color: #15803d;
-    }
-
-    .project-card__type--bsaair {
       background: #dbeafe;
       color: #1e40af;
     }
 
-    .project-card__type--ordinary {
-      background: #e9d5ff;
-      color: #7c3aed;
-    }
-
     .project-card__menu {
-      width: 32px;
-      height: 32px;
+      width: 28px;
+      height: 28px;
       display: grid;
       place-items: center;
       border-radius: 6px;
@@ -234,8 +233,8 @@
     }
 
     .project-card__menu svg {
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
       stroke: currentColor;
       stroke-width: 2;
       fill: none;
@@ -304,7 +303,7 @@
 
     .project-card__name {
       font-family: 'Archivo', sans-serif;
-      font-size: 20px;
+      font-size: 17px;
       font-weight: 700;
       margin: 0;
       color: #08090c;
@@ -338,20 +337,20 @@
 
     .project-card__progress {
       margin-top: auto;
-      padding-top: 16px;
+      padding-top: 8px;
     }
 
     .project-card__progress-label {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 12px;
+      font-size: 11px;
       color: #6b6b78;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .project-card__progress-bar {
-      height: 6px;
+      height: 5px;
       background: #f0f1f3;
       border-radius: 999px;
       overflow: hidden;
