@@ -24,7 +24,6 @@
       .raise-grid { display:flex; flex-direction:column; gap:24px; }
       .raise-field { display:flex; flex-direction:column; gap:8px; min-width:0; }
       .raise-field__label { font-family:'Archivo',sans-serif; font-size:13px; font-weight:600; color:#fff; }
-      .raise-field__label--required::after { content:' \00b7\20 obligatoire'; color:#dc2626; letter-spacing:0; text-transform:none; font-weight:700; }
       .raise-field__hint { font-size:12px; color:var(--muted); line-height:1.4; }
       .raise-select:disabled { background:#eeeef0; color:#6b6b78; cursor:not-allowed; }
       .raise-input, .raise-select, .raise-textarea { width:100%; font-family:'Libre Franklin',sans-serif; font-size:14px; color:#08090c; background:#f7f7f5; border:1px solid var(--line); border-radius:9px; padding:10px 11px; outline:none; transition:border-color .15s, box-shadow .15s, background .15s; }
@@ -81,6 +80,7 @@
               <select class="raise-select" name="company_country" required>
                 <option value="france">France</option>
                 <option value="switzerland">Suisse</option>
+                <option value="italy">Italie</option>
                 <option value="us">&Eacute;tats-Unis</option>
                 <option value="uk">Royaume-Uni</option>
                 <option value="germany">Allemagne</option>
@@ -122,7 +122,7 @@
         return 'classic';
       }
 
-      const COUNTRIES = ['france', 'switzerland', 'us', 'uk', 'germany', 'other'];
+      const COUNTRIES = ['france', 'switzerland', 'italy', 'us', 'uk', 'germany', 'other'];
       const STATUSES = ['cofounder', 'late-cofounder', 'investor'];
       const DEFAULT_PROFILE = {
         company_name: '',
