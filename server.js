@@ -4089,6 +4089,12 @@ app.get('/api/saas/fundraising-profile', requireAuth, async (req, res) => {
   if (project) {
     publicProfile.raise_type = projectRaiseType(project.type);
     publicProfile.raise_type_locked = true;
+    // Le nom de la société est propre à CHAQUE projet (un compte peut porter
+    // plusieurs projets, la plupart du temps pour des sociétés différentes) :
+    // la source de vérité est le projet lui-même, jamais le profil de compte
+    // partagé — sinon le nom du dernier projet renseigné contaminerait tous
+    // les autres.
+    publicProfile.company_name = project.company_name || '';
   }
   res.json({ profile: publicProfile, project: project ? { id: project.id, type: project.type, name: project.name } : null });
 });
@@ -4111,21 +4117,27 @@ app.put('/api/saas/fundraising-profile', requireAuth, async (req, res) => {
   if (!companyKey) return res.status(400).json({ error: 'Le nom de la société doit contenir au moins une lettre ou un chiffre' });
 
   const owner = await col('users').findOne({ id: req.user.id }, { projection: { company_name_key: 1 } });
-  if (owner?.company_name_key !== companyKey) {
+  // L'identité du compte (nom de la startup unique, réservé dans le registre) n'est
+  // posée qu'une seule fois, au tout premier renseignement. Un compte peut ensuite
+  // porter plusieurs projets pour des sociétés différentes : le nom de ces sociétés
+  // vit au niveau du projet (saas_projects) et n'est pas réservé globalement, sinon
+  // chaque nouveau projet écraserait l'identité du compte ou serait bloqué à tort.
+  const isFirstCompany = !owner?.company_name_key;
+  if (isFirstCompany) {
     if (await col('users').findOne({ company_name_key: companyKey, id: { $ne: req.user.id } }, { projection: { _id: 1 } }))
       return res.status(409).json({ error: 'Un compte existe déjà pour cette startup. Un compte correspond à une startup : connectez-vous avec le mot de passe partagé de votre équipe.', code: 'COMPANY_TAKEN' });
     if (await isIdentityBurnt('company', companyKey))
       return res.status(409).json({ error: 'Cette startup a déjà eu un compte Liquid+ et ne peut plus en créer un nouveau. Écrivez-nous à liquidplus.contact@gmail.com si vous pensez qu\'il s\'agit d\'une erreur.', code: 'COMPANY_BURNT' });
-  }
 
-  // Réservation avant l'enregistrement du profil : si le nom est déjà pris, rien
-  // n'a été écrit. La course entre deux fondateurs simultanés est tranchée par
-  // l'index unique, pas par le findOne ci-dessus.
-  try {
-    await updateUserById(req.user.id, { company_name: profile.company_name, company_name_key: companyKey });
-  } catch (err) {
-    if (err?.code === 11000) return res.status(409).json({ error: 'Un compte existe déjà pour cette startup. Un compte correspond à une startup : connectez-vous avec le mot de passe partagé de votre équipe.', code: 'COMPANY_TAKEN' });
-    throw err;
+    // Réservation avant l'enregistrement du profil : si le nom est déjà pris, rien
+    // n'a été écrit. La course entre deux fondateurs simultanés est tranchée par
+    // l'index unique, pas par le findOne ci-dessus.
+    try {
+      await updateUserById(req.user.id, { company_name: profile.company_name, company_name_key: companyKey });
+    } catch (err) {
+      if (err?.code === 11000) return res.status(409).json({ error: 'Un compte existe déjà pour cette startup. Un compte correspond à une startup : connectez-vous avec le mot de passe partagé de votre équipe.', code: 'COMPANY_TAKEN' });
+      throw err;
+    }
   }
 
   // Le type de levée effectif est celui du projet courant (« Mes projets »),
@@ -4142,9 +4154,15 @@ app.put('/api/saas/fundraising-profile', requireAuth, async (req, res) => {
   }
 
   const now = new Date().toISOString();
+  // Le profil de compte partagé porte l'identité de la startup (nom réservé). On
+  // ne laisse jamais le nom de société d'un projet secondaire l'écraser : hors du
+  // premier renseignement, on conserve le company_name déjà enregistré sur le
+  // compte. Le nom propre au projet est écrit dans saas_projects plus bas.
+  const sharedSet = { ...profile, raise_type_locked: true, updated_at: now };
+  if (!isFirstCompany) delete sharedSet.company_name;
   await col('saas_fundraising_profiles').updateOne(
     { user_id: req.user.id },
-    { $set: { ...profile, raise_type_locked: true, updated_at: now }, $setOnInsert: { user_id: req.user.id, created_at: now } },
+    { $set: sharedSet, $setOnInsert: { user_id: req.user.id, created_at: now } },
     { upsert: true },
   );
   const saved = await col('saas_fundraising_profiles').findOne({ user_id: req.user.id });
@@ -4152,6 +4170,9 @@ app.put('/api/saas/fundraising-profile', requireAuth, async (req, res) => {
   if (project) {
     publicProfile.raise_type = projectRaiseType(project.type);
     publicProfile.raise_type_locked = true;
+    // Le nom de la société est propre au projet : renvoyer celui qui vient d'être
+    // saisi, pas l'identité du compte partagé.
+    publicProfile.company_name = profile.company_name;
     // Synchroniser le nom de la société avec le projet
     await col('saas_projects').updateOne(
       { id: project.id, user_id: req.user.id },
