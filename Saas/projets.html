@@ -148,14 +148,14 @@
 
     .projects-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
       gap: 16px;
     }
 
     .project-card {
       background: #fff;
       border-radius: 16px;
-      padding: 24px;
+      padding: 20px;
       cursor: pointer;
       text-decoration: none;
       color: #08090c;
@@ -163,7 +163,7 @@
       border: 2px solid transparent;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
     }
 
     .project-card:hover {
@@ -174,25 +174,17 @@
 
     .project-card__header {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 12px;
     }
 
     .project-card__title-row {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       flex: 1;
       min-width: 0;
-    }
-
-    .project-card__badges {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 12px;
     }
 
     .project-card__type {
@@ -319,12 +311,6 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-    }
-
-    .project-card__company {
-      background: #fef3c7;
-      color: #92400e;
-      flex-shrink: 0;
     }
 
     .project-card__meta {
@@ -601,11 +587,9 @@
                 <div class="project-card__header">
                   <div class="project-card__title-row">
                     <h2 class="project-card__name">${project.name || project.company_name || 'Projet sans nom'}</h2>
-                    ${project.company_name ? `
-                      <span class="project-card__type project-card__company">
-                        ${project.company_name}
-                      </span>
-                    ` : ''}
+                    <span class="project-card__type project-card__type--${typeClass}">
+                      ${typeLabel}
+                    </span>
                   </div>
                   <button class="project-card__menu" onclick="event.preventDefault(); event.stopPropagation(); openProjectMenu(this, ${project.id});">
                     <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
@@ -614,12 +598,6 @@
                       <circle cx="12" cy="19" r="1"></circle>
                     </svg>
                   </button>
-                </div>
-
-                <div class="project-card__badges">
-                  <span class="project-card__type project-card__type--${typeClass}">
-                    ${typeLabel}
-                  </span>
                 </div>
 
                 <div class="project-card__progress">
