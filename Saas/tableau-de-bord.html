@@ -256,6 +256,7 @@
     .cli__name { font-size: 13.5px; font-weight: 600; color: #fff; }
     .cli__badge { display: inline-block; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 7px; border-radius: 99px; margin-left: 6px; background: rgba(22,163,74,0.12); color: #16a34a; vertical-align: middle; }
     .cli__badge--req { background: rgba(220,38,38,0.1); color: #dc2626; }
+    .cli__badge--important { background: #b45309; color: #fff; }
     .cli__badge--opt { background: rgba(8,9,12,0.06); color: #fff; }
     .cli__num { font-family: 'Archivo', sans-serif; font-weight: 700; color: #fff; margin-right: 2px; }
     .cli__doc { font-size: 12px; color: #fff; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -567,6 +568,7 @@
     }
     .bsa-item__note { display: inline-block; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 7px; border-radius: 99px; margin-left: 8px; vertical-align: middle; }
     .bsa-item__note--req { background: rgba(220,38,38,0.1); color: #dc2626; }
+    .bsa-item__note--important { background: #b45309; color: #fff; }
     .bsa-item__note--opt { background: rgba(8,9,12,0.06); color: #fff; }
     .bsa-item__ver { display: inline-block; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; padding: 1px 6px; border-radius: 99px; background: rgba(59,130,246,0.12); color: #2563eb; vertical-align: middle; }
 
@@ -2463,9 +2465,8 @@
         items: [
           ddDoc('Bulletins de souscription des investisseurs'),
           ddDoc('Contrats de souscription / investment agreements individuels', 'opt'),
-          ddDoc('Ordres de virement et funds flow memo'),
           ddDoc('Attestations de versement des fonds par les investisseurs'),
-          ddDoc('Certificat du dépositaire des fonds'),
+          ddDoc('Certificat du dépositaire des fonds', 'important'),
         ],
       },
       {
@@ -2473,22 +2474,18 @@
         title: 'Décisions sociales et autorisations',
         items: [
           ddDoc("Rapport du président sur l'augmentation de capital et la suppression du DPS"),
-          ddDoc('Rapport du commissaire aux comptes / commissaire aux avantages particuliers le cas échéant', 'opt'),
-          ddDoc("PV de l'AGE / décisions collectives autorisant l'augmentation de capital"),
+          ddDoc("PV de l'AGE / décisions collectives autorisant l'augmentation de capital", 'important'),
           ddDoc('Décisions du président constatant les souscriptions et le versement des fonds'),
-          ddDoc("PV de constatation de la réalisation définitive de l'augmentation de capital"),
-          ddDoc('Pouvoirs pour formalités et délégations de signature'),
+          ddDoc("PV de constatation de la réalisation définitive de l'augmentation de capital", 'important'),
         ],
       },
       {
         key: 'statuts-pacte',
         title: 'Statuts, pacte et gouvernance',
         items: [
-          ddDoc('Statuts modifiés adoptés au closing'),
-          ddDoc("Pacte d'associés signé / avenant au pacte"),
-          ddDoc("Actes d'adhésion au pacte des nouveaux investisseurs"),
+          ddDoc('Statuts modifiés adoptés au closing', 'important'),
+          ddDoc("Pacte d'associés signé / avenant au pacte", 'important'),
           ddDoc("Lettres d'investissement / side letters signées", 'opt'),
-          ddDoc('Nomination des membres du board / comité stratégique / observateurs', 'opt'),
           ddDoc('Termes définitifs des actions de préférence ou valeurs mobilières émises'),
         ],
       },
@@ -2497,9 +2494,7 @@
         title: 'Registres et capitalisation',
         items: [
           ddDoc('Cap table post-money mise à jour'),
-          ddDoc('Registre des mouvements de titres mis à jour'),
-          ddDoc("Comptes individuels d'actionnaires / fiches de comptes titres"),
-          ddDoc('Registre des décisions mis à jour'),
+          ddDoc('Registre des mouvements de titres mis à jour', 'important'),
           ddDoc('Tableau fully diluted post-closing (BSPCE, BSA, AIR, OC inclus)'),
         ],
       },
@@ -2507,11 +2502,8 @@
         key: 'formalites',
         title: 'Formalités et dossier final',
         items: [
-          ddDoc('Dossier de formalités au greffe (M2, statuts, PV, attestation de dépôt)'),
-          ddDoc('Annonce légale de modification du capital'),
+          ddDoc('Dossier de formalités au greffe (M2, statuts, PV, attestation de dépôt)', 'important'),
           ddDoc('Déclaration des bénéficiaires effectifs mise à jour', 'opt'),
-          ddDoc('Notification aux investisseurs de la réalisation du closing'),
-          ddDoc('Closing bible / dossier final signé archivé'),
         ],
       },
     ];
@@ -2676,6 +2668,7 @@
       'pv-de-constatation-de-la-realisation-definitive',
       'cap-table-post-money-mise-a-jour',
       'registre-des-mouvements-de-titres-mis-a-jour',
+      'dossier-de-formalites-au-greffe',
       // Phase 7 — post-closing
       'information-reporting-des-investisseurs-info-rights',
       'suivi-des-engagements-du-pacte-covenants',
@@ -2709,6 +2702,12 @@
       'bspce-bsa-management-package-existants': 'contrats-de-travail-bspce-bsa-management-package',
       'statuts-modifies-actions-de-preference-le-cas-echeant': 'statuts-modifies-actions-de-preference',
       'bulletins-de-souscription-des-actions-issues-de-la-conversion': 'contrat-bulletin-de-souscription',
+      // Closing : un tableau fully diluted post-closing EST une cap table post-money
+      // pleinement diluée (le modèle générique BSPCE — faux positif du matcher — n'a
+      // rien à voir). Le dossier de formalités a désormais son propre modèle dédié
+      // (l'ancien rapprochement « statuts à jour » était accidentel).
+      'tableau-fully-diluted-post-closing-bspce-bsa-air-oc-inclus': 'cap-table-post-money-mise-a-jour',
+      'dossier-de-formalites-au-greffe-m2-statuts-pv-attestation-de-depot': 'dossier-de-formalites-au-greffe',
     };
     // Correspondances souples pour les intitulés rédigés par les investisseurs.
     // Elles n'ajoutent aucun document : elles proposent seulement le modèle qui
@@ -3625,8 +3624,8 @@
               <span class="raise-field__label raise-field__label--required">Pays de résidence de la société</span>
               <select class="raise-select" name="company_country" required>
                 <option value="france"${optionSelected('france', profile.company_country)}>France</option>
-                <option value="us"${optionSelected('us', profile.company_country)}>États-Unis</option>
                 <option value="uk"${optionSelected('uk', profile.company_country)}>Royaume-Uni</option>
+                <option value="us"${optionSelected('us', profile.company_country)}>États-Unis</option>
                 <option value="germany"${optionSelected('germany', profile.company_country)}>Allemagne</option>
                 <option value="other"${optionSelected('other', profile.company_country)}>Autre</option>
               </select>
@@ -5706,11 +5705,13 @@
       const linked = !!doc;
       const final  = linked && !!st.final;
       const mark   = (f.marks || [])[idx] || '';
-      const badge  = mark === 'req'
-        ? '<span class="bsa-item__note bsa-item__note--req">Indispensable</span>'
-        : mark === 'opt'
-          ? '<span class="bsa-item__note bsa-item__note--opt">Si applicable</span>'
-          : '';
+      const badge  = mark === 'important'
+        ? '<span class="bsa-item__note bsa-item__note--important">Important</span>'
+        : mark === 'req'
+          ? '<span class="bsa-item__note bsa-item__note--req">Indispensable</span>'
+          : mark === 'opt'
+            ? '<span class="bsa-item__note bsa-item__note--opt">Si applicable</span>'
+            : '';
 
       const pendingName = pendingSlots[f.id + ':' + slug] || null;
       const versions    = Array.isArray(st.versions) ? st.versions : [];
@@ -5998,11 +5999,13 @@
         const linked = !!doc;
         const final  = linked && !!st.final;
         const mark   = (f.marks || [])[idx] || '';
-        const markBadge = mark === 'req'
-          ? '<span class="cli__badge cli__badge--req">Indispensable</span>'
-          : mark === 'opt'
-            ? '<span class="cli__badge cli__badge--opt">Si applicable</span>'
-            : '';
+        const markBadge = mark === 'important'
+          ? '<span class="cli__badge cli__badge--important">Important</span>'
+          : mark === 'req'
+            ? '<span class="cli__badge cli__badge--req">Indispensable</span>'
+            : mark === 'opt'
+              ? '<span class="cli__badge cli__badge--opt">Si applicable</span>'
+              : '';
 
         const li = document.createElement('li');
         li.className = 'cli';
