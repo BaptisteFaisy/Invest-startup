@@ -93,38 +93,9 @@
               </select>
             </label>
             <label class="raise-field">
-              <span class="raise-field__label raise-field__label--required">Type de lev&eacute;e de fonds</span>
-              <select class="raise-select" name="raise_type" required>
-                <option value="classic">Actions de pr&eacute;f&eacute;rence</option>
-                <option value="ordinary">Actions ordinaires</option>
-                <option value="bsa-air">BSA-AIR</option>
-              </select>
-              <span class="raise-field__hint" data-raise-lock-hint hidden>Le type de lev&eacute;e est d&eacute;finitif une fois choisi.</span>
+              <span class="raise-field__label">SIREN</span>
+              <input class="raise-input" name="company_siren" type="text" maxlength="9" pattern="[0-9]{9}" placeholder="Ex. 123456789" />
             </label>
-            <label class="raise-field">
-              <span class="raise-field__label">Montant vis&eacute;</span>
-              <input class="raise-input" name="target_amount" type="number" min="0" step="1000" inputmode="numeric" placeholder="Ex. 500000" />
-            </label>
-            <label class="raise-field">
-              <span class="raise-field__label">Valorisation pre-money vis&eacute;e</span>
-              <input class="raise-input" name="target_valuation" type="number" min="0" step="1000" inputmode="numeric" placeholder="Ex. 2000000" />
-            </label>
-            <label class="raise-field">
-              <span class="raise-field__label">Dilution max accept&eacute;e (%)</span>
-              <input class="raise-input" name="max_dilution" type="number" min="0" max="100" step="0.5" inputmode="decimal" placeholder="Ex. 20" />
-            </label>
-            <label class="raise-field">
-              <span class="raise-field__label">Date cible</span>
-              <input class="raise-input" name="target_date" type="date" />
-            </label>
-          </div>
-
-          <div class="raise-founders">
-            <div class="raise-founders__head">
-              <div class="raise-founders__title">Fondateurs, late co-fondateurs et investisseurs</div>
-              <button class="secondary-btn" type="button" id="add-founder-btn">+ Ajouter</button>
-            </div>
-            <div class="raise-founders__list" id="founders-list"></div>
           </div>
 
           <div class="raise-actions">
@@ -161,6 +132,7 @@
       const DEFAULT_PROFILE = {
         company_name: '',
         company_country: 'france',
+        company_siren: '',
         raise_type: PROJECT_TYPE ? projectTypeToRaiseType(PROJECT_TYPE) : 'classic',
         raise_type_locked: false,
         target_amount: '',
@@ -187,6 +159,7 @@
         return {
           company_name: String(p.company_name || ''),
           company_country: COUNTRIES.includes(p.company_country) ? p.company_country : DEFAULT_PROFILE.company_country,
+          company_siren: String(p.company_siren || ''),
           raise_type: RAISE_HINTS[p.raise_type] ? p.raise_type : DEFAULT_PROFILE.raise_type,
           raise_type_locked: !!p.raise_type_locked,
           target_amount: p.target_amount == null ? '' : String(p.target_amount),
@@ -265,23 +238,10 @@
       }
 
       function fillForm(profile) {
-        // Ne pré-remplit pas le nom d'entreprise si on vient de créer un nouveau projet
-        if (!PROJECT_TYPE) {
-          form.company_name.value = profile.company_name;
-        }
-        form.company_country.value = profile.company_country;
-        form.raise_type.value = profile.raise_type;
-        const lockHint = form.querySelector('[data-raise-lock-hint]');
-        // Le champ reste modifiable pour un nouveau projet
-        form.raise_type.disabled = !PROJECT_TYPE && !!profile.raise_type_locked;
-        if (lockHint) lockHint.hidden = !profile.raise_type_locked || !!PROJECT_TYPE;
-        form.target_amount.value = profile.target_amount;
-        form.target_valuation.value = profile.target_valuation;
-        form.max_dilution.value = profile.max_dilution;
-        form.target_date.value = profile.target_date;
-        foundersList.innerHTML = '';
-        const founders = profile.founders.length ? profile.founders : [{}];
-        founders.forEach(founder => foundersList.appendChild(founderRow(founder)));
+        // Ne pré-remplit jamais le formulaire d'onboarding
+        form.company_name.value = '';
+        form.company_country.value = 'france';
+        form.company_siren.value = '';
       }
 
       function readForm() {
@@ -293,12 +253,13 @@
         return normalizeProfile({
           company_name: form.company_name.value.trim(),
           company_country: form.company_country.value,
-          raise_type: form.raise_type.value,
-          target_amount: form.target_amount.value.trim(),
-          target_valuation: form.target_valuation.value.trim(),
-          max_dilution: form.max_dilution.value.trim(),
-          target_date: form.target_date.value,
-          founders,
+          company_siren: form.company_siren.value.trim(),
+          raise_type: PROJECT_TYPE ? projectTypeToRaiseType(PROJECT_TYPE) : 'classic',
+          target_amount: '',
+          target_valuation: '',
+          max_dilution: '',
+          target_date: '',
+          founders: [],
         });
       }
 
