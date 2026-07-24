@@ -1036,6 +1036,13 @@ document.addEventListener('selectionchange', () => {
 page.addEventListener('click', updateFromSelection);
 page.addEventListener('keyup', () => { updateFromSelection(); syncToolbar(); });
 
+// Empêche Tab/Shift+Tab de faire sortir le focus du document (sinon le
+// navigateur l'envoie nativement vers le bouton précédent/suivant du DOM,
+// ex. « Fermer le document », et un Espace pressé juste après l'active).
+page.addEventListener('keydown', e => {
+  if (e.key === 'Tab') e.preventDefault();
+});
+
 /* ---------- 5. Compteur de mots ---------- */
 const wordcount = document.getElementById('wordcount');
 function countWords() {

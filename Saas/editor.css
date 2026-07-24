@@ -363,6 +363,7 @@
   display: flex; align-items: center; justify-content: center;
   min-height: calc(100vh - 240px); padding: 20px 16px;
 }
+.editor-empty[hidden] { display: none; }
 .editor-empty__card {
   width: 100%; max-width: 460px; text-align: center;
   background: var(--card, #fff); border: 1px solid var(--line, rgba(8,9,12,0.08));
