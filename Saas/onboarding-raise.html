@@ -141,7 +141,6 @@
       const errEl = document.getElementById('auth-error');
       const statusEl = document.getElementById('raise-status');
       const submitBtn = document.getElementById('submit-btn');
-      const foundersList = document.getElementById('founders-list');
       let currentUser = null;
 
       function hasAccountType(user) {
@@ -188,50 +187,6 @@
         } catch {}
       }
 
-      function founderRow(founder = {}) {
-        const row = document.createElement('div');
-        row.className = 'raise-founder-row';
-        const select = document.createElement('select');
-        select.className = 'raise-select';
-        select.dataset.founderStatus = '';
-        [
-          ['cofounder', 'Co-fondateur'],
-          ['late-cofounder', 'Late co-fondateur'],
-          ['investor', 'Investisseur'],
-        ].forEach(([value, label]) => {
-          const opt = document.createElement('option');
-          opt.value = value;
-          opt.textContent = label;
-          if ((founder.status || 'cofounder') === value) opt.selected = true;
-          select.appendChild(opt);
-        });
-
-        const name = document.createElement('input');
-        name.className = 'raise-input';
-        name.dataset.founderName = '';
-        name.type = 'text';
-        name.placeholder = 'Nom';
-        name.value = founder.name || '';
-
-        const job = document.createElement('input');
-        job.className = 'raise-input';
-        job.dataset.founderJob = '';
-        job.type = 'text';
-        job.placeholder = 'Job dans la soci\u00e9t\u00e9';
-        job.value = founder.job || '';
-
-        const remove = document.createElement('button');
-        remove.className = 'raise-founder-remove';
-        remove.type = 'button';
-        remove.setAttribute('aria-label', 'Retirer cette personne');
-        remove.title = 'Retirer';
-        remove.textContent = '\u00d7';
-        remove.addEventListener('click', () => row.remove());
-
-        row.append(name, select, job, remove);
-        return row;
-      }
-
       function fillForm(profile) {
         // Ne pré-remplit jamais le formulaire d'onboarding — mais surtout ne rien
         // écraser : loadInitialState() s'exécute après des appels réseau, et si
@@ -242,11 +197,6 @@
       }
 
       function readForm() {
-        const founders = Array.from(foundersList.querySelectorAll('.raise-founder-row')).map(row => ({
-          name: row.querySelector('[data-founder-name]').value.trim(),
-          status: row.querySelector('[data-founder-status]').value,
-          job: row.querySelector('[data-founder-job]').value.trim(),
-        })).filter(f => f.name || f.job);
         return normalizeProfile({
           company_name: form.company_name.value.trim(),
           company_country: form.company_country.value,
@@ -299,10 +249,6 @@
         fillForm(profile);
         storeProfileLocal(profile);
       }
-
-      document.getElementById('add-founder-btn').addEventListener('click', () => {
-        foundersList.appendChild(founderRow({}));
-      });
 
       // Empêche la touche Entrée de soumettre prématurément le formulaire
       // depuis un champ texte (le nom/siren semblait alors "disparaître").
