@@ -80,41 +80,6 @@
 
     .section-label { display: flex; align-items: center; justify-content: space-between; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #fff; margin: 34px 0 14px; }
 
-    /* Chevron de repli, partagé par « prochaines priorités ». */
-    .resume-toggle { width: 28px; height: 28px; flex: none; display: grid; place-items: center; border: 0; border-radius: 6px; background: transparent; color: rgba(255,255,255,0.55); cursor: pointer; padding: 0; transition: color .15s, background .15s; }
-    .resume-toggle svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s ease; }
-    .resume-toggle:hover { background: rgba(255,255,255,0.12); color: #fff; }
-    .resume-toggle[aria-expanded="false"] svg { transform: rotate(-90deg); }
-
-    /* Bandeau « prochaines priorités » — un libellé de section (hors bloc) suivi
-       d'une liste de cartes claires. Deux natures cohabitent dans le même bloc :
-       (a) les priorités générées (déterministes, zéro token) portent une étiquette
-       « Priorité n » et un liseré coloré ; (b) les tâches saisies par le fondateur
-       dans l'outil Tâches portent une case à cocher et un liseré neutre. */
-    #next-actions:not(:empty) { margin-bottom: 28px; }
-    .next-actions-card { display: flex; flex-direction: column; gap: 8px; }
-    .next-actions-card.is-collapsed { display: none; }
-    .next-actions__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-    /* Chaque priorité / tâche est une carte claire, séparée par le gap (pas de filet). */
-    .next-actions__link { width: 100%; display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--card, #fff); cursor: pointer; text-align: left; font: inherit; color: inherit; text-decoration: none; transition: border-color .15s, box-shadow .15s; }
-    .next-actions__link:hover { box-shadow: 0 1px 3px rgba(8,9,12,0.08); border-color: rgba(8,9,12,0.16); }
-    .next-actions__link--static { cursor: default; }
-    .next-actions__pill { flex: none; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 4px 9px; border-radius: 6px; }
-    /* Case à cocher des tâches du fondateur : coche la tâche « faite » sur place. */
-    .next-actions__cb { flex: none; width: 22px; height: 22px; border-radius: 6px; border: 2px solid rgba(8,9,12,0.25); background: #fff; cursor: pointer; appearance: none; -webkit-appearance: none; margin: 0; display: grid; place-items: center; transition: border-color .15s, background .15s; }
-    .next-actions__cb:hover { border-color: rgba(8,9,12,0.45); }
-    .next-actions__cb:checked { background: var(--dark, #08090c); border-color: var(--dark, #08090c); }
-    .next-actions__cb:checked::after { content: '✓'; color: #fff; font-size: 13px; line-height: 1; }
-    .next-actions__main { flex: 1; min-width: 0; color: inherit; text-decoration: none; }
-    .next-actions__text { display: block; font-size: 14px; font-weight: 700; letter-spacing: -0.01em; color: var(--text, #08090c); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .next-actions__step { display: block; font-family: 'Archivo', sans-serif; font-size: 11.5px; color: var(--text-2, #6b6b78); margin-top: 3px; }
-    .next-actions__go { flex: none; color: #a8a8b3; font-size: 18px; line-height: 1; }
-    .next-actions__link:hover .next-actions__go { color: #08090c; }
-    .next-actions__due { flex: none; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; color: #1a7a45; background: #e4f4ea; padding: 4px 9px; border-radius: 6px; white-space: nowrap; }
-    .next-actions__due--over { color: #991b1b; background: #fee2e2; }
-    /* Ligne « reprendre » : même carte que les priorités, étiquette « Reprendre ». */
-    .next-actions__empty { margin: 0; padding: 2px 2px 6px; font-size: 14px; line-height: 1.5; color: var(--text-2, #6b6b78); }
-
     /* Dossiers (phases de levée) */
     .folder { background: var(--card); border: 1px solid var(--line); border-radius: 14px; margin-bottom: 12px; overflow: hidden; transition: border-color .15s, box-shadow .15s; }
     .folder.is-drag { border-color: var(--blue, #3b82f6); box-shadow: 0 0 0 2px rgba(59,130,246,0.25); }
@@ -1031,10 +996,6 @@
     :root[data-theme="paper"] .drawer__link--step.is-current.is-active { background:var(--t-chip); color:var(--t-on-bg); }
     :root[data-theme="paper"] .drawer__link--step.is-current.is-active .drawer__step-num { background:var(--t-chip); color:var(--t-on-bg-muted); }
 
-    /* Chevron de repli sur le fond */
-    :root[data-theme="paper"] .resume-toggle { color: var(--t-on-bg-muted) !important; }
-    :root[data-theme="paper"] .resume-toggle:hover { background: var(--t-chip) !important; color: var(--t-on-bg) !important; }
-
     /* Titres et labels de page (sur le fond) */
     :root[data-theme="paper"] .dossiers__eyebrow,
     :root[data-theme="paper"] .dossiers__title,
@@ -1148,11 +1109,6 @@
       </div>
 
       <div id="error" class="err" hidden></div>
-
-      <!-- Prochaines priorités : suggestions calculées d'après l'état réel du dossier
-           (documents manquants / à valider), suivies de « reprendre où vous en
-           étiez » (dernier document travaillé). Uniquement sur les pages d'étapes. -->
-      <div id="next-actions"></div>
 
       <!-- Vue : levée classique (actions de préférence) -->
       <div id="classic-view">
@@ -1924,7 +1880,6 @@
 
     let folders = [];
     let docs    = [];
-    let founderTasks = [];
     let dataroomConnections = [];
     let fundraisingProfile = normalizeFundraisingProfile({});
     // Repli des cartes de la levée. Ouvertes par défaut.
@@ -2899,13 +2854,12 @@
       // après un échec d'action optimiste, dont le message doit rester visible.
       if (!loaded) foldersEl.innerHTML = '<p class="empty">Chargement…</p>';
       try {
-        const [fr, dr, pr, cr, ir, tr] = await Promise.all([
+        const [fr, dr, pr, cr, ir] = await Promise.all([
           fetch(withProjectParam('/api/saas/folders'),   { credentials: 'include' }),
           fetch('/api/saas/documents', { credentials: 'include' }),
           fetch(withProjectParam('/api/saas/fundraising-profile'), { credentials: 'include' }).catch(() => null),
           fetch('/api/saas/dataroom/connections', { credentials: 'include' }).catch(() => null),
           fetch('/api/saas/investors', { credentials: 'include' }).catch(() => null),
-          fetch('/api/saas/tasks', { credentials: 'include' }).catch(() => null),
         ]);
         if (fr.status === 401 || dr.status === 401) { window.location.href = 'login.html'; return; }
         folders = (await fr.json()).folders || [];
@@ -2919,11 +2873,6 @@
         applyChecklistOverrides();
         applyDDFallbackModels();
         docs    = (await dr.json()).documents || [];
-        // Tâches saisies par le fondateur (outil Tâches) : affichées sous les
-        // priorités générées dans le même bandeau, avec une case à cocher.
-        if (tr && tr.ok) {
-          founderTasks = (await tr.json().catch(() => ({}))).tasks || [];
-        }
         if (cr && cr.ok) {
           const cdata = await cr.json().catch(() => ({}));
           dataroomConnections = cdata.connections || [];
@@ -2951,330 +2900,6 @@
       }
     }
 
-    /* ═══════════ Bandeau « prochaines priorités » (0 token) ═══════════
-       Suggestions déterministes calculées à partir de l'état réel du dossier :
-       profil de levée non renseigné, documents attendus manquants ou pas encore
-       validés, dans l'ordre des étapes. Aucun appel à l'IA. */
-
-    // Documents attendus manquants (à ajouter) ou fournis mais pas validés (à valider)
-    // pour une étape. On applique les mêmes règles que phaseStatus : un document
-    // « si applicable » (mark 'opt') non fourni ne bloque pas.
-    function phaseGaps(f) {
-      const state = f.items_state || {};
-      const items = Array.isArray(f.checklist) ? f.checklist : [];
-      const marks = f.marks || [];
-      const toAdd = [], toValidate = [];
-      // Étapes de négociation : les documents sont propres à chaque investisseur,
-      // les manques sont donc listés par investisseur.
-      if (isNegotiationPhase(f)) {
-        investorsForPhase(f).forEach(inv => {
-          const who = investorDocLabel(inv);
-          items.forEach((item, idx) => {
-            if (marks[idx] === 'opt') return;
-            const st = state[investorSlug(inv.id, slugify(item))] || {};
-            const isLinked = st.document_id != null && docs.some(d => d.id === st.document_id);
-            const label = who + ' · ' + item;
-            if (!isLinked) toAdd.push(label);
-            else if (!st.final) toValidate.push({ item: label, docId: st.document_id });
-          });
-        });
-        return { toAdd, toValidate };
-      }
-      items.forEach((item, idx) => {
-        if (marks[idx] === 'opt') return;
-        const slug = slugify(item);
-        const st = state[slug] || {};
-        const isLinked = st.document_id != null && docs.some(d => d.id === st.document_id);
-        if (!isLinked) toAdd.push(item);
-        else if (!st.final) toValidate.push({ item, docId: st.document_id });
-      });
-      return { toAdd, toValidate };
-    }
-
-    function computeNextActions() {
-      const type = getRaiseType();
-      if (RAISE_SOON[type]) return null; // parcours pas encore disponible
-      let phases;
-      if (type === 'classic') {
-        phases = folders.filter(f => isSystemPhase(f) && (f.track || 'classic') === 'classic').filter(isClassicPhaseVisible);
-      } else if (type === 'bsa-air') {
-        phases = folders.filter(f => isSystemPhase(f) && (f.track || 'classic') === 'bsa-air');
-      } else {
-        return null;
-      }
-      const isClassic = type === 'classic';
-      const actions = [];
-
-      // 1) Profil de la levée pas encore renseigné (ni société, ni fondateurs).
-      const prof = fundraisingProfile || {};
-      const noProfile = !String(prof.company_name || '').trim() && !((prof.founders || []).length);
-      if (noProfile) {
-        actions.push({ text: 'Renseignez le profil de votre levée', step: 'Ma levée', key: isClassic ? 'mise-en-ordre' : 'air-preparation' });
-      }
-
-      // 2) Documents manquants puis documents à valider, étape par étape.
-      for (const f of phases) {
-        if (f.key === 'mise-en-ordre') continue;
-        if (isClassic && CLASSIC_SOON_STEPS.has(f.key)) continue; // étape « Bientôt »
-        const label = friseLabel(f);
-        const { toAdd, toValidate } = phaseGaps(f);
-        toAdd.forEach(item => actions.push({ text: 'Ajouter « ' + item + ' »', step: label, key: f.key }));
-        toValidate.forEach(({ item, docId }) => actions.push({ text: 'Valider « ' + item + ' »', step: label, key: f.key, docId }));
-        if (actions.length >= 12) break; // le fondateur peut en afficher jusqu'à 10
-      }
-
-      // « Reprendre où vous en étiez » n'est plus une carte à part : c'est la
-      // dernière priorité, l'accès direct au document travaillé en dernier.
-      // Elle reste distincte des tâches calculées et — surtout — ne doit pas
-      // se réduire à la première : si la priorité n°1 vise déjà ce document
-      // (ex. « Valider … »), reprendre ferait doublon, on l'omet.
-      const recentDoc = docs
-        .slice()
-        .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))[0] || null;
-
-      const items = actions.slice(0, 10);
-      if (!items.length) return { done: true, items: [], resume: recentDoc };
-      const resume = recentDoc && !(items[0] && items[0].docId === recentDoc.id) ? recentDoc : null;
-      return { done: false, items, resume };
-    }
-
-    // Les priorités générées dépendent de tout l'état du dossier (profil,
-    // dossiers, checklists, pipeline). Le résultat est persisté dans localStorage
-    // à chaque rendu. Clé cadrée par utilisateur, comme raiseKey().
-    function persistNextPriorities(type, data) {
-      try {
-        const key = 'liquid_next_priorities_' + raiseUser;
-        const payload = (data && !RAISE_SOON[type]) ? {
-          raiseType: type,
-          done: !!data.done,
-          items: (data.items || []).map(a => ({ text: a.text, step: a.step || '', key: a.key || '', docId: a.docId || null })),
-          savedAt: Date.now(),
-        } : null;
-        if (payload) localStorage.setItem(key, JSON.stringify(payload));
-        else localStorage.removeItem(key);
-      } catch {}
-    }
-
-    // Réglages du bandeau, mémorisés par utilisateur : combien de priorités
-    // générées (0–10) et de tâches personnelles (0–toutes) afficher. Défaut 2 / 2.
-    // Ces clés sont cadrées par utilisateur.
-    function naPrioCountKey() { return 'liquid_na_prio_count_' + raiseUser; }
-    function naTaskCountKey() { return 'liquid_na_task_count_' + raiseUser; }
-    function getNaPrioCount() {
-      try {
-        const v = localStorage.getItem(naPrioCountKey());
-        if (v === null) return 2;
-        const n = parseInt(v, 10);
-        return isNaN(n) ? 2 : Math.max(0, Math.min(10, n));
-      } catch { return 2; }
-    }
-    function getNaTaskCount() {
-      try {
-        const v = localStorage.getItem(naTaskCountKey());
-        if (v === null) return 2;
-        if (v === 'all') return 'all';
-        const n = parseInt(v, 10);
-        return isNaN(n) ? 2 : Math.max(0, n);
-      } catch { return 2; }
-    }
-    // Ordre d'affichage des tâches, réglé depuis l'outil Tâches : par niveau de
-    // priorité (défaut) ou par échéance.
-    function naTaskSortKey() { return 'liquid_na_task_sort_' + raiseUser; }
-    function getNaTaskSort() {
-      try { return localStorage.getItem(naTaskSortKey()) === 'due' ? 'due' : 'priority'; }
-      catch { return 'priority'; }
-    }
-    // Tri stable : par priorité (haute → basse) ou par échéance (la plus proche
-    // d'abord, tâches sans échéance en dernier).
-    const NA_PRIO_RANK = { haute: 0, moyenne: 1, basse: 2 };
-    function sortFounderTasks(list, mode) {
-      const arr = list.slice();
-      if (mode === 'due') {
-        arr.sort((a, b) => {
-          const da = a.due_date || '', db = b.due_date || '';
-          if (da && db) return da < db ? -1 : da > db ? 1 : 0;
-          if (da) return -1;
-          if (db) return 1;
-          return 0;
-        });
-      } else {
-        arr.sort((a, b) => {
-          const ra = NA_PRIO_RANK[a.priority] ?? 1, rb = NA_PRIO_RANK[b.priority] ?? 1;
-          return ra - rb;
-        });
-      }
-      return arr;
-    }
-
-    const nextActionsHost = document.getElementById('next-actions');
-    let nextActionsCollapsed = false;
-    function renderNextActions() {
-      if (!nextActionsHost) return;
-      const type = getRaiseType();
-      // Le calcul ne dépend pas de l'étape affichée : on le persiste toujours
-      // pour la page Tâches, même quand le bandeau est masqué dans cette vue.
-      const data = computeNextActions();
-      persistNextPriorities(type, data);
-      // Pas de bandeau sur un parcours « bientôt disponible » ni sur une étape « Bientôt ».
-      if (RAISE_SOON[type] || (type === 'classic' && selectedClassicStep && CLASSIC_SOON_STEPS.has(selectedClassicStep))) {
-        nextActionsHost.innerHTML = '';
-        return;
-      }
-      // Tâches du fondateur restant à faire, triées selon le réglage de l'outil
-      // Tâches (niveau de priorité par défaut, ou échéance).
-      const pendingTasks = sortFounderTasks((founderTasks || []).filter(t => !t.done), getNaTaskSort());
-      if (!data && !pendingTasks.length) {
-        nextActionsHost.innerHTML = '';
-        return;
-      }
-
-      // Réglages du fondateur : combien de priorités / tâches afficher.
-      const prioCount = getNaPrioCount();
-      const taskCount = getNaTaskCount();
-      const shownPriorities = (data && !data.done) ? data.items.slice(0, prioCount) : [];
-      const shownTasks = taskCount === 'all' ? pendingTasks : pendingTasks.slice(0, taskCount);
-
-      const isClassic = type === 'classic';
-      const openStep = (key) => {
-        if (key === 'bsa-profile') return openBsaStepCard('air-preparation');
-        return isClassic ? openClassicStepPage(key) : openBsaStepCard(key);
-      };
-
-      // Priorités générées (a) : carte claire, étiquette « Priorité n », liseré
-      // coloré (1 = corail, 2 = ambre, 3 = bleu). L'étiquette porte le rang.
-      const NA_ACCENT = ['#d85a30', '#ba7517', '#185fa5'];
-      const NA_PILL = [
-        { fg: '#1a7a45', bg: '#e4f4ea' },
-        { fg: '#1a7a45', bg: '#e4f4ea' },
-        { fg: '#1a7a45', bg: '#e4f4ea' },
-      ];
-      const priorityRowHtml = (a, i) => {
-        const j = Math.min(i, NA_ACCENT.length - 1);
-        const pill = NA_PILL[j];
-        return '<li class="next-actions__item" style="--na-accent:' + NA_ACCENT[j] + '">'
-          + '<button class="next-actions__link" type="button" data-na-step="' + esc(a.key) + '">'
-          + '<span class="next-actions__pill" style="color:' + pill.fg + ';background:' + pill.bg + '">Priorité ' + (i + 1) + '</span>'
-          + '<span class="next-actions__main">'
-          + '<span class="next-actions__text">' + esc(a.text) + '</span>'
-          + (a.step ? '<span class="next-actions__step">Étape · ' + esc(a.step) + '</span>' : '')
-          + '</span>'
-          + '<span class="next-actions__go" aria-hidden="true">→</span>'
-          + '</button></li>';
-      };
-
-      // Tâches du fondateur (b) : même carte, mais case à cocher (coche « faite »
-      // sur place) et liseré neutre ; le titre ouvre l'outil Tâches.
-      const PRIO_LABEL = { basse: 'Basse', moyenne: 'Moyenne', haute: 'Haute' };
-      const todayISO = () => new Date().toISOString().slice(0, 10);
-      const fmtDue = (s) => { try { return new Date(s + 'T00:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }); } catch { return ''; } };
-      const taskRowHtml = (t) => {
-        let due = '';
-        if (t.due_date) {
-          const over = t.due_date < todayISO();
-          due = '<span class="next-actions__due' + (over ? ' next-actions__due--over' : '') + '">'
-            + (over ? 'En retard · ' : 'Éch. ') + fmtDue(t.due_date) + '</span>';
-        }
-        const prio = (PRIO_LABEL[t.priority] || 'Moyenne').toLowerCase();
-        return '<li class="next-actions__item next-actions__item--task">'
-          + '<div class="next-actions__link next-actions__link--static">'
-          + due
-          + '<input type="checkbox" class="next-actions__cb" data-na-task="' + esc(t.id) + '" aria-label="Marquer « ' + esc(t.title) + ' » comme faite">'
-          + '<div class="next-actions__main">'
-          + '<span class="next-actions__text">' + esc(t.title) + '</span>'
-          + '<span class="next-actions__step">Tâche · priorité ' + prio + '</span>'
-          + '</div>'
-          + '</div></li>';
-      };
-
-      // Dernière priorité : reprendre le document travaillé en dernier.
-      // Même carte que les priorités, mais étiquette « Reprendre » (au lieu d'un rang).
-      const resumeItemHtml = (doc) => {
-        const isTermsheet = doc.kind === 'termsheet';
-        const href = isTermsheet ? ('editor.html?doc=' + doc.id) : ('/api/saas/documents/' + doc.id + '/download');
-        const tgt = isTermsheet ? ' target="_blank" rel="noopener"' : '';
-        return '<li class="next-actions__item next-actions__item--resume" style="--na-accent:#534ab7">'
-          + '<a class="next-actions__link" href="' + href + '"' + tgt + '>'
-          + '<span class="next-actions__pill" style="color:#1a7a45;background:#e4f4ea">Reprendre</span>'
-          + '<span class="next-actions__main">'
-          + '<span class="next-actions__text">Reprendre « ' + esc(doc.name) + ' »</span>'
-          + '<span class="next-actions__step">Là où vous vous êtes arrêté · modifié le ' + fmtDate(doc.updated_at || doc.created_at) + '</span>'
-          + '</span>'
-          + '<span class="next-actions__go" aria-hidden="true">→</span>'
-          + '</a></li>';
-      };
-
-      // Le nombre de priorités / tâches affiché ici est stocké dans localStorage (getNa*).
-      const toggleLabel = nextActionsCollapsed ? 'Afficher les prochaines priorités' : 'Masquer les prochaines priorités';
-
-      const section = document.createElement('section');
-      const taskRows = shownTasks.map(taskRowHtml).join('');
-      // Tout est fourni/validé ET aucune tâche personnelle en attente : message seul.
-      if (data && data.done && !pendingTasks.length) {
-        section.className = 'is-done';
-        section.innerHTML =
-          '<div class="section-label"><span>Prochaines priorités</span></div>'
-          + '<p class="next-actions__empty">Tout est à jour : les documents attendus sont fournis et validés. 🎉</p>'
-          + (data.resume ? '<div class="next-actions-card"><ol class="next-actions__list">' + resumeItemHtml(data.resume) + '</ol></div>' : '');
-      } else {
-        const priorityRows = shownPriorities.map(priorityRowHtml).join('');
-        const resumeRow = (data && data.resume) ? resumeItemHtml(data.resume) : '';
-        const rows = priorityRows + resumeRow + taskRows;
-        const cardHtml = rows
-          ? '<div class="next-actions-card' + (nextActionsCollapsed ? ' is-collapsed' : '') + '"><ol class="next-actions__list">' + rows + '</ol></div>'
-          : '<p class="next-actions__empty">Rien à afficher : le nombre de priorités et de tâches est réglé sur 0 dans l’outil Tâches.</p>';
-        section.innerHTML =
-          '<div class="section-label"><span>Prochaines priorités</span>'
-          + '<button class="resume-toggle" type="button" aria-expanded="' + (nextActionsCollapsed ? 'false' : 'true') + '" aria-label="' + toggleLabel + '" title="' + toggleLabel + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6l6 -6"/></svg></button>'
-          + '</div>'
-          + cardHtml;
-      }
-      nextActionsHost.innerHTML = '';
-      nextActionsHost.appendChild(section);
-      const toggleBtn = section.querySelector('.resume-toggle');
-      if (toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
-          nextActionsCollapsed = !nextActionsCollapsed;
-          renderNextActions();
-        });
-      }
-      section.querySelectorAll('[data-na-step]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const key = btn.getAttribute('data-na-step');
-          if (key) {
-            openStep(key);
-            // La navigation d'une étape conserve volontairement le défilement
-            // lorsqu'elle vient du menu. Depuis cette liste, en revanche,
-            // l'utilisatrice attend d'être amenée au document à traiter.
-            requestAnimationFrame(() => {
-              const target = document.getElementById('phase-' + key);
-              if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            });
-          }
-          if (navDrawer) navDrawer.close();
-        });
-      });
-      // Cocher une tâche du fondateur la marque « faite » (optimiste) et la retire.
-      section.querySelectorAll('[data-na-task]').forEach(cb => {
-        cb.addEventListener('change', async () => {
-          const id = cb.getAttribute('data-na-task');
-          const done = cb.checked;
-          const t = founderTasks.find(x => String(x.id) === String(id));
-          if (t) t.done = done;
-          renderNextActions();
-          try {
-            await fetch('/api/saas/tasks/' + id, {
-              method: 'PUT', credentials: 'include',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ done }),
-            });
-          } catch {
-            if (t) t.done = !done;
-            renderNextActions();
-          }
-        });
-      });
-    }
-
     function render() {
       const track = getRaiseType();
       // La sélection BSA-AIR doit être établie avant de dessiner le menu afin
@@ -3290,7 +2915,6 @@
         syncClassicActions(-1);
         setTopbarStepLabel('');
         updateStepGuideButton(null);
-        renderNextActions();
         refreshFmodal();
         return;
       }
@@ -3325,7 +2949,6 @@
         }
       }
 
-      renderNextActions();
       refreshFmodal(); // conservé pour les fenêtres déjà ouvertes depuis une ancienne session
     }
 
