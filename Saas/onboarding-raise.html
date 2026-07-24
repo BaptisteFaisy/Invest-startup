@@ -15,18 +15,15 @@
       :root { --navy:#001839; --dark:#08090c; --blue:#3b82f6; --muted:#6b6b78; --line:rgba(8,9,12,0.14); }
       * { box-sizing: border-box; }
       body { font-family:'Libre Franklin',system-ui,sans-serif; background:#08090c; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px 16px; margin:0; }
-      .auth-wrap { width:100%; max-width:760px; display:flex; flex-direction:column; align-items:center; gap:32px; }
+      .auth-wrap { width:100%; max-width:500px; display:flex; flex-direction:column; align-items:center; gap:48px; }
       .auth-logo { display:flex; align-items:center; gap:8px; text-decoration:none; }
       .auth-logo img { height:40px; width:auto; }
       .auth-logo-text { font-family:'Archivo',sans-serif; font-weight:600; font-size:1.4rem; text-transform:uppercase; letter-spacing:0.1em; color:#fff; }
-      .auth-card { background:#fff; border-radius:20px; padding:40px 36px; width:100%; box-shadow:0 24px 60px rgba(0,0,0,0.5); }
-      .auth-card h1 { font-family:'Libre Franklin',sans-serif; font-size:1.6rem; font-weight:800; letter-spacing:-0.02em; color:#08090c; margin:0 0 6px; }
-      .auth-lead { font-size:0.92rem; color:var(--muted); margin:0 0 24px; line-height:1.5; }
-      .raise-form { display:flex; flex-direction:column; gap:18px; }
-      .raise-grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:14px; }
-      .raise-field { display:flex; flex-direction:column; gap:7px; min-width:0; }
-      .raise-field--wide { grid-column:1 / -1; }
-      .raise-field__label { font-family:'Archivo',sans-serif; font-size:11px; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); }
+      .auth-card { width:100%; }
+      .raise-form { display:flex; flex-direction:column; gap:24px; }
+      .raise-grid { display:flex; flex-direction:column; gap:24px; }
+      .raise-field { display:flex; flex-direction:column; gap:8px; min-width:0; }
+      .raise-field__label { font-family:'Archivo',sans-serif; font-size:13px; font-weight:600; color:#fff; }
       .raise-field__label--required::after { content:' \00b7\20 obligatoire'; color:#dc2626; letter-spacing:0; text-transform:none; font-weight:700; }
       .raise-field__hint { font-size:12px; color:var(--muted); line-height:1.4; }
       .raise-select:disabled { background:#eeeef0; color:#6b6b78; cursor:not-allowed; }
@@ -71,9 +68,6 @@
       </a>
 
       <div class="auth-card">
-        <h1>Votre lev&eacute;e</h1>
-        <p class="auth-lead">Renseignez les informations de base de votre lev&eacute;e. Elles resteront modifiables dans l'onglet Ma lev&eacute;e.</p>
-
         <div id="auth-error" class="auth-alert auth-alert--error" role="alert" hidden></div>
 
         <form class="raise-form" id="raise-form">
