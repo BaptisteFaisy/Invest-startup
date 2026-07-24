@@ -233,10 +233,12 @@
       }
 
       function fillForm(profile) {
-        // Ne pré-remplit jamais le formulaire d'onboarding
-        form.company_name.value = '';
-        form.company_country.value = 'france';
-        form.company_siren.value = '';
+        // Ne pré-remplit jamais le formulaire d'onboarding — mais surtout ne rien
+        // écraser : loadInitialState() s'exécute après des appels réseau, et si
+        // l'utilisateur a déjà commencé à saisir le nom/siren, remettre les champs
+        // à zéro effacerait sa saisie. Les champs sont déjà vides par défaut dans
+        // le HTML (et « France » est la première option du select), donc il n'y a
+        // rien à faire ici.
       }
 
       function readForm() {
