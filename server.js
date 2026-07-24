@@ -6,6 +6,7 @@ const https            = require('https');
 const { Readable }     = require('stream');
 const crypto           = require('crypto');
 const cookieParser     = require('cookie-parser');
+const compression      = require('compression');
 const helmet           = require('helmet');
 const rateLimit        = require('express-rate-limit');
 const bcrypt           = require('bcryptjs');
@@ -621,6 +622,13 @@ function toBuffer(data) {
 // et pour que le rate-limit voie la vraie IP cliente.
 app.set('trust proxy', 1);
 
+// Compression gzip/brotli de toutes les réponses texte (HTML, CSS, JS, JSON).
+// Sans elle, chaque page renvoyait ses ~50–140 Ko de HTML et ses scripts (editor.js
+// ~370 Ko) en clair : c'est le principal facteur de lenteur au premier octet utile.
+// `compression` respecte le Content-Type, saute ce qui est déjà compressé (images,
+// PDF, webm) et gère correctement le streaming (SSE, téléchargements ZIP).
+app.use(compression());
+
 // En-têtes de sécurité HTTP. CSP désactivée car le site utilise massivement des
 // styles/scripts inline et des ressources externes (Calendly, Google Fonts).
 app.use(helmet({
@@ -893,15 +901,32 @@ app.use((req, res, next) => {
   if (hasDotSegment) return res.status(404).type('txt').send('Not Found');
   next();
 });
-app.use('/uploads/public', express.static(PUBLIC_IMG_DIR));
+app.use('/uploads/public', express.static(PUBLIC_IMG_DIR, { maxAge: '7d' }));
 // Les pages HTML ne doivent jamais être servies depuis un cache périmé : sinon une
 // ancienne page masque les mises à jour (une modif inline HTML/JS/CSS reste
 // invisible). `no-cache` force la revalidation à chaque chargement (304 si le
 // fichier n'a pas changé). Les CSS/JS externes, eux, restent versionnés via ?v=.
 const staticHtmlNoCache = {
   setHeaders(res, filePath) {
-    if (filePath.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache');
-    if (path.basename(filePath) === 'auth.js') res.setHeader('Cache-Control', 'no-cache');
+    // Pages HTML (et auth.js, qui pilote la session) : toujours revalidées pour ne
+    // jamais masquer une mise à jour.
+    if (filePath.endsWith('.html') || path.basename(filePath) === 'auth.js') {
+      res.setHeader('Cache-Control', 'no-cache');
+      return;
+    }
+    // Les CSS/JS sont référencés avec un suffixe de version (?v=…). Comme changer le
+    // fichier change l'URL, on peut le mettre en cache « pour toujours » : le
+    // navigateur ne refait alors plus aucune requête réseau pour ces assets entre
+    // deux visites — c'est ce qui rend la navigation instantanée après le 1er chargement.
+    const url = (res.req && res.req.url) || '';
+    if (/[?&](v|ver|version)=/.test(url)) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    } else {
+      // Ressources non versionnées (images, polices, PDF…) : cache d'un jour avec
+      // revalidation. Accélère fortement les rechargements sans risquer de servir
+      // trop longtemps une version périmée.
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+    }
   },
 };
 // Le SaaS (dossier interne au site) est servi sous /saas → même origine que l'API,
@@ -8815,6 +8840,12 @@ function editorHtmlToSemantic(html) {
   // Retire les blocs techniques de l'analyse bakée (conditions / conseils embarqués)
   // pour qu'ils n'apparaissent pas dans le fichier exporté.
   s = s.replace(/<script[\s\S]*?<\/script>/gi, '');
+  // Aides d'édition à l'écran, jamais dans le fichier exporté : l'en-tête de gestion
+  // d'une condition insérée (badge, mention « valeurs en jaune », bouton retirer)…
+  s = s.replace(/<div class="clause-cond__head"[^>]*>[\s\S]*?<\/div>/gi, '');
+  // …et le surlignage jaune des valeurs modifiables : on déballe le <mark>, la valeur
+  // redevient du texte classique dans le document exporté.
+  s = s.replace(/<mark class=['"]cond-val['"][^>]*>([\s\S]*?)<\/mark>/gi, '$1');
   // Clause : label -> <h2>, contenu déballé.
   s = s.replace(/<div class="ts-clause"[^>]*>\s*<div class="ts-label">([\s\S]*?)<\/div>\s*<div class="ts-content">([\s\S]*?)<\/div>\s*<\/div>/gi,
     (m, label, body) => `<h2>${label}</h2>\n${body}`);

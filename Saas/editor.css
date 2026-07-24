@@ -890,6 +890,13 @@ mark.cond-val { background: rgba(251,191,36,0.38); border-radius: 3px; padding: 
   /* La clause sélectionnée ne doit pas apparaître surlignée dans le PDF. */
   .page .ts-clause.is-active { background: transparent !important; box-shadow: none !important; }
 
+  /* Valeurs modifiables : le surlignage jaune et son liseré tireté sont une aide
+     d'édition à l'écran. À l'export, la valeur doit passer pour du texte classique. */
+  .page mark.cond-val {
+    background: transparent !important; border: 0 !important; border-radius: 0 !important;
+    padding: 0 !important; font-weight: inherit !important; color: inherit !important;
+  }
+
   /* Sécurité : ne jamais scinder ces éléments au milieu d'une page. */
   .ts-clause, .clause-cond, .ts-sign, table.captable,
   .page p, .page li, .page ol, .page ul { break-inside: avoid; page-break-inside: avoid; }
