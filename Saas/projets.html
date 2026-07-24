@@ -185,6 +185,13 @@
       gap: 12px;
     }
 
+    .project-card__badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      flex: 1;
+    }
+
     .project-card__type {
       display: inline-flex;
       align-items: center;
@@ -211,6 +218,11 @@
     .project-card__type--ordinary {
       background: #e9d5ff;
       color: #7c3aed;
+    }
+
+    .project-card__company {
+      background: #fef3c7;
+      color: #92400e;
     }
 
     .project-card__menu {
@@ -572,9 +584,16 @@
             return `
               <a href="tableau-de-bord.html?${dashboardParams.toString()}" class="project-card">
                 <div class="project-card__header">
-                  <span class="project-card__type project-card__type--${typeClass}">
-                    ${typeLabel}
-                  </span>
+                  <div class="project-card__badges">
+                    <span class="project-card__type project-card__type--${typeClass}">
+                      ${typeLabel}
+                    </span>
+                    ${project.company_name ? `
+                      <span class="project-card__type project-card__company">
+                        ${project.company_name}
+                      </span>
+                    ` : ''}
+                  </div>
                   <button class="project-card__menu" onclick="event.preventDefault(); event.stopPropagation(); openProjectMenu(this, ${project.id});">
                     <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
                       <circle cx="12" cy="12" r="1"></circle>
@@ -586,16 +605,8 @@
 
                 <div>
                   <h2 class="project-card__name">${project.name || 'Projet sans nom'}</h2>
-                  <div class="project-card__meta">
-                    ${project.company_name ? `
-                      <div class="project-card__meta-item">
-                        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-                          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                        </svg>
-                        ${project.company_name}
-                      </div>
-                    ` : ''}
-                    ${project.updated_at ? `
+                  ${project.updated_at ? `
+                    <div class="project-card__meta">
                       <div class="project-card__meta-item">
                         <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
                           <circle cx="12" cy="12" r="10"></circle>
@@ -603,8 +614,8 @@
                         </svg>
                         Modifié ${formatDate(project.updated_at)}
                       </div>
-                    ` : ''}
-                  </div>
+                    </div>
+                  ` : ''}
                 </div>
 
                 <div class="project-card__progress">
