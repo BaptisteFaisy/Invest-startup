@@ -374,6 +374,24 @@
           if (!res.ok) throw new Error(data.error || 'Enregistrement impossible.');
           const saved = normalizeProfile(data.profile || profile);
           storeProfileLocal(saved);
+
+          // Met à jour le nom du projet avec le nom de la société si un projet existe
+          if (PROJECT_ID && profile.company_name) {
+            try {
+              await fetch(`/api/saas/projects/${PROJECT_ID}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                  name: profile.company_name,
+                  company_name: profile.company_name
+                }),
+              });
+            } catch (err) {
+              console.error('Impossible de mettre à jour le nom du projet:', err);
+            }
+          }
+
           window.location.href = dashboardHref(saved);
         } catch (err) {
           showError(err.message || 'Impossible de joindre le serveur');
