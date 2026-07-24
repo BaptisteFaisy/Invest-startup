@@ -227,9 +227,19 @@
     .dd-editorial .dd-editorial-item::before { display:none; }
     .dd-editorial .bsa-item__head { display:contents; }
     .dd-editorial .bsa-item__label { display:flex; align-items:center; gap:12px; min-width:0; }
-    .dd-editorial .bsa-item__name { color:#08090c; font-size:13.5px; font-weight:650; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .dd-editorial .bsa-item__name { color:#08090c; font-size:13.5px; font-weight:650; white-space:normal; overflow-wrap:anywhere; line-height:1.35; }
     .dd-editorial .bsa-item__note { display:none; }
-    .dd-editorial.dd-editorial--liquid-checklist .bsa-item__note { display:inline-flex; flex:none; }
+    .dd-editorial.dd-editorial--liquid-checklist .bsa-item__note,
+    .dd-editorial.dd-editorial--marks .bsa-item__note { display:inline-flex; flex:none; }
+    /* Closing : la colonne « Investisseurs » est vide ; on récupère cet espace pour
+       une colonne « Document » large, afin d'afficher le nom entier par défaut.
+       Limité au desktop pour laisser les points de rupture mobiles (≤900px) primer. */
+    @media(min-width:901px){
+      .dd-editorial.dd-editorial--marks .dd-editorial__columns,
+      .dd-editorial.dd-editorial--marks .dd-editorial-item { grid-template-columns:minmax(var(--dd-doc-px,250px),3fr) 120px minmax(0,0.01fr) minmax(200px,auto); }
+    }
+    .dd-editorial.dd-editorial--marks .bsa-item__label { flex-wrap:wrap; }
+    .dd-editorial.dd-editorial--marks .dd-editorial__resize { display:none; }
     .dd-editorial__status { justify-self:start; display:inline-flex; align-items:center; min-height:25px; padding:0 9px; border-radius:7px; font:650 10.5px 'Archivo',sans-serif; white-space:nowrap; }
     .dd-editorial__status--todo { background:#eaf1ff; color:#1d4ed8; }
     .dd-editorial__status--review { background:#fff2d9; color:#b26a00; }
@@ -1043,7 +1053,7 @@
   <script src="theme.js?v=3" defer></script>
   <script src="tasks.js?v=2" defer></script>
 </head>
-<body data-no-theme-toggle>
+<body>
   <div class="app">
     <!-- Top bar -->
     <header class="topbar">
@@ -4959,6 +4969,7 @@
       section.className = 'doc-category'
         + (isEditorialFolderStep(f) ? ' dd-editorial' : '')
         + (liquidChecklist ? ' dd-editorial--liquid-checklist' : '')
+        + (f.key === 'closing' ? ' dd-editorial--marks' : '')
         + (open ? '' : ' is-collapsed');
       const count = categoryDocumentCount(category);
       section.innerHTML = `
