@@ -81,8 +81,8 @@
                 <option value="france">France</option>
                 <option value="switzerland">Suisse</option>
                 <option value="italy">Italie</option>
-                <option value="us">&Eacute;tats-Unis</option>
                 <option value="uk">Royaume-Uni</option>
+                <option value="us">&Eacute;tats-Unis</option>
                 <option value="germany">Allemagne</option>
                 <option value="other">Autre</option>
               </select>
@@ -312,6 +312,9 @@
 
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
+        // Ignore toute soumission implicite (touche Entrée / clavier virtuel mobile) :
+        // seul un clic explicite sur le bouton "Continuer" doit valider le formulaire.
+        if (!e.submitter) return;
         showError('');
         statusEl.className = 'raise-status';
         statusEl.textContent = '';
