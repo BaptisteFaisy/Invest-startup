@@ -80,6 +80,7 @@
               <span class="raise-field__label raise-field__label--required">Pays de r&eacute;sidence de la soci&eacute;t&eacute;</span>
               <select class="raise-select" name="company_country" required>
                 <option value="france">France</option>
+                <option value="switzerland">Suisse</option>
                 <option value="us">&Eacute;tats-Unis</option>
                 <option value="uk">Royaume-Uni</option>
                 <option value="germany">Allemagne</option>
@@ -121,7 +122,7 @@
         return 'classic';
       }
 
-      const COUNTRIES = ['france', 'us', 'uk', 'germany', 'other'];
+      const COUNTRIES = ['france', 'switzerland', 'us', 'uk', 'germany', 'other'];
       const STATUSES = ['cofounder', 'late-cofounder', 'investor'];
       const DEFAULT_PROFILE = {
         company_name: '',
