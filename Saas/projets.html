@@ -633,7 +633,7 @@
 
     async function loadProjects() {
       try {
-        const response = await fetch('/api/saas/projects', { credentials: 'include' });
+        const response = await fetch('/api/saas/projects?t=' + Date.now(), { credentials: 'include' });
         if (!response.ok) {
           throw new Error('Impossible de charger les projets');
         }
