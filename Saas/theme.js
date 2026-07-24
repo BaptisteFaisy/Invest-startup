@@ -49,6 +49,7 @@
   // Injecte le bouton bascule (soleil/lune) dans la topbar, à gauche de la
   // recherche et du menu. Fonctionne quelle que soit la structure de la barre.
   function mountToggle() {
+    if (document.body && document.body.hasAttribute('data-no-theme-toggle')) return;
     if (document.querySelector('.topbar .theme-toggle')) return;
     var host = document.querySelector('.topbar__actions') ||
                document.querySelector('.topbar__side--right') ||
