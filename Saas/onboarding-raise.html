@@ -140,17 +140,27 @@
       // Arrivée depuis « Mes projets » (création d'un nouveau projet) : le type de
       // levée a déjà été choisi là-bas, ce formulaire ne fait que compléter le
       // profil pour CE projet — il ne doit plus laisser le type se re-choisir.
-      const PROJECT_ID = new URLSearchParams(location.search).get('project_id') || '';
+      const urlParams = new URLSearchParams(location.search);
+      const PROJECT_ID = urlParams.get('project_id') || '';
+      const PROJECT_TYPE = urlParams.get('type') || '';
       function withProjectParam(url) {
         if (!PROJECT_ID) return url;
         return url + (url.includes('?') ? '&' : '?') + 'project_id=' + encodeURIComponent(PROJECT_ID);
       }
+
+      // Convertit le type de projet en type de levée
+      function projectTypeToRaiseType(type) {
+        if (type === 'bsaair') return 'bsa-air';
+        if (type === 'raise-ordinary') return 'ordinary';
+        return 'classic';
+      }
+
       const COUNTRIES = ['france', 'us', 'uk', 'germany', 'other'];
       const STATUSES = ['cofounder', 'late-cofounder', 'investor'];
       const DEFAULT_PROFILE = {
         company_name: '',
         company_country: 'france',
-        raise_type: 'classic',
+        raise_type: PROJECT_TYPE ? projectTypeToRaiseType(PROJECT_TYPE) : 'classic',
         raise_type_locked: false,
         target_amount: '',
         target_valuation: '',
@@ -254,12 +264,16 @@
       }
 
       function fillForm(profile) {
-        form.company_name.value = profile.company_name;
+        // Ne pré-remplit pas le nom d'entreprise si on vient de créer un nouveau projet
+        if (!PROJECT_TYPE) {
+          form.company_name.value = profile.company_name;
+        }
         form.company_country.value = profile.company_country;
         form.raise_type.value = profile.raise_type;
         const lockHint = form.querySelector('[data-raise-lock-hint]');
-        form.raise_type.disabled = !!profile.raise_type_locked;
-        if (lockHint) lockHint.hidden = !profile.raise_type_locked;
+        // Le champ reste modifiable pour un nouveau projet
+        form.raise_type.disabled = !PROJECT_TYPE && !!profile.raise_type_locked;
+        if (lockHint) lockHint.hidden = !profile.raise_type_locked || !!PROJECT_TYPE;
         form.target_amount.value = profile.target_amount;
         form.target_valuation.value = profile.target_valuation;
         form.max_dilution.value = profile.max_dilution;
