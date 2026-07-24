@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=6" />
-  <link rel="stylesheet" href="theme.css?v=3" />
+  <link rel="stylesheet" href="styles.css?v=7" />
+  <link rel="stylesheet" href="theme.css?v=4" />
   <style>
     body {
       background: #000;
@@ -638,6 +638,7 @@
           throw new Error('Impossible de charger les projets');
         }
         const data = await response.json();
+        console.log('Projets chargés:', data.projects);
         renderProjects(data.projects || []);
       } catch (error) {
         console.error('Erreur lors du chargement des projets:', error);
