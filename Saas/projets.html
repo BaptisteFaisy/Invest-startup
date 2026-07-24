@@ -471,12 +471,17 @@
     const errorContainer = document.getElementById('error-container');
 
     async function createProject(type) {
+      const companyName = window.prompt('Nom de l\'entreprise pour ce projet :');
+      if (!companyName || !companyName.trim()) return;
+
+      const projectName = companyName.trim();
+
       try {
         const response = await fetch('/api/saas/projects', {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type }),
+          body: JSON.stringify({ type, name: projectName, company_name: projectName }),
         });
 
         if (!response.ok) {
@@ -593,17 +598,6 @@
 
                 <div>
                   <h2 class="project-card__name">${project.name || project.company_name || 'Projet sans nom'}</h2>
-                  ${project.updated_at ? `
-                    <div class="project-card__meta">
-                      <div class="project-card__meta-item">
-                        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-                          <circle cx="12" cy="12" r="10"></circle>
-                          <polyline points="12 6 12 12 16 14"></polyline>
-                        </svg>
-                        Modifié ${formatDate(project.updated_at)}
-                      </div>
-                    </div>
-                  ` : ''}
                 </div>
 
                 <div class="project-card__progress">
