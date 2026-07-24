@@ -4409,7 +4409,22 @@ app.get('/api/saas/projects', requireAuth, async (req, res) => {
     .find({ user_id: req.user.id }, { projection: { _id: 0, user_id: 0 } })
     .sort({ updated_at: -1, id: 1 })
     .toArray();
-  res.json({ projects: projects.map(publicProject) });
+
+  // Enrichir avec le company_name du profil si non renseigné dans le projet
+  const profile = await col('saas_fundraising_profiles').findOne(
+    { user_id: req.user.id },
+    { projection: { company_name: 1 } }
+  );
+
+  const enrichedProjects = projects.map(p => {
+    const project = publicProject(p);
+    if (!project.company_name && profile?.company_name) {
+      project.company_name = profile.company_name;
+    }
+    return project;
+  });
+
+  res.json({ projects: enrichedProjects });
 });
 
 app.post('/api/saas/projects', requireAuth, async (req, res) => {
