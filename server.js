@@ -4415,11 +4415,8 @@ app.get('/api/saas/projects', requireAuth, async (req, res) => {
 
 app.post('/api/saas/projects', requireAuth, async (req, res) => {
   const type = SAAS_PROJECT_TYPES.has(req.body?.type) ? req.body.type : 'raise-preference';
-  const name = (req.body?.name || '').trim().slice(0, 200);
-  const company_name = (req.body?.company_name || '').trim().slice(0, 200);
-
-  if (!name) return res.status(400).json({ error: 'Nom du projet requis' });
-  if (!company_name) return res.status(400).json({ error: 'Nom de l\'entreprise requis' });
+  const name = (req.body?.name || '').trim().slice(0, 200) || 'Nouveau projet';
+  const company_name = (req.body?.company_name || '').trim().slice(0, 200) || null;
 
   const id = await nextId('saas_projects');
   const now = new Date().toISOString();

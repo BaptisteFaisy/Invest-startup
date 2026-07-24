@@ -473,17 +473,12 @@
     const errorContainer = document.getElementById('error-container');
 
     async function createProject(type) {
-      const companyName = window.prompt('Nom de l\'entreprise pour ce projet :');
-      if (!companyName || !companyName.trim()) return;
-
-      const projectName = companyName.trim();
-
       try {
         const response = await fetch('/api/saas/projects', {
           method: 'POST',
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type, name: projectName, company_name: projectName }),
+          body: JSON.stringify({ type }),
         });
 
         if (!response.ok) {
