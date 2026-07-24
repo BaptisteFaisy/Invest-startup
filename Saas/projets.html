@@ -88,19 +88,12 @@
       color: #fff;
     }
 
-    .projects-header__title {
+    .projects-header__page-title {
       font-family: 'Archivo', sans-serif;
-      font-size: 36px;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      margin: 0 0 12px;
-      color: #fff;
-    }
-
-    .projects-header__subtitle {
-      font-size: 16px;
+      font-size: 0.9rem;
+      font-weight: 400;
       color: rgba(255, 255, 255, 0.7);
-      margin: 0;
+      margin-left: 16px;
     }
 
     .projects-container {
@@ -429,7 +422,11 @@
 <body>
   <div class="projects-header">
     <div class="projects-header__top">
-      <h1 class="projects-header__title" style="margin: 0;">Mes projets</h1>
+      <a class="projects-header__logo" href="index.html">
+        <img src="/ressourcegraphique/Goutte%20blanche.png" alt="" />
+        <span class="projects-header__logo-text">LIQUID+</span>
+        <span class="projects-header__page-title">Mes projets</span>
+      </a>
       <button class="btn-logout" id="btn-logout">
         <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
