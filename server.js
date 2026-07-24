@@ -4152,6 +4152,11 @@ app.put('/api/saas/fundraising-profile', requireAuth, async (req, res) => {
   if (project) {
     publicProfile.raise_type = projectRaiseType(project.type);
     publicProfile.raise_type_locked = true;
+    // Synchroniser le nom de la société avec le projet
+    await col('saas_projects').updateOne(
+      { id: project.id, user_id: req.user.id },
+      { $set: { company_name: profile.company_name, updated_at: now } }
+    );
   }
   res.json({ success: true, profile: publicProfile });
 });
