@@ -177,13 +177,22 @@
       align-items: flex-start;
       justify-content: space-between;
       gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .project-card__title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
     }
 
     .project-card__badges {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      flex: 1;
+      margin-bottom: 12px;
     }
 
     .project-card__type {
@@ -305,8 +314,17 @@
       font-family: 'Archivo', sans-serif;
       font-size: 20px;
       font-weight: 700;
-      margin: 0 0 8px;
+      margin: 0;
       color: #08090c;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .project-card__company {
+      background: #fef3c7;
+      color: #92400e;
+      flex-shrink: 0;
     }
 
     .project-card__meta {
@@ -581,10 +599,13 @@
             return `
               <a href="tableau-de-bord.html?${dashboardParams.toString()}" class="project-card">
                 <div class="project-card__header">
-                  <div class="project-card__badges">
-                    <span class="project-card__type project-card__type--${typeClass}">
-                      ${typeLabel}
-                    </span>
+                  <div class="project-card__title-row">
+                    <h2 class="project-card__name">${project.name || project.company_name || 'Projet sans nom'}</h2>
+                    ${project.company_name ? `
+                      <span class="project-card__type project-card__company">
+                        ${project.company_name}
+                      </span>
+                    ` : ''}
                   </div>
                   <button class="project-card__menu" onclick="event.preventDefault(); event.stopPropagation(); openProjectMenu(this, ${project.id});">
                     <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
@@ -595,8 +616,10 @@
                   </button>
                 </div>
 
-                <div>
-                  <h2 class="project-card__name">${project.name || project.company_name || 'Projet sans nom'}</h2>
+                <div class="project-card__badges">
+                  <span class="project-card__type project-card__type--${typeClass}">
+                    ${typeLabel}
+                  </span>
                 </div>
 
                 <div class="project-card__progress">
