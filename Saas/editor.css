@@ -519,6 +519,25 @@ body .docmodal input[type="checkbox"] { accent-color: #66b97f; }
 .page .ts-content { font-size: 14px; }
 .page .ts-content > *:last-child { margin-bottom: 0; }
 
+/* Clause « import » (voir clauseBlock, server.js) : la grille à colonne d'étiquette
+   fixe ci-dessus reformaterait tout document importé en tableau label/contenu et
+   casserait sa mise en page d'origine. On garde juste un repère discret — un liseré
+   coloré — et l'étiquette n'apparaît qu'au survol/à la sélection, sans jamais réserver
+   de largeur dans le flux du texte (qui garde ainsi ses propres police/espacements). */
+.page .ts-clause--imported { display: block; grid-template-columns: none; gap: 0; padding: 10px 14px; border-left: 3px solid transparent; }
+.page .ts-clause--imported.is-active,
+.page .ts-clause--imported:hover { border-left-color: var(--blue); }
+.page .ts-clause--imported.is-active[data-pgsplit] { border-left-color: transparent; }
+.page .ts-clause--imported .ts-label {
+  display: inline-block; margin-bottom: 2px; font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-3);
+  opacity: 0; transform: translateY(2px); pointer-events: none;
+  transition: opacity .12s ease, transform .12s ease;
+}
+.page .ts-clause--imported:hover .ts-label,
+.page .ts-clause--imported:focus-within .ts-label,
+.page .ts-clause--imported.is-active .ts-label { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
 /* Signatures */
 .page .ts-sign { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; margin-top: 40px; }
 .page .ts-sign .box { font-size: 13px; }
@@ -686,14 +705,35 @@ body .docmodal input[type="checkbox"] { accent-color: #66b97f; }
 .cond-tpl__add:hover { background: var(--dark); color: #fff; }
 .cond-tpl__done { font-family: 'Archivo', sans-serif; font-size: 11.5px; font-weight: 700; color: var(--up); display: block; text-align: center; padding: 4px 0; }
 
-/* Bloc de condition dans le document */
-.clause-cond { background: rgba(59,130,246,0.04); border: 1.5px solid rgba(59,130,246,0.2); border-radius: 8px; margin-top: 12px; overflow: hidden; }
-.clause-cond__head { display: flex; align-items: center; gap: 8px; padding: 7px 12px; background: rgba(59,130,246,0.08); }
+/* Bloc de condition inséré dans le document.
+   La condition pré-écrite doit être INDISSOCIABLE du reste de la clause : même
+   police, même corps et même interligne que le texte alentour, sans encadré, fond
+   ni étiquette qui la trahiraient (y compris à l'impression). Les contrôles (badge +
+   bouton retirer) et un liseré-repère n'apparaissent qu'au survol/à la sélection et
+   ne réservent aucune place dans le flux — via ::before et un head en absolu. */
+.clause-cond { position: relative; margin: 0; }
+.clause-cond::before {
+  content: ''; position: absolute; left: -14px; top: 0; bottom: 0; width: 3px;
+  border-radius: 2px; background: transparent; transition: background .12s ease;
+}
+.clause-cond:hover::before,
+.clause-cond:focus-within::before { background: rgba(59,130,246,0.35); }
+.clause-cond__head {
+  position: absolute; top: -12px; right: 0; z-index: 2;
+  display: flex; align-items: center; gap: 8px; padding: 3px 8px;
+  background: #fff; border: 1px solid rgba(59,130,246,0.2); border-radius: 6px;
+  box-shadow: 0 1px 6px rgba(0,24,57,0.14);
+  opacity: 0; transform: translateY(2px); pointer-events: none;
+  transition: opacity .12s ease, transform .12s ease;
+}
+.clause-cond:hover .clause-cond__head,
+.clause-cond:focus-within .clause-cond__head { opacity: 1; transform: translateY(0); pointer-events: auto; }
 .clause-cond__badge { font-family: 'Archivo', sans-serif; font-size: 9.5px; font-weight: 700; color: #fff; padding: 2px 7px; border-radius: 4px; flex: none; }
-.clause-cond__tip { font-family: 'Archivo', sans-serif; font-size: 10px; color: rgba(0,24,57,0.5); font-style: italic; flex: 1; }
+.clause-cond__tip { font-family: 'Archivo', sans-serif; font-size: 10px; color: rgba(0,24,57,0.5); font-style: italic; flex: none; }
 .clause-cond__del { flex: none; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 600; color: var(--text-3); background: transparent; border: 1px solid rgba(0,0,0,0.12); border-radius: 5px; padding: 2px 8px; cursor: pointer; transition: color .12s, border-color .12s; }
 .clause-cond__del:hover { color: #dc2626; border-color: rgba(220,38,38,0.4); }
-.clause-cond__text { padding: 11px 14px; font-size: 13.5px; line-height: 1.7; }
+/* font/interligne hérités de .ts-content : le texte se fond dans la clause. */
+.clause-cond__text { font-size: inherit; line-height: inherit; }
 .clause-cond__text > *:last-child { margin-bottom: 0; }
 
 /* Valeurs modifiables surlignées en jaune */
@@ -829,7 +869,7 @@ mark.cond-val { background: rgba(251,191,36,0.38); border-radius: 3px; padding: 
 
   /* Interface d'édition et aides à l'écran masquées. */
   .topbar, .ribbon, .chrome-toggle, .statusbar, .panel, .library, .document-meta,
-  .clause-cond__del, .clause-cond__tip { display: none !important; }
+  .clause-cond__head { display: none !important; }
 
   /* Conteneurs neutralisés pour que .page démarre tout en haut de la page PDF. */
   .app { height: auto; display: block; overflow: visible; }
