@@ -1041,7 +1041,7 @@
   <script src="theme.js?v=3" defer></script>
   <script src="tasks.js?v=2" defer></script>
 </head>
-<body>
+<body data-no-theme-toggle>
   <div class="app">
     <!-- Top bar -->
     <header class="topbar">
@@ -2984,7 +2984,13 @@
         container.appendChild(documentsCard);
       } else if (CLASSIC_SOON_STEPS.has(selected.key)) {
         container.appendChild(stepSoonEl(selected));
-      } else if (idx >= 2 && idx <= 7) {
+      } else if (selected.key !== 'mise-en-ordre') {
+        // Toute étape hors « Ma levée », « Investisseurs » (gérée ci-dessus) et
+        // « Bientôt » (gérée ci-dessus) reçoit la carte de documents standard.
+        // Ne pas se fier à `idx` : il porte sur le tableau `phases` déjà filtré
+        // par isClassicPhaseVisible, sa position se décale donc si une étape
+        // masquée est ajoutée/retirée (c'est ce qui avait fait disparaître le
+        // contenu de « Lettre d'intention »).
         container.appendChild(phaseCard(selected, idx, { title: 'Documents', icon: 'DOC', hideStep: true, documentActions: true }));
       }
     }
