@@ -3745,7 +3745,7 @@ const CLOSING_MARKS = CLOSING_CATEGORIES.flatMap(category => ddMarks(category.it
 const FUNDRAISING_PHASES = [
   {
     key: 'mise-en-ordre',
-    name: '0 · Ma levée',
+    name: '1 · Ma levée',
     checklist: [
       'Support de présentation (deck) investisseurs',
       'Statuts à jour',
@@ -3774,7 +3774,7 @@ const FUNDRAISING_PHASES = [
   },
   {
     key: 'term-sheet',
-    name: '3 · Lettre d’intention',
+    name: '2 · Lettre d’intention',
     checklist: [
       'Term sheet (lettre d’intention)',
       'Clause d’exclusivité / de négociation',
@@ -3802,7 +3802,7 @@ const FUNDRAISING_PHASES = [
   },
   {
     key: 'closing',
-    name: '6 · Closing',
+    name: '3 · Closing',
     checklist: CLOSING_DOCUMENTS,
   },
   {
