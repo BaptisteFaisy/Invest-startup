@@ -11,17 +11,6 @@ const serverSource = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
 const compteHtml = fs.readFileSync(path.join(root, 'Saas', 'compte.html'), 'utf8');
 const onboardingHtml = fs.readFileSync(path.join(root, 'Saas', 'onboarding.html'), 'utf8');
 
-test('le plafond IA gratuit ne dépend pas du rôle auto-déclaré', () => {
-  // Le rôle s'écrit soi-même à l'onboarding : le plafond ne peut pas s'y adosser.
-  // Seul l'avocat activé par un admin en est exempté — le seul rôle qu'un compte
-  // ne peut pas s'attribuer. /api/saas n'étant gardé que par requireAuth, un
-  // plafond adossé au rôle déclaré se contournerait en se déclarant avocat.
-  assert.match(serverSource, /const activeLawyer = user\?\.account_types\?\.includes\('avocat'\) && user\.lawyer_status === 'active';/);
-  assert.match(serverSource, /if \(!activeLawyer && user\?\.subscription_status !== 'active' && !hasComplimentaryAccess\(user\?\.email\)\) \{/);
-  // La lecture doit ramener lawyer_status, sans quoi l'exemption serait toujours fausse.
-  assert.match(serverSource, /projection: \{ email: 1, account_types: 1, subscription_status: 1, lawyer_status: 1 \}/);
-});
-
 test('le type de compte ne s’écrit qu’une fois', () => {
   // Fondateur et avocat ouvrent deux produits distincts, avec des obligations
   // envers des tiers. Le choix est définitif : la route refuse toute réécriture.

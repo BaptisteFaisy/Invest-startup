@@ -85,5 +85,6 @@ test('aucun accès fondateur ne se ferme avec le temps', () => {
   );
   assert.ok(access, 'founderAccess introuvable');
   assert.doesNotMatch(access, /blocked: true/);
-  assert.match(access, /status: 'free', blocked: false/);
+  // Paywall désactivé : tout compte fondateur, payé ou non, est actif.
+  assert.match(access, /status: 'active', blocked: false/);
 });

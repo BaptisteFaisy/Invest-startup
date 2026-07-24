@@ -38,9 +38,10 @@ test('la facturation permet le paiement et préremplit le code de bienvenue', ()
   assert.match(accountHtml, /Accepter et payer ' \+ promoLabel/);
 });
 
-test('le serveur ne propose la fenêtre qu’au premier essai fondateur', () => {
+test('le serveur ne propose plus la fenêtre de bienvenue, paywall désactivé', () => {
   assert.match(serverSource, /updates\.welcome_offer_pending = true/);
-  assert.match(serverSource, /welcome_offer_pending: isFounder && access\.status === 'free'/);
+  // Paywall désactivé : la fenêtre ne peut plus jamais s'afficher.
+  assert.match(serverSource, /welcome_offer_pending: false/);
   assert.match(serverSource, /\/api\/billing\/welcome-offer\/dismiss/);
   assert.match(serverSource, /app\.post\('\/api\/billing\/checkout', requireAuth/);
 });

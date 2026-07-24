@@ -151,11 +151,6 @@ async function founderRaiseType(userId) {
 
 const ADMIN_EMAILS = ['baptiste.faisy@gmail.com', 'bg.fsg.invest@gmail.com', 'liquidplus.startups@gmail.com'];
 
-// Comptes bénéficiant d'un accès Liquid+ offert : aucun paiement requis, pas de
-// plafond d'essai ni de plafond de tokens fondateur (sans privilèges admin).
-const FREE_EMAILS = ['ahumanbeing@outlook.fr'];
-const hasComplimentaryAccess = (email) => ADMIN_EMAILS.includes(email) || FREE_EMAILS.includes(email);
-
 // ─── Assistant IA du SaaS (GLM-5.2 via Z.AI, API OpenAI-compatible) ───────────
 // L'assistant juridique du term sheet utilise GLM-5.2 sur la plateforme Z.AI.
 // Endpoint Coding Plan (abonnement) : https://api.z.ai/api/coding/paas/v4 —
@@ -993,21 +988,16 @@ function publicAuthUser(user) {
     lawyer_status: user.account_types?.includes('avocat') ? (user.lawyer_status || 'pending') : null,
     twofa_enabled: !!user.twofa_method,
     is_admin: ADMIN_EMAILS.includes(user.email),
-    welcome_offer_pending: isFounder && access.status === 'free' && user.welcome_offer_pending === true,
+    // Paywall désactivé : plus d'offre de bienvenue à proposer.
+    welcome_offer_pending: false,
     access,
   };
 }
 
-// Freemium : un compte fondateur gratuit n'expire JAMAIS. Il n'y a plus d'essai
-// borné dans le temps — le fondateur prépare toute sa levée gratuitement, et ce
-// sont la VALEUR de sortie (export / copie / téléchargement, cf. PAYWALL_ENABLED)
-// et le plafond de tokens de l'assistant (FREE_FOUNDER_TOKEN_CAP) qui se paient.
+// Paywall désactivé : tout compte fondateur a un accès actif et illimité.
 // `blocked` est conservé dans la réponse : d'autres appelants s'appuient dessus.
 function founderAccess(user) {
-  const isFounder = Array.isArray(user?.account_types) && user.account_types.includes('fondateur');
-  if (!isFounder || hasComplimentaryAccess(user?.email)) return { status: 'active', blocked: false };
-  if (user.subscription_status === 'active') return { status: 'active', blocked: false, plan: user.subscription_plan || null };
-  return { status: 'free', blocked: false };
+  return { status: 'active', blocked: false, plan: user?.subscription_plan || null };
 }
 
 function hasAccountTypes(user) {
@@ -1505,7 +1495,8 @@ app.get('/api/billing/status', requireAuth, async (req, res) => {
   if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' });
   const isFounder = user.account_types?.includes('fondateur');
   const isLawyer = user.account_types?.includes('avocat');
-  const accessPaid = user.liquid_plus_access_status === 'paid' || user.subscription_status === 'active';
+  // Paywall désactivé : tous les comptes sont considérés comme ayant payé.
+  const accessPaid = true;
   // État Connect réel du cabinet, à partir du profil déjà tenu à jour par les
   // webhooks : l'onglet Facturation reflète ainsi la vérité plutôt qu'un placeholder.
   const connect = isLawyer
@@ -2337,21 +2328,8 @@ async function globalTokensToday() {
 async function enforceDailyCap(req, res, next) {
   try {
     const used = await globalTokensToday();
-    const user = await col('users').findOne({ id: req.user.id }, { projection: { email: 1, account_types: 1, subscription_status: 1, lawyer_status: 1 } });
-    // Le plafond gratuit ne peut pas dépendre du rôle déclaré : le rôle s'écrit
-    // soi-même (POST /api/auth/account-type), donc un compte gratuit qui se
-    // déclarait « avocat » sortait du plafond tout en gardant l'assistant — le
-    // préfixe /api/saas n'est gardé que par requireAuth. Le plafond porte donc
-    // sur tout compte qui ne paie pas, avec une seule exemption : l'avocat
-    // réellement activé par un admin, le seul rôle qu'on ne peut pas s'attribuer.
-    const activeLawyer = user?.account_types?.includes('avocat') && user.lawyer_status === 'active';
-    if (!activeLawyer && user?.subscription_status !== 'active' && !hasComplimentaryAccess(user?.email)) {
-      const personal = await col('saas_claude_usage').findOne({ user_id: req.user.id }, { projection: { total_tokens: 1 } });
-      const personalUsed = personal?.total_tokens || 0;
-      if (personalUsed >= FREE_FOUNDER_TOKEN_CAP) {
-        return res.status(429).json({ error: `Vous avez utilisé les ${FREE_FOUNDER_TOKEN_CAP.toLocaleString('fr-FR')} tokens d'assistant IA inclus gratuitement. Votre travail reste accessible : activez Liquid+ pour continuer avec l'assistant.`, cap: FREE_FOUNDER_TOKEN_CAP, used: personalUsed });
-      }
-    }
+    // Paywall désactivé : plus de plafond personnel « gratuit ». Seul le plafond
+    // quotidien global (protection du coût d'infrastructure IA) reste actif.
     if (used >= DAILY_TOKEN_CAP) {
       return res.status(429).json({
         error: `Plafond quotidien de l'assistant IA atteint (${DAILY_TOKEN_CAP.toLocaleString('fr-FR')} tokens/jour). L'assistant sera de nouveau disponible demain.`,
@@ -3344,8 +3322,6 @@ app.get('/api/saas/usage', requireAuth, async (req, res) => {
     { projection: { _id: 0, user_id: 0 } }
   );
   const dailyUsed = await globalTokensToday();
-  const account = await col('users').findOne({ id: req.user.id }, { projection: { email: 1, account_types: 1, subscription_status: 1 } });
-  const isUnpaidFounder = account?.account_types?.includes('fondateur') && account.subscription_status !== 'active' && !hasComplimentaryAccess(account.email);
   res.json({
     requests:      u?.requests      || 0,
     input_tokens:  u?.input_tokens  || 0,
@@ -3356,8 +3332,9 @@ app.get('/api/saas/usage', requireAuth, async (req, res) => {
     daily_cap:     DAILY_TOKEN_CAP,
     daily_used:    dailyUsed,
     daily_day:     parisDay(),
-    founder_free_cap: isUnpaidFounder ? FREE_FOUNDER_TOKEN_CAP : null,
-    founder_free_used: isUnpaidFounder ? (u?.total_tokens || 0) : null,
+    // Paywall désactivé : plus de plafond personnel « gratuit ».
+    founder_free_cap: null,
+    founder_free_used: null,
   });
 });
 
@@ -8323,6 +8300,17 @@ async function downloadToBuffer(url) {
   return Buffer.from(await r.arrayBuffer());
 }
 
+// Convertit un buffer (PDF, ODT, DOC legacy) en HTML via CloudConvert (→ DOCX) puis
+// mammoth, pour conserver la mise en forme du document reçu (gras, tableaux, mise en
+// page) au lieu de se rabattre sur du texte brut. L'appelant doit vérifier que
+// `cloudConvert` est configuré avant d'appeler cette fonction.
+async function convertToDocxHtmlViaCloudConvert(buf, filename) {
+  const converted = await convertViaCloudConvert(buf, filename, 'docx');
+  const docxBuf   = await downloadToBuffer(converted.url);
+  const result    = await mammoth.convertToHtml({ buffer: docxBuf });
+  return result.value || '';
+}
+
 app.post('/api/saas/documents/:id/convert', requireAuth, async (req, res) => {
   if (!cloudConvert)
     return res.status(503).json({ error: 'Conversion non configurée : ajoutez CLOUDCONVERT_API_KEY dans le .env du serveur.' });
@@ -9202,13 +9190,23 @@ app.post('/api/saas/documents/:id/to-editor', requireAuth, async (req, res) => {
     let rawHtml = '';
 
     if (srcExt === '.pdf') {
-      // PDF → texte brut (mise en forme perdue), transformé en paragraphes.
-      rawHtml = plainTextToEditorHtml((await pdfParse(docBuf)).text || '');
+      // PDF → DOCX via CloudConvert (mise en forme conservée : gras, tableaux, mise
+      // en page) si le service est configuré, sinon repli en texte brut.
+      if (cloudConvert) {
+        rawHtml = await convertToDocxHtmlViaCloudConvert(docBuf, doc.originalname || doc.name || 'document.pdf');
+      } else {
+        rawHtml = plainTextToEditorHtml((await pdfParse(docBuf)).text || '');
+      }
     } else if (srcExt === '.odt') {
-      // OpenDocument → texte brut → paragraphes.
-      rawHtml = plainTextToEditorHtml(await odtToText(docBuf));
+      // OpenDocument → DOCX via CloudConvert (mise en forme conservée) si le service
+      // est configuré, sinon repli en texte brut.
+      if (cloudConvert) {
+        rawHtml = await convertToDocxHtmlViaCloudConvert(docBuf, doc.originalname || doc.name || 'document.odt');
+      } else {
+        rawHtml = plainTextToEditorHtml(await odtToText(docBuf));
+      }
     } else if (srcExt === '.txt') {
-      // Fichier texte → paragraphes.
+      // Fichier texte : aucune mise en forme à conserver (un .txt n'en contient pas).
       rawHtml = plainTextToEditorHtml(docBuf.toString('utf8'));
     } else {
       // Word (.docx / .doc). Détecter si le fichier est en réalité du HTML
@@ -9223,10 +9221,7 @@ app.post('/api/saas/documents/:id/to-editor', requireAuth, async (req, res) => {
         // On passe par CloudConvert pour obtenir un .docx (mise en forme conservée)
         // si le service est configuré, sinon on se rabat sur le texte brut.
         if (cloudConvert) {
-          const converted = await convertViaCloudConvert(docBuf, doc.originalname || doc.name || 'document.doc', 'docx');
-          const docxBuf   = await downloadToBuffer(converted.url);
-          const result    = await mammoth.convertToHtml({ buffer: docxBuf });
-          rawHtml = result.value || '';
+          rawHtml = await convertToDocxHtmlViaCloudConvert(docBuf, doc.originalname || doc.name || 'document.doc');
         } else {
           rawHtml = plainTextToEditorHtml(await legacyDocToText(docBuf));
         }
