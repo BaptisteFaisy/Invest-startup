@@ -538,6 +538,24 @@ body .docmodal input[type="checkbox"] { accent-color: #66b97f; }
 .page .ts-clause--imported:focus-within .ts-label,
 .page .ts-clause--imported.is-active .ts-label { opacity: 1; transform: translateY(0); pointer-events: auto; }
 
+/* Le document importé arrive avec SES styles en ligne (police, corps, alignement,
+   retraits), relevés sur le fichier d'origine. Les règles de l'éditeur ci-dessus
+   passeraient devant sur tout ce qu'un style en ligne ne couvre pas — corps de
+   texte, marges de paragraphe, filet entre clauses — et le document ne
+   ressemblerait plus à celui que l'utilisateur a reçu. On les neutralise donc
+   ici : la mise en page du fichier importé fait autorité, l'éditeur n'ajoute que
+   ses repères de sélection. */
+.page .ts-clause--imported + .ts-clause--imported { border-top: 0; }
+.page .ts-clause--imported .ts-content { font-size: inherit; }
+.page .ts-clause--imported .ts-content p,
+.page .ts-clause--imported .ts-content ol,
+.page .ts-clause--imported .ts-content ul,
+.page .ts-clause--imported .ts-content li,
+.page .ts-clause--imported .ts-content blockquote { margin: revert; padding: revert; }
+.page .ts-clause--imported .ts-content blockquote { border-left: 0; background: none; }
+/* Une image du document d'origine ne doit jamais déborder de la feuille. */
+.page .ts-clause--imported .ts-content img { max-width: 100%; height: auto; }
+
 /* Signatures */
 .page .ts-sign { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; margin-top: 40px; }
 .page .ts-sign .box { font-size: 13px; }

@@ -26,7 +26,9 @@ const { google }       = require('googleapis');
 const { Dropbox }      = require('dropbox');
 const archiver         = require('archiver');
 const Stripe           = require('stripe');
+const { decodeHTML }   = require('entities');
 const { createDocumentEncryption } = require('./lib/document-encryption');
+const importedHtml     = require('./lib/imported-html');
 const redlineDiff      = require('./Saas/redline-diff');
 const { buildAdminDashboardStats, countUnreadAdminMessages } = require('./lib/admin-dashboard');
 const { adminLiquidPayment } = require('./lib/admin-payments');
@@ -8333,7 +8335,9 @@ app.post('/api/saas/documents/:id/duplicate', requireAuth, async (req, res) => {
 });
 
 // ─── SaaS : conversion PDF ⇄ DOCX via CloudConvert ────────────────────────────
-async function convertViaCloudConvert(inputBuffer, inputFilename, outputFormat) {
+// Renvoie TOUS les fichiers produits : une conversion vers HTML sort le document
+// accompagné de ses images, dans des fichiers séparés.
+async function convertViaCloudConvertAll(inputBuffer, inputFilename, outputFormat) {
   let job = await cloudConvert.jobs.create({
     tasks: {
       'upload-file':  { operation: 'import/upload' },
@@ -8350,7 +8354,12 @@ async function convertViaCloudConvert(inputBuffer, inputFilename, outputFormat) 
   const exportTask = job.tasks.find(t => t.name === 'export-file');
   if (!exportTask || exportTask.status !== 'finished' || !exportTask.result?.files?.length)
     throw new Error('export task non terminée');
-  return exportTask.result.files[0]; // { filename, url, size }
+  return exportTask.result.files; // [{ filename, url, size }]
+}
+
+async function convertViaCloudConvert(inputBuffer, inputFilename, outputFormat) {
+  const files = await convertViaCloudConvertAll(inputBuffer, inputFilename, outputFormat);
+  return files[0]; // { filename, url, size }
 }
 
 async function downloadToBuffer(url) {
@@ -8359,15 +8368,54 @@ async function downloadToBuffer(url) {
   return Buffer.from(await r.arrayBuffer());
 }
 
-// Convertit un buffer (PDF, ODT, DOC legacy) en HTML via CloudConvert (→ DOCX) puis
-// mammoth, pour conserver la mise en forme du document reçu (gras, tableaux, mise en
-// page) au lieu de se rabattre sur du texte brut. L'appelant doit vérifier que
+// Fichiers joints (images) rapatriés à côté du HTML : au-delà, on préfère un
+// document sans illustration à un téléchargement interminable.
+const IMPORT_ASSET_MAX_BYTES = 8 * 1024 * 1024;
+
+// DOCX → HTML **fidèle** via CloudConvert (moteur LibreOffice).
+// Contrairement à mammoth, qui ignore délibérément toute mise en forme visuelle
+// (polices, tailles, couleurs, alignements, retraits, interlignes) pour ne garder
+// que la structure, LibreOffice rend le document tel qu'il s'affiche dans Word.
+// C'est ce qui permet d'ouvrir un PDF ou un Word dans l'éditeur sans que sa mise
+// en page change. Renvoie { html, baseStyle, layoutPreserved }.
+async function docxToFidelityHtml(docxBuf, filename) {
+  const files    = await convertViaCloudConvertAll(docxBuf, filename, 'html');
+  const htmlFile = files.find(f => /\.x?html?$/i.test(f.filename || '')) || files[0];
+  if (!htmlFile) throw new Error('aucun fichier HTML produit');
+
+  const assetFiles = files.filter(f => f !== htmlFile && (f.size == null || f.size <= IMPORT_ASSET_MAX_BYTES));
+  const [htmlBuf, assets] = await Promise.all([
+    downloadToBuffer(htmlFile.url),
+    Promise.all(assetFiles.map(async f => ({ filename: f.filename, buffer: await downloadToBuffer(f.url) }))),
+  ]);
+
+  const out = importedHtml.importedDocumentHtml(htmlBuf.toString('utf8'), assets);
+  return { ...out, layoutPreserved: true };
+}
+
+// DOCX → HTML pour l'éditeur : rendu fidèle si CloudConvert est joignable, sinon
+// repli mammoth (structure conservée, mise en forme perdue) pour que l'import
+// aboutisse quand même.
+async function docxBufferToEditorHtml(docxBuf, filename) {
+  if (cloudConvert) {
+    try {
+      const fidelity = await docxToFidelityHtml(docxBuf, filename);
+      if (fidelity.html.trim()) return fidelity;
+    } catch (err) {
+      console.error('Conversion fidèle indisponible, repli mammoth :', err.message);
+    }
+  }
+  const result = await mammoth.convertToHtml({ buffer: docxBuf });
+  return { html: result.value || '', baseStyle: '', layoutPreserved: false };
+}
+
+// Convertit un buffer (PDF, ODT, DOC legacy) en HTML pour l'éditeur : d'abord en
+// DOCX via CloudConvert, puis en HTML fidèle. L'appelant doit vérifier que
 // `cloudConvert` est configuré avant d'appeler cette fonction.
 async function convertToDocxHtmlViaCloudConvert(buf, filename) {
   const converted = await convertViaCloudConvert(buf, filename, 'docx');
   const docxBuf   = await downloadToBuffer(converted.url);
-  const result    = await mammoth.convertToHtml({ buffer: docxBuf });
-  return result.value || '';
+  return docxBufferToEditorHtml(docxBuf, converted.filename || 'document.docx');
 }
 
 app.post('/api/saas/documents/:id/convert', requireAuth, async (req, res) => {
@@ -8846,6 +8894,12 @@ function editorHtmlToSemantic(html) {
   // …et le surlignage jaune des valeurs modifiables : on déballe le <mark>, la valeur
   // redevient du texte classique dans le document exporté.
   s = s.replace(/<mark class=['"]cond-val['"][^>]*>([\s\S]*?)<\/mark>/gi, '$1');
+  // Clause d'un document importé : son étiquette n'est qu'un repère d'écran, le
+  // titre d'origine étant resté dans le corps du texte — la transformer en <h2>
+  // le dupliquerait. On retire donc l'étiquette et on laisse le reste intact :
+  // les <div> de structure n'ont aucun effet visuel, et leurs styles en ligne
+  // sont justement ce qui reproduit la mise en page du document reçu.
+  s = s.replace(/(<div class="ts-clause ts-clause--imported"[^>]*>)\s*<div class="ts-label">[\s\S]*?<\/div>/gi, '$1');
   // Clause : label -> <h2>, contenu déballé.
   s = s.replace(/<div class="ts-clause"[^>]*>\s*<div class="ts-label">([\s\S]*?)<\/div>\s*<div class="ts-content">([\s\S]*?)<\/div>\s*<\/div>/gi,
     (m, label, body) => `<h2>${label}</h2>\n${body}`);
@@ -8987,10 +9041,11 @@ app.post('/api/saas/termsheets/:id/export', requireAuth, async (req, res) => {
 // par titre, ou par article numéroté à défaut de styles Titre Word) pour que le
 // décrypteur et l'assistant IA fonctionnent paragraphe par paragraphe.
 function stripHtml(s) {
-  return String(s)
-    .replace(/<[^>]+>/g, '')
-    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ')
+  // decodeHTML traite TOUTES les entités (&ndash;, &hellip;, &#233;…), là où la
+  // poignée historique en laissait passer. Un document importé en est truffé, et
+  // une entité oubliée ici ressortirait ré-échappée — « ARTICLE 1 &amp;ndash; … »
+  // — dans le libellé de la clause.
+  return decodeHTML(String(s).replace(/<[^>]+>/g, ''))
     .replace(/\s+/g, ' ').trim();
 }
 function escapeHtml(s) {
@@ -8998,16 +9053,25 @@ function escapeHtml(s) {
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-// Découpe le HTML « plat » produit par mammoth en blocs de premier niveau, en
-// suivant la profondeur d'imbrication (listes/tableaux restent entiers).
+// Découpe le HTML « plat » (mammoth ou LibreOffice) en blocs de premier niveau,
+// en suivant la profondeur d'imbrication (listes/tableaux restent entiers).
+// Les éléments sans fermeture posés seuls entre deux paragraphes — filets de
+// séparation, images pleine largeur — forment un bloc à eux seuls : les ignorer
+// les ferait disparaître du document importé.
+const VOID_BLOCK_TAGS = new Set(['hr', 'img']);
 function topLevelBlocks(html) {
   const blocks = [];
-  const tagRe = /<(\/?)(p|h[1-6]|ul|ol|table|blockquote|pre|div)\b[^>]*?(\/?)>/gi;
+  const tagRe = /<(\/?)(p|h[1-6]|ul|ol|table|blockquote|pre|div|center|section|hr|img)\b[^>]*?(\/?)>/gi;
   let depth = 0, startIdx = -1, m;
   while ((m = tagRe.exec(html))) {
-    if (m[3] === '/') continue;                         // balise auto-fermante
+    // Balise sans fermeture : elle ne fait pas varier la profondeur, et ne vaut
+    // un bloc que si rien ne l'englobe.
+    if (VOID_BLOCK_TAGS.has(m[2].toLowerCase()) || m[3] === '/') {
+      if (depth === 0) blocks.push(m[0]);
+      continue;
+    }
     if (m[1] !== '/') { if (depth === 0) startIdx = m.index; depth++; }
-    else { depth--; if (depth === 0 && startIdx >= 0) { blocks.push(html.slice(startIdx, m.index + m[0].length)); startIdx = -1; } }
+    else if (depth > 0) { depth--; if (depth === 0 && startIdx >= 0) { blocks.push(html.slice(startIdx, m.index + m[0].length)); startIdx = -1; } }
   }
   return blocks;
 }
@@ -9040,11 +9104,27 @@ function headingLevel(block) {
   return boldHeadingText(block) ? 2 : 0;
 }
 
-function clauseBlock(key, label, bodyHtml) {
+function clauseBlock(key, label, bodyHtml, opts = {}) {
   const safeLabel = escapeHtml(label || 'Clause').slice(0, 120) || 'Clause';
-  return `<div class="ts-clause" data-key="${key}">` +
+  // Clause d'un document importé : l'éditeur l'affiche en pleine largeur, sans la
+  // colonne d'étiquette qui reformaterait le document (voir .ts-clause--imported,
+  // editor.css). data-key reste en tête pour la classification sémantique.
+  const cls   = opts.imported ? 'ts-clause ts-clause--imported' : 'ts-clause';
+  const style = opts.style ? ` style="${escapeHtml(opts.style)}"` : '';
+  return `<div class="${cls}" data-key="${key}"${style}>` +
          `<div class="ts-label">${safeLabel}</div>` +
          `<div class="ts-content">${bodyHtml || '<p></p>'}</div></div>`;
+}
+
+// Libellé lisible d'une clause découpée sans styles Titre Word : premier segment
+// avant ponctuation. Si ce segment n'est que le NUMÉRO de l'article (« 1 », « III »,
+// « ARTICLE 5 »), on y adjoint le suivant (« 1. Valorisation »).
+function sectionLabel(txt) {
+  const segs = String(txt || '').split(/[.:—–]/);
+  let label = (segs[0] || '').trim();
+  if (segs[1] && /^(ARTICLE\s+\d+|TITRE\s+[IVXLC\d]+|\d+(?:\.\d+)*|[IVXLC]+)$/i.test(label))
+    label = label + '. ' + segs[1].trim();
+  return label.split(/\s+/).slice(0, 9).join(' ');
 }
 
 // Transforme du texte brut (PDF, ODT, TXT) en HTML de paragraphes exploitable
@@ -9062,13 +9142,43 @@ function plainTextToEditorHtml(text) {
     .join('\n');
 }
 
-function docxHtmlToEditorPage(rawHtml, docName) {
+function docxHtmlToEditorPage(rawHtml, docName, opts = {}) {
   const baseName = String(docName || 'Document').replace(/\.[^.]+$/, '').trim() || 'Document';
-  const blocks = topLevelBlocks(rawHtml).filter(b => stripHtml(b) || /<(img|table)/i.test(b));
-  if (!blocks.length) return clauseBlock('c1', baseName, '<p></p>');
+  const preserveLayout = !!opts.preserveLayout;
+  const baseStyle = preserveLayout ? String(opts.baseStyle || '') : '';
+  const wrap = (key, label, body) => clauseBlock(key, label, body, { imported: preserveLayout, style: baseStyle });
+  const blocks = topLevelBlocks(rawHtml).filter(b => stripHtml(b) || /<(img|table|hr)/i.test(b));
+  if (!blocks.length) return wrap('c1', baseName, '<p></p>');
 
   let cur = null, n = 0;
   const levels = blocks.map(headingLevel);
+
+  // ── Import fidèle : le document garde sa mise en page d'origine ─────────────
+  // Aucun bloc n'est déplacé, réécrit ni restylé — les titres restent DANS le
+  // texte, à leur place et dans leur police. On se contente de poser des
+  // frontières de clauses (titres, articles numérotés) pour que le décrypteur,
+  // le redline et l'assistant IA continuent de travailler clause par clause ;
+  // leurs étiquettes ne s'affichent qu'au survol et ne prennent aucune place
+  // dans le flux du texte.
+  if (preserveLayout) {
+    const out = [];
+    const flush = () => { if (cur) { out.push(wrap(cur.key, cur.label, cur.body.join('\n'))); cur = null; } };
+    blocks.forEach((b, i) => {
+      const txt = stripHtml(b);
+      const isHeading = levels[i] > 0;
+      if (isHeading || SECTION_RE.test(txt) || !cur) {
+        flush();
+        n++;
+        const label = isHeading ? txt.split(/\s+/).slice(0, 9).join(' ')
+                    : SECTION_RE.test(txt) ? sectionLabel(txt)
+                    : 'Préambule';
+        cur = { key: 'c' + n, label: label || ('Paragraphe ' + n), body: [] };
+      }
+      cur.body.push(b);
+    });
+    flush();
+    return out.join('\n');
+  }
 
   if (levels.some(l => l > 0)) {
     // Document structuré. Le 1er bloc, s'il est un titre, devient le titre du
@@ -9083,7 +9193,7 @@ function docxHtmlToEditorPage(rawHtml, docName) {
 
     const out = [];
     let subSet = false;
-    const flush = () => { if (cur) { out.push(clauseBlock(cur.key, cur.label, cur.body.join('\n'))); cur = null; } };
+    const flush = () => { if (cur) { out.push(wrap(cur.key, cur.label, cur.body.join('\n'))); cur = null; } };
     blocks.forEach((b, i) => {
       const lvl = levels[i];
       if (lvl > 0) {
@@ -9108,21 +9218,14 @@ function docxHtmlToEditorPage(rawHtml, docName) {
   blocks.forEach(b => {
     const txt = stripHtml(b);
     if (!cur || SECTION_RE.test(txt)) {
-      // Libellé = premier segment avant ponctuation. Si ce segment n'est que le
-      // NUMÉRO de l'article (« 1 », « III », « ARTICLE 5 »), on y adjoint le
-      // segment suivant pour un libellé lisible (« 1. Valorisation »).
-      const segs = txt.split(/[.:—–]/);
-      let label = (segs[0] || '').trim();
-      if (segs[1] && /^(ARTICLE\s+\d+|TITRE\s+[IVXLC\d]+|\d+(?:\.\d+)*|[IVXLC]+)$/i.test(label))
-        label = label + '. ' + segs[1].trim();
-      label = label.split(/\s+/).slice(0, 9).join(' ');
+      const label = sectionLabel(txt);
       // N'inclure le bloc dans le corps que s'il contient plus que le seul titre
       // (évite d'afficher le titre à la fois dans la colonne label et dans le texte).
       const hasBody = txt.length > label.length + 5;
       push(label || ('Paragraphe ' + (n + 1)), hasBody ? b : null);
     } else cur.body.push(b);
   });
-  return clauses.map(c => clauseBlock(c.key, c.label, c.body.join('\n'))).join('\n');
+  return clauses.map(c => wrap(c.key, c.label, c.body.join('\n'))).join('\n');
 }
 
 // ─── Classification sémantique des clauses d'un document importé ──────────────
@@ -9252,55 +9355,65 @@ app.post('/api/saas/documents/:id/to-editor', requireAuth, async (req, res) => {
   if (!docBuf) return res.status(404).json({ error: 'Fichier introuvable en base.' });
 
   try {
-    let rawHtml = '';
+    // { html, baseStyle, layoutPreserved } — layoutPreserved n'est vrai que si le
+    // rendu fidèle a abouti : c'est lui seul qui autorise l'éditeur à afficher le
+    // document tel quel, sans le reformater en clauses à deux colonnes.
+    let raw = { html: '', baseStyle: '', layoutPreserved: false };
+    const plain = (text) => ({ html: plainTextToEditorHtml(text), baseStyle: '', layoutPreserved: false });
 
     if (srcExt === '.pdf') {
-      // PDF → DOCX via CloudConvert (mise en forme conservée : gras, tableaux, mise
-      // en page) si le service est configuré, sinon repli en texte brut.
+      // PDF → DOCX → HTML fidèle via CloudConvert (mise en page conservée : polices,
+      // tailles, alignements, tableaux) si le service est configuré, sinon repli en
+      // texte brut.
       if (cloudConvert) {
-        rawHtml = await convertToDocxHtmlViaCloudConvert(docBuf, doc.originalname || doc.name || 'document.pdf');
+        raw = await convertToDocxHtmlViaCloudConvert(docBuf, doc.originalname || doc.name || 'document.pdf');
       } else {
-        rawHtml = plainTextToEditorHtml((await pdfParse(docBuf)).text || '');
+        raw = plain((await pdfParse(docBuf)).text || '');
       }
     } else if (srcExt === '.odt') {
-      // OpenDocument → DOCX via CloudConvert (mise en forme conservée) si le service
-      // est configuré, sinon repli en texte brut.
+      // OpenDocument → DOCX → HTML fidèle via CloudConvert si le service est
+      // configuré, sinon repli en texte brut.
       if (cloudConvert) {
-        rawHtml = await convertToDocxHtmlViaCloudConvert(docBuf, doc.originalname || doc.name || 'document.odt');
+        raw = await convertToDocxHtmlViaCloudConvert(docBuf, doc.originalname || doc.name || 'document.odt');
       } else {
-        rawHtml = plainTextToEditorHtml(await odtToText(docBuf));
+        raw = plain(await odtToText(docBuf));
       }
     } else if (srcExt === '.txt') {
       // Fichier texte : aucune mise en forme à conserver (un .txt n'en contient pas).
-      rawHtml = plainTextToEditorHtml(docBuf.toString('utf8'));
+      raw = plain(docBuf.toString('utf8'));
     } else {
       // Word (.docx / .doc). Détecter si le fichier est en réalité du HTML
       // (export .doc de secours sans CloudConvert).
       const sample = docBuf.slice(0, 300).toString('utf8');
       if (/<html|<!DOCTYPE/i.test(sample)) {
+        // Export de notre propre éditeur : déjà structuré en titres et sections, on
+        // le redécoupe donc normalement plutôt que de le figer tel quel.
         const fullHtml = docBuf.toString('utf8');
         const m = /<body[^>]*>([\s\S]*?)<\/body>/i.exec(fullHtml);
-        rawHtml = m ? m[1] : fullHtml;
+        raw = { html: m ? m[1] : fullHtml, baseStyle: '', layoutPreserved: false };
       } else if (isLegacyDocBuffer(docBuf)) {
         // Vrai .doc legacy (Word 97-2003, binaire OLE2) : mammoth ne sait pas le lire.
-        // On passe par CloudConvert pour obtenir un .docx (mise en forme conservée)
+        // On passe par CloudConvert pour obtenir un .docx (mise en page conservée)
         // si le service est configuré, sinon on se rabat sur le texte brut.
         if (cloudConvert) {
-          rawHtml = await convertToDocxHtmlViaCloudConvert(docBuf, doc.originalname || doc.name || 'document.doc');
+          raw = await convertToDocxHtmlViaCloudConvert(docBuf, doc.originalname || doc.name || 'document.doc');
         } else {
-          rawHtml = plainTextToEditorHtml(await legacyDocToText(docBuf));
+          raw = plain(await legacyDocToText(docBuf));
         }
       } else {
-        // Vrai DOCX (ou .doc renommé qui est en réalité un DOCX) → conversion via mammoth.
-        const result = await mammoth.convertToHtml({ buffer: docBuf });
-        rawHtml = result.value || '';
+        // Vrai DOCX (ou .doc renommé qui est en réalité un DOCX) : rendu fidèle via
+        // CloudConvert, repli mammoth si le service est indisponible.
+        raw = await docxBufferToEditorHtml(docBuf, doc.originalname || doc.name || 'document.docx');
       }
     }
 
-    if (!rawHtml.trim())
+    if (!raw.html.trim())
       return res.status(422).json({ error: 'Le fichier est vide ou illisible.' });
 
-    let pageHtml = docxHtmlToEditorPage(rawHtml, doc.name);
+    let pageHtml = docxHtmlToEditorPage(raw.html, doc.name, {
+      preserveLayout: raw.layoutPreserved,
+      baseStyle: raw.baseStyle,
+    });
     // Reconnaissance sémantique des clauses (type de document + nature juridique
     // de chaque clause). Facultative : en cas d'échec ou de lenteur de l'IA, le
     // document s'ouvre quand même, simplement sans clés sémantiques.
