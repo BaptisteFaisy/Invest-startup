@@ -4168,24 +4168,23 @@ function navigateToPlaceholder(clauseKey, placeholderText) {
     ? page
     : (page.querySelector(`.ts-clause[data-key="${clauseKey}"]`) || page);
 
-  const walker = document.createTreeWalker(searchRoot, NodeFilter.SHOW_TEXT, null, false);
-  let node;
-  while ((node = walker.nextNode())) {
-    const idx = node.textContent.indexOf(placeholderText);
-    if (idx !== -1) {
-      const range = document.createRange();
-      range.setStart(node, idx);
-      range.setEnd(node, idx + placeholderText.length);
-      window.getSelection().removeAllRanges();
-      window.getSelection().addRange(range);
-      (node.parentElement || searchRoot).scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return;
-    }
+  const { text, runs } = flatText(searchRoot);
+  const idx   = text.indexOf(placeholderText);
+  const range = idx === -1 ? null : flatRange(runs, idx, idx + placeholderText.length);
+  if (range) {
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    const el = range.startContainer.parentElement || searchRoot;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
   }
   // Champ déjà rempli → aller au prochain champ non rempli
   const next = findPlaceholders()[0];
-  if (next) navigateToPlaceholder(next.key, next.text);
-  else renderFill();
+  // …sauf si c'est le même : on éviterait une récursion sans fin.
+  if (next && !(next.key === clauseKey && next.text === placeholderText)) {
+    navigateToPlaceholder(next.key, next.text);
+  } else renderFill();
 }
 
 function buildPhHtml(pList) {
@@ -4458,46 +4457,38 @@ function applyAutofill(fills, fields) {
     queue.get(f.text).push(f);
   });
 
-  const applied = [];
-  const walker  = document.createTreeWalker(page, NodeFilter.SHOW_TEXT, {
-    acceptNode(node) {
-      const p = node.parentElement;
-      return (p && p.closest('script, style')) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT;
-    },
-  }, false);
-  const nodes   = [];
-  let n;
-  while ((n = walker.nextNode())) nodes.push(n);
-
-  for (let i = 0; i < nodes.length && queue.size; i++) {
-    let node = nodes[i];
-    let pos = 0;
-    let guard = 0;
-    while (queue.size && guard++ < 40) {
-      let best = null;
-      for (const text of queue.keys()) {
-        const idx = node.textContent.indexOf(text, pos);
-        if (idx !== -1 && (!best || idx < best.idx)) best = { text, idx };
-      }
-      if (!best) break;
-      const occs  = queue.get(best.text);
-      const field = occs.shift();
-      if (!occs.length) queue.delete(best.text);
+  // Repérage sur le texte aplati : un champ réparti sur plusieurs balises par le
+  // convertisseur est trouvé comme les autres (voir flatText).
+  const { text, runs } = flatText(page);
+  const targets = [];
+  for (const [needle, occs] of queue) {
+    let from = 0;
+    for (const field of occs) {
+      const idx = text.indexOf(needle, from);
+      if (idx === -1) break;
+      from = idx + needle.length;
       const fill = byId.get(field.id);
-      if (!fill || !fill.value) { pos = best.idx + best.text.length; continue; }
-
-      // Découpe le nœud texte et insère la valeur dans un <span> surligné temporaire.
-      const after = node.textContent.slice(best.idx + best.text.length);
-      node.textContent = node.textContent.slice(0, best.idx);
-      const span = document.createElement('span');
-      span.className = 'af-flash';
-      span.textContent = fill.value;
-      const afterNode = document.createTextNode(after);
-      node.after(span, afterNode);
-      applied.push({ text: best.text, value: fill.value, source: fill.source || '', clause: field.clause });
-      node = afterNode;
-      pos = 0;
+      if (fill && fill.value) {
+        targets.push({ start: idx, end: from, text: needle, value: fill.value,
+                       source: fill.source || '', clause: field.clause });
+      }
     }
+  }
+  targets.sort((a, b) => a.start - b.start);
+  const applied = targets.map(t => ({ text: t.text, value: t.value, source: t.source, clause: t.clause }));
+
+  // Remplacement de la FIN vers le DÉBUT : les positions déjà calculées restent
+  // valides tant qu'on ne modifie que le texte qui les suit.
+  for (let i = targets.length - 1; i >= 0; i--) {
+    const t     = targets[i];
+    const range = flatRange(runs, t.start, t.end);
+    if (!range) continue;
+    // Insère la valeur dans un <span> surligné temporaire.
+    const span = document.createElement('span');
+    span.className = 'af-flash';
+    span.textContent = t.value;
+    range.deleteContents();
+    range.insertNode(span);
   }
 
   // Retire le surlignage après l'animation : seul le texte reste dans le document.
@@ -4598,6 +4589,54 @@ function _looseFieldLabel(node) {
   return heading || fallback || 'Document';
 }
 
+// ─── Repérage de texte à travers les balises ─────────────────────────────────
+// Un champ « [Nom de la société] » n'est pas forcément d'un seul tenant dans le
+// DOM : dès que sa mise en forme change en cours de route, le navigateur le
+// répartit sur plusieurs nœuds de texte. Les documents importés en sont truffés,
+// le convertisseur enveloppant chaque changement de police dans sa propre balise.
+// Chercher nœud par nœud laissait donc passer ces champs — ils n'apparaissaient
+// ni dans « À remplir », ni au remplissage automatique.
+// On travaille désormais sur le texte APLATI d'un conteneur, en gardant de quoi
+// revenir au DOM : une correspondance redevient un Range, qu'elle tienne dans un
+// seul nœud ou qu'elle en traverse cinq.
+const PLACEHOLDER_RE = /\[[^\]\n]{1,80}\]/g;
+
+function flatText(root) {
+  const runs = [];
+  let text = '';
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      const p = node.parentElement;
+      // Blocs techniques (analyse bakée, styles) — et, pour un document importé,
+      // l'étiquette de clause : elle recopie un titre qui figure déjà dans le
+      // texte, un champ qui s'y trouve serait compté deux fois.
+      if (p && p.closest('script, style, .ts-clause--imported > .ts-label')) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    },
+  }, false);
+  let node;
+  while ((node = walker.nextNode())) {
+    runs.push({ node, start: text.length });
+    text += node.textContent;
+  }
+  return { text, runs };
+}
+
+// Intervalle du texte aplati → Range dans le DOM (null si hors limites).
+function flatRange(runs, start, end) {
+  let from = null, to = null;
+  for (const r of runs) {
+    const stop = r.start + r.node.textContent.length;
+    if (from === null && start < stop) from = { node: r.node, offset: start - r.start };
+    if (end <= stop) { to = { node: r.node, offset: end - r.start }; break; }
+  }
+  if (!from || !to) return null;
+  const range = document.createRange();
+  range.setStart(from.node, Math.max(0, from.offset));
+  range.setEnd(to.node, Math.max(0, to.offset));
+  return range;
+}
+
 // Recense TOUS les champs [entre crochets] du document, où qu'ils se trouvent :
 // dans une clause, mais AUSSI dans le titre, le bloc de signatures, l'annexe ou
 // tout paragraphe ajouté en fin de document (corrige les champs « en bas » qui
@@ -4606,25 +4645,15 @@ function _looseFieldLabel(node) {
 function findPlaceholders() {
   const result = [];
   let looseIdx = 0;
-  const walker = document.createTreeWalker(page, NodeFilter.SHOW_TEXT, {
-    acceptNode(node) {
-      if (node.textContent.indexOf('[') === -1) return NodeFilter.FILTER_SKIP;
-      // Ignore les blocs techniques (analyse bakée) et les feuilles de style.
-      const p = node.parentElement;
-      if (p && p.closest('script, style')) return NodeFilter.FILTER_REJECT;
-      return NodeFilter.FILTER_ACCEPT;
-    },
-  }, false);
+  const { text, runs } = flatText(page);
 
-  let node;
-  while ((node = walker.nextNode())) {
-    const src     = node.textContent;
-    const matches = [...src.matchAll(/\[[^\]\n]{1,80}\]/g)];
-    if (!matches.length) continue;
+  for (const m of text.matchAll(PLACEHOLDER_RE)) {
+    const range = flatRange(runs, m.index, m.index + m[0].length);
+    const node  = range ? range.startContainer : null;
+    const p     = node ? node.parentElement : null;
 
     // La clause conteneur donne l'étiquette ET la clé (navigation ciblée dans la
     // clause) ; hors clause, on utilise une clé « __ph__ » (navigation page entière).
-    const p      = node.parentElement;
     const clause = p ? p.closest('.ts-clause[data-key]') : null;
     let key, clauseLabel;
     if (clause) {
@@ -4635,12 +4664,12 @@ function findPlaceholders() {
       clauseLabel = _looseFieldLabel(node);
     }
 
-    matches.forEach(m => result.push({
+    result.push({
       key:         clause ? key : ('__ph__' + (looseIdx++)),
       clauseLabel,
       text:        m[0],
-      context:     src.slice(Math.max(0, m.index - 80), m.index + m[0].length + 80).replace(/\s+/g, ' ').trim(),
-    }));
+      context:     text.slice(Math.max(0, m.index - 80), m.index + m[0].length + 80).replace(/\s+/g, ' ').trim(),
+    });
   }
   return result;
 }

@@ -9079,16 +9079,48 @@ function topLevelBlocks(html) {
 // Début d'article numéroté (fallback : « ARTICLE 5 », « 5. », « 5.1 », « III. »).
 const SECTION_RE = /^\s*(ARTICLE\s+\d+|TITRE\s+[IVXLC\d]+|\d+(?:\.\d+)*[.)]\s|[IVXLC]+[.)]\s)/i;
 
+// Un attribut style déclare-t-il une graisse épaisse ?
+function styleIsBold(openTag) {
+  const m = /\bstyle\s*=\s*(?:"([^"]*)"|'([^']*)')/i.exec(openTag);
+  return !!m && /font-weight\s*:\s*(?:bold(?:er)?|[6-9]00)\b/i.test(m[1] ?? m[2] ?? '');
+}
+
+const VOID_HTML_TAGS = new Set(['br', 'img', 'hr', 'input', 'col', 'area', 'base', 'wbr']);
+
+// Tout le texte du fragment est-il en gras ?
+// On suit la profondeur de gras balise par balise plutôt que de retirer les
+// segments <b> par expression régulière : les convertisseurs imbriquent les
+// balises (<font><b>…) et expriment aussi le gras par un style en ligne
+// (<span style="font-weight: 700">). Le retrait naïf laissait passer ces deux
+// cas — le titre retombait alors dans le corps du texte, et le document entier
+// finissait en une seule clause au lieu d'une par section.
+function isAllBold(html, boldAtStart) {
+  const blank = (s) => !stripHtml(s);
+  const stack = [];
+  let depth = boldAtStart ? 1 : 0;
+  let last = 0, m;
+  const re = /<(\/?)([a-zA-Z][\w:-]*)\b[^>]*>/g;
+  while ((m = re.exec(html))) {
+    if (depth === 0 && !blank(html.slice(last, m.index))) return false;
+    last = m.index + m[0].length;
+    const tag = m[2].toLowerCase();
+    if (VOID_HTML_TAGS.has(tag) || /\/\s*>$/.test(m[0])) continue;
+    if (m[1] === '/') { if (stack.pop()) depth--; }
+    else { const bold = tag === 'b' || tag === 'strong' || styleIsBold(m[0]); stack.push(bold); if (bold) depth++; }
+  }
+  return depth > 0 || blank(html.slice(last));
+}
+
 // Paragraphe court entièrement en gras = titre « visuel » (DOCX sans styles Titre
 // Word, typiquement issu d'une conversion PDF → DOCX) : traité comme un titre de
 // clause pour que ces titres ne tombent pas dans le corps du texte.
 function boldHeadingText(block) {
-  const m = /^<p\b[^>]*>([\s\S]*)<\/p>\s*$/i.exec(String(block).trim());
+  const m = /^(<p\b[^>]*>)([\s\S]*)<\/p>\s*$/i.exec(String(block).trim());
   if (!m) return null;
-  const inner = m[1];
+  const inner = m[2];
   if (/<(img|br|table)\b/i.test(inner)) return null;
-  // Rien ne doit rester une fois les segments en gras retirés.
-  if (stripHtml(inner.replace(/<(strong|b)\b[^>]*>[\s\S]*?<\/\1>/gi, ''))) return null;
+  // Le paragraphe lui-même peut porter la graisse (style reporté à l'import).
+  if (!isAllBold(inner, styleIsBold(m[1]))) return null;
   const text = stripHtml(inner);
   if (!text || text.length > 100) return null;
   // Une phrase complète (ponctuation finale) n'est pas un titre — sauf numérotée.

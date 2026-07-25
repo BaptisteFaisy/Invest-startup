@@ -113,13 +113,13 @@ test('un HTML illisible ne fait pas échouer l’import', () => {
 // server.js démarre le serveur et ouvre MongoDB au chargement : on ne peut pas le
 // require ici. On évalue donc la tranche de source qui porte la mise en page du
 // document importé, pour tester le code réellement livré plutôt qu'une copie.
-const docxHtmlToEditorPage = (() => {
+const { docxHtmlToEditorPage, boldHeadingText } = (() => {
   const { decodeHTML } = require('entities');
   const from = serverSource.indexOf('function stripHtml(s) {');
   const to   = serverSource.indexOf('// ─── Classification sémantique');
   assert.ok(from > 0 && to > from, 'la tranche de server.js doit être localisable');
   void decodeHTML; // utilisé par le code évalué
-  return eval(serverSource.slice(from, to) + '\n;docxHtmlToEditorPage');
+  return eval(serverSource.slice(from, to) + '\n;({ docxHtmlToEditorPage, boldHeadingText })');
 })();
 
 const CLAUSE_HTML =
@@ -172,6 +172,47 @@ test('un article numéroté sans style Titre reste découpé et libellé', () =>
   assert.equal((page.match(/ts-clause/g) || []).length, 2, 'l’article ouvre une clause');
   // Le numéro seul ne ferait pas un libellé lisible : on lui adjoint l'intitulé.
   assert.match(page, /<div class="ts-label">ARTICLE 5\. Valorisation retenue par les parties<\/div>/);
+});
+
+test('un titre en gras est reconnu quelle que soit la balise du convertisseur', () => {
+  const titres = {
+    'balise sémantique':        '<p><strong>Valorisation</strong></p>',
+    'balise <b>':               '<p><b>Valorisation</b></p>',
+    'imbriqué dans <font>':     '<p><font face="Arial"><font size="4"><b>Valorisation</b></font></font></p>',
+    'style en ligne':           '<p><span style="font-weight: bold">Valorisation</span></p>',
+    'graisse numérique':        '<p><span style="font-size:12pt; font-weight:700">Valorisation</span></p>',
+    'graisse sur le <p>':       '<p style="font-weight: bold">Valorisation</p>',
+    'deux segments en gras':    '<p><b>Article 1</b><span style="font-weight:800"> — Valorisation</span></p>',
+  };
+  for (const [cas, html] of Object.entries(titres)) {
+    assert.ok(boldHeadingText(html), `« ${cas} » devrait être reconnu comme un titre`);
+  }
+});
+
+test('un paragraphe seulement partiellement en gras n’est pas un titre', () => {
+  const nonTitres = {
+    'gras en début de phrase': '<p><b>Valorisation</b> : la société est valorisée à 4 M€</p>',
+    'gras au milieu':          '<p><span style="font-weight:bold">Le prix</span> est fixé ainsi</p>',
+    'aucun gras':              '<p>La valorisation retenue est de quatre millions</p>',
+    'graisse normale':         '<p><span style="font-weight: 400">Valorisation</span></p>',
+  };
+  for (const [cas, html] of Object.entries(nonTitres)) {
+    assert.equal(boldHeadingText(html), null, `« ${cas} » ne devrait pas être un titre`);
+  }
+});
+
+test('des titres en gras stylé découpent le document en clauses', () => {
+  // Cas réel d'un PDF converti : aucun style Titre Word, les sections ne sont
+  // que des paragraphes en gras. Sans détection, tout tomberait en une clause.
+  const html =
+    '<p><span style="font-weight:bold">VALORISATION</span></p>' +
+    '<p>La société est valorisée à 4 M€.</p>' +
+    '<p><span style="font-weight:bold">GOUVERNANCE</span></p>' +
+    '<p>Un comité stratégique est institué.</p>';
+  const page = docxHtmlToEditorPage(html, 'Term sheet.pdf', { preserveLayout: true });
+  assert.equal((page.match(/ts-clause--imported/g) || []).length, 2, 'une clause par section');
+  assert.match(page, /<div class="ts-label">VALORISATION<\/div>/);
+  assert.match(page, /<div class="ts-label">GOUVERNANCE<\/div>/);
 });
 
 test('en mode fidèle, le texte d’un article n’est jamais absorbé par son libellé', () => {
