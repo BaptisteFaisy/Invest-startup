@@ -358,7 +358,6 @@
       .offers-price { display: flex; flex-direction: column; justify-content: center; text-align: center; gap: 4px; }
       .offers-price__main { font-size: 19px; font-weight: 800; letter-spacing: -.03em; color: #111; }
       .offers-cell--hl .offers-price__main { color: #166534; }
-      .offers-price__main s { font-size: 13px; font-weight: 600; color: #8a857b; margin-right: 6px; letter-spacing: 0; }
       .offers-price small { color: #8a857b; font-size: 10.5px; line-height: 1.45; }
       .offers-cell--hl.offers-price small { color: rgba(22,101,52,.78); }
       .pricing-guarantee { display: flex; align-items: center; justify-content: center; gap: 10px; max-width: 760px; margin: 18px auto 0; padding: 14px 20px; border: 1px solid #bbf7d0; border-radius: 14px; background: #f0fdf4; color: #166534; font-size: 14px; line-height: 1.5; text-align: center; }
@@ -368,9 +367,6 @@
       .pricing-actions { display: flex; justify-content: center; margin-top: 22px; }
       .pricing-actions .btn-plan { min-width: 240px; color: #fff; border-color: #111; background: #111; }
       .pricing-note { max-width: 760px; margin: 14px auto 0; color: #78736a; font-size: 11px; line-height: 1.6; text-align: center; }
-      .pricing-promo { max-width:760px; margin:18px auto 0; padding:16px 20px; border:1px solid rgba(17,17,17,.14); border-radius:14px; background:#f5f3ed; color:#111; text-align:center; font-size:14px; line-height:1.5; }
-      .pricing-promo strong { font-family:'Archivo',sans-serif; font-weight:800; }
-      .pricing-promo code { display:inline-block; margin-left:5px; padding:4px 8px; border-radius:7px; background:#111; color:#fff; font-family:'Archivo',sans-serif; font-size:12px; font-weight:800; letter-spacing:.08em; }
 
       .cta, .footer { border-color: #ddd9d1; }
       .footer__brand p, .footer__col h4 { color: #78736a; }
@@ -510,7 +506,7 @@
         <div class="hero__benefits">
           <div class="hbenefit"><span class="hbenefit__dot"></span><span class="hbenefit__text"><strong>Ne signez rien que vous ne comprenez pas</strong> — l'IA décrypte chaque clause (liquidation préférentielle, anti-dilution, cap…), ce qu'elle change pour vous et le standard de marché à opposer en négociation.</span></div>
           <div class="hbenefit"><span class="hbenefit__dot"></span><span class="hbenefit__text"><strong>Closez avant que votre investisseur refroidisse</strong> — documents complets en heures, parcours guidé de A à Z, zéro aller-retour de versions : une levée bouclée en semaines, pas en mois.</span></div>
-          <div class="hbenefit"><span class="hbenefit__dot"></span><span class="hbenefit__text"><strong>Un budget divisé par 2 à 4 — et connu d'avance</strong> — forfaits affichés, packs avocat à prix fixe, satisfait ou remboursé sous 30 jours. Jamais de compteur horaire.</span></div>
+          <div class="hbenefit"><span class="hbenefit__dot"></span><span class="hbenefit__text"><strong>Un budget divisé par 2 à 4 — et connu d'avance</strong> — forfait annoncé avant de commencer, packs avocat à prix fixe, satisfait ou remboursé sous 30 jours. Jamais de compteur horaire.</span></div>
           <div class="hbenefit"><span class="hbenefit__dot"></span><span class="hbenefit__text"><strong>Sécurisé par de vrais avocats, pas par un template</strong> — les actes critiques (term sheet, pacte, formalisme à peine de nullité) sont rédigés ou validés par un avocat partenaire.</span></div>
         </div>
 
@@ -643,28 +639,27 @@
           <span class="eyebrow">Tarifs</span>
           <h2 class="section__title">Une grille claire, du gratuit au closing sécurisé.</h2>
           <p class="section__sub">Deux parcours — BSA-AIR ou levée classique — et, en option, deux packs avocat contractualisés et facturés directement par l'avocat partenaire.</p>
-          <div class="pricing-promo"><strong>Tarif fondateur : 10 places, jusqu'au 14 août.</strong> Liquid+ Intégral à 290 € HT (BSA-AIR) ou 790 € HT (levée classique).</div>
-          <div class="offers" aria-label="Grille tarifaire Liquid+">
+          <div class="offers" aria-label="Grille des offres Liquid+">
             <div class="offers-grid">
               <div class="offers-cell offers-head"><span class="offers-head__eyebrow">Votre parcours</span><strong>Choisissez votre type de levée</strong><small>Chaque offre existe dans les deux formats.</small></div>
               <div class="offers-cell offers-head"><strong>Levée BSA-AIR</strong><small>Le format rapide — la « SAFE à la française »</small></div>
               <div class="offers-cell offers-head"><strong>Levée classique</strong><small>Augmentation de capital en actions de préférence</small></div>
 
               <div class="offers-cell offers-name"><strong>Liquid+ Découverte</strong><small>Explorez la plateforme : parcours guidé étape par étape, simulateur de dilution, aperçu des modèles.</small><span class="offers-by">Sans engagement</span></div>
-              <div class="offers-cell offers-price"><span class="offers-price__main">0 €</span><small>gratuit</small></div>
-              <div class="offers-cell offers-price"><span class="offers-price__main">0 €</span><small>gratuit</small></div>
+              <div class="offers-cell offers-price"><span class="offers-price__main">Gratuit</span><small>accès libre</small></div>
+              <div class="offers-cell offers-price"><span class="offers-price__main">Gratuit</span><small>accès libre</small></div>
 
               <div class="offers-cell offers-name offers-cell--hl"><strong>Liquid+ Intégral</strong><small>Toute la plateforme et l'ensemble des documents de votre levée : rédaction guidée, analyse IA de chaque clause, data room, suivi jusqu'au closing.</small><span class="offers-by">Facturé par Liquid+ · satisfait ou remboursé 30 jours</span></div>
-              <div class="offers-cell offers-price offers-cell--hl"><span class="offers-price__main"><s>490 €</s>290 € HT</span><small>tarif fondateur — 10 places, jusqu'au 14 août</small></div>
-              <div class="offers-cell offers-price offers-cell--hl"><span class="offers-price__main"><s>1 490 €</s>790 € HT</span><small>tarif fondateur — 10 places, jusqu'au 14 août</small></div>
+              <div class="offers-cell offers-price offers-cell--hl"><span class="offers-price__main">Sur devis</span><small>montant communiqué avant toute commande</small></div>
+              <div class="offers-cell offers-price offers-cell--hl"><span class="offers-price__main">Sur devis</span><small>montant communiqué avant toute commande</small></div>
 
               <div class="offers-cell offers-name"><strong>Pack avocat Essentiel</strong><small>Un avocat partenaire rédige et valide les actes critiques de l'opération : term sheet, contrat d'investissement, pacte d'associés, formalisme d'assemblée.</small><span class="offers-by">Facturé directement par l'avocat</span></div>
-              <div class="offers-cell offers-price"><span class="offers-price__main">1 200 – 1 500 € HT</span><small>forfait indicatif</small></div>
-              <div class="offers-cell offers-price"><span class="offers-price__main">3 000 – 4 500 € HT</span><small>forfait indicatif</small></div>
+              <div class="offers-cell offers-price"><span class="offers-price__main">Sur devis</span><small>chiffré par l'avocat</small></div>
+              <div class="offers-cell offers-price"><span class="offers-price__main">Sur devis</span><small>chiffré par l'avocat</small></div>
 
               <div class="offers-cell offers-name"><strong>Pack avocat Complet</strong><small>Tout l'Essentiel + la relecture de l'ensemble des documents importants — revue des pièces de due diligence dans la limite de 15 documents —, jusqu'à la revue finale avant signature.</small><span class="offers-by">Facturé directement par l'avocat</span></div>
-              <div class="offers-cell offers-price"><span class="offers-price__main">1 500 – 2 200 € HT</span><small>forfait indicatif</small></div>
-              <div class="offers-cell offers-price"><span class="offers-price__main">4 500 – 7 000 € HT</span><small>forfait indicatif</small></div>
+              <div class="offers-cell offers-price"><span class="offers-price__main">Sur devis</span><small>chiffré par l'avocat</small></div>
+              <div class="offers-cell offers-price"><span class="offers-price__main">Sur devis</span><small>chiffré par l'avocat</small></div>
 
               <div class="offers-cell offers-name"><strong>Option Négociation</strong><small>Votre avocat vous accompagne ou mène la négociation avec les investisseurs (term sheet, pacte) — recommandée à partir de la série A ou face à un fonds.</small><span class="offers-by">Facturée directement par l'avocat</span></div>
               <div class="offers-cell offers-price"><span class="offers-price__main">Sur devis</span><small>accepté avant tout engagement</small></div>
@@ -674,7 +669,7 @@
           <div class="pricing-guarantee"><strong>Satisfait ou remboursé sous 30 jours</strong> — remboursement intégral de votre facture Liquid+.</div>
           <a class="pricing-perimeter-link" href="offres.html">Voir le périmètre détaillé : chaque document de votre levée et la mission exacte de l'avocat →</a>
           <div class="pricing-actions"><a class="btn-plan" href="https://calendly.com/liquidplus-contact" target="_blank" rel="noopener">Parler de ma levée</a></div>
-          <p class="pricing-note">Prix hors taxes. Les packs avocat sont des forfaits indicatifs : le montant exact vous est confirmé par écrit, dans la convention d'honoraires conclue directement avec l'avocat partenaire, <strong>avant tout engagement — et rien ne peut dépasser sans votre accord écrit</strong>. L'avocat vous facture en direct. Liquid+ ne facture aucune prestation de conseil juridique et ne partage pas d'honoraires avec les avocats. La garantie satisfait ou remboursé (30 jours) porte sur la facture Liquid+, réglée à la commande.</p>
+          <p class="pricing-note">Le montant de votre offre Liquid+ vous est communiqué avant toute commande. Les packs avocat sont chiffrés par l'avocat partenaire : le montant exact vous est confirmé par écrit, dans la convention d'honoraires conclue directement avec lui, <strong>avant tout engagement — et rien ne peut dépasser sans votre accord écrit</strong>. L'avocat vous facture en direct. Liquid+ ne facture aucune prestation de conseil juridique et ne partage pas d'honoraires avec les avocats. La garantie satisfait ou remboursé (30 jours) porte sur la facture Liquid+, réglée à la commande.</p>
         </div>
       </section>
 
@@ -696,7 +691,7 @@
         <div class="footer-contact__group">
           <span class="footer-contact__label">Par e-mail</span>
           <div class="footer-contact__links">
-            <a href="mailto:liquidplus.startups@gmail.com" title="Écrire à liquidplus.startups@gmail.com">liquidplus.startups@gmail.com</a>
+            <a href="mailto:liquidplus.contact@gmail.com" title="Écrire à liquidplus.contact@gmail.com">liquidplus.contact@gmail.com</a>
             <a href="mailto:liquidplus.contact@gmail.com" title="Écrire à liquidplus.contact@gmail.com">liquidplus.contact@gmail.com</a>
             <a href="mailto:liquidplus.investisseurs@gmail.com" title="Écrire à liquidplus.investisseurs@gmail.com">liquidplus.investisseurs@gmail.com</a>
             <a href="mailto:liquidplus.avocats@gmail.com" title="Écrire à liquidplus.avocats@gmail.com">liquidplus.avocats@gmail.com</a>
