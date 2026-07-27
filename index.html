@@ -340,26 +340,6 @@
       .btn-plan:hover { color: #111; border-color: #777168; }
       .plan--featured .btn-plan { background: #fff; color: #111; }
       .plan--featured .btn-plan:hover { background: #eeece7; }
-      .offers { margin-top: 36px; overflow: hidden; border: 1px solid #d8d4cc; border-radius: 22px; background: #fff; box-shadow: 0 18px 50px rgba(30,28,24,.08); }
-      .offers-grid { display: grid; grid-template-columns: minmax(250px,1.45fr) repeat(2,minmax(185px,1fr)); }
-      .offers-cell { min-width: 0; padding: 18px 20px; border-right: 1px solid #e3dfd7; border-bottom: 1px solid #e3dfd7; }
-      .offers-grid .offers-cell:nth-child(3n) { border-right: 0; }
-      .offers-grid .offers-cell:nth-last-child(-n+3) { border-bottom: 0; }
-      .offers-head { padding-top: 22px; padding-bottom: 22px; background: #f7f6f3; }
-      .offers-head__eyebrow { display: block; margin-bottom: 7px; color: #8a857b; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
-      .offers-head strong { display: block; font-size: 15px; line-height: 1.3; }
-      .offers-head small { display: block; margin-top: 6px; color: #78736a; font-size: 11px; line-height: 1.45; }
-      .offers-name strong { display: block; font-size: 14px; line-height: 1.35; }
-      .offers-name small { display: block; margin-top: 4px; color: #8a857b; font-size: 11.5px; line-height: 1.5; }
-      .offers-by { display: inline-block; margin-top: 8px; font-family: 'Archivo', sans-serif; font-size: 9.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #78736a; background: #eeece7; border-radius: 99px; padding: 3px 9px; }
-      .offers-cell--hl { background: #dcfce7; }
-      .offers-cell--hl.offers-name strong { color: #166534; }
-      .offers-cell--hl .offers-by { color: #166534; background: #bbf7d0; }
-      .offers-price { display: flex; flex-direction: column; justify-content: center; text-align: center; gap: 4px; }
-      .offers-price__main { font-size: 19px; font-weight: 800; letter-spacing: -.03em; color: #111; }
-      .offers-cell--hl .offers-price__main { color: #166534; }
-      .offers-price small { color: #8a857b; font-size: 10.5px; line-height: 1.45; }
-      .offers-cell--hl.offers-price small { color: rgba(22,101,52,.78); }
       .pricing-guarantee { display: flex; align-items: center; justify-content: center; gap: 10px; max-width: 760px; margin: 18px auto 0; padding: 14px 20px; border: 1px solid #bbf7d0; border-radius: 14px; background: #f0fdf4; color: #166534; font-size: 14px; line-height: 1.5; text-align: center; }
       .pricing-guarantee strong { font-family: 'Archivo', sans-serif; font-weight: 800; }
       .pricing-perimeter-link { display: block; margin-top: 20px; text-align: center; font-size: 14px; font-weight: 600; color: #15803d; text-decoration: underline; text-underline-offset: 3px; }
@@ -389,8 +369,6 @@
         .footer { padding: 40px 20px 0; }
         .footer__inner { gap: 32px; }
         .footer-contact { width: calc(100% - 40px); margin: 40px auto; grid-template-columns: 1fr; gap: 24px; padding: 24px 20px; }
-        .offers { overflow-x: auto; }
-        .offers-grid { min-width: 680px; }
         .footer-contact__details { grid-template-columns: 1fr; gap: 20px; }
         .cta { padding: 64px 20px; }
       }
@@ -637,35 +615,8 @@
       <section class="section pricing" id="tarifs">
         <div class="section__inner">
           <span class="eyebrow">Tarifs</span>
-          <h2 class="section__title">Une grille claire, du gratuit au closing sécurisé.</h2>
+          <h2 class="section__title">Un budget clair, du gratuit au closing sécurisé.</h2>
           <p class="section__sub">Deux parcours — BSA-AIR ou levée classique — et, en option, deux packs avocat contractualisés et facturés directement par l'avocat partenaire.</p>
-          <div class="offers" aria-label="Grille des offres Liquid+">
-            <div class="offers-grid">
-              <div class="offers-cell offers-head"><span class="offers-head__eyebrow">Votre parcours</span><strong>Choisissez votre type de levée</strong><small>Chaque offre existe dans les deux formats.</small></div>
-              <div class="offers-cell offers-head"><strong>Levée BSA-AIR</strong><small>Le format rapide — la « SAFE à la française »</small></div>
-              <div class="offers-cell offers-head"><strong>Levée classique</strong><small>Augmentation de capital en actions de préférence</small></div>
-
-              <div class="offers-cell offers-name"><strong>Liquid+ Découverte</strong><small>Explorez la plateforme : parcours guidé étape par étape, simulateur de dilution, aperçu des modèles.</small><span class="offers-by">Sans engagement</span></div>
-              <div class="offers-cell offers-price"><span class="offers-price__main">Gratuit</span><small>accès libre</small></div>
-              <div class="offers-cell offers-price"><span class="offers-price__main">Gratuit</span><small>accès libre</small></div>
-
-              <div class="offers-cell offers-name offers-cell--hl"><strong>Liquid+ Intégral</strong><small>Toute la plateforme et l'ensemble des documents de votre levée : rédaction guidée, analyse IA de chaque clause, data room, suivi jusqu'au closing.</small><span class="offers-by">Facturé par Liquid+ · satisfait ou remboursé 30 jours</span></div>
-              <div class="offers-cell offers-price offers-cell--hl"><span class="offers-price__main">Sur devis</span><small>montant communiqué avant toute commande</small></div>
-              <div class="offers-cell offers-price offers-cell--hl"><span class="offers-price__main">Sur devis</span><small>montant communiqué avant toute commande</small></div>
-
-              <div class="offers-cell offers-name"><strong>Pack avocat Essentiel</strong><small>Un avocat partenaire rédige et valide les actes critiques de l'opération : term sheet, contrat d'investissement, pacte d'associés, formalisme d'assemblée.</small><span class="offers-by">Facturé directement par l'avocat</span></div>
-              <div class="offers-cell offers-price"><span class="offers-price__main">Sur devis</span><small>chiffré par l'avocat</small></div>
-              <div class="offers-cell offers-price"><span class="offers-price__main">Sur devis</span><small>chiffré par l'avocat</small></div>
-
-              <div class="offers-cell offers-name"><strong>Pack avocat Complet</strong><small>Tout l'Essentiel + la relecture de l'ensemble des documents importants — revue des pièces de due diligence dans la limite de 15 documents —, jusqu'à la revue finale avant signature.</small><span class="offers-by">Facturé directement par l'avocat</span></div>
-              <div class="offers-cell offers-price"><span class="offers-price__main">Sur devis</span><small>chiffré par l'avocat</small></div>
-              <div class="offers-cell offers-price"><span class="offers-price__main">Sur devis</span><small>chiffré par l'avocat</small></div>
-
-              <div class="offers-cell offers-name"><strong>Option Négociation</strong><small>Votre avocat vous accompagne ou mène la négociation avec les investisseurs (term sheet, pacte) — recommandée à partir de la série A ou face à un fonds.</small><span class="offers-by">Facturée directement par l'avocat</span></div>
-              <div class="offers-cell offers-price"><span class="offers-price__main">Sur devis</span><small>accepté avant tout engagement</small></div>
-              <div class="offers-cell offers-price"><span class="offers-price__main">Sur devis</span><small>accepté avant tout engagement</small></div>
-            </div>
-          </div>
           <div class="pricing-guarantee"><strong>Satisfait ou remboursé sous 30 jours</strong> — remboursement intégral de votre facture Liquid+.</div>
           <a class="pricing-perimeter-link" href="offres.html">Voir le périmètre détaillé : chaque document de votre levée et la mission exacte de l'avocat →</a>
           <div class="pricing-actions"><a class="btn-plan" href="https://calendly.com/liquidplus-contact" target="_blank" rel="noopener">Parler de ma levée</a></div>
