@@ -799,5 +799,6 @@
     }));
     document.getElementById('proposal-form').addEventListener('submit',async(e)=>{e.preventDefault();const n=document.getElementById('proposal-notice');const lawyer=document.querySelector('input[name="proposal_lawyer"]:checked');const client=document.querySelector('input[name="proposal_client"]:checked');if(!lawyer||!client){n.textContent='Sélectionnez un avocat et une startup.';return;}n.textContent='Envoi…';try{await adminJson('/api/admin/client-proposals',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lawyer_id:Number(lawyer.value),client_id:Number(client.value),message:document.getElementById('proposal-message').value})});document.getElementById('proposal-message').value='';n.textContent='Proposition envoyée.';await loadLawyerManagement();}catch(err){n.textContent=err.message;}});
   </script>
+<script src="/i18n.js?v=1"></script>
 </body>
 </html>

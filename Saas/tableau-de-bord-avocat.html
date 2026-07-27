@@ -508,5 +508,6 @@
     document.getElementById('lawyer-notifications').addEventListener('click',async(e)=>{const button=e.target.closest('[data-notification-read]');if(!button)return;button.disabled=true;try{await lawyerApi('/api/lawyer/notifications/'+encodeURIComponent(button.dataset.notificationRead)+'/read',{method:'PATCH'});button.closest('[data-notification]')?.remove();await loadClientTools(true);}catch(err){alert(err.message);button.disabled=false;}});
     document.getElementById('proposal-work-list').addEventListener('click',async(e)=>{const b=e.target.closest('[data-proposal]');if(!b)return;b.disabled=true;try{await lawyerApi('/api/lawyer/client-proposals/'+encodeURIComponent(b.dataset.proposal),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:b.dataset.answer})});await loadClientTools(true);}catch(err){if(err.code==='LAWYER_2FA_REQUIRED')location.replace('compte.html?setup2fa=required');else if(err.code==='LAWYER_PARTNERSHIP_REQUIRED')goToPartnership();else alert(err.message);}finally{b.disabled=false;}});
   </script>
+<script src="/i18n.js?v=1"></script>
 </body>
 </html>
