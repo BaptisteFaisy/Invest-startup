@@ -299,7 +299,7 @@
     '.i18n-switch__btn[aria-pressed="true"]{background:rgba(128,128,128,.3);opacity:1;font-weight:800}',
     '.i18n-switch--float{position:fixed;right:16px;bottom:16px;z-index:2147483000;background:#08090c;color:#fff;',
     'border-color:rgba(255,255,255,.4);opacity:1;box-shadow:0 6px 20px rgba(0,0,0,.35)}',
-    '.mobile-menu .i18n-switch{margin-top:18px}',
+    // Sur mobile le bandeau est trop serré : le bouton passe en pastille flottante.
     '@media (max-width:720px){.site-header .i18n-switch{display:none}}'
   ].join('');
 
@@ -332,36 +332,77 @@
     location.reload();
   }
 
-  // Emplacements connus, du plus intégré au plus générique.
+  // Emplacements connus, du plus intégré au plus générique. « before » place le
+  // bouton juste avant l'élément visé — c'est ce qui l'amène à droite du
+  // bandeau, près de l'appel à l'action, plutôt qu'au milieu : sur la page
+  // d'accueil, .nav-primary est centré en absolu et l'y insérer décalerait le
+  // menu.
   var MOUNTS = [
     { sel: '.topbar__actions', where: 'prepend' },   // outil SaaS
-    { sel: '#nav-links', where: 'prepend' },         // site, nav dynamique
-    { sel: '.nav-primary', where: 'append' },        // site, page d'accueil
-    { sel: '.site-header .nav', where: 'append' }
+    { sel: '.nav-signup', where: 'before' },         // site : à gauche du CTA
+    { sel: '#nav-links', where: 'prepend' },         // site : nav de droite
+    { sel: '#nav-hamburger', where: 'before' }
   ];
 
-  function mountSwitch() {
-    if (document.querySelector('.i18n-switch')) return true;
-    for (var i = 0; i < MOUNTS.length; i++) {
-      var host = document.querySelector(MOUNTS[i].sel);
-      if (!host) continue;
-      var sw = buildSwitch();
-      if (MOUNTS[i].where === 'prepend' && host.firstChild) host.insertBefore(sw, host.firstChild);
-      else host.appendChild(sw);
-      return true;
+  // Le bouton du bandeau n'est pas toujours à l'écran : certaines pages posent
+  // leur bandeau à display:none — définitivement (« Comment ça marche ») ou le
+  // temps d'une vérification (« Nos startups » le révèle par script) — et une
+  // media query le replie sur mobile. On mesure donc si le bouton est
+  // réellement dans le flux ; sinon la pastille flottante prend le relais.
+  function isOutOfLayout(el) {
+    if (!window.getComputedStyle) return false;
+    for (var node = el; node && node.nodeType === 1; node = node.parentElement) {
+      var style = window.getComputedStyle(node);
+      if (style && style.display === 'none') return true;
     }
     return false;
   }
 
-  function mountMobileSwitch() {
-    var menu = document.querySelector('#mobile-menu');
-    if (!menu || menu.querySelector('.i18n-switch')) return;
-    menu.appendChild(buildSwitch());
+  function mountSwitch() {
+    var existing = document.querySelector('.site-header .i18n-switch, .topbar .i18n-switch');
+    if (existing) return existing;
+    for (var i = 0; i < MOUNTS.length; i++) {
+      var host = document.querySelector(MOUNTS[i].sel);
+      if (!host) continue;
+      var sw = buildSwitch();
+      if (MOUNTS[i].where === 'before' && host.parentNode) host.parentNode.insertBefore(sw, host);
+      else if (MOUNTS[i].where === 'prepend' && host.firstChild) host.insertBefore(sw, host.firstChild);
+      else host.appendChild(sw);
+      return sw;
+    }
+    return null;
+  }
+
+  function mountFloat() {
+    if (document.querySelector('.i18n-switch--float')) return;
+    document.body.appendChild(buildSwitch('i18n-switch--float'));
+  }
+
+  function removeFloat() {
+    var f = document.querySelector('.i18n-switch--float');
+    if (f && f.parentNode) f.parentNode.removeChild(f);
+  }
+
+  // La pastille flottante n'apparaît que si le bouton du bandeau n'est pas
+  // exploitable, et disparaît dès qu'il le redevient.
+  function syncFloat() {
+    var sw = document.querySelector('.site-header .i18n-switch, .topbar .i18n-switch');
+    if (!sw || isOutOfLayout(sw)) mountFloat();
+    else removeFloat();
   }
 
   function mountAll() {
-    if (!mountSwitch()) document.body.appendChild(buildSwitch('i18n-switch--float'));
-    mountMobileSwitch();
+    mountSwitch();
+    syncFloat();
+  }
+
+  // L'outil bascule des classes en permanence (tiroirs, dossiers pliés). On
+  // regroupe les vérifications au lieu d'en lancer une par mutation.
+  var mountScheduled = false;
+  function scheduleMount() {
+    if (mountScheduled) return;
+    mountScheduled = true;
+    window.setTimeout(function () { mountScheduled = false; mountAll(); }, 120);
   }
 
   function injectStyle() {
@@ -379,14 +420,19 @@
     run(document.body);
     mountAll();
     observe();
-    // Le menu mobile et la barre d'outils sont parfois reconstruits après la
-    // vérification de session : on remet le bouton en place si besoin.
+    // La barre d'outils est parfois reconstruite après la vérification de
+    // session : on remet le bouton en place si besoin. Les pages qui révèlent
+    // leur bandeau après coup le font en modifiant style/class : on suit donc
+    // aussi ces attributs, pour retirer la pastille devenue inutile.
     if (window.MutationObserver) {
-      new MutationObserver(function () {
-        if (!document.querySelector('.i18n-switch')) mountAll();
-        else mountMobileSwitch();
-      }).observe(document.body, { childList: true, subtree: true });
+      new MutationObserver(scheduleMount).observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class', 'hidden']
+      });
     }
+    window.addEventListener('resize', scheduleMount);
   }
 
   function whenReady(fn) {

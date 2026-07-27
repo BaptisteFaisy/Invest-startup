@@ -4142,6 +4142,9 @@ window.LIQUID_I18N_EN = {
  "Cambridge Associates (2024) — données indicatives, rendements nets médians": "Cambridge Associates (2024) — indicative data, median net returns",
  "548 Market Street, PMB 68956, San Francisco, CA 94104, États-Unis": "548 Market Street, PMB 68956, San Francisco, CA 94104, United States",
  "Le prix applicable est celui qui vous est communiqué avant la commande et affiché au moment du paiement, en fonction de l'": "The applicable price is the one given to you before the order and displayed at the time of payment, depending on the",
- "et du type d'opération de levée de fonds concernée.": "and the type of fundraising transaction concerned."
+ "et du type d'opération de levée de fonds concernée.": "and the type of fundraising transaction concerned.",
+ "Un budget clair, du gratuit au closing sécurisé.": "A clear budget, from free to a secured closing.",
+ "Les offres": "The plans",
+ "Liquid+ Découverte pour explorer la plateforme, Liquid+ Intégral pour mener toute la levée, et deux packs avocat en option — chacun disponible en levée BSA-AIR comme en levée classique.": "Liquid+ Discovery to explore the platform, Liquid+ Complete to run the whole round, and two optional lawyer packs — each available for a BSA-AIR round as well as a classic one."
 }
 };
