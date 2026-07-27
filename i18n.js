@@ -299,6 +299,9 @@
     '.i18n-switch__btn[aria-pressed="true"]{background:rgba(128,128,128,.3);opacity:1;font-weight:800}',
     '.i18n-switch--float{position:fixed;right:16px;bottom:16px;z-index:2147483000;background:#08090c;color:#fff;',
     'border-color:rgba(255,255,255,.4);opacity:1;box-shadow:0 6px 20px rgba(0,0,0,.35)}',
+    // Colonnes centrées (connexion, onboarding) : le gap du conteneur est large,
+    // on ramène le bouton sous le logo.
+    '.auth-wrap>.i18n-switch,main.wrap>.i18n-switch{margin:-18px 0 -10px}',
     // Sur mobile le bandeau est trop serré : le bouton passe en pastille flottante.
     '@media (max-width:720px){.site-header .i18n-switch{display:none}}'
   ].join('');
@@ -338,10 +341,25 @@
   // d'accueil, .nav-primary est centré en absolu et l'y insérer décalerait le
   // menu.
   var MOUNTS = [
-    { sel: '.topbar__actions', where: 'prepend' },   // outil SaaS
-    { sel: '.nav-signup', where: 'before' },         // site : à gauche du CTA
-    { sel: '#nav-links', where: 'prepend' },         // site : nav de droite
-    { sel: '#nav-hamburger', where: 'before' }
+    // Outil SaaS : barre du haut, côté droit.
+    { sel: '.topbar__actions', where: 'prepend' },
+    { sel: '.topbar__side--right', where: 'prepend' },   // espace avocat
+    // Site : à gauche de l'appel à l'action, ou dans le groupe de liens.
+    { sel: '.nav-signup', where: 'before' },
+    { sel: '#nav-links', where: 'prepend' },
+    { sel: '.site-header .nav-links', where: 'prepend' },   // espace startup
+    { sel: '#nav-hamburger', where: 'before' },
+    // Connexion, création de compte et onboarding : pas de bandeau, mais une
+    // colonne centrée sous le logo. Le choix de langue doit y être offert
+    // d'emblée — c'est là que se décide la langue de tout le parcours.
+    { sel: '.auth-wrap > .auth-logo', where: 'after' },
+    { sel: 'main.wrap > .logo', where: 'after' },
+    // Pages à en-tête propre : dossier de relecture, projets, plaquette,
+    // fiches d'offre.
+    { sel: 'header.top', where: 'append' },
+    { sel: '.projects-header__top', where: 'append' },
+    { sel: '.cover__nav', where: 'append' },
+    { sel: '.hero > .brand', where: 'after' }
   ];
 
   // Le bouton du bandeau n'est pas toujours à l'écran : certaines pages posent
@@ -358,15 +376,20 @@
     return false;
   }
 
+  // Tout bouton posé dans le flux de la page, quel que soit son emplacement.
+  var INLINE_SWITCH = '.i18n-switch:not(.i18n-switch--float)';
+
   function mountSwitch() {
-    var existing = document.querySelector('.site-header .i18n-switch, .topbar .i18n-switch');
+    var existing = document.querySelector(INLINE_SWITCH);
     if (existing) return existing;
     for (var i = 0; i < MOUNTS.length; i++) {
       var host = document.querySelector(MOUNTS[i].sel);
       if (!host) continue;
       var sw = buildSwitch();
-      if (MOUNTS[i].where === 'before' && host.parentNode) host.parentNode.insertBefore(sw, host);
-      else if (MOUNTS[i].where === 'prepend' && host.firstChild) host.insertBefore(sw, host.firstChild);
+      var where = MOUNTS[i].where;
+      if (where === 'before' && host.parentNode) host.parentNode.insertBefore(sw, host);
+      else if (where === 'after' && host.parentNode) host.parentNode.insertBefore(sw, host.nextSibling);
+      else if (where === 'prepend' && host.firstChild) host.insertBefore(sw, host.firstChild);
       else host.appendChild(sw);
       return sw;
     }
@@ -386,7 +409,7 @@
   // La pastille flottante n'apparaît que si le bouton du bandeau n'est pas
   // exploitable, et disparaît dès qu'il le redevient.
   function syncFloat() {
-    var sw = document.querySelector('.site-header .i18n-switch, .topbar .i18n-switch');
+    var sw = document.querySelector(INLINE_SWITCH);
     if (!sw || isOutOfLayout(sw)) mountFloat();
     else removeFloat();
   }

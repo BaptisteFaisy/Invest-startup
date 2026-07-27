@@ -8,9 +8,23 @@ i18n/fr-en/*.json   dictionnaires source, { "texte français": "english text" }
 i18n/patterns.js    libellés construits à l'exécution (compteurs, dates, noms)
 i18n/build.js       assemble le tout dans i18n-en.js
 i18n/check.js       rend les pages en anglais et liste ce qui reste en français
+i18n/audit.js       dit où atterrit le sélecteur de langue sur chaque page
 i18n-en.js          généré — chargé par les pages, ne pas éditer à la main
 i18n.js             le moteur et le bouton FR / EN
 ```
+
+## Où se trouve le sélecteur
+
+Le bouton se pose dans le premier emplacement disponible de la liste `MOUNTS`
+de `i18n.js` : barre du haut de l'outil, bandeau du site, colonne centrée des
+pages de connexion et d'onboarding, en-tête propre des pages de dossier ou de
+plaquette. À défaut d'emplacement — ou si celui-ci est retiré de la mise en
+page — une pastille flottante prend le relais, pour qu'il reste toujours un
+moyen de changer de langue.
+
+`node i18n/audit.js --auth` liste page par page l'emplacement retenu. Après
+avoir ajouté une page avec un gabarit inédit, le lancer : s'il annonce une
+pastille flottante là où un en-tête existe, ajouter son sélecteur à `MOUNTS`.
 
 ## Ajouter du texte au site
 
