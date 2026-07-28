@@ -126,15 +126,6 @@
     .payments-table tbody tr:hover { background:rgba(17,17,17,.025); }
     .payments-startup__name { display:block; font-size:.9rem; font-weight:700; }
     .payments-startup__email { display:block; margin-top:4px; color:var(--muted); font-size:.76rem; }
-    .quota-progress { min-width:190px; }
-    .quota-progress__head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
-    .quota-progress__value { font-size:.84rem; font-weight:700; white-space:nowrap; }
-    .quota-progress__status { color:var(--muted); font-size:.66rem; white-space:nowrap; }
-    .quota-progress__track { height:6px; margin-top:9px; overflow:hidden; border-radius:99px; background:#e7e5e4; }
-    .quota-progress__fill { display:block; height:100%; border-radius:inherit; background:#2563eb; }
-    .quota-progress--converted .quota-progress__fill { background:#15803d; }
-    .quota-progress--exhausted .quota-progress__fill { background:#78716c; }
-    .quota-progress--legacy { color:var(--muted); font-size:.76rem; }
     .release-form { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px; }
     .release-form__kind, .release-form__value { padding:9px 11px; border:1px solid #d6d3d1; border-radius:8px; font:inherit; font-size:.86rem; background:#fff; }
     .release-form__value { flex:1; min-width:220px; }
@@ -293,9 +284,9 @@
       <div class="payments-table-wrap">
         <table class="payments-table">
           <thead>
-            <tr><th>Startup</th><th>Assistant IA gratuit</th><th>Paiements Liquid+</th><th>Paiements avocat</th></tr>
+            <tr><th>Startup</th><th>Paiements Liquid+</th><th>Paiements avocat</th></tr>
           </thead>
-          <tbody id="payments-list"><tr><td colspan="4" class="notice">Chargement…</td></tr></tbody>
+          <tbody id="payments-list"><tr><td colspan="3" class="notice">Chargement…</td></tr></tbody>
         </table>
       </div>
 
@@ -678,29 +669,15 @@
       if (payment?.status !== 'paid') return '<span class="payment-value payment-value--none">Aucun paiement</span>';
       return `<span class="payment-value payment-value--paid">${escHtml(formatPaymentAmount(payment.paid_amount, payment.currency))}<small>Payé</small></span>`;
     }
-    function formatTokens(tokens) {
-      const value = Math.max(0, Math.round(Number(tokens) || 0));
-      if (value < 1000) return String(value);
-      return `${(value / 1000).toFixed(value < 10000 ? 1 : 0).replace('.', ',')} k`;
-    }
-    function freeAiValue(ai) {
-      if (!ai) return '<div class="quota-progress quota-progress--legacy">Non suivi</div>';
-      const used = Math.max(0, Number(ai.used_tokens) || 0);
-      const total = Math.max(1, Number(ai.total_tokens) || 1);
-      const percentage = Math.min(100, Math.round(used / total * 100));
-      const labels = { active:'En cours', converted:'Arrêté après paiement', exhausted:'Enveloppe épuisée' };
-      const status = labels[ai.status] || 'En cours';
-      return `<div class="quota-progress quota-progress--${escHtml(ai.status||'active')}"><div class="quota-progress__head"><strong class="quota-progress__value">${escHtml(formatTokens(used))} / ${escHtml(formatTokens(total))} tokens</strong><span class="quota-progress__status">${escHtml(status)}</span></div><div class="quota-progress__track" role="progressbar" aria-label="Tokens IA gratuits consommés" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${Math.min(used, total)}"><span class="quota-progress__fill" style="width:${percentage}%"></span></div></div>`;
-    }
     async function loadPayments() {
       const el = document.getElementById('payments-list');
       try {
         const data = await adminJson('/api/admin/payments');
         const payments = data.payments || [];
-        if (!payments.length) { el.innerHTML='<tr><td colspan="4" class="notice">Aucune startup.</td></tr>'; return; }
-        el.innerHTML = payments.map(payment => `<tr><td><span class="payments-startup__name">${escHtml(payment.startup_name||payment.email)}</span><span class="payments-startup__email">${escHtml(payment.email)}</span></td><td>${freeAiValue(payment.free_ai)}</td><td><div class="payment-values">${liquidPaymentValue(payment.liquid_plus)}</div></td><td><div class="payment-values">${paymentValues(payment.lawyer)}</div></td></tr>`).join('');
+        if (!payments.length) { el.innerHTML='<tr><td colspan="3" class="notice">Aucune startup.</td></tr>'; return; }
+        el.innerHTML = payments.map(payment => `<tr><td><span class="payments-startup__name">${escHtml(payment.startup_name||payment.email)}</span><span class="payments-startup__email">${escHtml(payment.email)}</span></td><td><div class="payment-values">${liquidPaymentValue(payment.liquid_plus)}</div></td><td><div class="payment-values">${paymentValues(payment.lawyer)}</div></td></tr>`).join('');
       } catch(e) {
-        el.innerHTML='<tr><td colspan="4" class="notice">'+escHtml(e.message)+'</td></tr>';
+        el.innerHTML='<tr><td colspan="3" class="notice">'+escHtml(e.message)+'</td></tr>';
       }
     }
     // Libération d'un email / nom de startup brûlé par une suppression de compte.

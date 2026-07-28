@@ -149,7 +149,7 @@ async function founderRaiseType(userId) {
   return profile?.raise_type === 'bsa-air' ? 'bsa-air' : 'classic';
 }
 
-const ADMIN_EMAILS = ['baptiste.faisy@gmail.com', 'bg.fsg.invest@gmail.com', 'liquidplus.startups@gmail.com'];
+const ADMIN_EMAILS = ['baptiste.faisy@gmail.com', 'bg.fsg.invest@gmail.com', 'liquidplus.contact@gmail.com'];
 
 // ─── Assistant IA du SaaS (GLM-5.2 via Z.AI, API OpenAI-compatible) ───────────
 // L'assistant juridique du term sheet utilise GLM-5.2 sur la plateforme Z.AI.
@@ -3850,16 +3850,12 @@ const FUNDRAISING_PHASES = [
 
 // Parcours BSA-AIR (Bon de Souscription d'Actions — Accord d'Investissement Rapide).
 // Même structure que FUNDRAISING_PHASES.
-// Ossature en 8 étapes, du point de vue du fondateur : Ma levée → Investisseurs →
-// Rédaction → Autorisation → Émission → Post-émission → Suivi → Conversion.
-// L'ordre (Investisseurs avant Autorisation) est compatible avec les deux modèles
-// juridiques d'émission : « personnes dénommées » (l'AGE nomme les souscripteurs,
-// connus d'avance) ET « catégorie de personnes » (vote unique, souscriptions au fil
-// de l'eau). Le choix se fait à l'étape « Autorisation de l'émission », pas ici.
+// Ossature en 7 étapes, du point de vue du fondateur : Ma levée → Rédaction →
+// Autorisation → Émission → Post-émission → Suivi → Conversion.
 const BSA_AIR_PHASES = [
   {
     key: 'air-preparation',
-    name: '0 · Ma levée (préalables, profil & objectifs)',
+    name: '1 · Ma levée (préalables, profil & objectifs)',
     checklist: [
       'Statuts à jour',
       'Table de capitalisation (cap table) actuelle',
@@ -3869,14 +3865,6 @@ const BSA_AIR_PHASES = [
       'BSPCE / BSA / management package existants',
       'Term sheet BSA-AIR (montant, décote, plafond et/ou plancher de valorisation)',
       'Tableau de simulation de la conversion et de la dilution',
-    ],
-  },
-  {
-    key: 'air-approche',
-    name: '1 · Investisseurs',
-    checklist: [
-      'Accord de confidentialité (NDA)',
-      'Support de présentation (deck) investisseurs',
     ],
   },
   {

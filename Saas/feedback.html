@@ -280,7 +280,7 @@
       if (!user) return;
       if (!user.is_admin) {
         const isLawyer = Array.isArray(user.account_types) && user.account_types.includes('avocat');
-        const contactEmail = isLawyer ? 'liquidplus.avocats@gmail.com' : 'liquidplus.startups@gmail.com';
+        const contactEmail = isLawyer ? 'liquidplus.avocats@gmail.com' : 'liquidplus.contact@gmail.com';
         confidentialContactEl.innerHTML = ` Si vous souhaitez nous transmettre des informations confidentielles, vous pouvez nous contacter à <a href="mailto:${contactEmail}">${contactEmail}</a>.`;
         confidentialContactEl.hidden = false;
       }

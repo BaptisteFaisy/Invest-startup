@@ -21,7 +21,7 @@
   // l'étape consultée dans l'instantané partagé ; on revient directement dessus.
   function lastConsultedStepUrl() {
     const snapshot = readSnapshot();
-    const type = snapshot && snapshot.raiseType === 'bsa-air' ? 'bsa-air' : (snapshot && snapshot.raiseType === 'ordinary' ? 'ordinary' : 'classic');
+    const type = snapshot && snapshot.raiseType === 'bsa-air' ? 'bsa-air' : (snapshot && snapshot.raiseType === 'ordinary' ? 'ordinary' : (snapshot && snapshot.raiseType === 'preferred' ? 'preferred' : 'preferred'));
     const steps = snapshot && Array.isArray(snapshot.steps) ? snapshot.steps : [];
     const step = steps.find(item => item && item.active)
       || steps.find(item => item && item.current)
@@ -91,10 +91,10 @@
 
   // ---- Repli : recalcul autonome quand aucun instantané n'est disponible ----
   // (miroir de la logique du tableau de bord ; server.js définit les phases).
-  const CLASSIC_UNAVAILABLE = new Set(['confidentialite', 'gouvernance']);
-  const CLASSIC_SOON_BADGES = new Set(['confidentialite', 'gouvernance', 'post-closing']);
+  const PREFERRED_ORDINARY_UNAVAILABLE = new Set(['confidentialite', 'gouvernance']);
+  const PREFERRED_ORDINARY_SOON_BADGES = new Set(['confidentialite', 'gouvernance', 'post-closing']);
   const FRISE_LABELS = {
-    'mise-en-ordre': 'La levée',
+    'mise-en-ordre': 'Levée',
     'confidentialite': 'Investisseurs',
     'due-diligence-preliminaire': 'Due diligence préliminaire',
     'term-sheet': "Lettre d'intention",
@@ -103,7 +103,7 @@
     'closing': 'Closing',
     'post-closing': 'Post-closing',
     'gouvernance': 'Gouvernance',
-    'air-preparation': 'Ma levée', 'air-approche': 'Investisseurs',
+    'air-preparation': 'Levée', 'air-approche': 'Investisseurs',
     'air-termes': 'Rédaction des BSA-AIR', 'air-emission': "Autorisation de l'émission",
     'air-souscription': 'Émission des BSA-AIR', 'air-postemission': 'Post-émission',
     'air-suivi': 'Suivi des bons', 'air-conversion': 'Conversion',
@@ -166,33 +166,33 @@
     });
     return { total, done, linked, complete: total > 0 && done === total };
   }
-  // Doit rester alignée avec HIDDEN_CLASSIC_PHASE_KEYS / isClassicPhaseVisible
-  // dans tableau-de-bord.html (menu de gauche de la levée de fonds classique).
-  const HIDDEN_CLASSIC_PHASE_KEYS = ['confidentialite', 'due-diligence-preliminaire', 'due-diligence', 'documentation', 'post-closing', 'gouvernance'];
+  // Doit rester alignée avec HIDDEN_PREFERRED_ORDINARY_PHASE_KEYS / isPreferredOrdinaryPhaseVisible
+  // dans tableau-de-bord.html (menu de gauche de la levée actions de préférence / actions ordinaires).
+  const HIDDEN_PREFERRED_ORDINARY_PHASE_KEYS = ['confidentialite', 'due-diligence-preliminaire', 'due-diligence', 'documentation', 'post-closing', 'gouvernance'];
   function buildSteps(type, folders, docs, investors) {
     const isSys = f => !!(f && f.system === true && f.key);
-    const trackType = (type === 'ordinary') ? 'classic' : type;
+    const trackType = (type === 'preferred' || type === 'ordinary') ? 'classic' : type;
     let phases = folders.filter(f => isSys(f) && (f.track || 'classic') === trackType);
-    if (type === 'classic' || type === 'ordinary') {
-      phases = phases.filter(f => !String(f && f.name || '').trim().startsWith('9') && !HIDDEN_CLASSIC_PHASE_KEYS.includes(f.key));
+    if (type === 'preferred' || type === 'ordinary') {
+      phases = phases.filter(f => !String(f && f.name || '').trim().startsWith('9') && !HIDDEN_PREFERRED_ORDINARY_PHASE_KEYS.includes(f.key));
     }
     if (!phases.length) return { raiseType: type, steps: [] };
     const stats = phases.map(f => phaseStatus(f, docs, investors));
     const currentIdx = stats.findIndex(s => !s.complete);
     const globalFrac = stats.length ? stats.filter(s => s.complete).length / stats.length : 0;
     const steps = [];
-    // BSA-AIR : « 0 · Ma levée » (air-preparation) est une vraie étape, rendue par la
+    // BSA-AIR : « 0 · Levée » (air-preparation) est une vraie étape, rendue par la
     // boucle comme les autres ; son numéro (0) vient du nom de la phase.
     phases.forEach((f, i) => {
       const s = stats[i];
       const done = s.complete;
-      // « Ma levée » (classique : mise-en-ordre ; BSA-AIR : air-preparation) reste
+      // « Levée » (actions de préférence/ordinaires : mise-en-ordre ; BSA-AIR : air-preparation) reste
       // visuellement neutre : pas de fond indigo « étape courante ».
       const isCurrent = i === currentIdx
         && f.key !== 'mise-en-ordre' && f.key !== 'air-preparation';
       const num = friseStepNumber(f, i);
-      const soon = type === 'classic' && CLASSIC_SOON_BADGES.has(f.key);
-      const unavailable = type === 'classic' && CLASSIC_UNAVAILABLE.has(f.key);
+      const soon = (type === 'preferred' || type === 'ordinary') && PREFERRED_ORDINARY_SOON_BADGES.has(f.key);
+      const unavailable = (type === 'preferred' || type === 'ordinary') && PREFERRED_ORDINARY_UNAVAILABLE.has(f.key);
       const stepFrac = s.total > 0 ? s.done / s.total : (done ? 1 : 0);
       const barFrac = (f.key === 'mise-en-ordre' || f.key === 'air-preparation') ? globalFrac : stepFrac;
       const pct = Math.max(0, Math.min(100, Math.round(barFrac * 100)));
@@ -209,10 +209,10 @@
     // tableau de bord et on scope l'appel /folders sur ce projet.
     let projectId = '';
     try { projectId = new URLSearchParams(location.search).get('project_id') || ''; } catch {}
-    let type = 'classic';
+    let type = 'preferred';
     try {
       const t = localStorage.getItem('liquid_raise_type_' + raiseUser + (projectId ? '_' + projectId : ''));
-      if (t === 'classic' || t === 'ordinary' || t === 'bsa-air') type = t;
+      if (t === 'preferred' || t === 'ordinary' || t === 'bsa-air') type = t;
     } catch {}
     let folders = [], docs = [], investors = [];
     try {

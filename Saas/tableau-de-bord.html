@@ -1121,16 +1121,27 @@
 
       <div id="error" class="err" hidden></div>
 
-      <!-- Vue : levée classique (actions de préférence) -->
-      <div id="classic-view">
+      <!-- Vue : actions de préférence -->
+      <div id="preferred-view">
 
-      <div id="classic-actions" class="classic-actions" hidden>
+      <div id="preferred-actions" class="preferred-actions" hidden>
         <button class="btn btn--ghost btn--lg" id="new-folder-btn">+ Nouveau dossier</button>
         <button class="btn btn--ghost btn--lg" id="import-btn">Importer des fichiers</button>
       </div>
 
       <div id="folders"></div>
-      </div><!-- /classic-view -->
+      </div><!-- /preferred-view -->
+
+      <!-- Vue : actions ordinaires -->
+      <div id="ordinary-view" hidden>
+
+      <div id="ordinary-actions" class="ordinary-actions" hidden>
+        <button class="btn btn--ghost btn--lg" id="new-folder-btn-ordinary">+ Nouveau dossier</button>
+        <button class="btn btn--ghost btn--lg" id="import-btn-ordinary">Importer des fichiers</button>
+      </div>
+
+      <div id="folders-ordinary"></div>
+      </div><!-- /ordinary-view -->
 
       <!-- Vue : BSA-AIR (roadlist des documents par étape) -->
       <div id="bsa-air-view" hidden>
@@ -1341,7 +1352,8 @@
     // Deux instruments exclusifs : une levée classique OU des BSA-AIR. Aucun état
     // « indéterminé » — le compte tranche à l'onboarding puis le choix est verrouillé.
     const RAISE_HINTS = {
-      'classic': 'Classique · étapes 0 à 8',
+      'preferred': 'Actions de préférence',
+      'ordinary': 'Actions ordinaires',
       'bsa-air': 'BSA-AIR · page sans frise',
     };
     const RAISE_SOON = {
@@ -1538,12 +1550,12 @@
     function isSystemPhase(f) {
       return !!(f && f.system === true && f.key);
     }
-    // Étapes masquées du menu de gauche (levée de fonds classique) :
+    // Étapes masquées du menu de gauche (levée actions de préférence / actions ordinaires) :
     // Investisseurs, DD préliminaire, DD poussée, Négociation, Post-closing, Gouvernance.
-    const HIDDEN_CLASSIC_PHASE_KEYS = ['confidentialite', 'due-diligence-preliminaire', 'due-diligence', 'documentation', 'post-closing', 'gouvernance'];
-    function isClassicPhaseVisible(f) {
+    const HIDDEN_PREFERRED_ORDINARY_PHASE_KEYS = ['confidentialite', 'due-diligence-preliminaire', 'due-diligence', 'documentation', 'post-closing', 'gouvernance'];
+    function isPreferredOrdinaryPhaseVisible(f) {
       return isSystemPhase(f) && !String(f && f.name || '').trim().startsWith('9')
-        && !HIDDEN_CLASSIC_PHASE_KEYS.includes(f && f.key);
+        && !HIDDEN_PREFERRED_ORDINARY_PHASE_KEYS.includes(f && f.key);
     }
     function raiseKey() { return 'liquid_raise_type_' + raiseUser + (PROJECT_ID ? '_' + PROJECT_ID : ''); }
     function dashboardControlsKey() { return 'liquid_dashboard_controls_collapsed_' + raiseUser; }
@@ -1565,13 +1577,22 @@
         try { localStorage.setItem(dashboardControlsKey(), isCollapsed ? '1' : '0'); } catch {}
       }
     }
-    function classicStepKey() { return 'liquid_classic_step_' + raiseUser; }
-    function storeClassicStep(key) {
+    function preferredStepKey() { return 'liquid_preferred_step_' + raiseUser; }
+    function storePreferredStep(key) {
       if (!key) return;
-      try { localStorage.setItem(classicStepKey(), key); } catch {}
+      try { localStorage.setItem(preferredStepKey(), key); } catch {}
     }
-    function storedClassicStep() {
-      try { return localStorage.getItem(classicStepKey()) || null; }
+    function storedPreferredStep() {
+      try { return localStorage.getItem(preferredStepKey()) || null; }
+      catch { return null; }
+    }
+    function ordinaryStepKey() { return 'liquid_ordinary_step_' + raiseUser; }
+    function storeOrdinaryStep(key) {
+      if (!key) return;
+      try { localStorage.setItem(ordinaryStepKey(), key); } catch {}
+    }
+    function storedOrdinaryStep() {
+      try { return localStorage.getItem(ordinaryStepKey()) || null; }
       catch { return null; }
     }
     function bsaStepKey() { return 'liquid_bsa_step_' + raiseUser; }
@@ -1583,20 +1604,35 @@
       try { return localStorage.getItem(bsaStepKey()) || null; }
       catch { return null; }
     }
-    function ensureClassicStep(phases) {
+    function ensurePreferredStep(phases) {
       if (!Array.isArray(phases) || !phases.length) return null;
-      if (selectedClassicStep && phases.some(f => f.key === selectedClassicStep)) return selectedClassicStep;
-      const stored = storedClassicStep();
+      if (selectedPreferredStep && phases.some(f => f.key === selectedPreferredStep)) return selectedPreferredStep;
+      const stored = storedPreferredStep();
       if (phases.some(f => f.key === stored)) {
-        selectedClassicStep = stored;
+        selectedPreferredStep = stored;
       } else {
         const stats = phases.map(phaseStatus);
         const currentIdx = stats.findIndex(s => !s.complete);
-        selectedClassicStep = phases[currentIdx >= 0 ? currentIdx : 0].key;
+        selectedPreferredStep = phases[currentIdx >= 0 ? currentIdx : 0].key;
       }
-      storeClassicStep(selectedClassicStep);
-      syncUrlState('classic', selectedClassicStep, true);
-      return selectedClassicStep;
+      storePreferredStep(selectedPreferredStep);
+      syncUrlState('preferred', selectedPreferredStep, true);
+      return selectedPreferredStep;
+    }
+    function ensureOrdinaryStep(phases) {
+      if (!Array.isArray(phases) || !phases.length) return null;
+      if (selectedOrdinaryStep && phases.some(f => f.key === selectedOrdinaryStep)) return selectedOrdinaryStep;
+      const stored = storedOrdinaryStep();
+      if (phases.some(f => f.key === stored)) {
+        selectedOrdinaryStep = stored;
+      } else {
+        const stats = phases.map(phaseStatus);
+        const currentIdx = stats.findIndex(s => !s.complete);
+        selectedOrdinaryStep = phases[currentIdx >= 0 ? currentIdx : 0].key;
+      }
+      storeOrdinaryStep(selectedOrdinaryStep);
+      syncUrlState('ordinary', selectedOrdinaryStep, true);
+      return selectedOrdinaryStep;
     }
     function ensureBsaStep(phases) {
       if (!Array.isArray(phases) || !phases.length) return null;
@@ -1621,39 +1657,42 @@
       const u = currentUrlState();
       return u ? (u.searchParams.get('step') || null) : null;
     }
-    let selectedClassicStep = stepFromUrl();
+    let selectedPreferredStep = stepFromUrl();
+    let selectedOrdinaryStep = stepFromUrl();
     let selectedBsaStep = stepFromUrl();
     function getRaiseType() {
       const u = currentUrlState();
       const q = u ? u.searchParams.get('raise') : null;
       if (RAISE_HINTS[q]) return q;
-      if (q === 'classic' || stepFromUrl()) return 'classic';
+      if (q === 'preferred' || q === 'ordinary' || stepFromUrl()) return q || 'preferred';
       try {
         const stored = localStorage.getItem(raiseKey());
-        return RAISE_HINTS[stored] ? stored : 'classic';
+        return RAISE_HINTS[stored] ? stored : 'preferred';
       }
-      catch { return 'classic'; }
+      catch { return 'preferred'; }
     }
     function syncUrlState(type, stepKey, replace) {
       const u = currentUrlState();
       if (!u) return;
       u.searchParams.set('raise', type);
-      if ((type === 'classic' || type === 'bsa-air') && stepKey) u.searchParams.set('step', stepKey);
+      if ((type === 'preferred' || type === 'ordinary' || type === 'bsa-air') && stepKey) u.searchParams.set('step', stepKey);
       else u.searchParams.delete('step');
       const fn = replace ? history.replaceState : history.pushState;
       if (!fn) return;
       fn.call(history, { raise: type, step: stepKey || null }, '', u);
     }
     function applyRaiseType(type) {
-      const t = RAISE_HINTS[type] ? type : 'classic';
+      const t = RAISE_HINTS[type] ? type : 'preferred';
       document.querySelectorAll('.seg__btn[data-raise]').forEach(b =>
         b.classList.toggle('is-active', b.dataset.raise === t));
       document.querySelectorAll('.seg__btn[data-raise]').forEach(b =>
         b.setAttribute('aria-selected', b.dataset.raise === t ? 'true' : 'false'));
-      const classic = document.getElementById('classic-view');
+      const preferred = document.getElementById('preferred-view');
+      const ordinary = document.getElementById('ordinary-view');
       const bsa = document.getElementById('bsa-air-view');
       const soon = document.getElementById('raise-soon-view');
-      if (classic) classic.hidden = (t !== 'classic');
+      if (preferred) preferred.hidden = (t !== 'preferred');
+      if (ordinary) ordinary.hidden = (t !== 'ordinary');
       if (bsa) bsa.hidden = (t !== 'bsa-air');
       if (soon) soon.hidden = !RAISE_SOON[t];
       if (RAISE_SOON[t]) {
@@ -1670,11 +1709,12 @@
       render(); // rend les dossiers du parcours actif
     }
     function setRaiseType(type) {
-      const t = RAISE_HINTS[type] ? type : 'classic';
-      if (t !== 'classic') selectedClassicStep = null;
+      const t = RAISE_HINTS[type] ? type : 'preferred';
+      if (t !== 'preferred') selectedPreferredStep = null;
+      if (t !== 'ordinary') selectedOrdinaryStep = null;
       if (t !== 'bsa-air') selectedBsaStep = null;
       try { localStorage.setItem(raiseKey(), t); } catch {}
-      syncUrlState(t, t === 'classic' ? selectedClassicStep : selectedBsaStep);
+      syncUrlState(t, t === 'preferred' ? selectedPreferredStep : (t === 'ordinary' ? selectedOrdinaryStep : selectedBsaStep));
       applyRaiseType(t);
     }
     document.querySelectorAll('.seg__btn[data-raise]').forEach(b =>
@@ -2564,10 +2604,6 @@
         { key: 'ip-management', title: 'PI et management package', indexes: [4, 5] },
         { key: 'termes-economiques', title: 'Termes économiques et simulation', indexes: [6, 7] },
       ],
-      'air-approche': [
-        { key: 'confidentialite', title: 'Confidentialité', indexes: [0] },
-        { key: 'presentation', title: 'Présentation investisseurs', indexes: [1] },
-      ],
       'air-termes': [
         { key: 'instrument-air', title: "Contrat d'émission", indexes: [0] },
       ],
@@ -2675,6 +2711,8 @@
       // Phase 6 — closing
       'certificat-du-depositaire-des-fonds',
       'contrats-de-souscription-investment-agreements-individuels',
+      'attestations-de-versement-des-fonds-par-les-investisseurs',
+      'rapport-du-president-sur-l-augmentation-de-capital-et-la-suppression-du-dps',
       'pv-de-l-age-actant-l-augmentation-de-capital',
       'decisions-du-president-constatant-les-souscriptions-et-le-versement-des-fonds',
       'pv-de-constatation-de-la-realisation-definitive',
@@ -2728,7 +2766,10 @@
       ['term-sheet-bsa-air-montant-decote-plafond-et-ou-plancher-de-valorisation', [/\bterm sheet\b/, /bsa.?air|decote|plafond|plancher/]],
       ['contrat-d-emission-de-bsa-air-termes-et-conditions-des-bons', [/contrat|termes|conditions/, /emission|bsa.?air/, /bons?|bsa.?air/]],
       ['pv-de-la-decision-collective-age-autorisant-l-emission-des-bsa-air', [/pv|decision collective|assemblee|age/, /autoris|emission/, /bsa.?air/]],
-      ['rapport-du-president-et-du-commissaire-aux-comptes-le-cas-echeant-sur-l-emission-de-bsa-avec-suppression-du-dps', [/rapport/, /president|commissaire/, /bsa|suppression.*dps/]],
+      // Le rapport « émission de BSA » est propre au parcours BSA-AIR : il exige une
+      // mention de bons, sinon un rapport d'augmentation de capital (actions de
+      // préférence) tomberait dessus par le seul mot « DPS ».
+      ['rapport-du-president-et-du-commissaire-aux-comptes-le-cas-echeant-sur-l-emission-de-bsa-avec-suppression-du-dps', [/rapport/, /president|commissaire/, /bsa|bons?/]],
       ['bulletin-de-souscription-des-bsa-air', [/bulletin.*souscription/, /bsa.?air/]],
       ['constatation-de-la-souscription-des-bsa-air-par-le-president', [/constatation|decision.*president/, /souscription/, /bsa.?air/]],
       ['inscription-des-bsa-air-au-registre-des-valeurs-mobilieres-mouvements-de-titres', [/inscription/, /bsa.?air/, /registre|mouvement.*titre|valeurs mobilieres/]],
@@ -2758,7 +2799,11 @@
       ['lettre-d-investissement-side-letter', [/side letter|lettre.*investissement/]],
       ['convention-entre-investisseurs', [/convention.*investisseur/]],
       ['certificat-du-depositaire-des-fonds', [/certificat.*depositaire/]],
-      ['attestation-de-versement-des-fonds-par-le-s-souscripteur-s', [/attestation.*versement|preuve.*versement/]],
+      // Versement des fonds : la version « bons » vit dans le parcours BSA-AIR,
+      // celle en actions renvoie au modèle d'augmentation de capital (par défaut).
+      ['attestation-de-versement-des-fonds-par-le-s-souscripteur-s', [/attestation.*versement|preuve.*versement/, /bsa.?air|bons?/]],
+      ['attestations-de-versement-des-fonds-par-les-investisseurs', [/attestation.*versement|preuve.*versement/]],
+      ['rapport-du-president-sur-l-augmentation-de-capital-et-la-suppression-du-dps', [/rapport/, /president/, /augmentation.*capital|suppression.*dps/]],
       ['pv-de-l-age-actant-l-augmentation-de-capital', [/pv|decision collective|assemblee|age/, /augmentation.*capital/, /autoris|actant|approuv/]],
       ['pv-de-constatation-de-la-realisation-definitive', [/pv|decision.*president|constatation/, /realisation definitive|souscription.*versement|augmentation.*capital/]],
       ['termes-des-valeurs-mobilieres-emises-adp-bsa-oc', [/termes|caracteristiques|droits/, /valeurs mobilieres|adp|actions? de preference|bsa|obligations? convertibles|\boc\b/]],
@@ -2831,7 +2876,7 @@
       return {
         company_name: String(p.company_name || ''),
         company_country: String(p.company_country || 'france'),
-        raise_type: RAISE_HINTS[p.raise_type] ? p.raise_type : 'classic',
+        raise_type: RAISE_HINTS[p.raise_type] ? p.raise_type : 'preferred',
         raise_type_locked: !!p.raise_type_locked,
         target_amount: p.target_amount == null ? '' : String(p.target_amount),
         target_valuation: p.target_valuation == null ? '' : String(p.target_valuation),
@@ -2928,15 +2973,19 @@
       }
       const container = track === 'bsa-air' ? bsaFoldersEl : foldersEl;
       let phases = folders.filter(f => isSystemPhase(f) && (f.track || 'classic') === track);
-      if (track === 'classic') phases = phases.filter(isClassicPhaseVisible);
+      if (track === 'preferred' || track === 'ordinary') phases = phases.filter(isPreferredOrdinaryPhaseVisible);
       container.innerHTML = '';
 
-      if (track === 'classic') {
-        ensureClassicStep(phases);
-        renderClassicBody(phases, container);
+      if (track === 'preferred') {
+        ensurePreferredStep(phases);
+        renderPreferredBody(phases, container);
+      } else if (track === 'ordinary') {
+        ensureOrdinaryStep(phases);
+        renderOrdinaryBody(phases, container);
       } else {
-        syncClassicActions(-1);
-        selectedClassicStep = null;
+        syncPreferredOrdinaryActions(-1);
+        selectedPreferredStep = null;
+        selectedOrdinaryStep = null;
         const selectedKey = ensureBsaStep(phases);
         // Étape 0 « Ma levée » (air-preparation) : formulaire de profil de la levée,
         // suivi des documents préalables (statuts, cap table, registres, term sheet,
@@ -2999,6 +3048,74 @@
         // par isClassicPhaseVisible, sa position se décale donc si une étape
         // masquée est ajoutée/retirée (c'est ce qui avait fait disparaître le
         // contenu de « Lettre d'intention »).
+        container.appendChild(phaseCard(selected, idx, { title: 'Documents', icon: 'DOC', hideStep: true, documentActions: true }));
+      }
+    }
+
+    function renderPreferredBody(phases, container) {
+      const selected = phases.find(f => f.key === selectedPreferredStep) || null;
+      if (!selected) {
+        syncPreferredOrdinaryActions(-1);
+        setTopbarStepLabel('');
+        updateStepGuideButton(null);
+        container.appendChild(importCard());
+        return;
+      }
+
+      const idx = phases.findIndex(f => f.id === selected.id);
+      syncPreferredOrdinaryActions(idx);
+      setTopbarStepLabel(friseLabel(selected));
+      updateStepGuideButton(selected);
+      if (selected.key === 'mise-en-ordre') {
+        const profileCard = fundraisingProfileEl();
+        profileCard.id = 'phase-' + selected.key;
+        container.appendChild(profileCard);
+      }
+      if (selected.key === 'confidentialite') {
+        container.appendChild(investorSectionEl());
+        const documentsCard = phaseCard(selected, idx, {
+          title: 'Documents', icon: 'DOC', hideStep: true,
+          documentActions: true, noAnchor: true, editorialBody: true,
+        });
+        documentsCard.classList.add('investor-documents');
+        container.appendChild(documentsCard);
+      } else if (PREFERRED_ORDINARY_SOON_STEPS.has(selected.key)) {
+        container.appendChild(stepSoonEl(selected));
+      } else if (selected.key !== 'mise-en-ordre') {
+        container.appendChild(phaseCard(selected, idx, { title: 'Documents', icon: 'DOC', hideStep: true, documentActions: true }));
+      }
+    }
+
+    function renderOrdinaryBody(phases, container) {
+      const selected = phases.find(f => f.key === selectedOrdinaryStep) || null;
+      if (!selected) {
+        syncPreferredOrdinaryActions(-1);
+        setTopbarStepLabel('');
+        updateStepGuideButton(null);
+        container.appendChild(importCard());
+        return;
+      }
+
+      const idx = phases.findIndex(f => f.id === selected.id);
+      syncPreferredOrdinaryActions(idx);
+      setTopbarStepLabel(friseLabel(selected));
+      updateStepGuideButton(selected);
+      if (selected.key === 'mise-en-ordre') {
+        const profileCard = fundraisingProfileEl();
+        profileCard.id = 'phase-' + selected.key;
+        container.appendChild(profileCard);
+      }
+      if (selected.key === 'confidentialite') {
+        container.appendChild(investorSectionEl());
+        const documentsCard = phaseCard(selected, idx, {
+          title: 'Documents', icon: 'DOC', hideStep: true,
+          documentActions: true, noAnchor: true, editorialBody: true,
+        });
+        documentsCard.classList.add('investor-documents');
+        container.appendChild(documentsCard);
+      } else if (PREFERRED_ORDINARY_SOON_STEPS.has(selected.key)) {
+        container.appendChild(stepSoonEl(selected));
+      } else if (selected.key !== 'mise-en-ordre') {
         container.appendChild(phaseCard(selected, idx, { title: 'Documents', icon: 'DOC', hideStep: true, documentActions: true }));
       }
     }
@@ -3569,6 +3686,11 @@
       classicActionsEl.hidden = true;
     }
 
+    function syncPreferredOrdinaryActions(idx) {
+      if (!classicActionsEl) return;
+      classicActionsEl.hidden = true;
+    }
+
     function optionSelected(value, current) {
       return value === current ? ' selected' : '';
     }
@@ -3643,7 +3765,7 @@
             <label class="raise-field">
               <span class="raise-field__label raise-field__label--required">Type de levée de fonds</span>
               <select class="raise-select" name="raise_type" required${profile.raise_type_locked ? ' disabled' : ''}>
-                <option value="classic"${optionSelected('classic', profile.raise_type)}>Levée avec actions de préférence</option>
+                <option value="preferred"${optionSelected('preferred', profile.raise_type)}>Levée avec actions de préférence</option>
                 <option value="ordinary"${optionSelected('ordinary', profile.raise_type)}>Levée avec actions ordinaires</option>
                 <option value="bsa-air"${optionSelected('bsa-air', profile.raise_type)}>Levée avec BSA-AIR</option>
               </select>
@@ -3729,8 +3851,8 @@
       if (switchBtn) {
         switchBtn.addEventListener('click', async () => {
           const current = fundraisingProfile.raise_type;
-          const next = current === 'classic' ? 'bsa-air' : 'classic';
-          const nextLabel = next === 'classic' ? 'Levée classique' : 'BSA-AIR';
+          const next = current === 'preferred' ? 'bsa-air' : (current === 'ordinary' ? 'bsa-air' : 'preferred');
+          const nextLabel = next === 'preferred' ? 'Actions de préférence' : (next === 'ordinary' ? 'Actions ordinaires' : 'BSA-AIR');
           const ok = window.confirm(
             `Passer cette levée en « ${nextLabel} » ?\n\n`
             + "Tous les documents et l'avancement du parcours de son type de levée actuel seront définitivement supprimés. "
@@ -3780,7 +3902,7 @@
       'closing': 'Closing',
       'post-closing': 'Post-closing',
       'gouvernance': 'Gouvernance',
-      'air-preparation': 'Ma levée', 'air-approche': 'Investisseurs',
+      'air-preparation': 'Ma levée',
       'air-termes': 'Rédaction des BSA-AIR', 'air-emission': "Autorisation de l'émission",
       'air-souscription': 'Émission des BSA-AIR', 'air-postemission': 'Post-émission',
       'air-suivi': 'Suivi des bons', 'air-conversion': 'Conversion',
@@ -3792,8 +3914,8 @@
 
     // Étapes de la levée classique dont le contenu détaillé n'est pas encore
     // construit : le menu et la page d'étape affichent « Bientôt » à la place.
-    const CLASSIC_SOON_STEPS = new Set(['gouvernance']);
-    const CLASSIC_SOON_BADGES = new Set(['gouvernance', 'post-closing']);
+    const PREFERRED_ORDINARY_SOON_STEPS = new Set(['gouvernance']);
+    const PREFERRED_ORDINARY_SOON_BADGES = new Set(['gouvernance', 'post-closing']);
 
     // Avancement d'une étape. Un document « si applicable » non fourni ne bloque pas ;
     // tout document fourni doit être validé. « complete » = tout ce qui doit l'être
@@ -3970,16 +4092,23 @@
       });
     }
 
-    function openClassicStepPage(key) {
-      // Mémorise le défilement courant : le re-rendu ci-dessous remplace le
-      // corps de la page et ferait sauter l'écran en haut. On le restaure pour
-      // que l'écran reste au niveau où il était juste avant le clic.
+    function openPreferredStepPage(key) {
       const prevScroll = window.pageYOffset || document.documentElement.scrollTop || 0;
-      selectedClassicStep = key || selectedClassicStep;
-      storeClassicStep(selectedClassicStep);
-      try { localStorage.setItem(raiseKey(), 'classic'); } catch {}
-      syncUrlState('classic', selectedClassicStep);
-      applyRaiseType('classic');
+      selectedPreferredStep = key || selectedPreferredStep;
+      storePreferredStep(selectedPreferredStep);
+      try { localStorage.setItem(raiseKey(), 'preferred'); } catch {}
+      syncUrlState('preferred', selectedPreferredStep);
+      applyRaiseType('preferred');
+      window.scrollTo(0, prevScroll);
+    }
+
+    function openOrdinaryStepPage(key) {
+      const prevScroll = window.pageYOffset || document.documentElement.scrollTop || 0;
+      selectedOrdinaryStep = key || selectedOrdinaryStep;
+      storeOrdinaryStep(selectedOrdinaryStep);
+      try { localStorage.setItem(raiseKey(), 'ordinary'); } catch {}
+      syncUrlState('ordinary', selectedOrdinaryStep);
+      applyRaiseType('ordinary');
       window.scrollTo(0, prevScroll);
     }
 
@@ -4014,14 +4143,14 @@
       const title = document.getElementById('nav-steps-title');
       const type = getRaiseType();
       let phases = [];
-      if (type === 'classic') {
+      if (type === 'preferred' || type === 'ordinary') {
         phases = folders.filter(f => isSystemPhase(f) && (f.track || 'classic') === 'classic')
-          .filter(isClassicPhaseVisible);
+          .filter(isPreferredOrdinaryPhaseVisible);
       } else if (type === 'bsa-air') {
         phases = folders.filter(f => isSystemPhase(f) && (f.track || 'classic') === 'bsa-air');
       }
-      const show = (type === 'classic' || type === 'bsa-air') && phases.length > 0;
-      // Levée classique et BSA-AIR : le menu de gauche n'affiche que les étapes.
+      const show = (type === 'preferred' || type === 'ordinary' || type === 'bsa-air') && phases.length > 0;
+      // Actions de préférence, actions ordinaires et BSA-AIR : le menu de gauche n'affiche que les étapes.
       const tools = document.getElementById('nav-tools');
       if (tools) tools.hidden = show;
       if (sep) sep.hidden = true;
@@ -4035,19 +4164,20 @@
       // Avancement global de la levée : proportion d'étapes terminées.
       const globalFrac = stats.length ? stats.filter(s => s.complete).length / stats.length : 0;
 
-      // BSA-AIR : « 0 · Ma levée » (air-preparation) est désormais une vraie étape,
+      // BSA-AIR : « 0 · Levée » (air-preparation) est désormais une vraie étape,
       // rendue par la boucle ci-dessous comme les autres. Son numéro (0) vient du nom
       // de la phase (friseStepNumber) et sa barre suit l'avancement global.
 
       phases.forEach((f, i) => {
         const s = stats[i];
         const done = s.complete;
-        // « Ma levée » (classique) et « Préparation » (BSA-AIR), premières étapes
+        // « Levée » (actions de préférence/ordinaires) et « Levée » (BSA-AIR), premières étapes
         // de mise en ordre, restent neutres : pas de fond indigo « étape courante ».
         const isCurrent = i === currentIdx
           && f.key !== 'mise-en-ordre' && f.key !== 'air-preparation';
         const isActive = (
-          (type === 'classic' && selectedClassicStep === f.key)
+          (type === 'preferred' && selectedPreferredStep === f.key)
+          || (type === 'ordinary' && selectedOrdinaryStep === f.key)
           || (type === 'bsa-air' && selectedBsaStep === f.key)
         );
         const btn = document.createElement('button');
@@ -4058,22 +4188,22 @@
         const badge = done
           ? '<svg viewBox="0 0 24 24" aria-hidden="true">' + friseCheckPath + '</svg>'
           : String(num);
-        // « Ma levée » (mise-en-ordre) : la barre suit l'avancement global.
+        // « Levée » (mise-en-ordre) : la barre suit l'avancement global.
         // Sinon : proportion de documents validés dans l'étape.
         const stepFrac = s.total > 0 ? s.done / s.total : (done ? 1 : 0);
-        // « Ma levée » (mise-en-ordre côté classique, air-preparation côté BSA-AIR) :
+        // « Levée » (mise-en-ordre côté actions de préférence/ordinaires, air-preparation côté BSA-AIR) :
         // la barre suit l'avancement global de la levée.
         let barFrac = (f.key === 'mise-en-ordre' || f.key === 'air-preparation') ? globalFrac : stepFrac;
         // Étape « Investisseurs » : la barre suit l'avancement de la levée
         // (montant engagé par les investisseurs signés / objectif de levée),
         // et non un décompte de documents.
-        if (type === 'classic' && f.key === 'confidentialite') {
+        if ((type === 'preferred' || type === 'ordinary') && f.key === 'confidentialite') {
           const invFrac = investorsEngagedFrac();
           barFrac = invFrac == null ? 0 : invFrac;
         }
         const pct = Math.max(0, Math.min(100, Math.round(barFrac * 100)));
-        const isSoon = type === 'classic' && CLASSIC_SOON_STEPS.has(f.key);
-        const hasSoonBadge = type === 'classic' && CLASSIC_SOON_BADGES.has(f.key);
+        const isSoon = (type === 'preferred' || type === 'ordinary') && PREFERRED_ORDINARY_SOON_STEPS.has(f.key);
+        const hasSoonBadge = (type === 'preferred' || type === 'ordinary') && PREFERRED_ORDINARY_SOON_BADGES.has(f.key);
         const bar = isSoon ? '' :
           '<span class="drawer__step-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><span style="width:' + pct + '%"></span></span>';
         const soonTag = hasSoonBadge ? '<span class="drawer__soon-tag">Bientôt</span>' : '';
@@ -4081,7 +4211,8 @@
           '<span class="drawer__step-row"><span class="drawer__step-num">' + badge + '</span>' + esc(friseLabel(f)) + soonTag + '</span>'
           + bar;
         btn.addEventListener('click', () => {
-          if (type === 'classic') openClassicStepPage(f.key);
+          if (type === 'preferred') openPreferredStepPage(f.key);
+          else if (type === 'ordinary') openOrdinaryStepPage(f.key);
           else openBsaStepCard(f.key);
           if (navDrawer) navDrawer.close();
         });
@@ -4347,15 +4478,6 @@
           "Démarrer avec une cap table fausse : c'est sur elle que se calcule la dilution future du BSA-AIR.",
           "Oublier les registres obligatoires (RBE, mouvements de titres) et les cessions de PI : les trous ressortent à la conversion, au pire moment.",
           "Fixer une décote ou un plafond au hasard : trop haut, le cap protège mal l'investisseur ; trop bas, il vous dilue énormément.",
-        ],
-      },
-      'air-approche': {
-        objectif: "Présenter votre BSA-AIR à des investisseurs ciblés et recueillir leurs engagements.",
-        explication: "Vos termes sont posés : vous les présentez à des investisseurs ciblés. Votre argument, c'est la simplicité — conditions déjà fixées, pas de longue négociation. Un deck et un cadre de confidentialité léger suffisent souvent. Les engagements recueillis ici déterminent qui souscrira, et — si vous optez pour une émission au profit de personnes dénommées — qui devra être nommé dans la décision d'autorisation.",
-        eviter: [
-          "Renégocier les termes investisseur par investisseur : cela casse tout l'intérêt du BSA-AIR (des conditions uniformes).",
-          "Attendre d'avoir besoin d'argent pour contacter les investisseurs : le rapport de force se construit en amont.",
-          "Promettre des side letters contradictoires avec le futur contrat d'émission.",
         ],
       },
       'air-termes': {
