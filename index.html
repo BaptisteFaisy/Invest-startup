@@ -360,34 +360,37 @@
       .services-section__intro h2 {
         color: #8a857b;
         font-family: 'Archivo', sans-serif;
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 700;
-        letter-spacing: .16em;
+        letter-spacing: .1em;
         text-transform: uppercase;
       }
       .services-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
       .service-block {
         position: relative;
         display: flex;
-        min-height: 240px;
+        min-height: 260px;
         flex-direction: column;
         align-items: flex-start;
-        justify-content: flex-end;
+        justify-content: space-between;
         overflow: hidden;
         padding: 34px;
-        border: 1px solid #d8d4cc;
-        border-radius: 20px;
-        background: linear-gradient(145deg, #fff 0%, #f2f5f0 100%);
-        box-shadow: 0 16px 42px rgba(30,28,24,.055);
+        border: 1px solid rgba(191,198,187,.78);
+        border-radius: 22px;
+        background: linear-gradient(145deg, rgba(255,255,255,.98) 0%, #eef4ed 100%);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 18px 46px rgba(30,28,24,.06);
         text-align: left;
         transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
       }
-      .service-block:nth-child(2) { background: linear-gradient(145deg, #fff 0%, #f2f0eb 100%); }
+      .service-block:nth-child(2) {
+        border-color: rgba(204,198,187,.8);
+        background: linear-gradient(145deg, rgba(255,255,255,.98) 0%, #f1eee8 100%);
+      }
       .service-block::before {
         content: attr(data-service);
         position: absolute;
-        top: 28px;
-        left: 32px;
+        top: 31px;
+        right: 32px;
         color: #aaa49a;
         font-family: 'Archivo', sans-serif;
         font-size: 10px;
@@ -405,9 +408,25 @@
         background: radial-gradient(circle, rgba(34,197,94,.09), transparent 68%);
         pointer-events: none;
       }
-      .service-block h3 {
+      .service-block__tag {
         position: relative;
         z-index: 1;
+        display: inline-flex;
+        align-items: center;
+        min-height: 25px;
+        padding: 5px 10px;
+        border: 1px solid rgba(34,197,94,.18);
+        border-radius: 99px;
+        background: rgba(255,255,255,.62);
+        color: #4e6653;
+        font-family: 'Archivo', sans-serif;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: .09em;
+        text-transform: uppercase;
+      }
+      .service-block__content { position: relative; z-index: 1; }
+      .service-block h3 {
         margin-bottom: 10px;
         color: #171714;
         font-size: clamp(1.25rem, 2.4vw, 1.65rem);
@@ -416,8 +435,6 @@
         line-height: 1.2;
       }
       .service-block p {
-        position: relative;
-        z-index: 1;
         max-width: 440px;
         color: #625f58;
         font-size: 13.5px;
@@ -436,8 +453,8 @@
         .hero__benefits { grid-template-columns: 1fr; gap: 16px; }
         .services-section { width: calc(100% - 40px); margin-top: 40px; }
         .services-grid { grid-template-columns: 1fr; }
-        .service-block { min-height: 210px; padding: 28px 24px; }
-        .service-block::before { top: 22px; left: 24px; }
+        .service-block { min-height: 230px; padding: 26px 24px; }
+        .service-block::before { top: 29px; right: 24px; }
         .footer { padding: 40px 20px 0; }
         .footer__inner { gap: 32px; }
         .footer-contact { width: calc(100% - 40px); margin: 40px auto; grid-template-columns: 1fr; gap: 24px; padding: 24px 20px; }
@@ -692,12 +709,18 @@
       </div>
       <div class="services-grid">
         <article class="service-block" data-service="01">
-          <h3>Leveurs de fonds</h3>
-          <p>Proposez à vos clients un parcours juridique complet en marque blanche, de la term sheet au closing, directement sous votre marque.</p>
+          <span class="service-block__tag">Marque blanche</span>
+          <div class="service-block__content">
+            <h3>Leveurs de fonds</h3>
+            <p>Proposez à vos clients un parcours juridique complet en marque blanche, de la term sheet au closing, directement sous votre marque.</p>
+          </div>
         </article>
         <article class="service-block" data-service="02">
-          <h3>Family offices</h3>
-          <p>Déployez sous votre marque un espace sécurisé pour structurer, documenter et suivre chaque investissement auprès de vos participations.</p>
+          <span class="service-block__tag">Marque blanche</span>
+          <div class="service-block__content">
+            <h3>Family offices</h3>
+            <p>Centralisez les dossiers, sécurisez chaque investissement et suivez les sociétés du portefeuille dans un espace à votre marque.</p>
+          </div>
         </article>
       </div>
     </section>
