@@ -221,6 +221,9 @@
       .nav { padding: 12px 0; }
       .nav-primary { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 30px; height: 100%; }
       .nav-signup {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         margin-left: auto;
         min-width: 174px;
         padding: 10px 16px;
@@ -234,12 +237,15 @@
         letter-spacing: .06em;
         line-height: 1;
         text-transform: uppercase;
+        text-align: center;
         white-space: nowrap;
-        transition: border-color .15s, background .15s, transform .12s;
+        transition: border-color .15s, background .15s, color .15s, transform .12s;
       }
       .nav-signup__label { transition: opacity .18s ease; }
       .nav-signup__label.is-changing { opacity: 0; }
       .nav-signup:hover, .nav-signup:focus-visible { border-color: #141414; background: #efece6; box-shadow: none; transform: none; }
+      .nav-signup.is-call { border-color: #111; background: #111; color: #fff; }
+      .nav-signup.is-call:hover, .nav-signup.is-call:focus-visible { border-color: #000; background: #000; color: #fff; }
       .nav-signup:active { transform: scale(.97); }
       .nav-primary__link { position: relative; color: #625f58; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
       .nav-primary__link:hover { color: #111; }
@@ -471,6 +477,7 @@
             const state = states[stateIndex];
             label.textContent = state.label;
             button.setAttribute('href', state.href);
+            button.classList.toggle('is-call', stateIndex === 1);
             label.classList.remove('is-changing');
           }, 180);
         }, 2500);
