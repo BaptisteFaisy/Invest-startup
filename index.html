@@ -391,7 +391,7 @@
         <a class="logo" href="#top"><span class="logo-mark" aria-hidden="true"><svg viewBox="-10 -12 60 76" focusable="false"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/></svg></span><span class="logo-wordmark">LIQUID+</span></a>
         <div class="nav-primary" aria-label="Navigation principale">
           <a class="nav-primary__link nav-primary__link--active" href="#top" aria-current="page">PILOTER MA LEVÉE</a>
-          <a class="nav-primary__link" href="#tarifs">TARIFS</a>
+          <a class="nav-primary__link" href="offres.html">SERVICES</a>
           <a class="nav-primary__link" href="#contact">NOUS CONTACTER</a>
         </div>
         <a class="nav-signup" id="nav-signup" href="register.html"><span class="nav-signup__label">Créez un compte</span></a>
@@ -401,7 +401,7 @@
     <div class="mobile-menu" id="mobile-menu" role="dialog" aria-label="Navigation">
       <button class="nav-hamburger" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
       <a href="#top">PILOTER MA LEVÉE</a>
-      <a href="#tarifs">TARIFS</a>
+      <a href="offres.html">SERVICES</a>
       <a href="#contact">NOUS CONTACTER</a>
       <hr class="mobile-divider" aria-hidden="true" />
       <a href="login.html" style="font-size:1.1rem; color:rgba(255,255,255,0.5);">ME CONNECTER</a>
@@ -449,7 +449,7 @@
           document.getElementById('mobile-menu').innerHTML = `
             <button class="nav-hamburger" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
             <a href="#top">PILOTER MA LEVÉE</a>
-            <a href="#tarifs">TARIFS</a>
+            <a href="offres.html">SERVICES</a>
             <a href="#contact">NOUS CONTACTER</a>
             <hr class="mobile-divider" aria-hidden="true" />
             <a href="/saas/tableau-de-bord.html" style="font-size:1.1rem; color:rgba(255,255,255,0.5);">MON ESPACE</a>
@@ -690,9 +690,8 @@
     <script>
       (() => {
         const links = Array.from(document.querySelectorAll('.nav-primary__link'));
-        const pricing = document.getElementById('tarifs');
         const contact = document.getElementById('contact');
-        if (!links.length || !pricing || !contact) return;
+        if (!links.length || !contact) return;
 
         const setActiveLink = href => {
           links.forEach(link => {
@@ -721,7 +720,7 @@
           // La section contact est trop basse pour jamais atteindre le seuil des
           // 90 px : arrivé en bas de page, on la considère active quoi qu'il en soit.
           const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
-          setActiveLink(atBottom || contactTop <= 90 ? '#contact' : (pricing.getBoundingClientRect().top <= 90 ? '#tarifs' : '#top'));
+          setActiveLink(atBottom || contactTop <= 90 ? '#contact' : '#top');
           ticking = false;
         };
         window.addEventListener('scroll', () => {
