@@ -51,7 +51,6 @@
       .hero h1 { font-size: clamp(2.2rem, 5vw, 3.8rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1.1; max-width: 800px; margin: 0 auto 22px; }
       .hero h1 em { font-style: normal; color: #111; }
       .hero__sub { font-size: 17px; color: rgba(255,255,255,0.44); max-width: 520px; margin: 0 auto 40px; line-height: 1.75; }
-      .hero__actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 56px; }
       .hero__benefits { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px 36px; max-width: 720px; margin: 0 auto 56px; text-align: left; }
       .hbenefit { display: flex; align-items: flex-start; gap: 10px; }
       .hbenefit__dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; flex: none; margin-top: 7px; }
@@ -246,8 +245,6 @@
       .nav-signup__label { transition: opacity .18s ease; }
       .nav-signup__label.is-changing { opacity: 0; }
       .nav-signup:hover, .nav-signup:focus-visible { border-color: #141414; background: #efece6; box-shadow: none; transform: none; }
-      .nav-signup.is-free-trial { background: #111; border-color: #111; color: #fff; }
-      .nav-signup.is-free-trial:hover, .nav-signup.is-free-trial:focus-visible { background: #000; border-color: #000; color: #fff; }
       .nav-signup:active { transform: scale(.97); }
       .nav-primary__link { position: relative; color: #625f58; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
       .nav-primary__link:hover { color: #111; }
@@ -382,7 +379,7 @@
       <nav class="nav">
         <a class="logo" href="#top"><span class="logo-mark" aria-hidden="true"><svg viewBox="-10 -12 60 76" focusable="false"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/></svg></span><span class="logo-wordmark">LIQUID+</span></a>
         <div class="nav-primary" aria-label="Navigation principale">
-          <a class="nav-primary__link nav-primary__link--active" href="#top" aria-current="page">LEVÉES DE FONDS</a>
+          <a class="nav-primary__link nav-primary__link--active" href="#top" aria-current="page">PILOTER LES LEVÉES</a>
           <a class="nav-primary__link" href="offres.html">NOS SERVICES</a>
           <a class="nav-primary__link" href="#contact">NOUS CONTACTER</a>
         </div>
@@ -392,7 +389,7 @@
 
     <div class="mobile-menu" id="mobile-menu" role="dialog" aria-label="Navigation">
       <button class="nav-hamburger" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
-      <a href="#top">LEVÉES DE FONDS</a>
+      <a href="#top">PILOTER LES LEVÉES</a>
       <a href="offres.html">NOS SERVICES</a>
       <a href="#contact">NOUS CONTACTER</a>
       <hr class="mobile-divider" aria-hidden="true" />
@@ -419,17 +416,23 @@
         const button = document.getElementById('nav-signup');
         const label = button?.querySelector('.nav-signup__label');
         if (!button || !label) return;
-        const messages = ['Créez un compte', 'Essayez gratuitement'];
-        let messageIndex = 0;
+
+        const states = [
+          { label: 'Créez un compte', href: 'register.html' },
+          { label: 'Appelez-nous', href: '#contact' },
+        ];
+        let stateIndex = 0;
+
         window.setInterval(() => {
           label.classList.add('is-changing');
           window.setTimeout(() => {
-            messageIndex = (messageIndex + 1) % messages.length;
-            label.textContent = messages[messageIndex];
-            button.classList.toggle('is-free-trial', messageIndex === 1);
+            stateIndex = (stateIndex + 1) % states.length;
+            const state = states[stateIndex];
+            label.textContent = state.label;
+            button.setAttribute('href', state.href);
             label.classList.remove('is-changing');
           }, 180);
-        }, 1500);
+        }, 2500);
       })();
     </script>
 
@@ -440,7 +443,7 @@
           if (!data?.user) return;
           document.getElementById('mobile-menu').innerHTML = `
             <button class="nav-hamburger" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
-            <a href="#top">LEVÉES DE FONDS</a>
+            <a href="#top">PILOTER LES LEVÉES</a>
             <a href="offres.html">NOS SERVICES</a>
             <a href="#contact">NOUS CONTACTER</a>
             <hr class="mobile-divider" aria-hidden="true" />
@@ -467,9 +470,6 @@
       <section class="hero">
         <h1>Le cockpit juridique<br><em>des levées de fonds.</em></h1>
         <p class="hero__sub">De la pre-seed à la série C : term sheets, pactes et cap tables sécurisés à chaque tour.</p>
-        <div class="hero__actions">
-          <a href="register.html" class="btn-lg btn-lg--white">Essayez gratuitement</a>
-        </div>
 
         <!-- BÉNÉFICES CLÉS -->
         <div class="hero__benefits">

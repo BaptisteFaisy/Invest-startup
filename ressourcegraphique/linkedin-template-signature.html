@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1080, initial-scale=1">
+  <title>Template LinkedIn Liquid+</title>
+  <style>
+    :root {
+      --green: #25d67b;
+      --ink: #0d0f0e;
+      --paper: #f6f7f4;
+      --muted: #7f8782;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      width: 1080px;
+      height: 1080px;
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+    }
+    .canvas {
+      position: relative;
+      width: 1080px;
+      height: 1080px;
+      overflow: hidden;
+      padding: 70px 78px 56px 92px;
+      border-left: 16px solid var(--green);
+      background: var(--paper);
+    }
+    .watermark {
+      position: absolute;
+      top: -210px;
+      right: -250px;
+      width: 660px;
+      height: 820px;
+      opacity: .08;
+      transform: rotate(18deg);
+    }
+    .top {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 17px;
+      font-size: 33px;
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+    .brand svg {
+      width: 34px;
+      height: 44px;
+      flex: none;
+    }
+    .series {
+      padding: 12px 18px 11px;
+      border: 2px solid var(--ink);
+      border-radius: 999px;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .content {
+      position: relative;
+      z-index: 2;
+      margin-top: 160px;
+    }
+    .eyebrow {
+      margin: 0 0 28px;
+      color: var(--green);
+      font-size: 23px;
+      font-weight: 800;
+      letter-spacing: 2.8px;
+      text-transform: uppercase;
+    }
+    .headline {
+      margin: 0;
+      max-width: 810px;
+      font-size: 86px;
+      line-height: 1.03;
+      font-weight: 800;
+      letter-spacing: -4.5px;
+    }
+    .signal {
+      position: relative;
+      z-index: 3;
+      width: calc(100% + 170px);
+      margin: 46px 0 0 -92px;
+      padding: 35px 58px 36px 92px;
+      background: var(--green);
+      color: var(--ink);
+      font-size: 73px;
+      line-height: 1;
+      font-weight: 850;
+      letter-spacing: -3.6px;
+      text-transform: uppercase;
+    }
+    .signal::after {
+      content: "+";
+      position: absolute;
+      right: 37px;
+      top: 10px;
+      color: rgba(13, 15, 14, .15);
+      font-size: 145px;
+      line-height: 1;
+      font-weight: 500;
+    }
+    .subtitle {
+      margin: 37px 0 0;
+      max-width: 850px;
+      color: #272b29;
+      font-size: 29px;
+      line-height: 1.3;
+      letter-spacing: -.5px;
+    }
+    .footer {
+      position: absolute;
+      z-index: 2;
+      left: 92px;
+      right: 78px;
+      bottom: 56px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 21px;
+      border-top: 1px solid #d3d7d4;
+      color: var(--muted);
+      font-size: 21px;
+    }
+    .footer strong {
+      color: var(--ink);
+      font-size: 15px;
+      letter-spacing: 1.7px;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <main class="canvas">
+    <svg class="watermark" viewBox="0 0 34 44" aria-hidden="true">
+      <path d="M17 1.5C17 1.5 2.6 20.2 2.6 29.1C2.6 37.4 8.8 42.5 17 42.5C25.2 42.5 31.4 37.4 31.4 29.1C31.4 20.2 17 1.5 17 1.5Z" fill="#25d67b"/>
+    </svg>
+
+    <header class="top">
+      <div class="brand">
+        <svg viewBox="0 0 34 44" aria-hidden="true">
+          <path d="M17 1.5C17 1.5 2.6 20.2 2.6 29.1C2.6 37.4 8.8 42.5 17 42.5C25.2 42.5 31.4 37.4 31.4 29.1C31.4 20.2 17 1.5 17 1.5Z" fill="#25d67b"/>
+        </svg>
+        <span>LIQUID+</span>
+      </div>
+      <div class="series">Levées de fonds</div>
+    </header>
+
+    <section class="content">
+      <!-- Modifiez uniquement les quatre zones de texte ci-dessous pour réutiliser la maquette. -->
+      <p class="eyebrow">IA × AVOCATS</p>
+      <h1 class="headline">Une IA peut<br>répondre.</h1>
+      <div class="signal">Qui en répond&nbsp;?</div>
+      <p class="subtitle">La valeur de l’avocat est-elle en train de se déplacer&nbsp;?</p>
+    </section>
+
+    <footer class="footer">
+      <span>liquidplus.fr</span>
+      <strong>Décrypter · Décider · Lever</strong>
+    </footer>
+  </main>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1080, initial-scale=1">
+  <title>Quelle est encore la valeur d’un avocat ?</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      width: 1080px;
+      height: 1080px;
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #090d0c;
+    }
+    .canvas {
+      position: relative;
+      width: 1080px;
+      height: 1080px;
+      padding: 72px 76px 66px;
+      color: #f8faf9;
+      background:
+        radial-gradient(circle at 92% 14%, rgba(37, 255, 132, .15), transparent 33%),
+        linear-gradient(120deg, #090d0c 0%, #090e0c 57%, #0a2117 100%);
+    }
+    .canvas::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 365px;
+      height: 100%;
+      opacity: .17;
+      background-image:
+        linear-gradient(rgba(75, 255, 157, .15) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(75, 255, 157, .15) 1px, transparent 1px);
+      background-size: 46px 46px;
+      mask-image: linear-gradient(to left, black, transparent);
+    }
+    .brand {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      font-size: 37px;
+      font-weight: 750;
+      letter-spacing: -1.2px;
+    }
+    .brand img {
+      width: 28px;
+      height: 38px;
+      object-fit: contain;
+    }
+    .brand .plus { color: #31f489; }
+    .content {
+      position: relative;
+      z-index: 1;
+      margin-top: 180px;
+      max-width: 880px;
+    }
+    .eyebrow {
+      margin-bottom: 35px;
+      color: #31f489;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: 4.5px;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 0;
+      max-width: 900px;
+      font-size: 91px;
+      line-height: 1.02;
+      letter-spacing: -4.9px;
+      font-weight: 800;
+    }
+    .accent {
+      width: 110px;
+      height: 8px;
+      margin-top: 52px;
+      border-radius: 8px;
+      background: #31f489;
+    }
+    .footer {
+      position: absolute;
+      z-index: 1;
+      left: 76px;
+      right: 76px;
+      bottom: 66px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 29px;
+      border-top: 1px solid rgba(255,255,255,.16);
+      color: #a8b1ad;
+      font-size: 22px;
+    }
+    .footer strong {
+      color: #31f489;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <main class="canvas">
+    <div class="brand">
+      <img src="Goutte blanche.png" alt="">
+      <span>Liquid<span class="plus">+</span></span>
+    </div>
+
+    <section class="content">
+      <div class="eyebrow">IA × DROIT</div>
+      <h1>Quelle est encore la valeur d’un avocat&nbsp;?</h1>
+      <div class="accent"></div>
+    </section>
+
+    <footer class="footer">
+      <span>liquidplus.fr</span>
+      <strong>Levées de fonds</strong>
+    </footer>
+  </main>
+</body>
+</html>

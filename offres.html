@@ -4,35 +4,30 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />
-    <title>Liquid+ — Offres &amp; périmètre détaillé</title>
-    <meta name="description" content="Les offres Liquid+ et le périmètre exact de chacune : tous les documents d'une levée BSA-AIR ou classique, et la mission précise de l'avocat partenaire." />
-    <meta name="robots" content="index, follow" />
+    <title>Liquid+ — Nos services</title>
+    <meta name="robots" content="noindex, follow" />
     <link rel="canonical" href="https://www.liquidplus.fr/offres.html" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Libre+Franklin:wght@300;400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;500;600;700;800&family=Libre+Franklin:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="icon" type="image/png" sizes="96x96" href="/favicon.png" />
     <link rel="stylesheet" href="styles.css?v=20260716c" />
     <style>
       :root { color-scheme: light; }
-      body { font-family: 'Libre Franklin', system-ui, sans-serif; background: #f7f6f3; color: #111; min-height: 100vh; -webkit-font-smoothing: antialiased; }
-      main { display: block; padding: 0; }
+      body { background: #f7f6f3; color: #111; min-height: 100vh; -webkit-font-smoothing: antialiased; }
       a { text-decoration: none; }
       .grain { opacity: .22; mix-blend-mode: multiply; }
-
-      /* ── Bandeau (repris de la home) ── */
       .site-header { background: rgba(247,246,243,.96); border-bottom-color: #ddd9d1; backdrop-filter: blur(14px); }
       .nav { padding: 12px 0; }
       .nav-primary { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 30px; height: 100%; }
       .nav-primary__link { position: relative; color: #625f58; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
-      .nav-primary__link:hover { color: #111; }
-      .nav-primary__link--active { color: #111; }
+      .nav-primary__link:hover, .nav-primary__link--active { color: #111; }
       .nav-primary__link--active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -13px; height: 2px; background: #22c55e; border-radius: 99px; }
-      .nav-signup { margin-left: auto; min-width: 174px; padding: 10px 16px; border: 1.5px solid rgba(0,0,0,.5); border-radius: 10px; background: #f7f6f3; color: #141414; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: .06em; line-height: 1; text-transform: uppercase; white-space: nowrap; transition: border-color .15s, background .15s; }
-      .nav-signup:hover, .nav-signup:focus-visible { border-color: #141414; background: #efece6; box-shadow: none; transform: none; }
+      .nav-signup { margin-left: auto; min-width: 174px; padding: 10px 16px; border: 1.5px solid rgba(0,0,0,.5); border-radius: 10px; background: #f7f6f3; color: #141414; font-family: 'Archivo', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: .06em; line-height: 1; text-transform: uppercase; white-space: nowrap; }
+      .nav-signup:hover, .nav-signup:focus-visible { border-color: #141414; background: #efece6; }
       .logo-mark, .logo-wordmark { color: #111; }
       .nav-hamburger { display: flex; align-items: center; margin-left: 14px; color: #111; }
       .nav-hamburger svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
@@ -40,97 +35,27 @@
       .mobile-menu a { color: #111; }
       .mobile-menu a[style] { color: rgba(17,17,17,.62) !important; }
       #mobile-close { color: #111 !important; }
-      .mobile-divider { width: 120px; height: 1px; background: rgba(17,17,17,.15); border: 0; margin: 4px 0; }
-
-      /* ── Structure de page ── */
-      .section { padding: 72px 40px; }
-      .section__inner { max-width: 1080px; margin: 0 auto; }
-      .eyebrow { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #78736a; display: block; text-align: center; margin-bottom: 14px; }
-      .section__title { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 800; letter-spacing: -0.035em; text-align: center; margin-bottom: 12px; }
-      .section__sub { font-size: 16px; color: #625f58; text-align: center; max-width: 620px; margin: 0 auto 48px; line-height: 1.7; }
-
-      .page-hero { padding: 72px 40px 8px; text-align: center; }
-      .page-hero h1 { font-size: clamp(2rem, 4.5vw, 3.2rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1.12; max-width: 760px; margin: 0 auto 18px; }
-      .page-hero p { font-size: 16.5px; color: #625f58; max-width: 640px; margin: 0 auto; line-height: 1.75; }
-
-      /* ── Bloc offres (même style que la home) ── */
-      .pricing-guarantee { display: flex; align-items: center; justify-content: center; gap: 10px; max-width: 760px; margin: 18px auto 0; padding: 14px 20px; border: 1px solid #bbf7d0; border-radius: 14px; background: #f0fdf4; color: #166534; font-size: 14px; line-height: 1.5; text-align: center; }
-      .pricing-guarantee strong { font-family: 'Archivo', sans-serif; font-weight: 800; }
-      .pricing-note { max-width: 760px; margin: 14px auto 0; color: #78736a; font-size: 11px; line-height: 1.6; text-align: center; }
-
-      /* ── Légende ── */
-      .legend { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-      .legend-card { background: #fff; border: 1px solid #ddd9d1; border-radius: 16px; padding: 20px; }
-      .legend-card p { font-size: 12.5px; color: #625f58; line-height: 1.6; margin-top: 10px; }
-      .pill { display: inline-block; font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; border-radius: 99px; padding: 4px 11px; white-space: nowrap; }
-      .pill--plat { background: #d1fae5; color: #14532d; }
-      .pill--ess { background: #111; color: #fff; }
-      .pill--ser { background: #fef3c7; color: #92400e; }
-      .pill--off { background: #e4e7ec; color: #3f4854; }
-      .pill--out { background: transparent; color: #8a857b; border: 1px solid #cfcac1; }
-
-      /* ── Tables de périmètre ── */
-      .scope-wrap { overflow-x: auto; border: 1px solid #d8d4cc; border-radius: 18px; background: #fff; box-shadow: 0 12px 36px rgba(30,28,24,.06); }
-      table.scope { width: 100%; border-collapse: collapse; min-width: 720px; }
-      .scope th, .scope td { text-align: left; padding: 12px 16px; border-bottom: 1px solid #eceae4; vertical-align: top; }
-      .scope thead th { font-family: 'Archivo', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8a857b; background: #f7f6f3; }
-      .scope .step-row th { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #14532d; background: #eef8ef; padding: 10px 16px; }
-      .scope td.doc { font-weight: 600; font-size: 13px; width: 34%; }
-      .scope td.why { font-size: 12.5px; color: #625f58; line-height: 1.55; }
-      .scope td.who { width: 210px; white-space: nowrap; }
-      .scope tr:last-child td { border-bottom: 0; }
-      .scope-note { margin-top: 14px; font-size: 12px; color: #78736a; line-height: 1.65; max-width: 860px; }
-      .scope-title { font-size: 1.25rem; font-weight: 800; letter-spacing: -.02em; margin: 0 0 6px; }
-      .scope-lead { font-size: 14px; color: #625f58; line-height: 1.65; margin-bottom: 20px; max-width: 760px; }
-      .scope-block + .scope-block { margin-top: 56px; }
-
-      /* ── Mission avocat ── */
-      .mission { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-      .mission-card { background: #fff; border: 1px solid #ddd9d1; border-radius: 18px; padding: 26px 24px; }
-      .mission-card--in { border-color: #c2dfc6; background: #f6fbf7; }
-      .mission-card--out { border-color: #e8c9c9; background: #fdf8f8; }
-      .mission-card h3 { font-size: 1rem; font-weight: 800; letter-spacing: -.01em; margin-bottom: 14px; }
-      .mission-card ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-      .mission-card li { font-size: 13px; color: #57534a; line-height: 1.55; padding-left: 18px; position: relative; }
-      .mission-card li::before { content: '·'; position: absolute; left: 5px; color: #aaa49a; font-weight: 800; }
-      .mission-card--in li::before { content: '✓'; color: #15803d; font-size: 11px; top: 2px; }
-      .mission-card--out li::before { content: '—'; color: #b91c1c; font-size: 11px; top: 2px; }
-
-      /* ── CTA ── */
-      .cta { padding: 80px 40px; text-align: center; border-top: 1px solid #ddd9d1; }
-      .cta h2 { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 800; letter-spacing: -0.04em; margin-bottom: 14px; }
-      .cta p { font-size: 16px; color: #625f58; margin-bottom: 36px; }
-      .btn-lg { font-family: 'Archivo', sans-serif; font-size: 14.5px; font-weight: 700; border-radius: 12px; padding: 14px 30px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; min-height: 50px; min-width: 200px; color: #fff; background: #111; border: none; transition: opacity .15s; }
-      .btn-lg:hover { opacity: .88; }
-
-      /* ── Footer (repris de la home) ── */
-      .brand { font-weight: 800; font-size: 1.4rem; letter-spacing: -0.02em; color: #111; display: inline-flex; align-items: center; gap: 8px; }
-      .brand span { color: #3b82f6; }
-      .brand .brand__mark { width: 18px; height: 24px; color: #111; flex: none; }
-      .brand .brand__mark svg { display: block; width: 100%; height: 100%; }
-      .footer { border-top: 1px solid #ddd9d1; padding: 52px 40px 0; position: relative; z-index: 1; }
-      .footer__inner { max-width: 1080px; margin: 0 auto; display: flex; gap: 60px; flex-wrap: wrap; padding-bottom: 44px; }
+      .mobile-divider { width: 120px; height: 1px; margin: 4px 0; border: 0; background: rgba(17,17,17,.15); }
+      main { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; width: calc(100% - 80px); max-width: 1080px; min-height: 52vh; margin: 0 auto; padding: 72px 0; }
+      .service-block { display: grid; min-height: 280px; place-items: center; padding: 32px; border: 1px solid #ddd9d1; border-radius: 18px; background: #fff; text-align: center; }
+      .service-block h2 { font-family: 'Archivo', sans-serif; font-size: clamp(1.4rem, 3vw, 2.2rem); font-weight: 800; letter-spacing: -.03em; }
+      .footer { position: relative; z-index: 1; padding: 52px 40px 0; border-top: 1px solid #ddd9d1; }
+      .footer__inner { display: flex; flex-wrap: wrap; gap: 60px; max-width: 1080px; margin: 0 auto; padding-bottom: 44px; }
       .footer__brand { flex: 2; }
-      .footer__brand p { font-size: 13px; color: #78736a; margin-top: 10px; max-width: 220px; line-height: 1.65; }
+      .footer__brand p { max-width: 220px; margin-top: 10px; color: #78736a; font-size: 13px; line-height: 1.65; }
       .footer__col { display: flex; flex-direction: column; gap: 9px; }
-      .footer__col h4 { font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #78736a; margin-bottom: 5px; }
-      .footer__col a { font-size: 14px; color: #57534a; transition: color .15s; }
+      .footer__col h4 { margin-bottom: 5px; color: #78736a; font-family: 'Archivo', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+      .footer__col a { color: #57534a; font-size: 14px; }
       .footer__col a:hover { color: #111; }
-      .footer__bottom { max-width: 1080px; margin: 0 auto; border-top: 1px solid #ddd9d1; padding: 20px 0 30px; font-size: 12px; color: #8a857b; line-height: 1.65; }
-
-      @media (max-width: 860px) {
-        .page-hero { padding: 56px 20px 8px; }
-        .section { padding: 56px 20px; }
-        .legend, .mission { grid-template-columns: 1fr; }
-        .footer { padding: 40px 20px 0; }
-        .footer__inner { gap: 32px; }
-        .cta { padding: 56px 20px; }
-      }
+      .footer__bottom { max-width: 1080px; margin: 0 auto; padding: 20px 0 30px; border-top: 1px solid #ddd9d1; color: #8a857b; font-size: 12px; line-height: 1.65; }
       @media (max-width: 720px) {
+        main { grid-template-columns: 1fr; width: calc(100% - 40px); padding: 48px 0; }
         .nav-primary { display: none; }
         .nav { gap: 12px; }
         .nav-hamburger { margin-left: 10px; }
         .nav-signup { flex-shrink: 0; min-width: 154px; padding: 8px 11px; font-size: 9px; text-align: center; }
+        .footer { padding: 40px 20px 0; }
+        .footer__inner { gap: 32px; }
       }
     </style>
   </head>
@@ -141,290 +66,44 @@
       <nav class="nav">
         <a class="logo" href="index.html"><span class="logo-mark" aria-hidden="true"><svg viewBox="-10 -12 60 76" focusable="false"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/></svg></span><span class="logo-wordmark">LIQUID+</span></a>
         <div class="nav-primary" aria-label="Navigation principale">
-          <a class="nav-primary__link" href="index.html">PILOTER MA LEVÉE</a>
-          <a class="nav-primary__link nav-primary__link--active" href="index.html#tarifs" aria-current="page">TARIFS</a>
+          <a class="nav-primary__link" href="index.html">PILOTER LES LEVÉES</a>
+          <a class="nav-primary__link nav-primary__link--active" href="offres.html" aria-current="page">NOS SERVICES</a>
           <a class="nav-primary__link" href="index.html#contact">NOUS CONTACTER</a>
         </div>
         <a class="nav-signup" href="register.html"><span class="nav-signup__label">Créez un compte</span></a>
-      <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button></nav>
+        <button class="nav-hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      </nav>
     </header>
 
     <div class="mobile-menu" id="mobile-menu" role="dialog" aria-label="Navigation">
       <button class="nav-hamburger" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
-      <a href="index.html">PILOTER MA LEVÉE</a>
-      <a href="index.html#tarifs">TARIFS</a>
+      <a href="index.html">PILOTER LES LEVÉES</a>
+      <a href="offres.html">NOS SERVICES</a>
       <a href="index.html#contact">NOUS CONTACTER</a>
       <hr class="mobile-divider" aria-hidden="true" />
       <a href="login.html" style="font-size:1.1rem;">ME CONNECTER</a>
       <a href="register.html" style="font-size:1.1rem;">CRÉER UN COMPTE</a>
     </div>
 
-    <script>
-      (function() {
-        var btn = document.getElementById('nav-hamburger');
-        var menu = document.getElementById('mobile-menu');
-        var close = document.getElementById('mobile-close');
-        if (!btn || !menu) return;
-        function openMenu() { menu.classList.add('open'); btn.classList.add('open'); btn.setAttribute('aria-expanded','true'); document.body.style.overflow='hidden'; }
-        function closeMenu() { menu.classList.remove('open'); btn.classList.remove('open'); btn.setAttribute('aria-expanded','false'); document.body.style.overflow=''; }
-        btn.addEventListener('click', openMenu);
-        if (close) close.addEventListener('click', closeMenu);
-        menu.addEventListener('click', function(e) { if (e.target.tagName === 'A') closeMenu(); });
-      })();
-    </script>
-
-    <main>
-
-      <!-- INTRO -->
-      <section class="page-hero">
-        <span class="eyebrow">Offres &amp; périmètre</span>
-        <h1>Ce qui est inclus, précisément.</h1>
-        <p>Une levée de fonds, c'est une liste finie de documents. Cette page les énumère tous — pour une levée BSA-AIR comme pour une levée classique — et dit, document par document, qui s'en charge : la plateforme Liquid+ ou l'avocat partenaire, selon le pack choisi.</p>
+    <main aria-label="Nos services">
+      <section class="service-block">
+        <h2>LEVEUR DE FONDS</h2>
       </section>
-
-      <!-- OFFRES -->
-      <section class="section" id="tarifs">
-        <div class="section__inner">
-          <span class="eyebrow">Les offres</span>
-          <h2 class="section__title">Quatre offres, deux formats de levée.</h2>
-          <p class="section__sub">Liquid+ Découverte pour explorer la plateforme, Liquid+ Intégral pour mener toute la levée, et deux packs avocat en option — chacun disponible en levée BSA-AIR comme en levée classique.</p>
-          <div class="pricing-guarantee"><strong>Satisfait ou remboursé sous 30 jours</strong> — remboursement intégral de votre facture Liquid+.</div>
-          <p class="pricing-note">Le montant de votre offre Liquid+ vous est communiqué avant toute commande. Les packs avocat sont chiffrés par l'avocat partenaire : le montant exact vous est confirmé par écrit, dans la convention d'honoraires conclue directement avec lui, <strong>avant tout engagement — et rien ne peut dépasser sans votre accord écrit</strong>. L'avocat vous facture en direct. Liquid+ ne facture aucune prestation de conseil juridique et ne partage pas d'honoraires avec les avocats. La garantie satisfait ou remboursé (30 jours) porte sur la facture Liquid+, réglée à la commande.</p>
-        </div>
+      <section class="service-block">
+        <h2>FAMILY OFFICES</h2>
       </section>
-
-      <!-- LÉGENDE -->
-      <section class="section" style="padding-top:0;">
-        <div class="section__inner">
-          <span class="eyebrow">Comment lire le périmètre</span>
-          <h2 class="section__title">Trois niveaux de prise en charge.</h2>
-          <p class="section__sub">La plateforme prépare et suit tous les documents de la levée. Les packs avocat ajoutent, par-dessus, l'intervention d'un avocat partenaire sur les actes à enjeu.</p>
-          <div class="legend">
-            <div class="legend-card">
-              <span class="pill pill--plat">Plateforme — Liquid+ Intégral</span>
-              <p>Document généré, structuré ou suivi en self-service sur la plateforme, qui vous guide de A à Z à chaque étape de votre levée : modèles guidés, automatisations, data room, registres, formalités. L'IA explique chaque clause ; aucun avocat n'est nécessaire.</p>
-            </div>
-            <div class="legend-card">
-              <span class="pill pill--ess">Avocat — dès le pack Essentiel</span>
-              <p>Acte critique : rédigé et/ou validé par l'avocat partenaire. Inclus dans le pack Essentiel <em>et</em> dans le pack Complet.</p>
-            </div>
-            <div class="legend-card">
-              <span class="pill pill--ser">Avocat — pack Complet</span>
-              <p>Document important : relecture avocat vivement conseillée. Couvert par l'avocat uniquement dans le pack Complet (dans l'Essentiel, la plateforme vous guide dessus).</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- PÉRIMÈTRE BSA-AIR -->
-      <section class="section" id="perimetre-bsa-air" style="padding-top:16px;">
-        <div class="section__inner">
-          <div class="scope-block">
-            <h2 class="scope-title">Levée BSA-AIR — tous les documents du parcours</h2>
-            <p class="scope-lead">Le BSA-AIR est le format rapide : pas d'augmentation de capital immédiate, une due diligence légère, un closing en quelques semaines. Voici l'intégralité du parcours documentaire, de la mise en ordre de la société au suivi post-closing.</p>
-            <div class="scope-wrap">
-              <table class="scope">
-                <thead>
-                  <tr><th>Document</th><th>Rôle dans la levée</th><th>Pris en charge par</th></tr>
-                </thead>
-                <tbody>
-                  <tr class="step-row"><th colspan="3">Étape 0 · Mise en ordre de la société</th></tr>
-                  <tr><td class="doc">Statuts à jour (SAS ou SA)</td><td class="why">Le BSA-AIR exige une forme compatible : sans elle, pas d'émission de bons.</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-                  <tr><td class="doc">Extrait Kbis (&lt; 3 mois) + RBE à jour</td><td class="why">Preuve d'existence et de conformité de la société.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">Cap table actuelle + pro forma post-AIR</td><td class="why">Anticiper la dilution et la conversion future des bons.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">Registre des mouvements de titres + comptes d'associés</td><td class="why">Preuve de la détention du capital.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">Pacte d'associés existant (le cas échéant)</td><td class="why">Une clause de préemption ou d'agrément peut bloquer l'entrée de l'investisseur.</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-                  <tr><td class="doc">PV et décisions antérieurs (BSPCE, augmentations, délégations)</td><td class="why">Historique de la cap table.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">Cession / apport de la PI des fondateurs à la société</td><td class="why">Tout investisseur exige que la propriété intellectuelle appartienne à la société.</td><td class="who"><span class="pill pill--ess">Avocat — dès Essentiel</span></td></tr>
-                  <tr><td class="doc">Contrats clés (baux, contrats de travail fondateurs, gros clients)</td><td class="why">Alimentent la data room.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">Comptes annuels / situation comptable intermédiaire</td><td class="why">Produits avec votre expert-comptable ; déposés dans la data room.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-
-                  <tr class="step-row"><th colspan="3">Étape 1 · Dealflow &amp; séduction des investisseurs</th></tr>
-                  <tr><td class="doc">Pitch deck / one-pager</td><td class="why">Le support commercial de la levée.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">Business plan + modèle financier</td><td class="why">Vos déclarations pourront être reprises en garanties : soignez la cohérence.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">Data room organisée</td><td class="why">Son contenu peut vous engager (représentations).</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">NDA / accord de confidentialité</td><td class="why">Modèle standard dans la quasi-totalité des cas.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-
-                  <tr class="step-row"><th colspan="3">Étape 2 · Cadrage de l'opération</th></tr>
-                  <tr><td class="doc">Term sheet / protocole BSA-AIR</td><td class="why">Tout se joue ici : montant, décote, plafond (cap), plancher (floor), échéance, levée qualifiante. Ces paramètres déterminent votre dilution future.</td><td class="who"><span class="pill pill--ess">Avocat — dès Essentiel</span></td></tr>
-                  <tr><td class="doc">Choix du modèle de contrat AIR</td><td class="why">Une base saine (modèle éprouvé ou personnalisé) évite l'essentiel des erreurs.</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-
-                  <tr class="step-row"><th colspan="3">Étape 3 · Documentation contractuelle</th></tr>
-                  <tr><td class="doc">Contrat d'émission et de souscription de BSA-AIR</td><td class="why">Le document pivot de l'opération.</td><td class="who"><span class="pill pill--ess">Avocat — dès Essentiel</span></td></tr>
-                  <tr><td class="doc">Modalités / termes des BSA (annexe)</td><td class="why">Les formules de conversion (cap, floor, décote) et l'anti-dilution : le cœur du risque.</td><td class="who"><span class="pill pill--ess">Avocat — dès Essentiel</span></td></tr>
-                  <tr><td class="doc">Bulletin de souscription des BSA</td><td class="why">Formalise la souscription de chaque investisseur.</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-                  <tr><td class="doc">Attestation de versement / dépôt des fonds</td><td class="why">Preuve du paiement de la prime d'émission.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">Pacte d'associés — ou engagement d'adhésion à la conversion</td><td class="why">Gouvernance, droits d'information, liquidité, non-concurrence.</td><td class="who"><span class="pill pill--ess">Avocat — dès Essentiel</span></td></tr>
-                  <tr><td class="doc">Side letter (MFN, droits d'information)</td><td class="why">Une side letter mal calibrée peut vider le deal de sa substance.</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-                  <tr><td class="doc">KYC / LCB-FT investisseurs</td><td class="why">Obligation légale anti-blanchiment.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-
-                  <tr class="step-row"><th colspan="3">Étape 4 · Décisions sociales &amp; formalités de closing</th></tr>
-                  <tr><td class="doc">Rapport du président sur l'émission des BSA + suppression du DPS</td><td class="why">Formalisme sanctionné par la nullité.</td><td class="who"><span class="pill pill--ess">Avocat — dès Essentiel</span></td></tr>
-                  <tr><td class="doc">Rapport du CAC sur l'émission avec suppression du DPS</td><td class="why">Rapport émis par le commissaire aux comptes (désigné ad hoc si besoin) ; l'avocat prépare et sécurise le formalisme, dont le délai est à anticiper.</td><td class="who"><span class="pill pill--ess">Avocat — dès Essentiel</span></td></tr>
-                  <tr><td class="doc">PV de décision collective des associés (AGE)</td><td class="why">Émission des BSA, suppression du DPS, délégations : le fondement juridique de l'opération.</td><td class="who"><span class="pill pill--ess">Avocat — dès Essentiel</span></td></tr>
-                  <tr><td class="doc">Décision du président constatant la souscription / émission</td><td class="why">Constate la réalisation effective.</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-                  <tr><td class="doc">Statuts mis à jour (le cas échéant)</td><td class="why">Reflet des valeurs mobilières émises.</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-                  <tr><td class="doc">Formalités greffe (dépôt des PV, M2, JAL si requis)</td><td class="why">Opposabilité aux tiers.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">Registre des mouvements de titres + inscription des BSA</td><td class="why">Traçabilité de l'émission.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">Attestation d'inscription des BSA en compte</td><td class="why">Preuve remise à l'investisseur.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-
-                  <tr class="step-row"><th colspan="3">Étape 5 · Post-closing &amp; suivi jusqu'à conversion</th></tr>
-                  <tr><td class="doc">Reporting périodique aux investisseurs</td><td class="why">Relation investisseur dans la durée.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">Suivi de la cap table pro forma</td><td class="why">Prévoir la dilution au tour suivant.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">Cadrage fiscal (l'IR-PME ne s'applique généralement pas aux BSA-AIR)</td><td class="why">On souscrit des bons, pas des actions : à signaler à vos investisseurs.</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-                  <tr><td class="doc">Exercice des BSA à la levée qualifiante / échéance</td><td class="why">Conversion en actions, augmentation de capital, formalités : une nouvelle opération à part entière.</td><td class="who"><span class="pill pill--out">Opération distincte</span></td></tr>
-                </tbody>
-              </table>
-            </div>
-            <p class="scope-note">Pièces situationnelles (due diligence approfondie, réglementaire sectoriel, structuration internationale, autres instruments — obligations convertibles, crowdfunding, venture debt…) : la plateforme fournit les modèles et le suivi lorsqu'ils existent ; l'intervention de l'avocat fait l'objet d'un devis séparé, au cas par cas.</p>
-          </div>
-
-          <!-- PÉRIMÈTRE LEVÉE CLASSIQUE -->
-          <div class="scope-block" id="perimetre-classique">
-            <h2 class="scope-title">Levée classique (actions de préférence) — tous les documents du parcours</h2>
-            <p class="scope-lead">La levée classique crée des actions de préférence : due diligence complète, garantie d'actif et de passif quasi systématique, formalisme renforcé. Le parcours documentaire est plus lourd — et le rôle de l'avocat plus central.</p>
-            <div class="scope-wrap">
-              <table class="scope">
-                <thead>
-                  <tr><th>Document</th><th>Rôle dans la levée</th><th>Pris en charge par</th></tr>
-                </thead>
-                <tbody>
-                  <tr class="step-row"><th colspan="3">Étape 0 · Mise en ordre de la société</th></tr>
-                  <tr><td class="doc">Statuts à jour (SAS ou SA)</td><td class="why">La base de l'opération.</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-                  <tr><td class="doc">Extrait Kbis (&lt; 3 mois) + RBE à jour</td><td class="why">Existence et conformité.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">Cap table actuelle + pro forma fully diluted (pool BSPCE, convertibles)</td><td class="why">La négociation de la dilution et du pool se joue sur ce document.</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-                  <tr><td class="doc">Registre des mouvements de titres + comptes d'associés</td><td class="why">Traçabilité du capital.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">Pacte existant + inventaire des BSA / BSPCE / AIR / convertibles</td><td class="why">Les AIR et convertibles antérieurs se convertissent souvent à ce tour.</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-                  <tr><td class="doc">PV et décisions antérieurs (délégations, augmentations passées)</td><td class="why">Historique de la société.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">Cession / apport de la PI des fondateurs à la société</td><td class="why">Prérequis de tout investisseur.</td><td class="who"><span class="pill pill--ess">Avocat — dès Essentiel</span></td></tr>
-                  <tr><td class="doc">Contrats clés (baux, contrats de travail, licences, gros clients)</td><td class="why">Alimentent la data room.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">Comptes annuels + situation intermédiaire + prévisionnel</td><td class="why">Produits avec votre expert-comptable.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">État des litiges / contentieux / assurances</td><td class="why">Base de la future garantie d'actif et de passif.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-
-                  <tr class="step-row"><th colspan="3">Étape 1 · Dealflow &amp; séduction des investisseurs</th></tr>
-                  <tr><td class="doc">Pitch deck / one-pager</td><td class="why">Le support commercial.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">Business plan + modèle financier</td><td class="why">Vos déclarations pourront être reprises en garanties.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">Data room organisée</td><td class="why">Le contenu engage (représentations).</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">NDA / accord de confidentialité</td><td class="why">Modèle standard.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-
-                  <tr class="step-row"><th colspan="3">Étape 2 · Term sheet &amp; négociation</th></tr>
-                  <tr><td class="doc">Term sheet / lettre d'intention</td><td class="why">Valorisation, montant et droits des ADP (préférence de liquidité, anti-dilution, véto, board, drag/tag, pool BSPCE…) : l'économie de tout le tour se fixe ici.</td><td class="who"><span class="pill pill--ess">Avocat — dès Essentiel</span></td></tr>
-                  <tr><td class="doc">Clause d'exclusivité / no-shop</td><td class="why">Souvent engageante : elle vous bloque pendant la due diligence.</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-
-                  <tr class="step-row"><th colspan="3">Étape 3 · Due diligence</th></tr>
-                  <tr><td class="doc">Questionnaire de due diligence + vos réponses</td><td class="why">Vos réponses vous engagent (adossées à la GAP).</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-                  <tr><td class="doc">Data room complète + index</td><td class="why">Organisation et complétude.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">Rapports d'audit (juridique, financier, fiscal, social, IP, technique)</td><td class="why">Révèlent les points à traiter avant signature.</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-                  <tr><td class="doc">Lettre de divulgation / disclosure schedules</td><td class="why">Les exceptions à la GAP — c'est le document qui vous protège.</td><td class="who"><span class="pill pill--ess">Avocat — dès Essentiel</span></td></tr>
-                  <tr><td class="doc">Legal opinion (parfois demandée)</td><td class="why">Sécurisation demandée par certains fonds.</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-
-                  <tr class="step-row"><th colspan="3">Étape 4 · Documentation contractuelle</th></tr>
-                  <tr><td class="doc">Protocole / contrat d'investissement (subscription agreement)</td><td class="why">Le document pivot de l'opération.</td><td class="who"><span class="pill pill--ess">Avocat — dès Essentiel</span></td></tr>
-                  <tr><td class="doc">Statuts modifiés créant les actions de préférence</td><td class="why">Les droits des ADP y vivent — opposables à tous.</td><td class="who"><span class="pill pill--ess">Avocat — dès Essentiel</span></td></tr>
-                  <tr><td class="doc">Pacte d'associés</td><td class="why">Gouvernance, liquidité, restrictions de transfert, clauses de départ (leaver).</td><td class="who"><span class="pill pill--ess">Avocat — dès Essentiel</span></td></tr>
-                  <tr><td class="doc">Garantie d'actif et de passif (GAP) + convention de garantie</td><td class="why">Votre responsabilité personnelle de fondateur est engagée.</td><td class="who"><span class="pill pill--ess">Avocat — dès Essentiel</span></td></tr>
-                  <tr><td class="doc">Garantie de la garantie (caution bancaire / séquestre / GAPA)</td><td class="why">Plafonne et sécurise votre exposition.</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-                  <tr><td class="doc">Bulletins de souscription</td><td class="why">Formalisent la souscription de chaque investisseur.</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-                  <tr><td class="doc">Management package / vesting fondateurs (good/bad leaver, reverse vesting)</td><td class="why">Touche vos propres actions.</td><td class="who"><span class="pill pill--ess">Avocat — dès Essentiel</span></td></tr>
-                  <tr><td class="doc">Plan BSPCE / pool d'intéressement</td><td class="why">Rétention des équipes.</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-                  <tr><td class="doc">Engagements de non-concurrence / exclusivité des fondateurs</td><td class="why">Vous engagent personnellement.</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-                  <tr><td class="doc">Side letters (MFN, droits spécifiques d'un fonds)</td><td class="why">Peuvent déséquilibrer le deal.</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-                  <tr><td class="doc">Assurance D&amp;O (souvent exigée par les fonds)</td><td class="why">Protection des dirigeants.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">KYC / LCB-FT investisseurs</td><td class="why">Obligation légale anti-blanchiment.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-
-                  <tr class="step-row"><th colspan="3">Étape 5 · Décisions sociales &amp; formalités de closing</th></tr>
-                  <tr><td class="doc">Rapport du commissaire aux avantages particuliers</td><td class="why">Obligatoire si les ADP profitent à des personnes dénommées ; sa désignation par ordonnance ajoute des semaines au calendrier — à anticiper.</td><td class="who"><span class="pill pill--ess">Avocat — dès Essentiel</span></td></tr>
-                  <tr><td class="doc">Rapport du président sur l'augmentation de capital + suppression du DPS</td><td class="why">Formalisme sanctionné par la nullité.</td><td class="who"><span class="pill pill--ess">Avocat — dès Essentiel</span></td></tr>
-                  <tr><td class="doc">Rapport du CAC sur la suppression du DPS</td><td class="why">Rapport émis par le commissaire aux comptes (ad hoc si besoin) ; l'avocat prépare et sécurise le formalisme.</td><td class="who"><span class="pill pill--ess">Avocat — dès Essentiel</span></td></tr>
-                  <tr><td class="doc">PV de décision collective (AGE)</td><td class="why">Augmentation, création des ADP, suppression du DPS, statuts, délégations : le fondement juridique de l'opération.</td><td class="who"><span class="pill pill--ess">Avocat — dès Essentiel</span></td></tr>
-                  <tr><td class="doc">Décision du président constatant la réalisation de l'augmentation</td><td class="why">Constate la réalisation effective.</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-                  <tr><td class="doc">Certificat du dépositaire des fonds (banque / notaire)</td><td class="why">Obligatoire pour une augmentation en numéraire.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">Statuts mis à jour signés</td><td class="why">La version définitive.</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-                  <tr><td class="doc">Formalités greffe (M2, dépôt PV + statuts, JAL)</td><td class="why">Opposabilité aux tiers.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">Registre des mouvements de titres + inscription des ADP</td><td class="why">Traçabilité.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">Attestations d'inscription en compte</td><td class="why">Preuve pour les investisseurs.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-
-                  <tr class="step-row"><th colspan="3">Étape 6 · Post-closing, conditions suspensives &amp; suivi</th></tr>
-                  <tr><td class="doc">Levée des conditions suspensives + legal opinions</td><td class="why">Déclenche le versement des fonds.</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-                  <tr><td class="doc">Conversion des convertibles / BSA-AIR antérieurs au tour</td><td class="why">Opération à part entière, qui impacte la cap table de ce tour : mission dédiée, à anticiper dès la term sheet.</td><td class="who"><span class="pill pill--off">Hors packs — sur devis</span></td></tr>
-                  <tr><td class="doc">Reporting investisseurs + PV de conseil / comité</td><td class="why">Gouvernance courante.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                  <tr><td class="doc">Attributions BSPCE</td><td class="why">Chaque attribution doit être documentée.</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-                  <tr><td class="doc">Cadrage fiscal — IR-PME possible sous conditions</td><td class="why">À sécuriser pour vos investisseurs (souscription d'actions).</td><td class="who"><span class="pill pill--ser">Avocat — Complet</span></td></tr>
-                  <tr><td class="doc">Suivi de la cap table pro forma</td><td class="why">Prévoir les tours suivants.</td><td class="who"><span class="pill pill--plat">Plateforme</span></td></tr>
-                </tbody>
-              </table>
-            </div>
-            <p class="scope-note">Pièces situationnelles (due diligence approfondie, réglementaire sectoriel — IEF, ACPR/AMF —, structuration internationale, autres instruments) : la plateforme fournit les modèles et le suivi lorsqu'ils existent ; l'intervention de l'avocat fait l'objet d'un devis séparé, au cas par cas.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- MISSION AVOCAT -->
-      <section class="section" id="mission-avocat" style="padding-top:16px;">
-        <div class="section__inner">
-          <span class="eyebrow">Périmètre de mission</span>
-          <h2 class="section__title">Ce que fait — et ne fait pas — l'avocat partenaire.</h2>
-          <p class="section__sub">Un cadre net protège tout le monde : vous savez exactement ce que couvre le forfait, et l'avocat exerce en toute indépendance.</p>
-          <div class="mission">
-            <div class="mission-card">
-              <h3>Le cadre</h3>
-              <ul>
-                <li>La mission est conclue <strong>directement entre vous et l'avocat</strong> : lettre de mission et convention d'honoraires signées avant tout démarrage.</li>
-                <li>Les packs avocat sont <strong>chiffrés au devis</strong> ; l'avocat confirme le montant exact après un premier échange sur votre dossier.</li>
-                <li>L'avocat vous <strong>facture en direct</strong>. Liquid+ ne facture aucune prestation de conseil juridique et ne partage pas d'honoraires.</li>
-                <li>Vos échanges avec l'avocat sont couverts par le <strong>secret professionnel</strong> et se tiennent en direct (courriels et visioconférences), hors de la plateforme.</li>
-              </ul>
-            </div>
-            <div class="mission-card mission-card--in">
-              <h3>Inclus dans le forfait</h3>
-              <ul>
-                <li>La <strong>rédaction et/ou la validation</strong> de chaque acte marqué « Avocat » dans les tableaux ci-dessus, selon le pack choisi.</li>
-                <li>Pack Essentiel : les actes <strong>critiques</strong> — cœur économique du deal et formalisme sanctionné par la nullité.</li>
-                <li>Pack Complet : Essentiel + tous les documents <strong>importants</strong> — revue des pièces de due diligence dans la limite de 15 documents —, jusqu'à la revue finale de la documentation avant signature.</li>
-                <li>Les réponses à vos questions sur les actes couverts par la mission.</li>
-              </ul>
-            </div>
-            <div class="mission-card mission-card--out">
-              <h3>Hors forfait</h3>
-              <ul>
-                <li>Les <strong>pièces situationnelles</strong> : réglementaire sectoriel (IEF, agréments), structuration internationale (flip, 83(b)), autres instruments (OC, crowdfunding, venture debt) — sur devis séparé.</li>
-                <li>Le contentieux et le précontentieux.</li>
-                <li>Votre fiscalité personnelle de fondateur.</li>
-                <li>Votre <strong>conseil personnel</strong> : l'avocat de la mission défend la société, pas chaque fondateur. Sur la GAP, le vesting ou les clauses de départ, un autre avocat partenaire peut s'en charger, sur demande.</li>
-                <li>Pour un BSA-AIR : la <strong>conversion au tour suivant</strong> (levée qualifiante), qui constitue une opération distincte.</li>
-                <li>Pour une levée classique : la <strong>conversion des BSA-AIR / convertibles antérieurs</strong> au tour — opération à part entière, mission dédiée sur devis.</li>
-                <li>Au-delà de <strong>15 pièces de due diligence</strong> relues (pack Complet) : complément chiffré et accepté avant tout travail.</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- CTA -->
-      <section class="cta">
-        <h2>Un périmètre net.<br>Zéro surprise au closing.</h2>
-        <p>Essayez gratuitement, puis passez à Liquid+ Intégral — satisfait ou remboursé sous 30 jours.</p>
-        <a href="register.html" class="btn-lg">Essayez gratuitement</a>
-      </section>
-
     </main>
 
-    <!-- FOOTER -->
     <footer class="footer">
       <div class="footer__inner">
         <div class="footer__col footer__brand">
-          <a href="index.html" class="brand"><span class="brand__mark" aria-hidden="true"><svg viewBox="-10 -12 60 76" focusable="false"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/></svg></span>liquid <span>+</span></a>
-          <p>Le cockpit juridique de votre levée de fonds.</p>
+          <a href="index.html" class="logo"><span class="logo-mark" aria-hidden="true"><svg viewBox="-10 -12 60 76" focusable="false"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/></svg></span><span class="logo-wordmark">Liquid+</span></a>
+          <p>Le cockpit juridique des levées de fonds.</p>
         </div>
         <div class="footer__col">
           <h4>Produit</h4>
-          <a href="/saas/tableau-de-bord.html">Préparer ma levée de fonds</a>
-          <a href="offres.html">Offres &amp; périmètre détaillé</a>
-        </div>
-        <div class="footer__col">
-          <h4>Ressources</h4>
-          <a href="marche.html">Données de marché</a>
-          <a href="comment-ca-marche.html">Comment ça marche</a>
+          <a href="/saas/tableau-de-bord.html">Préparer des levées de fonds</a>
+          <a href="offres.html">Nos services</a>
         </div>
         <div class="footer__col">
           <h4>Légal</h4>
@@ -434,11 +113,35 @@
         </div>
       </div>
       <div class="footer__bottom">
-        © 2026 liquid +. Cette page décrit le process documentaire général d'une levée de fonds ; elle constitue une information générale et non un conseil juridique ou fiscal personnalisé. liquid + vous rend autonome sur la lecture et la négociation de vos documents juridiques ; il ne se substitue pas à un conseil juridique personnalisé pour les cas complexes.
+        © 2026 liquid +. liquid + vous rend autonome sur la lecture et la négociation de vos documents juridiques ; il ne se substitue pas à un conseil juridique personnalisé pour les cas complexes.
       </div>
     </footer>
 
+    <script>
+      (() => {
+        const button = document.getElementById('nav-hamburger');
+        const menu = document.getElementById('mobile-menu');
+        const close = document.getElementById('mobile-close');
+        if (!button || !menu) return;
+        const closeMenu = () => {
+          menu.classList.remove('open');
+          button.classList.remove('open');
+          button.setAttribute('aria-expanded', 'false');
+          document.body.style.overflow = '';
+        };
+        button.addEventListener('click', () => {
+          menu.classList.add('open');
+          button.classList.add('open');
+          button.setAttribute('aria-expanded', 'true');
+          document.body.style.overflow = 'hidden';
+        });
+        close?.addEventListener('click', closeMenu);
+        menu.addEventListener('click', event => {
+          if (event.target.tagName === 'A') closeMenu();
+        });
+      })();
+    </script>
     <script src="nav.js"></script>
-  <script src="/i18n.js?v=1"></script>
+    <script src="/i18n.js?v=1"></script>
   </body>
 </html>
