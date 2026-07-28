@@ -343,6 +343,50 @@
       .footer-contact__calendly { background: #111; color: #fff !important; }
       .footer__bottom { color: #8a857b; border-top-color: #ddd9d1; }
 
+      .services-section {
+        width: calc(100% - 80px);
+        max-width: 1080px;
+        margin: 64px auto 0;
+        padding: 32px;
+        scroll-margin-top: 90px;
+        border: 1px solid #ddd9d1;
+        border-radius: 18px;
+        background: rgba(255,255,255,.68);
+      }
+      .services-section__intro { margin-bottom: 24px; text-align: center; }
+      .services-section__intro h2 { margin-bottom: 8px; font-size: clamp(1.45rem, 3vw, 2rem); letter-spacing: -.03em; }
+      .services-section__intro p { color: #78736a; font-size: 13px; line-height: 1.6; }
+      .services-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+      .service-block {
+        position: relative;
+        display: grid;
+        min-height: 220px;
+        place-items: center;
+        overflow: hidden;
+        padding: 32px;
+        border: 1px solid #d8d4cc;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 14px 36px rgba(30,28,24,.06);
+        text-align: center;
+        transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+      }
+      .service-block::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: 64px;
+        height: 3px;
+        border-radius: 0 0 99px 99px;
+        background: #22c55e;
+        transform: translateX(-50%);
+      }
+      .service-block h3 { color: #171714; font-size: clamp(1.1rem, 2.4vw, 1.5rem); font-weight: 700; letter-spacing: .055em; line-height: 1.25; }
+      @media (hover: hover) {
+        .service-block:hover { transform: translateY(-3px); border-color: #c2dfc6; box-shadow: 0 20px 46px rgba(30,28,24,.1); }
+      }
+
       @media (max-width: 860px) {
         .hero { padding: 64px 20px 0; }
         .preview-ws { grid-template-columns: 1fr; }
@@ -350,6 +394,9 @@
         .section { padding: 64px 20px; }
         .features, .plans, .panels { grid-template-columns: 1fr; }
         .hero__benefits { grid-template-columns: 1fr; gap: 16px; }
+        .services-section { width: calc(100% - 40px); margin-top: 40px; padding: 24px 20px; }
+        .services-grid { grid-template-columns: 1fr; }
+        .service-block { min-height: 170px; padding: 24px; }
         .footer { padding: 40px 20px 0; }
         .footer__inner { gap: 32px; }
         .footer-contact { width: calc(100% - 40px); margin: 40px auto; grid-template-columns: 1fr; gap: 24px; padding: 24px 20px; }
@@ -374,7 +421,7 @@
         <a class="logo" href="#top"><span class="logo-mark" aria-hidden="true"><svg viewBox="-10 -12 60 76" focusable="false"><path d="M20 2C20 2 2 22 2 34C2 44.5 10 50 20 50C30 50 38 44.5 38 34C38 22 20 2 20 2Z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/></svg></span><span class="logo-wordmark">LIQUID+</span></a>
         <div class="nav-primary" aria-label="Navigation principale">
           <a class="nav-primary__link nav-primary__link--active" href="#top" aria-current="page">PILOTER LES LEVÉES</a>
-          <a class="nav-primary__link" href="offres.html">NOS SERVICES</a>
+          <a class="nav-primary__link" href="#services">NOS SERVICES</a>
           <a class="nav-primary__link" href="#contact">NOUS CONTACTER</a>
         </div>
         <a class="nav-signup" id="nav-signup" href="register.html"><span class="nav-signup__label">Créez un compte</span></a>
@@ -384,7 +431,7 @@
     <div class="mobile-menu" id="mobile-menu" role="dialog" aria-label="Navigation">
       <button class="nav-hamburger" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
       <a href="#top">PILOTER LES LEVÉES</a>
-      <a href="offres.html">NOS SERVICES</a>
+      <a href="#services">NOS SERVICES</a>
       <a href="#contact">NOUS CONTACTER</a>
       <hr class="mobile-divider" aria-hidden="true" />
       <a href="login.html" style="font-size:1.1rem; color:rgba(255,255,255,0.5);">ME CONNECTER</a>
@@ -438,7 +485,7 @@
           document.getElementById('mobile-menu').innerHTML = `
             <button class="nav-hamburger" id="mobile-close" aria-label="Fermer" style="position:absolute;top:24px;right:6vw;"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
             <a href="#top">PILOTER LES LEVÉES</a>
-            <a href="offres.html">NOS SERVICES</a>
+            <a href="#services">NOS SERVICES</a>
             <a href="#contact">NOUS CONTACTER</a>
             <hr class="mobile-divider" aria-hidden="true" />
             <a href="/saas/tableau-de-bord.html" style="font-size:1.1rem; color:rgba(255,255,255,0.5);">MON ESPACE</a>
@@ -470,7 +517,7 @@
           <div class="hbenefit"><span class="hbenefit__dot"></span><span class="hbenefit__text"><strong>Réduisez vos frais d'avocat</strong> — Liquid+ prépare et structure votre dossier en amont, pour que l'avocat se concentre uniquement sur les sujets qui exigent son expertise.</span></div>
           <div class="hbenefit"><span class="hbenefit__dot"></span><span class="hbenefit__text"><strong>Gagnez du temps à chaque levée</strong> — documents, validations et échanges sont réunis dans un même parcours pour avancer sans blocage ni aller-retour inutile.</span></div>
           <div class="hbenefit"><span class="hbenefit__dot"></span><span class="hbenefit__text"><strong>Avancez pas à pas, même sans expertise juridique</strong> — la plateforme vous guide à chaque étape, explique les notions clés et vous indique précisément quoi faire.</span></div>
-          <div class="hbenefit"><span class="hbenefit__dot"></span><span class="hbenefit__text"><strong>Une IA cloisonnée, dossier par dossier</strong> — l'IA n'accède qu'aux informations utiles au dossier en cours, sans circulation de données entre utilisateurs.</span></div>
+          <div class="hbenefit"><span class="hbenefit__dot"></span><span class="hbenefit__text"><strong>Aucune fuite de données par l'IA</strong> — chaque dossier reste strictement cloisonné, sans transmission d'informations entre utilisateurs.</span></div>
         </div>
 
         <!-- EDITOR PREVIEW MOCKUP -->
@@ -597,6 +644,21 @@
 
     </main>
 
+    <section class="services-section" id="services" aria-labelledby="services-title">
+      <div class="services-section__intro">
+        <h2 id="services-title">Nos services</h2>
+        <p>Liquid+ accompagne les professionnels qui structurent et financent les levées de fonds.</p>
+      </div>
+      <div class="services-grid">
+        <article class="service-block">
+          <h3>LEVEUR DE FONDS</h3>
+        </article>
+        <article class="service-block">
+          <h3>FAMILY OFFICES</h3>
+        </article>
+      </div>
+    </section>
+
     <section class="footer-contact" id="contact" aria-labelledby="footer-contact-title">
       <div class="footer-contact__intro">
         <h4 id="footer-contact-title">Nous contacter</h4>
@@ -635,7 +697,7 @@
         <div class="footer__col">
           <h4>Produit</h4>
           <a href="/saas/tableau-de-bord.html">Préparer une levée de fonds</a>
-          <a href="offres.html">Nos services</a>
+          <a href="#services">Nos services</a>
         </div>
         <div class="footer__col">
           <h4>Légal</h4>
@@ -654,8 +716,9 @@
     <script>
       (() => {
         const links = Array.from(document.querySelectorAll('.nav-primary__link'));
+        const services = document.getElementById('services');
         const contact = document.getElementById('contact');
-        if (!links.length || !contact) return;
+        if (!links.length || !services || !contact) return;
 
         const setActiveLink = href => {
           links.forEach(link => {
@@ -681,10 +744,11 @@
             return;
           }
           const contactTop = contact.getBoundingClientRect().top;
+          const servicesTop = services.getBoundingClientRect().top;
           // La section contact est trop basse pour jamais atteindre le seuil des
           // 90 px : arrivé en bas de page, on la considère active quoi qu'il en soit.
           const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2;
-          setActiveLink(atBottom || contactTop <= 90 ? '#contact' : '#top');
+          setActiveLink(atBottom || contactTop <= 90 ? '#contact' : (servicesTop <= 90 ? '#services' : '#top'));
           ticking = false;
         };
         window.addEventListener('scroll', () => {
