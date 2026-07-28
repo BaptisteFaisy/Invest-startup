@@ -188,7 +188,7 @@ window.LIQUID_I18N_EN = {
  "Réduisez vos frais d'avocat": "Cut your legal fees",
  "Société": "Company",
  "Sur devis": "On quotation",
- "Réduisez les frais d'avocat liés à chaque investissement, avec une IA strictement cloisonnée et aucune fuite de données entre dossiers ou utilisateurs.": "Reduce the legal fees associated with each investment, with a strictly isolated AI environment and no data leakage between files or users.",
+ "Réduisez les frais d'avocat liés à chaque investissement, avec une IA strictement cloisonnée et aucune fuite de données.": "Reduce the legal fees associated with each investment, with a strictly isolated AI environment and no data leakage.",
  "Frais maîtrisés · Données protégées": "Controlled fees · Protected data",
  "Tarifs": "Pricing",
  "TARIFS": "PRICING",
