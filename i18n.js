@@ -318,7 +318,7 @@
       btn.type = 'button';
       btn.className = 'i18n-switch__btn';
       btn.setAttribute('aria-pressed', String(code === lang));
-      btn.setAttribute('title', code === 'fr' ? 'Français' : 'English');
+      btn.setAttribute('title', code === 'fr' ? (lang === 'en' ? 'French' : 'Français') : 'English');
       btn.innerHTML = '<span>' + code.toUpperCase() + '</span>';
       btn.addEventListener('click', function () { setLang(code); });
       wrap.appendChild(btn);
